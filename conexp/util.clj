@@ -27,9 +27,34 @@
 (defmacro => [a b]
   `(if ~a ~b true))
 
+(defmacro <=> [a b]
+  `(or (and ~a ~b)
+       (and (not ~a) (not ~b))))
+
 (defmacro forall [bindings condition]
   `(every? identity
 	   (for ~bindings ~condition)))
 
+(defmacro exists [bindings condition]
+  `(or (some identity
+	     (for ~bindings ~condition))
+       false))
+
 (defmacro set-of [thing condition]
   `(set (for ~condition ~thing)))
+
+(defn zip [seq-1 seq-2]
+  (if (or (empty? seq-1)
+	  (empty? seq-2))
+    (empty seq-1)
+    (lazy-seq
+      (cons [(first seq-1) (first seq-2)]
+	    (zip (rest seq-1) (rest seq-2))))))
+
+(defn subelts 
+  "Returns a subsequence of G until i is reached."
+  [G i]
+  (if (or (empty? G) (= (first G) i))
+    (empty G)
+    (conj (subelts (rest G) i) 
+	  (first G))))

@@ -1,6 +1,7 @@
 (ns conexp.fca.contexts
   (:gen-class
-   :name "conexp.fca.Context"
+   :name conexp.fca.Context
+   :prefix "Context-"
    :init init
    :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet clojure.lang.IFn ] [] }
    :state state)
@@ -8,9 +9,8 @@
 	[clojure.set :only (intersection)]
 	conexp.base
 	conexp.util))
-	
 
-(defn -init [objects attributes incidence]
+(defn Context-init [objects attributes incidence]
   [ [] {:objects objects :attributes attributes :incidence incidence} ])
 
 (defn objects [ctx]
@@ -22,7 +22,7 @@
 (defn incidence [ctx]
   ((.state ctx) :incidence))
 
-(defn -toString [this]
+(defn Context-toString [this]
   (let [objects    (vec ((.state this) :objects))
 	attributes (vec ((.state this) :attributes))
 	incidence  ((.state this) :incidence)]
@@ -42,7 +42,7 @@
 		" "])
 	    "\n" ])))))
 
-(defn -equals [this other]
+(defn Context-equals [this other]
   (and (= (objects this) (objects other))
        (= (attributes this) (attributes other))
        (= (incidence this) (incidence other))))
@@ -72,11 +72,10 @@
 	    [g obj
 	     m att
 	     :when (and (not (inz [g m]))
-			(let [g-prime (object-derivation ctx #{g})]
 			  (forall [h obj]
-				  (let [h-prime (object-derivation ctx #{h})]
-				    (=> (proper-subset? g-prime h-prime)
-					(inz [h m]))))))])))
+				  (=> (proper-subset? (object-derivation ctx #{g})
+						      (object-derivation ctx #{h}))
+				      (inz [h m]))))])))
 
 (defn up-arrows [ctx]
   (let [obj (objects ctx)
@@ -86,11 +85,10 @@
 	    [g obj
 	     m att
 	     :when (and (not (inz [g m]))
-			(let [m-prime (attribute-derivation ctx #{m})]
-			  (forall [n att]
-				  (let [n-prime (attribute-derivation ctx #{n})]
-				    (=> (proper-subset? m-prime n-prime)
-					(inz [g n]))))))])))
+			(forall [n att]
+				(=> (proper-subset? (attribute-derivation ctx #{m})
+						    (attribute-derivation ctx #{n}))
+				    (inz [g n]))))])))
 
 (defn up-down-arrows [ctx]
   (intersection (up-arrows ctx) (down-arrows ctx)))
@@ -106,6 +104,17 @@
 				(new-att (second %)))
 			  inz)]
     (make-context new-obj new-att new-inz))))
+
+(defn reduced? [ctx]
+  (let [obj (objects ctx)
+	att (attributes ctx)
+	uda (up-down-arrows ctx)]
+    (and (forall [g obj]
+		 (exists [ [h _] uda ]
+			 (= g h)))
+	 (forall [m att]
+		 (exists [ [_ n] uda ]
+			 (= m n))))))
 
 (defn transpose-context [ctx]
   (make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
