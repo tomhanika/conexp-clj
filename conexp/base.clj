@@ -22,4 +22,7 @@
        (oplus-A i)))))
 
 (defn all-closed-sets [G clop]
-  (take-while identity (iterate (partial next-closed-set G clop) #{})))
+  (take-while identity (iterate (partial next-closed-set G clop) (clop #{}))))
+
+(defn subsets [set]
+  (all-closed-sets set identity))

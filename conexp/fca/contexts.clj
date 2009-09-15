@@ -118,3 +118,19 @@
 
 (defn transpose-context [ctx]
   (make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
+
+(defn context-object-closure [ctx set-of-objects]
+  (attribute-derivation ctx (object-derivation ctx set-of-objects)))
+
+(defn context-extends [ctx]
+  (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
+
+(defn context-attribute-closure [ctx set-of-attributes]
+  (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
+
+(defn context-intents [ctx]
+  (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
+
+(defn concepts [ctx]
+  (set-of [ objs (object-derivation ctx objs) ]
+	  [ objs (context-extends ctx) ]))
