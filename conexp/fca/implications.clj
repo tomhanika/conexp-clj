@@ -23,7 +23,8 @@
   (str "( " (premise this) "  ==>  " (conclusion this) " )"))
 
 (defn Implication-equals [this other]
-  (and (= (premise this) (premise other))
+  (and (instance? conexp.fca.Implication other)
+       (= (premise this) (premise other))
        (= (conclusion this) (conclusion other))))
 
 (defn make-implication [premise conclusion]

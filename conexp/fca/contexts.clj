@@ -26,8 +26,8 @@
   (let [objects    (vec ((.state this) :objects))
 	attributes (vec ((.state this) :attributes))
 	incidence  ((.state this) :incidence)]
-    (let [max-att (reduce #(max (count (str %2)) %1) attributes)
-	  max-obj (reduce #(max (count (str %2)) %1) objects)]
+    (let [max-att (reduce #(max %1 (count (str %2))) 0 attributes)
+	  max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
       (with-str-out
 	"\n" 
 	(ensure-length "" max-obj " ") " |" (for [att attributes] [att " "]) "\n"
@@ -43,7 +43,8 @@
 	    "\n" ])))))
 
 (defn Context-equals [this other]
-  (and (= (objects this) (objects other))
+  (and (instance? conexp.fca.Context other)
+       (= (objects this) (objects other))
        (= (attributes this) (attributes other))
        (= (incidence this) (incidence other))))
 
