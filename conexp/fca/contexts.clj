@@ -48,21 +48,25 @@
        (= (attributes this) (attributes other))
        (= (incidence this) (incidence other))))
 
-(defn type-of-incidence [_ _ in]
+(defn type-of [thing]
   (cond
-    (set? in) ::set
-    (fn? in) ::fn
+    (set? thing) ::set
+    (fn? thing) ::fn
+    (seq? thing) ::seq
     :else :invalid))
 
-(defmulti make-context type-of-incidence)
+(defmulti make-context (fn [o a i] [(type-of o) (type-of a) (type-of i)]))
 
-(defmethod make-context ::set [objects attributes incidence]
-  (conexp.fca.Context. (set objects) (set attributes) (set incidence)))
+(defmethod make-context [::set ::set ::set] [objects attributes incidence]
+  (conexp.fca.Context. objects attributes (set incidence)))
 
-(defmethod make-context ::fn [objects attributes incidence]
+(defmethod make-context [::set ::set ::fn] [objects attributes incidence]
   (make-context (set objects) (set attributes) (set-of [x y] [x objects
 							      y attributes
 							      :when (incidence x y)])))
+
+(defmethod make-context :default [obj att inz]
+  (throw (IllegalArgumentException. (str "The arguments " obj ", " att " and " inz " are not valid"))))
 
 (defn object-derivation [ctx objects]
   (let [{:keys [incidence attributes]} (.state ctx)]
