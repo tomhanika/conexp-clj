@@ -48,8 +48,21 @@
        (= (attributes this) (attributes other))
        (= (incidence this) (incidence other))))
 
-(defn make-context [objects attributes incidence]
+(defn type-of-incidence [_ _ in]
+  (cond
+    (set? in) ::set
+    (fn? in) ::fn
+    :else :invalid))
+
+(defmulti make-context type-of-incidence)
+
+(defmethod make-context ::set [objects attributes incidence]
   (conexp.fca.Context. (set objects) (set attributes) (set incidence)))
+
+(defmethod make-context ::fn [objects attributes incidence]
+  (make-context (set objects) (set attributes) (set-of [x y] [x objects
+							      y attributes
+							      :when (incidence x y)])))
 
 (defn object-derivation [ctx objects]
   (let [{:keys [incidence attributes]} (.state ctx)]
