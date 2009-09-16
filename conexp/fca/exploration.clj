@@ -67,7 +67,5 @@
 			   (fn [new-atts]
 			     (and (subset? new-atts (attributes ctx))
 				  (falsifies-implication? new-atts impl)))
-			   "These attributes are not valid or do not falsify the implication.\nPlease enter a new set (in the form #{... atts ...}): "
-				  
-			   )]
+			   "These attributes are not valid or do not falsify the implication.\nPlease enter a new set (in the form #{... atts ...}): ")]
 	  [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]])))))

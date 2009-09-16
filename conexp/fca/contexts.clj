@@ -86,10 +86,10 @@
 	    [g obj
 	     m att
 	     :when (and (not (inz [g m]))
-			  (forall [h obj]
-				  (=> (proper-subset? (object-derivation ctx #{g})
-						      (object-derivation ctx #{h}))
-				      (inz [h m]))))])))
+			(forall [h obj]
+				(=> (proper-subset? (object-derivation ctx #{g})
+						    (object-derivation ctx #{h}))
+				    (inz [h m]))))])))
 
 (defn up-arrows [ctx]
   (let [obj (objects ctx)
