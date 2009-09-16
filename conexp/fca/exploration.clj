@@ -5,26 +5,6 @@
 	conexp.fca.contexts
 	conexp.fca.implications))
 
-(defn falsifies-implication? [new-atts impl]
-  (and (subset? (premise impl) new-atts)
-       (not (subset? (conclusion impl) new-atts))))
-
-(defn ask [prompt]
-  (do
-    (print prompt)
-    (flush)
-    (read)))
-
-(defn default-handler [ctx impl]
-  (do
-    (print ctx)
-    (let [answer (ask (str "Does the implication " impl " hold? "))]
-      (if (= answer 'yes)
-	[true []]
-	(let [new-obj (ask (str "Please enter new object: "))
-	      new-att (ask (str "Please enter the attributes the new object should have: "))]
-	  [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]])))))
-
 (defn explore-attributes [ctx handler]
   (loop [implications #{}
 	 last         #{}
@@ -55,3 +35,39 @@
 					(clop-by-implications* implications)
 					last)
 		       new-ctx)))))))))
+
+(defn falsifies-implication? [new-atts impl]
+  (and (subset? (premise impl) new-atts)
+       (not (subset? (conclusion impl) new-atts))))
+
+(defn ask [prompt pred fail-message]
+  (do
+    (print prompt)
+    (flush)
+    (loop [answer (read)]
+      (if (pred answer)
+	answer
+	(do
+	  (print fail-message)
+	  (flush)
+	  (recur (read)))))))
+
+(defn default-handler [ctx impl]
+  (do
+    (prn ctx)
+    (let [answer (ask (str "Does the implication " impl " hold? ") 
+		      #{'yes 'no} 
+		      "Please answer 'yes' or 'no': ")]
+      (if (= answer 'yes)
+	[true []]
+	(let [new-obj (ask (str "Please enter new object: ")
+			   (fn [new-obj] (not ((objects ctx) new-obj)))
+			   "This object is already present, please enter a new one: ")
+	      new-att (ask (str "Please enter the attributes the new object should have: ")
+			   (fn [new-atts]
+			     (and (subset? new-atts (attributes ctx))
+				  (falsifies-implication? new-atts impl)))
+			   "These attributes are not valid or do not falsify the implication.\nPlease enter a new set (in the form #{... atts ...}): "
+				  
+			   )]
+	  [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]])))))
