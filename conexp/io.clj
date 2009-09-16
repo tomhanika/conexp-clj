@@ -2,10 +2,17 @@
   (:use conexp.fca.contexts
 	conexp.util
 	[clojure.contrib.str-utils :only (str-join)]
-	[clojure.contrib.duck-streams :only (reader)]))
+	[clojure.contrib.duck-streams :only (reader)]
+	[clojure.set :only (union)]))
 
 (defn illegal-argument [& strings]
   (throw (IllegalArgumentException. (apply str strings))))
+
+(defn get-line [input-reader]
+  (.readLine input-reader))
+
+(defn get-lines [input-reader n]
+  (doall (take n (repeatedly #(get-line input-reader)))))
 
 (defmulti write-context (fn [method ctx] method))
 
@@ -14,8 +21,12 @@
     (dosync (alter known-context-input-formats assoc name predicate)))
   
   (defn find-context-input-format [file]
-    (first (for [[name predicate] @known-context-input-formats :when (predicate file)]
-	     name))))
+    (with-open [input-reader (reader file)]
+      (let [input-lines (take-while identity (repeatedly #(.readLine input-reader)))]
+	(first
+	 (for [[name predicate] @known-context-input-formats
+	       :when (predicate input-lines)]
+	   name))))))
 
 (defmulti read-context find-context-input-format)
 
@@ -23,11 +34,11 @@
   (illegal-argument "Method " method " for context output is not known."))
 
 (defmethod read-context :default [file]
-  (illegal-argument "Cannot determind format of context in " file))
+  (illegal-argument "Cannot determine format of context in " file))
 
-
+;;;
 ;;; Formats
-
+;;;
 
 ;; Burmeister Format
 
@@ -50,30 +61,29 @@
 		     (objects ctx))))))
 
 (add-context-input-format :burmeister
-			  (fn [file]
-			    (let [first-character (first (.readLine (reader file)))]
-			      (= \B first-character))))
+			  (fn [input-lines]
+			    (= \B (first (first input-lines)))))
 
-(defmethod read-context :burmeister [file] ; this implementation is bad, reads in the whole file
-  (let [input (reader file)
-	input-stream (take-while identity (repeatedly #(.readLine input)))]
-    (do
-      (let [number-of-objects    (Integer/parseInt (nth input-stream 2))
-	    number-of-attributes (Integer/parseInt (nth input-stream 3))
+(defmethod read-context :burmeister [file]
+  (with-open [input (reader file)]
+    (let [_                    (get-lines input 2) ; "B\n\n"
 
-	    seq-of-objects       (map #(nth input-stream %) (range 5 (+ 5 number-of-objects)))
-	    seq-of-attributes    (map #(nth input-stream %) (range (+ 5 number-of-objects)
-								   (+ 5 number-of-attributes number-of-objects)))
-	    incidence-matrix     (map #(nth input-stream %) (range (+ 5 number-of-attributes number-of-objects)
-								   (+ 5 number-of-objects number-of-attributes
-								      number-of-objects)))
+	  number-of-objects    (Integer/parseInt (get-line input))
+	  number-of-attributes (Integer/parseInt (get-line input))
 
-	    incidence (set-of [(nth seq-of-objects idx-g) (nth seq-of-attributes idx-m)]
-			      [idx-g (range number-of-objects)
-			       idx-m (range number-of-attributes)
-			       :when (= \X (nth (nth incidence-matrix idx-g) idx-m))])]
+	  _                    (get-line input)	; "\n"
+
+	  seq-of-objects       (get-lines input number-of-objects)
+	  seq-of-attributes    (get-lines input number-of-attributes)]
+      (loop [objs seq-of-objects
+	     incidence #{}]
+	(if (empty? objs)
 	  (make-context (set seq-of-objects)
 			(set seq-of-attributes)
-			incidence)))))
-			    
-	
+			incidence)
+	  (let [line (get-line input)]
+	    (recur (rest objs)
+		   (union incidence
+			  (set-of [(first objs) (nth seq-of-attributes idx-m)]
+				  [idx-m (range number-of-attributes)
+				   :when (= \X (nth line idx-m))])))))))))
