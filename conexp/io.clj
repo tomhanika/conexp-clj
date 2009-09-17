@@ -3,7 +3,8 @@
 	conexp.util
 	[clojure.contrib.str-utils :only (str-join)]
 	[clojure.contrib.duck-streams :only (reader with-out-writer)]
-	[clojure.set :only (union)]))
+	[clojure.set :only (union)]
+	[clojure.contrib.lazy-xml :only (parse-trim)]))
 
 ;;; Helper
 
@@ -28,6 +29,9 @@
 (let [known-context-input-formats (ref {})]
   (defn add-context-input-format [name predicate]
     (dosync (alter known-context-input-formats assoc name predicate)))
+
+  (defn get-known-context-input-formats []
+    (keys @known-context-input-formats))
   
   (defn find-context-input-format [file]
     (with-open [input-reader (reader file)]
@@ -93,3 +97,51 @@
 			  (set-of [(first objs) (nth seq-of-attributes idx-m)]
 				  [idx-m (range number-of-attributes)
 				   :when (= \X (nth line idx-m))])))))))))
+
+;; Conexp
+
+(add-context-input-format :conexp
+			  (fn [input-lines]
+			    (let [nonblank-lines (filter #(re-matches #"^.*\S.*$" %) input-lines)]
+			      (and (re-matches #"\s*<\?\s*xml.*\?>.*" (first nonblank-lines))
+				   (or
+				    (re-matches #".*<ConceptualSystem>.*" (first nonblank-lines))
+				    (re-matches #".*<ConceptualSystem>.*" (second nonblank-lines)))))))
+
+(defn find-tags [seq-of-hashes tag]
+  (for [hash seq-of-hashes :when (= tag (:tag hash))] hash))
+
+(defn find-tag [seq-of-hashes tag]
+  (first (find-tags seq-of-hashes tag)))
+
+(defmethod read-context :conexp [file]
+  (with-in-reader file
+    (let [xml-tree (parse-trim *in*)
+	  contexts (:content (first (find-tags (:content xml-tree) :Contexts)))]
+      (cond
+	(= 0 (count contexts))
+	(throw (IllegalArgumentException. (str "No context specified in " file)))
+	(< 1 (count contexts))
+	(throw (IllegalArgumentException. (str "More than one context specified in " file))))
+      (let [context (first contexts)
+	    atts-map (find-tag (:content context) :Attributes)
+	    objs-map (find-tag (:content context) :Objects)
+
+	    obj-idxs-map (reduce #(assoc %1 (%2 0) (%2 1))
+				 {}
+				 (for [obj-map (:content objs-map)]
+				   [(first (:content (find-tag (:content obj-map) :Name)))
+				    (set-of (get-in att [:attrs :AttributeIdentifier]) 
+					    [att (:content (find-tag (:content obj-map) :Intent))])]))
+
+	    idx-atts-map (reduce #(assoc %1 (%2 0) (%2 1))
+				 {}
+				 (for [att-map (:content atts-map)]
+				   [(get-in att-map [:attrs :Identifier]) 
+				    (first (:content (find-tag (:content att-map) :Name)))]))]
+	(make-context (set (keys obj-idxs-map))
+		      (set (vals idx-atts-map))
+		      (set-of [g (idx-atts-map idx) ]
+			      [[g att-idxs] obj-idxs-map
+			       idx att-idxs]))))))
+			      
