@@ -6,7 +6,7 @@
    :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet clojure.lang.IFn ] [] }
    :state state)
   (:use [clojure.contrib.str-utils :only (str-join)]
-	[clojure.set :only (intersection)]
+	clojure.set
 	conexp.base
 	conexp.util))
 
@@ -30,7 +30,7 @@
 	  max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
       (with-str-out
 	"\n" 
-	(ensure-length "" max-obj " ") " |" (for [att attributes] [att " "]) "\n"
+	(ensure-length "" max-obj " ") " |" (for [att attributes] [(str att) " "]) "\n"
 	(ensure-length "" max-obj "-") "-+" (for [att attributes]
 					      (ensure-length "" (inc (count (str att))) "-")) "\n"
 	(for [obj objects]
@@ -155,3 +155,79 @@
 (defn concepts [ctx]
   (set-of [ objs (object-derivation ctx objs) ]
 	  [ objs (context-extends ctx) ]))
+
+;; FcaFlint functionalities
+
+(defn context-union [ctx1 ctx2]
+  (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx1)])
+			(set-of [g_2 2] [g_2 (objects ctx2)]))
+	new-atts (union (set-of [m_1 1] [m_1 (attributes ctx1)])
+			(set-of [m_2 2] [m_2 (attributes ctx2)]))
+	new-inz  (set-of [[g idx-g] [m idx-m]]
+			 [[g idx-g] new-objs
+			  [m idx-m] new-atts
+			  :when (or ((incidence ctx1) [g m])
+				    ((incidence ctx2) [g m]))])]
+    (make-context new-objs new-atts new-inz)))
+
+(defn context-intersection [ctx1 ctx2]
+  (make-context (intersection (objects ctx1) (objects ctx2))
+		(intersection (attributes ctx1) (attributes ctx2))
+		(intersection (incidence ctx1) (incidence ctx2))))
+
+(defn context-composition [ctx-1 ctx-2]
+  (make-context (objects ctx-1)
+		(attributes ctx-2)
+		(set-of [g m]
+			[g (objects ctx-1)
+			 m (attributes ctx-2)
+			 :when (exists [x (intersection (attributes ctx-1)
+							(objects ctx-2))]
+				       (and ((incidence ctx-1) [g x])
+					    ((incidence ctx-2) [x m])))])))
+
+(defn context-apposition [ctx-1 ctx-2]
+  (if (not= (objects ctx-1) (objects ctx-2))
+    (throw
+     (IllegalArgumentException. (str "Cannot do context apposition, since object sets are not equal."))))
+  (let [new-atts (union (set-of [m 1] [m (attributes ctx-1)])
+			(set-of [m 2] [m (attributes ctx-2)]))
+	new-inz  (union (incidence ctx-1) (incidence ctx-2))]
+    (make-context (objects ctx-1) new-atts new-inz)))
+
+(defn context-subposition [ctx-1 ctx-2]
+  (if (not= (attributes ctx-1) (attributes ctx-2))
+    (throw
+     (IllegalArgumentException. (str "Cannot do context subposition, since attribute sets are not equal."))))
+  (let [new-objs (union (set-of [g 1] [g (objects ctx-1)])
+			(set-of [g 2] [g (objects ctx-2)]))
+	new-inz  (union (incidence ctx-1) (incidence ctx-2))]
+    (make-context new-objs (attributes ctx-1) new-inz)))
+
+(defn transitive-closure
+  ([set-of-pairs]
+     (transitively-close-relation set-of-pairs set-of-pairs #{}))
+  ([set-of-pairs new old]
+     (if (= new old)
+       new
+       (recur set-of-pairs (union new
+				  (set-of [x y]
+					  [[x z_1] (difference new old)
+					   [z_2 y] set-of-pairs
+					   :when (= z_1 z_2)]))
+	      new))))
+
+(defn context-transitive-closure [ctx]
+  (make-context (objects ctx) (attributes ctx) (transitive-closure (incidence ctx))))
+
+(defn one-context [base-set]
+  (make-context base-set base-set (fn [_ _] true)))
+
+(defn null-context [base-set]
+  (make-context base-set base-set (fn [_ _] false)))
+
+(defn diag-context [base-set]
+  (make-context base-set base-set =))
+
+(defn adiag-context [base-set]
+  (make-context base-set base-set not=))
