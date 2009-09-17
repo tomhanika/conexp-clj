@@ -108,7 +108,7 @@
 						    (attribute-derivation ctx #{n}))
 				    (inz [g n]))))])))
 
-(defn up-down-arrows [ctx]
+(defn up-down-arrows [ctx] ; faster version?
   (intersection (up-arrows ctx) (down-arrows ctx)))
 
 (defn reduce-context [ctx]
@@ -121,7 +121,7 @@
 	  new-inz (filter #(and (new-obj (first %))
 				(new-att (second %)))
 			  inz)]
-    (make-context new-obj new-att new-inz))))
+    (make-context new-obj new-att (set new-inz)))))
 
 (defn reduced? [ctx]
   (let [obj (objects ctx)
@@ -136,6 +136,11 @@
 
 (defn transpose-context [ctx]
   (make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
+
+(defn invert-context [ctx]
+  (make-context (objects ctx) (attributes ctx) (set-of [g m] [g (objects ctx)
+							      m (attributes ctx)
+							      :when (not ((incidence ctx) [g m]))])))
 
 (defn context-object-closure [ctx set-of-objects]
   (attribute-derivation ctx (object-derivation ctx set-of-objects)))
