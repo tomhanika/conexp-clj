@@ -130,15 +130,15 @@
 	    obj-idxs-map (reduce #(assoc %1 (%2 0) (%2 1))
 				 {}
 				 (for [obj-map (:content objs-map)]
-				   [(first (:content (find-tag (:content obj-map) :Name)))
+				   [(-> obj-map :content (find-tag :Name) :content first)
 				    (set-of (get-in att [:attrs :AttributeIdentifier]) 
-					    [att (:content (find-tag (:content obj-map) :Intent))])]))
+					    [att (-> obj-map :content (find-tag :Intent) :content)])]))
 
 	    idx-atts-map (reduce #(assoc %1 (%2 0) (%2 1))
 				 {}
 				 (for [att-map (:content atts-map)]
 				   [(get-in att-map [:attrs :Identifier]) 
-				    (first (:content (find-tag (:content att-map) :Name)))]))]
+				    (-> att-map :content (find-tag :Name) :content first)]))]
 	(make-context (set (keys obj-idxs-map))
 		      (set (vals idx-atts-map))
 		      (set-of [g (idx-atts-map idx) ]

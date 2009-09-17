@@ -118,9 +118,7 @@
 	uda (up-down-arrows ctx)]
     (let [new-obj (set (map first uda))
 	  new-att (set (map second uda))
-	  new-inz (filter #(and (new-obj (first %))
-				(new-att (second %)))
-			  inz)]
+	  new-inz (set-of [g m] [g new-obj m new-att :when (inz [g m])])]
     (make-context new-obj new-att (set new-inz)))))
 
 (defn reduced? [ctx]
