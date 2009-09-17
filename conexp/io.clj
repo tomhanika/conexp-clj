@@ -2,7 +2,7 @@
   (:use conexp.fca.contexts
 	conexp.util
 	[clojure.contrib.str-utils :only (str-join)]
-	[clojure.contrib.duck-streams :only (reader)]
+	[clojure.contrib.duck-streams :only (reader with-out-writer with-in-reader)]
 	[clojure.set :only (union)]))
 
 (defn illegal-argument [& strings]
@@ -14,7 +14,7 @@
 (defn get-lines [input-reader n]
   (doall (take n (repeatedly #(get-line input-reader)))))
 
-(defmulti write-context (fn [method ctx] method))
+(defmulti write-context (fn [format ctx file] format))
 
 (let [known-context-input-formats (ref {})]
   (defn add-context-input-format [name predicate]
@@ -30,8 +30,8 @@
 
 (defmulti read-context find-context-input-format)
 
-(defmethod write-context :default [method _]
-  (illegal-argument "Method " method " for context output is not known."))
+(defmethod write-context :default [format _ _]
+  (illegal-argument "Format " format " for context output is not known."))
 
 (defmethod read-context :default [file]
   (illegal-argument "Cannot determine format of context in " file))
@@ -42,23 +42,20 @@
 
 ;; Burmeister Format
 
-(defmethod write-context :burmeister [_ ctx]
-  (with-str-out
-    "B\n"
-    "\n"
-    (count (attributes ctx)) "\n"
-    (count (objects ctx))    "\n"
-    "\n"
-    (map #(str % "\n") (vec (attributes ctx)))
-    (map #(str % "\n") (vec (objects ctx)))
+(defmethod write-context :burmeister [_ ctx file]
+  (with-out-writer file
+    (println \B)
+    (println)
+    (println (count (objects ctx)))
+    (println (count (attributes ctx)))
+    (println)
+    (doseq [g (objects ctx)] (println g))
+    (doseq [m (attributes ctx)] (println m))
     (let [inz (incidence ctx)]
-      (str-join "\n"
-		(map (fn [m] 
-		       (str-join ""
-				 (map (fn [g] 
-					(if (inz [g m]) "X" "."))
-				      (attributes ctx))))
-		     (objects ctx))))))
+      (doseq [g (objects ctx)]
+	(doseq [m (attributes ctx)]
+	  (print (if (inz [g m]) "X" ".")))
+	(println)))))
 
 (add-context-input-format :burmeister
 			  (fn [input-lines]
