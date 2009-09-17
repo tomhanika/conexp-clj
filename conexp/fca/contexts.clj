@@ -206,7 +206,7 @@
 
 (defn transitive-closure
   ([set-of-pairs]
-     (transitively-close-relation set-of-pairs set-of-pairs #{}))
+     (transitive-closure set-of-pairs set-of-pairs #{}))
   ([set-of-pairs new old]
      (if (= new old)
        new
