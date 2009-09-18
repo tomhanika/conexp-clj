@@ -81,7 +81,7 @@
 							      :when (incidence x y)])))
 
 (defmethod make-context :default [obj att inz]
-  (throw (IllegalArgumentException. (str "The arguments " obj ", " att " and " inz " are not valid"))))
+  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid"))
 
 (defn object-derivation [ctx objects]
   (let [{:keys [incidence attributes]} (.state ctx)]
@@ -203,8 +203,7 @@
 
 (defn context-apposition [ctx-1 ctx-2]
   (if (not= (objects ctx-1) (objects ctx-2))
-    (throw
-     (IllegalArgumentException. (str "Cannot do context apposition, since object sets are not equal."))))
+    (illegal-argument "Cannot do context apposition, since object sets are not equal."))
   (let [new-atts (union (set-of [m 1] [m (attributes ctx-1)])
 			(set-of [m 2] [m (attributes ctx-2)]))
 	new-inz  (union (set-of [g [m 1]] [[g m] (incidence ctx-1)])
@@ -213,8 +212,7 @@
 
 (defn context-subposition [ctx-1 ctx-2]
   (if (not= (attributes ctx-1) (attributes ctx-2))
-    (throw
-     (IllegalArgumentException. (str "Cannot do context subposition, since attribute sets are not equal."))))
+    (illegal-argument "Cannot do context subposition, since attribute sets are not equal."))
   (let [new-objs (union (set-of [g 1] [g (objects ctx-1)])
 			(set-of [g 2] [g (objects ctx-2)]))
 	new-inz  (union (set-of [[g 1] m] [[g m] (incidence ctx-1)])

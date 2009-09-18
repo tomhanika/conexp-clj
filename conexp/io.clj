@@ -8,9 +8,6 @@
 
 ;;; Helper
 
-(defn illegal-argument [& strings]
-  (throw (IllegalArgumentException. (apply str strings))))
-
 (defn get-line []
   (read-line))
 

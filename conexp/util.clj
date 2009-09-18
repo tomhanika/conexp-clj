@@ -58,3 +58,6 @@
     (empty G)
     (conj (subelts (rest G) i) 
 	  (first G))))
+
+(defn illegal-argument [& strings]
+  (throw (IllegalArgumentException. (apply str strings))))
