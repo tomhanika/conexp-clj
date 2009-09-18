@@ -22,25 +22,40 @@
 (defn incidence [ctx]
   ((.state ctx) :incidence))
 
+(defn sort-by-second [x y]
+  (cond
+    (and (vector? x)
+	 (vector? y)
+	 (= 2 (count x) (count y)))
+    (if (= (second x) (second y))
+      (< (first x) (first y))
+      (< (second x) (second y)))
+    :else
+    (< x y)))
+
+(defn print-context [ctx order-on-objects order-on-attributes]
+  (let [attributes (vec (sort order-on-objects (attributes ctx)))
+	objects    (vec (sort order-on-attributes (objects ctx)))
+	incidence  (incidence ctx)
+
+	max-att (reduce #(max %1 (count (str %2))) 0 attributes)
+	max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
+    (with-str-out
+      "\n" 
+      (ensure-length "" max-obj " ") " |" (for [att attributes] [(str att) " "]) "\n"
+      (ensure-length "" max-obj "-") "-+" (for [att attributes]
+					    (ensure-length "" (inc (count (str att))) "-")) "\n"
+      (for [obj objects]
+	[ (ensure-length (str obj) max-obj) 
+	  " |" 
+	  (for [att attributes]
+	    [ (ensure-length (if (incidence [obj att]) "x" ".") 
+			     (count (str att))) 
+	      " "])
+	  "\n" ]))))
+
 (defn Context-toString [this]
-  (let [objects    (vec ((.state this) :objects))
-	attributes (vec ((.state this) :attributes))
-	incidence  ((.state this) :incidence)]
-    (let [max-att (reduce #(max %1 (count (str %2))) 0 attributes)
-	  max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
-      (with-str-out
-	"\n" 
-	(ensure-length "" max-obj " ") " |" (for [att attributes] [(str att) " "]) "\n"
-	(ensure-length "" max-obj "-") "-+" (for [att attributes]
-					      (ensure-length "" (inc (count (str att))) "-")) "\n"
-	(for [obj objects]
-	  [ (ensure-length (str obj) max-obj) 
-	    " |" 
-	    (for [att attributes]
-	      [ (ensure-length (if (incidence [obj att]) "x" ".") 
-			       (count (str att))) 
-		" "])
-	    "\n" ])))))
+  (print-context this sort-by-second sort-by-second))
 
 (defn Context-equals [this other]
   (and (instance? conexp.fca.Context other)
@@ -192,7 +207,8 @@
      (IllegalArgumentException. (str "Cannot do context apposition, since object sets are not equal."))))
   (let [new-atts (union (set-of [m 1] [m (attributes ctx-1)])
 			(set-of [m 2] [m (attributes ctx-2)]))
-	new-inz  (union (incidence ctx-1) (incidence ctx-2))]
+	new-inz  (union (set-of [g [m 1]] [[g m] (incidence ctx-1)])
+			(set-of [g [m 2]] [[g m] (incidence ctx-2)]))]
     (make-context (objects ctx-1) new-atts new-inz)))
 
 (defn context-subposition [ctx-1 ctx-2]
@@ -201,7 +217,8 @@
      (IllegalArgumentException. (str "Cannot do context subposition, since attribute sets are not equal."))))
   (let [new-objs (union (set-of [g 1] [g (objects ctx-1)])
 			(set-of [g 2] [g (objects ctx-2)]))
-	new-inz  (union (incidence ctx-1) (incidence ctx-2))]
+	new-inz  (union (set-of [[g 1] m] [[g m] (incidence ctx-1)])
+			(set-of [[g 2] m] [[g m] (incidence ctx-2)]))]
     (make-context new-objs (attributes ctx-1) new-inz)))
 
 (defn transitive-closure
@@ -231,3 +248,22 @@
 
 (defn adiag-context [base-set]
   (make-context base-set base-set not=))
+
+;;;
+
+(defn context-sum [ctx-1 ctx-2]
+  (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx-1)])
+			(set-of [g_2 2] [g_2 (objects ctx-2)]))
+	new-atts (union (set-of [m_1 1] [m_1 (attributes ctx-1)])
+			(set-of [m_2 2] [m_2 (attributes ctx-2)]))
+	new-inz  (union (set-of [[g_1 1] [m_1 1]]
+				[[g_1 m_1] (incidence ctx-1)])
+			(set-of [[g_2 2] [m_2 2]]
+				[[g_2 m_2] (incidence ctx-2)])
+			(set-of [[g_1 1] [m_2 2]]
+				[g_1 (objects ctx-1)
+				 m_2 (attributes ctx-2)])
+			(set-of [[g_2 2] [m_1 1]]
+				[g_2 (objects ctx-2)
+				 m_1 (attributes ctx-1)]))]
+    (make-context new-objs new-atts new-inz)))
