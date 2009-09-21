@@ -2,7 +2,8 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
 	                JLabel]
-	   [java.awt GridLayout BorderLayout Dimension]
+	   [javax.imageio ImageIO]
+	   [java.awt GridLayout BorderLayout Dimension Image]
 	   [java.awt.event KeyEvent ActionListener]
 	   [java.io File])
   (:use clojure.contrib.repl-utils
@@ -57,17 +58,21 @@ found in the menu-bar of frame."
     (add-to-menubar frame menu-bar menu-entries-from-filler)
     (.validate frame)))
 
+; shortcuts for menu creating
+(def --- {})
+(def === (Box/createHorizontalGlue))
+
 (def *main-menu* {:name "Main" :content [{:name "Add Menu" ; just for fun
 					  :handler (fn [frame _]
 						     (add-menus frame
 								[{:name "?" :content []}]))}
-					 {}
+					 ---
 					 {:name "Quit"
 					  :handler (fn [frame _] (.dispose frame))}]})
 
 (def *help-menu* {:name "Help" :content []})
 
-(def *standard-menus* [*main-menu* (Box/createHorizontalGlue) *help-menu*])
+(def *standard-menus* [*main-menu* === *help-menu*])
 
 
 ;;; Tool Bar
@@ -75,7 +80,8 @@ found in the menu-bar of frame."
 (defn get-toolbar [frame]
   (get-component frame #(= (class %) JToolBar)))
 
-(def *default-icon* "images/default.jpg")
+(def *default-icon* (File. "images/default.jpg"))
+(def *icon-size* 17)
 
 (defn make-icon [frame icon-hash]
   (let [button (JButton.)]
@@ -83,10 +89,14 @@ found in the menu-bar of frame."
       (.setName (:name icon-hash))
       (add-handler frame (:handler icon-hash))
       (.setToolTipText (:name icon-hash)))
-    (let [icon (:icon icon-hash)]
-      (if (and icon (.exists (File. icon)))
-	(.setIcon button (ImageIcon. icon))
-	(.setIcon button (ImageIcon. *default-icon*))))
+    (let [icon (:icon icon-hash)
+	  image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
+				    (File. icon)
+				    *default-icon*))
+		    (.getScaledInstance *icon-size*
+					*icon-size*
+					Image/SCALE_SMOOTH))]
+	(.setIcon button (ImageIcon. image)))
     button))
 
 (defn add-to-toolbar [frame toolbar icons]
@@ -104,7 +114,10 @@ found in the menu-bar of frame."
 
 (def *quit-icon* {:name "Quit" :icon "???" :handler (fn [frame _] (.dispose frame))})
 
-(def *standard-icons* [*quit-icon* {}])
+; shortcuts for toolbar creation
+(def | {})
+
+(def *standard-icons* [*quit-icon* |])
 
 
 ;;; Tabs
