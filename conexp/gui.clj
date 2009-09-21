@@ -1,7 +1,8 @@
 (ns conexp.gui
-  (:use conexp.gui.base))
+  (:use conexp.gui.base
+	conexp.gui.util))
 
 (defn conexp-gui []
   (let [frame (conexp-main-frame)]
-    (add-additional-menus frame [{:name "Hallo", :content []}])
-    (.setVisible frame true)))
+    (.setVisible frame true)
+    frame))

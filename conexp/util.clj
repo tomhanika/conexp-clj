@@ -61,3 +61,6 @@
 
 (defn illegal-argument [& strings]
   (throw (IllegalArgumentException. (apply str strings))))
+
+(defn first-non-nil [seq]
+  (first (drop-while #(= nil %) seq)))

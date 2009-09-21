@@ -2,22 +2,21 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator]
 	   [java.awt GridLayout BorderLayout Dimension]
-	   [java.awt.event KeyEvent ActionListener])
+	   [java.awt.event KeyEvent ActionListener]
+	   [java.io File])
   (:use clojure.contrib.repl-utils
-	clojure.contrib.core))
-
-;;; Helper
-
-(defn add-handler [thing frame function]
-  (.addActionListener thing
-    (proxy [ActionListener] []
-      (actionPerformed [evt]
-	(function frame thing)))))
-
+	clojure.contrib.core
+	conexp.util
+	conexp.gui.util))
+     
 ;;; Menus
 
+(defn get-menubar [frame]
+  (get-component frame #(= (class %) JMenuBar)))
+
 (defn make-menu
-  "Converts a hash repsenting a menu into an actual JMenu for a given frame."
+  "Converts a hash repsenting a menu into an actual JMenu for a given frame.
+To be extended ... TODO"
   [frame hash-menu]
   (cond
     (instance? java.awt.Component hash-menu)
@@ -41,27 +40,26 @@
     (.add menu-bar menu))
   menu-bar)
 
-(defn add-additional-menus
+(defn add-menus
   "Adds the additional menus to the frame in front of the first Box.Filler
 found in the menu-bar of frame."
   [frame menus]
-  (let [menu-bar (.getJMenuBar frame)
-	menu-bar-as-seq (map #(.getComponent menu-bar %) (range (.getMenuCount menu-bar)))
+  (let [menu-bar (get-menubar frame)
+	menu-bar-as-seq (.getComponents menu-bar)
 	menu-entries-before-filler (take-while #(not (instance? javax.swing.Box$Filler %))
 					       menu-bar-as-seq)
 	menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
-					       menu-bar-as-seq)
-	new-menu-bar (JMenuBar.)]
-    (add-to-menubar frame new-menu-bar menu-entries-before-filler)
-    (add-to-menubar frame new-menu-bar menus)
-    (add-to-menubar frame new-menu-bar menu-entries-from-filler)
-    (.setJMenuBar frame new-menu-bar)
+					       menu-bar-as-seq)]
+    (.removeAll menu-bar)
+    (add-to-menubar frame menu-bar menu-entries-before-filler)
+    (add-to-menubar frame menu-bar menus)
+    (add-to-menubar frame menu-bar menu-entries-from-filler)
     (.validate frame)))
 
 (def *main-menu* {:name "Main" :content [{:name "Add Menu" ; just for fun
 					  :handler (fn [frame _]
-						     (add-additional-menus frame
-									   [{:name "?" :content []}]))}
+						     (add-menus frame
+								[{:name "?" :content []}]))}
 					 {} ; Separator
 					 {:name "Quit"
 					  :handler (fn [frame _] (.dispose frame))}]})
@@ -74,36 +72,38 @@ found in the menu-bar of frame."
 ;;; Tool Bar
 
 (defn get-toolbar [frame]
-  (first (for [comp (.. frame getContentPane getComponents) 
-	       :when (instance? javax.swing.JToolBar comp)]
-	   comp)))
+  (get-component frame #(= (class %) JToolBar)))
+
+(def *default-icon* "images/default.jpg")
 
 (defn make-icon [frame icon-hash]
-  (cond
-    (empty? icon-hash) (JSeparator.)
-    :else
-    (let [button (JButton.)]
-      (doto button
-	(.setName (:name icon-hash))
-	(add-handler frame (:handler icon-hash))
-	(.setToolTipText (:name icon-hash)))
-      (if-let [icon (:icon icon-hash)]
-	(.setIcon button (-?> (.getResource (class Object) icon)
-			      (ImageIcon.))))
-      button)))
+  (let [button (JButton.)]
+    (doto button
+      (.setName (:name icon-hash))
+      (add-handler frame (:handler icon-hash))
+      (.setToolTipText (:name icon-hash)))
+    (let [icon (:icon icon-hash)]
+      (if (and icon (.exists (File. icon)))
+	(.setIcon button (ImageIcon. icon))
+	(.setIcon button (ImageIcon. *default-icon*))))
+    button))
 
 (defn add-to-toolbar [frame toolbar icons]
-  (doseq [icon (map #(make-icon frame %) icons)]
-    (.add toolbar icon))
+  (doseq [icon icons]
+    (cond
+      (empty? icon)
+      (.addSeparator toolbar)
+      :else
+      (.add toolbar (make-icon frame icon))))
   toolbar)
 
-(defn add-additional-icons [frame icons]
+(defn add-icons [frame icons]
   (add-to-toolbar frame (get-toolbar frame) icons)
   (.validate frame))
 
 (def *quit-icon* {:name "Quit" :icon "???" :handler (fn [frame _] (.dispose frame))})
 
-(def *standard-icons* [*quit-icon*])
+(def *standard-icons* [*quit-icon* {}])
 
 ;;; Tabs
 
@@ -121,13 +121,6 @@ found in the menu-bar of frame."
       (.setJMenuBar (JMenuBar.))
       (.setContentPane (JPanel. (BorderLayout.)))
       (.. getContentPane (add (JToolBar.))))
-    (add-additional-menus main-frame *standard-menus*)
-    (println main-frame)
-    (add-additional-icons main-frame *standard-icons*)
+    (add-menus main-frame *standard-menus*)
+    (add-icons main-frame *standard-icons*)
     main-frame))
-
-
-
-
-
-
