@@ -119,8 +119,11 @@ found in the menu-bar of frame."
       (.setDefaultCloseOperation JFrame/DISPOSE_ON_CLOSE)
       (.setSize 1000 800)
       (.setJMenuBar (JMenuBar.))
-      (.setContentPane (JPanel. (BorderLayout.)))
-      (.. getContentPane (add (JToolBar.))))
+      (.setContentPane (JPanel. (BorderLayout.))))
     (add-menus main-frame *standard-menus*)
-    (add-icons main-frame *standard-icons*)
+    (let [toolbar (JToolBar.)]
+      (.. main-frame getContentPane (add toolbar BorderLayout/PAGE_START))
+      (add-icons main-frame *standard-icons*))
+    (let [main-panel (JPanel.)]
+      (.. main-frame getContentPane (add main-panel)))
     main-frame))
