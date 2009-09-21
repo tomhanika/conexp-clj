@@ -1,6 +1,7 @@
 (ns conexp.gui.base
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
-	                JButton ImageIcon JSeparator]
+	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
+	                JLabel]
 	   [java.awt GridLayout BorderLayout Dimension]
 	   [java.awt.event KeyEvent ActionListener]
 	   [java.io File])
@@ -60,7 +61,7 @@ found in the menu-bar of frame."
 					  :handler (fn [frame _]
 						     (add-menus frame
 								[{:name "?" :content []}]))}
-					 {} ; Separator
+					 {}
 					 {:name "Quit"
 					  :handler (fn [frame _] (.dispose frame))}]})
 
@@ -105,8 +106,11 @@ found in the menu-bar of frame."
 
 (def *standard-icons* [*quit-icon* {}])
 
+
 ;;; Tabs
 
+(defn get-tabpane [frame]
+  (get-component frame #(= (class %) javax.swing.JTabbedPane)))
 
 ;;; Clojure REPL
 
@@ -124,6 +128,19 @@ found in the menu-bar of frame."
     (let [toolbar (JToolBar.)]
       (.. main-frame getContentPane (add toolbar BorderLayout/PAGE_START))
       (add-icons main-frame *standard-icons*))
-    (let [main-panel (JPanel.)]
-      (.. main-frame getContentPane (add main-panel)))
+    (let [tabbed-pane (JTabbedPane.)
+	  clj-repl    (JPanel.)
+	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
+      (doto tabbed-pane
+	(.addTab  "Beispiel-Tab" (JLabel. "Hier kommen dann Tabs hin.")))
+      (doto clj-repl
+	(.add (JLabel. "Hier kommt eine REPL hin.")))
+      (doto split-pane
+	(.setTopComponent tabbed-pane)
+	(.setBottomComponent clj-repl)
+	(.setOneTouchExpandable true)
+	(.setResizeWeight 0.8)
+	(.setDividerLocation 1000))
+      (doto (.getContentPane main-frame)
+	(.add split-pane BorderLayout/CENTER)))
     main-frame))
