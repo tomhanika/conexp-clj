@@ -1,6 +1,9 @@
 (ns conexp.gui.repl
-  (:import [javax.swing.text PlainDocument])
-  (:use conexp.gui.util)
+  (:import [javax.swing.text PlainDocument]
+	   [java.io PushbackReader StringReader])
+  (:use conexp.gui.util
+	[clojure.contrib.pprint :only (write)]
+	[conexp.gui.enclojure-repl :only (create-clojure-repl)])
   (:gen-class
    :name "conexp.gui.repl.ClojureREPL"
    :extends javax.swing.text.PlainDocument
@@ -12,31 +15,52 @@
    :methods [ [ insertResult [ String ] Integer ] ]
    :exposes-methods { remove removeSuper, insertString insertStringSuper }))
 
-(defn own-repl [in out]
-  (binding [*in* in
-	    *out* out]
-    (while true
-      (print (str *ns* "=> "))
-      (flush)
-      (println (eval (read))))))
+(def *conexp-clojure-repl* (create-clojure-repl))
+(defn repl-in [string]
+  ((:repl-fn *conexp-clojure-repl*) (str string "\n")))
+(defn repl-out []
+  ((:result-fn *conexp-clojure-repl*)))
 
 (defn conexp-repl-init []
   [ [] (ref {:last-pos 0}) ])
 
 (defn conexp-repl-post-init [this]
-  (.insertStringSuper this (.getLength this) (str *ns* "=> ") nil)
+  (.insertStringSuper this (.getLength this) (repl-out) nil)
   (dosync
    (alter (.state this) assoc :last-pos (.getLength this))))
 
 (defn conexp-repl-remove [this off len]
-  (print (@(.state this) :last-pos))
   (if (>= (- off len -1) (@(.state this) :last-pos))
     (. this removeSuper off len)))
 
 (defn conexp-repl-insertResult [this result]
   (.insertStringSuper this (.getLength this) result nil)
-  (.insertStringSuper this (.getLength this) "\n" nil)
-  (.insertStringSuper this (.getLength this) (str *ns* "=> ") nil)
   (dosync 
    (alter (.state this) assoc :last-pos (. this getLength)))
   (@(.state this) :last-pos))
+
+(defn balanced? 
+  ([string]
+     (balanced? string 0))
+  ([string paran-count]
+     (cond
+       (> 0 paran-count)
+       false
+       (empty? string)
+       (= 0 paran-count)
+       :else
+       (recur (rest string)
+	      (cond
+		(= \( (first string)) (inc paran-count)
+		(= \) (first string)) (dec paran-count)
+		:else paran-count)))))
+
+(defn conexp-repl-insertString [this off string attr-set]
+  (let [last-pos (@(.state this) :last-pos)]
+    (when (>= off last-pos)
+      (.insertStringSuper this off string attr-set)
+      (if (= string "\n")
+	(let [input (.getText this last-pos (- (.getLength this) last-pos))]
+	  (when (balanced? input)
+	    (let [result (do (repl-in input) (repl-out))]
+	      (.insertResult this result))))))))
