@@ -1,15 +1,16 @@
 (ns conexp.gui.base
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
-	                JLabel]
+	                JLabel JTextArea JScrollPane]
 	   [javax.imageio ImageIO]
-	   [java.awt GridLayout BorderLayout Dimension Image]
+	   [java.awt GridLayout BorderLayout Dimension Image Font Color]
 	   [java.awt.event KeyEvent ActionListener]
 	   [java.io File])
   (:use clojure.contrib.repl-utils
 	clojure.contrib.core
 	conexp.util
-	conexp.gui.util))
+	conexp.gui.util
+	conexp.gui.repl))
      
 ;;; Menus
 
@@ -127,7 +128,14 @@ found in the menu-bar of frame."
 
 ;;; Clojure REPL
 
-
+(defn make-repl []
+  (let [textarea (JTextArea. (conexp.gui.repl.ClojureREPL.))]
+    (.setFont textarea (Font. "Monospaced" Font/PLAIN 16))
+    (.setBackground textarea Color/BLACK)
+    (.setForeground textarea Color/WHITE)
+    (.setCaretPosition textarea (.. textarea getDocument getLength))
+    (.setCaretColor textarea Color/RED)
+    (JScrollPane. textarea)))
 ;;; Conexp Main Frame
 
 (defn conexp-main-frame []
@@ -143,12 +151,10 @@ found in the menu-bar of frame."
       (.. main-frame getContentPane (add toolbar BorderLayout/PAGE_START))
       (add-icons main-frame *standard-icons*))
     (let [tabbed-pane (JTabbedPane.)
-	  clj-repl    (JPanel.)
+	  clj-repl    (make-repl)
 	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
       (doto tabbed-pane
 	(.addTab  "Beispiel-Tab" (JLabel. "Hier kommen dann Tabs hin.")))
-      (doto clj-repl
-	(.add (JLabel. "Hier kommt eine REPL hin.")))
       (doto split-pane
 	(.setTopComponent tabbed-pane)
 	(.setBottomComponent clj-repl)

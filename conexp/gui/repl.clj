@@ -2,6 +2,7 @@
   (:import [javax.swing.text PlainDocument]
 	   [java.io PushbackReader StringReader])
   (:use conexp.gui.util
+	[clojure.main :only (skip-whitespace)]
 	[clojure.contrib.pprint :only (write)]
 	[conexp.gui.enclojure-repl :only (create-clojure-repl)])
   (:gen-class
@@ -19,7 +20,8 @@
 (defn repl-in [string]
   ((:repl-fn *conexp-clojure-repl*) (str string "\n")))
 (defn repl-out []
-  ((:result-fn *conexp-clojure-repl*)))
+  (let [result ((:result-fn *conexp-clojure-repl*))]
+    result))
 
 (defn conexp-repl-init []
   [ [] (ref {:last-pos 0}) ])
@@ -34,6 +36,7 @@
     (. this removeSuper off len)))
 
 (defn conexp-repl-insertResult [this result]
+  (println "Inserting: " result)
   (.insertStringSuper this (.getLength this) result nil)
   (dosync 
    (alter (.state this) assoc :last-pos (. this getLength)))
@@ -59,8 +62,12 @@
   (let [last-pos (@(.state this) :last-pos)]
     (when (>= off last-pos)
       (.insertStringSuper this off string attr-set)
-      (if (= string "\n")
-	(let [input (.getText this last-pos (- (.getLength this) last-pos))]
+      (if (and (= string "\n") (= off (- (.getLength this) 1)))
+	(let [input (.getText this (- last-pos 1) (- (.getLength this) last-pos))]
+	  (print (str ":::" input ":::"))
+	  (println input)
 	  (when (balanced? input)
 	    (let [result (do (repl-in input) (repl-out))]
 	      (.insertResult this result))))))))
+
+;;; Testing
