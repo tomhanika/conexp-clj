@@ -139,6 +139,7 @@ found in the menu-bar of frame."
       (.setContentPane (JPanel. (BorderLayout.))))
     (add-menus main-frame *standard-menus*)
     (let [toolbar (JToolBar.)]
+      (.setFloatable toolbar false)
       (.. main-frame getContentPane (add toolbar BorderLayout/PAGE_START))
       (add-icons main-frame *standard-icons*))
     (let [tabbed-pane (JTabbedPane.)
