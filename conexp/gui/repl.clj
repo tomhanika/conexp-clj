@@ -1,6 +1,7 @@
 (ns conexp.gui.repl
   (:import [javax.swing.text PlainDocument]
-	   [java.io PushbackReader StringReader])
+	   [java.io PushbackReader StringReader]
+	   [javax.swing KeyStroke AbstractAction JTextArea])
   (:use conexp.gui.util
 	[clojure.main :only (skip-whitespace)]
 	[clojure.contrib.pprint :only (write)]
@@ -22,6 +23,8 @@
 (defn repl-out []
   (let [result ((:result-fn *conexp-clojure-repl*))]
     result))
+(defn interrupt-repl []
+  (.interrupt (:repl-thread *conexp-clojure-repl*)))
 
 (defn conexp-repl-init []
   [ [] (ref {:last-pos 0}) ])
@@ -71,8 +74,10 @@
 	  (if (balanced? input)
 	    (repl-in input)))))))
 
-;;; Testing
-
-(import 'javax.swing.JTextArea)
-(defn start-repl []
-  (show-in-frame (JTextArea. (conexp.gui.repl.ClojureREPL.))))
+(defn make-clojure-repl []
+  (let [rpl (JTextArea. (conexp.gui.repl.ClojureREPL.))]
+    (.. rpl getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
+    (.. rpl getActionMap (put "interrupt" (proxy [AbstractAction] []
+					    (actionPerformed [_]
+					      (interrupt-repl)))))
+    rpl))

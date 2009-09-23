@@ -129,14 +129,13 @@ found in the menu-bar of frame."
 ;;; Clojure REPL
 
 (defn make-repl []
-  (let [textarea (JTextArea. (conexp.gui.repl.ClojureREPL.))]
-    (.setFont textarea (Font. "Monospaced" Font/PLAIN 16))
-    (.setBackground textarea Color/BLACK)
-    (.setForeground textarea Color/WHITE)
-    (.setCaretPosition textarea (.. textarea getDocument getLength))
-    (.setCaretColor textarea Color/RED)
-    (JScrollPane. textarea)))
-
+  (let [rpl (make-clojure-repl)]
+    (doto rpl
+      (.setFont (Font. "Monospaced" Font/PLAIN 16))
+      (.setBackground Color/BLACK)
+      (.setForeground Color/WHITE)
+      (.setCaretColor Color/RED))
+    (JScrollPane. rpl)))
 
 ;;; Conexp Main Frame
 

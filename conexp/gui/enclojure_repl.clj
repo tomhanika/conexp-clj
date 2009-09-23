@@ -1,16 +1,14 @@
-(comment
- ;* Copied from
- ;*
- ;* Copyright (c) ThorTech, L.L.C.. All rights reserved.
- ;* The use and distribution terms for this software are covered by the
- ;* Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
- ;* which can be found in the file epl-v10.html at the root of this distribution.
- ;* By using this software in any fashion, you are agreeing to be bound by
- ;* the terms of this license.
- ;* You must not remove this notice, or any other, from this software.
- ;*
- ;* Author: Eric Thorsen, Narayan Singhal
- )
+;* Based on org.enclojure.repl.main/create-clojure-repl
+;*
+;* Copyright (c) ThorTech, L.L.C.. All rights reserved.
+;* The use and distribution terms for this software are covered by the
+;* Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;* which can be found in the file epl-v10.html at the root of this distribution.
+;* By using this software in any fashion, you are agreeing to be bound by
+;* the terms of this license.
+;* You must not remove this notice, or any other, from this software.
+;*
+;* Author: Eric Thorsen, Narayan Singhal
 
 (ns conexp.gui.enclojure-repl
   (:import [java.io PipedWriter PipedReader PrintWriter CharArrayWriter]))
@@ -60,9 +58,11 @@
                             (catch clojure.lang.LispReader$ReaderException ex
                               (prn "REPL closing"))
                             (catch java.lang.InterruptedException ex)
-                            (catch java.nio.channels.ClosedByInterruptException ex)))]
-    (.start (Thread. repl-thread-fn))
-    {:repl-fn (fn [cmd]
+                            (catch java.nio.channels.ClosedByInterruptException ex)))
+	repl-thread (Thread. repl-thread-fn)]
+    (.start repl-thread)
+    {:repl-thread repl-thread
+     :repl-fn (fn [cmd]
                 (if (= cmd ":CLOSE-REPL")
                   (do
                     (.close cmd-wtr)
