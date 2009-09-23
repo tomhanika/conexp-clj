@@ -17,14 +17,29 @@
    :methods [ [ insertResult [ String ] Integer ] ]
    :exposes-methods { remove removeSuper, insertString insertStringSuper }))
 
+;;; REPL
+
 (def *conexp-clojure-repl* (create-clojure-repl))
+
 (defn repl-in [string]
+  (println (str "Input: ." string "."))
   ((:repl-fn *conexp-clojure-repl*) (str string "\n")))
+
 (defn repl-out []
   (let [result ((:result-fn *conexp-clojure-repl*))]
+    (println (str "Output: ." result "."))
     result))
-(defn interrupt-repl []
+
+(defn repl-interrupt []
   (.interrupt (:repl-thread *conexp-clojure-repl*)))
+
+(defn repl-alive? []
+  (.isAlive (:repl-thread *conexp-clojure-repl*)))
+
+(defn repl-stop []
+  (.stop (:repl-thread *conexp-clojure-repl*)))
+
+;;; Display
 
 (defn conexp-repl-init []
   [ [] (ref {:last-pos 0}) ])
@@ -32,7 +47,7 @@
 (defn conexp-repl-post-init [this]
   (.start (Thread. 
 	   (fn []
-	     (while true
+	     (while (repl-alive?)
 	       (let [result (repl-out)]
 		 (invoke-later #(. this insertResult result))))))))
 
@@ -69,15 +84,17 @@
       (.insertStringSuper this off string attr-set)
       (if (and (= string "\n") (= off (- (.getLength this) 1)))
 	(let [input (.getText this (- last-pos 1) (- (.getLength this) last-pos))]
-	  (print (str ":::" input ":::"))
-	  (println input)
+	  (println (str ":::" input ":::"))
 	  (if (balanced? input)
 	    (repl-in input)))))))
+
+;;;
 
 (defn make-clojure-repl []
   (let [rpl (JTextArea. (conexp.gui.repl.ClojureREPL.))]
     (.. rpl getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
     (.. rpl getActionMap (put "interrupt" (proxy [AbstractAction] []
 					    (actionPerformed [_]
-					      (interrupt-repl)))))
+					      (println "Interrupt called!")
+					      (repl-interrupt)))))
     rpl))

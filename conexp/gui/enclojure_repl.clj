@@ -46,7 +46,7 @@
                                   *err* (PrintWriter. *out*)]
                           (try
                             (clojure.main/repl
-                              :init (fn [] (in-ns 'user))
+                              :init (fn [] (in-ns 'conexp))
                               :caught (fn [e]
                                         (when (is-eof-ex? e)
                                           (throw e))
