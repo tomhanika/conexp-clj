@@ -27,9 +27,11 @@
   [ [] (ref {:last-pos 0}) ])
 
 (defn conexp-repl-post-init [this]
-  (.insertStringSuper this (.getLength this) (repl-out) nil)
-  (dosync
-   (alter (.state this) assoc :last-pos (.getLength this))))
+  (.start (Thread. 
+	   (fn []
+	     (while true
+	       (let [result (repl-out)]
+		 (invoke-later #(. this insertResult result))))))))
 
 (defn conexp-repl-remove [this off len]
   (if (>= (- off len -1) (@(.state this) :last-pos))
@@ -66,8 +68,11 @@
 	(let [input (.getText this (- last-pos 1) (- (.getLength this) last-pos))]
 	  (print (str ":::" input ":::"))
 	  (println input)
-	  (when (balanced? input)
-	    (let [result (do (repl-in input) (repl-out))]
-	      (.insertResult this result))))))))
+	  (if (balanced? input)
+	    (repl-in input)))))))
 
 ;;; Testing
+
+(import 'javax.swing.JTextArea)
+(defn start-repl []
+  (show-in-frame (JTextArea. (conexp.gui.repl.ClojureREPL.))))

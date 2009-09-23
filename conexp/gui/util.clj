@@ -1,5 +1,5 @@
 (ns conexp.gui.util
-  (:import [javax.swing JFrame]
+  (:import [javax.swing JFrame SwingUtilities]
 	   [java.awt.event ActionListener])
   (:use conexp.util))
 
@@ -20,3 +20,9 @@
     (.setVisible frame true)
     (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
     frame))
+
+(defn invoke-later [fn]
+  (SwingUtilities/invokeLater fn))
+
+(defn invoke-and-wait [fn]
+  (SwingUtilities/invokeAndWait fn))

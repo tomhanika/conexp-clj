@@ -136,6 +136,8 @@ found in the menu-bar of frame."
     (.setCaretPosition textarea (.. textarea getDocument getLength))
     (.setCaretColor textarea Color/RED)
     (JScrollPane. textarea)))
+
+
 ;;; Conexp Main Frame
 
 (defn conexp-main-frame []
