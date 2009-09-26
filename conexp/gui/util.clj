@@ -26,3 +26,6 @@
 
 (defn invoke-and-wait [fn]
   (SwingUtilities/invokeAndWait fn))
+
+(defmacro with-swing-threads [& body]
+  `(invoke-later #(do ~@body)))

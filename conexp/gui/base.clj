@@ -11,15 +11,19 @@
 	conexp.util
 	conexp.gui.util
 	conexp.gui.repl))
+
      
 ;;; Menus
 
-(defn get-menubar [frame]
+(defn get-menubar 
+  "Returns menubar of given frame."
+  [frame]
   (get-component frame #(= (class %) JMenuBar)))
 
 (defn make-menu
   "Converts a hash repsenting a menu into an actual JMenu for a given frame.
-To be extended ... TODO"
+
+  To be extended ... TODO"
   [frame hash-menu]
   (cond
     (instance? java.awt.Component hash-menu)
@@ -37,7 +41,9 @@ To be extended ... TODO"
       menu)))
 
 (defn add-to-menubar
-  "Adds menubar consiting of menus to menu-bar."
+  "Adds menubar consiting of menus to menu-bar.
+
+  Note: This function is for internal use only and is not thread safe."
   [frame menu-bar menus]
   (doseq [menu (map #(make-menu frame %) menus)]
     (.add menu-bar menu))
@@ -45,19 +51,20 @@ To be extended ... TODO"
 
 (defn add-menus
   "Adds the additional menus to the frame in front of the first Box.Filler
-found in the menu-bar of frame."
+  found in the menu-bar of frame."
   [frame menus]
-  (let [menu-bar (get-menubar frame)
-	menu-bar-as-seq (.getComponents menu-bar)
-	menu-entries-before-filler (take-while #(not (instance? javax.swing.Box$Filler %))
-					       menu-bar-as-seq)
-	menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
-					       menu-bar-as-seq)]
-    (.removeAll menu-bar)
-    (add-to-menubar frame menu-bar menu-entries-before-filler)
-    (add-to-menubar frame menu-bar menus)
-    (add-to-menubar frame menu-bar menu-entries-from-filler)
-    (.validate frame)))
+  (with-swing-threads
+    (let [menu-bar (get-menubar frame)
+	  menu-bar-as-seq (.getComponents menu-bar)
+	  menu-entries-before-filler (take-while #(not (instance? javax.swing.Box$Filler %))
+						 menu-bar-as-seq)
+	  menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
+						 menu-bar-as-seq)]
+      (.removeAll menu-bar)
+      (add-to-menubar frame menu-bar menu-entries-before-filler)
+      (add-to-menubar frame menu-bar menus)
+      (add-to-menubar frame menu-bar menu-entries-from-filler)
+      (.validate frame))))
 
 ; shortcuts for menu creating
 (def --- {})
@@ -78,13 +85,17 @@ found in the menu-bar of frame."
 
 ;;; Tool Bar
 
-(defn get-toolbar [frame]
+(defn get-toolbar 
+  "Returns toolbar of given frame."
+  [frame]
   (get-component frame #(= (class %) JToolBar)))
 
 (def *default-icon* (File. "images/default.jpg"))
 (def *icon-size* 17)
 
-(defn make-icon [frame icon-hash]
+(defn make-icon 
+  "Converts hash representing an icon to an actual JButton."
+  [frame icon-hash]
   (let [button (JButton.)]
     (doto button
       (.setName (:name icon-hash))
@@ -100,7 +111,11 @@ found in the menu-bar of frame."
 	(.setIcon button (ImageIcon. image)))
     button))
 
-(defn add-to-toolbar [frame toolbar icons]
+(defn add-to-toolbar 
+  "Adds given icons to toolbar of given frame.
+
+  Note: This function is for internal use only and is not thread safe."
+  [frame toolbar icons]
   (doseq [icon icons]
     (cond
       (empty? icon)
@@ -109,9 +124,12 @@ found in the menu-bar of frame."
       (.add toolbar (make-icon frame icon))))
   toolbar)
 
-(defn add-icons [frame icons]
-  (add-to-toolbar frame (get-toolbar frame) icons)
-  (.validate frame))
+(defn add-icons 
+  "Addes icons to toolbar of frame."
+  [frame icons]
+  (with-swing-threads
+    (add-to-toolbar frame (get-toolbar frame) icons)
+    (.validate frame)))
 
 (def *quit-icon* {:name "Quit" :icon "???" :handler (fn [frame _] (.dispose frame))})
 
@@ -123,12 +141,24 @@ found in the menu-bar of frame."
 
 ;;; Tabs
 
-(defn get-tabpane [frame]
+(defn get-tabpane 
+  "Returns tabpane of given frame."
+  [frame]
   (get-component frame #(= (class %) javax.swing.JTabbedPane)))
+
+(defn add-tab 
+  "Addes given panel to frame."
+  [frame pane]
+  (with-swing-threads
+    (.add (get-tabpane frame) pane)
+    (.validate frame)))
+
 
 ;;; Clojure REPL
 
-(defn make-repl []
+(defn make-repl 
+  "Creates a default Clojure REPL."
+  []
   (let [rpl (make-clojure-repl)]
     (doto rpl
       (.setFont (Font. "Monospaced" Font/PLAIN 16))
@@ -137,9 +167,12 @@ found in the menu-bar of frame."
       (.setCaretColor Color/RED))
     (JScrollPane. rpl)))
 
+
 ;;; Conexp Main Frame
 
-(defn conexp-main-frame []
+(defn conexp-main-frame 
+  "Returns main frame for conexp standard gui."
+  []
   (let [main-frame (JFrame. "conexp-clj")]
     (doto main-frame
       (.setDefaultCloseOperation JFrame/DISPOSE_ON_CLOSE)
@@ -154,8 +187,6 @@ found in the menu-bar of frame."
     (let [tabbed-pane (JTabbedPane.)
 	  clj-repl    (make-repl)
 	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
-      (doto tabbed-pane
-	(.addTab  "Beispiel-Tab" (JLabel. "Hier kommen dann Tabs hin.")))
       (doto split-pane
 	(.setTopComponent tabbed-pane)
 	(.setBottomComponent clj-repl)
@@ -163,5 +194,6 @@ found in the menu-bar of frame."
 	(.setResizeWeight 0.8)
 	(.setDividerLocation 1000))
       (doto (.getContentPane main-frame)
-	(.add split-pane BorderLayout/CENTER)))
+	(.add split-pane BorderLayout/CENTER))
+      (add-tab main-frame (JLabel. "Test Tab")))
     main-frame))
