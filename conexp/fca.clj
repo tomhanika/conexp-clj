@@ -1,11 +1,6 @@
 (ns conexp.fca
-  (:use clojure.set
-	conexp.base
-	conexp.util
-	conexp.fca.contexts
-	conexp.fca.implications
-	conexp.fca.exploration))
+  (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
-(compile 'conexp.fca.contexts)
-(compile 'conexp.fca.implications)
-
+(immigrate 'conexp.fca.contexts
+	   'conexp.fca.implications
+	   'conexp.fca.exploration)

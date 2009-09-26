@@ -1,6 +1,8 @@
 (ns conexp.base
-  (:use conexp.util
-	clojure.set))
+  (:use [clojure.contrib.ns-utils :only (immigrate)]))
+
+(immigrate 'clojure.set
+	   'conexp.util)
 
 (defn lectic-<_i [G i A B]
   (and (B i) (not (A i))

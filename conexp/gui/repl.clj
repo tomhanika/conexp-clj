@@ -20,7 +20,7 @@
 
 ;;; REPL
 
-(def *print-stack-trace-on-error* true)
+(def *print-stack-trace-on-error* false)
 
 (defn is-eof-ex? 
   "Returns true iff given throwable is an \"EOF while reading\" or \"Write 
@@ -58,7 +58,9 @@
 				    *err* (PrintWriter. *out*)]
 			    (try
 			     (clojure.main/repl
-                              :init (fn [] (in-ns 'user))
+                              :init (fn [] 
+				      (in-ns 'user)
+				      (use 'conexp))
                               :caught (fn [e]
                                         (when (is-eof-ex? e)
                                           (throw e))

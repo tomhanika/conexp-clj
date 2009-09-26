@@ -6,9 +6,7 @@
    :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet clojure.lang.IFn ] [] }
    :state state)
   (:use [clojure.contrib.str-utils :only (str-join)]
-	clojure.set
-	conexp.base
-	conexp.util))
+	conexp.base))
 
 (defn Context-init [objects attributes incidence]
   [ [] {:objects objects :attributes attributes :incidence incidence} ])

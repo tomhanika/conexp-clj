@@ -1,9 +1,8 @@
 (ns conexp.io
-  (:use conexp.fca.contexts
-	conexp.util
+  (:use conexp.base
+	conexp.fca.contexts
 	[clojure.contrib.str-utils :only (str-join)]
 	[clojure.contrib.duck-streams :only (reader with-out-writer)]
-	[clojure.set :only (union)]
 	[clojure.contrib.lazy-xml :only (parse-trim)]))
 
 ;;; Helper

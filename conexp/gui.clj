@@ -1,7 +1,6 @@
 (ns conexp.gui
   (:import [javax.swing UIManager])
-  (:use conexp.gui.base
-	conexp.gui.util))
+  (:use conexp.gui.base))
 
 (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
 

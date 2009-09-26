@@ -5,9 +5,7 @@
    :init init
    :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet ] [] }
    :state state)
-  (:use clojure.set
-	conexp.util
-	conexp.base
+  (:use conexp.base
 	conexp.fca.contexts))
 
 (defn Implication-init [premise conclusion]

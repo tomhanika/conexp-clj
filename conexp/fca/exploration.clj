@@ -1,7 +1,5 @@
 (ns conexp.fca.exploration
-  (:use clojure.set
-	conexp.util
-	conexp.base
+  (:use conexp.base
 	conexp.fca.contexts
 	conexp.fca.implications))
 
