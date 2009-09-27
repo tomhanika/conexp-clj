@@ -61,19 +61,7 @@
   [& strings]
   (throw (IllegalArgumentException. (apply str strings))))
 
-
 ;;; Math
-
-(defn subset?
-  "Returns true iff set-1 \\subseteq set-2."
-  [set-1 set-2]
-  (every? #(set-2 %) set-1))
-
-(defn proper-subset?
-  "Returns true iff (not= set-1 set-2) and set-1 \\subseteq set-2."
-  [set-1 set-2]
-  (and (not= set-1 set-2)
-       (subset? set-1 set-2)))
 
 (defmacro =>
   "Implements implication."
@@ -103,12 +91,3 @@
   "Macro for writing sets as mathematicians do (at least similar to it.)"
   [thing condition]
   `(set (for ~condition ~thing)))
-
-(defn subelts 
-  "Returns a subsequence of G until i is reached."
-  ;; better implementation with take-while?
-  [G i]
-  (if (or (empty? G) (= (first G) i))
-    (empty G)
-    (conj (subelts (rest G) i) 
-	  (first G))))
