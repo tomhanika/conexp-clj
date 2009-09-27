@@ -1,5 +1,6 @@
 (ns conexp.fca.lattices
-  (:use conexp.base)
+  (:use conexp.base
+	[conexp.fca.contexts :only (concepts)])
   (:gen-class
    :name "conexp.fca.Lattice"
    :prefix "Lattice-"
@@ -37,8 +38,8 @@
   (conexp.fca.Lattice. base-set (union (set-of [x x] [x base-set])
 				       (transitive-closure order))))
 
-(defmethod make-lattice [::set ::fn] [base-set order]
-  (make-lattice base-set (set-of [x y] [x base-set y base-set :when (order x y)])))
+(defmethod make-lattice [::set ::fn] [base-set order2]
+  (make-lattice base-set (set-of [x y] [x base-set y base-set :when (order2 x y)])))
 
 (defmethod make-lattice :default [base-set order]
   (illegal-argument "The arguments " base-set " and " order " are not valid for a Lattice."))
@@ -87,3 +88,50 @@
       (=> (ordr [x z])
 	  (= (sup x (inf y z))
 	     (inf (sup x y) z))))))
+
+(defn lattice-one [lat]
+  (let [order (order lat)
+	base  (base-set lat)]
+    (first (set-of x [x base :when (forall [y base] (order [y x]))]))))
+
+(defn lattice-zero [lat]
+  (let [order (order lat)
+	base  (base-set lat)]
+    (first (set-of x [x base :when (forall [y base] (order [x y]))]))))
+
+(defn directly-neighboured? [lat x y]
+  (let [order (order lat)
+	base  (base-set lat)]
+    (and (not= x y)
+	 (order [x y])
+	 (forall [z base]
+	   (=> (and (not= z x) (not= z y))
+	       (not (and (order [x z])
+			 (order [z y]))))))))
+
+(defn lattice-upper-neighbours [lat x]
+  (set-of y [y (base-set lat) :when (directly-neighboured? lat x y)]))
+
+(defn lattice-lower-neighbours [lat y]
+  (set-of x [x (base-set lat) :when (directly-neighboured? lat x y)]))
+
+(defn lattice-atoms [lat]
+  (lattice-upper-neighbours lat (lattice-zero lat)))
+
+(defn lattice-coatoms [lat]
+  (lattice-lower-neighbours lat (lattice-one lat)))
+
+(defn lattice-sup-irreducibles [lat]
+  (set-of y [y (base-set lat) :when (= 1 (count (lattice-lower-neighbours lat y)))]))
+
+(defn lattice-inf-irreducibles [lat]
+  (set-of x [x (base-set lat) :when (= 1 (count (lattice-upper-neighbours lat x)))]))
+
+(defn lattice-irreducibles [lat]
+  (intersection (lattice-sup-irreducibles lat)
+		(lattice-inf-irreducibles lat)))
+
+(defn concept-lattice [ctx]
+  (make-lattice (concepts ctx) 
+		(fn [[A _] [X _]] 
+		  (subset? A X))))
