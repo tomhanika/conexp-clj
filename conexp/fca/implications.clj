@@ -50,6 +50,7 @@
 	 (apply union new-set conclusions-to-add)))))
 
 (defn close-under-implications [implications set]
+  ; do with transitive-closure
   (first (first (drop-while (fn [[old new]] (not= old new))
 			    (iterate (fn [[old new]]
 				       [new (add-immediate-elements implications new old)])

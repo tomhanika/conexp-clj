@@ -4,7 +4,7 @@
 	            PrintWriter CharArrayWriter]
 	   [javax.swing KeyStroke AbstractAction JTextArea])
   (:use conexp.gui.util
-	[clojure.main :only (skip-whitespace with-bindings)]
+	[clojure.main :only (with-bindings)]
 	[clojure.contrib.pprint :only (write)])
   (:gen-class
    :name "conexp.gui.repl.ClojureREPL"
@@ -86,35 +86,36 @@
 
 (def *conexp-clojure-repl* (create-clojure-repl))
 
-(defn repl-in [string]
-  ((:repl-fn *conexp-clojure-repl*) (str string "\n")))
+(defn repl-in [rpl string]
+  ((:repl-fn rpl) (str string "\n")))
 
-(defn repl-out []
-  (let [result ((:result-fn *conexp-clojure-repl*))]
+(defn repl-out [rpl]
+  (let [result ((:result-fn rpl))]
     result))
 
-(defn repl-interrupt []
-  (.interrupt (:repl-thread *conexp-clojure-repl*)))
+(defn repl-interrupt [rpl]
+  (.interrupt (:repl-thread rpl)))
 
-(defn repl-alive? []
-  (.isAlive (:repl-thread *conexp-clojure-repl*)))
+(defn repl-alive? [rpl]
+  (.isAlive (:repl-thread rpl)))
 
-(defn repl-stop []
-  (.stop (:repl-thread *conexp-clojure-repl*)))
+(defn repl-stop [rpl]
+  (.stop (:repl-thread rpl)))
 
 
 ;;; Display
 
 (defn conexp-repl-init []
-  [ [] (ref {:last-pos 0 :output-thread nil}) ])
+  [ [] (ref {:last-pos 0
+	     :output-thread nil}) ])
 
 (defn conexp-repl-post-init [this]
   (dosync
    (alter (.state this) 
 	  assoc :output-thread (Thread. 
 				(fn []
-				  (while (repl-alive?)
-				    (let [result (repl-out)]
+				  (while (repl-alive? *conexp-clojure-repl*)
+				    (let [result (repl-out *conexp-clojure-repl*)]
 				      (invoke-later #(. this insertResult result))))))))
   (.start (@(.state this) :output-thread)))
 
@@ -151,7 +152,7 @@
       (if (and (= string "\n") (= off (- (.getLength this) 1)))
 	(let [input (.getText this (- last-pos 1) (- (.getLength this) last-pos))]
 	  (if (balanced? input)
-	    (repl-in input)))))))
+	    (repl-in *conexp-clojure-repl* input)))))))
 
 ;;;
 

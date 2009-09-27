@@ -3,7 +3,7 @@
    :name conexp.fca.Context
    :prefix "Context-"
    :init init
-   :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet clojure.lang.IFn ] [] }
+   :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet ] [] }
    :state state)
   (:use [clojure.contrib.str-utils :only (str-join)]
 	conexp.base))
@@ -66,20 +66,20 @@
     (set? thing) ::set
     (fn? thing) ::fn
     (seq? thing) ::seq
-    :else :invalid))
+    :else ::invalid))
 
 (defmulti make-context (fn [o a i] [(type-of o) (type-of a) (type-of i)]))
 
 (defmethod make-context [::set ::set ::set] [objects attributes incidence]
-  (conexp.fca.Context. objects attributes (set incidence)))
+  (conexp.fca.Context. objects attributes incidence))
 
 (defmethod make-context [::set ::set ::fn] [objects attributes incidence]
-  (make-context (set objects) (set attributes) (set-of [x y] [x objects
-							      y attributes
-							      :when (incidence x y)])))
+  (make-context objects attributes (set-of [x y] [x objects
+						  y attributes
+						  :when (incidence x y)])))
 
 (defmethod make-context :default [obj att inz]
-  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid"))
+  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
 (defn object-derivation [ctx objects]
   (let [{:keys [incidence attributes]} (.state ctx)]
@@ -216,19 +216,6 @@
 	new-inz  (union (set-of [[g 1] m] [[g m] (incidence ctx-1)])
 			(set-of [[g 2] m] [[g m] (incidence ctx-2)]))]
     (make-context new-objs (attributes ctx-1) new-inz)))
-
-(defn transitive-closure
-  ([set-of-pairs]
-     (transitive-closure set-of-pairs set-of-pairs #{}))
-  ([set-of-pairs new old]
-     (if (= new old)
-       new
-       (recur set-of-pairs (union new
-				  (set-of [x y]
-					  [[x z_1] (difference new old)
-					   [z_2 y] set-of-pairs
-					   :when (= z_1 z_2)]))
-	      new))))
 
 (defn context-transitive-closure [ctx]
   (make-context (objects ctx) (attributes ctx) (transitive-closure (incidence ctx))))

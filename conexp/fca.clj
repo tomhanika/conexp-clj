@@ -3,4 +3,5 @@
 
 (immigrate 'conexp.fca.contexts
 	   'conexp.fca.implications
-	   'conexp.fca.exploration)
+	   'conexp.fca.exploration
+	   'conexp.fca.lattices)
