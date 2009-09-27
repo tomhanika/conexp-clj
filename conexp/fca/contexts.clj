@@ -21,15 +21,16 @@
   ((.state ctx) :incidence))
 
 (defn sort-by-second [x y]
-  (cond
-    (and (vector? x)
-	 (vector? y)
-	 (= 2 (count x) (count y)))
-    (if (= (second x) (second y))
-      (< (first x) (first y))
-      (< (second x) (second y)))
-    :else
-    (< x y)))
+  (let [< #(> 0 (compare (str %1) (str %2)))]
+    (cond
+      (and (vector? x)
+	   (vector? y)
+	   (= 2 (count x) (count y)))
+      (if (= (second x) (second y))
+	(< (first x) (first y))
+	(< (second x) (second y)))
+      :else
+      (< x y))))
 
 (defn print-context [ctx order-on-objects order-on-attributes]
   (let [attributes (vec (sort order-on-objects (attributes ctx)))
