@@ -1,7 +1,9 @@
 (ns conexp.tests
-  (:use [clojure.test :only (run-tests)]))
+  (:use [clojure.test :only (*stack-trace-depth* run-tests)]))
 
-(def *testing-namespaces* '[conexp.tests.util])
+(def *testing-namespaces* '[conexp.tests.util
+			    conexp.tests.base])
 
 (defn test-conexp []
-  (apply run-tests *testing-namespaces*))
+  (binding [*stack-trace-depth* 13]
+    (apply run-tests *testing-namespaces*)))

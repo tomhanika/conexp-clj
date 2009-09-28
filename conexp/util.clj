@@ -39,7 +39,7 @@
 (defn split-at-first
   "Splits given sequence at first element satisfing predicate.
   The first element satisfing predicate will be in the second sequence."
-  [sequence predicate]
+  [predicate sequence]
   (let [index (or (first-non-nil
 		   (map #(if (predicate %1) %2)
 			sequence (iterate inc 0)))
@@ -49,7 +49,7 @@
 (defn split-at-last
   "Splits given sequence at last element satisfing predicate.
   The last element satisfing predicate will be in the first sequence."
-  [sequence predicate]
+  [predicate sequence]
   (let [index (or (first-non-nil
 		   (map #(if (predicate %1) %2)
 			(reverse sequence) (range (count sequence) 0 -1)))

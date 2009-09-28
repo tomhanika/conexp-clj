@@ -2,20 +2,11 @@
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 (immigrate 'clojure.set
+	   'clojure.contrib.set
 	   'conexp.util)
 
+
 ;;; Set Theory
-
-(defn subset?
-  "Returns true iff set-1 \\subseteq set-2."
-  [set-1 set-2]
-  (every? #(set-2 %) set-1))
-
-(defn proper-subset?
-  "Returns true iff (not= set-1 set-2) and set-1 \\subseteq set-2."
-  [set-1 set-2]
-  (and (not= set-1 set-2)
-       (subset? set-1 set-2)))
 
 (defn cross-product
   "Returns cross product of set-1 and set-2."
@@ -26,23 +17,21 @@
 ;;; Next Closure
 
 (defn subelts
-  "Returns a subsequence of G until i is reached."
-  ;; better implementation with take-while?
-  [G i]
-  (if (or (empty? G) (= (first G) i))
-    (empty G)
-    (conj (subelts (rest G) i)
-	  (first G))))
+  "Returns a subsequence of seq up to index i."
+  [seq i]
+  (take-while #(not= % i) seq))
 
 (defn lectic-<_i
-  "Implements lectic < at position i."
+  "Implements lectic < at position i. The basic order is given by the ordering
+  of G which is interpreted as increasing order."
   [G i A B]
   (and (B i) (not (A i))
        (forall [j (subelts G i)]
-	       (<=> (B j) (A j)))))
+         (<=> (B j) (A j)))))
 
 (defn lectic-<
-  "Implements lectic ordering."
+  "Implements lectic ordering. The basic order is given by the ordering of G
+  which is interpreted as increasing order."
   [G A B]
   (exists [i G] (lectic-<_i G i A B)))
 
@@ -54,7 +43,8 @@
 	 i)))
 
 (defn next-closed-set
-  "Computes next closed set with the Next Closure Algorithm."
+  "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
+  interpreted as increasing, is taken to be the basic order of the elements."
   [G clop A]
   (let [oplus-A (partial oplus G clop A)]
     (first
