@@ -21,7 +21,8 @@
   (is (lectic-<_i [5 7 3 2 1] 3 #{2} #{3}))
   (is (lectic-<_i [5 7 3 2 1] 1 #{} #{1}))
   (is (not (lectic-<_i [5 7 3 2 1] 5 #{5 3 2} #{5 7 3 2})))
-  (is (not (lectic-<_i [5 7 3 2 1] 2 #{5 7 3} #{5 7 2}))))
+  (is (not (lectic-<_i [5 7 3 2 1] 2 #{5 7 3} #{5 7 2})))
+  (is (lectic-<_i [1 nil] nil #{1} #{1 nil})))
 
 (deftest test-lectic-<
   (is (lectic-< [5 7 3 2 1] #{} #{5}))
@@ -50,13 +51,20 @@
        #{3}     #{3 1}
        #{3 1}   #{3 2}
        #{3 2}   #{3 2 1}
-       #{3 2 1} nil))
+       #{3 2 1} nil)
+  (are [set next] (= (next-closed-set [1 nil] identity set) next)
+       #{}      #{nil}
+       #{nil}   #{1}
+       #{1}     #{1 nil}
+       #{1 nil} nil))
 
 (deftest test-all-closed-sets
   (is (= (all-closed-sets [5 7 3 2 1] #(union % #{3 2 1}))
 	 (seq [#{3 2 1} #{7 3 2 1} #{5 3 2 1} #{5 7 3 2 1}])))
   (is (= (all-closed-sets [3 2 1] identity)
-	 (seq [#{} #{1} #{2} #{2 1} #{3} #{3 1} #{3 2} #{3 2 1}]))))
+	 (seq [#{} #{1} #{2} #{2 1} #{3} #{3 1} #{3 2} #{3 2 1}])))
+  (is (= (all-closed-sets [1 nil] identity)
+	 (seq [#{} #{nil} #{1} #{1 nil}]))))
 
 (deftest test-subsets
   (is (= #{#{} #{1} #{2} #{1 2}}

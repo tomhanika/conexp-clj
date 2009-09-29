@@ -25,9 +25,9 @@
   "Implements lectic < at position i. The basic order is given by the ordering
   of G which is interpreted as increasing order."
   [G i A B]
-  (and (B i) (not (A i))
+  (and (contains? B i) (not (contains? A i))
        (forall [j (subelts G i)]
-         (<=> (B j) (A j)))))
+         (<=> (contains? B j) (contains? A j)))))
 
 (defn lectic-<
   "Implements lectic ordering. The basic order is given by the ordering of G

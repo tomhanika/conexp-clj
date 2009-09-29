@@ -33,7 +33,9 @@
       (< x y))))
 
 (defn print-context [ctx order-on-objects order-on-attributes]
-  (let [attributes (vec (sort order-on-objects (attributes ctx)))
+  (let [str #(if (= % nil) "nil" (str %))
+
+	attributes (vec (sort order-on-objects (attributes ctx)))
 	objects    (vec (sort order-on-attributes (objects ctx)))
 	incidence  (incidence ctx)
 
@@ -41,17 +43,18 @@
 	max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
     (with-str-out
       "\n" 
-      (ensure-length "" max-obj " ") " |" (for [att attributes] [(str att) " "]) "\n"
+      (ensure-length "" max-obj " ") " |" (for [att attributes]
+					    [(str att) " "]) "\n"
       (ensure-length "" max-obj "-") "-+" (for [att attributes]
 					    (ensure-length "" (inc (count (str att))) "-")) "\n"
       (for [obj objects]
-	[ (ensure-length (str obj) max-obj) 
-	  " |" 
-	  (for [att attributes]
-	    [ (ensure-length (if (incidence [obj att]) "x" ".") 
-			     (count (str att))) 
-	      " "])
-	  "\n" ]))))
+	[(ensure-length (str obj) max-obj)
+	 " |"
+	 (for [att attributes]
+	   [(ensure-length (if (incidence [obj att]) "x" ".")
+			   (count (str att)))
+	    " "])
+	 "\n"]))))
 
 (defn Context-toString [this]
   (print-context this sort-by-second sort-by-second))
