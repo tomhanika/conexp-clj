@@ -60,24 +60,21 @@
       "Testing illegal-argument."))
 
 (deftest test-=>
-  (is (=> true true)
-      "Testing true => true.")
-  (is (=> false true)
-      "Testing false => true.")
-  (is (=> false false)
-      "Testing false => false.")
-  (is (not (=> true false))
-      "Testing true => false."))
+  (is (=> true true))
+  (is (=> false true))
+  (is (=> false false))
+  (is (not (=> true false)))
+  (is (=> 1 2))
+  (is (=> nil false))
+  (is (not (=> 1 nil))))
 
 (deftest test-<=>
- (is (<=> true true)
-     "Testing true <=> true.")
- (is (<=> false false)
-     "Testing false <=> false")
- (is (not (<=> true false))
-     "Testing true <=> false.")
- (is (not (<=> false true))
-     "Testing false <=> true."))
+ (is (<=> true true))
+ (is (<=> false false))
+ (is (not (<=> true false)))
+ (is (not (<=> false true)))
+ (is (<=> 1 2))
+ (is (<=> nil false)))
 
 (deftest test-forall
   (is (not (forall [x (iterate inc 0)]

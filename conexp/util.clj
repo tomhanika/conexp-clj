@@ -68,11 +68,11 @@
   [a b]
   `(if ~a ~b true))
 
-(defmacro <=>
+(defn <=>
   "Implements equivalence."
   [a b]
-  `(or (and ~a ~b)
-       (and (not ~a) (not ~b))))
+  (or (and a b)
+      (and (not a) (not b))))
 
 (defmacro forall
   "Implements logical forall quantor."
