@@ -71,9 +71,10 @@
   ([set-of-pairs new old]
      (if (= new old)
        new
-       (recur set-of-pairs (union new
-				  (set-of [x y]
-					  [[x z_1] (difference new old)
-					   [z_2 y] set-of-pairs
-					   :when (= z_1 z_2)]))
+       (recur set-of-pairs
+	      (union new
+		     (set-of [x y]
+			     [[x z_1] (difference new old)
+			      [z_2 y] set-of-pairs
+			      :when (= z_1 z_2)]))
 	      new))))

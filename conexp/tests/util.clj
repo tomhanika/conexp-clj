@@ -4,60 +4,42 @@
 	[clojure.contrib.math :only (gcd)]))
 
 (deftest test-ensure-length
-  (is (= 10 (count (ensure-length "" 10)))
-      "Test length of ensure-length result")
-  (is (every? #(= \- %) (ensure-length "" 10 "-"))
-      "Test padding of ensure-length result"))
+  (is (= 10 (count (ensure-length "" 10))))
+  (is (every? #(= \- %) (ensure-length "" 10 "-"))))
 
 (deftest test-flatten
-  (is (every? #(not (seq? %)) (flatten [1 2 3 [4 [5 [6 7] [8]] 9 [10]] '(1 2)]))
-      "Testing flatten property of flatten."))
+  (is (every? #(not (seq? %)) (flatten [1 2 3 [4 [5 [6 7] [8]] 9 [10]] '(1 2)]))))
 
 (deftest test-with-str-out
   (is (= "Hallo, ich bin ein Test."
 	 (with-str-out
-	   "Hallo" [[[[","]] [" ich" '(" ") "bin"]] " "] "ein Test."))
-      "Testing with-str-out."))
+	   "Hallo" [[[[","]] [" ich" '(" ") "bin"]] " "] "ein Test."))))
 
 (deftest test-zip
   (let [zipped (zip [1 2 3 4] '[a b c])]
-    (is (= 3 (count zipped))
-	"Testing length of zip result.")
-    (is (= [1 2 3] (map first zipped))
-	"Testing first element of elements ot zip result")
-    (is (= '[a b c] (map second zipped))
-	"Testing second elements of zip result.")))
+    (is (= 3 (count zipped)))
+    (is (= [1 2 3] (map first zipped)))
+    (is (= '[a b c] (map second zipped)))))
 
 (deftest test-first-non-nil
-  (is (= 3 (first-non-nil [3 2 1]))
-      "Testing first-non-nil.")
-  (is (= nil (first-non-nil [nil nil]))
-      "Testing first-non-nil with nil vector.")
-  (is (= nil (first-non-nil []))
-      "Testing first-non-nil with empty vector.")
-  (is (= 3 (first-non-nil [nil nil 3 2 nil]))
-      "Testing first-non-nil with mixed vector.")
-  (is (= nil (first-non-nil ()))
-      "Testing first-non-nil with empty list.")
-  (is (= 3 (first-non-nil '(nil 3 nil 2)))
-      "Testing first-non-nil with mixed list."))
+  (is (= 3 (first-non-nil [3 2 1])))
+  (is (= nil (first-non-nil [nil nil])))
+  (is (= nil (first-non-nil [])))
+  (is (= 3 (first-non-nil [nil nil 3 2 nil])))
+  (is (= nil (first-non-nil ())))
+  (is (= 3 (first-non-nil '(nil 3 nil 2)))))
 
 (deftest test-split-at-first
-  (is (= [[1 3 5] [4 7 3 0]] (split-at-first even? [1 3 5 4 7 3 0]))
-      "Testing split-at-first with mixed argument.")
-  (is (= [[1 3 5] []] (split-at-first even? [1 3 5]))
-      "Testing split-at-first with non-succeeding argument."))
+  (is (= [[1 3 5] [4 7 3 0]] (split-at-first even? [1 3 5 4 7 3 0])))
+  (is (= [[1 3 5] []] (split-at-first even? [1 3 5]))))
 
 (deftest test-split-at-last
-  (is (= [[1 3 5 4 7 3 0] [1]] (split-at-last even? [1 3 5 4 7 3 0 1]))
-      "Testing split-at-last with mixed argument.")
-  (is (= [[] [1 3 5 7 3]] (split-at-last even? [1 3 5 7 3]))
-      "Testing split-at-last with non-succeeding argument."))
+  (is (= [[1 3 5 4 7 3 0] [1]] (split-at-last even? [1 3 5 4 7 3 0 1])))
+  (is (= [[] [1 3 5 7 3]] (split-at-last even? [1 3 5 7 3]))))
 
 (deftest test-illegal-argument
   (is (thrown-with-msg? IllegalArgumentException #"Dies ist eine Testnachricht."
-			(illegal-argument "Dies " "ist eine " "Testnachricht" "."))
-      "Testing illegal-argument."))
+			(illegal-argument "Dies " "ist eine " "Testnachricht" "."))))
 
 (deftest test-=>
   (is (=> true true))
@@ -78,28 +60,19 @@
 
 (deftest test-forall
   (is (not (forall [x (iterate inc 0)]
-	     (even? x)))
-      "Testing whether all numbers are even.")
+	     (even? x))))
   (is (forall [x (range 100)]
-        (< x 100))
-      "Testing whether all numbers below 100 are below 100.")
-  (is (forall [x []] false)
-      "Testing whether forall is true for the empty set."))
+        (< x 100)))
+  (is (forall [x []] false)))
 
 (deftest test-exists
   (is (exists [x (iterate inc 0)]
-	(even? x))
-      "Testing whether there exists an even number.")
+	(even? x)))
   (is (not (exists [x (range 100)]
-	     (>= x 100)))
-      "Testing whether there exists a number below 100 being >= 100.")
-  (is (not (exists [x []] true))
-      "Testing whether exists is false for the empty set."))
+	     (>= x 100))))
+  (is (not (exists [x []] true))))
 
 (deftest test-set-of
-  (is (= #{1 2 3 4 5 6} (set-of x [x (range 1 7)]))
-      "Testing simple usage of set-of.")
-  (is (= #{4 5 6} (set-of x [x (range 100) :when (<= 4 x 6)]))
-      "Testing set-of with simple condition.")
-  (is (= #{1 2 3 4 5 6} (set-of x [x (range 7) :when (= 1 (gcd x 7))]))
-      "Testing set-of for \\phi(7)."))
+  (is (= #{1 2 3 4 5 6} (set-of x [x (range 1 7)])))
+  (is (= #{4 5 6} (set-of x [x (range 100) :when (<= 4 x 6)])))
+  (is (= #{1 2 3 4 5 6} (set-of x [x (range 7) :when (= 1 (gcd x 7))]))))
