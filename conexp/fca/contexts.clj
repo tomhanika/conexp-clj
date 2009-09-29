@@ -3,7 +3,7 @@
    :name conexp.fca.Context
    :prefix "Context-"
    :init init
-   :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet ] [] }
+   :constructors { [ Object Object Object ] [] }
    :state state)
   (:use [clojure.contrib.str-utils :only (str-join)]
 	conexp.base))
@@ -21,7 +21,7 @@
   ((.state ctx) :incidence))
 
 (defn sort-by-second [x y]
-  (let [< #(> 0 (compare (str %1) (str %2)))]
+  (let [< #(> 0 (compare (str %1) (str %2)))] ; change this
     (cond
       (and (vector? x)
 	   (vector? y)
@@ -65,9 +65,9 @@
 (defn type-of [thing]
   (cond
     (set? thing) ::set
-    (fn? thing) ::fn
+    (fn? thing)  ::fn
     (seq? thing) ::seq
-    :else ::invalid))
+    :else        ::invalid))
 
 (defmulti make-context (fn [o a i] [(type-of o) (type-of a) (type-of i)]))
 
@@ -170,6 +170,7 @@
   (set-of [ objs (object-derivation ctx objs) ]
 	  [ objs (context-extends ctx) ]))
 
+
 ;; FcaFlint functionalities
 
 (defn context-union [ctx1 ctx2]
@@ -232,6 +233,7 @@
 
 (defn adiag-context [base-set]
   (make-context base-set base-set not=))
+
 
 ;;;
 

@@ -3,7 +3,7 @@
    :name conexp.fca.Implication
    :prefix "Implication-"
    :init init
-   :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet ] [] }
+   :constructors { [ Object Object ] [] }
    :state state)
   (:use conexp.base
 	conexp.fca.contexts))
