@@ -8,6 +8,7 @@
 
 (compile 'conexp.fca.contexts)
 (compile 'conexp.fca.implications)
+(compile 'conexp.fca.lattices)
 
 (immigrate 'conexp.fca)
 

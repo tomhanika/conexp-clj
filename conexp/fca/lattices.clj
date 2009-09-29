@@ -5,7 +5,7 @@
    :name "conexp.fca.Lattice"
    :prefix "Lattice-"
    :init init
-   :constructors { [ clojure.lang.PersistentHashSet clojure.lang.PersistentHashSet ] [] }
+   :constructors { [ Object Object ] [] }
    :state state))
 
 (defn Lattice-init [base-set order]
