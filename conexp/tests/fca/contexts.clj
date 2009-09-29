@@ -88,3 +88,6 @@
 
 (deftest test-context-sum
   'to-be-done)
+
+(deftest test-context-xia-product
+  'to-be-done)

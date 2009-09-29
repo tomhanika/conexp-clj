@@ -78,3 +78,10 @@
 			      [z_2 y] set-of-pairs
 			      :when (= z_1 z_2)]))
 	      new))))
+
+(defn graph-of-function?
+  "Returns true iff relation is the graph of a function from source to target."
+  [relation source target]
+  (and (= (set-of x [[x y] relation]) source)
+       (subset? (set-of y [[x y] relation]) target)
+       (= (count source) (count relation)))) ; this works because everything is finite

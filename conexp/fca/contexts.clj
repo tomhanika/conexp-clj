@@ -253,3 +253,20 @@
 				[g_2 (objects ctx-2)
 				 m_1 (attributes ctx-1)]))]
     (make-context new-objs new-atts new-inz)))
+
+(defn context-xia-product [ctx-1 ctx-2]
+  (let [G_1 (objects ctx-1)
+	G_2 (objects ctx-2)
+	M_1 (attributes ctx-1)
+	M_2 (attributes ctx-2)
+	I_1 (incidence ctx-1)
+	I_2 (incidence ctx-2)
+
+	new-objs (cross-product G_1 G_2)
+	new-atts (cross-product M_1 M_2)
+	new-inz  (set-of [[g_1, g_2], [m_1, m_2]]
+			 [[g_1,g_2] new-objs
+			  [m_1,m_2] new-atts
+			  :when (<=> (I_1 [g_1,m_1])
+				     (I_2 [g_2,m_2]))])]
+    (make-context new-objs new-atts new-inz)))
