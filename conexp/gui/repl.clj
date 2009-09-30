@@ -14,7 +14,10 @@
    :prefix "conexp-repl-"
    :constructors { [] [] }
    :state state
-   :methods [ [ insertResult [ String ] Integer ] ]
+   :methods [ [ insertResult [ String ] Integer ]
+	      [ lastPosition [ ]        Integer ]
+	      [ outputThread [ ]        Object  ]
+	      [ replThread   [ ]        Object  ] ]
    :exposes-methods { remove       removeSuper,
 		      insertString insertStringSuper }))
 
@@ -84,8 +87,6 @@
 		      (recur wtr)
 		      (.toString wtr))))}))
 
-(def *conexp-clojure-repl* (create-clojure-repl))
-
 (defn repl-in [rpl string]
   ((:repl-fn rpl) (str string "\n")))
 
@@ -107,17 +108,29 @@
 
 (defn conexp-repl-init []
   [ [] (ref {:last-pos 0
-	     :output-thread nil}) ])
+	     :output-thread nil
+	     :repl-thread nil}) ])
 
 (defn conexp-repl-post-init [this]
   (dosync
    (alter (.state this) 
 	  assoc :output-thread (Thread. 
 				(fn []
-				  (while (repl-alive? *conexp-clojure-repl*)
-				    (let [result (repl-out *conexp-clojure-repl*)]
-				      (invoke-later #(. this insertResult result))))))))
+				  (while (repl-alive? (.replThread this))
+				    (let [result (repl-out (.replThread this))]
+				      (invoke-later #(. this insertResult result)))))))
+   (alter (.state this)
+	  assoc :repl-thread (create-clojure-repl)))
   (.start (@(.state this) :output-thread)))
+
+(defn conexp-repl-lastPosition [this]
+  (@(.state this) :last-pos))
+
+(defn conexp-repl-outputThread [this]
+  (@(.state this) :output-thread))
+
+(defn conexp-repl-replThread [this]
+  (@(.state this) :repl-thread))
 
 (defn conexp-repl-remove [this off len]
   (if (>= (- off len -1) (@(.state this) :last-pos))
@@ -152,7 +165,7 @@
       (if (and (= string "\n") (= off (- (.getLength this) 1)))
 	(let [input (.getText this (- last-pos 1) (- (.getLength this) last-pos))]
 	  (if (balanced? input)
-	    (repl-in *conexp-clojure-repl* input)))))))
+	    (repl-in (.replThread this) input)))))))
 
 ;;;
 

@@ -3,12 +3,6 @@
 	conexp.base
 	conexp.fca.contexts))
 
-(deftest test-print-context
-  'to-be-done)
-
-(deftest test-Context-equals
-  'to-be-done)
-
 (deftest test-make-context
   'to-be-done)
 
@@ -16,6 +10,21 @@
 				 #{[1 2] [1 1] [1 3]
 				   [2 2] [2 3] [3 5]
 				   [5 2] [5 3] [5 4]}))
+
+(deftest test-print-context
+  'to-be-done)
+
+(deftest test-Context-equals
+  (are [objs atts inz] (= (make-context objs atts inz)
+			  (make-context objs atts inz))
+       #{1 2 3} #{'a 'b 'c} #{[1 'a] [1 'b] [3 'b] [3 'c]}
+       #{} #{2} #{})
+  (are [objs-1 atts-1 inzs-1 objs-2 atts-2 inzs-2]
+       (not= (make-context objs-1 atts-1 inzs-1)
+	     (make-context objs-2 atts-2 inzs-2))
+       #{1 2 3} #{1 2 3}   =  #{1 2 3} #{1 2 3} not=
+       #{1 2 3} #{1 2 3 4} =  #{1 2 3} #{1 2 3} =
+       #{'a 'b 'c} #{1 2}  =  #{'a 'b} #{1 2}   =))
 
 (deftest test-object-derivation
   'to-be-done)
@@ -122,4 +131,10 @@
   'to-be-done)
 
 (deftest test-context-xia-product
+  'to-be-done)
+
+(deftest test-context-product
+  'to-be-done)
+
+(deftest test-context-semiproduct
   'to-be-done)
