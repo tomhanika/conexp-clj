@@ -257,6 +257,10 @@
 				 m_1 (attributes ctx-1)]))]
     (make-context new-objs new-atts new-inz)))
 
+(defn context-product [ctx-1 ctx-2])
+
+(defn context-semiproduct [ctx-1 ctx-2])
+
 (defn context-xia-product [ctx-1 ctx-2]
   (let [G_1 (objects ctx-1)
 	G_2 (objects ctx-2)

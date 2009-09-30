@@ -7,7 +7,19 @@
   (is (and (= #{} (cross-product #{} #{1 2}))
 	   (= #{} (cross-product #{1 2} #{}))
 	   (= #{} (cross-product #{} #{}))))
-  (is (= 12 (count (cross-product #{1 2 3} #{1 2 3 4})))))
+  (is (= 12 (count (cross-product #{1 2 3} #{1 2 3 4}))))
+  (is (= (* 2 3 4) (count (cross-product #{1 2} #{3 4 5} #{6 7 8 9}))))
+  (is (= #{[]} (cross-product))))
+
+(deftest test-disjoint-union
+  (is (= 11 (count (disjoint-union #{1 2 3 4 5 6} #{7 8 9 10 11}))))
+  (is (= (+ 1 2 3 4) (count (disjoint-union #{1} #{1 2} #{1 2 3} #{1 2 3 4}))))
+  (are [set-1 set-2 set-3] (let [du (disjoint-union set-1 set-2 set-3)]
+			     (and (= set-1 (set-of x [[x z] du :when (= z 0)]))
+				  (= set-2 (set-of x [[x z] du :when (= z 1)]))
+				  (= set-3 (set-of x [[x z] du :when (= z 2)]))))
+       #{1 2 3} #{3 4 5} #{7 8 9}
+       #{} #{'a *} #{}))
 
 (deftest test-subelts
   (is (= (seq #{1 2 3 4}) (subelts #{1 2 3 4 5 6 7 8 9 10} 5)))

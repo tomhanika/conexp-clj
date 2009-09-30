@@ -10,9 +10,17 @@
 
 (defn cross-product
   "Returns cross product of set-1 and set-2."
-  [set-1 set-2]
-  (set-of [x y] [x set-1 y set-2]))
+  [& sets]
+  (if (empty? sets)
+    #{[]}
+    (set-of (conj t x) [t (apply cross-product (butlast sets))
+			x (last sets)])))
 
+(defn disjoint-union
+  "Computes the disjoint union of sets by joining the cross-products of the
+  sets with natural numbers."
+  [& sets]
+  (apply union (map #(cross-product %1 #{%2}) sets (iterate inc 0))))
 
 ;;; Next Closure
 
