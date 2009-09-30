@@ -21,6 +21,27 @@
        #{1 2 3} #{3 4 5} #{7 8 9}
        #{} #{'a *} #{}))
 
+(deftest test-set-of-range
+  (is (= 100 (count (set-of-range 0 100))))
+  (is (= (set (range 0 10 2)) (set-of-range 0 10 2)))
+  (is (= #{} (set-of-range 23 11))))
+
+(deftest test-prime?
+  (let [yes identity
+	no  not]
+    (are [x pred] (pred (prime? x))
+	 2 yes
+	 3 yes
+	 4 no
+	 7 yes
+	 2311 yes)))
+
+(deftest test-crossfoot
+  'to-be-done)
+
+(deftest test-factorial
+  'to-be-done)
+
 (deftest test-subelts
   (is (= (seq #{1 2 3 4}) (subelts #{1 2 3 4 5 6 7 8 9 10} 5)))
   (is (empty? (subelts #{1 2 3 4} 1)))

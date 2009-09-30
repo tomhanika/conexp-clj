@@ -11,28 +11,47 @@
 (defn Context-init [objects attributes incidence]
   [ [] {:objects objects :attributes attributes :incidence incidence} ])
 
-(defn objects [ctx]
+(defn objects
+  "Returns the set of object of a formal context."
+  [ctx]
   ((.state ctx) :objects))
 
-(defn attributes [ctx]
+(defn attributes
+  "Returns the set of attributes of a formal context."
+  [ctx]
   ((.state ctx) :attributes))
 
-(defn incidence [ctx]
+(defn incidence
+  "Returns the incidence set of a formal context."
+  [ctx]
   ((.state ctx) :incidence))
 
-(defn sort-by-second [x y]
-  (let [< #(> 0 (compare (str %1) (str %2)))] ; change this
-    (cond
-      (and (vector? x)
-	   (vector? y)
-	   (= 2 (count x) (count y)))
-      (if (= (second x) (second y))
-	(< (first x) (first y))
-	(< (second x) (second y)))
-      :else
-      (< x y))))
+(defn- thing-order
+  "Orders things for proper output of formal contexts."
+  [x y]
+  (if (= (class x) (class y))
+    (if (instance? Comparable x)
+      (> 0 (compare x y))
+      (< (.hashCode x) (.hashCode y)))
+    (> 0 (compare (str (class x)) (str (class y))))))
 
-(defn print-context [ctx order-on-objects order-on-attributes]
+(defn- sort-by-second
+  "Ensures that pairs are ordered by second entry first. This gives
+  better output for context sums, products, ..."
+  [x y]
+  (cond
+    (and (vector? x)
+	 (vector? y)
+	 (= 2 (count x) (count y)))
+    (if (= (second x) (second y))
+      (thing-order (first x) (first y))
+      (thing-order (second x) (second y)))
+    :else
+    (thing-order x y)))
+
+(defn print-context
+  "Prints contexts in a human readable form."
+  [ctx order-on-objects order-on-attributes]
   (let [str #(if (= % nil) "nil" (str %))
 
 	attributes (vec (sort order-on-objects (attributes ctx)))
@@ -65,14 +84,16 @@
        (= (attributes this) (attributes other))
        (= (incidence this) (incidence other))))
 
-(defn type-of [thing]
+(defn- type-of
+  "Dispatch function for make-context."
+  [thing]
   (cond
     (set? thing) ::set
     (fn? thing)  ::fn
     (seq? thing) ::seq
     :else        ::invalid))
 
-(defmulti make-context (fn [o a i] [(type-of o) (type-of a) (type-of i)]))
+(defmulti make-context (fn [& args] (map type-of args)))
 
 (defmethod make-context [::set ::set ::set] [objects attributes incidence]
   (conexp.fca.Context. objects attributes incidence))
@@ -102,28 +123,30 @@
 (defn down-arrows [ctx]
   (let [obj (objects ctx)
 	att (attributes ctx)
-	inz (incidence ctx)]
+	inz (incidence ctx)
+	prime (memoize (partial object-derivation ctx))]
     (set-of [g m]
 	    [g obj
 	     m att
 	     :when (and (not (inz [g m]))
 			(forall [h obj]
-				(=> (proper-subset? (object-derivation ctx #{g})
-						    (object-derivation ctx #{h}))
-				    (inz [h m]))))])))
+			  (=> (proper-subset? (prime #{g})
+					      (prime #{h}))
+			      (inz [h m]))))])))
 
 (defn up-arrows [ctx]
   (let [obj (objects ctx)
 	att (attributes ctx)
-	inz (incidence ctx)]
+	inz (incidence ctx)
+	prime (memoize (partial attribute-derivation ctx))]
     (set-of [g m]
 	    [g obj
 	     m att
 	     :when (and (not (inz [g m]))
 			(forall [n att]
-				(=> (proper-subset? (attribute-derivation ctx #{m})
-						    (attribute-derivation ctx #{n}))
-				    (inz [g n]))))])))
+			  (=> (proper-subset? (prime #{m})
+					      (prime #{n}))
+			      (inz [g n]))))])))
 
 (defn up-down-arrows [ctx] ; faster version?
   (intersection (up-arrows ctx) (down-arrows ctx)))

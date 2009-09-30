@@ -3,8 +3,9 @@
 
 (immigrate 'clojure.set
 	   'clojure.contrib.set
+	   'clojure.contrib.math
+	   'clojure.contrib.lazy-seqs
 	   'conexp.util)
-
 
 ;;; Set Theory
 
@@ -21,6 +22,32 @@
   sets with natural numbers."
   [& sets]
   (apply union (map #(cross-product %1 #{%2}) sets (iterate inc 0))))
+
+(defn set-of-range
+  ([end]
+     (set-of-range 0 end 1))
+  ([start end]
+     (set-of-range start end 1))
+  ([start end step]
+     (set (range start end step))))
+
+(defn prime?
+  "Returns true iff n is prime with a certainty of (- 1 (/ 1 (expt 2 1000)))"
+  [n]
+  (let [actual-number (if (instance? BigInteger n)
+			n
+			(BigInteger. (str n)))]
+    (.isProbablePrime actual-number 1000)))
+
+(defn crossfoot
+  "Returns the crossfoot of n."
+  [n]
+  (reduce + (map #(Integer/parseInt (str %)) (str n))))
+
+(defn factorial
+  "Returns n!."
+  [n]
+  (reduce * (range 2 (inc n))))
 
 ;;; Next Closure
 

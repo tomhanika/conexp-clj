@@ -10,9 +10,14 @@
 				 #{[1 2] [1 1] [1 3]
 				   [2 2] [2 3] [3 5]
 				   [5 2] [5 3] [5 4]}))
+(def *test-ctx-02* (make-context (set-of-range 0 30) (set-of-range 0 30) <))
+(def *test-ctx-03* (make-context (set-of-range 0 50) (set-of-range 0 50) #(= 1 (gcd %1 %2))))
+(def *test-ctx-04* (make-context #{} #{} #{}))
+(def *test-ctx-05* (make-context (set-of-range 0 50) (set-of-range 0 50) (fn [_ _] (< 0.5 (rand)))))
 
-(deftest test-print-context
-  'to-be-done)
+(deftest test-Context-toString
+  (is (= (str *test-ctx-01*)
+	 "\n  |1 2 3 4 5 \n--+----------\n1 |x x x . . \n2 |. x x . . \n3 |. . . . x \n4 |. . . . . \n5 |. x x x . \n")))
 
 (deftest test-Context-equals
   (are [objs atts inz] (= (make-context objs atts inz)
@@ -48,7 +53,7 @@
   'to-be-done)
 
 (deftest test-reduced?
-  'to-be-done)
+  (is (not (reduced? *test-ctx-01*))))
 
 (deftest test-transpose-context
   'to-be-done)
