@@ -257,9 +257,27 @@
 				 m_1 (attributes ctx-1)]))]
     (make-context new-objs new-atts new-inz)))
 
-(defn context-product [ctx-1 ctx-2])
+(defn context-product [ctx-1 ctx-2]
+  (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
+	new-atts (cross-product (attributes ctx-1) (attributes ctx-2))
+	inz-1    (incidence ctx-1)
+	inz-2    (incidence ctx-2)
+	new-inz  (set-of [[g_1, g_2], [m_1, m_2]]
+			 [[g_1, g_2] new-objs
+			  [m_1, m_2] new-atts
+			  :when (or (inz-1 [g_1, m_1])
+				    (inz-2 [g_2, m_2]))])]
+    (make-context new-objs new-atts new-inz)))
 
-(defn context-semiproduct [ctx-1 ctx-2])
+(defn context-semiproduct [ctx-1 ctx-2]
+  (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
+	new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2))
+	inzs     [(incidence ctx-1) (incidence ctx-2)]
+	new-inz  (set-of [g, [m, idx]]
+			 [g new-objs
+			  [m, idx] new-atts
+			  :when ((inzs idx) [(g idx) m])])]
+    (make-context new-objs new-atts new-inz)))
 
 (defn context-xia-product [ctx-1 ctx-2]
   (let [G_1 (objects ctx-1)
