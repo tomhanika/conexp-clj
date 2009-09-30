@@ -2,9 +2,8 @@
   (:import [javax.swing UIManager])
   (:use conexp.gui.base))
 
-(. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-
 (defn conexp-gui []
+  (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
   (let [frame (conexp-main-frame)]
     (.setVisible frame true)
     frame))
