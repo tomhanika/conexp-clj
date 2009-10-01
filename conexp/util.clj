@@ -95,12 +95,16 @@
 (defn distinct-by-key
   "Returns a sequence of all elements of the given sequence with distinct key values,
   where key is a function from the elements of the given sequence. If two elements
-  correspond to the same key, the one is chosen which appeared earlier in the sequence."
+  correspond to the same key, the one is chosen which appeared earlier in the sequence.
+
+  This function is copied from clojure.core/distinct and adapted for using a key function."
   [sequence key]
-  (loop [result (empty sequence)
-	 rest-seq sequence]
-    (if (empty? rest-seq)
-      result
-      (let [x (first rest-seq)]
-	(recur (conj result x)
-	       (filter #(not= (key x) (key %)) rest-seq))))))
+  (let [step (fn step [xs seen]
+	       (lazy-seq
+		 ((fn [[f :as xs] seen]
+		    (when-let [s (seq xs)]
+		      (if (contains? seen (key f))
+			(recur (rest s) seen)
+			(cons f (step (rest s) (conj seen f))))))
+		  xs seen)))]
+    (step sequence #{})))
