@@ -76,3 +76,6 @@
   (is (= #{1 2 3 4 5 6} (set-of x [x (range 1 7)])))
   (is (= #{4 5 6} (set-of x [x (range 100) :when (<= 4 x 6)])))
   (is (= #{1 2 3 4 5 6} (set-of x [x (range 7) :when (= 1 (gcd x 7))]))))
+
+(deftest test-distinct-by-key
+  'to-be-done)

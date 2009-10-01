@@ -49,13 +49,13 @@
 (deftest test-up-down-arrows
   'to-be-done)
 
-(deftest test-reduce-context
+(deftest test-reduce-clarified-context
   'to-be-done)
 
 (deftest test-reduced?
   (is (not (reduced? *test-ctx-01*))))
 
-(deftest test-transpose-context
+(deftest test-dual-context
   'to-be-done)
 
 (deftest test-invert-context

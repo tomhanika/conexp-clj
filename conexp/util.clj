@@ -91,3 +91,16 @@
   "Macro for writing sets as mathematicians do (at least similar to it.)"
   [thing condition]
   `(set (for ~condition ~thing)))
+
+(defn distinct-by-key
+  "Returns a sequence of all elements of the given sequence with distinct key values,
+  where key is a function from the elements of the given sequence. If two elements
+  correspond to the same key, the one is chosen which appeared earlier in the sequence."
+  [sequence key]
+  (loop [result (empty sequence)
+	 rest-seq sequence]
+    (if (empty? rest-seq)
+      result
+      (let [x (first rest-seq)]
+	(recur (conj result x)
+	       (filter #(not= (key x) (key %)) rest-seq))))))

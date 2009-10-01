@@ -120,6 +120,39 @@
        (= set-of-obj (object-derivation ctx set-of-att))
        (= set-of-att (attribute-derivation ctx set-of-obj))))
 
+(defn clarify-objects [ctx]
+  (let [prime (memoize (partial object-derivation ctx))
+	new-objs (distinct-by-key (objects ctx) #(prime #{%}))
+	new-inz (set-of [g m] [[g m] (incidence ctx)
+			       :when (contains? new-objs g)])]
+    (make-context new-objs (attributes ctx) new-inz)))
+
+(defn clarify-attributes [ctx]
+  (let [prime (memoize (partial attribute-derivation ctx))
+	new-atts (distinct-by-key (attributes ctx) #(prime #{%}))
+	new-inz (set-of [g m] [[g m] (incidence ctx)
+			       :when (contains? new-atts m)])]
+    (make-context (objects ctx) new-atts new-inz)))
+
+(defn clarify-context [ctx]
+  (clarify-objects (clarify-attributes ctx)))
+
+(defn object-clarified? [ctx]
+  (let [prime (memoize (partial object-derivation ctx))]
+    (not (exists [g (objects ctx)
+		  h (objects ctx)]
+	   (and (not= g h) (= (prime #{g}) (prime #{h})))))))
+
+(defn attribute-clarified? [ctx]
+  (let [prime (memoize (partial attribute-derivation ctx))]
+    (not (exists [m (attributes ctx)
+		  n (attributes ctx)]
+	   (and (not= m n) (= (prime #{m}) (prime #{n})))))))
+
+(defn clarified? [ctx]
+  (and (object-clarified? ctx)
+       (attribute-clarified? ctx)))
+
 (defn down-arrows [ctx]
   (let [obj (objects ctx)
 	att (attributes ctx)
@@ -151,7 +184,7 @@
 (defn up-down-arrows [ctx] ; faster version?
   (intersection (up-arrows ctx) (down-arrows ctx)))
 
-(defn reduce-context [ctx]
+(defn reduce-clarified-context [ctx]
   (let [obj (objects ctx)
 	att (attributes ctx)
 	inz (incidence ctx)
@@ -161,18 +194,24 @@
 	  new-inz (set-of [g m] [g new-obj m new-att :when (inz [g m])])]
     (make-context new-obj new-att (set new-inz)))))
 
-(defn reduced? [ctx]
-  (let [obj (objects ctx)
-	att (attributes ctx)
-	uda (up-down-arrows ctx)]
-    (and (forall [g obj]
-		 (exists [ [h _] uda ]
-			 (= g h)))
-	 (forall [m att]
-		 (exists [ [_ n] uda ]
-			 (= m n))))))
+(defn reduce-context [ctx]
+  (if (clarified? ctx)
+    (reduce-clarified-context ctx)
+    (reduce-clarified-context (clarify-context ctx))))
 
-(defn transpose-context [ctx]
+(defn reduced? [ctx]
+  (and (clarified? ctx)
+       (let [obj (objects ctx)
+	     att (attributes ctx)
+	     uda (up-down-arrows ctx)]
+	 (and (forall [g obj]
+		(exists [ [h _] uda ]
+		  (= g h)))
+	      (forall [m att]
+		(exists [ [_ n] uda ]
+		  (= m n)))))))
+
+(defn dual-context [ctx]
   (make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
 
 (defn invert-context [ctx]
