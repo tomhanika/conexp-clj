@@ -101,10 +101,12 @@
   [sequence key]
   (let [step (fn step [xs seen]
 	       (lazy-seq
-		 ((fn [[f :as xs] seen]
+		 ((fn [xs seen]
 		    (when-let [s (seq xs)]
-		      (if (contains? seen (key f))
-			(recur (rest s) seen)
-			(cons f (step (rest s) (conj seen f))))))
+		      (let [f     (first xs)
+			    key-f (key f)]
+			(if (contains? seen key-f)
+			  (recur (rest s) seen)
+			  (cons f (step (rest s) (conj seen key-f)))))))
 		  xs seen)))]
     (step sequence #{})))

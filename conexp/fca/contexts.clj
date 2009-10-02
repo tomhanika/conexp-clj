@@ -88,15 +88,15 @@
   "Dispatch function for make-context."
   [thing]
   (cond
-    (set? thing) ::set
-    (fn? thing)  ::fn
-    (seq? thing) ::seq
-    :else        ::invalid))
+    (or (set? thing)
+	(sequential? thing)) ::set
+    (fn? thing)              ::fn
+    :else                    ::invalid))
 
 (defmulti make-context (fn [& args] (map type-of args)))
 
 (defmethod make-context [::set ::set ::set] [objects attributes incidence]
-  (conexp.fca.Context. objects attributes incidence))
+  (conexp.fca.Context. (set objects) (set attributes) (set incidence)))
 
 (defmethod make-context [::set ::set ::fn] [objects attributes incidence]
   (make-context objects attributes (set-of [x y] [x objects
@@ -105,6 +105,8 @@
 
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
+
+;;; Common Operations in Contexts
 
 (defn object-derivation [ctx objects]
   (let [{:keys [incidence attributes]} (.state ctx)]
@@ -122,14 +124,14 @@
 
 (defn clarify-objects [ctx]
   (let [prime (memoize (partial object-derivation ctx))
-	new-objs (distinct-by-key (objects ctx) #(prime #{%}))
+	new-objs (set (distinct-by-key (objects ctx) #(prime #{%})))
 	new-inz (set-of [g m] [[g m] (incidence ctx)
 			       :when (contains? new-objs g)])]
     (make-context new-objs (attributes ctx) new-inz)))
 
 (defn clarify-attributes [ctx]
   (let [prime (memoize (partial attribute-derivation ctx))
-	new-atts (distinct-by-key (attributes ctx) #(prime #{%}))
+	new-atts (set (distinct-by-key (attributes ctx) #(prime #{%})))
 	new-inz (set-of [g m] [[g m] (incidence ctx)
 			       :when (contains? new-atts m)])]
     (make-context (objects ctx) new-atts new-inz)))
@@ -211,14 +213,6 @@
 		(exists [ [_ n] uda ]
 		  (= m n)))))))
 
-(defn dual-context [ctx]
-  (make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
-
-(defn invert-context [ctx]
-  (make-context (objects ctx) (attributes ctx) (set-of [g m] [g (objects ctx)
-							      m (attributes ctx)
-							      :when (not ((incidence ctx) [g m]))])))
-
 (defn context-object-closure [ctx set-of-objects]
   (attribute-derivation ctx (object-derivation ctx set-of-objects)))
 
@@ -236,7 +230,15 @@
 	  [ objs (context-extends ctx) ]))
 
 
-;; FcaFlint functionalities
+;; Common Operations with Contexts
+
+(defn dual-context [ctx]
+  (make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
+
+(defn invert-context [ctx]
+  (make-context (objects ctx) (attributes ctx) (set-of [g m] [g (objects ctx)
+							      m (attributes ctx)
+							      :when (not ((incidence ctx) [g m]))])))
 
 (defn context-union [ctx1 ctx2]
   (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx1)])
@@ -298,9 +300,6 @@
 
 (defn adiag-context [base-set]
   (make-context base-set base-set not=))
-
-
-;;;
 
 (defn context-sum [ctx-1 ctx-2]
   (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx-1)])

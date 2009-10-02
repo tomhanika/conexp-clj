@@ -78,4 +78,7 @@
   (is (= #{1 2 3 4 5 6} (set-of x [x (range 7) :when (= 1 (gcd x 7))]))))
 
 (deftest test-distinct-by-key
-  'to-be-done)
+  (are [sqn key rslt] (= (distinct-by-key sqn key) rslt)
+       #{1 2 3 4} identity (seq #{1 2 3 4})
+       [1 2 3 4]  #(< % 3) (seq [1 3])
+       #{}        identity (list)))

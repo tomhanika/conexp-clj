@@ -37,10 +37,26 @@
 	 2311 yes)))
 
 (deftest test-crossfoot
-  'to-be-done)
+  (are [num sum] (= (crossfoot num) sum)
+       10 1
+       0  0
+       12 3
+       123 6
+       1234 10
+       12345 15
+       123456 21
+       1234567 28
+       9999999 63))
 
 (deftest test-factorial
-  'to-be-done)
+  (are [num fac] (= (factorial num) fac)
+       0 1
+       1 1
+       2 2
+       3 6
+       4 24
+       5 120
+       6 720))
 
 (deftest test-subelts
   (is (= (seq #{1 2 3 4}) (subelts #{1 2 3 4 5 6 7 8 9 10} 5)))

@@ -24,6 +24,8 @@
   (apply union (map #(cross-product %1 #{%2}) sets (iterate inc 0))))
 
 (defn set-of-range
+  "Returns a set of all numbers from start upto (but not including) end,
+  by step if provided."
   ([end]
      (set-of-range 0 end 1))
   ([start end]
