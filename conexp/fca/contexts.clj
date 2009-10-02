@@ -75,17 +75,21 @@
 	    " "])
 	 "\n"]))))
 
-(defn Context-toString [this]
+(defn Context-toString
+  "Represents context as string by means of print-context."
+  [this]
   (print-context this sort-by-second sort-by-second))
 
-(defn Context-equals [this other]
+(defn Context-equals
+  "Implements mathematical equality of two contexts."
+  [this other]
   (and (instance? conexp.fca.Context other)
        (= (objects this) (objects other))
        (= (attributes this) (attributes other))
        (= (incidence this) (incidence other))))
 
 (defn- type-of
-  "Dispatch function for make-context."
+  "Dispatch function for make-context. Sequences and sets are made to one thing."
   [thing]
   (cond
     (or (set? thing)
@@ -93,7 +97,13 @@
     (fn? thing)              ::fn
     :else                    ::invalid))
 
-(defmulti make-context (fn [& args] (map type-of args)))
+(defmulti make-context
+  "Standard constructor for contexts. Takes a sequence of objects,
+  a sequence of attributes and either a set of pairs or function of
+  two elements being true iff its arguments are incident. Note that the
+  object and attribute sequences are converted to sets and therefore have to
+  not contain any douplicate elements."
+  (fn [& args] (map type-of args)))
 
 (defmethod make-context [::set ::set ::set] [objects attributes incidence]
   (conexp.fca.Context. (set objects) (set attributes) (set incidence)))
@@ -105,6 +115,7 @@
 
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
+
 
 ;;; Common Operations in Contexts
 
@@ -183,13 +194,11 @@
 					      (prime #{n}))
 			      (inz [g n]))))])))
 
-(defn up-down-arrows [ctx] ; faster version?
+(defn up-down-arrows [ctx]
   (intersection (up-arrows ctx) (down-arrows ctx)))
 
 (defn reduce-clarified-context [ctx]
-  (let [obj (objects ctx)
-	att (attributes ctx)
-	inz (incidence ctx)
+  (let [inz (incidence ctx)
 	uda (up-down-arrows ctx)]
     (let [new-obj (set (map first uda))
 	  new-att (set (map second uda))

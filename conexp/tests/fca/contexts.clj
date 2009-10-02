@@ -4,7 +4,12 @@
 	conexp.fca.contexts))
 
 (deftest test-make-context
-  'to-be-done)
+  (is (make-context #{1 2 3} #{1 2 3} #{[1 1] [2 2] [3 3]}))
+  (is (make-context #{1 2 3} #{1 2 3} =))
+  (is (make-context #{1 2 3} #{1 2 3} <))
+  (is (make-context #{1 2 3} #{1 2 3} not=))
+  (is (make-context [1 2 3] '(a d g) not=))
+  (is (thrown? IllegalArgumentException (make-context 1 2 3))))
 
 (def *test-ctx-01* (make-context #{1 2 3 4 5} #{1 2 3 4 5}
 				 #{[1 2] [1 1] [1 3]
@@ -40,6 +45,25 @@
 (deftest test-concept?
   'to-be-done)
 
+(deftest test-clarify-objects
+  'to-be-done)
+
+(deftest test-clarify-attributes
+  'to-be-done)
+
+(deftest test-clarify-context
+  'to-be-done)
+
+(deftest test-object-clarified?
+  'to-be-done)
+
+(deftest test-attribute-clarified?
+  'to-be-done)
+
+(deftest test-clarified?
+  (is (not (clarified? *test-ctx-03*)))
+  (is (clarified? *test-ctx-04*)))
+
 (deftest test-down-arrows
   'to-be-done)
 
@@ -53,13 +77,9 @@
   'to-be-done)
 
 (deftest test-reduced?
-  (is (not (reduced? *test-ctx-01*))))
-
-(deftest test-dual-context
-  'to-be-done)
-
-(deftest test-invert-context
-  'to-be-done)
+  (is (not (reduced? *test-ctx-01*)))
+  (is (not (reduced? *test-ctx-03*)))
+  (is (reduced? *test-ctx-04*)))
 
 (deftest test-context-object-closure
   'to-be-done)
@@ -74,6 +94,12 @@
   'to-be-done)
 
 (deftest test-concepts
+  'to-be-done)
+
+(deftest test-dual-context
+  'to-be-done)
+
+(deftest test-invert-context
   'to-be-done)
 
 (deftest test-context-union
@@ -135,11 +161,11 @@
 (deftest test-context-sum
   'to-be-done)
 
-(deftest test-context-xia-product
-  'to-be-done)
-
 (deftest test-context-product
   'to-be-done)
 
 (deftest test-context-semiproduct
+  'to-be-done)
+
+(deftest test-context-xia-product
   'to-be-done)

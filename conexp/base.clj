@@ -62,7 +62,7 @@
   "Implements lectic < at position i. The basic order is given by the ordering
   of G which is interpreted as increasing order."
   [G i A B]
-  (and (contains? B i) (not (contains? A i))
+  (and (contains? B i) (not (contains? A i)) ; A and B will always be sets
        (forall [j (subelts G i)]
          (<=> (contains? B j) (contains? A j)))))
 
