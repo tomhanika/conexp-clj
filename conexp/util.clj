@@ -61,6 +61,46 @@
   [& strings]
   (throw (IllegalArgumentException. (apply str strings))))
 
+(defmacro with-profiled-fns [fns & body]
+  `(binding ~(vec (apply concat
+			 (for [fn (distinct fns)]
+			   `[~fn (let [orig-fn# ~fn]
+				   (fn [& args#]
+				     (prof ~(keyword fn)
+				       (apply orig-fn# args#))))])))
+     (let [data# (with-profile-data ~@body)]
+       (if (not (empty? data#))
+	 (print-summary (summarize data#))))))
+
+(defmacro memo-fn [name args & body]
+  `(let [cache# (ref {})]
+     (fn ~name ~args
+       (if (contains? @cache# ~args)
+	 (@cache# ~args)
+	 (let [rslt# (do ~@body)]
+	   (dosync
+	    (alter cache# assoc ~args rslt#))
+	   rslt#)))))
+
+(defmacro recur-sequence [& things]
+  (let [initials (vec (butlast things))
+	recur-fn (last things)]
+    `(let [initials# (lazy-seq ~initials)]
+       (concat initials#
+	       ((fn step# [n# old-vals#]
+		  (lazy-seq
+		    (let [new-val# (apply ~recur-fn n# old-vals#)]
+		      (cons new-val# (step# (inc n#) (concat (rest old-vals#) (list new-val#)))))))
+		~(count initials) initials#)))))
+
+(defmacro with-recur-seqs [seq-definitions & body]
+  (let [seq-names (take-nth 2 seq-definitions)
+	seq-defs  (take-nth 2 (rest seq-definitions))]
+    `(let [~@(reduce concat (map (fn [seq-name] `(~seq-name (ref []))) seq-names))]
+       (dosync
+	~@(map (fn [name def] `(ref-set ~name (recur-sequence ~@def))) seq-names seq-defs))
+       ~@body)))
+
 ;;; Math
 
 (defmacro =>
@@ -110,3 +150,4 @@
 			  (cons f (step (rest s) (conj seen key-f)))))))
 		  xs seen)))]
     (step sequence #{})))
+
