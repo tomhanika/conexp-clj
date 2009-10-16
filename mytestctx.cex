@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptualSystem>
+  <Version MajorNumber="1" MinorNumber="0"/>
+  <Contexts>
+    <Context Identifier="0" Type="Binary">
+      <Attributes>
+        <Attribute Identifier="2">
+          <Name>3</Name>
+        </Attribute>
+        <Attribute Identifier="1">
+          <Name>2</Name>
+        </Attribute>
+        <Attribute Identifier="0">
+          <Name>1</Name>
+        </Attribute>
+      </Attributes>
+      <Objects>
+        <Object>
+          <Name>1</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>2</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="1"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>3</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="2"/>
+          </Intent>
+        </Object>
+      </Objects>
+    </Context>
+  </Contexts>
+</ConceptualSystem>

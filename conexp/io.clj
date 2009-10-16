@@ -1,16 +1,17 @@
 (ns conexp.io
   (:use conexp.base
 	conexp.fca.contexts
-	[clojure.contrib.str-utils :only (str-join)]
+	[clojure.contrib.str-utils :only (str-join chomp)]
 	[clojure.contrib.duck-streams :only (reader with-out-writer)]
-	[clojure.contrib.lazy-xml :only (parse-trim)]))
+	[clojure.contrib.lazy-xml :only (parse-trim)]
+	[clojure.contrib.prxml :only (prxml *prxml-indent*)]))
 
 ;;; Helper
 
-(defn get-line []
+(defn- get-line []
   (read-line))
 
-(defn get-lines [n]
+(defn- get-lines [n]
   (doall (take n (repeatedly #(get-line)))))
 
 (defmacro with-in-reader [file & body]
@@ -104,11 +105,17 @@
 				    (re-matches #".*<ConceptualSystem>.*" (first nonblank-lines))
 				    (re-matches #".*<ConceptualSystem>.*" (second nonblank-lines)))))))
 
-(defn find-tags [seq-of-hashes tag]
+(defn- find-tags [seq-of-hashes tag]
   (for [hash seq-of-hashes :when (= tag (:tag hash))] hash))
 
-(defn find-tag [seq-of-hashes tag]
+(defn- find-tag [seq-of-hashes tag]
   (first (find-tags seq-of-hashes tag)))
+
+(defn- trim [str]
+  (.trim str))
+
+(defn- hash-from-pairs [pairs]
+  (apply hash-map (flatten pairs)))
 
 (defmethod read-context :conexp [file]
   (with-in-reader file
@@ -123,21 +130,45 @@
 	    atts-map (find-tag (:content context) :Attributes)
 	    objs-map (find-tag (:content context) :Objects)
 
-	    obj-idxs-map (reduce #(assoc %1 (%2 0) (%2 1))
-				 {}
-				 (for [obj-map (:content objs-map)]
-				   [(-> obj-map :content (find-tag :Name) :content first)
-				    (set-of (get-in att [:attrs :AttributeIdentifier]) 
-					    [att (-> obj-map :content (find-tag :Intent) :content)])]))
+	    obj-idxs-map (hash-from-pairs
+			  (for [obj-map (:content objs-map)]
+			    [(-> obj-map :content (find-tag :Name) :content first trim)
+			     (set-of (get-in att [:attrs :AttributeIdentifier]) 
+				     [att (-> obj-map :content (find-tag :Intent) :content)])]))
 
-	    idx-atts-map (reduce #(assoc %1 (%2 0) (%2 1))
-				 {}
-				 (for [att-map (:content atts-map)]
-				   [(get-in att-map [:attrs :Identifier]) 
-				    (-> att-map :content (find-tag :Name) :content first)]))]
+	    idx-atts-map (hash-from-pairs
+			  (for [att-map (:content atts-map)]
+			    [(get-in att-map [:attrs :Identifier]) 
+			     (-> att-map :content (find-tag :Name) :content first trim)]))]
 	(make-context (set (keys obj-idxs-map))
 		      (set (vals idx-atts-map))
 		      (set-of [g (idx-atts-map idx) ]
 			      [[g att-idxs] obj-idxs-map
 			       idx att-idxs]))))))
-			      
+
+(defn- ctx->xml-vector [ctx id]
+  (let [ctx-atts (zipmap (attributes ctx) (iterate inc 0))
+	ctx-objs (objects ctx)
+	attributes (vector :Attributes
+			   (map (fn [[att id]]
+				  [:Attribute {:Identifier id}
+				   [:raw! (str "\n          <Name>" att "</Name>")]])
+				ctx-atts))
+	objects (vector :Objects
+			(for [obj ctx-objs]
+			  [:Object
+			   [:raw! (str "\n          <Name>" obj "</Name>")]
+			   (vector :Intent
+				   (for [att (object-derivation ctx #{obj})]
+				     [:HasAttribute {:AttributeIdentifier (ctx-atts att)}]))]))]
+    [:Context {:Identifier "0", :Type "Binary"}
+     attributes
+     objects]))
+
+(defmethod write-context :conexp [_ ctx file]
+  (binding [*prxml-indent* 2]
+    (with-out-writer file
+      (prxml [:decl! {:version "1.0"}])
+      (prxml [:ConceptualSystem
+	      [:Version {:MajorNumber "1", :MinorNumber "0"}]
+	      [:Contexts (ctx->xml-vector ctx 0)]]))))
