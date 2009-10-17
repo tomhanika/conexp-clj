@@ -14,4 +14,5 @@
 
 (immigrate 'conexp.base
 	   'conexp.fca
+	   'conexp.io
 	   'conexp.gui)
