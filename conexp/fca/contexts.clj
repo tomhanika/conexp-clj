@@ -86,7 +86,13 @@
   (and (instance? conexp.fca.Context other)
        (= (objects this) (objects other))
        (= (attributes this) (attributes other))
-       (= (incidence this) (incidence other))))
+       (let [inz-this (incidence this)
+	     inz-other (incidence other)]
+	 (or (= (incidence this) (incidence other))
+	     (forall [pair (cross-product (objects this) (attributes this))]
+               (<=> (inz-this pair) (inz-other pair)))))))
+
+; (defn Context-hashCode [this] ...)
 
 (defn- type-of
   "Dispatch function for make-context. Sequences and sets are made to one thing."

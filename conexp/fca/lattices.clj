@@ -57,7 +57,13 @@
 (defn Lattice-equals [this other]
   (and (instance? conexp.fca.Lattice other)
        (= (base-set this) (base-set other))
-       (= (order this) (order other))))
+       (let [order-this (order this)
+	     order-other (order other)]
+	 (or (= order-this order-other)
+	     (forall [pair (cross-product (base-set this) (base-set this))]
+	       (<=> (order-this pair) (order-other pair)))))))
+
+; (defn Lattice-hashCode [this] ...)
 
 (defn type-of [thing]
   (cond
