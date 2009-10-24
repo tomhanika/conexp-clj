@@ -186,17 +186,39 @@
 
 ;;; simple thing which can be moved around
 
-(defn add-thing-to-move-around [owner x y]
-  (let [segment (GSegment.)
+(defn add-node [scn x y]
+  (let [object (GObject.)
+	segment (GSegment.)
 	style (GStyle.)]
-    (.addSegment owner segment)
+    (.addSegment object segment)
+    (.add scn object)
     (doto style
       (.setForegroundColor (Color.  6  6 86))
       (.setBackgroundColor (Color. 23 11 84)))
     (.setStyle segment style)
     (.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0))
-    (.setUserData segment (ref {:position [x y]}))
-    segment))
+    (.setUserData object (ref {:type :node, :position [x y]}))
+    object))
+
+(defn connect-nodes [scn x y]
+  (let [[x1 x2] (:position @(.getUserData x))
+	[y1 y2] (:position @(.getUserData y))
+	c (GObject.)
+	line (GSegment.)]
+    (.add scn c)
+    (.addSegment c line)
+    (.toBack c)
+    (.setUserData c (ref {:type :connection}))
+    (.setGeometry line x1 x2 y1 y2)
+    (dosync
+     (alter (.getUserData x) assoc :upper (conj (:upper @(.getUserData x)) c))
+     (alter (.getUserData y) assoc :lower (conj (:lower @(.getUserData y)) c)))))
+
+(defn node? [thing]
+  (= (:type @(.getUserData thing)) :node))
+
+(defn connection? [thing]
+  (= (:type @(.getUserData thing)) :connection))
 
 (defn move-interaction []
   (let [interaction-obj (ref nil)
@@ -206,8 +228,8 @@
       (event [scn evt x y]
 	(condp = evt
 	   GWindow/BUTTON1_DOWN
-	   (let [thing (.findSegment scn x y)]
-	     (when (.getUserData thing)
+	   (let [thing (.find scn x y)]
+	     (when (node? thing)
 	       (dosync
 		(ref-set interaction-obj thing)
 		(ref-set x0 x)
@@ -216,15 +238,17 @@
 	   (let [dx (- x @x0)
 		 dy (- y @y0)]
 	     (when @interaction-obj
-	       (.translate @interaction-obj dx dy)
+	       (.translate (.getSegment @interaction-obj) dx dy)
 	       (doseq [c (:upper @(.getUserData @interaction-obj))]
-		 (let [c1 (aget (.getX c) 0)
+		 (let [c (.getSegment c)
+		       c1 (aget (.getX c) 0)
 		       c2 (aget (.getY c) 0)
 		       d1 (aget (.getX c) 1)
 		       d2 (aget (.getY c) 1)]
 		   (.setGeometry c (+ c1 dx) (+ c2 dy) d1 d2)))
 	       (doseq [c (:lower @(.getUserData @interaction-obj))]
-		 (let [c1 (aget (.getX c) 0)
+		 (let [c (.getSegment c)
+		       c1 (aget (.getX c) 0)
 		       c2 (aget (.getY c) 0)
 		       d1 (aget (.getX c) 1)
 		       d2 (aget (.getY c) 1)]
@@ -239,16 +263,6 @@
 	    (ref-set interaction-obj nil))
 	   nil)))))
 
-(defn connect-nodes [scn x y]
-  (let [[x1 x2] (:position @(.getUserData x))
-	[y1 y2] (:position @(.getUserData y))
-	c (GSegment.)]
-    (.addSegment scn c)
-    (.setGeometry c x1 x2 y1 y2)
-    (dosync
-     (alter (.getUserData x) assoc :upper #{c})
-     (alter (.getUserData y) assoc :lower #{c}))))
-
 (defn show-some-picture []
   (let [wnd (GWindow.)
 	scn (GScene. wnd)
@@ -258,7 +272,10 @@
     (.setLayout frm (BorderLayout.))
     (-> frm .getContentPane (.add (.getCanvas wnd) BorderLayout/CENTER))
     (.setSize frm 300 300)
-    (let [x (add-thing-to-move-around scn 100 100)
-	  y (add-thing-to-move-around scn 50 50)]
-      (connect-nodes scn x y))
+    (let [x (add-node scn 100 100)
+	  y (add-node scn 50 50)
+	  z (add-node scn 75 23)]
+      (connect-nodes scn x y)
+      (connect-nodes scn x z)
+      (connect-nodes scn y z))
     (.setVisible frm true)))
