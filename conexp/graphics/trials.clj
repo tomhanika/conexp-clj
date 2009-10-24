@@ -195,6 +195,7 @@
       (.setBackgroundColor (Color. 23 11 84)))
     (.setStyle segment style)
     (.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0))
+    (.setUserData segment (ref {:position [x y]}))
     segment))
 
 (defn move-interaction []
@@ -205,32 +206,59 @@
       (event [scn evt x y]
 	(condp = evt
 	   GWindow/BUTTON1_DOWN
-	   (dosync
-	     (ref-set interaction-obj (.findSegment scn x y))
-	     (ref-set x0 x)
-	     (ref-set y0 y))
+	   (let [thing (.findSegment scn x y)]
+	     (when (.getUserData thing)
+	       (dosync
+		(ref-set interaction-obj thing)
+		(ref-set x0 x)
+		(ref-set y0 y))))
 	   GWindow/BUTTON1_DRAG
 	   (let [dx (- x @x0)
 		 dy (- y @y0)]
 	     (when @interaction-obj
 	       (.translate @interaction-obj dx dy)
+	       (doseq [c (:upper @(.getUserData @interaction-obj))]
+		 (let [c1 (aget (.getX c) 0)
+		       c2 (aget (.getY c) 0)
+		       d1 (aget (.getX c) 1)
+		       d2 (aget (.getY c) 1)]
+		   (.setGeometry c (+ c1 dx) (+ c2 dy) d1 d2)))
+	       (doseq [c (:lower @(.getUserData @interaction-obj))]
+		 (let [c1 (aget (.getX c) 0)
+		       c2 (aget (.getY c) 0)
+		       d1 (aget (.getX c) 1)
+		       d2 (aget (.getY c) 1)]
+		   (.setGeometry c c1 c2 (+ d1 dx) (+ d2 dy))))
 	       (.refresh scn))
 	     (dosync
 	      (ref-set x0 x)
-	      (ref-set y0 y)))
+	      (ref-set y0 y)
+	      (alter (.getUserData @interaction-obj) assoc :position [x y])))
 	   GWindow/BUTTON1_UP
 	   (dosync
 	    (ref-set interaction-obj nil))
 	   nil)))))
 
+(defn connect-nodes [scn x y]
+  (let [[x1 x2] (:position @(.getUserData x))
+	[y1 y2] (:position @(.getUserData y))
+	c (GSegment.)]
+    (.addSegment scn c)
+    (.setGeometry c x1 x2 y1 y2)
+    (dosync
+     (alter (.getUserData x) assoc :upper #{c})
+     (alter (.getUserData y) assoc :lower #{c}))))
+
 (defn show-some-picture []
   (let [wnd (GWindow.)
 	scn (GScene. wnd)
 	frm (JFrame.)]
+;    (.setWorldExtent scn 0.0 0.0 100.0 100.0)
     (.startInteraction wnd (move-interaction))
     (.setLayout frm (BorderLayout.))
     (-> frm .getContentPane (.add (.getCanvas wnd) BorderLayout/CENTER))
-    (dotimes [_ 100]
-      (add-thing-to-move-around scn (rand-int 300) (rand-int 300)))
-    (.setSize frm 1000 1000)
+    (.setSize frm 300 300)
+    (let [x (add-thing-to-move-around scn 100 100)
+	  y (add-thing-to-move-around scn 50 50)]
+      (connect-nodes scn x y))
     (.setVisible frm true)))
