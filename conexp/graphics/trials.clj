@@ -209,7 +209,7 @@
     (.addSegment c line)
     (.toBack c)
     (.setUserData c (ref {:type :connection}))
-    (.setGeometry line x1 x2 y1 y2)
+    (.setGeometry line (double x1) (double x2) (double y1) (double y2))
     (dosync
      (alter (.getUserData x) assoc :upper (conj (:upper @(.getUserData x)) c))
      (alter (.getUserData y) assoc :lower (conj (:lower @(.getUserData y)) c)))))
@@ -267,7 +267,7 @@
   (let [wnd (GWindow.)
 	scn (GScene. wnd)
 	frm (JFrame.)]
-;    (.setWorldExtent scn 0.0 0.0 100.0 100.0)
+    (.setWorldExtent scn 0.0 0.0 200.0 200.0)
     (.startInteraction wnd (move-interaction))
     (.setLayout frm (BorderLayout.))
     (-> frm .getContentPane (.add (.getCanvas wnd) BorderLayout/CENTER))
