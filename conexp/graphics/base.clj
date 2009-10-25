@@ -1,4 +1,5 @@
 (ns conexp.graphics.base
+  (:use [clojure.contrib.seq-utils :only (flatten)])
   (:import [javax.swing JFrame JButton JPanel JLabel]
 	   [java.awt Color Dimension Font BorderLayout]
 	   [java.awt.event ActionListener]
@@ -62,50 +63,56 @@
 			      (.setBackgroundColor (Color. 23 11 84)))
 			    style))
 
-(defn add-node [scn x y]
-  (let [segment (GSegment.)
-	object (proxy [GObject] []
-		 (draw []
-		   (let [[x y] (position this)]
-		     (.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0)))))
-	style (GStyle.)]
-    (doto segment
-      (.setStyle *default-node-style*))
-    (doto object
-      (.addSegment segment)
-      (.setUserData (ref {:type :node,
-			  :position [x y]}))
-      (.setName (str [x y])))
-    (doto scn
-      (.add object))
-    object))
+(defn add-node 
+  ([scn x y]
+     (add-node scn x y (str [x y])))
+  ([scn x y name]
+     (let [segment (GSegment.)
+	   object (proxy [GObject] []
+		    (draw []
+		      (let [[x y] (position this)]
+			(.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0)))))
+	   style (GStyle.)]
+       (doto segment
+	 (.setStyle *default-node-style*))
+       (doto object
+	 (.addSegment segment)
+	 (.setUserData (ref {:type :node,
+			     :position [(double x) (double y)]}))
+	 (.setName name))
+       (doto scn
+	 (.add object))
+       object)))
 
 (def *default-line-style* (let [style (GStyle.)]
 			    (doto style
 			      (.setLineWidth 3.0))
 			    style))
 
-(defn connect-nodes [scn x y]
-  (let [line (GSegment.)
-	c       (proxy [GObject] []
-		  (draw []
-		    (let [[x1 y1] (position (lower-node this))
-			  [x2 y2] (position (upper-node this))]
-		      (.setGeometry line (double x1) (double y1) (double x2) (double y2)))))]
-    (doto scn
-      (.add c))
-    (doto line
-      (.setStyle *default-line-style*))
-    (doto c
-      (.addSegment line)
-      (.toBack)
-      (.setUserData (ref {:type :connection,
-			  :lower x,
-			  :upper y}))
-      (.setName (str (.getName x) " -> " (.getName y))))
-    (dosync
-     (alter (.getUserData x) update-in [:upper] conj c)
-     (alter (.getUserData y) update-in [:lower] conj c))))
+(defn connect-nodes
+  ([scn x y]
+     (connect-nodes scn x y (str (.getName x) " -> " (.getName y))))
+  ([scn x y name]
+     (let [line (GSegment.)
+	   c       (proxy [GObject] []
+		     (draw []
+		       (let [[x1 y1] (position (lower-node this))
+			     [x2 y2] (position (upper-node this))]
+			 (.setGeometry line (double x1) (double y1) (double x2) (double y2)))))]
+       (doto scn
+	 (.add c))
+       (doto line
+	 (.setStyle *default-line-style*))
+       (doto c
+	 (.addSegment line)
+	 (.toBack)
+	 (.setUserData (ref {:type :connection,
+			     :lower x,
+			     :upper y}))
+	 (.setName name))
+       (dosync
+	(alter (.getUserData x) update-in [:upper] conj c)
+	(alter (.getUserData y) update-in [:lower] conj c)))))
 
 
 ;;; move nodes around
@@ -137,7 +144,7 @@
 
 	[new-x new-y] [(+ x dx) (+ y dy)]]
 
-    ; move nodes on the device
+    ; move node on the device
     (let [[dx-1 dy-1] (world-to-device scn dx dy)
 	  [zx zy]     (world-to-device scn 0 0)
 	  device-dx   (- dx-1 zx)
@@ -180,6 +187,19 @@
 	   nil)))))
 
 
+;;; draw nodes with coordinates and connections on a scene
+
+(defn draw-nodes-with-connections [scn node-coordinate-map node-connections]
+  (let [node-map (apply hash-map
+			(flatten (map (fn [[node [x y]]]
+					[node
+					 (add-node scn x y (str node))])
+				      node-coordinate-map)))]
+    (doseq [[node-1 node-2] node-connections]
+      (connect-nodes scn (node-map node-1) (node-map node-2)))
+    node-map))
+
+
 ;;; some testing
 
 (defn- show-some-picture []
@@ -189,12 +209,9 @@
     (doto scn
       (.setWorldExtent 0.0 0.0 100.0 100.0)
       (.shouldZoomOnResize false)
-      (.shouldWorldExtentFitViewport false))
-    (let [x (add-node scn 100 100)
-	  y (add-node scn 50 50)
-	  z (add-node scn 0 0)]
-      (connect-nodes scn z y)
-      (connect-nodes scn y x))
+      (.shouldWorldExtentFitViewport false)
+      (draw-nodes-with-connections {:x [100 100], :y [50 50], :z [0 0]}
+				   [[:z :y], [:y :x]]))
     (doto frm
       (.setLayout (BorderLayout.))
       (.. getContentPane (add (.getCanvas wnd) BorderLayout/CENTER))
