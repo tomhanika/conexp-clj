@@ -145,8 +145,8 @@
 	[new-x new-y] [(+ x dx) (+ y dy)]]
 
     ; move node on the device
-    (let [[dx-1 dy-1] (world-to-device scn dx dy)
-	  [zx zy]     (world-to-device scn 0 0)
+    (let [[dx-1 dy-1] (world-to-device (.getScene node) dx dy)
+	  [zx zy]     (world-to-device (.getScene node) 0 0)
 	  device-dx   (- dx-1 zx)
 	  device-dy   (- dy-1 zy)]
       (doseq [segment (.getSegments node)]
