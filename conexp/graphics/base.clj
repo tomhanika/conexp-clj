@@ -56,6 +56,12 @@
 
 ;;; create and connect nodes
 
+(def *default-node-style* (let [style (GStyle.)]
+			    (doto style
+			      (.setForegroundColor (Color.  6  6 86))
+			      (.setBackgroundColor (Color. 23 11 84)))
+			    style))
+
 (defn add-node [scn x y]
   (let [segment (GSegment.)
 	object (proxy [GObject] []
@@ -63,16 +69,21 @@
 		   (let [[x y] (position this)]
 		     (.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0)))))
 	style (GStyle.)]
-    (.addSegment object segment)
-    (doto style
-      (.setForegroundColor (Color.  6  6 86))
-      (.setBackgroundColor (Color. 23 11 84)))
-    (.setStyle segment style)
-    (.setUserData object (ref {:type :node,
-			       :position [x y]}))
-    (.setName object (str [x y]))
-    (.add scn object)
+    (doto segment
+      (.setStyle *default-node-style*))
+    (doto object
+      (.addSegment segment)
+      (.setUserData (ref {:type :node,
+			  :position [x y]}))
+      (.setName (str [x y])))
+    (doto scn
+      (.add object))
     object))
+
+(def *default-line-style* (let [style (GStyle.)]
+			    (doto style
+			      (.setLineWidth 3.0))
+			    style))
 
 (defn connect-nodes [scn x y]
   (let [line (GSegment.)
@@ -81,12 +92,17 @@
 		    (let [[x1 y1] (position (lower-node this))
 			  [x2 y2] (position (upper-node this))]
 		      (.setGeometry line (double x1) (double y1) (double x2) (double y2)))))]
-    (.add scn c)
-    (.addSegment c line)
-    (.toBack c)
-    (.setUserData c (ref {:type :connection,
+    (doto scn
+      (.add c))
+    (doto line
+      (.setStyle *default-line-style*))
+    (doto c
+      (.addSegment line)
+      (.toBack)
+      (.setUserData (ref {:type :connection,
 			  :lower x,
 			  :upper y}))
+      (.setName (str (.getName x) " -> " (.getName y))))
     (dosync
      (alter (.getUserData x) update-in [:upper] conj c)
      (alter (.getUserData y) update-in [:lower] conj c))))
