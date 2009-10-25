@@ -6,6 +6,22 @@
 	   [no.geosoft.cc.graphics GWindow GScene GObject ZoomInteraction GSegment GStyle
 	                           GText GPosition GScene GInteraction]))
 
+;;; technical helpers
+
+(defn device-to-world [scn x y]
+  (let [trf (.getTransformer scn)
+	ptn (.deviceToWorld trf x y)]
+    [(aget ptn 0) (aget ptn 1)]))
+
+(defn world-to-device [scn x y]
+  (let [trf (.getTransformer scn)
+	ptn (.worldToDevice trf x y)]
+    [(aget ptn 0) (aget ptn 1)]))
+
+(defn origin [scn]
+  (world-to-device scn 0 0))
+
+    
 ;;; nodes and connections
 
 (defn node? [thing]
@@ -19,47 +35,58 @@
 (defn position [node]
   (:position @(.getUserData node)))
 
-(defn upper-neighbors [node]
+(defn lower-node [conn]
+  (:lower @(.getUserData conn)))
+
+(defn upper-node [conn]
+  (:upper @(.getUserData conn)))
+
+(defn upper-connections [node]
   (:upper @(.getUserData node)))
 
-(defn lower-neighbors [node]
+(defn lower-connections [node]
   (:lower @(.getUserData node)))
 
-(defn start-of-connection [conn]
-  (let [segment (.getSegment conn)]
-    [(aget (.getX segment) 0) (aget (.getY segment) 0)]))
+(defn upper-neighbors [node]
+  (map upper-node (upper-connections node)))
 
-(defn end-of-connection [conn]
-  (let [segment (.getSegment conn)]
-    [(aget (.getX segment) 1) (aget (.getY segment) 1)]))
+(defn lower-neighbors [node]
+  (map lower-node (lower-connections node)))
 
 
 ;;; create and connect nodes
 
 (defn add-node [scn x y]
-  (let [object (GObject.)
-	segment (GSegment.)
+  (let [segment (GSegment.)
+	object (proxy [GObject] []
+		 (draw []
+		   (let [[x y] (position this)]
+		     (.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0)))))
 	style (GStyle.)]
     (.addSegment object segment)
-    (.add scn object)
     (doto style
       (.setForegroundColor (Color.  6  6 86))
       (.setBackgroundColor (Color. 23 11 84)))
     (.setStyle segment style)
-    (.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0))
-    (.setUserData object (ref {:type :node, :position [x y]}))
+    (.setUserData object (ref {:type :node,
+			       :position [x y]}))
+    (.setName object (str [x y]))
+    (.add scn object)
     object))
 
 (defn connect-nodes [scn x y]
-  (let [[x1 x2] (:position @(.getUserData x))
-	[y1 y2] (:position @(.getUserData y))
-	c (GObject.)
-	line (GSegment.)]
+  (let [line (GSegment.)
+	c       (proxy [GObject] []
+		  (draw []
+		    (let [[x1 y1] (position (lower-node this))
+			  [x2 y2] (position (upper-node this))]
+		      (.setGeometry line (double x1) (double y1) (double x2) (double y2)))))]
     (.add scn c)
     (.addSegment c line)
     (.toBack c)
-    (.setUserData c (ref {:type :connection}))
-    (.setGeometry line (double x1) (double x2) (double y1) (double y2))
+    (.setUserData c (ref {:type :connection,
+			  :lower x,
+			  :upper y}))
     (dosync
      (alter (.getUserData x) update-in [:upper] conj c)
      (alter (.getUserData y) update-in [:lower] conj c))))
@@ -69,41 +96,52 @@
 
 (defn height-of-lower-neighbors [node]
   (let [lowers (lower-neighbors node)]
-    (if (not lowers)
+    (if (empty? lowers)
       nil
-      (reduce min (map (fn [conn] ((start-of-connection conn) 1)) lowers)))))
+      (reduce min (map (fn [node]
+			 ((position node) 1))
+		       lowers)))))
 
 (defn height-of-upper-neighbors [node]
   (let [uppers (upper-neighbors node)]
-    (if (not uppers)
+    (if (empty? uppers)
       nil
-      (reduce max (map (fn [node] ((end-of-connection node) 1)) uppers)))))
+      (reduce max (map (fn [node] 
+			 ((position node) 1))
+		       uppers)))))
 
 (defn move-node-by [node dx dy] ; race condition when move nodes too fast?
   (let [[x y] (position node)
-	max-y (height-of-lower-neighbors node)
-	min-y (height-of-upper-neighbors node)
+
+	; make sure nodes don't go too far
+	max-y (height-of-upper-neighbors node)
+	min-y (height-of-lower-neighbors node)
 	dy    (if max-y (min dy (- max-y y)) dy)
 	dy    (if min-y (max dy (- min-y y)) dy)
+
 	[new-x new-y] [(+ x dx) (+ y dy)]]
-    (doseq [segment (.getSegments node)]
-      (.translate segment dx dy))
-    (doseq [c (upper-neighbors node)]
-      (let [c (.getSegment c)
-	    c1 (aget (.getX c) 0)
-	    c2 (aget (.getY c) 0)
-	    d1 (aget (.getX c) 1)
-	    d2 (aget (.getY c) 1)]
-	(.setGeometry c (+ c1 dx) (+ c2 dy) d1 d2)))
-    (doseq [c (lower-neighbors node)]
-      (let [c (.getSegment c)
-	    c1 (aget (.getX c) 0)
-	    c2 (aget (.getY c) 0)
-	    d1 (aget (.getX c) 1)
-	    d2 (aget (.getY c) 1)]
-	(.setGeometry c c1 c2 (+ d1 dx) (+ d2 dy))))
+
+    ; move nodes on the device
+    (let [[dx-1 dy-1] (world-to-device scn dx dy)
+	  [zx zy]     (world-to-device scn 0 0)
+	  device-dx   (- dx-1 zx)
+	  device-dy   (- dy-1 zy)]
+      (doseq [segment (.getSegments node)]
+	(.translate segment device-dx device-dy)))
+
+    ; update self position
     (dosync
      (alter (.getUserData node) assoc :position [new-x new-y]))
+
+    ; update connections to upper neighbors
+    (doseq [c (upper-connections node)]
+      (.redraw c))
+
+    ; update connections to lower neighbors
+    (doseq [c (lower-connections node)]
+      (.redraw c))
+
+    ; done
     [new-x new-y]))
 
 (defn move-node-to [node x y]
@@ -119,8 +157,9 @@
 				   (when (node? thing)
 				     (reset! interaction-obj thing)))
 	   GWindow/BUTTON1_DRAG  (when @interaction-obj
-				   (move-node-to @interaction-obj x y)
-				   (.refresh scn))
+				   (let [[x y] (device-to-world scn x y)]
+				     (move-node-to @interaction-obj x y)
+				     (.refresh scn)))
 	   GWindow/BUTTON1_UP    (reset! interaction-obj nil)
 	   nil)))))
 
@@ -130,16 +169,22 @@
 (defn- show-some-picture []
   (let [wnd (GWindow.)
 	scn (GScene. wnd)
-	frm (JFrame.)]
-;    (.setWorldExtent scn 0.0 0.0 100.0 100.0)
-    (.startInteraction wnd (move-interaction))
-    (.setLayout frm (BorderLayout.))
-    (-> frm .getContentPane (.add (.getCanvas wnd) BorderLayout/CENTER))
-    (.setSize frm 300 300)
+	frm (JFrame. "Main Frame")]
+    (doto scn
+      (.setWorldExtent 0.0 0.0 100.0 100.0)
+      (.shouldZoomOnResize false)
+      (.shouldWorldExtentFitViewport false))
     (let [x (add-node scn 100 100)
 	  y (add-node scn 50 50)
-	  z (add-node scn 75 23)]
-      (connect-nodes scn x y)
-      (connect-nodes scn x z)
-      (connect-nodes scn y z))
-    (.setVisible frm true)))
+	  z (add-node scn 0 0)]
+      (connect-nodes scn z y)
+      (connect-nodes scn y x))
+    (doto frm
+      (.setLayout (BorderLayout.))
+      (.. getContentPane (add (.getCanvas wnd) BorderLayout/CENTER))
+      (.pack)
+      (.setSize (Dimension. 500 500))
+      (.setVisible true))
+    (doto wnd
+      (.startInteraction (move-interaction)))
+    scn))
