@@ -7,14 +7,16 @@
 	   [no.geosoft.cc.graphics GWindow GScene GObject ZoomInteraction GSegment GStyle
 	                           GText GPosition GScene GInteraction]))
 
+(set! *warn-on-reflection* true)
+
 ;;; technical helpers
 
-(defn device-to-world [scn x y]
+(defn device-to-world [#^GScene scn x y]
   (let [trf (.getTransformer scn)
 	ptn (.deviceToWorld trf x y)]
     [(aget ptn 0) (aget ptn 1)]))
 
-(defn world-to-device [scn x y]
+(defn world-to-device [#^GScene scn x y]
   (let [trf (.getTransformer scn)
 	ptn (.worldToDevice trf x y)]
     [(aget ptn 0) (aget ptn 1)]))
@@ -27,25 +29,25 @@
 
 (defn node? [thing]
   (and (instance? GObject thing)
-       (= (:type @(.getUserData thing)) :node)))
+       (= (:type @(.getUserData #^GObject thing)) :node)))
 
 (defn connection? [thing]
   (and (instance? GObject thing)
-       (= (:type @(.getUserData thing)) :connection)))
+       (= (:type @(.getUserData #^GObject thing)) :connection)))
 
-(defn position [node]
+(defn position [#^GObject node]
   (:position @(.getUserData node)))
 
-(defn lower-node [conn]
+(defn lower-node [#^GObject conn]
   (:lower @(.getUserData conn)))
 
-(defn upper-node [conn]
+(defn upper-node [#^GObject conn]
   (:upper @(.getUserData conn)))
 
-(defn upper-connections [node]
+(defn upper-connections [#^GObject node]
   (:upper @(.getUserData node)))
 
-(defn lower-connections [node]
+(defn lower-connections [#^GObject node]
   (:lower @(.getUserData node)))
 
 (defn upper-neighbors [node]
@@ -64,9 +66,9 @@
 			    style))
 
 (defn add-node 
-  ([scn x y]
+  ([#^GScene scn x y]
      (add-node scn x y (str [x y])))
-  ([scn x y name]
+  ([#^GScene scn x y name]
      (let [segment (GSegment.)
 	   object (proxy [GObject] []
 		    (draw []
@@ -90,9 +92,9 @@
 			    style))
 
 (defn connect-nodes
-  ([scn x y]
+  ([#^GScene scn #^GObject x #^GObject y]
      (connect-nodes scn x y (str (.getName x) " -> " (.getName y))))
-  ([scn x y name]
+  ([#^GScene scn #^GObject x #^GObject y name]
      (let [line (GSegment.)
 	   c       (proxy [GObject] []
 		     (draw []
@@ -133,7 +135,7 @@
 			 ((position node) 1))
 		       uppers)))))
 
-(defn move-node-by [node dx dy] ; race condition when move nodes too fast?
+(defn move-node-by [#^GObject node dx dy] ; race condition when move nodes too fast?
   (let [[x y] (position node)
 
 	; make sure nodes don't go too far
@@ -149,19 +151,19 @@
 	  [zx zy]     (world-to-device (.getScene node) 0 0)
 	  device-dx   (- dx-1 zx)
 	  device-dy   (- dy-1 zy)]
-      (doseq [segment (.getSegments node)]
-	(.translate segment device-dx device-dy)))
+      (doseq [#^GSegment segment (.getSegments node)]
+	(.translate segment device-dx device-dy)))  ;; noch nicht richtig?
 
     ; update self position
     (dosync
      (alter (.getUserData node) assoc :position [new-x new-y]))
 
     ; update connections to upper neighbors
-    (doseq [c (upper-connections node)]
+    (doseq [#^GObject c (upper-connections node)]
       (.redraw c))
 
     ; update connections to lower neighbors
-    (doseq [c (lower-connections node)]
+    (doseq [#^GObject c (lower-connections node)]
       (.redraw c))
 
     ; done
@@ -174,7 +176,7 @@
 (defn move-interaction []
   (let [interaction-obj (atom nil)]
     (proxy [GInteraction] []
-      (event [scn evt x y]
+      (event [#^GScene scn evt x y]
 	(condp = evt
 	   GWindow/BUTTON1_DOWN  (let [thing (.find scn x y)]
 				   (when (node? thing)
