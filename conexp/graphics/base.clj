@@ -146,17 +146,12 @@
 
 	[new-x new-y] [(+ x dx) (+ y dy)]]
 
-    ; move node on the device
-    (let [[dx-1 dy-1] (world-to-device (.getScene node) dx dy)
-	  [zx zy]     (world-to-device (.getScene node) 0 0)
-	  device-dx   (- dx-1 zx)
-	  device-dy   (- dy-1 zy)]
-      (doseq [#^GSegment segment (.getSegments node)]
-	(.translate segment device-dx device-dy)))  ;; noch nicht richtig?
-
     ; update self position
     (dosync
      (alter (.getUserData node) assoc :position [new-x new-y]))
+
+    ; move node on the device
+    (.redraw node)
 
     ; update connections to upper neighbors
     (doseq [#^GObject c (upper-connections node)]
