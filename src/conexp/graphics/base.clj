@@ -7,8 +7,6 @@
 	   [no.geosoft.cc.graphics GWindow GScene GObject ZoomInteraction GSegment GStyle
 	                           GText GPosition GScene GInteraction]))
 
-(set! *warn-on-reflection* true)
-
 ;;; technical helpers
 
 (defn device-to-world [#^GScene scn x y]

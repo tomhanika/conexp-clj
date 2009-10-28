@@ -182,6 +182,3 @@
 	  (.add scene (test-object (str i) (/ (* 2.0 i Math/PI) n) color)))))
     (doto window
       (.startInteraction interaction))))
-
-
-;;; simple thing which can be moved around

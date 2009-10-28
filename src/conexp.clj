@@ -7,8 +7,6 @@
   (compile 'conexp.fca.lattices)
   (compile 'conexp.gui.repl))
 
-(compile-conexp)
-
 ; Use immigrate, so that all imports behave as if they were defined in here.
 ; Thus (use 'conexp) makes sense.
 
