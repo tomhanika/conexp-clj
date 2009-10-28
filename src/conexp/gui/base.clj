@@ -90,7 +90,7 @@
   [frame]
   (get-component frame #(= (class %) JToolBar)))
 
-(def *default-icon* (File. "images/default.jpg"))
+(def *default-icon* (get-resource "images/default.jpg"))
 (def *icon-size* 17)
 
 (defn make-icon 

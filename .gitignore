@@ -2,4 +2,5 @@
 ramsch
 what-done
 *.class
-conexp-clj*
+conexp-clj/*
+conexp-clj.zip

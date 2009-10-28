@@ -29,3 +29,7 @@
 
 (defmacro with-swing-threads [& body]
   `(invoke-later #(do ~@body)))
+
+(defn get-resource [res]
+  (let [cl (.getContextClassLoader (Thread/currentThread))]
+    (.getResource cl res)))
