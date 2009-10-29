@@ -46,7 +46,9 @@
     </copy>
     <mkdir dir="${build}/bin"/>
     <copy file="${src}/scripts/conexp-clj.sh" todir="${build}/bin"/>
+    <copy file="${src}/scripts/conexp-clj.bat" todir="${build}/bin"/>
     <copy file="${src}/scripts/conexp-clj-gui.sh" todir="${build}/bin"/>
+    <copy file="${src}/scripts/conexp-clj-gui.bat" todir="${build}/bin"/>
     <chmod dir="${build}/bin" perm="u+x" includes="*"/>
     <copy file="${src}/scripts/conexp-clj-console-init.clj" todir="${build}/lib"/>
     <copy file="${src}/scripts/conexp-clj-gui-init.clj" todir="${build}/lib"/>
