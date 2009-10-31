@@ -25,8 +25,12 @@
        (= (premise this) (premise other))
        (= (conclusion this) (conclusion other))))
 
-(defn make-implication [premise conclusion]
-  (conexp.fca.Implication. (set premise) (set conclusion)))
+(defn make-implication
+  "Creates an implication (premise => conclusion \\setminus premise)."
+  [premise conclusion]
+  (let [premise (set premise)
+	conclusion (set conclusion)]
+    (conexp.fca.Implication. premise (difference conclusion premise))))
 
 (defn respects? [set impl]
   (or (not (subset? (premise impl) set))
