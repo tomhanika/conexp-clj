@@ -101,7 +101,7 @@
     (or (set? thing)
 	(sequential? thing)) ::set
     (fn? thing)              ::fn
-    :else                    ::invalid))
+    :else                    ::other))
 
 (defmulti make-context
   "Standard constructor for contexts. Takes a sequence of objects,

@@ -16,9 +16,18 @@
 				   [2 2] [2 3] [3 5]
 				   [5 2] [5 3] [5 4]}))
 (def *test-ctx-02* (make-context (set-of-range 0 30) (set-of-range 0 30) <))
-(def *test-ctx-03* (make-context (set-of-range 0 50) (set-of-range 0 50) #(= 1 (gcd %1 %2))))
+(def *test-ctx-03* (make-context (set-of-range 0 50)
+				 (set-of-range 0 50)
+				 #(= 1 (gcd %1 %2))))
 (def *test-ctx-04* (make-context #{} #{} #{}))
-(def *test-ctx-05* (make-context (set-of-range 0 50) (set-of-range 0 50) (fn [_ _] (< 0.5 (rand)))))
+(def *test-ctx-05* (make-context (set-of-range 0 50)
+				 (set-of-range 0 50)
+				 (fn [_ _] (< 0.5 (rand)))))
+(def *test-ctx-06* (make-context (set-of-range 0 10)
+				 (cross-product (set-of-range 0 10)
+						(set-of-range 0 10))
+				 (fn [x [y z]]
+				   (= x (mod (+ y z) 10)))))
 
 (deftest test-Context-toString
   (is (= (str *test-ctx-01*)
@@ -62,7 +71,8 @@
 
 (deftest test-clarified?
   (is (not (clarified? *test-ctx-03*)))
-  (is (clarified? *test-ctx-04*)))
+  (is (clarified? *test-ctx-04*))
+  (is (not (clarified? *test-ctx-06*))))
 
 (deftest test-down-arrows
   'to-be-done)
@@ -79,7 +89,8 @@
 (deftest test-reduced?
   (is (not (reduced? *test-ctx-01*)))
   (is (not (reduced? *test-ctx-03*)))
-  (is (reduced? *test-ctx-04*)))
+  (is (reduced? *test-ctx-04*))
+  (is (not (reduced? *test-ctx-06*))))
 
 (deftest test-context-object-closure
   'to-be-done)

@@ -151,3 +151,14 @@
 		  xs seen)))]
     (step sequence #{})))
 
+(defn math-type
+  "Dispatch function for multimethods. Identifies sets and sequences
+  as :conexp.util/set and functions as :conexp.util/fn, all other as
+  :conexp.util/other."
+  [thing]
+  (cond
+    (or (map? thing)
+        (fn? thing))         ::fn
+    (or (set? thing)
+	(sequential? thing)) ::set
+    :else                    ::other))
