@@ -11,19 +11,25 @@
 (defn Context-init [objects attributes incidence]
   [ [] {:objects objects :attributes attributes :incidence incidence} ])
 
-(defn objects
-  "Returns the set of object of a formal context."
-  [ctx]
+(defmulti objects
+  "Returns the objects of a formal context."
+  class)
+
+(defmethod objects conexp.fca.Context [ctx]
   ((.state ctx) :objects))
 
-(defn attributes
-  "Returns the set of attributes of a formal context."
-  [ctx]
+(defmulti attributes
+  "Returns the attributes of a formal context."
+  class)
+
+(defmethod attributes conexp.fca.Context [ctx]
   ((.state ctx) :attributes))
 
-(defn incidence
-  "Returns the incidence set of a formal context."
-  [ctx]
+(defmulti incidence
+  "Returns the incidence of a formal context."
+  class)
+
+(defmethod incidence conexp.fca.Context [ctx]
   ((.state ctx) :incidence))
 
 (defn compare-order

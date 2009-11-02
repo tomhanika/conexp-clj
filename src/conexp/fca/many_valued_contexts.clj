@@ -13,30 +13,30 @@
 	:attributes attributes,
 	:incidence incidence} ])
 
-(defn mv-objects [mv-ctx]
+(defmethod objects conexp.fca.ManyValuedContext [mv-ctx]
   ((.state mv-ctx) :objects))
 
-(defn mv-attributes [mv-ctx]
+(defmethod attributes conexp.fca.ManyValuedContext [mv-ctx]
   ((.state mv-ctx) :attributes))
 
-(defn mv-incidence [mv-ctx]
+(defmethod incidence conexp.fca.ManyValuedContext [mv-ctx]
   ((.state mv-ctx) :incidence))
 
 (defn ManyValuedContext-equals [this other]
   (and (instance? other conexp.fca.ManyValuedContext)
-       (= (mv-objects this) (mv-objects other))
-       (= (mv-attributes this) (mv-attributes other))
-       (let [inz-this (mv-incidence this)
-	     inz-other (mv-incidence other)]
-	 (forall [g (mv-objects this)
-		  m (mv-attributes this)]
+       (= (objects this) (objects other))
+       (= (attributes this) (attributes other))
+       (let [inz-this (incidence this)
+	     inz-other (incidence other)]
+	 (forall [g (objects this)
+		  m (attributes this)]
 	   (= (inz-this [g m])
 	      (inz-other [g m]))))))
 
 (defn print-mv-context [mv-ctx]
-  (let [objs (mv-objects mv-ctx)
-	atts (mv-attributes mv-ctx)
-	inz (mv-incidence mv-ctx)
+  (let [objs (objects mv-ctx)
+	atts (attributes mv-ctx)
+	inz (incidence mv-ctx)
 
 	str #(if (nil? %) "nil" (str %))
 
@@ -105,14 +105,14 @@
 
 (defn scale-mv-context [mv-ctx scales]
   (assert (map? scales))
-  (let [mv-inz (mv-incidence mv-ctx)
+  (let [inz (incidence mv-ctx)
 
-	objs (mv-objects mv-ctx)
-	atts (set-of [m n] [m (mv-attributes mv-ctx)
+	objs (objects mv-ctx)
+	atts (set-of [m n] [m (attributes mv-ctx)
 			    n (attributes (scales m))])
 	inz (set-of [g [m n]] [g objs
 			       [m n] atts
-			       :let [w (mv-inz [g m])]
+			       :let [w (inz [g m])]
 			       :when ((incidence (scales m)) [w n])])]
     (make-context objs atts inz)))
 
