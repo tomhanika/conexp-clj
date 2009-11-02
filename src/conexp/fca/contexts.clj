@@ -26,7 +26,7 @@
   [ctx]
   ((.state ctx) :incidence))
 
-(defn- thing-order
+(defn compare-order
   "Orders things for proper output of formal contexts."
   [x y]
   (if (= (class x) (class y))
@@ -35,7 +35,7 @@
       (< (.hashCode x) (.hashCode y)))
     (> 0 (compare (str (class x)) (str (class y))))))
 
-(defn- sort-by-second
+(defn sort-by-second
   "Ensures that pairs are ordered by second entry first. This gives
   better output for context sums, products, ..."
   [x y]
@@ -44,10 +44,23 @@
 	 (vector? y)
 	 (= 2 (count x) (count y)))
     (if (= (second x) (second y))
-      (thing-order (first x) (first y))
-      (thing-order (second x) (second y)))
+      (compare-order (first x) (first y))
+      (compare-order (second x) (second y)))
     :else
-    (thing-order x y)))
+    (compare-order x y)))
+
+(defn sort-by-first
+  "Convenience function for custom context printing."
+  [x y]
+  (cond
+    (and (vector? x)
+	 (vector? y)
+	 (= 2 (count x) (count y)))
+    (if (= (first x) (first y))
+      (compare-order (second x) (second y))
+      (compare-order (first x) (first y)))
+    :else
+    (compare-order x y)))
 
 (defn print-context
   "Prints contexts in a human readable form."
@@ -122,6 +135,8 @@
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
+; (defn rename-objects [ctx old-to-new])
+; (defn rename-attributes [ctx old-to-new])
 
 ;;; Common Operations in Contexts
 

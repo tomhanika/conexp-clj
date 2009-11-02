@@ -166,6 +166,4 @@
 (defn dichotomic-scale [base]
   (diag-context base))
 
-
-
 nil
