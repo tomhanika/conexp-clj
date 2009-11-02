@@ -144,24 +144,26 @@
 
 (defn biordinal-scale
   "base must be ordered (e.g. vector or list). Otherwise the result will be arbitrary."
-  [base n]
-  (let [first-objs (take n base)
-	rest-objs (drop n base)
+  ([base n]
+     (biordinal-scale base n <= >=))
+  ([base n <= >=]
+     (let [first-objs (take n base)
+	   rest-objs (drop n base)
 
-	first-atts (map #(str "<= " %) first-objs)
-	rest-atts (map #(str ">= " %) rest-objs)
+	   first-atts (map #(str "<= " %) first-objs)
+	   rest-atts (map #(str ">= " %) rest-objs)
 
-	first-inz (set-of [g (str "<= " m)]
-			  [g first-objs
-			   m first-objs
-			   :when (<= g m)])
-	rest-inz (set-of [g (str ">= " m)]
-			 [g rest-objs
-			  m rest-objs
-			  :when (>= g m)])]
-    (make-context base
-		  (union first-atts rest-atts)
-		  (union first-inz rest-inz))))
+	   first-inz (set-of [g (str "<= " m)]
+			     [g first-objs
+			      m first-objs
+			      :when (<= g m)])
+	   rest-inz (set-of [g (str ">= " m)]
+			    [g rest-objs
+			     m rest-objs
+			     :when (>= g m)])]
+       (make-context base
+		     (union first-atts rest-atts)
+		     (union first-inz rest-inz)))))
 
 (defn dichotomic-scale [base]
   (diag-context base))
