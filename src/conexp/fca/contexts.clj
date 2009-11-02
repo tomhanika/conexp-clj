@@ -135,10 +135,22 @@
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
-; (defn rename-objects [ctx old-to-new])
-; (defn rename-attributes [ctx old-to-new])
 
 ;;; Common Operations in Contexts
+
+(defn rename-objects
+  "Rename objects in ctx by given hash old-to-new."
+  [ctx old-to-new]
+  (let [objs (map old-to-new (objects ctx))
+	inz (set-of [(old-to-new g) m] [[g m] (incidence ctx)])]
+    (make-context objs (attributes ctx) inz)))
+
+(defn rename-attributes
+  "Rename attributes in ctx by given hash old-to-new."
+  [ctx old-to-new]
+  (let [atts (map old-to-new (attributes ctx))
+	inz (set-of [g (old-to-new m)] [[g m] (incidence ctx)])]
+    (make-context (objects ctx) atts inz)))
 
 (defn object-derivation [ctx objects]
   (let [{:keys [incidence attributes]} (.state ctx)]
@@ -386,3 +398,5 @@
 			  :when (<=> (I_1 [g_1,m_1])
 				     (I_2 [g_2,m_2]))])]
     (make-context new-objs new-atts new-inz)))
+
+nil
