@@ -96,13 +96,10 @@
     result))
 
 (defn repl-interrupt [rpl]
-  (.interrupt (:repl-thread rpl)))
+  (.stop (:repl-thread rpl)))
 
 (defn repl-alive? [rpl]
   (.isAlive (:repl-thread rpl)))
-
-(defn repl-stop [rpl]
-  (.stop (:repl-thread rpl)))
 
 
 ;;; Display
