@@ -25,11 +25,12 @@
 
 (def *print-stack-trace-on-error* false)
 
-(defn is-eof-ex? 
+(defn eof-ex?
   "Returns true iff given throwable is an \"EOF while reading\" or \"Write 
   end dead\" exception not thrown from the repl." ; hopefully
   [throwable]
   (and (not (instance? clojure.lang.Compiler$CompilerException throwable))
+       (.getMessage throwable)
        (or (re-matches #".*EOF while reading.*" (.getMessage throwable))
 	   (re-matches #".*Write end dead.*" (.getMessage throwable)))))
 
@@ -62,15 +63,15 @@
 			    (try
 			     (clojure.main/repl
                               :init (fn [] 
-				      (in-ns 'user)
-				      (use 'conexp))
+				      (use 'conexp)
+				      (in-ns 'conexp))
                               :caught (fn [e]
-                                        (when (is-eof-ex? e)
-                                          (throw e))
 					(if *print-stack-trace-on-error*
                                           (.printStackTrace e *out*)
                                           (prn (clojure.main/repl-exception e)))
-                                        (flush))
+					(when (eof-ex? e)
+					  (throw e))
+					(flush))
                               :need-prompt (constantly true))
                             (catch Exception ex
                               (prn "REPL closing")))))
@@ -162,18 +163,23 @@
   (let [last-pos (@(.state this) :last-pos)]
     (when (>= off last-pos)
       (.insertStringSuper this off string attr-set)
-      (if (and (= string "\n") (= off (- (.getLength this) 1)))
-	(let [input (.getText this (- last-pos 1) (- (.getLength this) last-pos))]
+      (if (and (= string "\n")
+	       (= off (- (-> this .getEndPosition .getOffset)
+			 2)))
+	(let [input (.getText this
+			      (- last-pos 1)
+			      (- (-> this .getEndPosition .getOffset) last-pos 1))]
 	  (if (balanced? input)
-	    (repl-in (.replThread this) input)))))))
+	    (repl-in (.replThread this) input )))))))
 
 ;;;
 
 (defn make-clojure-repl []
-  (let [rpl (JTextArea. (conexp.gui.repl.ClojureREPL.))]
-    (.. rpl getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
-    (.. rpl getActionMap (put "interrupt" (proxy [AbstractAction] []
-					    (actionPerformed [_]
-					      (println "Interrupt called!")
-					      (repl-interrupt)))))
-    rpl))
+  (let [rpl (conexp.gui.repl.ClojureREPL.)
+	win-rpl (JTextArea. rpl)]
+    (.. win-rpl getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
+    (.. win-rpl getActionMap (put "interrupt" (proxy [AbstractAction] []
+						(actionPerformed [_]
+					          (println "Interrupt called!")
+					      (repl-interrupt (.replThread rpl))))))
+    win-rpl))
