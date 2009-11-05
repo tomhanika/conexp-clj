@@ -5,6 +5,7 @@
   (compile 'conexp.fca.contexts)
   (compile 'conexp.fca.implications)
   (compile 'conexp.fca.lattices)
+  (compile 'conexp.fca.many-valued-contexts)
   (compile 'conexp.gui.repl))
 
 ; Use immigrate, so that all imports behave as if they were defined in here.
