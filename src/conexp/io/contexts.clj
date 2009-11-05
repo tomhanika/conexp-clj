@@ -148,7 +148,7 @@
      objects]))
 
 (defmethod write-context :conexp [_ ctx file]
-  (binding [*prxml-indent* 2]
+  (binding [clojure.contrib.prxml/*prxml-indent* 2]
     (with-out-writer file
       (prxml [:decl! {:version "1.0"}])
       (prxml [:ConceptualSystem

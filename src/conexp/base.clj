@@ -85,7 +85,9 @@
   [G clop A]
   (let [oplus-A (partial oplus G clop A)]
     (first
-     (for [i (reverse G) :when (lectic-<_i G i A (oplus-A i))] 
+     (for [i (reverse G)
+	   :when (and (not (contains? A i))
+		      (lectic-<_i G i A (oplus-A i)))]
        (oplus-A i)))))
 
 (defn all-closed-sets
