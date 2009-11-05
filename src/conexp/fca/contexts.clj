@@ -15,30 +15,29 @@
   "Returns the objects of a formal context."
   class)
 
-(defmethod objects conexp.fca.Context [ctx]
+(defmethod objects conexp.fca.Context [#^conexp.fca.Context ctx]
   ((.state ctx) :objects))
 
 (defmulti attributes
   "Returns the attributes of a formal context."
   class)
 
-(defmethod attributes conexp.fca.Context [ctx]
+(defmethod attributes conexp.fca.Context [#^conexp.fca.Context ctx]
   ((.state ctx) :attributes))
 
 (defmulti incidence
   "Returns the incidence of a formal context."
   class)
 
-(defmethod incidence conexp.fca.Context [ctx]
+(defmethod incidence conexp.fca.Context [#^conexp.fca.Context ctx]
   ((.state ctx) :incidence))
 
 (defn compare-order
   "Orders things for proper output of formal contexts."
   [x y]
-  (if (= (class x) (class y))
-    (if (instance? Comparable x)
-      (> 0 (compare x y))
-      (< (.hashCode x) (.hashCode y)))
+  (if (and (= (class x) (class y))
+	   (instance? Comparable x))
+    (> 0 (compare x y))
     (> 0 (compare (str (class x)) (str (class y))))))
 
 (defn sort-by-second
@@ -159,12 +158,14 @@
     (make-context (objects ctx) atts inz)))
 
 (defn object-derivation [ctx objects]
-  (let [{:keys [incidence attributes]} (.state ctx)]
-    (set-of m [m attributes :when (forall [g objects] (incidence [g m]))])))
+  (let [inz (incidence ctx)
+	atts (attributes ctx)]
+    (set-of m [m atts :when (forall [g objects] (inz [g m]))])))
 
 (defn attribute-derivation [ctx attributes]
-  (let [{:keys [incidence objects]} (.state ctx)]
-    (set-of g [g objects :when (forall [m attributes] (incidence [g m]))])))
+  (let [inz (incidence ctx)
+        objs (objects ctx)]
+    (set-of g [g objs :when (forall [m attributes] (inz [g m]))])))
 
 (defn concept? [ctx [set-of-obj set-of-att]]
   (and (subset? set-of-obj (objects ctx))

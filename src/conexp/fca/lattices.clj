@@ -17,15 +17,15 @@
   ([base-set inf sup]
      [ [] {:base-set base-set, :order nil,   :inf inf, :sup sup} ]))
 
-(defn base-set [lattice]
+(defn base-set [#^conexp.fca.Lattice lattice]
   ((.state lattice) :base-set))
 
-(defn order [lattice]
+(defn order [#^conexp.fca.Lattice lattice]
   (or ((.state lattice) :order)
       (let [sup ((.state lattice) :sup)]
 	(fn [[x y]] (= y (sup x y))))))
 
-(defn inf [lattice]
+(defn inf [#^conexp.fca.Lattice lattice]
   (or ((.state lattice) :inf)
       (let [order (order lattice)
 	    base  (base-set lattice)]
@@ -38,7 +38,7 @@
 					      (order [a z]))))]
 		   z))))))
 
-(defn sup [lattice]
+(defn sup [#^conexp.fca.Lattice lattice]
   (or ((.state lattice) :sup)
       (let [order (order lattice)
 	    base  (base-set lattice)]
@@ -169,3 +169,5 @@
   (make-context (lattice-sup-irreducibles lat)
 		(lattice-inf-irreducibles lat)
 		(order lat)))
+
+nil

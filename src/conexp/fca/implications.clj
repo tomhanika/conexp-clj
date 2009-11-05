@@ -11,10 +11,10 @@
 (defn Implication-init [premise conclusion]
   [ [] {:premise premise :conclusion conclusion} ])
 
-(defn premise [impl]
+(defn premise [#^conexp.fca.Implication impl]
   ((.state impl) :premise))
 
-(defn conclusion [impl]
+(defn conclusion [#^conexp.fca.Implication impl]
   ((.state impl) :conclusion))
 
 (defn Implication-toString [this]
@@ -102,3 +102,5 @@
 	(if next
 	  (recur implications next)
 	  implications)))))
+
+nil

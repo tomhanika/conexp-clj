@@ -39,7 +39,7 @@
   (let [actual-number (if (instance? BigInteger n)
 			n
 			(BigInteger. (str n)))]
-    (.isProbablePrime actual-number 1000)))
+    (.isProbablePrime #^java.math.BigInteger actual-number 1000)))
 
 (defn crossfoot
   "Returns the crossfoot of n."
@@ -75,25 +75,28 @@
 (defn oplus
   "Implements oplus of the Next Closure Algorithm."
   [G clop A i]
-  (clop 
-   (conj (intersection (set (subelts G i)) A)
-	 i)))
+  (clop (conj (intersection (set (subelts G i)) A)
+	      i)))
 
 (defn next-closed-set
   "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
   interpreted as increasing, is taken to be the basic order of the elements."
   [G clop A]
-  (let [oplus-A (partial oplus G clop A)]
-    (first
-     (for [i (reverse G)
-	   :when (and (not (contains? A i))
-		      (lectic-<_i G i A (oplus-A i)))]
-       (oplus-A i)))))
+  (let [oplus-A (memoize (partial oplus G clop A))]
+    (loop [i-s (reverse G)]
+      (if (empty? i-s)
+	nil
+	(let [i (first i-s)]
+	  (if (and (not (contains? A i))
+		   (lectic-<_i G i A (oplus-A i)))
+	    (oplus-A i)
+	    (recur (rest i-s))))))))
 
 (defn all-closed-sets
   "Computes all closed sets of a given closure operator on a given set."
   [G clop]
-  (take-while identity (iterate (partial next-closed-set G clop) (clop #{}))))
+  (binding [subelts (memoize subelts)]
+    (take-while identity (iterate (partial next-closed-set G clop) (clop #{})))))
 
 
 ;;; Common Math Algorithms
@@ -124,3 +127,5 @@
   (and (= (set-of x [[x y] relation]) source)
        (subset? (set-of y [[x y] relation]) target)
        (= (count source) (count relation)))) ; this works because everything is finite
+
+nil

@@ -1,4 +1,5 @@
-(ns conexp.util)
+(ns conexp.util
+  (:use clojure.contrib.profile))
 
 ;;; Technical Helpers
 
@@ -59,7 +60,7 @@
 (defn illegal-argument
   "Throws IllegalArgumentException with given strings as message"
   [& strings]
-  (throw (IllegalArgumentException. (apply str strings))))
+  (throw (IllegalArgumentException. #^String (apply str strings))))
 
 (defmacro with-profiled-fns [fns & body]
   `(binding ~(vec (apply concat
@@ -162,3 +163,5 @@
     (or (set? thing)
 	(sequential? thing)) ::set
     :else                    ::other))
+
+nil
