@@ -23,33 +23,33 @@
 (defn order [lattice]
   (or ((.state lattice) :order)
       (let [sup ((.state lattice) :sup)]
-	(set-of [x y] [x (base-set lattice)
-		       y (base-set lattice)
-		       :when (= y (sup x y))]))))
+	(fn [[x y]] (= y (sup x y))))))
 
 (defn inf [lattice]
   (or ((.state lattice) :inf)
       (let [order (order lattice)
 	    base  (base-set lattice)]
 	(fn [x y]
-	  (first (set-of z [z base
-			    :when (and (order [z x])
-				       (order [z y])
-				       (forall [a base]
-					       (=> (and (order [a x]) (order [a y]))
-						   (order [a z]))))]))))))
+	  (first (for [z base
+		       :when (and (order [z x])
+				  (order [z y])
+				  (forall [a base]
+					  (=> (and (order [a x]) (order [a y]))
+					      (order [a z]))))]
+		   z))))))
 
 (defn sup [lattice]
   (or ((.state lattice) :sup)
       (let [order (order lattice)
 	    base  (base-set lattice)]
 	(fn [x y]
-	  (first (set-of z [z base
-			    :when (and (order [x z])
-				       (order [y z])
-				       (forall [a base]
-					       (=> (and (order [x a]) (order [y a]))
-						   (order [z a]))))]))))))
+	  (first (for [z base
+		       :when (and (order [x z])
+				  (order [y z])
+				  (forall [a base]
+					  (=> (and (order [x a]) (order [y a]))
+					      (order [z a]))))]
+		   z))))))
 
 (defn Lattice-toString [this]
   (str "Lattice on " (count (base-set this)) " elements."))
@@ -75,11 +75,10 @@
 (defmulti make-lattice (fn [& args] (vec (map type-of args))))
 
 (defmethod make-lattice [::set ::set] [base-set order]
-  (conexp.fca.Lattice. base-set (union (set-of [x x] [x base-set])
-				       (transitive-closure order))))
+  (conexp.fca.Lattice. base-set order))
 
 (defmethod make-lattice [::set ::fn] [base-set order]
-  (make-lattice base-set (set-of [x y] [x base-set y base-set :when (order x y)])))
+  (conexp.fca.Lattice. base-set order))
 
 (defmethod make-lattice [::set ::fn ::fn] [base-set inf sup]
   (conexp.fca.Lattice. base-set inf sup))
@@ -91,7 +90,8 @@
 ;;; Standard Lattice Theory
 
 (defn dual-lattice [lat]
-  (make-lattice (base-set lat) (set-of [y x] [[x y] (order lat)])))
+  (let [order (order lat)]
+    (make-lattice (base-set lat) (fn [[x y]] (order [y x])))))
 
 (defn distributive? [lat]
   (let [inf  (inf lat)
@@ -162,8 +162,8 @@
 
 (defn concept-lattice [ctx]
   (make-lattice (concepts ctx) 
-		(fn [[A _] [X _]] 
-		  (subset? A X))))
+		(fn [[A B]]
+		  (subset? (first A) (first B)))))
 
 (defn standard-context [lat]
   (make-context (lattice-sup-irreducibles lat)
