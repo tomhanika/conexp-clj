@@ -41,23 +41,19 @@
 	  (respects? intent impl)))
 
 (defn add-immediate-elements
-  ([implications set]
-     (add-immediate-elements implications set #{}))
-
-  ([implications new-set old-set]
-     (if (= new-set old-set)
-       new-set
-       (let [conclusions-to-add (for [impl implications
-				      :when (and (subset? (premise impl) new-set)
-						 (exists [x (premise impl)] (not (old-set x))))]
-				  (conclusion impl))]
-	 (apply union new-set conclusions-to-add)))))
+  [implications old-set]
+  (let [conclusions-to-add (for [impl implications
+				 :when (and (subset? (premise impl) old-set)
+					    (exists [x (conclusion impl)] (not (old-set x))))]
+			     (conclusion impl))]
+    (apply union old-set conclusions-to-add)))
 
 (defn close-under-implications [implications set]
-  (first (first (drop-while (fn [[old new]] (not= old new))
-			    (iterate (fn [[old new]]
-				       [new (add-immediate-elements implications new old)])
-				     [#{} set])))))
+  (loop [set set]
+    (let [new (add-immediate-elements implications set)]
+      (if (= new set)
+	new
+	(recur new)))))
 
 (defn clop-by-implications [implications]
   (partial close-under-implications implications))
@@ -65,28 +61,17 @@
 (defn follows-semantically? [implication implications]
   (subset? (conclusion implication) (close-under-implications implications (premise implication))))
 
-;;; copied, thus needs a good idea for refactoring
 (defn add-immediate-elements*
-  ([implications set]
-     (add-immediate-elements* implications set #{}))
-
-  ([implications new-set old-set]
-     (if (= new-set old-set)
-       new-set
-       (let [conclusions-to-add (for [impl implications
-				      :when (and (proper-subset? (premise impl) new-set)
-						 (exists [x (premise impl)] (not (old-set x))))]
-				  (conclusion impl))]
-	 (apply union new-set conclusions-to-add)))))
-
-(defn close-under-implications* [implications set]
-  (first (first (drop-while (fn [[old new]] (not= old new))
-			    (iterate (fn [[old new]]
-				       [new (add-immediate-elements* implications new old)])
-				     [#{} set])))))
+  [implications old-set]
+  (let [conclusions-to-add (for [impl implications
+				 :when (and (proper-subset? (premise impl) old-set)
+					    (exists [x (conclusion impl)] (not (old-set x))))]
+			     (conclusion impl))]
+    (apply union old-set conclusions-to-add)))
 
 (defn clop-by-implications* [implications]
-  (partial close-under-implications* implications))
+  (binding [add-immediate-elements add-immediate-elements*]
+    (partial close-under-implications implications)))
 
 (defn stem-base [ctx]
   (let [double-prime (partial context-attribute-closure ctx)
