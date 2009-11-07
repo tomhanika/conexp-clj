@@ -3,7 +3,8 @@
 
 (def *testing-namespaces* '[conexp.tests.util
 			    conexp.tests.base
-			    conexp.tests.fca.contexts])
+			    conexp.tests.fca.contexts
+			    conexp.tests.fca.implications])
 
 (apply require *testing-namespaces*)
 
