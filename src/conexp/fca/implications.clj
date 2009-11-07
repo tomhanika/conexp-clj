@@ -40,34 +40,52 @@
   (forall [intent (context-intents ctx)]
 	  (respects? intent impl)))
 
-(defn add-immediate-elements
-  [implications old-set]
-  (let [conclusions-to-add (for [impl implications
-				 :when (and (subset? (premise impl) old-set)
-					    (exists [x (conclusion impl)] (not (old-set x))))]
-			     (conclusion impl))]
-    (apply union old-set conclusions-to-add)))
+(defn add-immediate-elements [implications initial-set]
+  (loop [conclusions []
+	 impls implications
+	 unused-impls []]
+    (if (empty? impls)
+      [(apply union initial-set conclusions) unused-impls]
+      (let [impl (first impls)]
+	(if (and (subset? (premise impl) initial-set)
+		 (not (subset? (conclusion impl) initial-set)))
+	  (recur (conj conclusions (conclusion impl))
+		 (rest impls)
+		 unused-impls)
+	  (recur conclusions
+		 (rest impls)
+		 (conj unused-impls impl)))))))
 
 (defn close-under-implications [implications set]
-  (loop [set set]
-    (let [new (add-immediate-elements implications set)]
+  (loop [set set
+	 impls implications]
+    (let [[new impls] (add-immediate-elements impls set)]
       (if (= new set)
 	new
-	(recur new)))))
+	(recur new impls)))))
 
 (defn clop-by-implications [implications]
   (partial close-under-implications implications))
 
 (defn follows-semantically? [implication implications]
-  (subset? (conclusion implication) (close-under-implications implications (premise implication))))
+  (subset? (conclusion implication)
+	   (close-under-implications implications (premise implication))))
 
-(defn add-immediate-elements*
-  [implications old-set]
-  (let [conclusions-to-add (for [impl implications
-				 :when (and (proper-subset? (premise impl) old-set)
-					    (exists [x (conclusion impl)] (not (old-set x))))]
-			     (conclusion impl))]
-    (apply union old-set conclusions-to-add)))
+(defn add-immediate-elements* [implications initial-set]
+  (loop [conclusions []
+	 impls implications
+	 unused-impls []]
+    (if (empty? impls)
+      [(apply union initial-set conclusions) unused-impls]
+      (let [impl (first impls)]
+	(if (and (proper-subset? (premise impl) initial-set)
+		 (not (subset? (conclusion impl) initial-set)))
+	  (recur (conj conclusions (conclusion impl))
+		 (rest impls)
+		 unused-impls)
+	  (recur conclusions
+		 (rest impls)
+		 (conj unused-impls impl)))))))
 
 (defn clop-by-implications* [implications]
   (binding [add-immediate-elements add-immediate-elements*]
