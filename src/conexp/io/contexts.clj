@@ -174,4 +174,20 @@
   'galicia-to-be-done)
 
 
-;; Colibri
+;; Colibri (.bri)
+
+(add-context-input-format :colibri
+			  (fn [rdr] ; too slow
+			    (let [comment #"^\s*#.*$"
+				  blank   #"^\s*$"
+				  row     #"^\s*\w+\s*:.*;\s*$"]
+			    (forall [line (read-lines rdr)]
+			       (or (re-matches comment line)
+				   (re-matches blank line)
+				   (re-matches row line))))))
+
+(defmethod write-context :colibri [_ ctx file]
+  'colibri-to-be-done)
+
+(defmethod read-context :colibri [file]
+  'colibri-to-be-done)
