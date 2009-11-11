@@ -13,12 +13,11 @@
     (keys @known-context-input-formats))
 
   (defn find-context-input-format [file]
-    (with-open [input-reader (reader file)]
-      (let [input-lines (take-while identity (repeatedly #(.readLine input-reader)))]
-	(first
-	 (for [[name predicate] @known-context-input-formats
-	       :when (predicate input-lines)]
-	   name))))))
+    (first
+     (for [[name predicate] @known-context-input-formats
+	   :when (with-open [in-rdr (reader file)]
+		   (predicate in-rdr))]
+       name))))
 
 (defmulti read-context find-context-input-format)
 
@@ -50,8 +49,8 @@
 	(println)))))
 
 (add-context-input-format :burmeister
-			  (fn [input-lines]
-			    (= \B (first (first input-lines)))))
+			  (fn [rdr]
+			    (= "B" (.readLine rdr))))
 
 (defmethod read-context :burmeister [file]
   (with-in-reader file
@@ -77,15 +76,7 @@
 				  [idx-m (range number-of-attributes)
 				   :when (= \X (nth line idx-m))])))))))))
 
-;; Conexp
-
-(add-context-input-format :conexp
-			  (fn [input-lines]
-			    (let [nonblank-lines (filter #(re-matches #"^.*\S.*$" %) input-lines)]
-			      (and (re-matches #"\s*<\?\s*xml.*\?>.*" (first nonblank-lines))
-				   (or
-				    (re-matches #".*<ConceptualSystem>.*" (first nonblank-lines))
-				    (re-matches #".*<ConceptualSystem>.*" (second nonblank-lines)))))))
+;;;
 
 (defn- find-tags [seq-of-hashes tag]
   (for [hash seq-of-hashes :when (= tag (:tag hash))] hash))
@@ -98,6 +89,16 @@
 
 (defn- hash-from-pairs [pairs]
   (apply hash-map (flatten pairs)))
+
+;;;
+
+;; Conexp
+
+(add-context-input-format :conexp
+			  (fn [rdr]
+			    (try
+			     (= :ConceptualSystem (-> (parse-seq rdr) first :name))
+			     (catch Exception _))))
 
 (defmethod read-context :conexp [file]
   (with-in-reader file
@@ -154,3 +155,23 @@
       (prxml [:ConceptualSystem
 	      [:Version {:MajorNumber "1", :MinorNumber "0"}]
 	      [:Contexts (ctx->xml-vector ctx 0)]]))))
+
+
+;; Galicia (.bin.xml)
+
+(add-context-input-format :galicia
+			  (fn [rdr]
+			    (try
+			     (let [xml-tree (parse-seq rdr)]
+			       (and (= :Galicia_Document (-> xml-tree first :name))
+				    (= :BinaryContext (-> xml-tree second :name))))
+			     (catch Exception _))))
+
+(defmethod write-context :galicia [_ ctx file]
+  'galicia-to-be-done)
+
+(defmethod read-context :galicia [file]
+  'galicia-to-be-done)
+
+
+;; Colibri

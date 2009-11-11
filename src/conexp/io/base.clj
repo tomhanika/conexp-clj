@@ -3,8 +3,8 @@
 
 (immigrate 'conexp.base
 	   'conexp.fca.contexts
-	   'conexp.io.util
 	   'clojure.contrib.str-utils
 	   'clojure.contrib.duck-streams
 	   'clojure.contrib.lazy-xml
-	   'clojure.contrib.prxml)
+	   'clojure.contrib.prxml
+	   'conexp.io.util) ; last to override with-in-reader from duck-streams

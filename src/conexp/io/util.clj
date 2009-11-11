@@ -1,4 +1,5 @@
-(ns conexp.io.util)
+(ns conexp.io.util
+  (:use [clojure.contrib.duck-streams :only (reader)]))
 
 (defn get-line []
   (read-line))
