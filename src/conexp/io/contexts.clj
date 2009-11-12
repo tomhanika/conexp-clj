@@ -168,10 +168,43 @@
 			     (catch Exception _))))
 
 (defmethod write-context :galicia [_ ctx file]
-  'galicia-to-be-done)
+  (let [atts (apply hash-map (interleave (attributes ctx) (iterate inc 0)))
+	objs (apply hash-map (interleave (objects ctx) (iterate inc 0)))
+
+	atts-vector (sort #(< (atts %1) (atts %2)) (attributes ctx))
+	objs-vector (sort #(< (objs %1) (objs %2)) (objects ctx))]
+    (binding [clojure.contrib.prxml/*prxml-indent* 2]
+      (with-out-writer file
+	(prxml [:decl! {:vecsion "1.0"}])
+	(prxml [:Galicia_Document
+		[:BinaryContext {:numberObj (str (count objs-vector)),
+				 :numberAtt (str (count atts-vector))}
+		 [:Name "conexp-clj generated context"]
+		 (for [obj objs-vector]
+		   [:raw! (str "\n    <Object>" obj "</Object>")])
+		 (for [att atts-vector]
+		   [:raw! (str "\n    <Attribute>" att "</Attribute>")])
+		 (for [[g m] (incidence ctx)]
+		   [:BinRel {:idxO (str (objs g)),
+			     :idxA (str (atts m))}])]])))))
 
 (defmethod read-context :galicia [file]
-  'galicia-to-be-done)
+  (with-in-reader file
+    (let [ctx-xml-tree (-> (parse-trim *in*) :content first)
+
+	  nr-objs (Integer/parseInt (-> ctx-xml-tree :attrs :numberObj))
+	  nr-atts (Integer/parseInt (-> ctx-xml-tree :attrs :numberAtt))
+
+	  ; can be done better (one run instead of three)
+	  objs (map (comp first :content) (filter #(= (:tag %) :Object) (-> ctx-xml-tree :content)))
+	  atts (map (comp first :content) (filter #(= (:tag %) :Attribute) (-> ctx-xml-tree :content)))
+	  idxs (map #(vector (Integer/parseInt (:idxO (:attrs %)))
+			     (Integer/parseInt (:idxA (:attrs %))))
+		    (filter #(= (:tag %) :BinRel) (-> ctx-xml-tree :content)))]
+      (make-context objs
+		    atts
+		    (set-of [(nth objs idxO) (nth atts idxA)]
+			    [[idxO idxA] idxs])))))
 
 
 ;; Colibri (.bri)
