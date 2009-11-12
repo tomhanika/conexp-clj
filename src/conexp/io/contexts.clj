@@ -207,20 +207,80 @@
 			    [[idxO idxA] idxs])))))
 
 
-;; Colibri (.bri)
+;; Colibri (.bri, .con)
+
+; Note: Colibri cannot store empty columns. They get lost when writing
 
 (add-context-input-format :colibri
 			  (fn [rdr] ; too slow
 			    (let [comment #"^\s*#.*$"
 				  blank   #"^\s*$"
-				  row     #"^\s*\w+\s*:.*;\s*$"]
+				  row     #"^\s*.+\s*:.*;\s*$"]
 			    (forall [line (read-lines rdr)]
 			       (or (re-matches comment line)
 				   (re-matches blank line)
 				   (re-matches row line))))))
 
-(defmethod write-context :colibri [_ ctx file]
-  'colibri-to-be-done)
+(defmethod write-context :colibri [_ ctx file] ; warn if attribute name contains " "
+  (with-out-writer file
+    (doseq [g (objects ctx)]
+      (print g)
+      (print ":")
+      (doseq [m (object-derivation ctx #{g})]
+	(print "\t")
+	(print m))
+      (print ";\n"))))
 
 (defmethod read-context :colibri [file]
-  'colibri-to-be-done)
+  (loop [in (reader file)
+	 objs #{}
+	 inz #{}]
+    (let [line (.readLine in)]
+      (cond
+	(not line)
+	(make-context objs (set-of m [[g m] inz]) inz)
+	(or (re-matches #"^\s*$" line)     ; blank
+	    (re-matches #"^\s*#.*$" line)) ; comment
+	(recur in objs inz)
+	:else
+	(let [[_ g atts] (re-matches #"^\s*(.+)\s*:\s*(.+)?\s*;\s*(?:#.*)?$" line)
+	      atts (and atts (re-split #"\s+" atts))]
+	  (recur in (conj objs g) (union inz (set-of [g m] [m atts]))))))))
+
+
+;; Comma Seperated Values (.csv)
+
+(add-context-input-format :csv
+			  (fn [rdr]
+			    (try
+			     (re-matches #"^[^,]+,[^,]+$" (.readLine rdr))
+			     (catch Exception _))))
+
+(defmethod read-context :csv [file]
+  (let [in (reader file)]
+    (loop [inz #{}]
+      (let [line (.readLine in)]
+	(if (not line)
+	  (make-context (set-of g [[g m] inz])
+			(set-of m [[g m] inz])
+			inz)
+	  (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]
+	    (recur (conj inz [g m]))))))))
+
+(defmethod write-context :csv [_ ctx file] ; warn if attribute name contains ","
+  (with-out-writer file
+    (doseq [[g m] (incidence ctx)]
+      (println (str g "," m)))))
+
+
+;;; TODO
+
+;; slf
+
+;; csc
+
+;; csx?
+
+;; tuples
+
+nil
