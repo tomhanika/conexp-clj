@@ -221,7 +221,13 @@
 				   (re-matches blank line)
 				   (re-matches row line))))))
 
-(defmethod write-context :colibri [_ ctx file] ; warn if attribute name contains " "
+(defmethod write-context :colibri [_ ctx file]
+  (if (some (fn [m] (and (string? m) (some #(#{\ ,\:,\;} %) m))) (attributes ctx))
+    (illegal-argument
+     "Cannot export to :colibri format, object or attribute names contain invalid characters."))
+  (if (not (empty? (difference (attributes ctx) (set-of m [[g m] (incidence ctx)]))))
+    (illegal-argument
+     "Cannot export to :colibri format, context contains empty columns."))
   (with-out-writer file
     (doseq [g (objects ctx)]
       (print g)
@@ -267,7 +273,9 @@
 	  (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]
 	    (recur (conj inz [g m]))))))))
 
-(defmethod write-context :csv [_ ctx file] ; warn if attribute name contains ","
+(defmethod write-context :csv [_ ctx file]
+  (if (some (fn [x] (and (string? x) (some #(= \, %) x))) (concat (objects ctx) (attributes ctx)))
+    (illegal-argument "Cannot export to :csv format, object or attribute names contain \",\"."))
   (with-out-writer file
     (doseq [[g m] (incidence ctx)]
       (println (str g "," m)))))
