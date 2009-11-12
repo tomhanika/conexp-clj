@@ -94,11 +94,11 @@
      (connect-nodes scn x y (str (.getName x) " -> " (.getName y))))
   ([#^GScene scn #^GObject x #^GObject y name]
      (let [line (GSegment.)
-	   c       (proxy [GObject] []
-		     (draw []
-		       (let [[x1 y1] (position (lower-node this))
-			     [x2 y2] (position (upper-node this))]
-			 (.setGeometry line (double x1) (double y1) (double x2) (double y2)))))]
+	   c    (proxy [GObject] []
+		  (draw []
+		    (let [[x1 y1] (position (lower-node this))
+			  [x2 y2] (position (upper-node this))]
+		      (.setGeometry line (double x1) (double y1) (double x2) (double y2)))))]
        (doto scn
 	 (.add c))
        (doto line
@@ -216,3 +216,5 @@
     (doto wnd
       (.startInteraction (move-interaction)))
     scn))
+
+nil

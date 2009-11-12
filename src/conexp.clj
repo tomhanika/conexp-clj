@@ -15,3 +15,7 @@
 	   'conexp.fca
 	   'conexp.io
 	   'conexp.gui)
+
+(def *conexp-version* 1258063004251)
+
+nil
