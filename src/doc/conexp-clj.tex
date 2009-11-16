@@ -1,0 +1,109 @@
+\documentclass{scrbook}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{graphicx}
+\usepackage{color}
+\definecolor{lightblue}{rgb}{0.2,0.2,1}
+\usepackage{hyperref}
+\usepackage{alltt}
+
+\newcommand{\conexpclj}{\texttt{conexp-clj}}
+
+
+\title{\conexpclj\\A ConExp Rewrite in Clojure\\[2cm]DRAFT VERSION}
+\author{DB}
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+
+
+\chapter*{Preface}
+
+\chapter*{Acknowledgements}
+
+John McCarthy for inventing Lisp, Richard Stallman for inventing Free
+Software and Rich Hickey for inventing Clojure.
+
+\tableofcontents
+
+
+\chapter{Introduction}
+
+  \section{Using \conexpclj}
+
+  Let's have a look at a sample session.
+
+  \newcommand{\spcl}[1]{\textcolor{blue}{#1}}
+  \begin{alltt}
+    \textcolor{lightblue}{user>} (\spcl{def} ctx (\spcl{make-context} #\{1 2 3\} #\{1 2 3\} #\{[1 2] [2 2] [3 3]\}))
+    #'user/ctx
+    \textcolor{lightblue}{user>} ctx
+    #<Context
+      |1 2 3
+    --+------
+    1 |. x .
+    2 |. x .
+    3 |. . x
+    >
+    \textcolor{lightblue}{user>} (\spcl{stem-base} ctx)
+    #\{#<Implication ( #{1}  ==>  #{2 3} )> #<Implication ( #{2 3}  ==>  #{1} )>\}
+    \textcolor{lightblue}{user>} (\spcl{reduced?} ctx)
+    false
+    \textcolor{lightblue}{user>}
+  \end{alltt}
+
+  \section{Obtaining and Installing \conexpclj}
+
+  See \url{http://www.math.tu-dresden.de/~borch/conexp-clj}.
+
+  \section{Design Principles}
+
+    \subsection{Use Lisp}
+
+    \subsection{Executable Math}
+
+    \subsection{GUI is optional}
+
+    \subsection{Easy Extensibility}
+
+  \section{What is missing but needed urgently?}
+  \begin{itemize}
+    \item Drawing Lattices
+    \item Association Rules
+  \end{itemize}
+
+
+\chapter{Namespace Overview}
+
+  \section{What are Namespaces?}
+
+  \section{conexp}
+
+  \section{conexp.util and conexp.base}
+
+  \section{conexp.fca}
+
+  \section{conexp.io}
+
+  \section{conexp.graphics}
+
+  \section{conexp.layout}
+
+  \section{conexp.gui}
+
+
+\chapter{Function Index}
+
+
+\appendix
+
+\begin{thebibliography}{xxxxxxx}
+  \bibitem[GW]{GW} Ganter Wille
+\end{thebibliography}
+
+\end{document}

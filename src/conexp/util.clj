@@ -1,6 +1,17 @@
 (ns conexp.util
   (:use clojure.contrib.profile))
 
+;;; Compilation
+
+(defn compile-conexp
+  "Compiles Java classes needed for conexp-clj."
+  []
+  (compile 'conexp.fca.contexts)
+  (compile 'conexp.fca.implications)
+  (compile 'conexp.fca.lattices)
+  (compile 'conexp.fca.many-valued-contexts)
+  (compile 'conexp.gui.repl))
+
 ;;; Technical Helpers
 
 (defn ensure-length

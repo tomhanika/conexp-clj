@@ -291,4 +291,6 @@
 
 ;; tuples
 
+;; out only: TeX
+
 nil
