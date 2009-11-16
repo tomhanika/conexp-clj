@@ -7,9 +7,56 @@
 \usepackage{color}
 \definecolor{lightblue}{rgb}{0.2,0.2,1}
 \usepackage{hyperref}
-\usepackage{alltt}
+\usepackage{enumerate}
+\usepackage{array}
 
 \newcommand{\conexpclj}{\texttt{conexp-clj}}
+\newcommand{\set}[1]{\{\,#1\,\}}
+
+\usepackage{listings}
+\lstnewenvironment
+  {conexp}
+  {\lstset{
+      language=Lisp,
+      escapechar=§,
+      basicstyle=\ttfamily,
+      columns=fullflexible,
+      % numbers
+      numbers=left,
+      stepnumber=5,
+      numberstyle=\tiny,
+      firstnumber=1,}}
+  {}
+\newcommand{\s}{\color{blue}}
+\newcommand{\p}{\color{lightblue}}
+
+\usepackage{amsmath,latexsym,amssymb}
+\usepackage[amsmath,thmmarks,thref]{ntheorem}
+
+\theoremstyle{plain}
+\theoremheaderfont{\normalfont\bfseries}\theorembodyfont{\slshape}
+\theoremsymbol{\ensuremath{\square}}
+\newtheorem{Theorem}          {Theorem} [section]
+\newtheorem{Proposition} [Theorem] {Proposition}
+\newtheorem{Lemma}       [Theorem] {Lemma}
+\newtheorem{Corollary}   [Theorem] {Corollary}
+
+\theoremstyle{plain}
+\theoremheaderfont{\normalfont}\theorembodyfont{\normalfont}
+\theoremsymbol{}
+\newtheorem{Remark}      [Theorem] {Remark}
+\theoremsymbol{\ensuremath{\diamondsuit}}
+\newtheorem{Example}     [Theorem] {Example}
+
+\theoremstyle{plain}
+\theoremheaderfont{\normalfont\bfseries}\theorembodyfont{\normalfont}
+\theoremsymbol{\ensuremath{\diamondsuit}}
+\newtheorem{Definition}  [Theorem] {Definition}
+
+\theoremstyle{nonumberplain}
+\theoremheaderfont{\normalfont\itshape}\theorembodyfont{\normalfont}
+\theoremsymbol{\ensuremath{\square}}
+\newtheorem{Proof}                 {Proof}
 
 
 \title{\conexpclj\\A ConExp Rewrite in Clojure\\[2cm]DRAFT VERSION}
@@ -24,77 +71,131 @@
 
 \chapter*{Preface}
 
+This is an attempt to reimplement some functionalities of ConExp in a
+new programm called \conexpclj.
+
+
 \chapter*{Acknowledgements}
 
 John McCarthy for inventing Lisp, Richard Stallman for inventing Free
 Software and Rich Hickey for inventing Clojure.
+
 
 \tableofcontents
 
 
 \chapter{Introduction}
 
-  \section{Using \conexpclj}
+\section{Using \conexpclj}
 
-  Let's have a look at a sample session.
+\subsection{A Sample Session}
 
-  \newcommand{\spcl}[1]{\textcolor{blue}{#1}}
-  \begin{alltt}
-    \textcolor{lightblue}{user>} (\spcl{def} ctx (\spcl{make-context} #\{1 2 3\} #\{1 2 3\} #\{[1 2] [2 2] [3 3]\}))
-    #'user/ctx
-    \textcolor{lightblue}{user>} ctx
-    #<Context
-      |1 2 3
-    --+------
-    1 |. x .
-    2 |. x .
-    3 |. . x
-    >
-    \textcolor{lightblue}{user>} (\spcl{stem-base} ctx)
-    #\{#<Implication ( #{1}  ==>  #{2 3} )> #<Implication ( #{2 3}  ==>  #{1} )>\}
-    \textcolor{lightblue}{user>} (\spcl{reduced?} ctx)
-    false
-    \textcolor{lightblue}{user>}
-  \end{alltt}
+\conexpclj\ can be run from a standard console as can be found on every UNIX system. Simply issue
+the command
+\begin{conexp}
+  conexp-clj.sh
+\end{conexp}
+and you will see something like
+\begin{conexp}
+  Clojure 1.1.0-alpha-SNAPSHOT
+  §\p conexp>§
+\end{conexp}
+This is a Clojure-\emph{REPL} (Read-Eval-Print-Loop) which gives us access to all functions
+available in \conexpclj. Let's have a look at a sample session.
 
-  \section{Obtaining and Installing \conexpclj}
+\begin{Example}~
+\begin{conexp}
+  §\p user>§ (§\s def§ ctx (§\s make-context§ #{1 2 3} #{1 2 3} #{[1 2] [2 2] [3 3]}))
+  #'user/ctx
+  §\p user>§ ctx
+  #<Context
+    |1 2 3
+  --+------
+  1 |. x .
+  2 |. x .
+  3 |. . x
+  >
+  §\p user>§ (§\s stem-base§ ctx)
+  #{#<Implication ( #{1}  ==>  #{2 3} )> #<Implication ( #{2 3}  ==>  #{1} )>}
+  §\p user>§ (§\s reduced?§ ctx)
+  false
+  §\p user>§ (§\s reduce-context§ ctx)
+  #<Context
+    |2 3
+  --+----
+  1 |x .
+  3 |. x
+  >
+  §\p user>§
+\end{conexp}
 
-  See \url{http://www.math.tu-dresden.de/~borch/conexp-clj}.
+It is obvious what we are doing here: First we define the context
+$(\set{1,2,3},\set{1,2,3},\break\set{(1,2),(2,2),(3,3)})$, then compute its stem base, find out that
+this context is not reduced (which is no surprise) and reduce it. This can all be guessed but the
+actual syntax looks quite strange and very unfamiliar to those who never have seen some Lisp before
+(or have and did not like it). But this syntax is very simple and easy to learn, so let us have some
+closer look at it.
+\end{Example}
 
-  \section{Design Principles}
+\subsection{Some Basic Lisp}
+Parantheses are not bad.
 
-    \subsection{Use Lisp}
+\subsection{Some More Examples}
 
-    \subsection{Executable Math}
+\subsubsection{Many Valued Contexts}
 
-    \subsection{GUI is optional}
+\subsubsection{Exploring Contexts}
 
-    \subsection{Easy Extensibility}
+\subsubsection{Reading and Writing Contexts}
 
-  \section{What is missing but needed urgently?}
-  \begin{itemize}
-    \item Drawing Lattices
-    \item Association Rules
-  \end{itemize}
+\subsubsection{Context Algebra}
+
+
+\section{Obtaining and Installing \conexpclj}
+
+See \url{http://www.math.tu-dresden.de/~borch/conexp-clj}.
+
+
+\section{Design Principles}
+
+\subsection{Use Lisp}
+
+\subsection{Executable Math}
+
+\subsection{GUI is optional}
+
+\subsection{Easy Extensibility}
+
+
+\section{Plans}
+
+\subsection{Todo}
+
+\subsection{What is missing but needed urgently?}
+
+\begin{itemize}
+\item Drawing Lattices
+\item Association Rules
+\end{itemize}
 
 
 \chapter{Namespace Overview}
 
-  \section{What are Namespaces?}
+\section{What are Namespaces?}
 
-  \section{conexp}
+\section{conexp}
 
-  \section{conexp.util and conexp.base}
+\section{conexp.util and conexp.base}
 
-  \section{conexp.fca}
+\section{conexp.fca}
 
-  \section{conexp.io}
+\section{conexp.io}
 
-  \section{conexp.graphics}
+\section{conexp.graphics}
 
-  \section{conexp.layout}
+\section{conexp.layout}
 
-  \section{conexp.gui}
+\section{conexp.gui}
 
 
 \chapter{Function Index}
@@ -103,7 +204,7 @@ Software and Rich Hickey for inventing Clojure.
 \appendix
 
 \begin{thebibliography}{xxxxxxx}
-  \bibitem[GW]{GW} Ganter Wille
+\bibitem[GW]{GW} Ganter Wille
 \end{thebibliography}
 
 \end{document}

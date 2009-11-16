@@ -4,3 +4,9 @@ what-done
 *.class
 conexp-clj/*
 conexp-clj.zip
+src/doc/*.aux
+src/doc/*.log
+src/doc/*.dvi
+src/doc/*.out
+src/doc/*.toc
+src/doc/*.pdf
