@@ -1,0 +1,916 @@
+\section{conexp.base}
+\begin{description}
+  \item[<=>]
+([a b])
+
+Implements equivalence.
+
+  \item[=>]
+([a b])
+
+Implements implication.
+
+  \item[abs]
+([n])
+
+(abs n) is the absolute value of n
+
+  \item[all-closed-sets]
+([G clop])
+
+Computes all closed sets of a given closure operator on a given set.
+
+  \item[ceil]
+([n])
+
+(ceil n) returns the least integer greater than or equal to n.
+If n is an exact number, ceil returns an integer, otherwise a double.
+
+  \item[compile-conexp]
+([])
+
+Compiles Java classes needed for conexp-clj.
+
+  \item[cross-product]
+([\& sets])
+
+Returns cross product of set-1 and set-2.
+
+  \item[crossfoot]
+([n])
+
+Returns the crossfoot of n.
+
+  \item[difference]
+([s1] [s1 s2] [s1 s2 \& sets])
+
+Return a set that is the first set without elements of the remaining sets
+
+  \item[disjoint-union]
+([\& sets])
+
+Computes the disjoint union of sets by joining the cross-products of the
+  sets with natural numbers.
+
+  \item[distinct-by-key]
+([sequence key])
+
+Returns a sequence of all elements of the given sequence with distinct key values,
+  where key is a function from the elements of the given sequence. If two elements
+  correspond to the same key, the one is chosen which appeared earlier in the sequence.
+
+  This function is copied from clojure.core/distinct and adapted for using a key function.
+
+  \item[ensure-length]
+([string length] [string length padding])
+
+Fills given string with padding to have at least the given length.
+
+  \item[exact-integer-sqrt]
+([n])
+
+(exact-integer-sqrt n) expects a non-negative integer n, and returns [s r] where n = s\verb+^+2+r and n < (s+1)\verb+^+2.  In other words, it returns the floor of the square root and the 'remainder'.
+For example, (exact-integer-sqrt 15) is [3 6] because 15 = 3\verb+^+2+6.
+
+  \item[exists]
+([bindings condition])
+
+Implements logical exists quantor.
+
+  \item[expt]
+([base pow])
+
+(expt base pow) is base to the pow power.
+Returns an exact number if the base is an exact number and the power is an integer, otherwise returns a double.
+
+  \item[factorial]
+([n])
+
+Returns n!.
+
+  \item[fibs]
+([])
+
+Returns a lazy sequence of all the Fibonacci numbers.
+
+  \item[first-non-nil]
+([seq])
+
+Returns first non-nil element in seq.
+
+  \item[flatten]
+([in])
+
+Flattens in to be a sequence of depth 1 at most.
+
+  \item[floor]
+([n])
+
+(floor n) returns the greatest integer less than or equal to n.
+If n is an exact number, floor returns an integer, otherwise a double.
+
+  \item[forall]
+([bindings condition])
+
+Implements logical forall quantor.
+
+  \item[gcd]
+([a b])
+
+(gcd a b) returns the greatest common divisor of a and b
+
+  \item[graph-of-function?]
+([relation source target])
+
+Returns true iff relation is the graph of a function from source to target.
+
+  \item[illegal-argument]
+([\& strings])
+
+Throws IllegalArgumentException with given strings as message
+
+  \item[index]
+([xrel ks])
+
+Returns a map of the distinct values of ks in the xrel mapped to a
+  set of the maps in xrel with the corresponding values of ks.
+
+  \item[intersection]
+([s1] [s1 s2] [s1 s2 \& sets])
+
+Return a set that is the intersection of the input sets
+
+  \item[join]
+([xrel yrel] [xrel yrel km])
+
+When passed 2 rels, returns the rel corresponding to the natural
+  join. When passed an additional keymap, joins on the corresponding
+  keys.
+
+  \item[lcm]
+([a b])
+
+(lcm a b) returns the least common multiple of a and b
+
+  \item[lectic-<]
+([G A B])
+
+Implements lectic ordering. The basic order is given by the ordering of G
+  which is interpreted as increasing order.
+
+  \item[lectic-<\_i]
+([G i A B])
+
+Implements lectic < at position i. The basic order is given by the ordering
+  of G which is interpreted as increasing order.
+
+  \item[map-invert]
+([m])
+
+Returns the map with the vals mapped to the keys.
+
+  \item[math-type]
+([thing])
+
+Dispatch function for multimethods. Identifies sets and sequences
+  as :conexp.util/set and functions as :conexp.util/fn, all other as
+  :conexp.util/other.
+
+  \item[memo-fn]
+([name args \& body])
+
+
+
+  \item[next-closed-set]
+([G clop A])
+
+Computes next closed set with the Next Closure Algorithm. The order of elements in G,
+  interpreted as increasing, is taken to be the basic order of the elements.
+
+  \item[oplus]
+([G clop A i])
+
+Implements oplus of the Next Closure Algorithm.
+
+  \item[powers-of-2]
+([])
+
+Returns a lazy sequence of all the powers of 2
+
+  \item[prime?]
+([n])
+
+Returns true iff n is prime with a certainty of (- 1 (/ 1 (expt 2 1000)))
+
+  \item[primes]
+
+
+Lazy sequence of all the prime numbers.
+
+  \item[project]
+([xrel ks])
+
+Returns a rel of the elements of xrel with only the keys in ks
+
+  \item[proper-subset?]
+([set1 set2])
+
+Is s1 a proper subset of s2?
+
+  \item[proper-superset?]
+([set1 set2])
+
+Is s1 a proper superset of s2?
+
+  \item[public-api]
+([ns])
+
+Returns a map of public functions of namespaces to their
+  corresponding documentation.
+
+  \item[public-api-as-tex]
+([\& namespaces])
+
+Returns output suitable for \TeX describing the public apis of the
+  given namespaces with their corresponding documentations.
+
+  \item[public-api-to-file]
+([file \& namespaces])
+
+Prints out public api to file for external usage.
+
+  \item[recur-sequence]
+([\& things])
+
+
+
+  \item[rename]
+([xrel kmap])
+
+Returns a rel of the maps in xrel with the keys in kmap renamed to the vals in kmap
+
+  \item[rename-keys]
+([map kmap])
+
+Returns the map with the keys in kmap renamed to the vals in kmap
+
+  \item[round]
+([n])
+
+(round n) rounds to the nearest integer.
+round always returns an integer.  Rounds up for values exactly in between two integers.
+
+  \item[select]
+([pred xset])
+
+Returns a set of the elements for which pred is true
+
+  \item[set-of]
+([thing condition])
+
+Macro for writing sets as mathematicians do (at least similar to it.)
+
+  \item[set-of-range]
+([end] [start end] [start end step])
+
+Returns a set of all numbers from start upto (but not including) end,
+  by step if provided.
+
+  \item[split-at-first]
+([predicate sequence])
+
+Splits given sequence at first element satisfing predicate.
+  The first element satisfing predicate will be in the second sequence.
+
+  \item[split-at-last]
+([predicate sequence])
+
+Splits given sequence at last element satisfing predicate.
+  The last element satisfing predicate will be in the first sequence.
+
+  \item[sqrt]
+([n])
+
+Square root, but returns exact number if possible.
+
+  \item[subelts]
+([seq i])
+
+Returns a subsequence of seq up to index i.
+
+  \item[subset?]
+([set1 set2])
+
+Is set1 a subset of set2?
+
+  \item[subsets]
+([set])
+
+Returns all subsets of set.
+
+  \item[superset?]
+([set1 set2])
+
+Is set1 a superset of set2?
+
+  \item[tex-escape]
+([string])
+
+Escapes special characters for \TeX.
+
+  \item[transitive-closure]
+([set-of-pairs] [set-of-pairs new old])
+
+Computes transitive closure of a given set of pairs.
+
+  \item[union]
+([] [s1] [s1 s2] [s1 s2 \& sets])
+
+Return a set that is the union of the input sets
+
+  \item[with-profiled-fns]
+([fns \& body])
+
+
+
+  \item[with-recur-seqs]
+([seq-definitions \& body])
+
+
+
+  \item[with-str-out]
+([\& body])
+
+Returns string of all output being made in (flatten body).
+
+  \item[zip]
+([seq-1 seq-2])
+
+Returns sequence of pairs [x,y] where x runs through seq-1 and
+  y runs through seq-2 simultaneously. This is the same as
+  (map \#(vector \%1 \%2) seq-1 seq-2).
+
+\end{description}
+
+\section{conexp.fca}
+\begin{description}
+  \item[Context-equals]
+([this other])
+
+Implements mathematical equality of two contexts.
+
+  \item[Context-init]
+([objects attributes incidence])
+
+
+
+  \item[Context-toString]
+([this])
+
+Represents context as string by means of print-context.
+
+  \item[Implication-equals]
+([this other])
+
+
+
+  \item[Implication-init]
+([premise conclusion])
+
+
+
+  \item[Implication-toString]
+([this])
+
+
+
+  \item[Lattice-equals]
+([this other])
+
+
+
+  \item[Lattice-init]
+([base-set order] [base-set inf sup])
+
+
+
+  \item[Lattice-toString]
+([this])
+
+
+
+  \item[ManyValuedContext-equals]
+([this other])
+
+
+
+  \item[ManyValuedContext-init]
+([objects attributes incidence])
+
+
+
+  \item[ManyValuedContext-toString]
+([this])
+
+
+
+  \item[add-immediate-elements]
+([implications initial-set])
+
+
+
+  \item[add-immediate-elements*]
+([implications initial-set])
+
+
+
+  \item[adiag-context]
+([base-set])
+
+
+
+  \item[ask]
+([prompt pred fail-message])
+
+
+
+  \item[attribute-clarified?]
+([ctx])
+
+
+
+  \item[attribute-derivation]
+([ctx attributes])
+
+
+
+  \item[attributes]
+
+
+Returns the attributes of a formal context.
+
+  \item[base-set]
+([lattice])
+
+
+
+  \item[biordinal-scale]
+([base n] [base n <= >=])
+
+base must be ordered (e.g. vector or list). Otherwise the result will be arbitrary.
+
+  \item[clarified?]
+([ctx])
+
+
+
+  \item[clarify-attributes]
+([ctx])
+
+
+
+  \item[clarify-context]
+([ctx])
+
+
+
+  \item[clarify-objects]
+([ctx])
+
+
+
+  \item[clop-by-implications]
+([implications])
+
+
+
+  \item[clop-by-implications*]
+([implications])
+
+
+
+  \item[close-under-implications]
+([implications set])
+
+
+
+  \item[compare-order]
+([x y])
+
+Orders things for proper output of formal contexts.
+
+  \item[concept-lattice]
+([ctx])
+
+
+
+  \item[concept?]
+([ctx [set-of-obj set-of-att]])
+
+
+
+  \item[concepts]
+([ctx])
+
+
+
+  \item[conclusion]
+([impl])
+
+
+
+  \item[context-apposition]
+([ctx-1 ctx-2])
+
+
+
+  \item[context-attribute-closure]
+([ctx set-of-attributes])
+
+
+
+  \item[context-composition]
+([ctx-1 ctx-2])
+
+
+
+  \item[context-extends]
+([ctx])
+
+
+
+  \item[context-intents]
+([ctx])
+
+
+
+  \item[context-intersection]
+([ctx1 ctx2])
+
+
+
+  \item[context-object-closure]
+([ctx set-of-objects])
+
+
+
+  \item[context-product]
+([ctx-1 ctx-2])
+
+
+
+  \item[context-semiproduct]
+([ctx-1 ctx-2])
+
+
+
+  \item[context-subposition]
+([ctx-1 ctx-2])
+
+
+
+  \item[context-sum]
+([ctx-1 ctx-2])
+
+
+
+  \item[context-transitive-closure]
+([ctx])
+
+
+
+  \item[context-union]
+([ctx1 ctx2])
+
+
+
+  \item[context-xia-product]
+([ctx-1 ctx-2])
+
+
+
+  \item[default-handler]
+([ctx impl])
+
+
+
+  \item[diag-context]
+([base-set])
+
+
+
+  \item[dichotomic-scale]
+([base])
+
+
+
+  \item[directly-neighboured?]
+([lat x y])
+
+
+
+  \item[distributive?]
+([lat])
+
+
+
+  \item[down-arrows]
+([ctx])
+
+
+
+  \item[dual-context]
+([ctx])
+
+
+
+  \item[dual-lattice]
+([lat])
+
+
+
+  \item[explore-attributes]
+([ctx handler])
+
+
+
+  \item[falsifies-implication?]
+([new-atts impl])
+
+
+
+  \item[follows-semantically?]
+([implication implications])
+
+
+
+  \item[holds?]
+([impl ctx])
+
+
+
+  \item[incidence]
+
+
+Returns the incidence of a formal context.
+
+  \item[inf]
+([lattice])
+
+
+
+  \item[interordinal-scale]
+([base] [base <= >=])
+
+
+
+  \item[invert-context]
+([ctx])
+
+
+
+  \item[lattice-atoms]
+([lat])
+
+
+
+  \item[lattice-coatoms]
+([lat])
+
+
+
+  \item[lattice-inf-irreducibles]
+([lat])
+
+
+
+  \item[lattice-irreducibles]
+([lat])
+
+
+
+  \item[lattice-lower-neighbours]
+([lat y])
+
+
+
+  \item[lattice-one]
+([lat])
+
+
+
+  \item[lattice-sup-irreducibles]
+([lat])
+
+
+
+  \item[lattice-upper-neighbours]
+([lat x])
+
+
+
+  \item[lattice-zero]
+([lat])
+
+
+
+  \item[make-context]
+
+
+Standard constructor for contexts. Takes a sequence of objects,
+  a sequence of attributes and either a set of pairs or function of
+  two elements being true iff its arguments are incident. Note that the
+  object and attribute sequences are converted to sets and therefore have to
+  not contain any douplicate elements.
+
+  \item[make-implication]
+([premise conclusion])
+
+Creates an implication (premise => conclusion $\setminus$ premise).
+
+  \item[make-lattice]
+
+
+
+
+  \item[make-mv-context]
+
+
+
+
+  \item[modular?]
+([lat])
+
+
+
+  \item[nominal-scale]
+([base])
+
+
+
+  \item[null-context]
+([base-set])
+
+
+
+  \item[object-clarified?]
+([ctx])
+
+
+
+  \item[object-derivation]
+([ctx objects])
+
+
+
+  \item[objects]
+
+
+Returns the objects of a formal context.
+
+  \item[one-context]
+([base-set])
+
+
+
+  \item[order]
+([lattice])
+
+
+
+  \item[ordinal-scale]
+([base] [base <=])
+
+
+
+  \item[premise]
+([impl])
+
+
+
+  \item[print-context]
+([ctx order-on-objects order-on-attributes])
+
+Prints contexts in a human readable form.
+
+  \item[print-mv-context]
+([mv-ctx])
+
+
+
+  \item[reduce-clarified-context]
+([ctx])
+
+
+
+  \item[reduce-context]
+([ctx])
+
+
+
+  \item[reduced?]
+([ctx])
+
+
+
+  \item[rename-attributes]
+([ctx old-to-new])
+
+Rename attributes in ctx by given hash old-to-new.
+
+  \item[rename-objects]
+([ctx old-to-new])
+
+Rename objects in ctx by given hash old-to-new.
+
+  \item[respects?]
+([set impl])
+
+
+
+  \item[scale-mv-context]
+([mv-ctx scales])
+
+
+
+  \item[sort-by-first]
+([x y])
+
+Convenience function for custom context printing.
+
+  \item[sort-by-second]
+([x y])
+
+Ensures that pairs are ordered by second entry first. This gives
+  better output for context sums, products, ...
+
+  \item[standard-context]
+([lat])
+
+
+
+  \item[stem-base]
+([ctx])
+
+
+
+  \item[sup]
+([lattice])
+
+
+
+  \item[type-of]
+([thing])
+
+
+
+  \item[up-arrows]
+([ctx])
+
+
+
+  \item[up-down-arrows]
+([ctx])
+
+
+
+\end{description}
+
+\section{conexp.io}
+\begin{description}
+  \item[add-context-input-format]
+([name predicate])
+
+
+
+  \item[find-context-input-format]
+([file])
+
+
+
+  \item[get-known-context-input-formats]
+([])
+
+
+
+  \item[read-context]
+
+
+
+
+  \item[write-context]
+
+
+
+
+\end{description}
+
+\section{conexp.gui}
+\begin{description}
+  \item[conexp-gui]
+([])
+
+
+
+\end{description}
+
