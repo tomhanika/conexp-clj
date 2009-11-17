@@ -1,5 +1,6 @@
 (ns conexp.util
-  (:use clojure.contrib.profile))
+  (:use clojure.contrib.profile
+	[clojure.contrib.duck-streams :only (with-out-writer)]))
 
 ;;; Compilation
 
@@ -11,6 +12,42 @@
   (compile 'conexp.fca.lattices)
   (compile 'conexp.fca.many-valued-contexts)
   (compile 'conexp.gui.repl))
+
+;;; Documentation Helper
+
+(defn public-api
+  "Returns a map of public functions of namespaces to their
+  corresponding documentation."
+  [ns]
+  (let [ns (find-ns ns)]
+    (map (fn [[function var]]
+	   [function (str (:arglists ^var)
+			  "\n\n"
+			  (:doc ^var))])
+	 (filter (fn [[_ v]]
+		   (= (:ns (meta v)) ns))
+		 (ns-map ns)))))
+
+(defn public-api-as-tex
+  "Returns output suitable for TeX describing the public apis of the
+  given namespaces with their corresponding documentations."
+  [& namespaces]
+  (with-out-str
+    (doseq [ns namespaces]
+      (let [api (sort (public-api ns))]
+	(println (str "\\subsection{" ns "}"))
+	(println "\\begin{description}")
+	(doseq [[fn doc] api]
+	  (println (str "  \\item[" fn "]"))
+	  (println (str "    " doc)))
+	(println "\\end{description}"))
+      (println))))
+
+(defn public-api-to-file
+  "Prints out public api to file for external usage."
+  [file & namespaces]
+  (with-out-writer file
+    (print (apply public-api-as-tex namespaces))))
 
 ;;; Technical Helpers
 
