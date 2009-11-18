@@ -830,5 +830,54 @@ Ensures that pairs are ordered by second entry first. This gives
 
 
 
+  \item[show-in-frame]
+
+
+
+
+\end{description}
+
+\section{conexp.layout}
+\begin{description}
+  \item[draw-lattice]
+([lattice layout])
+
+Draws given lattice with given layout on a canvas and returns it.
+
+  \item[lattice->graph]
+([lattice])
+
+Converts given lattice to it's corresponding graph with loops
+  removed.
+
+  \item[layer-coordinates]
+([number layer])
+
+Assigns coordinates to a given layer such that it is centerer
+  around 0 at height given by number.
+
+  \item[layers]
+([lattice])
+
+Returns the layers of the given lattice, that is sequence of points
+  with equal heights.
+
+  \item[scale-layout]
+([[x1 y1] [x2 y2] [points-to-coordinates point-connections]])
+
+Scales given layout to rectangle (x1 y1), (x2 y2). Layout is given
+  as a map of points to coordinates and a sequence of connection pairs.
+
+  \item[scale-points-to-rectangle]
+([[x1 y1] [x2 y2] points])
+
+Scales the collection of points such that they fit in the
+  rectangle given by [x1 y1] and [x2 y2].
+
+  \item[simple-layered-layout]
+([lattice])
+
+Simple layered layout for lattice visualization.
+
 \end{description}
 
