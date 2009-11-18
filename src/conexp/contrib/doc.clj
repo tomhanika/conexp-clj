@@ -12,8 +12,9 @@
 	   [function (str (:arglists ^var)
 			  "\n\n"
 			  (:doc ^var))])
-	 (filter (fn [[_ v]]
-		   (= (:ns (meta v)) ns))
+	 (filter (fn [[f var]]
+		   (and (= (:ns (meta var)) ns)
+			(not (Character/isUpperCase (first (str f))))))
 		 (ns-map ns)))))
 
 (defn tex-escape
@@ -57,5 +58,13 @@
   "Prints conexp-clj api to file."
   [file]
   (apply public-api-to-file file *conexp-namespaces*))
+
+(defn conexp-fns-needing-doc
+  "Returns function in public conexp-clj api not having documentation."
+  []
+  (for [ns *conexp-namespaces*
+	[f var] (public-api ns)
+	:when (not (:doc ^var))]
+    (symbol (str ns) (str f))))
 
 nil

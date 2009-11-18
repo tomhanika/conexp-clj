@@ -222,23 +222,6 @@ Is s1 a proper subset of s2?
 
 Is s1 a proper superset of s2?
 
-  \item[public-api]
-([ns])
-
-Returns a map of public functions of namespaces to their
-  corresponding documentation.
-
-  \item[public-api-as-tex]
-([\& namespaces])
-
-Returns output suitable for \TeX describing the public apis of the
-  given namespaces with their corresponding documentations.
-
-  \item[public-api-to-file]
-([file \& namespaces])
-
-Prints out public api to file for external usage.
-
   \item[recur-sequence]
 ([\& things])
 
@@ -313,11 +296,6 @@ Returns all subsets of set.
 
 Is set1 a superset of set2?
 
-  \item[tex-escape]
-([string])
-
-Escapes special characters for \TeX.
-
   \item[transitive-closure]
 ([set-of-pairs] [set-of-pairs new old])
 
@@ -354,66 +332,6 @@ Returns sequence of pairs [x,y] where x runs through seq-1 and
 
 \section{conexp.fca}
 \begin{description}
-  \item[Context-equals]
-([this other])
-
-Implements mathematical equality of two contexts.
-
-  \item[Context-init]
-([objects attributes incidence])
-
-
-
-  \item[Context-toString]
-([this])
-
-Represents context as string by means of print-context.
-
-  \item[Implication-equals]
-([this other])
-
-
-
-  \item[Implication-init]
-([premise conclusion])
-
-
-
-  \item[Implication-toString]
-([this])
-
-
-
-  \item[Lattice-equals]
-([this other])
-
-
-
-  \item[Lattice-init]
-([base-set order] [base-set inf sup])
-
-
-
-  \item[Lattice-toString]
-([this])
-
-
-
-  \item[ManyValuedContext-equals]
-([this other])
-
-
-
-  \item[ManyValuedContext-init]
-([objects attributes incidence])
-
-
-
-  \item[ManyValuedContext-toString]
-([this])
-
-
-
   \item[add-immediate-elements]
 ([implications initial-set])
 
