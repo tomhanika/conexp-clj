@@ -184,7 +184,7 @@
 
 ;;; draw nodes with coordinates and connections on a scene
 
-(defn draw-nodes-with-connections [scn node-coordinate-map node-connections]
+(defn add-nodes-with-connections [scn node-coordinate-map node-connections]
   (let [node-map (apply hash-map
 			(flatten (map (fn [[node [x y]]]
 					[node
@@ -194,27 +194,41 @@
       (connect-nodes scn (node-map node-1) (node-map node-2)))
     node-map))
 
+(defn draw-nodes-and-connections
+  "Draws given layout on a canvas and returns it."
+  [[x_min y_min] [x_max y_max] [points-to-coordinates point-connections]]
+  (let [wnd (GWindow.)
+	scn (GScene. wnd)]
+    (doto scn
+      (.setWorldExtent (double x_min) (double y_min) (double x_max) (double y_max))
+      (.shouldZoomOnResize false)
+      (.shouldWorldExtentFitViewport false)
+      (add-nodes-with-connections points-to-coordinates point-connections))
+    (doto wnd
+      (.startInteraction (move-interaction)))
+    (.getCanvas wnd)))
+
+(defn draw-in-frame
+  "Draws given layout in a frame and shows it."
+  [[x_min y_min] [x_max y_max] [points-to-coordinates point-connections]]
+  (doto (JFrame. "conexp-clj lattice frame.")
+    (.setLayout (BorderLayout.))
+    (.. getContentPane
+	(add (draw-nodes-and-connections [x_min y_min] [x_max y_max]
+					 [points-to-coordinates
+					  point-connections])
+	     BorderLayout/CENTER))
+    (.pack)
+    (.setSize (Dimension. (int (- x_max x_min))
+			  (int (- y_max y_min))))
+    (.setVisible true)))
+
 
 ;;; some testing
 
 (defn- show-some-picture []
-  (let [wnd (GWindow.)
-	scn (GScene. wnd)
-	frm (JFrame. "Main Frame")]
-    (doto scn
-      (.setWorldExtent 0.0 0.0 100.0 100.0)
-      (.shouldZoomOnResize false)
-      (.shouldWorldExtentFitViewport false)
-      (draw-nodes-with-connections {:x [100 100], :y [50 50], :z [0 0]}
-				   [[:z :y], [:y :x]]))
-    (doto frm
-      (.setLayout (BorderLayout.))
-      (.. getContentPane (add (.getCanvas wnd) BorderLayout/CENTER))
-      (.pack)
-      (.setSize (Dimension. 500 500))
-      (.setVisible true))
-    (doto wnd
-      (.startInteraction (move-interaction)))
-    scn))
+  (draw-in-frame [0.0 0.0] [100.0 100.0]
+		 [{:x [100 100], :y [50 50], :z [0 0]}
+		  [[:z :y], [:y :x]]]))
 
 nil
