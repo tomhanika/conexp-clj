@@ -28,6 +28,9 @@
 						(set-of-range 0 10))
 				 (fn [x [y z]]
 				   (= x (mod (+ y z) 10)))))
+(def *test-ctx-07* (make-context #{1 2 3 4}
+				 #{1 2 3 4 5}
+				 #{[1 1] [1 3] [1 4] [2 1] [2 2] [2 4] [3 4] [4 1] [4 2] [4 5]}))
 
 (deftest test-Context-toString
   (is (= (str *test-ctx-01*)

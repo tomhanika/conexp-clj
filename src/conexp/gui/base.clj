@@ -197,3 +197,5 @@
 	(.add split-pane BorderLayout/CENTER))
       (add-tab main-frame (JLabel. "Test Tab")))
     main-frame))
+
+nil

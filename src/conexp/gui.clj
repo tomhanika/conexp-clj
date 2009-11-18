@@ -7,3 +7,8 @@
   (let [frame (conexp-main-frame)]
     (.setVisible frame true)
     frame))
+
+; for convenience
+(def show-in-frame conexp.gui.util/show-in-frame)
+
+nil

@@ -33,3 +33,5 @@
 (defn get-resource [res]
   (let [cl (.getContextClassLoader (Thread/currentThread))]
     (.getResource cl res)))
+
+nil

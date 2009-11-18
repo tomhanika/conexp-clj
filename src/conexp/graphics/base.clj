@@ -71,7 +71,7 @@
 	   object (proxy [GObject] []
 		    (draw []
 		      (let [[x y] (position this)]
-			(.setGeometryXy segment (Geometry/createCircle (double x) (double y) 10.0)))))
+			(.setGeometryXy segment (Geometry/createCircle (double x) (double y) 5.0)))))
 	   style (GStyle.)]
        (doto segment
 	 (.setStyle *default-node-style*))
@@ -86,7 +86,7 @@
 
 (def *default-line-style* (let [style (GStyle.)]
 			    (doto style
-			      (.setLineWidth 3.0))
+			      (.setLineWidth 2.0))
 			    style))
 
 (defn connect-nodes
@@ -186,16 +186,16 @@
 
 (defn add-nodes-with-connections [scn node-coordinate-map node-connections]
   (let [node-map (apply hash-map
-			(flatten (map (fn [[node [x y]]]
-					[node
-					 (add-node scn x y (str node))])
-				      node-coordinate-map)))]
+			(apply concat (map (fn [[node [x y]]]
+					     [node
+					      (add-node scn x y (str node))])
+					   node-coordinate-map)))]
     (doseq [[node-1 node-2] node-connections]
       (connect-nodes scn (node-map node-1) (node-map node-2)))
     node-map))
 
-(defn draw-nodes-and-connections
-  "Draws given layout on a canvas and returns it."
+(defn draw-on-scene
+  "Draws given layout on a GScene and returns it."
   [[x_min y_min] [x_max y_max] [points-to-coordinates point-connections]]
   (let [wnd (GWindow.)
 	scn (GScene. wnd)]
@@ -206,7 +206,14 @@
       (add-nodes-with-connections points-to-coordinates point-connections))
     (doto wnd
       (.startInteraction (move-interaction)))
-    (.getCanvas wnd)))
+    scn))
+
+(defn draw-on-canvas
+  "Draws given layout on a canvas and returns it."
+  [[x_min y_min] [x_max y_max] [points-to-coordinates point-connections]]
+  (.. (draw-on-scene [x_min y_min] [x_max y_max] [points-to-coordinates point-connections])
+      getWindow
+      getCanvas))
 
 (defn draw-in-frame
   "Draws given layout in a frame and shows it."
@@ -214,13 +221,13 @@
   (doto (JFrame. "conexp-clj lattice frame.")
     (.setLayout (BorderLayout.))
     (.. getContentPane
-	(add (draw-nodes-and-connections [x_min y_min] [x_max y_max]
-					 [points-to-coordinates
-					  point-connections])
+	(add (draw-on-canvas [x_min y_min] [x_max y_max]
+			     [points-to-coordinates
+			      point-connections])
 	     BorderLayout/CENTER))
     (.pack)
-    (.setSize (Dimension. (int (- x_max x_min))
-			  (int (- y_max y_min))))
+    (.setSize (Dimension. (+ 50 (int (- x_max x_min)))
+			  (+ 50 (int (- y_max y_min)))))
     (.setVisible true)))
 
 

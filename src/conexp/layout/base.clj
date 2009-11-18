@@ -1,6 +1,6 @@
 (ns conexp.layout.base
   (:use conexp.base
-	[conexp.graphics.base :only (draw-nodes-and-connections draw-in-frame)]
+	[conexp.graphics.base :only (draw-on-canvas draw-in-frame)]
 	conexp.fca.lattices
 	[clojure.contrib.graph :exclude (transitive-closure)]))
 
@@ -27,9 +27,9 @@
 					       (max x x_max)
 					       (max y y_max)
 					       (rest points)))))
-	a_x (/ (- x1 x2) (- x_min x_max))
+	a_x (/ (- x1 x2) (- x_min x_max 0.1)) ; -0.1 for (= x_min x_max)
 	b_x (- x1 (* a_x x_min))
-	a_y (/ (- y1 y2) (- y_min y_max))
+	a_y (/ (- y1 y2) (- y_min y_max 0.1))
 	b_y (- y1 (* a_y y_min))]
     (map (fn [[x y]]
 	   [(+ (* a_x x) b_x) (+ (* a_y y) b_y)])
@@ -48,14 +48,8 @@
 (defn draw-lattice
   "Draws given lattice with given layout on a canvas and returns it."
   [lattice layout]
-  (draw-nodes-and-connections [0.0 0.0] [100.0 100.0]
-			      (scale-layout [0.0 0.0] [100.0 100.0] (layout lattice))))
-
-(defn draw-lattice-in-frame
-  "Draws given lattice with given layout in frame and shows it."
-  [lattice layout]
-  (draw-in-frame [0.0 0.0] [100.0 100.0]
-		 (scale-layout [0.0 0.0] [100.0 100.0] (layout lattice))))
+  (draw-on-canvas [0.0 0.0] [100.0 100.0]
+		  (scale-layout [0.0 0.0] [100.0 100.0] (layout lattice))))
 
 (defn lattice->graph
   "Converts given lattice to it's corresponding graph with loops
@@ -67,12 +61,6 @@
      :neighbors (memoize
 		 (fn [x]
 		   (let [order (order lattice)]
-		     (filter #(order [x %]) (base-set lattice))))))))
-
-(defn layers
-  "Returns the layers of the given lattice, that is sequence of points
-  with equal heights."
-  [lattice]
-  (dependency-list (lattice->graph lattice)))
+		     (filter #(order [% x]) (base-set lattice))))))))
 
 nil

@@ -7,7 +7,8 @@
 (def *conexp-namespaces* '[conexp.base
 			   conexp.fca
 			   conexp.io
-			   conexp.gui])
+			   conexp.gui
+			   conexp.layout])
 
 (dorun (map immigrate *conexp-namespaces*))
 
