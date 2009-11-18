@@ -10,3 +10,4 @@ src/doc/*.dvi
 src/doc/*.out
 src/doc/*.toc
 src/doc/*.pdf
+src/doc/*.thm
