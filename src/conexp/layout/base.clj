@@ -1,6 +1,5 @@
 (ns conexp.layout.base
   (:use conexp.base
-	[conexp.graphics.base :only (draw-on-canvas draw-in-frame)]
 	conexp.fca.lattices
 	[clojure.contrib.graph :exclude (transitive-closure)]))
 
@@ -44,12 +43,6 @@
 				 (scale-points-to-rectangle [x1 y1] [x2 y2]
 							    (map second points))))
      point-connections]))
-
-(defn draw-lattice
-  "Draws given lattice with given layout on a canvas and returns it."
-  [lattice layout]
-  (draw-on-canvas [0.0 0.0] [100.0 100.0]
-		  (scale-layout [0.0 0.0] [100.0 100.0] (layout lattice))))
 
 (defn lattice->graph
   "Converts given lattice to it's corresponding graph with loops
