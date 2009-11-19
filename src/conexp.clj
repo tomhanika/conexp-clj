@@ -7,11 +7,12 @@
 (def *conexp-namespaces* '[conexp.base
 			   conexp.fca
 			   conexp.io
-			   conexp.gui
-			   conexp.layout])
+			   conexp.layout
+			   conexp.graphics
+			   conexp.gui])
 
 (dorun (map immigrate *conexp-namespaces*))
 
-(def *conexp-version* 1258574048577)
+(def *conexp-version* 1258614005579)
 
 nil
