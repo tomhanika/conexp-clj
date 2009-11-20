@@ -8,6 +8,7 @@
   []
   (compile 'conexp.fca.contexts)
   (compile 'conexp.fca.implications)
+  (compile 'conexp.fca.association-rules)
   (compile 'conexp.fca.lattices)
   (compile 'conexp.fca.many-valued-contexts)
   (compile 'conexp.gui.repl))

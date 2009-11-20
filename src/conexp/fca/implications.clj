@@ -11,10 +11,14 @@
 (defn Implication-init [premise conclusion]
   [ [] {:premise premise :conclusion conclusion} ])
 
-(defn premise [#^conexp.fca.Implication impl]
+(defmulti premise class)
+
+(defmethod premise conexp.fca.Implication [#^conexp.fca.Implication impl]
   ((.state impl) :premise))
 
-(defn conclusion [#^conexp.fca.Implication impl]
+(defmulti conclusion class)
+
+(defmethod conclusion conexp.fca.Implication [#^conexp.fca.Implication impl]
   ((.state impl) :conclusion))
 
 (defn Implication-toString [this]
