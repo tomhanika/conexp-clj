@@ -2,7 +2,8 @@
   (:use conexp.layout
 	conexp.layout.base
 	conexp.graphics.base)
-  (:import [javax.swing JFrame]))
+  (:import [javax.swing JFrame]
+	   [java.awt Dimension]))
 
 
 ; extend this to get a full "lattice editor"
@@ -15,6 +16,7 @@
      (doto (JFrame. "conexp-clj Lattice")
        (.add (draw-on-canvas [0.0 0.0] [100.0 100.0]
 			     (scale-layout [0.0 0.0] [100.0 100.0] (layout lattice))))
+       (.setSize (Dimension. 200 200))
        (.setVisible true))))
 
 nil
