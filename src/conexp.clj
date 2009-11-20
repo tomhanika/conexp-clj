@@ -13,6 +13,6 @@
 
 (dorun (map immigrate *conexp-namespaces*))
 
-(def *conexp-version* 1258614005579)
+(def *conexp-version* 1258749450039)
 
 nil
