@@ -60,7 +60,9 @@
 
 (defn lectic-<_i
   "Implements lectic < at position i. The basic order is given by the ordering
-  of G which is interpreted as increasing order."
+  of G which is interpreted as increasing order.
+
+  A and B have to be sets."
   [G i A B]
   (and (contains? B i) (not (contains? A i)) ; A and B will always be sets
        (forall [j (subelts G i)]
@@ -75,8 +77,8 @@
 (defn oplus
   "Implements oplus of the Next Closure Algorithm."
   [G clop A i]
-  (clop (conj (intersection (set (subelts G i)) A)
-	      i)))
+  (clop (set (conj (filter #(contains? A %) (subelts G i))
+		   i))))
 
 (defn next-closed-set
   "Computes next closed set with the Next Closure Algorithm. The order of elements in G,

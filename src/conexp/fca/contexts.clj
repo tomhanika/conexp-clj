@@ -157,56 +157,76 @@
 	inz (set-of [g (old-to-new m)] [[g m] (incidence ctx)])]
     (make-context (objects ctx) atts inz)))
 
-(defn object-derivation [ctx objects]
+(defn object-derivation
+  "Computes set of attributes common to all objects in context."
+  [ctx objects]
   (let [inz (incidence ctx)
 	atts (attributes ctx)]
     (set-of m [m atts :when (forall [g objects] (inz [g m]))])))
 
-(defn attribute-derivation [ctx attributes]
+(defn attribute-derivation
+  "Computes set of objects common to all attributes in context."
+  [ctx attributes]
   (let [inz (incidence ctx)
         objs (objects ctx)]
     (set-of g [g objs :when (forall [m attributes] (inz [g m]))])))
 
-(defn concept? [ctx [set-of-obj set-of-att]]
+(defn concept?
+  "Tests whether given pair is a concept in context ctx."
+  [ctx [set-of-obj set-of-att]]
   (and (subset? set-of-obj (objects ctx))
        (subset? set-of-att (attributes ctx))
        (= set-of-obj (object-derivation ctx set-of-att))
        (= set-of-att (attribute-derivation ctx set-of-obj))))
 
-(defn clarify-objects [ctx]
+(defn clarify-objects
+  "Clarifies objects in context ctx."
+  [ctx]
   (let [prime (memoize (partial object-derivation ctx))
 	new-objs (set (distinct-by-key (objects ctx) #(prime #{%})))
 	new-inz (set-of [g m] [[g m] (incidence ctx)
 			       :when (contains? new-objs g)])]
     (make-context new-objs (attributes ctx) new-inz)))
 
-(defn clarify-attributes [ctx]
+(defn clarify-attributes
+  "Clarifies attributes in context ctx."
+  [ctx]
   (let [prime (memoize (partial attribute-derivation ctx))
 	new-atts (set (distinct-by-key (attributes ctx) #(prime #{%})))
 	new-inz (set-of [g m] [[g m] (incidence ctx)
 			       :when (contains? new-atts m)])]
     (make-context (objects ctx) new-atts new-inz)))
 
-(defn clarify-context [ctx]
+(defn clarify-context
+  "Clarifies context ctx."
+  [ctx]
   (clarify-objects (clarify-attributes ctx)))
 
-(defn object-clarified? [ctx]
+(defn object-clarified?
+  "Tests whether given context ctx is object clarified."
+  [ctx]
   (let [prime (memoize (partial object-derivation ctx))]
     (not (exists [g (objects ctx)
 		  h (objects ctx)]
 	   (and (not= g h) (= (prime #{g}) (prime #{h})))))))
 
-(defn attribute-clarified? [ctx]
+(defn attribute-clarified?
+  "Tests whether given context ctx is attribute clarified."
+  [ctx]
   (let [prime (memoize (partial attribute-derivation ctx))]
     (not (exists [m (attributes ctx)
 		  n (attributes ctx)]
 	   (and (not= m n) (= (prime #{m}) (prime #{n})))))))
 
-(defn clarified? [ctx]
+(defn clarified?
+  "Tests whether given context ctx is clarified."
+  [ctx]
   (and (object-clarified? ctx)
        (attribute-clarified? ctx)))
 
-(defn down-arrows [ctx]
+(defn down-arrows
+  "Computes the down arrow relation of ctx."
+  [ctx]
   (let [obj (objects ctx)
 	att (attributes ctx)
 	inz (incidence ctx)
@@ -220,7 +240,9 @@
 					      (prime #{h}))
 			      (inz [h m]))))])))
 
-(defn up-arrows [ctx]
+(defn up-arrows
+  "Computes the up arrow relation of ctx."
+  [ctx]
   (let [obj (objects ctx)
 	att (attributes ctx)
 	inz (incidence ctx)
@@ -234,10 +256,14 @@
 					      (prime #{n}))
 			      (inz [g n]))))])))
 
-(defn up-down-arrows [ctx]
+(defn up-down-arrows
+  "Returns up-down-arrow relation of ctx."
+  [ctx]
   (intersection (up-arrows ctx) (down-arrows ctx)))
 
-(defn reduce-clarified-context [ctx]
+(defn reduce-clarified-context
+  "Reduces context ctx assuming it is clarified."
+  [ctx]
   (let [inz (incidence ctx)
 	uda (up-down-arrows ctx)]
     (let [new-obj (set (map first uda))
@@ -245,12 +271,16 @@
 	  new-inz (set-of [g m] [g new-obj m new-att :when (inz [g m])])]
     (make-context new-obj new-att (set new-inz)))))
 
-(defn reduce-context [ctx]
+(defn reduce-context
+  "Reduces context ctx."
+  [ctx]
   (if (clarified? ctx)
     (reduce-clarified-context ctx)
     (reduce-clarified-context (clarify-context ctx))))
 
-(defn reduced? [ctx]
+(defn reduced?
+  "Tests whether given context ctx is reduced or not."
+  [ctx]
   (and (clarified? ctx)
        (let [obj (objects ctx)
 	     att (attributes ctx)
@@ -262,36 +292,52 @@
 		(exists [ [_ n] uda ]
 		  (= m n)))))))
 
-(defn context-object-closure [ctx set-of-objects]
+(defn context-object-closure
+  "Computes double prime in context ctx for the given set-of-objects."
+  [ctx set-of-objects]
   (attribute-derivation ctx (object-derivation ctx set-of-objects)))
 
-(defn context-extends [ctx]
+(defn context-extends
+  "Computes a sequence of all extends of ctx."
+  [ctx]
   (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
 
-(defn context-attribute-closure [ctx set-of-attributes]
+(defn context-attribute-closure
+  "Computes double prime in context ctx for the given set-of-attributes."
+  [ctx set-of-attributes]
   (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
 
-(defn context-intents [ctx]
+(defn context-intents
+  "Computes a sequence of all intents of ctx."
+  [ctx]
   (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
 
-(defn concepts [ctx]
+(defn concepts
+  "Returns a sequence of all concepts of ctx."
+  [ctx]
   (binding [attribute-derivation (memoize attribute-derivation)
 	    object-derivation    (memoize object-derivation)]
-    (set-of [ objs (object-derivation ctx objs) ]
-	    [ objs (context-extends ctx) ])))
+    (for [ objs (context-extends ctx) ]
+      [ objs (object-derivation ctx objs) ])))
 
 
 ;; Common Operations with Contexts
 
-(defn dual-context [ctx]
+(defn dual-context
+  "Dualizes context ctx, that is $(G,M,I)$ gets $(M,G,I^{-1})$."
+  [ctx]
   (make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
 
-(defn invert-context [ctx]
+(defn invert-context
+  "Inverts context ctx, that is $(G,M,I)$ gets $(G,M,(G\\times M)\\setminus I)$."
+  [ctx]
   (make-context (objects ctx) (attributes ctx) (set-of [g m] [g (objects ctx)
 							      m (attributes ctx)
 							      :when (not ((incidence ctx) [g m]))])))
 
-(defn context-union [ctx1 ctx2]
+(defn context-union
+  "Returns context union of ctx1 and ctx2."
+  [ctx1 ctx2]
   (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx1)])
 			(set-of [g_2 2] [g_2 (objects ctx2)]))
 	new-atts (union (set-of [m_1 1] [m_1 (attributes ctx1)])
@@ -303,12 +349,19 @@
 				    ((incidence ctx2) [g m]))])]
     (make-context new-objs new-atts new-inz)))
 
-(defn context-intersection [ctx1 ctx2]
+(defn context-intersection
+  "Returns context intersection of ctx1 and ctx2."
+  [ctx1 ctx2]
   (make-context (intersection (objects ctx1) (objects ctx2))
 		(intersection (attributes ctx1) (attributes ctx2))
 		(intersection (incidence ctx1) (incidence ctx2))))
 
-(defn context-composition [ctx-1 ctx-2]
+(defn context-composition
+  "Returns context composition of ctx-1 and ctx-2, that is
+  \\[
+      (G_1,M_1,I_1)\\circ(G_2,M_2,I_2) := (G_1,M_2,I_1\\circ I_2).
+  \\]."
+  [ctx-1 ctx-2]
   (make-context (objects ctx-1)
 		(attributes ctx-2)
 		(set-of [g m]
@@ -319,7 +372,12 @@
 				       (and ((incidence ctx-1) [g x])
 					    ((incidence ctx-2) [x m])))])))
 
-(defn context-apposition [ctx-1 ctx-2]
+(defn context-apposition
+  "Returns context apposition of ctx-1 and ctx-2, that is
+  \\[
+     (G_1,M_1,I_1) | (G_1,M_2,I_2) := (G_1,M_1\\cup M_2,I_1\\cup I_2).
+  \\]"
+  [ctx-1 ctx-2]
   (if (not= (objects ctx-1) (objects ctx-2))
     (illegal-argument "Cannot do context apposition, since object sets are not equal."))
   (let [new-atts (union (set-of [m 1] [m (attributes ctx-1)])
@@ -328,7 +386,12 @@
 			(set-of [g [m 2]] [[g m] (incidence ctx-2)]))]
     (make-context (objects ctx-1) new-atts new-inz)))
 
-(defn context-subposition [ctx-1 ctx-2]
+(defn context-subposition
+  "Returns context subposition of ctx-1 and ctx-2, that is
+  \\[
+     \frac{(G_1,M_1,I_1)}{(G_2,M_1,I_2)} := (G_1\\cup G_2,M_1,I_1\\cup I_2).
+  \\]"
+  [ctx-1 ctx-2]
   (if (not= (attributes ctx-1) (attributes ctx-2))
     (illegal-argument "Cannot do context subposition, since attribute sets are not equal."))
   (let [new-objs (union (set-of [g 1] [g (objects ctx-1)])
@@ -337,22 +400,39 @@
 			(set-of [[g 2] m] [[g m] (incidence ctx-2)]))]
     (make-context new-objs (attributes ctx-1) new-inz)))
 
-(defn context-transitive-closure [ctx]
+(defn context-transitive-closure
+  "Transitively closes incidence relation of ctx and returns corresponding context."
+  [ctx]
   (make-context (objects ctx) (attributes ctx) (transitive-closure (incidence ctx))))
 
-(defn one-context [base-set]
+(defn rand-context
+  "Randomly fills context on base-set with crosses and propability fill-rate."
+  [base-set fill-rate]
+  (make-context base-set base-set (fn [_ _] (> fill-rate (rand)))))
+
+(defn one-context
+  "Returns context full of crosses."
+  [base-set]
   (make-context base-set base-set (fn [_ _] true)))
 
-(defn null-context [base-set]
+(defn null-context
+  "Returns context with no crosses."
+  [base-set]
   (make-context base-set base-set (fn [_ _] false)))
 
-(defn diag-context [base-set]
+(defn diag-context
+  "Returns = on base-set as context."
+  [base-set]
   (make-context base-set base-set =))
 
-(defn adiag-context [base-set]
+(defn adiag-context
+  "Returns $\\neq$ on base-set as context."
+  [base-set]
   (make-context base-set base-set not=))
 
-(defn context-sum [ctx-1 ctx-2]
+(defn context-sum
+  "Computes the context sum of ctx-1 and ctx-2."
+  [ctx-1 ctx-2]
   (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx-1)])
 			(set-of [g_2 2] [g_2 (objects ctx-2)]))
 	new-atts (union (set-of [m_1 1] [m_1 (attributes ctx-1)])
@@ -369,7 +449,9 @@
 				 m_1 (attributes ctx-1)]))]
     (make-context new-objs new-atts new-inz)))
 
-(defn context-product [ctx-1 ctx-2]
+(defn context-product
+  "Computes the context product of ctx-1 and ctx-2."
+  [ctx-1 ctx-2]
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
 	new-atts (cross-product (attributes ctx-1) (attributes ctx-2))
 	inz-1    (incidence ctx-1)
@@ -381,7 +463,9 @@
 				    (inz-2 [g_2, m_2]))])]
     (make-context new-objs new-atts new-inz)))
 
-(defn context-semiproduct [ctx-1 ctx-2]
+(defn context-semiproduct
+  "Computes the context semiproduct of ctx-1 and ctx-2."
+  [ctx-1 ctx-2]
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
 	new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2))
 	inzs     [(incidence ctx-1) (incidence ctx-2)]
@@ -391,7 +475,9 @@
 			  :when ((inzs idx) [(g idx) m])])]
     (make-context new-objs new-atts new-inz)))
 
-(defn context-xia-product [ctx-1 ctx-2]
+(defn context-xia-product
+  "Computes Xia's product of ctx-1 and ctx-2."
+  [ctx-1 ctx-2]
   (let [G_1 (objects ctx-1)
 	G_2 (objects ctx-2)
 	M_1 (attributes ctx-1)

@@ -161,7 +161,7 @@
 ;;; FCA
 
 (defn concept-lattice [ctx]
-  (make-lattice (concepts ctx) 
+  (make-lattice (set (concepts ctx))
 		(fn [[A B]]
 		  (subset? (first A) (first B)))))
 
