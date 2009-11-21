@@ -431,7 +431,13 @@
   (make-context base-set base-set not=))
 
 (defn context-sum
-  "Computes the context sum of ctx-1 and ctx-2."
+  "Computes the context sum of ctx-1 and ctx-2, that is
+  \\begin{multline}
+    (G_1,M_1,I_1) + (G_2,M_2,I_2) := \\\\
+      (G_1\\cup G_2, M_1\\cup M_2, I_1\\cup I_2
+      \\cup (G_1\\times M_2) \\cup (G_2\\times M_1)
+  \\end{multline}
+  where all set unions are disjoint set unions."
   [ctx-1 ctx-2]
   (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx-1)])
 			(set-of [g_2 2] [g_2 (objects ctx-2)]))
@@ -450,7 +456,15 @@
     (make-context new-objs new-atts new-inz)))
 
 (defn context-product
-  "Computes the context product of ctx-1 and ctx-2."
+  "Computes the context product of ctx-1 and ctx-2, that is
+  \\[
+    (G_1,M_1,I_1) \\times (G_2,M_2,I_2) :=
+      (G_1\\times G_2, M_1\\times M_2, \\nabla)
+  \\]
+  where
+  \\[
+    (g_1,g_2)\\nabla(m_1,m_2) \\iff g_1I_1m_1 \\text{ or } g_2I_2m_2.
+  \\]"
   [ctx-1 ctx-2]
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
 	new-atts (cross-product (attributes ctx-1) (attributes ctx-2))
@@ -464,7 +478,16 @@
     (make-context new-objs new-atts new-inz)))
 
 (defn context-semiproduct
-  "Computes the context semiproduct of ctx-1 and ctx-2."
+  "Computes the context semiproduct of ctx-1 and ctx-2, where for
+  contexts $(G_1,M_1,I_1)$ and $(G_2,M_2,I_2)$ their semidirect
+  product is defined as
+  \\[
+    (G_1\\times G_2, M_1\\cup M_2, \\nabla)
+  \\]
+  where
+  \\[
+    (g_1,g_2)\\nabla(j,m) \\iff g_jI_jm \\qquad\\text{for $j\\in\\set{1,2}}.
+  \\]"
   [ctx-1 ctx-2]
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
 	new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2))
@@ -476,7 +499,15 @@
     (make-context new-objs new-atts new-inz)))
 
 (defn context-xia-product
-  "Computes Xia's product of ctx-1 and ctx-2."
+  "Computes Xia's product of ctx-1 and ctx-2, where for two contexts
+  $(G_1,M_1,I_1)$ and $(G_2,M_2,I_2)$ their Xia product is defined as
+  \\[
+    (G_1\\times G_2, M_1\\times M_2, \\tilde)
+  \\]
+  where
+  \\[
+    (g_1,g_2) \\tilde (m_1,m_2) \\iff (g_1I_1m_1\\iff g_2I_2m_2).
+  \\]."
   [ctx-1 ctx-2]
   (let [G_1 (objects ctx-1)
 	G_2 (objects ctx-2)
