@@ -75,30 +75,57 @@
   (exists [i G] (lectic-<_i G i A B)))
 
 (defn oplus
-  "Implements oplus of the Next Closure Algorithm."
+  "Implements oplus from the Next Closure Algorithm."
   [G clop A i]
   (clop (set (conj (filter #(contains? A %) (subelts G i))
 		   i))))
 
-(defn next-closed-set
-  "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
-  interpreted as increasing, is taken to be the basic order of the elements."
-  [G clop A]
+(defn next-closed-set-in-family
+  "Computes next closed set as with next-closed-set, which is in the
+  family $\\mathcal{F}$ of all closed sets satisfing
+  predicate. predicate has to satisfy the condition
+  \\[
+     A \\in \\mathcal{F} \text{ and } i \\in G
+     \\implies
+     \\mathrm{clop}(A \\cap \\set{1, \\ldots, i-1}) \\in \\mathcal{F}.
+  \\]"
+  [predicate G clop A]
   (let [oplus-A (memoize (partial oplus G clop A))]
     (loop [i-s (reverse G)]
       (if (empty? i-s)
 	nil
 	(let [i (first i-s)]
 	  (if (and (not (contains? A i))
-		   (lectic-<_i G i A (oplus-A i)))
+		   (lectic-<_i G i A (oplus-A i))
+		   (predicate (oplus-A i)))
 	    (oplus-A i)
 	    (recur (rest i-s))))))))
+
+(defn next-closed-set
+  "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
+  interpreted as increasing, is taken to be the basic order of the elements."
+  [G clop A]
+  ; is this fast enough?
+  (next-closed-set-in-family (constantly true) G clop A))
 
 (defn all-closed-sets
   "Computes all closed sets of a given closure operator on a given set."
   [G clop]
   (binding [subelts (memoize subelts)]
-    (take-while identity (iterate (partial next-closed-set G clop) (clop #{})))))
+    (take-while identity
+		(iterate (partial next-closed-set G clop)
+			 (clop #{})))))
+
+(defn all-closed-sets-in-family
+  "Computes all closed sets of a given closure operator on a given set
+  contained in the family described by predicate. See documentation of
+  next-closed-set-in-family for more details."
+  [predicate G clop]
+  (binding [subelts (memoize subelts)]
+    (let [start (first (filter predicate (all-closed-sets G clop)))]
+      (take-while identity
+		  (iterate (partial next-closed-set-in-family predicate G clop)
+			   start)))))
 
 
 ;;; Common Math Algorithms

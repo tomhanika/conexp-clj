@@ -313,7 +313,8 @@
   (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
 
 (defn concepts
-  "Returns a sequence of all concepts of ctx."
+  "Returns a sequence of all concepts of ctx as sequence of extends
+  with their corresponding intents."
   [ctx]
   (binding [attribute-derivation (memoize attribute-derivation)
 	    object-derivation    (memoize object-derivation)]

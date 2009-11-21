@@ -50,17 +50,18 @@
 	conclusion (set conclusion)]
     (conexp.fca.AssociationRule. context premise (difference conclusion premise))))
 
-(defn iceberg-concept-set
-  ; change
+(defn iceberg-intent-set
   [context minsupp]
-  (filter (fn [concept]
-	    (>= (support (second concept) context) minsupp))
-	  (concepts context)))
+  (let [mincount (round (ceil (* minsupp (count (objects context)))))]
+    (all-closed-sets-in-family (fn [intent]
+				 (>= (count (attribute-derivation context intent))
+				     mincount))
+			       (attributes context)
+			       (partial context-attribute-closure context))))
 
 (defn luxenburger-basis
-  ; change
   [context minsupp minconf]
-  (let [closed-intents (map second (iceberg-concept-set context minsupp))]
+  (let [closed-intents (iceberg-intent-set context minsupp)]
     (for [B_1 closed-intents
 	  B_2 closed-intents
 	  :when (and (proper-subset? B_1 B_2)
