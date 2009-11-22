@@ -9,6 +9,7 @@
 
   <property name="jline.jar" location="${src}/lib/jline.jar"/>
   <property name="G.jar" location="${src}/lib/G.jar"/>
+  <property name="commons-math.jar" localtion="{src}/lib/common-math-2.0.jar"/>
 
   <property name="zipfile" location="conexp-clj.zip"/>
 
@@ -40,6 +41,7 @@
     <copy file="${clojure-contrib.jar}" tofile="${build}/lib/clojure-contrib.jar"/>
     <copy file="${jline.jar}" todir="${build}/lib"/>
     <copy file="${G.jar}" todir="${build}/lib"/>
+    <copy file="${commons-math.jar}" todir="${build}/lib"/>
     <mkdir dir="${build}/classes"/>
     <copy todir="${build}/classes/images">
       <fileset dir="${src}/images"/>
