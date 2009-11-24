@@ -66,7 +66,7 @@
 	  B_2 closed-intents
 	  :when (and (proper-subset? B_1 B_2)
 		     ; directly neighbored in iceberg concept set
-		     (exists [x (difference B_2 B_1)]
+		     (forall [x (difference B_2 B_1)]
 		       (= B_2 (context-attribute-closure context (conj B_1 x)))))
 	  :let [ar (make-association-rule context B_1 B_2)]
 	  :when (>= (confidence ar) minconf)]
