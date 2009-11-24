@@ -3,6 +3,7 @@
 	   [java.io PushbackReader StringReader PipedWriter PipedReader 
 	            PrintWriter CharArrayWriter]
 	   [javax.swing KeyStroke AbstractAction JTextArea])
+  (:require clojure.main)
   (:use conexp.gui.util
 	[clojure.contrib.pprint :only (write)])
   (:gen-class
