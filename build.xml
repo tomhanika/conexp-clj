@@ -9,7 +9,7 @@
 
   <property name="jline.jar" location="${src}/lib/jline.jar"/>
   <property name="G.jar" location="${src}/lib/G.jar"/>
-  <property name="commons-math.jar" localtion="{src}/lib/common-math-2.0.jar"/>
+  <property name="commons-math.jar" location="${src}/lib/commons-math-2.0.jar"/>
 
   <property name="zipfile" location="conexp-clj.zip"/>
 
