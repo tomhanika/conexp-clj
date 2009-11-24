@@ -4,7 +4,6 @@
 	            PrintWriter CharArrayWriter]
 	   [javax.swing KeyStroke AbstractAction JTextArea])
   (:use conexp.gui.util
-	[clojure.main :only (with-bindings)]
 	[clojure.contrib.pprint :only (write)])
   (:gen-class
    :name "conexp.gui.repl.ClojureREPL"

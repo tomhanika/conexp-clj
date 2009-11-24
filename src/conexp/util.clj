@@ -11,7 +11,8 @@
   (compile 'conexp.fca.association-rules)
   (compile 'conexp.fca.lattices)
   (compile 'conexp.fca.many-valued-contexts)
-  (compile 'conexp.gui.repl))
+  (compile 'conexp.gui.repl)
+  nil)
 
 ;;; Types
 
