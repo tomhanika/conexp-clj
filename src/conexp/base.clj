@@ -5,6 +5,7 @@
 	   'clojure.contrib.set
 	   'clojure.contrib.math
 	   'clojure.contrib.lazy-seqs
+	   'clojure.contrib.def
 	   'conexp.util)
 
 ;;; Set Theory
