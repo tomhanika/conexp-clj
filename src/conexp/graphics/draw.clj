@@ -1,6 +1,6 @@
 (ns conexp.graphics.draw
   (:use conexp.layout
-	conexp.layout.base
+	conexp.layout.util
 	conexp.graphics.base)
   (:import [javax.swing JFrame]
 	   [java.awt Dimension]))
