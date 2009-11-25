@@ -56,4 +56,27 @@
 		   (let [order (order lattice)]
 		     (filter #(order [% x]) (base-set lattice))))))))
 
+
+;;; inf-irreducible additive layout
+
+(defn vector-plus
+  "Implements pointwise plus for vectors."
+  [vec1 vec2]
+  (vec (map + vec1 vec2)))
+
+(defn place-inf-irr-by-coatoms
+  "Places all other inf-irreducible elements of lattice by placement
+  of coatoms."
+  [lattice placement]
+  'to-be-done)
+
+(defn layout-by-coatom-placement
+  "Computes inf-irreducible additive layout of lattice by given
+  positions of the coatoms of lattice. placement should be a hash-map
+  with the coatoms of lattice as keys and positions as values."
+  [lattice placement]
+  (let [inf-irr (place-inf-irr-by-coatoms lattice placement)]
+    ; then place all others
+    'to-be-done))
+
 nil
