@@ -6,7 +6,8 @@
    :constructors { [ Object Object Object ] [] }
    :state state)
   (:use [clojure.contrib.str-utils :only (str-join)]
-	conexp.base))
+	conexp.base)
+  (:require [clojure.contrib.graph :as graph]))
 
 (defn Context-init [objects attributes incidence]
   [ [] {:objects objects :attributes attributes :incidence incidence} ])
@@ -525,5 +526,38 @@
 			  :when (<=> (I_1 [g_1,m_1])
 				     (I_2 [g_2,m_2]))])]
     (make-context new-objs new-atts new-inz)))
+
+(defn compatible-subcontexts
+  "Returns all compatible subcontexts of ctx. ctx has to be reduced."
+  [ctx]
+  (if (not (reduced? ctx))
+    (illegal-argument "Context given to compatible-subcontexts has to be reduced."))
+  (let [up-arrows        (up-arrows ctx)
+	down-arrows      (down-arrows ctx)
+	subcontext-graph (graph/transitive-closure
+			  (struct graph/directed-graph
+				  (disjoint-union (objects ctx) (attributes ctx))
+				  (fn [[x idx]]
+				    (condp = idx
+				      0 (for [[g m] up-arrows
+					      :when (= g x)]
+					  [m 1])
+				      1 (for [[g m] down-arrows
+					      :when (= m x)]
+					  [g 0])))))
+	down-down        (set-of [g m] [m (attributes ctx)
+					[g idx] (graph/get-neighbors subcontext-graph [m 1])
+					:when (= idx 0)])
+	compatible-ctx   (make-context (objects ctx)
+				       (attributes ctx)
+				       (fn [g m]
+					 (not (contains? down-down [g m]))))]
+    (for [[G-H N] (concepts compatible-ctx)]
+      (let [objs (difference (objects ctx) G-H)
+	    atts N
+	    inz  (set-of [g m] [[g m] (incidence ctx)
+				:when (and (contains? objs g)
+					   (contains? atts m))])]
+	(make-context objs atts inz)))))
 
 nil
