@@ -45,6 +45,10 @@
        (= (premise this) (premise other))
        (= (conclusion this) (conclusion other))))
 
+(defn AssociationRule-hashCode [this]
+  (+ (.hashCode (premise this))
+     (.hashCode (conclusion this))))
+
 (defn make-association-rule [context premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]

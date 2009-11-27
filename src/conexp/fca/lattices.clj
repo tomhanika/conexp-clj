@@ -63,7 +63,18 @@
 	     (forall [pair (cross-product (base-set this) (base-set this))]
 	       (<=> (order-this pair) (order-other pair)))))))
 
-; (defn Lattice-hashCode [this] ...)
+(defn Lattice-hashCode
+  "Implements hashCode for lattices."
+  [#^conexp.fca.Lattice this]
+  (let [base-set (base-set this)
+	order    ((.state this) :order)
+	inf      ((.state this) :inf)
+	sup      ((.state this) :sup)]
+    (+ (.hashCode base-set)
+       (if order
+	 (.hashCode order)
+	 (+ (.hashCode inf)
+	    (.hashCode sup))))))
 
 (defn type-of [thing]
   (cond

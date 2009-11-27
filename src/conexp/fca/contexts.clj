@@ -111,7 +111,12 @@
 	     (forall [pair (cross-product (objects this) (attributes this))]
                (<=> (inz-this pair) (inz-other pair)))))))
 
-; (defn Context-hashCode [this] ...)
+(defn Context-hashCode
+  "Implements hashCode for contexts."
+  [this]
+  (+ (.hashCode (objects this))
+     (.hashCode (attributes this))
+     (.hashCode (incidence this))))
 
 (defn- type-of
   "Dispatch function for make-context. Sequences and sets are made to one thing."

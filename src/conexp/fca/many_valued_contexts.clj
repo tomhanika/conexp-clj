@@ -33,6 +33,12 @@
 	   (= (inz-this [g m])
 	      (inz-other [g m]))))))
 
+(defn ManyValuedContext-hashCode
+  [#^conexp.fca.ManyValuedContext this]
+  (+ (.hashCode (objects this))
+     (.hashCode (attributes this))
+     (.hashCode (incidence this))))
+
 (defn print-mv-context [mv-ctx]
   (let [objs (objects mv-ctx)
 	atts (attributes mv-ctx)
