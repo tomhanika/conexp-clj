@@ -11,6 +11,8 @@
   (is (make-context [1 2 3] '(a d g) not=))
   (is (thrown? IllegalArgumentException (make-context 1 2 3))))
 
+(def *empty-context* (make-context #{} #{} #{}))
+
 (def *test-ctx-01* (make-context #{1 2 3 4 5} #{1 2 3 4 5}
 				 #{[1 2] [1 1] [1 3]
 				   [2 2] [2 3] [3 5]
@@ -31,6 +33,23 @@
 (def *test-ctx-07* (make-context #{1 2 3 4}
 				 #{1 2 3 4 5}
 				 #{[1 1] [1 3] [1 4] [2 1] [2 2] [2 4] [3 4] [4 1] [4 2] [4 5]}))
+(def *test-ctx-08* (make-context #{1 2 3 4} '#{a b c d e}
+				 '#{[1 a] [1 c]
+				    [2 a] [2 b] [2 c] [2 e]
+				    [3 b] [3 e]
+				    [4 c] [4 d] [4 e]}))
+
+(defmacro test-for-every-test-ctx
+  [var-spec test]
+  `(are ~var-spec ~test
+	*test-ctx-01*
+	*test-ctx-02*
+	*test-ctx-03*
+	*test-ctx-04*
+	*test-ctx-05*
+	*test-ctx-06*
+	*test-ctx-07*
+	*test-ctx-08*))
 
 (deftest test-Context-toString
   (is (= (str *test-ctx-01*)
@@ -49,10 +68,14 @@
        #{'a 'b 'c} #{1 2}  =  #{'a 'b} #{1 2}   =))
 
 (deftest test-object-derivation
-  'to-be-done)
+  (are [ctx objs derived-attributes]
+       (= (object-derivation ctx objs) derived-attributes)
+       *test-ctx-01* #{1 2 5} #{2 3}))
 
 (deftest test-attribute-derivation
-  'to-be-done)
+  (are [ctx atts derived-objects]
+       (= (attribute-derivation ctx atts) derived-objects)
+       *test-ctx-01* #{2 3} #{1 2 5}))
 
 (deftest test-concept?
   'to-be-done)
@@ -111,10 +134,12 @@
   'to-be-done)
 
 (deftest test-dual-context
-  'to-be-done)
+  (test-for-every-test-ctx
+   [ctx] (= ctx (dual-context (dual-context ctx)))))
 
 (deftest test-invert-context
-  'to-be-done)
+  (test-for-every-test-ctx
+   [ctx] (= ctx (invert-context (invert-context ctx)))))
 
 (deftest test-context-union
   'to-be-done)
@@ -183,3 +208,27 @@
 
 (deftest test-context-xia-product
   'to-be-done)
+
+(deftest test-subcontext?
+  (test-for-every-test-ctx
+   [ctx] (and (subcontext? ctx ctx)
+	      (subcontext? *empty-context* ctx))))
+
+(deftest test-compatible-subcontext?
+  (test-for-every-test-ctx
+   [ctx] (and (compatible-subcontext? ctx ctx)
+	      (compatible-subcontext? *empty-context* ctx))))
+
+(deftest test-compatible-subcontexts
+  (are [ctx] (let [ctx (reduce-context ctx)]
+	       (every? #(compatible-subcontext? % ctx)
+		       (compatible-subcontexts ctx)))
+       *test-ctx-01*
+       *test-ctx-04*
+       *test-ctx-06*
+       *test-ctx-07*
+       *test-ctx-08*)
+  (is (let [some-context (make-context #{1 2 3} '#{c d e} '#{[1 c] [2 c] [2 e] [3 e]})]
+	(some #(= some-context %) (compatible-subcontexts *test-ctx-08*)))))
+
+nil
