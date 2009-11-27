@@ -527,6 +527,25 @@
 				     (I_2 [g_2,m_2]))])]
     (make-context new-objs new-atts new-inz)))
 
+;;;
+
+(defn subcontext?
+  "Tests whether ctx-1 is a subcontext ctx-2 or not."
+  [ctx-1 ctx-2]
+  (and (subset? (objects ctx-1) (objects ctx-2))
+       (subset? (attributes ctx-1) (attributes ctx-2))))
+
+(defn compatible-subcontext?
+  "Tests whether ctx-1 is a compatible subcontext of ctx-2."
+  [ctx-1 ctx-2]
+  (and (subcontext? ctx-1 ctx-2)
+       (forall [[h m] (up-arrows ctx-2)]
+	 (=> (contains? (objects ctx-1) h)
+	     (contains? (attributes ctx-1) m)))
+       (forall [[g n] (down-arrows ctx-2)]
+         (=> (contains? (attributes ctx-1) n)
+	     (contains? (objects ctx-1) g)))))
+
 (defn compatible-subcontexts
   "Returns all compatible subcontexts of ctx. ctx has to be reduced."
   [ctx]
