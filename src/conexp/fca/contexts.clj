@@ -532,8 +532,16 @@
 (defn subcontext?
   "Tests whether ctx-1 is a subcontext ctx-2 or not."
   [ctx-1 ctx-2]
-  (and (subset? (objects ctx-1) (objects ctx-2))
-       (subset? (attributes ctx-1) (attributes ctx-2))))
+  (let [objs-1 (objects ctx-1)
+	objs-2 (objects ctx-2)
+	atts-1 (attributes ctx-1)
+	atts-2 (attributes ctx-2)]
+    (and (subset? objs-1 objs-2)
+	 (subset? atts-1 atts-2)
+	 (forall [[g m] (incidence ctx-1)]
+	   (=> (and (contains? objs-1 g)
+		    (contains? atts-1 m))
+	       (contains? (incidence ctx-2) [g m]))))))
 
 (defn compatible-subcontext?
   "Tests whether ctx-1 is a compatible subcontext of ctx-2."
