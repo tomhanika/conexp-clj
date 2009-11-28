@@ -319,29 +319,37 @@
   [ctx set-of-objects]
   (attribute-derivation ctx (object-derivation ctx set-of-objects)))
 
-(defn context-extends
-  "Computes a sequence of all extends of ctx."
+(defn context-extents
+  "Computes a sequence of all extents of ctx."
   [ctx]
-  (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
+  (binding [attribute-derivation (memoize attribute-derivation)
+	    object-derivation    (memoize object-derivation)]
+    (all-closed-sets (objects ctx) (partial context-object-closure ctx))))
 
 (defn context-attribute-closure
   "Computes double prime in context ctx for the given set-of-attributes."
   [ctx set-of-attributes]
-  (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
+  ; playing around here, since concepts uses context-extents
+  (let [inz (incidence ctx)]
+    (set-of m [m (attributes ctx)
+	       :when (forall [g (objects ctx)]
+		       (=> (forall [n set-of-attributes]
+			     (inz [g n]))
+			   (inz [g m])))])))
 
 (defn context-intents
   "Computes a sequence of all intents of ctx."
   [ctx]
-  (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
-
-(defn concepts
-  "Returns a sequence of all concepts of ctx as sequence of extends
-  with their corresponding intents."
-  [ctx]
   (binding [attribute-derivation (memoize attribute-derivation)
 	    object-derivation    (memoize object-derivation)]
-    (for [ objs (context-extends ctx) ]
-      [ objs (object-derivation ctx objs) ])))
+    (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx))))
+
+(defn concepts
+  "Returns a sequence of all concepts of ctx as sequence of extents
+  with their corresponding intents."
+  [ctx]
+  (for [objs (context-extents ctx)]
+    [ objs (object-derivation ctx objs) ]))
 
 
 ;; Common Operations with Contexts

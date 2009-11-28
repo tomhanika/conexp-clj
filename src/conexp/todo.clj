@@ -2,7 +2,6 @@
 
 ;;
 ;; conexp.base
-;;  - make next-closure faster
 ;;  - invent and implement parallel-next-closure
 ;;
 ;; conexp.layout
@@ -11,6 +10,7 @@
 ;;  - zschalig: implement initial positioning and force distribution layout as described by C. Zschalig
 ;;
 ;; conexp.fca
+;;  - make context-{object,attribute}-closure faster
 ;;  - retracts?
 ;;  - rule-exploration: think about and write some code
 ;;  - more for association-rules?

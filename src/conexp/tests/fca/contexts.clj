@@ -121,7 +121,7 @@
 (deftest test-context-object-closure
   'to-be-done)
 
-(deftest test-context-extends
+(deftest test-context-extents
   'to-be-done)
 
 (deftest test-context-attribute-closure
