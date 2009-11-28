@@ -9,7 +9,10 @@
 	conexp.base)
   (:require [clojure.contrib.graph :as graph]))
 
-(defn Context-init [objects attributes incidence]
+(defn Context-init
+  "Context initializer, types must be [PersistentHashSet
+  PersistentHashSet PersistentHashSep]."
+  [objects attributes incidence]
   [ [] {:objects objects :attributes attributes :incidence incidence} ])
 
 (defmulti objects
@@ -114,6 +117,8 @@
      (.hashCode (attributes this))
      (.hashCode (incidence this))))
 
+;;;
+
 (defn- type-of
   "Dispatch function for make-context. Sequences and sets are made to one thing."
   [thing]
@@ -142,9 +147,11 @@
     (conexp.fca.Context. objs atts inz)))
 
 (defmethod make-context [::set ::set ::fn] [objects attributes incidence]
-  (make-context objects attributes (set-of [x y] [x objects
-						  y attributes
-						  :when (incidence x y)])))
+  (conexp.fca.Context. (set objects)
+		       (set attributes)
+		       (set-of [x y] [x objects
+				      y attributes
+				      :when (incidence x y)])))
 
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
