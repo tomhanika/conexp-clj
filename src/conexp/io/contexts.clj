@@ -66,9 +66,9 @@
       (loop [objs seq-of-objects
 	     incidence #{}]
 	(if (empty? objs)
-	  (make-context (set seq-of-objects)
-			(set seq-of-attributes)
-			incidence)
+	  (nc-make-context (set seq-of-objects)
+			   (set seq-of-attributes)
+			   incidence)
 	  (let [line (get-line)]
 	    (recur (rest objs)
 		   (union incidence
@@ -123,11 +123,11 @@
 			  (for [att-map (:content atts-map)]
 			    [(get-in att-map [:attrs :Identifier])
 			     (-> att-map :content (find-tag :Name) :content first trim)]))]
-	(make-context (set (keys obj-idxs-map))
-		      (set (vals idx-atts-map))
-		      (set-of [g (idx-atts-map idx) ]
-			      [[g att-idxs] obj-idxs-map
-			       idx att-idxs]))))))
+	(nc-make-context (set (keys obj-idxs-map))
+			 (set (vals idx-atts-map))
+			 (set-of [g (idx-atts-map idx) ]
+				 [[g att-idxs] obj-idxs-map
+				  idx att-idxs]))))))
 
 (defn- ctx->xml-vector [ctx id]
   (let [ctx-atts (zipmap (attributes ctx) (iterate inc 0))
@@ -201,10 +201,10 @@
 	  idxs (map #(vector (Integer/parseInt (:idxO (:attrs %)))
 			     (Integer/parseInt (:idxA (:attrs %))))
 		    (filter #(= (:tag %) :BinRel) (-> ctx-xml-tree :content)))]
-      (make-context objs
-		    atts
-		    (set-of [(nth objs idxO) (nth atts idxA)]
-			    [[idxO idxA] idxs])))))
+      (nc-make-context objs
+		       atts
+		       (set-of [(nth objs idxO) (nth atts idxA)]
+			       [[idxO idxA] idxs])))))
 
 
 ;; Colibri (.bri, .con)
@@ -244,7 +244,7 @@
     (let [line (.readLine in)]
       (cond
 	(not line)
-	(make-context objs (set-of m [[g m] inz]) inz)
+	(nc-make-context objs (set-of m [[g m] inz]) inz)
 	(or (re-matches #"^\s*$" line)     ; blank
 	    (re-matches #"^\s*#.*$" line)) ; comment
 	(recur in objs inz)
@@ -267,9 +267,9 @@
     (loop [inz #{}]
       (let [line (.readLine in)]
 	(if (not line)
-	  (make-context (set-of g [[g m] inz])
-			(set-of m [[g m] inz])
-			inz)
+	  (nc-make-context (set-of g [[g m] inz])
+			   (set-of m [[g m] inz])
+			   inz)
 	  (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]
 	    (recur (conj inz [g m]))))))))
 
