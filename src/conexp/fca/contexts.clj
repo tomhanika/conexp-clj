@@ -156,15 +156,16 @@
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
-(defmulti nc-make-context
+(defmulti make-context-nc
   "Context constructor similar to make-context, but does not restrict
-  incidence to the crossproduct of object and attribute set."
+  incidence to the crossproduct of object and attribute set and is
+  therefore faster. Use with care."
   (fn [& args] (map type-of args)))
 
-(defmethod nc-make-context [::set ::set ::set] [objects attributes incidence]
+(defmethod make-context-nc [::set ::set ::set] [objects attributes incidence]
   (conexp.fca.Context. (set objects) (set attributes) (set incidence)))
 
-(defmethod nc-make-context :default [obj att inz]
+(defmethod make-context-nc :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
 
@@ -175,14 +176,14 @@
   [ctx old-to-new]
   (let [objs (map old-to-new (objects ctx))
 	inz (set-of [(old-to-new g) m] [[g m] (incidence ctx)])]
-    (nc-make-context objs (attributes ctx) inz)))
+    (make-context-nc objs (attributes ctx) inz)))
 
 (defn rename-attributes
   "Rename attributes in ctx by given hash old-to-new."
   [ctx old-to-new]
   (let [atts (map old-to-new (attributes ctx))
 	inz (set-of [g (old-to-new m)] [[g m] (incidence ctx)])]
-    (nc-make-context (objects ctx) atts inz)))
+    (make-context-nc (objects ctx) atts inz)))
 
 (defn object-derivation
   "Computes set of attributes common to all objects in context."
@@ -348,12 +349,12 @@
 (defn dual-context
   "Dualizes context ctx, that is $(G,M,I)$ gets $(M,G,I^{-1})$."
   [ctx]
-  (nc-make-context (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
+  (make-context-nc (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
 
 (defn invert-context
   "Inverts context ctx, that is $(G,M,I)$ gets $(G,M,(G\\times M)\\setminus I)$."
   [ctx]
-  (nc-make-context (objects ctx) (attributes ctx) (set-of [g m] [g (objects ctx)
+  (make-context-nc (objects ctx) (attributes ctx) (set-of [g m] [g (objects ctx)
 								 m (attributes ctx)
 								 :when (not ((incidence ctx) [g m]))])))
 
@@ -369,12 +370,12 @@
 			  [m idx-m] new-atts
 			  :when (or ((incidence ctx1) [g m])
 				    ((incidence ctx2) [g m]))])]
-    (nc-make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-intersection
   "Returns context intersection of ctx1 and ctx2."
   [ctx1 ctx2]
-  (nc-make-context (intersection (objects ctx1) (objects ctx2))
+  (make-context-nc (intersection (objects ctx1) (objects ctx2))
 		   (intersection (attributes ctx1) (attributes ctx2))
 		   (intersection (incidence ctx1) (incidence ctx2))))
 
@@ -384,7 +385,7 @@
       (G_1,M_1,I_1)\\circ(G_2,M_2,I_2) := (G_1,M_2,I_1\\circ I_2).
   \\]."
   [ctx-1 ctx-2]
-  (nc-make-context (objects ctx-1)
+  (make-context-nc (objects ctx-1)
 		   (attributes ctx-2)
 		   (set-of [g m]
 			   [g (objects ctx-1)
@@ -406,7 +407,7 @@
 			(set-of [m 2] [m (attributes ctx-2)]))
 	new-inz  (union (set-of [g [m 1]] [[g m] (incidence ctx-1)])
 			(set-of [g [m 2]] [[g m] (incidence ctx-2)]))]
-    (nc-make-context (objects ctx-1) new-atts new-inz)))
+    (make-context-nc (objects ctx-1) new-atts new-inz)))
 
 (defn context-subposition
   "Returns context subposition of ctx-1 and ctx-2, that is
@@ -420,12 +421,12 @@
 			(set-of [g 2] [g (objects ctx-2)]))
 	new-inz  (union (set-of [[g 1] m] [[g m] (incidence ctx-1)])
 			(set-of [[g 2] m] [[g m] (incidence ctx-2)]))]
-    (nc-make-context new-objs (attributes ctx-1) new-inz)))
+    (make-context-nc new-objs (attributes ctx-1) new-inz)))
 
 (defn context-transitive-closure
   "Transitively closes incidence relation of ctx and returns corresponding context."
   [ctx]
-  (nc-make-context (objects ctx) (attributes ctx) (transitive-closure (incidence ctx))))
+  (make-context-nc (objects ctx) (attributes ctx) (transitive-closure (incidence ctx))))
 
 (defn rand-context
   "Randomly fills context on base-set with crosses and propability fill-rate."
@@ -497,7 +498,7 @@
 			  [m_1, m_2] new-atts
 			  :when (or (inz-1 [g_1, m_1])
 				    (inz-2 [g_2, m_2]))])]
-    (nc-make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-semiproduct
   "Computes the context semiproduct of ctx-1 and ctx-2, where for
@@ -518,7 +519,7 @@
 			 [g new-objs
 			  [m, idx] new-atts
 			  :when ((inzs idx) [(g idx) m])])]
-    (nc-make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-xia-product
   "Computes Xia's product of ctx-1 and ctx-2, where for two contexts
@@ -545,7 +546,7 @@
 			  [m_1,m_2] new-atts
 			  :when (<=> (I_1 [g_1,m_1])
 				     (I_2 [g_2,m_2]))])]
-    (nc-make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 ;;;
 
@@ -601,5 +602,7 @@
 					 (not (contains? down-down [g m]))))]
     (for [[G-H N] (concepts compatible-ctx)]
       (make-context (difference (objects ctx) G-H) N (incidence ctx)))))
+
+;;;
 
 nil

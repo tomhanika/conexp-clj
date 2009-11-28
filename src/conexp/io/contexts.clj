@@ -66,7 +66,7 @@
       (loop [objs seq-of-objects
 	     incidence #{}]
 	(if (empty? objs)
-	  (nc-make-context (set seq-of-objects)
+	  (make-context-nc (set seq-of-objects)
 			   (set seq-of-attributes)
 			   incidence)
 	  (let [line (get-line)]
@@ -123,7 +123,7 @@
 			  (for [att-map (:content atts-map)]
 			    [(get-in att-map [:attrs :Identifier])
 			     (-> att-map :content (find-tag :Name) :content first trim)]))]
-	(nc-make-context (set (keys obj-idxs-map))
+	(make-context-nc (set (keys obj-idxs-map))
 			 (set (vals idx-atts-map))
 			 (set-of [g (idx-atts-map idx) ]
 				 [[g att-idxs] obj-idxs-map
@@ -201,7 +201,7 @@
 	  idxs (map #(vector (Integer/parseInt (:idxO (:attrs %)))
 			     (Integer/parseInt (:idxA (:attrs %))))
 		    (filter #(= (:tag %) :BinRel) (-> ctx-xml-tree :content)))]
-      (nc-make-context objs
+      (make-context-nc objs
 		       atts
 		       (set-of [(nth objs idxO) (nth atts idxA)]
 			       [[idxO idxA] idxs])))))
@@ -244,7 +244,7 @@
     (let [line (.readLine in)]
       (cond
 	(not line)
-	(nc-make-context objs (set-of m [[g m] inz]) inz)
+	(make-context-nc objs (set-of m [[g m] inz]) inz)
 	(or (re-matches #"^\s*$" line)     ; blank
 	    (re-matches #"^\s*#.*$" line)) ; comment
 	(recur in objs inz)
@@ -267,7 +267,7 @@
     (loop [inz #{}]
       (let [line (.readLine in)]
 	(if (not line)
-	  (nc-make-context (set-of g [[g m] inz])
+	  (make-context-nc (set-of g [[g m] inz])
 			   (set-of m [[g m] inz])
 			   inz)
 	  (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]

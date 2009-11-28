@@ -128,6 +128,7 @@
 		  (iterate (partial next-closed-set-in-family predicate G clop)
 			   start)))))
 
+;; parallel NextClosure?
 
 ;;; Common Math Algorithms
 
