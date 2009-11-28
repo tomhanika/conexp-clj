@@ -105,11 +105,7 @@
   (and (instance? conexp.fca.Context other)
        (= (objects this) (objects other))
        (= (attributes this) (attributes other))
-       (let [inz-this (incidence this)
-	     inz-other (incidence other)]
-	 (or (= (incidence this) (incidence other))
-	     (forall [pair (cross-product (objects this) (attributes this))]
-               (<=> (inz-this pair) (inz-other pair)))))))
+       (= (incidence this) (incidence other))))
 
 (defn Context-hashCode
   "Implements hashCode for contexts."
@@ -130,13 +126,20 @@
 (defmulti make-context
   "Standard constructor for contexts. Takes a sequence of objects,
   a sequence of attributes and either a set of pairs or function of
-  two elements being true iff its arguments are incident. Note that the
-  object and attribute sequences are converted to sets and therefore have to
-  not contain any douplicate elements."
+  two elements being true iff its arguments are incident. Note that
+  the object and attribute sequences are converted to sets and
+  therefore have to not contain any douplicate elements. The incidence
+  relation is auzomatically restricted to the cartesian product of the
+  object an the attribute set."
   (fn [& args] (map type-of args)))
 
 (defmethod make-context [::set ::set ::set] [objects attributes incidence]
-  (conexp.fca.Context. (set objects) (set attributes) (set incidence)))
+  (let [objs (set objects)
+	atts (set attributes)
+	inz  (set-of [g m] [[g m] incidence
+			    :when (and (contains? objs g)
+				       (contains? atts m))])]
+    (conexp.fca.Context. objs atts inz)))
 
 (defmethod make-context [::set ::set ::fn] [objects attributes incidence]
   (make-context objects attributes (set-of [x y] [x objects
@@ -189,19 +192,15 @@
   "Clarifies objects in context ctx."
   [ctx]
   (let [prime (memoize (partial object-derivation ctx))
-	new-objs (set (distinct-by-key (objects ctx) #(prime #{%})))
-	new-inz (set-of [g m] [[g m] (incidence ctx)
-			       :when (contains? new-objs g)])]
-    (make-context new-objs (attributes ctx) new-inz)))
+	new-objs (set (distinct-by-key (objects ctx) #(prime #{%})))]
+    (make-context new-objs (attributes ctx) (incidence ctx))))
 
 (defn clarify-attributes
   "Clarifies attributes in context ctx."
   [ctx]
   (let [prime (memoize (partial attribute-derivation ctx))
-	new-atts (set (distinct-by-key (attributes ctx) #(prime #{%})))
-	new-inz (set-of [g m] [[g m] (incidence ctx)
-			       :when (contains? new-atts m)])]
-    (make-context (objects ctx) new-atts new-inz)))
+	new-atts (set (distinct-by-key (attributes ctx) #(prime #{%})))]
+    (make-context (objects ctx) new-atts (incidence ctx))))
 
 (defn clarify-context
   "Clarifies context ctx."
@@ -270,12 +269,10 @@
 (defn reduce-clarified-context
   "Reduces context ctx assuming it is clarified."
   [ctx]
-  (let [inz (incidence ctx)
-	uda (up-down-arrows ctx)]
-    (let [new-obj (set (map first uda))
-	  new-att (set (map second uda))
-	  new-inz (set-of [g m] [g new-obj m new-att :when (inz [g m])])]
-    (make-context new-obj new-att (set new-inz)))))
+  (let [uda (up-down-arrows ctx)
+	new-obj (set (map first uda))
+	new-att (set (map second uda))]
+    (make-context new-obj new-att (incidence ctx))))
 
 (defn reduce-context
   "Reduces context ctx."
@@ -585,11 +582,6 @@
 				       (fn [g m]
 					 (not (contains? down-down [g m]))))]
     (for [[G-H N] (concepts compatible-ctx)]
-      (let [objs (difference (objects ctx) G-H)
-	    atts N
-	    inz  (set-of [g m] [[g m] (incidence ctx)
-				:when (and (contains? objs g)
-					   (contains? atts m))])]
-	(make-context objs atts inz)))))
+      (make-context (difference (objects ctx) G-H) N (incidence ctx)))))
 
 nil
