@@ -14,6 +14,7 @@
 ;;  - retracts?
 ;;  - rule-exploration: think about and write some code
 ;;  - more for association-rules?
+;;  - exploration: add background knowledge (implications or clauses)
 ;;
 ;; conexp.graphics
 ;;  - draw: implement full lattice editor

@@ -110,23 +110,29 @@
   (next-closed-set-in-family (constantly true) G clop A))
 
 (defn all-closed-sets
-  "Computes all closed sets of a given closure operator on a given set."
-  [G clop]
-  (binding [subelts (memoize subelts)]
-    (take-while identity
-		(iterate (partial next-closed-set G clop)
-			 (clop #{})))))
+  "Computes all closed sets of a given closure operator on a given
+  set. Uses initial as first closed set it if supplied."
+  ([G clop]
+     (all-closed-sets G clop #{}))
+  ([G clop initial]
+     (binding [subelts (memoize subelts)]
+       (take-while identity
+		   (iterate (partial next-closed-set G clop)
+			    (clop initial))))))
 
 (defn all-closed-sets-in-family
   "Computes all closed sets of a given closure operator on a given set
   contained in the family described by predicate. See documentation of
-  next-closed-set-in-family for more details."
-  [predicate G clop]
-  (binding [subelts (memoize subelts)]
-    (let [start (first (filter predicate (all-closed-sets G clop)))]
-      (take-while identity
-		  (iterate (partial next-closed-set-in-family predicate G clop)
-			   start)))))
+  next-closed-set-in-family for more details. Uses initial as first
+  closed set if supplied."
+  ([predicate G clop]
+     (all-closed-sets-in-family predicate G clop #{}))
+  ([predicate G clop initial]
+     (binding [subelts (memoize subelts)]
+       (let [start (first (filter predicate (all-closed-sets G clop initial)))]
+	 (take-while identity
+		     (iterate (partial next-closed-set-in-family predicate G clop)
+			      start))))))
 
 ;; parallel NextClosure?
 
