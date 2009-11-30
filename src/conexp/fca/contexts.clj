@@ -329,19 +329,54 @@
 (defn context-attribute-closure
   "Computes double prime in context ctx for the given set-of-attributes."
   [ctx set-of-attributes]
-  ; playing around here, since concepts uses context-extents
-  (let [inz (incidence ctx)]
-    (set-of m [m (attributes ctx)
-	       :when (forall [g (objects ctx)]
-		       (=> (forall [n set-of-attributes]
-			     (inz [g n]))
-			   (inz [g m])))])))
+  (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
+
+(defn- context-attribute-closure-operator
+  [ctx]
+  (let [obj-derv-cards (loop [result {}
+			      objs (seq (objects ctx))]
+			 (if objs
+			   (let [g (first objs)]
+			     (recur (assoc result g (count (object-derivation ctx #{g})))
+				    (next objs)))
+			   result))
+	ordered-objects (sort (fn [g_1 g_2]
+				(<= (obj-derv-cards g_1)
+				    (obj-derv-cards g_2)))
+			      (objects ctx))
+	att-derv-cards (loop [result {}
+			      atts (seq (attributes ctx))]
+			 (if atts
+			   (let [m (first atts)]
+			     (recur (assoc result m (count (attribute-derivation ctx #{m})))
+				    (next atts)))
+			   result))
+	ordered-attributes (sort (fn [m_1 m_2]
+				   (<= (att-derv-cards m_1)
+				       (att-derv-cards m_2)))
+				 (attributes ctx))
+	incident? (memoize (fn [g m]
+			     ((incidence ctx) [g m])))
+	filter-objects (memoize (fn [card]
+				  (drop-while #(< (obj-derv-cards %) card)
+					      ordered-objects)))
+	filter-attributes (memoize (fn [card]
+				     (drop-while #(< (att-derv-cards %) card)
+						 ordered-attributes)))]
+    (fn [set-of-attributes]
+      (let [propable-objects (filter-objects (count set-of-attributes))
+	    derived-objects (filter (fn [g] (every? #(incident? g %) set-of-attributes))
+				    propable-objects)
+	    propable-attributes (filter-attributes (count derived-objects))
+	    derived-attributes (filter (fn [m] (every? #(incident? % m) derived-objects))
+				       propable-attributes)]
+	(set derived-attributes)))))
 
 (defn context-intents
   "Computes a sequence of all intents of ctx."
   [ctx]
-  (binding [attribute-derivation (memoize attribute-derivation)
-	    object-derivation    (memoize object-derivation)]
+  (binding [object-derivation (memoize object-derivation)
+	    attribute-derivation (memoize attribute-derivation)]
     (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx))))
 
 (defn concepts
