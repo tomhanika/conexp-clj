@@ -132,6 +132,27 @@
 	~@(map (fn [name def] `(ref-set ~name (recur-sequence ~@def))) seq-names seq-defs))
        ~@body)))
 
+(defn inits
+  "Returns a lazy sequence of the beginnings of sqn."
+  [sqn]
+  (let [runner (fn runner [init rest]
+		 (if (not rest)
+		   [init]
+		   (lazy-seq
+		     (cons init (runner (conj init (first rest))
+					(next rest))))))]
+    (runner [] sqn)))
+
+(defn tails
+  "Returns a lazy sequence of the tails of sqn."
+  [sqn]
+  (let [runner (fn runner [rest]
+		 (if (not rest)
+		   [[]]
+		   (lazy-seq
+		     (cons (vec rest) (runner (next rest))))))]
+    (runner sqn)))
+
 ;;; Math
 
 (defmacro =>
