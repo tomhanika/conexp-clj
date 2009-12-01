@@ -136,6 +136,39 @@
 
 ;; parallel NextClosure?
 
+(defn successive-closures
+  "Part of ParallelNextClosure (experimental): Creates a sequence of
+  increasing intents, starting with (vec (clop #{})), ending
+  with (vec (clop G)). Needed to partition the search space for
+  NextClosure."
+  [G clop]
+  (let [runner (fn runner [next-seq rest-seq]
+		 (if (empty? rest-seq)
+		   nil
+		   (lazy-seq
+		     (let [next-set (set next-seq)
+			   closure (clop (conj next-set (first rest-seq)))
+			   rest-seq (filter #(not (contains? closure %)) rest-seq)
+			   ordered-closure (reduce conj next-seq (filter #(not (contains? next-set %))
+									 closure))]
+		       (cons ordered-closure
+			     (runner ordered-closure rest-seq))))))]
+    (lazy-seq
+      (let [start (vec (clop #{}))]
+	(cons start (runner start G))))))
+
+(defn all-closed-sets-in-parallel
+  "Part of ParallelNextClosure (experimental): Computes closures of
+  clop on G in parallel, partition of search space is not very good by
+  now."
+  [G clop]
+  (let [intervals (successive-closures G clop)]
+    (reduce concat
+	    (list (clop #{}))
+	    (pmap #(rest (all-closed-sets (reverse %1) clop (set %2)))
+		  (rest intervals)
+		  intervals))))
+
 ;;; Common Math Algorithms
 
 (defn subsets
