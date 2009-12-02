@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONEXP_CLJ_HOME=..
+CONEXP_CLJ_HOME=$(dirname $0)/../
 CONEXP_CLJ_JARS=.
 for jar in clojure.jar clojure-contrib.jar G.jar jline.jar conexp-clj.jar
 do
