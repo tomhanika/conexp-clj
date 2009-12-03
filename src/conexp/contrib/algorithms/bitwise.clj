@@ -6,6 +6,26 @@
 
 ;;; Helpers to convert to and from BitSets
 
+(defmacro deep-aget
+  "Implements fast, type-hinted aget. From Christophe Grand."
+  ([hint array idx]
+    `(aget ~(vary-meta array assoc :tag hint) ~idx))
+  ([hint array idx & idxs]
+    `(let [a# (aget ~(vary-meta array assoc :tag 'objects) ~idx)]
+       (deep-aget ~hint a# ~@idxs))))
+
+(defmacro forall-in-bitset
+  "Returns true iff body holds for all var in bitset."
+  [bitset var & body]
+  `(loop [~var (int (.nextSetBit ~bitset 0))]
+     (cond
+       (== -1 ~var)
+       true
+       (not ~@body)
+       false
+       :else
+       (recur (.nextSetBit ~bitset (inc ~var))))))
+
 (defn- to-bitset
   ""
   [element-vector hashset]
@@ -28,29 +48,22 @@
 (defn- to-binary-matrix
   ""
   [object-vector attribute-vector incidence-relation]
-  (let [incidence-matrix (make-array Byte/TYPE (count object-vector) (count attribute-vector))]
+  (let [incidence-matrix (make-array Integer/TYPE (count object-vector) (count attribute-vector))]
     (doseq [obj-idx (range (count object-vector))
 	    att-idx (range (count attribute-vector))]
       (aset incidence-matrix obj-idx att-idx
 	    (if (contains? incidence-relation [(nth object-vector obj-idx)
 					       (nth attribute-vector att-idx)])
-	      (byte 1)
-	      (byte 0))))
+	      (int 1)
+	      (int 0))))
     incidence-matrix))
 
 (defn- bitwise-object-derivation
   ""
   [incidence-matrix object-count attribute-count #^BitSet bitset]
   (let [#^BitSet derived-attributes (BitSet. attribute-count)]
-    (dotimes [att attribute-count]
-      (if (loop [obj (dec object-count)]
-	    (cond
-	      (< obj 0)
-	      true
-	      (and (.get bitset obj) (== 0 (aget incidence-matrix obj att)))
-	      false
-	      :else
-	      (recur (dec obj))))
+    (dotimes [att (int attribute-count)]
+      (if (forall-in-bitset bitset obj (== 1 (deep-aget ints incidence-matrix obj att)))
 	(.set derived-attributes att)))
     derived-attributes))
 
@@ -58,15 +71,8 @@
   ""
   [incidence-matrix object-count attribute-count #^BitSet bitset]
   (let [#^BitSet derived-objects (BitSet. object-count)]
-    (dotimes [obj object-count]
-      (if (loop [att (dec attribute-count)]
-	    (cond
-	      (< att 0)
-	      true
-	      (and (.get bitset att) (== 0 (aget incidence-matrix obj att)))
-	      false
-	      :else
-	      (recur (dec att))))
+    (dotimes [obj (int object-count)]
+      (if (forall-in-bitset bitset att (== 1 (deep-aget ints incidence-matrix obj att)))
 	(.set derived-objects obj)))
     derived-objects))
 
@@ -83,7 +89,7 @@
   [base-count i #^BitSet A #^BitSet B]
   (and (.get B i)
        (not (.get A i))
-       (loop [j (dec i)]
+       (loop [j (int (dec i))]
 	 (cond
 	   (< j 0)
 	   true
@@ -120,16 +126,16 @@
 	object-count (count object-vector)
 	attribute-count (count attribute-vector)
 
-	attribute-prime (memoize (fn [bitset]
-				   (bitwise-attribute-derivation incidence-matrix
-								 object-count
-								 attribute-count
-								 bitset)))
-	object-prime (memoize (fn [bitset]
-				(bitwise-object-derivation incidence-matrix
-							   object-count
-							   attribute-count
-							   bitset)))
+	attribute-prime (fn [bitset]
+			  (bitwise-attribute-derivation incidence-matrix
+							object-count
+							attribute-count
+							bitset))
+	object-prime (fn [bitset]
+		       (bitwise-object-derivation incidence-matrix
+						  object-count
+						  attribute-count
+						  bitset))
 	clop (fn [bitset]
 	       (object-prime (attribute-prime bitset)))
 
