@@ -82,7 +82,7 @@
   "Computes concepts with various algorithms, given as first argument."
   (fn [& args] (first args)))
 
-;; NextClosure with BitSets
+;; NextClosure with BitSets (:next-closure)
 
 (defn- lectic-<_i
   ""
@@ -111,8 +111,12 @@
   ""
   [base-count clop #^BitSet A]
   (loop [i (dec base-count)]
-    (if (== -1 i)
+    (cond
+      (== -1 i)
       nil
+      (.get A i)
+      (recur (dec i))
+      :else
       (let [A_i (oplus base-count clop A i)]
 	(if (lectic-<_i base-count i A A_i)
 	  A_i
@@ -140,15 +144,15 @@
 	       (object-prime (attribute-prime bitset)))
 
 	intents (take-while identity
-			    (iterate #(next-closed-set object-count clop %) (BitSet.)))]
+			    (iterate #(next-closed-set attribute-count clop %) (BitSet.)))]
     (map (fn [bitset]
 	   [(to-hashset object-vector (attribute-prime bitset))
 	    (to-hashset attribute-vector bitset)])
 	 intents)))
 
-;; Krajca-Outrata-Vychodil
+;; Krajca-Outrata-Vychodil (:vok)
 
-;; In-Close
+;; In-Close (:in-close)
 
 ;;;
 
