@@ -20,11 +20,22 @@
   `(loop [~var (int (.nextSetBit ~bitset 0))]
      (cond
        (== -1 ~var)
-       true
+       true,
        (not ~@body)
-       false
+       false,
        :else
        (recur (.nextSetBit ~bitset (inc ~var))))))
+
+(defmacro dobits
+  ""
+  [[var bitset] & body]
+  `(let [#^BitSet bitset# ~bitset]
+     (loop [~var (int (.nextSetBit bitset# 0))]
+       (if (== -1 ~var)
+	 nil
+	 (do
+	   ~@body
+	   (recur (int (.nextSetBit bitset# (inc ~var)))))))))
 
 (defn- to-bitset
   ""
@@ -92,9 +103,9 @@
        (loop [j (int (dec i))]
 	 (cond
 	   (< j 0)
-	   true
-	   (not (= (.get A j) (.get B j)))
-	   false
+	   true,
+	   (not= (.get A j) (.get B j))
+	   false,
 	   :else
 	   (recur (dec j))))))
 
@@ -110,12 +121,12 @@
 (defn- next-closed-set
   ""
   [base-count clop #^BitSet A]
-  (loop [i (dec base-count)]
+  (loop [i (dec (int base-count))]
     (cond
       (== -1 i)
-      nil
+      nil,
       (.get A i)
-      (recur (dec i))
+      (recur (dec i)),
       :else
       (let [A_i (oplus base-count clop A i)]
 	(if (lectic-<_i base-count i A A_i)
@@ -150,7 +161,102 @@
 	    (to-hashset attribute-vector bitset)])
 	 intents)))
 
+
 ;; Krajca-Outrata-Vychodil (:vok)
+
+(defn- create-structures-for-vok
+  ""
+  [context]
+  (let [object-vector (vec (objects context))
+	attribute-vector (vec (attributes context))
+
+	object-count (count object-vector)
+	attribute-count (count attribute-vector)
+
+	incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))
+
+	rows (into-array (map (fn [y]
+				(let [#^BitSet bs (BitSet.)]
+				  (.set bs y)
+				  (bitwise-attribute-derivation incidence-matrix
+								object-count
+								attribute-count
+								bs)))
+			      (range attribute-count)))]
+    [object-vector attribute-vector
+     object-count  attribute-count
+     incidence-matrix  rows]))
+
+(set! *warn-on-reflection* true)
+
+(defn- compute-closure
+  ""
+  [object-count attribute-count incidence-matrix rows #^BitSet A #^BitSet B y]
+  (let [#^BitSet C (BitSet.)
+	#^BitSet D (BitSet.)
+	#^BitSet E (BitSet.)
+	y (int y)]
+    (.set D 0 (int attribute-count))
+    (.or E A)
+    (.and E (aget #^objects rows y))
+    (dobits [i E]
+      (.set C i)
+      (dotimes [j attribute-count]
+	(if (== 0 (deep-aget ints incidence-matrix i j))
+	  (.set D j false))))
+    [C, D]))
+
+(defn- generate-from
+  ""
+  [object-count attribute-count incidence-matrix rows #^BitSet A #^BitSet B y]
+  (lazy-seq
+    (cons [A, B]
+	  (if (or (== attribute-count (.cardinality B))
+		  (>= y attribute-count))
+	    nil
+	    (apply concat
+		   (for [j (range y attribute-count)]
+		     (when (not (.get B j))
+		       (let [new-concept (compute-closure object-count
+							  attribute-count
+							  incidence-matrix
+							  rows
+							  A B j)
+			     #^BitSet C (first new-concept)
+			     #^BitSet D (second new-concept)
+			     skip (loop [k 0]
+				    (cond
+				      (== k j)
+				      false,
+				      (not= (.get D k) (.get B k))
+				      true,
+				      :else
+				      (recur (int (inc k)))))]
+			 (when (not skip)
+			   (generate-from object-count
+					  attribute-count
+					  incidence-matrix
+					  rows
+					  C D (inc j)))))))))))
+
+(defmethod concepts :vok [_ context]
+  (let [[object-vector attribute-vector
+	 object-count attribute-count
+	 incidence-matrix rows]
+	(create-structures-for-vok context)
+
+	empty-down (bitwise-attribute-derivation incidence-matrix
+						 object-count
+						 attribute-count
+						 (BitSet.))
+	empty-down-up (bitwise-object-derivation incidence-matrix
+						 object-count
+						 attribute-count
+						 empty-down)]
+    (map (fn [pair]
+	   [(to-hashset object-vector (first pair))
+	    (to-hashset attribute-vector (second pair))])
+	 (generate-from object-count attribute-count incidence-matrix rows empty-down empty-down-up 0))))
 
 ;; In-Close (:in-close)
 
