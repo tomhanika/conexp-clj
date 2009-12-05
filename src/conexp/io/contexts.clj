@@ -74,7 +74,7 @@
 		   (union incidence
 			  (set-of [(first objs) (nth seq-of-attributes idx-m)]
 				  [idx-m (range number-of-attributes)
-				   :when (= \X (nth line idx-m))])))))))))
+				   :when (#{\X,\x} (nth line idx-m))])))))))))
 
 ;;;
 

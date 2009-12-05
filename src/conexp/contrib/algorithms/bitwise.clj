@@ -4,6 +4,8 @@
   (:use [clojure.contrib.seq-utils :only (indexed)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)]))
 
+(set! *warn-on-reflection* true)
+
 ;;; Helpers to convert to and from BitSets
 
 (defmacro deep-aget
@@ -28,16 +30,17 @@
 
 (defmacro dobits
   ""
-  [[var bitset] & body]
+  [[var bitset & end-test] & body]
   `(let [#^BitSet bitset# ~bitset]
      (loop [~var (int (.nextSetBit bitset# 0))]
-       (if (== -1 ~var)
+       (if (or (== -1 ~var)
+	       ~@end-test)
 	 nil
 	 (do
 	   ~@body
 	   (recur (int (.nextSetBit bitset# (inc ~var)))))))))
 
-(defn- to-bitset
+(defn to-bitset
   ""
   [element-vector hashset]
   (let [#^BitSet bs (BitSet. (count element-vector))]
@@ -46,17 +49,17 @@
       (.set bs (first pair)))
     bs))
 
-(defn- to-hashset
+(defn to-hashset
   ""
   [element-vector #^BitSet bitset]
-  (loop [pos (.nextSetBit bitset 0)
+  (loop [pos (int (.nextSetBit bitset 0))
 	 result #{}]
-    (if (= -1 pos)
+    (if (== -1 pos)
       result
       (recur (.nextSetBit bitset (inc pos))
 	     (conj result (nth element-vector pos))))))
 
-(defn- to-binary-matrix
+(defn to-binary-matrix
   ""
   [object-vector attribute-vector incidence-relation]
   (let [incidence-matrix (make-array Integer/TYPE (count object-vector) (count attribute-vector))]
@@ -69,7 +72,7 @@
 	      (int 0))))
     incidence-matrix))
 
-(defn- bitwise-object-derivation
+(defn bitwise-object-derivation
   ""
   [incidence-matrix object-count attribute-count #^BitSet bitset]
   (let [#^BitSet derived-attributes (BitSet. attribute-count)]
@@ -78,7 +81,7 @@
 	(.set derived-attributes att)))
     derived-attributes))
 
-(defn- bitwise-attribute-derivation
+(defn bitwise-attribute-derivation
   ""
   [incidence-matrix object-count attribute-count #^BitSet bitset]
   (let [#^BitSet derived-objects (BitSet. object-count)]
@@ -95,41 +98,48 @@
 
 ;; NextClosure with BitSets (:next-closure)
 
-(defn- lectic-<_i
+(defn lectic-<_i
   ""
   [base-count i #^BitSet A #^BitSet B]
-  (and (.get B i)
-       (not (.get A i))
-       (loop [j (int (dec i))]
-	 (cond
-	   (< j 0)
-	   true,
-	   (not= (.get A j) (.get B j))
-	   false,
-	   :else
-	   (recur (dec j))))))
+  (let [i (int i)]
+    (and (.get B i)
+	 (not (.get A i))
+	 (loop [j (int (dec i))]
+	   (cond
+	     (< j 0)
+	     true,
+	     (not= (.get A j) (.get B j))
+	     false,
+	     :else
+	     (recur (dec j)))))))
 
-(defn- oplus
+(defn oplus
   ""
-  [base-count clop #^BitSet A i]
-  (let [#^BitSet bs (BitSet. base-count)]
-    (.set bs (int i) true)
-    (dotimes [j i]
-      (.set bs (int j) (.get A j)))
-    (clop bs)))
+  [object-count attribute-count incidence-matrix #^BitSet A i]
+  (let [#^BitSet A-short (.clone A)
+	i (int i)]
+    (.set A-short i true)
+    (.set A-short (inc i) (int attribute-count) false)
+    (bitwise-object-derivation incidence-matrix
+			       object-count
+			       attribute-count
+			       (bitwise-attribute-derivation incidence-matrix
+							     object-count
+							     attribute-count
+							     A-short))))
 
-(defn- next-closed-set
+(defn next-closed-set
   ""
-  [base-count clop #^BitSet A]
-  (loop [i (dec (int base-count))]
+  [object-count attribute-count incidence-matrix #^BitSet A]
+  (loop [i (dec (int attribute-count))]
     (cond
       (== -1 i)
       nil,
       (.get A i)
       (recur (dec i)),
       :else
-      (let [A_i (oplus base-count clop A i)]
-	(if (lectic-<_i base-count i A A_i)
+      (let [A_i (oplus object-count attribute-count incidence-matrix A i)]
+	(if (lectic-<_i attribute-count i A A_i)
 	  A_i
 	  (recur (dec i)))))))
 
@@ -138,33 +148,27 @@
 	attribute-vector (vec (attributes context))
 	incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))
 
-	object-count (count object-vector)
-	attribute-count (count attribute-vector)
-
-	attribute-prime (fn [bitset]
-			  (bitwise-attribute-derivation incidence-matrix
-							object-count
-							attribute-count
-							bitset))
-	object-prime (fn [bitset]
-		       (bitwise-object-derivation incidence-matrix
-						  object-count
-						  attribute-count
-						  bitset))
-	clop (fn [bitset]
-	       (object-prime (attribute-prime bitset)))
+	object-count (int (count object-vector))
+	attribute-count (int (count attribute-vector))
 
 	intents (take-while identity
-			    (iterate #(next-closed-set attribute-count clop %) (BitSet.)))]
+			    (iterate #(next-closed-set object-count
+						       attribute-count
+						       incidence-matrix
+						       %)
+				     (BitSet.)))]
     (map (fn [bitset]
-	   [(to-hashset object-vector (attribute-prime bitset))
+	   [(to-hashset object-vector (bitwise-attribute-derivation incidence-matrix
+								    object-count
+								    attribute-count
+								    bitset))
 	    (to-hashset attribute-vector bitset)])
 	 intents)))
 
 
-;; Krajca-Outrata-Vychodil (:vok)
+;; Vychodil (:vychodil)
 
-(defn- create-structures-for-vok
+(defn create-structures-for-vok
   ""
   [context]
   (let [object-vector (vec (objects context))
@@ -187,9 +191,7 @@
      object-count  attribute-count
      incidence-matrix  rows]))
 
-(set! *warn-on-reflection* true)
-
-(defn- compute-closure
+(defn compute-closure
   ""
   [object-count attribute-count incidence-matrix rows #^BitSet A #^BitSet B y]
   (let [#^BitSet C (BitSet.)
@@ -206,40 +208,34 @@
 	  (.set D j false))))
     [C, D]))
 
-(defn- generate-from
+(defn generate-from
   ""
-  [object-count attribute-count incidence-matrix rows #^BitSet A #^BitSet B y]
+  [object-count, attribute-count, incidence-matrix, rows, #^BitSet A, #^BitSet B, y]
   (lazy-seq
     (cons [A, B]
 	  (if (or (== attribute-count (.cardinality B))
-		  (>= y attribute-count))
+		  (>= (int y) (int attribute-count)))
 	    nil
-	    (apply concat
-		   (for [j (range y attribute-count)]
-		     (when (not (.get B j))
-		       (let [new-concept (compute-closure object-count
-							  attribute-count
-							  incidence-matrix
-							  rows
-							  A B j)
-			     #^BitSet C (first new-concept)
-			     #^BitSet D (second new-concept)
-			     skip (loop [k 0]
-				    (cond
-				      (== k j)
-				      false,
-				      (not= (.get D k) (.get B k))
-				      true,
-				      :else
-				      (recur (int (inc k)))))]
-			 (when (not skip)
-			   (generate-from object-count
-					  attribute-count
-					  incidence-matrix
-					  rows
-					  C D (inc j)))))))))))
+	    (for [j (range (int y) (int attribute-count))
+		  :when (not (.get B j))
+		  :let [[#^BitSet C, #^BitSet D] (compute-closure object-count attribute-count,
+								  incidence-matrix rows,
+								  A B j)
+			skip (loop [k (int 0)]
+			       (cond
+				 (== k j)
+				 false,
+				 (not= (.get D k) (.get B k))
+				 true,
+				 :else
+				 (recur (inc k))))]
+		  :when (not skip)
+		  next-concept (generate-from object-count attribute-count,
+					      incidence-matrix rows,
+					      C D (inc j))]
+	      next-concept)))))
 
-(defmethod concepts :vok [_ context]
+(defmethod concepts :vychodil [_ context]
   (let [[object-vector attribute-vector
 	 object-count attribute-count
 	 incidence-matrix rows]
