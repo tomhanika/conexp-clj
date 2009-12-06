@@ -40,16 +40,21 @@
   "Returns all tasks remaining for given ns, given as sequence of strings."
   [ns-as-seq]
   (if (empty? ns-as-seq)
-    nil
+    *conexp-todo-list*
     (let [runner (fn runner [todo-list keys]
-		   (if (or (not todo-list)
-			   (empty? keys))
-		     todo-list
-		     (recur ((if (vector? todo-list)
-			       (last todo-list)
-			       todo-list)
-			     (first keys))
-			    (rest keys))))]
+		   (cond
+		     (or (not todo-list)
+			 (empty? keys))
+		     todo-list,
+		     (vector? todo-list)
+		     (assoc todo-list
+		       (dec (count todo-list))
+		       {(first keys) (runner ((last todo-list)
+					      (first keys))
+					     (rest keys))}),
+		     (map? todo-list)
+		     {(first keys) (runner (todo-list (first keys))
+					   (rest keys))}))]
       (runner *conexp-todo-list* ns-as-seq))))
 
 (defn- format-output
