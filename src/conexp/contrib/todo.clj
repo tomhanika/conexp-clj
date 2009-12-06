@@ -31,7 +31,7 @@
 			 { "util"     [ "Add more tests." ],
 			   "base"     [ "Check whether everything has been tested." ],
 			   "fca"      { "contexts" [ "Finish tests." ],
-					"implications " [ "Finish tests." ] }, } ] },
+					"implications" [ "Finish tests." ] }, } ] },
     "doc"    [ "Add docstrings for namespaces.",
 	       "Add docstrings for all functions.",
 	       "Extend LaTeX-Documentation." ] })
@@ -52,14 +52,38 @@
 			    (rest keys))))]
       (runner *conexp-todo-list* ns-as-seq))))
 
+(defn- format-output
+  "Formats structure given as human-readable output.
+
+  This implementation is ugly."
+  ([object]
+     (format-output object 0))
+  ([object indent]
+     (cond
+       (string? object)
+       (str (apply str (repeat indent \space)) object "\n"),
+       (vector? object)
+       (apply str
+	      (map #(format-output % indent) object)),
+       (map? object)
+       (apply str
+	      (for [key (keys object)]
+		(apply str
+		       (apply str (repeat indent \space))
+		       key
+		       ":\n"
+		       (format-output (object key) (+ indent 2))))),
+       :else
+       nil)))
+
 (defn what-is-left?
   "Returns, given a namespace (as Symbol, String or Namespace), the
   task to be done there."
   ([]
-     (what-is-left? "conexp"))
+     (print (format-output *conexp-todo-list*)))
   ([ns]
      (let [ns-as-seq (re-split #"\." (str ns))
 	   tasks (access-todo-list ns-as-seq)]
-       (pprint tasks))))
+       (print (format-output tasks)))))
 
 nil
