@@ -72,6 +72,20 @@
 	      (int 0))))
     incidence-matrix))
 
+(defn to-binary-context
+  ""
+  [context]
+  (let [object-vector (vec (objects context))
+	attribute-vector (vec (attributes context))
+
+	object-count (count object-vector)
+	attribute-count (count attribute-vector)
+
+	incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))]
+    [object-vector attribute-vector,
+     object-count  attribute-count,
+     incidence-matrix]))
+
 (defn bitwise-object-derivation
   ""
   [incidence-matrix object-count attribute-count #^BitSet bitset]
@@ -118,16 +132,18 @@
   ""
   [object-count attribute-count incidence-matrix #^BitSet A i]
   (let [#^BitSet A-short (.clone A)
+	#^BitSet B (BitSet.)
 	i (int i)]
     (.set A-short i true)
     (.set A-short (inc i) (int attribute-count) false)
-    (bitwise-object-derivation incidence-matrix
-			       object-count
-			       attribute-count
-			       (bitwise-attribute-derivation incidence-matrix
-							     object-count
-							     attribute-count
-							     A-short))))
+    (dotimes [obj object-count]
+      (if (forall-in-bitset A-short att (== 1 (deep-aget ints incidence-matrix obj att)))
+	(.set B obj)))
+    (dotimes [att attribute-count]
+      (if (and (not (.get A-short att))
+	       (forall-in-bitset B obj (== 1 (deep-aget ints incidence-matrix obj att))))
+	(.set A-short att)))
+    A-short))
 
 (defn next-closed-set
   ""
@@ -168,29 +184,6 @@
 
 
 ;; Vychodil (:vychodil)
-
-(defn vychodil-create-structures
-  ""
-  [context]
-  (let [object-vector (vec (objects context))
-	attribute-vector (vec (attributes context))
-
-	object-count (count object-vector)
-	attribute-count (count attribute-vector)
-
-	incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))
-
-	rows (into-array (map (fn [y]
-				(let [#^BitSet bs (BitSet.)]
-				  (.set bs y)
-				  (bitwise-attribute-derivation incidence-matrix
-								object-count
-								attribute-count
-								bs)))
-			      (range attribute-count)))]
-    [object-vector attribute-vector
-     object-count  attribute-count
-     incidence-matrix  rows]))
 
 (defn compute-closure
   ""
@@ -239,8 +232,17 @@
 (defmethod concepts :vychodil [_ context]
   (let [[object-vector attribute-vector
 	 object-count attribute-count
-	 incidence-matrix rows]
-	(vychodil-create-structures context)
+	 incidence-matrix]
+	(to-binary-context context)
+
+	rows (into-array (map (fn [y]
+				(let [#^BitSet bs (BitSet.)]
+				  (.set bs y)
+				  (bitwise-attribute-derivation incidence-matrix
+								object-count
+								attribute-count
+								bs)))
+			      (range attribute-count)))
 
 	empty-down (bitwise-attribute-derivation incidence-matrix
 						 object-count
@@ -257,8 +259,8 @@
 			incidence-matrix rows,
 			empty-down empty-down-up 0))))
 
-
 ;; In-Close (:in-close)
+
 
 ;;; Luxenburger Basis
 
