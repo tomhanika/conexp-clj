@@ -96,11 +96,12 @@
   "Computes concepts with various algorithms, given as first argument."
   (fn [& args] (first args)))
 
+
 ;; NextClosure with BitSets (:next-closure)
 
 (defn lectic-<_i
   ""
-  [base-count i #^BitSet A #^BitSet B]
+  [i #^BitSet A #^BitSet B]
   (let [i (int i)]
     (and (.get B i)
 	 (not (.get A i))
@@ -139,7 +140,7 @@
       (recur (dec i)),
       :else
       (let [A_i (oplus object-count attribute-count incidence-matrix A i)]
-	(if (lectic-<_i attribute-count i A A_i)
+	(if (lectic-<_i i A A_i)
 	  A_i
 	  (recur (dec i)))))))
 
@@ -168,7 +169,7 @@
 
 ;; Vychodil (:vychodil)
 
-(defn create-structures-for-vok
+(defn vychodil-create-structures
   ""
   [context]
   (let [object-vector (vec (objects context))
@@ -239,7 +240,7 @@
   (let [[object-vector attribute-vector
 	 object-count attribute-count
 	 incidence-matrix rows]
-	(create-structures-for-vok context)
+	(vychodil-create-structures context)
 
 	empty-down (bitwise-attribute-derivation incidence-matrix
 						 object-count
@@ -252,9 +253,14 @@
     (map (fn [pair]
 	   [(to-hashset object-vector (first pair))
 	    (to-hashset attribute-vector (second pair))])
-	 (generate-from object-count attribute-count incidence-matrix rows empty-down empty-down-up 0))))
+	 (generate-from object-count attribute-count,
+			incidence-matrix rows,
+			empty-down empty-down-up 0))))
+
 
 ;; In-Close (:in-close)
+
+;;; Luxenburger Basis
 
 ;;;
 
