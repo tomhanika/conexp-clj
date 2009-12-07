@@ -1,6 +1,7 @@
 (ns #^{:doc "Algorithms which work with bits to improve performance."}
   conexp.contrib.algorithms.bitwise
   (:import [java.util BitSet])
+  (:import [java.util.concurrent SynchronousQueue])
   (:use [clojure.contrib.seq-utils :only (indexed)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)]))
 
@@ -204,30 +205,29 @@
 
 (defn generate-from
   ""
-  [object-count, attribute-count, incidence-matrix, rows, #^BitSet A, #^BitSet B, y]
-  (lazy-seq
-    (cons [A, B]
-	  (if (or (== attribute-count (.cardinality B))
-		  (>= (int y) (int attribute-count)))
-	    nil
-	    (for [j (range (int y) (int attribute-count))
-		  :when (not (.get B j))
-		  :let [[#^BitSet C, #^BitSet D] (compute-closure object-count attribute-count,
-								  incidence-matrix rows,
-								  A B j)
-			skip (loop [k (int 0)]
-			       (cond
-				 (== k j)
-				 false,
-				 (not= (.get D k) (.get B k))
-				 true,
-				 :else
-				 (recur (inc k))))]
-		  :when (not skip)
-		  next-concept (generate-from object-count attribute-count,
-					      incidence-matrix rows,
-					      C D (inc j))]
-	      next-concept)))))
+  [object-count, attribute-count, incidence-matrix, rows, #^BitSet A, #^BitSet B, y, #^SynchronousQueue queue]
+  (.put queue [A, B])
+  (if (or (== attribute-count (.cardinality B))
+	  (>= (int y) (int attribute-count)))
+    nil
+    (doseq [j (range (int y) (int attribute-count))
+	    :when (not (.get B j))
+	    :let [[#^BitSet C, #^BitSet D] (compute-closure object-count attribute-count,
+							    incidence-matrix rows,
+							    A B j)
+		  skip (loop [k (int 0)]
+			 (cond
+			   (== k j)
+			   false,
+			   (not= (.get D k) (.get B k))
+			   true,
+			   :else
+			   (recur (inc k))))]
+	    :when (not skip)]
+      (generate-from object-count attribute-count,
+		     incidence-matrix rows,
+		     C D (inc j)
+		     queue))))
 
 (defmethod concepts :vychodil [_ context]
   (let [[object-vector attribute-vector
@@ -251,13 +251,20 @@
 	empty-down-up (bitwise-object-derivation incidence-matrix
 						 object-count
 						 attribute-count
-						 empty-down)]
+						 empty-down)
+	queue (SynchronousQueue.)
+	worker (Thread. (fn []
+			  (generate-from object-count attribute-count,
+					 incidence-matrix rows,
+					 empty-down empty-down-up 0
+					 queue)
+			  (.put queue 1)))]
+    (.start worker)
     (map (fn [pair]
 	   [(to-hashset object-vector (first pair))
 	    (to-hashset attribute-vector (second pair))])
-	 (generate-from object-count attribute-count,
-			incidence-matrix rows,
-			empty-down empty-down-up 0))))
+	 (take-while #(not= 1 %)
+		     (repeatedly #(.take queue))))))
 
 ;; In-Close (:in-close)
 
