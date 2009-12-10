@@ -646,6 +646,12 @@
     (for [[G-H N] (concepts compatible-ctx)]
       (make-context (difference (objects ctx) G-H) N (incidence ctx)))))
 
+(defn restrict-concept
+  "Restricts the given concept to the given subcontext."
+  [concept subcontext]
+  [(intersection (first concept) (objects subcontext)),
+   (intersection (second concept) (attributes subcontext))])
+
 ;;;
 
 nil
