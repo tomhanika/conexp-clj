@@ -268,6 +268,20 @@
 
 ;; In-Close (:in-close)
 
+(defn in-close
+  ""
+  [object-count attribute-count incidence-matrix A B r y]
+  )
+
+(defn is-cannonical?
+  ""
+  [object-count attribute-count incidence-matrix A B r y]
+  )
+
+(defmethod concepts :in-close [_ context]
+  )
+
+
 
 ;;; Luxenburger Basis
 
