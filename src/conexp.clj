@@ -11,8 +11,30 @@
 			   conexp.graphics
 			   conexp.gui])
 
-(dorun (map immigrate *conexp-namespaces*))
+(dorun
+ (map immigrate *conexp-namespaces*))
 
-(def *conexp-version* 1258749450039)
+(def *conexp-version* {:major 0,
+		       :minor 1,
+		       :timestamp 1260608018834,
+		       :qualifier "pre-alpha"})
+
+(defn conexp-version
+  "Returns the version of conexp as a string."
+  []
+  (let [{:keys [major minor timestamp qualifier]} *conexp-version*]
+    (str major "." minor "." timestamp "_" qualifier)))
+
+(defn has-version?
+  "Compares given version of conexp and returns true if and only if
+  the current version of conexp is higher or equal than the given one"
+  [{my-major :major, my-minor :minor, my-timestamp :timestamp}]
+  (let [{:keys [major, minor, timestamp]} *conexp-version*]
+    (or (and (< my-major major))
+	(and (= my-major major)
+	     (< my-minor minor))
+	(and (= my-major major)
+	     (= my-minor minor)
+	     (<= my-timestamp timestamp)))))
 
 nil
