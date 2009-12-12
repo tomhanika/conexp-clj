@@ -8,20 +8,20 @@
 		       make-context,
 		       set-of)]))
 
-(defn homomorphism-by-csc
+(defn- homomorphism-by-csc
   "Returns the homomorphisms obtained by resticting every concept to the
   given compatible subcontext. (csc == compatible subcontext)"
   [subcontext]
   (fn [concept]
     (restrict-concept concept subcontext)))
 
-(defn homomorphisms-by-cscs
+(defn- homomorphisms-by-cscs
   "Returns all homomorphisms originating from compatible
   subcontexts. context has to be reduced."
   [context]
   (map homomorphism-by-csc (compatible-subcontexts context)))
 
-(defn endofunctions-as-hash ; name is misleading
+(defn- endofunctions-as-hash ; name is misleading
   "Given a homomorphisms which has been obtained by a compatible
   subcontext this function computes a hash representing all
   endofunctions of context originating from this homomorphism. The
@@ -33,7 +33,7 @@
 	  {}
 	  (concepts context)))
 
-(defn endofunctions-from-hash ; name is misleading
+(defn- endofunctions-from-hash ; name is misleading
   "Computes all endofunctions (as a hash) in endo-hash."
   [endo-hash]
   (let [runner (fn runner [func rem]
@@ -46,12 +46,12 @@
 		       fun))))]
     (runner {} (seq endo-hash))))
 
-(defn endofunctions-by-homomorphism ; name is misleading
+(defn- endofunctions-by-homomorphism ; name is misleading
   "Returns all endofunctions obtained by homomorphism."
   [context hom]
   (endofunctions-from-hash (endofunctions-as-hash context hom)))
 
-(defn retract?
+(defn- retract?
   "Tests whether given concept endofunction, given as hash-map, is a
   retract of context or not."
   [context endo]
