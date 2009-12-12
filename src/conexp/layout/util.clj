@@ -9,9 +9,6 @@
   [[x1 y1] [x2 y2] points]
   (if (empty? points)
     (illegal-argument (str "Cannot scale empty sequence of points.")))
-  (if (or (= x1 x2)
-	  (= y1 y2))
-    (illegal-argument (str "Cannot scale to rectangle with size 0.")))
   (let [[x0 y0] (first points)
 	[x_min y_min x_max y_max] (loop [x_min x0
 					 y_min y0
