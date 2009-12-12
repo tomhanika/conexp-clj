@@ -67,7 +67,7 @@
 				     (set-of [g m] [[objs atts] imgs,
 						    g objs,
 						    m atts]))]
-	   (= (count (concepts context))
+	   (= (count (distinct imgs))
 	      (count (concepts img-ctx)))))))
 
 (defn retracts
