@@ -36,21 +36,30 @@
 ;;                100)
 ;;   -> (0 1 2 3 ...)
 
+(set! *warn-on-reflection* true)
+
 (defmacro make-generator
   ""
   [function]
-  `(let [#^SynchronousQueue queue# (SynchronousQueue.),
-	 end# (atom false)]
-     (letfn [(~(symbol "yield") [x#] (.put queue# x#))]
-       (fn [& args#]
+  `(fn [& args#]
+     (let [#^SynchronousQueue queue# (SynchronousQueue.),
+	   end# (atom false),
+	   eos# (Object.)]
+       (letfn [(~(symbol "yield") [x#] (.put queue# x#))]
 	 (.start (Thread. (fn []
 			    (apply ~function args#)
-			    (swap! end# (constantly true)))))
+			    (.put queue# eos#))))
 	 (fn []
-	   (if @end# ; -> race condition! (if we are faster than our thread we may halt here)
-	     (throw
-	      (java.util.NoSuchElementException. "No more elements to generate."))
-	     (.take queue#)))))))
+	   (let [next# (if @end#
+			 eos#
+			 (let [new# (.take queue#)]
+			   (if (= new# eos#)
+			     (reset! end# true))
+			   new#))]
+	     (if @end#
+	       (throw
+		(java.util.NoSuchElementException. "No more elements to generate."))
+	       next#)))))))
 
 (defmacro defg
   ""
