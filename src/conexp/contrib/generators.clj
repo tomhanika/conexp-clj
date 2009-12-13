@@ -47,7 +47,7 @@
 			    (apply ~function args#)
 			    (swap! end# (constantly true)))))
 	 (fn []
-	   (if @end#
+	   (if @end# ; -> race condition! (if we are faster than our thread we may halt here)
 	     (throw
 	      (java.util.NoSuchElementException. "No more elements to generate."))
 	     (.take queue#)))))))
