@@ -98,43 +98,43 @@ the command
 and you will see something like
 \begin{conexp}
   Clojure 1.1.0-alpha-SNAPSHOT
-  §\p conexp>§
+  §\p conexp=>§
 \end{conexp}
 This is a Clojure-\emph{REPL} (Read-Eval-Print-Loop) which gives us access to all functions
 available in \conexpclj. Let's have a look at a sample session.
 
 \begin{Example}~
-\begin{conexp}
-  §\p user>§ (§\s def§ ctx (§\s make-context§ #{1 2 3} #{1 2 3} #{[1 2] [2 2] [3 3]}))
-  #'user/ctx
-  §\p user>§ ctx
-  #<Context
-    |1 2 3
-  --+------
-  1 |. x .
-  2 |. x .
-  3 |. . x
-  >
-  §\p user>§ (§\s stem-base§ ctx)
-  #{#<Implication ( #{1}  ==>  #{2 3} )> #<Implication ( #{2 3}  ==>  #{1} )>}
-  §\p user>§ (§\s reduced?§ ctx)
-  false
-  §\p user>§ (§\s reduce-context§ ctx)
-  #<Context
-    |2 3
-  --+----
-  1 |x .
-  3 |. x
-  >
-  §\p user>§
-\end{conexp}
+  \begin{conexp}
+    §\p conexp=>§ (§\s def§ ctx (§\s make-context§ #{1 2 3} #{1 2 3} #{[1 2] [2 2] [3 3]}))
+    #'user/ctx
+    §\p conexp=>§ ctx
+    #<Context
+      |1 2 3
+    --+------
+    1 |. x .
+    2 |. x .
+    3 |. . x
+    >
+    §\p conexp=>§ (§\s stem-base§ ctx)
+    #{#<Implication ( #{1}  ==>  #{2 3} )> #<Implication ( #{2 3}  ==>  #{1} )>}
+    §\p conexp=>§ (§\s reduced?§ ctx)
+    false
+    §\p conexp=>§ (§\s reduce-context§ ctx)
+    #<Context
+      |2 3
+    --+----
+    1 |x .
+    3 |. x
+    >
+    §\p conexp=>§
+  \end{conexp}
 
-It is obvious what we are doing here: First we define the context
-$(\set{1,2,3},\set{1,2,3},\break\set{(1,2),(2,2),(3,3)})$, then compute its stem base, find out that
-this context is not reduced (which is no surprise) and reduce it. This can all be guessed but the
-actual syntax looks quite strange and very unfamiliar to those who never have seen some Lisp before
-(or have and did not like it). But this syntax is very simple and easy to learn, so let us have some
-closer look at it.
+  It is quite obvious what we are doing here: First we define the context
+  $(\set{1,2,3},\set{1,2,3},\break\set{(1,2),(2,2),(3,3)})$, then compute its stem base, find out that
+  this context is not reduced (which is no surprise) and reduce it. This can all be guessed but the
+  actual syntax looks quite strange and very unfamiliar to those who never have seen some Lisp before
+  (or have and did not like it). But this syntax is very simple and easy to learn, so let us have some
+  closer look at it.
 \end{Example}
 
 \subsection{Some Basic Lisp}
@@ -149,6 +149,8 @@ Parantheses are not bad.
 \subsubsection{Reading and Writing Contexts}
 
 \subsubsection{Context Algebra}
+
+\subsubsection{Faster Algorithms for Computing Concepts}
 
 
 \section{Obtaining and Installing \conexpclj}
@@ -175,7 +177,6 @@ See \url{http://www.math.tu-dresden.de/~borch/conexp-clj}.
 
 \begin{itemize}
 \item Drawing Lattices
-\item Association Rules
 \end{itemize}
 
 
@@ -196,6 +197,8 @@ See \url{http://www.math.tu-dresden.de/~borch/conexp-clj}.
 \section{conexp.layout}
 
 \section{conexp.gui}
+
+\section{conexp.contrib}
 
 
 \chapter{Function Index}
