@@ -43,24 +43,6 @@
 ;; NoSuchElementExceptions when there is nothing left to
 ;; generate. (See also iterators)
 
-;; Note: Execution is running upto the first yield and does not start
-;; when we need a value. If you therefore use generators for lazy
-;; sequences, the first value is computed in any case. (This is
-;; acutally a real problem, but the next note wouldn't be funny if I
-;; named it "Problem"...)
-;; Idea: Use a delivery- and a demand-queue, send 1 on demand-queue
-;; such that worker thread can work (waited on this queue upto then,
-;; ignores value) and puts next value into delivery-queue. Consumer
-;; thread then explicitly demands and consumes values.
-;; For this we need to change
-;;   the worker thread
-;;   the definition of yield
-;;   the consumer implementation
-;; all of which are in make-generator
-
-;; Note: This code is cluttered with notes ;)
-
-
 ;; Generators
 
 (defmacro- make-generator
@@ -70,17 +52,23 @@
   calls."
   [function]
   `(fn [& args#]
-     (let [#^SynchronousQueue queue# (SynchronousQueue.),
+     (let [#^SynchronousQueue demand-queue# (SynchronousQueue.),   ; send demands to worker thread
+	   #^SynchronousQueue delivery-queue# (SynchronousQueue.), ; deliver results to consumer thread
 	   end# (atom false),
 	   eos# (Object.)]
-       (letfn [(~(symbol "yield") [x#] (.put queue# x#))]
+       (letfn [(~(symbol "yield") [x#]
+		(.put delivery-queue# x#)
+		(.take demand-queue#))]
 	 (.start (Thread. (fn []
+			    (.take demand-queue#)
 			    (apply ~function args#)
-			    (.put queue# eos#))))
+			    (.put delivery-queue# eos#))))
 	 (fn []
 	   (let [next# (if @end#
 			 eos#
-			 (let [new# (.take queue#)]
+			 (let [new# (do
+				      (.put demand-queue# 1)
+				      (.take delivery-queue#))]
 			   (if (= new# eos#)
 			     (reset! end# true))
 			   new#))]
@@ -129,7 +117,7 @@
 (defmacro generate-by
   "Colletcs all values \"yield\"ed by the function. The definition of
   function may use the special function \"yield\" with an additional
-  argument. All these values are than collected into a lazy sequence[1].
+  argument. All these values are than collected into a lazy sequence.
 
   Example:
 
@@ -148,9 +136,6 @@
                  5)
     -> ()
 
-  [1] Actually, the first value is always computed due to
-  implementation limitations (or limitations of my creativity, judge
-  for youself).
   "
   [function & args]
   `(generate ((make-generator ~function) ~@args)))
