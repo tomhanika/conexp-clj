@@ -1,4 +1,5 @@
-(ns #^{:doc "Package for computing retracts from formal contexts."}
+(ns
+    #^{:doc "Package for computing retracts from formal contexts."}
   conexp.contrib.retracts
   (:use [conexp :only (concepts,
 		       objects, object-derivation,
@@ -6,7 +7,8 @@
 		       compatible-subcontexts,
 		       restrict-concept,
 		       make-context,
-		       set-of)]))
+		       set-of)])
+  (:use [clojure.contrib.pprint :only (cl-format)]))
 
 (defn- homomorphism-by-csc
   "Returns the homomorphisms obtained by resticting every concept to the
@@ -83,5 +85,24 @@
 					 (map (comp endo hom) concepts)))]
 	    :when (retract? context ret)]
 	ret))))
+
+(defn- retract-to-pprint-str
+  "Pretty prints a retract of context."
+  [retract]
+  (let [key-value-pairs (sort (fn [[[A_1, _] _] [[A_2, _] _]]
+				(< 0 (compare (vec A_1) (vec A_2))))
+			      (seq retract)),
+	string-pairs (map #(map str %) key-value-pairs),
+	max-key (reduce max 0 (map (comp count first) string-pairs)),
+	max-val (reduce max 0 (map (comp count second) string-pairs))]
+    (map (fn [[k v]]
+	   (cl-format nil (str "~" max-key "@A  +->  ~" max-val "@A") k v))
+	 string-pairs)))
+
+(defn pprint-retracts
+  "Pretty prints retracts of context"
+  [context]
+  (doseq [r (retracts context)]
+    (cl-format true "~&~{~a~^~%~}~%~%" (retract-to-pprint-str r))))
 
 nil
