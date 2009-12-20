@@ -293,6 +293,20 @@
 	new-att (set (map second uda))]
     (make-context new-obj new-att (incidence ctx))))
 
+(defn reduce-context-objects
+  "Object reduction for ctx."
+  [ctx]
+  (make-context (set-of g [[g _] (down-arrows ctx)])
+		(attributes ctx)
+		(incidence ctx)))
+
+(defn reduce-context-attributes
+  "Attribute reduction for ctx."
+  [ctx]
+  (make-context (objects ctx)
+		(set-of m [[_ m] (up-arrows ctx)])
+		(incidence ctx)))
+
 (defn reduce-context
   "Reduces context ctx."
   [ctx]
@@ -653,5 +667,14 @@
    (intersection (second concept) (attributes subcontext))])
 
 ;;;
+
+(defn context-for-clop
+  "Returns a minimal context describing the closure operator clop on base-set."
+  ; unfinished
+  [base-set clop]
+  (let [objects (all-closed-sets base-set clop), ; we actually only need the inf-irr closures
+	attributes base-set
+	incidence contains?]
+    (reduce-context-objects (make-context objects attributes incidence))))
 
 nil

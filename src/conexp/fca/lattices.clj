@@ -179,6 +179,7 @@
 (defn standard-context [lat]
   (make-context (lattice-sup-irreducibles lat)
 		(lattice-inf-irreducibles lat)
-		(order lat)))
+		(fn [x y] 
+		  ((order lat) [x y]))))
 
 nil
