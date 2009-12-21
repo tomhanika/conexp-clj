@@ -12,7 +12,8 @@
 	       "fca"    { "rules"    [ "Think about and write some code." ],
 			  "retracts" [ "Implement first thoughts of F. Kästner." ],
 			  "association-rules" [ "More?" ],
-			  "exploration" [ "Add background knowledge (implications or clauses)." ] },
+			  "exploration" [ "Add background knowledge (implications or clauses)." ],
+			  "contexts" [ "Better implementation for context-for-clop." ] },
 
 	       "graphics" { "draw"   [ "Implement full lattice editor" ],
 			    "base"   [ "Get current lattice layout from a GScene." ] },
@@ -24,7 +25,8 @@
 
 	       "contrib" { "fuzzy"   [ "Design and implement something for FuzzyFCA (Cynthia)." ],
 			   "rough"   [ "Design and implement something for RoughSets (Christian)." ],
-			   "algorithms" { "bitwise" [ "Add In-Close and fast Calculations for Luxenburger Bases." ],
+			   "algorithms" { "bitwise" [ "Add In-Close and fast Calculations for Luxenburger Bases.",
+						      "Add preconditioned NextClosure." ],
 					  "parallel" [ "Implement ParallelNextClosure and Krajca-Outrata-Vychodil." ] } },
 
 	       "tests"  ["Add tests for everything.",
