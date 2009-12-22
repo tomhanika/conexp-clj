@@ -10,7 +10,6 @@
 			  "zschalig" [ "Implement initial positioning and force distribution layout as described by C. Zschalig."] },
 
 	       "fca"    { "rules"    [ "Think about and write some code." ],
-			  "retracts" [ "Implement first thoughts of F. Kästner." ],
 			  "association-rules" [ "More?" ],
 			  "exploration" [ "Add background knowledge (implications or clauses)." ],
 			  "contexts" [ "Better implementation for context-for-clop." ] },
