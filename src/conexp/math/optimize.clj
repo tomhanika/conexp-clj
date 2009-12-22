@@ -2,18 +2,20 @@
   (:use conexp.math.util
 	conexp.base)
   (:import [org.apache.commons.math.optimization RealPointValuePair GoalType]
-	   [org.apache.commons.math.optimization.direct NelderMead]
-	   [org.apache.commons.math.optimization.general NonLinearConjugateGradientOptimizer
+	   [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead]
+	   [org.apache.commons.math.optimization.general AbstractScalarDifferentiableOptimizer
+	                                                 NonLinearConjugateGradientOptimizer
 	                                                 ConjugateGradientFormula]))
 
-(defvar *direct-optimizer* (NelderMead.)
+(defvar #^DirectSearchOptimizer *direct-optimizer* (NelderMead.)
   "Direct optimizer used by directly-optimize")
-(defvar *differential-optimizer* (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES)
+(defvar #^AbstractScalarDifferentiableOptimizer *differential-optimizer*
+  (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES)
   "Optimizer for differentiable functions used by differentially-optimize.")
 
 (defn point-value-pair-to-vector
   "Converts RealPointValuePair to a point-value-vector."
-  [pvp]
+  [#^RealPointValuePair pvp]
   [(vec (.getPoint pvp)) (.getValue pvp)])
 
 (defn directly-optimize
