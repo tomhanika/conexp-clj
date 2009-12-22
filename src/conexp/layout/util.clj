@@ -53,27 +53,65 @@
 		   (let [order (order lattice)]
 		     (filter #(order [% x]) (base-set lattice))))))))
 
+(defn edges
+  "Returns a sequence of pairs of vertices of lattice which are
+  directly neighbored in lattice."
+  [lattice]
+  (for [x (base-set lattice),
+	y (base-set lattice),
+	:when (directly-neighboured? lattice x y)]
+    [x y]))
+
 
 ;;; inf-irreducible additive layout
 
-(defn vector-plus
+(defn- vector-plus
   "Implements pointwise plus for vectors."
   [vec1 vec2]
   (vec (map + vec1 vec2)))
 
-(defn place-inf-irr-by-coatoms
+(defn- place-inf-irr-by-coatoms
   "Places all other inf-irreducible elements of lattice by placement
   of coatoms."
   [lattice placement]
-  'to-be-done)
+  (let [inf-irrs (lattice-inf-irreducibles lattice),
+
+	;; determine minimal distance
+	;; is this a good idea? -> lattice gets "noisy" downwards
+	offset (fn []
+		 [(- (rand) 0.5), -1]),
+
+	pos (memo-fn pos [v]
+	      (if (contains? placement v)
+		(get placement v)
+		(reduce (fn [[x y] w]
+			  (if (or (= v w)
+				  (not ((order lattice) [v w])))
+			    [x y]
+			    (vector-plus [x y] (pos w))))
+			(offset)
+			inf-irrs)))]
+    (hash-by-function pos inf-irrs)))
 
 (defn layout-by-coatom-placement
   "Computes inf-irreducible additive layout of lattice by given
-  positions of the coatoms of lattice. placement should be a hash-map
-  with the coatoms of lattice as keys and positions as values."
-  [lattice placement]
-  (let [inf-irr (place-inf-irr-by-coatoms lattice placement)]
-    ; then place all others
-    'to-be-done))
+  positions of the coatoms of lattice. coatom-placement should be a
+  hash-map with the coatoms of lattice as keys and positions as
+  values."
+  [lattice coatom-placement]
+  (let [inf-irr-placement (place-inf-irr-by-coatoms lattice coatom-placement),
+	inf-irrs (lattice-inf-irreducibles lattice),
+	pos (fn pos [v]
+	      (if (contains? inf-irr-placement v)
+		(get inf-irr-placement v)
+		(reduce (fn [p w]
+			  (if ((order lattice) [v w])
+			    ;; no recursion, since v is not inf-irr, but w is
+			    (vector-plus p (pos w))
+			    p))
+			[0 0]
+			inf-irrs))),
+	overall-placement (hash-by-function pos (base-set lattice))]
+    [ overall-placement, (edges lattice) ]))
 
 nil

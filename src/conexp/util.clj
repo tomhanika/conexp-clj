@@ -203,4 +203,12 @@
 		  xs seen)))]
     (step sequence #{})))
 
+(defn hash-by-function
+  "Returns a hash with the values of keys as keys and their values under function as values."
+  [function keys]
+  (reduce (fn [map k]
+	    (assoc map k (function k)))
+	  {}
+	  keys))
+
 nil
