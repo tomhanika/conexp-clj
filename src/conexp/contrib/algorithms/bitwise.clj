@@ -169,17 +169,18 @@
 	object-count (int (count object-vector))
 	attribute-count (int (count attribute-vector))
 
+	o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count)
+	a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count)
+	start (o-prime (a-prime (BitSet.)))
+
 	intents (take-while identity
 			    (iterate #(next-closed-set object-count
 						       attribute-count
 						       incidence-matrix
 						       %)
-				     (BitSet.)))]
+				     start))]
     (map (fn [bitset]
-	   [(to-hashset object-vector (bitwise-attribute-derivation incidence-matrix
-								    object-count
-								    attribute-count
-								    bitset))
+	   [(to-hashset object-vector (a-prime bitset))
 	    (to-hashset attribute-vector bitset)])
 	 intents)))
 
