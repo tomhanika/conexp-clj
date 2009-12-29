@@ -73,13 +73,14 @@
   ""
   [object-vector attribute-vector incidence-relation]
   (let [incidence-matrix (make-array Integer/TYPE (count object-vector) (count attribute-vector))]
-    (doseq [obj-idx (range (count object-vector))
-	    att-idx (range (count attribute-vector))]
-      (aset incidence-matrix obj-idx att-idx
-	    (if (contains? incidence-relation [(nth object-vector obj-idx)
-					       (nth attribute-vector att-idx)])
-	      (int 1)
-	      (int 0))))
+    (dotimes [obj-idx (count object-vector)]
+      (let [#^ints row (aget #^objects incidence-matrix obj-idx)]
+	(dotimes [att-idx (count attribute-vector)]
+	  (aset row att-idx
+		(if (contains? incidence-relation [(nth object-vector obj-idx)
+						   (nth attribute-vector att-idx)])
+		  (int 1)
+		  (int 0))))))
     incidence-matrix))
 
 (defn to-binary-context
