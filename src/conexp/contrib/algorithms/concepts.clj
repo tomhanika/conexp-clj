@@ -191,11 +191,13 @@
   "Implements the InClose method of In-Close."
   [attribute-count incidence-matrix As Bs last current y]
   (swap! last + 1)
+  (assoc! As @last (BitSet.))
   (loop [j (int y)]
     (when (< j attribute-count)
-      (assoc! As @last
-	      (filter-bitset #(== 1 (deep-aget ints incidence-matrix % j))
-			     (get As current)))
+      (.clear #^BitSet (get As @last))
+      (dobits [i (get As current)]
+	(when (== 1 (deep-aget ints incidence-matrix i j))
+	  (.set #^BitSet (get As @last) i)))
       (if (== (.cardinality #^BitSet (get As current))
 	      (.cardinality #^BitSet (get As @last)))
 	(.set #^BitSet (get Bs current) j)
