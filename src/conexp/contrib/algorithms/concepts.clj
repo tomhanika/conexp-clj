@@ -4,7 +4,6 @@
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue]))
 
-
 (set! *warn-on-reflection* true)
 
 ;;; Concept Calculation
@@ -16,7 +15,7 @@
 
 ;; NextClosure with BitSets (:next-closure)
 
-(defn lectic-<_i
+(defn- lectic-<_i
   ""
   [i #^BitSet A #^BitSet B]
   (let [i (int i)]
@@ -31,7 +30,7 @@
 	     :else
 	     (recur (dec j)))))))
 
-(defn oplus
+(defn- oplus
   ""
   [object-count attribute-count incidence-matrix #^BitSet A i]
   (let [#^BitSet A-short (.clone A)
@@ -50,7 +49,7 @@
 	(.set A-short att)))
     A-short))
 
-(defn next-closed-set
+(defn- next-closed-set
   ""
   [object-count attribute-count incidence-matrix #^BitSet A]
   (loop [i (dec (int attribute-count))]
@@ -91,7 +90,7 @@
 
 ;; Vychodil (:vychodil)
 
-(defn compute-closure
+(defn- compute-closure
   ""
   [object-count attribute-count incidence-matrix rows #^BitSet A #^BitSet B y]
   (let [#^BitSet C (BitSet.)
@@ -108,7 +107,7 @@
 	  (.set D j false))))
     [C, D]))
 
-(defn generate-from
+(defn- generate-from
   ""
   [object-count, attribute-count, incidence-matrix, rows, #^BitSet A, #^BitSet B, y, #^SynchronousQueue queue]
   (.put queue [A, B])
@@ -157,6 +156,8 @@
 						 object-count
 						 attribute-count
 						 empty-down)
+
+	;; this is a hack; we may use conexp.contrib.generators instead?
 	queue (SynchronousQueue.)
 	worker (Thread. (fn []
 			  (generate-from object-count attribute-count,
@@ -174,20 +175,57 @@
 
 ;; In-Close (:in-close)
 
-(defn in-close
-  ""
-  [object-count attribute-count incidence-matrix A B r y]
-  )
+(defn- cannonical?
+  "Implements the IsCannonical method of In-Close."
+  [incidence-matrix, #^BitSet A-new, #^BitSet B, y]
+  (loop [j (dec (int y))]
+    (cond
+     (< j 0) true,
+     (.get B j) (recur (dec j)),
+     (forall-in-bitset [i A-new]
+       (== 1 (deep-aget ints incidence-matrix i j)))
+     false,
+     :else (recur (dec j)))))
 
-(defn cannonical?
-  ""
-  [attribute-count incidence-matrix A B y]
-  )
+(defn- in-close
+  "Implements the InClose method of In-Close."
+  [attribute-count incidence-matrix As Bs last current y]
+  (swap! last + 1)
+  (loop [j (int y)]
+    (when (< j attribute-count)
+      (assoc! As @last
+	      (filter-bitset #(== 1 (deep-aget ints incidence-matrix % j))
+			     (get As current)))
+      (if (== (.cardinality #^BitSet (get As current))
+	      (.cardinality #^BitSet (get As @last)))
+	(.set #^BitSet (get Bs current) j)
+	(when (cannonical? incidence-matrix (get As @last) (get Bs current) j)
+	  (assoc! Bs @last (.clone #^BitSet (get Bs current)))
+	  (.set #^BitSet (get Bs @last) j)
+	  (in-close attribute-count incidence-matrix As Bs last @last (+ j 1))))
+      (recur (inc j)))))
 
 (defmethod concepts :in-close [_ context]
-  )
+  (let [[object-vector attribute-vector,
+	 object-count attribute-count,
+	 incidence-matrix]
+	(to-binary-context context),
+
+	As (transient []),
+	Bs (transient []),
+
+	last (atom 0)]
+    (assoc! As 0 (BitSet.))
+    (.set #^BitSet (get As 0) 0 (int object-count))
+    (assoc! Bs 0 (BitSet.))
+    (in-close attribute-count incidence-matrix As Bs last 0 0)
+    (map (fn [A B]
+	   [(to-hashset object-vector A),
+	    (to-hashset attribute-vector B)])
+	 (persistent! As)
+	 (persistent! Bs))))
 
 
-;; Nourine, Bordat, Lindig?
+;; Close-by-One?, Nourine-Raynaud?, Bordat?, Lindig? Some other fancy stuff?
 
 nil

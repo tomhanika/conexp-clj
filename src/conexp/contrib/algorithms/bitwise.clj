@@ -1,5 +1,4 @@
-(ns #^{:doc "Algorithms which work with bits to improve performance."}
-  conexp.contrib.algorithms.bitwise
+(ns conexp.contrib.algorithms.bitwise
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue])
   (:use [clojure.contrib.seq-utils :only (indexed)])
@@ -13,9 +12,9 @@
 (defmacro deep-aget
   "Implements fast, type-hinted aget. From Christophe Grand."
   ([hint array idx]
-    `(aget ~(vary-meta array assoc :tag hint) ~idx))
+    `(aget ~(vary-meta array assoc :tag hint) (int ~idx)))
   ([hint array idx & idxs]
-    `(let [a# (aget ~(vary-meta array assoc :tag 'objects) ~idx)]
+    `(let [a# (aget ~(vary-meta array assoc :tag 'objects) (int ~idx))]
        (deep-aget ~hint a# ~@idxs))))
 
 (defmacro forall-in-bitset
@@ -41,6 +40,15 @@
 	 (do
 	   ~@body
 	   (recur (int (.nextSetBit bitset# (inc ~var)))))))))
+
+(defn filter-bitset
+  "Returns a new bitset of all bits in bitset for which predicate returns true."
+  [predicate bitset]
+  (let [result (BitSet.)]
+    (dobits [i bitset]
+      (when (predicate i)
+	(.set result i)))
+    result))
 
 (defn to-bitset
   ""

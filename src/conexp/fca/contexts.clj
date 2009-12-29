@@ -486,9 +486,11 @@
   (make-context-nc (objects ctx) (attributes ctx) (transitive-closure (incidence ctx))))
 
 (defn rand-context
-  "Randomly fills context on base-set with crosses and propability fill-rate."
-  [base-set fill-rate]
-  (make-context base-set base-set (fn [_ _] (> fill-rate (rand)))))
+  "Randomly fills context on base-sets with crosses and propability fill-rate."
+  ([base-set fill-rate]
+     (rand-context base-set base-set fill-rate))
+  ([objects attributes fill-rate]
+     (make-context objects attributes (fn [_ _] (> fill-rate (rand))))))
 
 (defn one-context
   "Returns context full of crosses."
