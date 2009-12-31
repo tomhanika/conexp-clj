@@ -10,10 +10,12 @@
 	clojure.contrib.core
 	conexp.util
 	conexp.gui.util
-	conexp.gui.repl))
+	conexp.gui.repl
+	conexp.gui.plugins))
 
      
 ;;; Menus
+;; TODO: Move implementation to conexp.gui.util
 
 (defn get-menubar 
   "Returns menubar of given frame."
@@ -84,6 +86,7 @@
 
 
 ;;; Tool Bar
+;; TODO: Move implementation to conexp.gui.util
 
 (defn get-toolbar 
   "Returns toolbar of given frame."
@@ -167,6 +170,11 @@
       (.setCaretColor Color/RED))
     (JScrollPane. rpl)))
 
+
+;;; Plugin Manager
+;; TODO: Write a function which adds a plugin manager to a given frame
+;; (defn add-plugin-manager [frame]
+;;   ... add menu for plugins ...)
 
 ;;; Conexp Main Frame
 
