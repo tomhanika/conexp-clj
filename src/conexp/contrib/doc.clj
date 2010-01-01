@@ -9,18 +9,18 @@
   [ns]
   (let [ns (find-ns ns)]
     (map (fn [[function var]]
-	   [function (str (:arglists ^var)
+	   [function (str (:arglists (meta var))
 			  "\n\n"
-			  (:doc ^var))])
+			  (:doc (meta var)))])
 	 (filter (fn [[f var]]
 		   (and (= (:ns (meta var)) ns)
-			(not (Character/isUpperCase (first (str f))))))
+			(not (Character/isUpperCase #^Character (first (str f))))))
 		 (ns-map ns)))))
 
 (defn tex-escape
   "Escapes special characters for \\TeX."
   [string]
-  (let [sb (StringBuilder.)
+  (let [#^StringBuilder sb (StringBuilder.)
 	string (str string)]
     (doseq [c string]
       (cond
@@ -64,7 +64,7 @@
   []
   (for [ns *conexp-namespaces*
 	[f var] (public-api ns)
-	:when (not (:doc ^var))]
+	:when (not (:doc (meta var)))]
     (symbol (str ns) (str f))))
 
 nil
