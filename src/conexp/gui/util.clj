@@ -6,7 +6,7 @@
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color]
 	   [java.awt.event KeyEvent ActionListener]
 	   [java.io File])
-  (:use conexp.base))
+  (:use [conexp.base :only (defvar)]))
 
 
 ;;; Helper functions

@@ -1,14 +1,12 @@
 (ns conexp.gui.base
-  (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
-	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
+  (:import [javax.swing JFrame JMenuBar JMenu JMenuItem JToolBar JPanel
+	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
-	   [java.awt GridLayout BorderLayout Dimension Image Font Color])
-  (:use clojure.contrib.repl-utils
-	clojure.contrib.core
-	conexp.util
-	conexp.gui.util
+	   [java.awt GridLayout BorderLayout Dimension Font Color])
+  (:use	conexp.gui.util
 	conexp.gui.repl
 	conexp.gui.plugins))
+
 
 ;;; Menus
 
@@ -53,9 +51,15 @@
 
 
 ;;; Plugin Manager
-;; TODO: Write a function which adds a plugin manager to a given frame
-;; (defn add-plugin-manager [frame]
-;;   ... add menu for plugins ...)
+
+(defn add-plugin-manager
+  "Adds a plugin-manager and all a corrsponding menu to frame."
+  ;; unfinished
+  [frame]
+  (let [plugin-manager (make-plugin-manager frame)]
+    ;; ... add menu for plugins ...
+    ))
+
 
 ;;; Conexp Main Frame
 
@@ -63,16 +67,22 @@
   "Returns main frame for conexp standard gui."
   []
   (let [main-frame (JFrame. "conexp-clj")]
+    ;; main setup (including menu)
     (doto main-frame
       (.setDefaultCloseOperation JFrame/DISPOSE_ON_CLOSE)
       (.setSize 1000 800)
       (.setJMenuBar (JMenuBar.))
-      (.setContentPane (JPanel. (BorderLayout.))))
-    (add-menus main-frame *standard-menus*)
+      (.setContentPane (JPanel. (BorderLayout.)))
+      (add-menus *standard-menus*)
+      (add-plugin-manager))
+
+    ;; toolbar setup
     (let [toolbar (JToolBar.)]
       (.setFloatable toolbar false)
       (.. main-frame getContentPane (add toolbar BorderLayout/PAGE_START))
       (add-icons main-frame *standard-icons*))
+
+    ;; tabbed-pane setup
     (let [tabbed-pane (JTabbedPane.)
 	  clj-repl    (make-repl)
 	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
@@ -84,7 +94,12 @@
 	(.setDividerLocation 1000))
       (doto (.getContentPane main-frame)
 	(.add split-pane BorderLayout/CENTER))
+      ;; for testing
       (add-tab main-frame (JLabel. "Test Tab")))
+
     main-frame))
+
+
+;;;
 
 nil
