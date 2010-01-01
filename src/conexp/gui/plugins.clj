@@ -15,7 +15,8 @@
     :load-hook fn-called-when-plugin-is-loaded
     :unload-hook fn-called-when-plugin-is-unloaded)
 
-  whereas the :unload-hook is optional."
+  whereas the :unload-hook is optional. All functions take the frame
+  the plugin-manager operates on as single argument"
   [name & hooks]
   (let [hooks (apply hash-map hooks)]
     (if (not (contains? hooks :load-hook))
@@ -60,7 +61,7 @@
     (illegal-argument "Plugin already be loaded."))
   (dosync
    (alter (loaded-plugins) conj plugin))
-  ((load-hook plugin)))
+  ((load-hook plugin) (base-frame plugin-manager)))
 
 (defn unload-plugin
   "Unloads a plugin from a plugin manager."
@@ -74,7 +75,7 @@
       (illegal-argument "Plugin didn't provide an unload-hook and can therefore not be unloaded."))
     (dosync
      (alter (loaded-plugins plugin-manager) disj plugin))
-    (unload-hook)))
+    (unload-hook (base-frame plugin-manager))))
 
 (defn unregister-plugin
   "Unregisters a plugin from a plugin manager."
@@ -83,5 +84,10 @@
     (unload-plugin plugin-manager plugin))
   (dosync
    (alter (registered-plugins plugin-manager) disj plugin)))
+
+
+;; TODO:
+;; searching for plugins in files and directories
+;; graphical plugin-browser (extra namespace)
 
 nil
