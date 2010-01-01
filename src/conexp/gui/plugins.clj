@@ -1,6 +1,9 @@
 (ns conexp.gui.plugins
   (:use conexp.util))
 
+
+;;; Basic Plugin Structure
+
 (defstruct plugin
   :load-hook
   :unload-hook)
@@ -21,7 +24,12 @@
   (let [hooks (apply hash-map hooks)]
     (if (not (contains? hooks :load-hook))
       (illegal-argument "Plugin has to provide a load-hook."))
-    `(def ~name (struct plugin ~(:load-hook hooks) ~(:unload-hook hooks)))))
+    `(def ~name (with-meta
+		  (struct plugin ~(:load-hook hooks) ~(:unload-hook hooks))
+		  {:conexp-gui-plugin true}))))
+
+
+;;; Plugin Manager for managing plugins
 
 (defstruct plugin-manager
   :base-frame
@@ -86,8 +94,35 @@
    (alter (registered-plugins plugin-manager) disj plugin)))
 
 
+;;; Searching for Plugins in Namespaces
+
+(defn plugins-from-namespace
+  "Returns all plugins defined in namespace ns."
+  [ns]
+  (filter (fn [var]
+	    (try
+	     (:conexp-gui-plugin (meta (deref var)))
+	     (catch Exception _ false)))
+	  (map second
+	       (ns-publics (find-ns ns)))))
+
+(defn plugins-from-loaded-libs
+  "Returns all plugins defined in all loaded libraries."
+  []
+  (for [ns (loaded-libs),
+	plugins (plugins-from-namespace ns)]
+    plugins))
+
+(defn plugins-from-file
+  "Returns all plugins defined in the file named by file-name."
+  [file-name]
+  (let [absolute-path (.getAbsolutePath (java.io.File. file-name))]
+    (load-file absolute-path)
+    (filter #(= (:file (meta %)) absolute-path)
+	    (plugins-from-loaded-libs))))
+
+
 ;; TODO:
-;; searching for plugins in files and directories
 ;; graphical plugin-browser (extra namespace)
 
 nil

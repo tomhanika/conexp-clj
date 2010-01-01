@@ -17,10 +17,10 @@
 	       "graphics" { "draw"   [ "Implement full lattice editor" ],
 			    "base"   [ "Get current lattice layout from a GScene." ] },
 
-	       "gui"    { "plugins"  [ "Design and implement.",
-				       { "contexteditor" [ "Design and implement." ],
-					 "latticeeditor" [ "Design and implement." ],
-					 "codeeditor"    [ "Design and implement." ] } ] },
+	       "gui"    { "plugins"  { "contexteditor" [ "Design and implement." ],
+				       "latticeeditor" [ "Design and implement." ],
+				       "codeeditor"    [ "Design and implement." ],
+				       "browser"       [ "Design and implement graphical plugin browser." ] } },
 
 	       "contrib" { "fuzzy"   [ "Design and implement something for FuzzyFCA (Cynthia)." ],
 			   "rough"   [ "Design and implement something for RoughSets (Christian)." ],
