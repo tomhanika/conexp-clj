@@ -3,34 +3,40 @@
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
 	   [java.awt GridLayout BorderLayout Dimension])
-  (:use conexp.gui.util
+  (:use [conexp.base :only (defvar-)]
+        conexp.gui.util
 	conexp.gui.repl
 	conexp.gui.plugins))
 
 
 ;;; Menus
 
-(def *main-menu* {:name "Main",
-		  :content [---
-			    {:name "Quit",
-			     :handler (fn [frame _]
-					(.dispose frame))}]})
+(defvar- *main-menu* {:name "Main",
+		      :content [---
+				{:name "Quit",
+				 :handler (fn [frame _]
+					    (.dispose frame))}]}
+  "Main menu for conexp-clj standard GUI.")
 
-(def *help-menu* {:name "Help",
-		  :content [{:name "License"}
-			    ---
-			    {:name "About"}]})
+(defvar- *help-menu* {:name "Help",
+		      :content [{:name "License"}
+				---
+				{:name "About"}]}
+  "Help menu for conexp-clj standard GUI.")
 
-(def *standard-menus* [*main-menu* === *help-menu*])
+(defvar- *standard-menus* [*main-menu* === *help-menu*]
+  "Standard menus for conexp-clj GUI.")
 
 
 ;;; Toolbar
 
-(def *quit-icon* {:name "Quit",
-		  :icon "???",
-		  :handler (fn [frame _] (.dispose frame))})
+(defvar- *quit-icon* {:name "Quit",
+		      :icon "???",
+		      :handler (fn [frame _] (.dispose frame))}
+  "Quit icon.")
 
-(def *standard-icons* [*quit-icon* |])
+(defvar- *standard-icons* [*quit-icon* |]
+  "Standard icons for conexp-clj GUI.")
 
 
 ;;; Conexp Main Frame
