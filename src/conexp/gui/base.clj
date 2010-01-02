@@ -32,7 +32,8 @@
 
 (defvar- *quit-icon* {:name "Quit",
 		      :icon "???",
-		      :handler (fn [frame _] (.dispose frame))}
+		      :handler (fn [frame _]
+				 (.dispose frame))}
   "Quit icon.")
 
 (defvar- *standard-icons* [*quit-icon* |]
