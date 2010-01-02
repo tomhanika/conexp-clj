@@ -63,7 +63,7 @@
 
     ;; tabbed-pane setup
     (let [tabbed-pane (JTabbedPane.)
-	  clj-repl    (make-repl)
+	  clj-repl    (make-repl main-frame)
 	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
       (doto split-pane
 	(.setTopComponent tabbed-pane)
