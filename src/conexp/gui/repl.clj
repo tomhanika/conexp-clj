@@ -2,9 +2,11 @@
   (:import [javax.swing.text PlainDocument]
 	   [java.io PushbackReader StringReader PipedWriter PipedReader 
 	            PrintWriter CharArrayWriter]
-	   [javax.swing KeyStroke AbstractAction JTextArea])
+	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane]
+	   [java.awt Font Color])
   (:require clojure.main)
-  (:use conexp.gui.util
+  (:use [conexp.base :only (defvar-)]
+	conexp.gui.util
 	[clojure.contrib.pprint :only (write)])
   (:gen-class
    :name "conexp.gui.repl.ClojureREPL"
@@ -23,9 +25,9 @@
 
 ;;; REPL
 
-(def *print-stack-trace-on-error* false)
+(defvar- *print-stack-trace-on-error* false)
 
-(defn eof-ex?
+(defn- eof-ex?
   "Returns true iff given throwable is an \"EOF while reading\" or \"Write 
   end dead\" exception not thrown from the repl." ; hopefully
   [throwable]
@@ -34,7 +36,7 @@
        (or (re-matches #".*EOF while reading.*" (.getMessage throwable))
 	   (re-matches #".*Write end dead.*" (.getMessage throwable)))))
 
-(defn create-clojure-repl []
+(defn- create-clojure-repl
   "This function creates an instance of clojure repl using piped in and out.
    It returns a map of two functions repl-fn and result-fn - first function
    can be called with a valid clojure expression and the results are read using
@@ -51,6 +53,7 @@
    You must not remove this notice, or any other, from this software.
 
    Author: Eric Thorsen, Narayan Singhal"
+  []
   (let [cmd-wtr (PipedWriter.)
         result-rdr (PipedReader.)
         piped-in (clojure.lang.LineNumberingPushbackReader. (PipedReader. cmd-wtr))
@@ -88,28 +91,28 @@
 		      (recur wtr)
 		      (.toString wtr))))}))
 
-(defn repl-in [rpl string]
+(defn- repl-in [rpl string]
   ((:repl-fn rpl) (str string "\n")))
 
-(defn repl-out [rpl]
+(defn- repl-out [rpl]
   (let [result ((:result-fn rpl))]
     result))
 
-(defn repl-interrupt [rpl]
+(defn- repl-interrupt [rpl]
   (.stop (:repl-thread rpl)))
 
-(defn repl-alive? [rpl]
+(defn- repl-alive? [rpl]
   (.isAlive (:repl-thread rpl)))
 
 
 ;;; Display
 
-(defn conexp-repl-init []
+(defn- conexp-repl-init []
   [ [] (ref {:last-pos 0
 	     :output-thread nil
 	     :repl-thread nil}) ])
 
-(defn conexp-repl-post-init [this]
+(defn- conexp-repl-post-init [this]
   (dosync
    (alter (.state this) 
 	  assoc :output-thread (Thread. 
@@ -121,26 +124,26 @@
 	  assoc :repl-thread (create-clojure-repl)))
   (.start (@(.state this) :output-thread)))
 
-(defn conexp-repl-lastPosition [this]
+(defn- conexp-repl-lastPosition [this]
   (@(.state this) :last-pos))
 
-(defn conexp-repl-outputThread [this]
+(defn- conexp-repl-outputThread [this]
   (@(.state this) :output-thread))
 
-(defn conexp-repl-replThread [this]
+(defn- conexp-repl-replThread [this]
   (@(.state this) :repl-thread))
 
-(defn conexp-repl-remove [this off len]
+(defn- conexp-repl-remove [this off len]
   (if (>= (- off len -1) (@(.state this) :last-pos))
     (. this removeSuper off len)))
 
-(defn conexp-repl-insertResult [this result]
+(defn- conexp-repl-insertResult [this result]
   (.insertStringSuper this (.getLength this) result nil)
   (dosync 
    (alter (.state this) assoc :last-pos (. this getLength)))
   (@(.state this) :last-pos))
 
-(defn balanced? 
+(defn- balanced?
   ([string]
      (balanced? string 0))
   ([string paran-count]
@@ -156,7 +159,7 @@
 		(= \) (first string)) (dec paran-count)
 		:else paran-count)))))
 
-(defn conexp-repl-insertString [this off string attr-set]
+(defn- conexp-repl-insertString [this off string attr-set]
   (let [last-pos (@(.state this) :last-pos)]
     (when (>= off last-pos)
       (.insertStringSuper this off string attr-set)
@@ -169,9 +172,11 @@
 	  (if (balanced? input)
 	    (repl-in (.replThread this) input )))))))
 
-;;;
+;;; Clojure REPL
 
-(defn make-clojure-repl []
+(defn- make-clojure-repl
+  "Returns a graphical clojure repl."
+  []
   (let [rpl (conexp.gui.repl.ClojureREPL.)
 	win-rpl (JTextArea. rpl)]
     (.. win-rpl getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
@@ -180,3 +185,18 @@
 					          (println "Interrupt called!")
 					      (repl-interrupt (.replThread rpl))))))
     win-rpl))
+
+(defn make-repl
+  "Creates a default Clojure REPL."
+  []
+  (let [rpl (make-clojure-repl)]
+    (doto rpl
+      (.setFont (Font. "Monospaced" Font/PLAIN 16))
+      (.setBackground Color/BLACK)
+      (.setForeground Color/WHITE)
+      (.setCaretColor Color/RED))
+    (JScrollPane. rpl)))
+
+;;;
+
+nil

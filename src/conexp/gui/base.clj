@@ -2,8 +2,8 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem JToolBar JPanel
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
-	   [java.awt GridLayout BorderLayout Dimension Font Color])
-  (:use	conexp.gui.util
+	   [java.awt GridLayout BorderLayout Dimension])
+  (:use conexp.gui.util
 	conexp.gui.repl
 	conexp.gui.plugins))
 
@@ -11,18 +11,15 @@
 ;;; Menus
 
 (def *main-menu* {:name "Main",
-		  :content [{:name "Add Menu", ; just for fun
-			     :handler (fn [frame _]
-					(add-menus frame
-						   [{:name "?",
-						     :content []}]))},
-			    ---
+		  :content [---
 			    {:name "Quit",
 			     :handler (fn [frame _]
 					(.dispose frame))}]})
 
 (def *help-menu* {:name "Help",
-		  :content []})
+		  :content [{:name "License"}
+			    ---
+			    {:name "About"}]})
 
 (def *standard-menus* [*main-menu* === *help-menu*])
 
@@ -34,31 +31,6 @@
 		  :handler (fn [frame _] (.dispose frame))})
 
 (def *standard-icons* [*quit-icon* |])
-
-
-;;; Clojure REPL
-
-(defn make-repl 
-  "Creates a default Clojure REPL."
-  []
-  (let [rpl (make-clojure-repl)]
-    (doto rpl
-      (.setFont (Font. "Monospaced" Font/PLAIN 16))
-      (.setBackground Color/BLACK)
-      (.setForeground Color/WHITE)
-      (.setCaretColor Color/RED))
-    (JScrollPane. rpl)))
-
-
-;;; Plugin Manager
-
-(defn add-plugin-manager
-  "Adds a plugin-manager and all a corrsponding menu to frame."
-  ;; unfinished
-  [frame]
-  (let [plugin-manager (make-plugin-manager frame)]
-    ;; ... add menu for plugins ...
-    ))
 
 
 ;;; Conexp Main Frame

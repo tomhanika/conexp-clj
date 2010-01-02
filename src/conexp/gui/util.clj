@@ -66,30 +66,43 @@
   [frame]
   (get-component frame #(= (class %) JMenuBar)))
 
-(defn- make-menu
+(declare hash-to-menu)
+
+(defn- hash-to-menu-item
+  "Converts a hash to a JMenuItem for the given frame."
+  [frame hash]
+  (cond
+   (empty? hash) (JSeparator.),
+   (contains? hash :content) (hash-to-menu frame hash),
+   :else
+   (let [menu-item (JMenuItem. (:name hash))]
+     (if (contains? hash :handler)
+       (add-handler menu-item frame (:handler hash))
+       (.setEnabled menu-item false))
+     ;; also enable hotkeys and images
+     menu-item)))
+
+(defn- hash-to-menu
   "Converts a hash representing a menu into an actual JMenu for a given frame."
   [frame hash-menu]
+  ;; this function is not thread safe!
   (cond
     (instance? java.awt.Component hash-menu)
-    hash-menu
+    hash-menu,
     :else
     (let [menu (JMenu. (:name hash-menu))]
       (doseq [entry (:content hash-menu)]
-	(cond
-	  (empty? entry)
-	  (.addSeparator menu)
-	  :else
-	  (let [menu-item (JMenuItem. (:name entry))]
-	    (add-handler menu-item frame (:handler entry))
-	    (.add menu menu-item))))
+	(.add menu (hash-to-menu-item frame entry)))
       menu)))
 
-(defn- add-to-menubar
-  "Adds menubar consiting of menus to menu-bar."
-  [frame menu-bar menus]
-  (doseq [menu (map #(make-menu frame %) menus)]
-    (.add menu-bar menu))
-  menu-bar)
+(defn- add-menus-to-menubar
+  "Adds menubar consisting of menus to menu-bar."
+  ;; this function is not thread safe!
+  [frame menus]
+  (let [menu-bar (get-menubar frame)]
+    (doseq [menu menus]
+      (.add menu-bar (hash-to-menu frame menu)))
+    menu-bar))
 
 (defn add-menus
   "Adds the additional menus to the frame in front of the first Box.Filler
@@ -103,9 +116,9 @@
 	  menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
 						 menu-bar-as-seq)]
       (.removeAll menu-bar)
-      (add-to-menubar frame menu-bar menu-entries-before-filler)
-      (add-to-menubar frame menu-bar menus)
-      (add-to-menubar frame menu-bar menu-entries-from-filler)
+      (add-menus-to-menubar frame menu-entries-before-filler)
+      (add-menus-to-menubar frame menus)
+      (add-menus-to-menubar frame menu-entries-from-filler)
       (.validate frame))))
 
 (defvar --- {}
