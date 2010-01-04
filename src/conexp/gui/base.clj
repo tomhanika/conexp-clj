@@ -6,7 +6,10 @@
   (:use [conexp.base :only (defvar-)]
         conexp.gui.util
 	conexp.gui.repl
-	conexp.gui.plugins))
+	conexp.gui.plugins
+	[conexp.gui.plugins.base :only (load-plugin)]
+	[conexp.gui.editors.contexts :only (context-editor)]
+	[conexp.gui.editors.lattices :only (lattice-editor)]))
 
 
 ;;; Menus
@@ -75,6 +78,11 @@
 	(.add split-pane BorderLayout/CENTER))
       ;; for testing
       (add-tab main-frame (JLabel. "Test Tab")))
+
+    ;; standard plugins
+    (let [pm (get-plugin-manager main-frame)]
+      (load-plugin pm context-editor)
+      (load-plugin pm lattice-editor))
 
     main-frame))
 

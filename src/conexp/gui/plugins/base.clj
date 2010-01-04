@@ -15,7 +15,7 @@
   "Defines a plugin. The syntax is of the form
 
   (define-plugin plugin
-    :load-hook fn-called-when-plugin-is-loaded
+    :load-hook fn-called-when-plugin-is-loaded,
     :unload-hook fn-called-when-plugin-is-unloaded)
 
   whereas the :unload-hook is optional. All functions take the frame
@@ -59,17 +59,17 @@
   "Tests whether a plugin is registered within a plugin manager or not."
   [plugin-manager plugin]
   (dosync
-   (alter (registered-plugins) conj plugin)))
+   (alter (registered-plugins plugin-manager) conj plugin)))
 
 (defn load-plugin
   "Loads a registered plugin from a plugin manager."
   [plugin-manager plugin]
   (when (not (plugin-registered? plugin-manager plugin))
-    (illegal-argument "Plugin not registered and hence cannot be loaded."))
+    (register-plugin plugin-manager plugin))
   (when (plugin-loaded? plugin-manager plugin)
     (illegal-argument "Plugin already be loaded."))
   (dosync
-   (alter (loaded-plugins) conj plugin))
+   (alter (loaded-plugins plugin-manager) conj plugin))
   ((load-hook plugin) (base-frame plugin-manager)))
 
 (defn unload-plugin

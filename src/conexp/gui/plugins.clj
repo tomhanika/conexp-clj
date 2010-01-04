@@ -17,7 +17,9 @@
   (defn get-plugin-manager
     "Returns the plugin manager of a given frame."
     [frame]
-    (get @*plugin-managers* frame)))
+    (get @*plugin-managers* frame))
+
+  nil)
 
 (defn add-plugin-manager
   "Adds a plugin-manager and a corresponding menu to frame."
