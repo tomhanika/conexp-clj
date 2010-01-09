@@ -211,4 +211,13 @@
 	  {}
 	  keys))
 
+(defmacro update-ns-meta!
+  "Updates meta hash of given namespace with given description."
+  [ns & key-value-description]
+  `(alter-meta! (find-ns '~ns)
+		(fn [meta-hash#]
+		  (merge meta-hash# ~(apply hash-map key-value-description)))))
+
+;;;
+
 nil

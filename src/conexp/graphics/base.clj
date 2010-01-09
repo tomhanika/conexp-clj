@@ -1,11 +1,16 @@
 (ns conexp.graphics.base
-  (:use [clojure.contrib.ns-utils :only (immigrate)])
+  (:use [conexp.util :only (update-ns-meta!)]
+	[clojure.contrib.ns-utils :only (immigrate)])
   (:import [javax.swing JFrame JButton JPanel JLabel]
 	   [java.awt Dimension BorderLayout]
 	   [no.geosoft.cc.graphics GWindow GScene]))
 
 (immigrate 'conexp.graphics.util
 	   'conexp.graphics.nodes-and-connections)
+
+(update-ns-meta! conexp.graphics.base
+  :doc "Basic namespace for drawing lattice.")
+
 
 ;;; draw nodes with coordinates and connections on a scene
 
@@ -48,10 +53,13 @@
 
 ;;; some testing
 
-(defn- show-some-picture []
+(defn- show-some-picture
+  "Testdiagram for lattices."
+  []
   (draw-in-frame [0.0 0.0] [100.0 100.0]
-		 [{:x [100 100], :y [50 50], :z [0 0]}
-		  [[:z :y], [:y :x]]]))
+		 [{:x [100 100], :y [50 50], :z [0 0], :a [50 0]}
+		  [[:z :y], [:y :x], [:a :y]]]))
+
 
 ;;;
 
