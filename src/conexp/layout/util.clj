@@ -3,13 +3,19 @@
 	conexp.fca.lattices
 	[clojure.contrib.graph :exclude (transitive-closure)]))
 
+(update-ns-meta! conexp.layout.util
+  :doc "Utilities for computing lattice layouts.")
+
+
+;;;
+
 (defn scale-points-to-rectangle
   "Scales the collection of points such that they fit in the
   rectangle given by [x1 y1] and [x2 y2]."
   [[x1 y1] [x2 y2] points]
   (if (empty? points)
     (illegal-argument (str "Cannot scale empty sequence of points.")))
-  (let [[x0 y0] (first points)
+  (let [[x0 y0] (first points),
 	[x_min y_min x_max y_max] (loop [x_min x0
 					 y_min y0
 					 x_max x0
@@ -22,13 +28,13 @@
 					       (min y y_min)
 					       (max x x_max)
 					       (max y y_max)
-					       (rest points)))))
-	a_x (/ (- x1 x2) (- x_min x_max 0.1)) ; -0.1 for (= x_min x_max)
-	b_x (- x1 (* a_x x_min))
-	a_y (/ (- y1 y2) (- y_min y_max 0.1))
+					       (rest points))))),
+	a_x (/ (- x1 x2) (- x_min x_max 0.1)), ; -0.1 for (= x_min x_max)
+	b_x (- x1 (* a_x x_min)),
+	a_y (/ (- y1 y2) (- y_min y_max 0.1)),
 	b_y (- y1 (* a_y y_min))]
     (map (fn [[x y]]
-	   [(+ (* a_x x) b_x) (+ (* a_y y) b_y)])
+	   [(+ (* a_x x) b_x), (+ (* a_y y) b_y)])
 	 points)))
 
 (defn scale-layout
@@ -113,5 +119,8 @@
 			inf-irrs))),
 	overall-placement (hash-by-function pos (base-set lattice))]
     [ overall-placement, (edges lattice) ]))
+
+
+;;;
 
 nil

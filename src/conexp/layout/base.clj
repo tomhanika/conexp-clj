@@ -5,15 +5,19 @@
 	[clojure.contrib.graph :only (dependency-list)]
 	[clojure.contrib.ns-utils :only (immigrate)]))
 
+(update-ns-meta! conexp.layout.base
+  :doc "Basic namespace for lattice layouts.")
+
+
 ;;; Simple Layered Layout
 
-(defn layers
+(defn- layers
   "Returns the layers of the given lattice, that is sequence of points
   with equal heights."
   [lattice]
   (dependency-list (lattice->graph lattice)))
 
-(defn layer-coordinates
+(defn- layer-coordinates
   "Assigns coordinates to a given layer such that it is centerer
   around 0 at height given by number."
   [number layer]
@@ -29,11 +33,14 @@
 				(map layer-coordinates
 				     (iterate inc 0)
 				     (layers lattice))))]
-    [positions
-     (for [x (base-set lattice)
-	   y (base-set lattice)
+    [positions,
+     (for [x (base-set lattice),
+	   y (base-set lattice),
 	   :when (and (not= x y)
 		      (directly-neighboured? lattice x y))]
        [x y])]))
+
+
+;;;
 
 nil
