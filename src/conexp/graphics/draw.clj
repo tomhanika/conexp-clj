@@ -6,7 +6,7 @@
 	   [java.awt Dimension]))
 
 
-; extend this to get a full "lattice editor"
+;;; extend this to get a full "lattice editor"
 (defn draw-lattice
   "Draws given lattice with given layout on a canvas and returns
   it. Uses *standard-layout* if no layout is given."
