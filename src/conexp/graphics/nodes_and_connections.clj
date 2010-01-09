@@ -1,7 +1,8 @@
 (ns conexp.graphics.nodes-and-connections
   (:use [conexp.util :only (update-ns-meta!)]
-	[conexp.base :only (defvar-)]
-	conexp.graphics.util)
+	[conexp.base :only (defvar-, round)]
+	conexp.graphics.util
+	[clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
 	   [no.geosoft.cc.geometry Geometry]
 	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment GStyle GInteraction]))
@@ -63,39 +64,66 @@
 
 ;;; create and connect nodes
 
-(defvar- *default-node-style* (let [style (GStyle.)]
-				(doto style
-				  (.setForegroundColor (Color.  6  6 86))
-				  (.setBackgroundColor (Color. 23 11 84)))
-				style)
+(defvar- *default-node-style* (doto (GStyle.)
+				(.setForegroundColor Color/BLACK)
+				(.setBackgroundColor Color/GRAY)
+				(.setLineWidth 1.0))
   "Default node style for lattice diagrams.")
+
+(defvar- *default-object-concept-style* (doto (GStyle.)
+					  (.setBackgroundColor Color/BLUE))
+  "Default style for nodes being an object concept.")
+
+(defvar- *default-attribute-concept-style* (doto (GStyle.)
+					     (.setBackgroundColor Color/BLACK))
+  "Default style for nodes being an attribute concept.")
+
+(defn- create-two-halfcircles
+  "Creates points for two half circles."
+  ;; this is not quite correct yet
+  [x y radius]
+  (let [circle (Geometry/createCircle (double x) (double y) (double radius)),
+	nrs (* 2 (round (/ (count circle) 4))),
+	[l u] (split-at nrs circle)]
+    [(into-array Double/TYPE (concat l [(first circle), (second circle)])),
+     (into-array Double/TYPE (concat [(first circle), (second circle)] u))]))
 
 (defn- add-node
   "Adds a node to scn at position [x y]. Default name is \"[x y]\"."
   ([#^GScene scn, x y]
      (add-node scn x y (str [x y])))
   ([#^GScene scn x y name]
-     (let [segment (GSegment.),
+     (let [#^GSegment upper-segment (GSegment.),
+	   #^GSegment lower-segment (GSegment.),
 	   object (proxy [GObject] []
 		    (draw []
-		      (let [[x y] (position this)]
-			(.setGeometryXy segment (Geometry/createCircle (double x) (double y) 5.0))))),
+		      (let [[x y] (position this),
+			    [l u] (create-two-halfcircles x y 7.0)]
+			(.setGeometryXy lower-segment l)
+			(.setGeometryXy upper-segment u))
+		      (.setStyle lower-segment 
+				 (if (= 1 (-?> this lower-neighbors count))
+				   *default-object-concept-style*
+				   nil))
+		      (.setStyle upper-segment
+				 (if (= 1 (-?> this upper-neighbors count))
+				   *default-attribute-concept-style*
+				   nil)))),
 	   style (GStyle.)]
-       (doto segment
-	 (.setStyle *default-node-style*))
        (doto object
-	 (.addSegment segment)
+	 (.setStyle *default-node-style*)
+	 (.addSegment lower-segment)
+	 (.addSegment upper-segment)
 	 (.setUserData (ref {:type :node,
-			     :position [(double x) (double y)]}))
+			     :position [(double x), (double y)]}))
 	 (.setName name))
        (doto scn
 	 (.add object))
        object)))
 
-(defvar- *default-line-style* (let [style (GStyle.)]
-			    (doto style
-			      (.setLineWidth 2.0))
-			    style)
+(defvar- *default-line-style* (doto (GStyle.)
+				(.setLineWidth 2.0)
+				(.setForegroundColor Color/BLACK))
   "Default line style.")
 
 (defn- connect-nodes

@@ -1,9 +1,10 @@
 (ns conexp.graphics.base
   (:use [conexp.util :only (update-ns-meta!)]
+	[conexp.base :only (defvar-)]
 	[clojure.contrib.ns-utils :only (immigrate)])
   (:import [javax.swing JFrame JButton JPanel JLabel]
-	   [java.awt Dimension BorderLayout]
-	   [no.geosoft.cc.graphics GWindow GScene]))
+	   [java.awt Dimension BorderLayout Color]
+	   [no.geosoft.cc.graphics GWindow GScene GStyle]))
 
 (immigrate 'conexp.graphics.util
 	   'conexp.graphics.nodes-and-connections)
@@ -14,15 +15,20 @@
 
 ;;; draw nodes with coordinates and connections on a scene
 
+(defvar- *default-scene-style* (doto (GStyle.)
+				 (.setBackgroundColor Color/WHITE))
+  "Default GScene style.")
+
 (defn draw-on-scene
   "Draws given layout on a GScene and returns it."
   [[x_min y_min] [x_max y_max] [points-to-coordinates point-connections]]
-  (let [wnd (GWindow.)
+  (let [wnd (GWindow. Color/WHITE)
 	scn (GScene. wnd)]
     (doto scn
       (.setWorldExtent (double x_min) (double y_min) (double x_max) (double y_max))
       (.shouldZoomOnResize false)
       (.shouldWorldExtentFitViewport false)
+      (.setStyle *default-scene-style*)
       (add-nodes-with-connections points-to-coordinates point-connections))
     (doto wnd
       (.startInteraction (move-interaction)))
