@@ -57,12 +57,66 @@
     (.setVisible true)))
 
 
+;;; get layout and diagram from scene
+
+(defn get-diagram-from-scene
+  "Returns nodes and lines of a scene."
+  [scene]
+  (seq (.getChildren scene)))
+
+(defn get-layout-from-scene
+  "Returns layout from a scene."
+  [scene]
+  (let [[nodes connections] (loop [things (get-diagram-from-scene scn),
+				   nodes [],
+				   connections []]
+			      (if (empty? things)
+				[nodes connections]
+				(let [thing (first things)]
+				  (cond
+				   (node? thing)
+				   (recur (rest things) (conj nodes thing) connections),
+				   (connection? thing)
+				   (recur (rest things) nodes (conj connections thing)),
+				   :else
+				   (throw (IllegalStateException. "Invalid item in lattice diagram."))))))]
+    [(reduce (fn [hash node]
+	       (assoc hash (get-name node) (position node)))
+	     {}
+	     nodes),
+     (map #(vector (get-name (lower-node %))
+		   (get-name (upper-node %)))
+	  connections)]))
+
+
+;;; node and line iterators
+
+(defmacro donodes
+  "Do whatever with every node on the scene."
+  [[node scene] & body]
+  `(doseq [~node (filter node? (get-diagram-from-scene ~scene))]
+     ~@body))
+
+(defmacro dolines
+  "Do whatever with every connection on the scene."
+  [[line scene] & body]
+  `(doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
+     ~@body))
+
+
 ;;; some testing
 
 (defn- show-some-picture
   "Testdiagram for lattices."
   []
   (draw-in-frame [0.0 0.0] [100.0 100.0]
+		 [{:x [100 100], :y [50 50], :z [0 0], :a [50 0]}
+		  [[:z :y], [:y :x], [:a :y]]]))
+
+(defn- make-some-scene
+  "Testscene for lattice diagrams."
+  []
+  (draw-on-scene [0.0 0.0] [100.0 100.0]
 		 [{:x [100 100], :y [50 50], :z [0 0], :a [50 0]}
 		  [[:z :y], [:y :x], [:a :y]]]))
 

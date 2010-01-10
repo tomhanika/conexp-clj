@@ -1,6 +1,6 @@
 (ns conexp.graphics.nodes-and-connections
   (:use [conexp.util :only (update-ns-meta!)]
-	[conexp.base :only (defvar-, round)]
+	[conexp.base :only (defvar-, defvar, round)]
 	conexp.graphics.util
 	[clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
@@ -30,6 +30,16 @@
   "Returns the position of a node in a lattice diagram."
   [#^GObject node]
   (:position @(.getUserData node)))
+
+(defn radius
+  "Returns the radius of a node in a lattice diagram."
+  [#^GObject node]
+  (:radius @(.getUserData node)))
+
+(defn get-name
+  "Returns name of thing."
+  [#^GObject thing]
+  (.getName thing))
 
 (defn lower-node
   "Returns for a connection conn the lower node in a lattice diagram."
@@ -88,6 +98,9 @@
     [(into-array Double/TYPE (concat l [(first circle), (second circle)])),
      (into-array Double/TYPE (concat [(first circle), (second circle)] u))]))
 
+(defvar *default-node-radius* 30.0
+  "Default radius for nodes.")
+
 (defn- add-node
   "Adds a node to scn at position [x y]. Default name is \"[x y]\"."
   ([#^GScene scn, x y]
@@ -98,7 +111,7 @@
 	   object (proxy [GObject] []
 		    (draw []
 		      (let [[x y] (position this),
-			    [l u] (create-two-halfcircles x y 40.0)]
+			    [l u] (create-two-halfcircles x y (radius this))]
 			(.setGeometryXy lower-segment l)
 			(.setGeometryXy upper-segment u))
 		      (.setStyle lower-segment 
@@ -115,7 +128,8 @@
 	 (.addSegment lower-segment)
 	 (.addSegment upper-segment)
 	 (.setUserData (ref {:type :node,
-			     :position [(double x), (double y)]}))
+			     :position [(double x), (double y)],
+			     :radius *default-node-radius*}))
 	 (.setName name))
        (doto scn
 	 (.add object))
