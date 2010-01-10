@@ -98,7 +98,7 @@
 	   object (proxy [GObject] []
 		    (draw []
 		      (let [[x y] (position this),
-			    [l u] (create-two-halfcircles x y 7.0)]
+			    [l u] (create-two-halfcircles x y 40.0)]
 			(.setGeometryXy lower-segment l)
 			(.setGeometryXy upper-segment u))
 		      (.setStyle lower-segment 

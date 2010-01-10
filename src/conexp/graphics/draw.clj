@@ -14,9 +14,9 @@
      (draw-lattice lattice *standard-layout*))
   ([lattice layout]
      (doto (JFrame. "conexp-clj Lattice")
-       (.add (draw-on-canvas [0.0 0.0] [100.0 100.0]
-			     (scale-layout [0.0 0.0] [100.0 100.0] (layout lattice))))
-       (.setSize (Dimension. 200 200))
+       (.add (draw-on-canvas [0.0 0.0] [400.0 400.0]
+			     (scale-layout [-200.0 -200.0] [600.0 600.0] (layout lattice))))
+       (.setSize (Dimension. 400 400))
        (.setVisible true))))
 
 
