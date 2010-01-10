@@ -90,13 +90,12 @@
 
 (defn- create-two-halfcircles
   "Creates points for two half circles."
-  ;; this is not quite correct yet
   [x y radius]
   (let [circle (Geometry/createCircle (double x) (double y) (double radius)),
 	nrs (* 2 (round (/ (count circle) 4))),
 	[l u] (split-at nrs circle)]
     [(into-array Double/TYPE (concat l [(first circle), (second circle)])),
-     (into-array Double/TYPE (concat [(first circle), (second circle)] u))]))
+     (into-array Double/TYPE (concat (take-last 2 l) u))]))
 
 (defvar *default-node-radius* 30.0
   "Default radius for nodes.")

@@ -66,7 +66,7 @@
 
 (defn get-layout-from-scene
   "Returns layout from a scene."
-  [scene]
+  [scn]
   (let [[nodes connections] (loop [things (get-diagram-from-scene scn),
 				   nodes [],
 				   connections []]

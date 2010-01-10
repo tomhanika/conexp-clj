@@ -14,7 +14,7 @@
 (defn add-handler
   "Adds an ActionListener to thing that calls function with frame and
   thing when activated (i.e. when actionPerformed is called)."
-  ; shall we also pass the given event?
+  ;; shall we also pass the given event?
   [thing frame function]
   (.addActionListener thing
     (proxy [ActionListener] []
