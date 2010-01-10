@@ -16,7 +16,7 @@
 
 (def *conexp-version* {:major 0,
 		       :minor 1,
-		       :timestamp 1260618063115,
+		       :timestamp 1263133147192,
 		       :qualifier "pre-alpha"})
 
 (defn conexp-version

@@ -5,7 +5,7 @@
 	[conexp.graphics.nodes-and-connections :only (*default-node-radius*, move-interaction)]
 	[conexp.graphics.base :only (draw-on-scene)])
   (:import [javax.swing JFrame JPanel JButton]
-	   [java.awt Dimension BorderLayout GridLayout]
+	   [java.awt Dimension BorderLayout FlowLayout]
 	   [java.awt.event ActionListener]
 	   [no.geosoft.cc.graphics ZoomInteraction]))
 
@@ -13,7 +13,11 @@
   :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
 
 
-;;;
+;;; lattice editor -- a lot TODO
+
+(declare make-button)
+
+;; editor features
 
 (defn- change-node-radius
   "Install node radius changer."
@@ -28,8 +32,7 @@
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
   [scn buttons]
-  (let [button (JButton. "Zoom")]
-    (.add buttons button)
+  (let [button (make-button buttons "Zoom")]
     (.addActionListener button
 			(proxy [ActionListener] []
 			  (actionPerformed [evt]
@@ -46,12 +49,29 @@
   [scn buttons]
   nil)
 
+(defn- export-as-file
+  "Installs a file exporter."
+  [scn buttons]
+  nil)
+
+;; technical helpers
+
 (defmacro install-changers
   "Installs given methods to scene with buttons."
   [scene buttons & methods]
   `(do
      ~@(map (fn [method#] `(~method# ~scene ~buttons))
 	    methods)))
+
+(defn make-button
+  "Uniformly create buttons for lattice editor."
+  [buttons text]
+  (let [button (JButton. text)]
+    (.add buttons button)
+    (.setPreferredSize button (Dimension. 100 20))
+    button))
+
+;; constructor
 
 (defn make-lattice-editor
   "Creates a lattice editor for lattice with initial layout."
@@ -63,19 +83,21 @@
 					 (layout lattice))),
 	canvas (.. scn getWindow getCanvas),
 
-	buttons (JPanel. (GridLayout. 0 1))]
+	buttons (JPanel. (FlowLayout.))]
+    (.setPreferredSize buttons (Dimension. 110 0))
     (install-changers scn buttons
       change-node-radius
       toggle-zoom-move
       toggle-labels
-      change-layout)
+      change-layout
+      export-as-file)
     (doto main-panel
       (.add canvas BorderLayout/CENTER)
       (.add buttons BorderLayout/WEST))
     main-panel))
 
 
-;;;
+;;; drawing routine for the repl
 
 (defn draw-lattice
   "Draws given lattice with given layout on a canvas and returns
