@@ -1,6 +1,6 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!)]
-	[conexp.layout :only (*standard-layout*)]
+	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.util :only (scale-layout)]
 	[conexp.graphics.nodes-and-connections :only (*default-node-radius*, move-interaction)]
 	[conexp.graphics.base :only (draw-on-scene)])
@@ -75,12 +75,12 @@
 
 (defn make-lattice-editor
   "Creates a lattice editor for lattice with initial layout."
-  [lattice layout]
+  [lattice layout-function]
   (let [main-panel (JPanel. (BorderLayout.)),
 
 	scn (draw-on-scene [0.0 0.0] [400.0 400.0]
 			   (scale-layout [0.0 0.0] [400.0 400.0]
-					 (layout lattice))),
+					 (layout-function lattice))),
 	canvas (.. scn getWindow getCanvas),
 
 	buttons (JPanel. (FlowLayout.))]
@@ -100,13 +100,13 @@
 ;;; drawing routine for the repl
 
 (defn draw-lattice
-  "Draws given lattice with given layout on a canvas and returns
-  it. Uses *standard-layout* if no layout is given."
+  "Draws given lattice with given layout-function on a canvas and returns
+  it. Uses *standard-layout-function* if no layout-function is given."
   ([lattice]
-     (draw-lattice lattice *standard-layout*))
-  ([lattice layout]
+     (draw-lattice lattice *standard-layout-function*))
+  ([lattice layout-function]
      (doto (JFrame. "conexp-clj Lattice")
-       (.add (make-lattice-editor lattice layout))
+       (.add (make-lattice-editor lattice layout-function))
        (.setSize (Dimension. 200 200))
        (.setVisible true))))
 

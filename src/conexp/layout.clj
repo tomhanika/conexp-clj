@@ -3,6 +3,10 @@
 
 (immigrate 'conexp.layout.base)
 
-(def *standard-layout* simple-layered-layout)
+;;;
+
+(def *standard-layout-function* simple-layered-layout)
+
+;;;
 
 nil
