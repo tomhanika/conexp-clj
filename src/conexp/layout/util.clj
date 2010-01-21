@@ -99,14 +99,13 @@
 			inf-irrs)))]
     (hash-by-function pos inf-irrs)))
 
-(defn layout-by-coatom-placement
+(defn layout-by-inf-irr-placement
   "Computes inf-irreducible additive layout of lattice by given
-  positions of the coatoms of lattice. coatom-placement should be a
+  positions of inf-irreducible elements. inf-irr-placement should be a
   hash-map with the coatoms of lattice as keys and positions as
   values."
-  [lattice coatom-placement]
-  (let [inf-irr-placement (place-inf-irr-by-coatoms lattice coatom-placement),
-	inf-irrs (lattice-inf-irreducibles lattice),
+  [lattice inf-irr-placement]
+  (let [inf-irrs (lattice-inf-irreducibles lattice), ; keys?
 	pos (fn pos [v]
 	      (if (contains? inf-irr-placement v)
 		(get inf-irr-placement v)
@@ -120,6 +119,13 @@
 	overall-placement (hash-by-function pos (base-set lattice))]
     [ overall-placement, (edges lattice) ]))
 
+(defn layout-by-coatom-placement
+  "Computes inf-irreducible additive layout of lattice by given
+  positions of the coatoms of lattice. coatom-placement should be a
+  hash-map with the coatoms of lattice as keys and positions as
+  values."
+  [lattice coatom-placement]
+  (layout-by-inf-irr-placement lattice (place-inf-irr-by-coatoms lattice coatom-placement)))
 
 ;;;
 

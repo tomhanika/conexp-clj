@@ -3,6 +3,11 @@
 	                                     DifferentiableMultivariateRealFunction
 	                                     MultivariateVectorialFunction]))
 
+;;;
+
+(def pos-infinity Double/POSITIVE_INFINITY)
+(def neg-infinity Double/NEGATIVE_INFINITY)
+
 (defn as-multivariate-real-fn
   "Transforms given function fn to a MultivariateRealFunction as
   needed by commons-math. fn must be a function taking a fixed number
@@ -21,12 +26,13 @@
     (value [double-point]
       (into-array Double/TYPE (apply fn (seq double-point))))))
 
-(defn as-differentiable-multivariate-real-fn [fun partial-derivatives]
+(defn as-differentiable-multivariate-real-fn
   "Transforms given function fn to a DifferentiableMultivariateRealFunction as
   needed by commons-math. fn must be a function suitable for as-multivariate-real-fn
   and partial-derivatives must be a function taking a variable index k and returning
   a function representing the k-th partial derivative of fn, also being suitable for
   as-multivariate-real-fn."
+  [fun partial-derivatives]
   (let [partials (map partial-derivatives (iterate inc 0))]
     (proxy [DifferentiableMultivariateRealFunction] []
       (value [double-point]
@@ -37,5 +43,7 @@
         (as-multivariate-vectorial-fn
 	 (fn [& args]
 	   (map #(%1 %2) partials args)))))))
+
+;;;
 
 nil

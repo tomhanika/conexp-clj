@@ -7,18 +7,20 @@
 	                                                 NonLinearConjugateGradientOptimizer
 	                                                 ConjugateGradientFormula]))
 
+;;;
+
 (defvar #^DirectSearchOptimizer *direct-optimizer* (NelderMead.)
   "Direct optimizer used by directly-optimize")
 (defvar #^AbstractScalarDifferentiableOptimizer *differential-optimizer*
   (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES)
   "Optimizer for differentiable functions used by differentially-optimize.")
 
-(defn point-value-pair-to-vector
+(defn- point-value-pair-to-vector
   "Converts RealPointValuePair to a point-value-vector."
   [#^RealPointValuePair pvp]
   [(vec (.getPoint pvp)) (.getValue pvp)])
 
-(defn directly-optimize
+(defn- directly-optimize
   "Optimizes fn according to goal as given by *direct-optimizer*."
   [fn starting-point goal]
   (let [point-value-pair (.optimize *direct-optimizer*
@@ -27,7 +29,7 @@
 				    (into-array Double/TYPE starting-point))]
     (point-value-pair-to-vector point-value-pair)))
 
-(defn differentially-optimize
+(defn- differentially-optimize
   "Optimizes fn according to goal as given by
   *differential-optimizer*. partial-derivatives must be a function
   computing the k-th partial derivation (as clojure function) when given k."
@@ -68,5 +70,7 @@
      (directly-optimize fn starting-point GoalType/MAXIMIZE))
   ([fn partial-derivatives starting-point]
      (differentially-optimize fn partial-derivatives starting-point GoalType/MAXIMIZE)))
+
+;;;
 
 nil
