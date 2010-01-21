@@ -102,8 +102,8 @@
 (defn layout-by-inf-irr-placement
   "Computes inf-irreducible additive layout of lattice by given
   positions of inf-irreducible elements. inf-irr-placement should be a
-  hash-map with the coatoms of lattice as keys and positions as
-  values."
+  hash-map with the infimum irreducibles of lattice as keys and
+  positions as values."
   [lattice inf-irr-placement]
   (let [inf-irrs (lattice-inf-irreducibles lattice), ; keys?
 	pos (fn pos [v]
