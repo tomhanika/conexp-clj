@@ -1,11 +1,12 @@
 (ns conexp.layout.force
   (:use conexp.fca.lattices
 	conexp.layout.util
+	[conexp.math.util :only (pos-infinity)]
 	conexp.math.optimize))
 
 ;;; Force layout as described by C. Zschalig
 
-;; Repulsive Energy
+;; Helpers
 
 (defn square
   "Squares."
@@ -18,22 +19,18 @@
   (+ (square (- x_1 x_2))
      (square (- y_1 y_2))))
 
+;; Repulsive Energy
+
 (defn- node-line-distance
   "Returns the distance from node to the line between [x_1, y_1] and [x_2, y_2]."
   [[x, y] [[x_1, y_1] [x_2, y_2]]]
-  ;; dump school math follows
-  (let [;; position of projection of [x y] onto the line, single coordinate
-	r (/ (+ (* (- x x_1)
-		   (- x_2 x_1))
-		(* (- y y_1)
-		   (- y_2 y_1)))
-	     (+ (square (- x_2 x_1))
-		(square (- y_2 y_1))))]
-    (cond
-     (<= r 0) (Math/sqrt (line-length-squared [x, x_1] [y, y_1])), ; node is behind [x_1, y_1]
-     (>= r 1) (Math/sqrt (line-length-squared [x, x_2] [y, y_2])), ; node is ahead [x_2, y_2]
-     :else (Math/sqrt (line-length-squared [x, y]
-					   [(+ x_1 (* r (- x_2 x_1))), (+ y_1 (* r (- y_2 y_1)))])))))
+  ;; distance is area of parallelogramm divided by the length of [[x_1, y_2], [x_2, y_2]]
+  (/ (square (- (* (- y_2 y_1)
+		   (- x x_1))
+		(* (- x_2 x_1)
+		   (- y y_1))))
+     (Math/sqrt (+ (square (- x_2 x_1))
+		   (square (- y_2 y_1))))))
 
 (defn- repulsive-energy
   "Computes the repulsive energy of the given layout."
@@ -43,11 +40,14 @@
 	       (reduce (fn [sum [x y]]
 			 (if (or (= x v) (= y v))
 			   sum
-			   (+ sum
-			      (/ 1 (node-line-distance (node-positions v)
-						       [(node-positions x), (node-positions y)])))))
-			 0
-			 node-connections)))
+			   (let [distance (node-line-distance (node-positions v)
+							      [(node-positions x), (node-positions y)])]
+			     (if (zero? distance)
+			       pos-infinity
+			       (+ sum
+				  (/ 1 distance))))))
+		       0
+		       node-connections)))
 	  0
 	  (keys node-positions)))
 
@@ -107,12 +107,18 @@
 
 	;; minimize layout energy with above placement as initial value
 	[new-points, value] (minimize (energy-by-inf-irr-positions lattice inf-irrs)
-				      (apply concat inf-irr-points))]
+				      (apply concat inf-irr-points)),
+
+	;; move top element to [0,0], needed by layout-by-inf-irr-placement
+	[top_x, top_y] (node-positions (lattice-one lattice)),
+	point-hash (apply hash-map
+			  (interleave inf-irrs
+				      (map (fn [[x y]]
+					     [(- x top_x), (- y top_y)])
+					   (partition 2 new-points))))]
+
     ;; compute layout given by the result
-    (layout-by-inf-irr-placement lattice
-				 (apply hash-map
-					(interleave inf-irrs
-						    (partition 2 new-points))))))
+    (layout-by-inf-irr-placement lattice point-hash)))
 
 ;;;
 
