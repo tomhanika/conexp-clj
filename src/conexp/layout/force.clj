@@ -6,27 +6,57 @@
 
 ;; Repulsive Energy
 
-(defn node-line-distance
+(defn- node-line-distance
   "Returns the distance from node to the line between x and y."
   [node [x y]]
   )
 
-(defn repulsive-energy [[node-positions node-connections]]
-  0)
+(defn- repulsive-energy
+  "Computes the repulsive energy of the given layout."
+  [[node-positions node-connections]]
+  (reduce (fn [sum v]
+	    (+ sum
+	       (reduce (fn [sum [x y]]
+			 (if (or (= x v) (= y v))
+			   sum
+			   (+ sum
+			      (/ 1 (node-line-distance (node-positions v)
+						       [(node-positions x), (node-positions y)])))))
+			 0
+			 node-connections)))
+	  0
+	  (keys node-positions)))
 
 ;; Attractive Energy
 
-(defn attractive-energy [[node-positions node-connections]]
-  0)
+(defn- square
+  "Squares."
+  [x]
+  (* x x))
+
+(defn- line-length
+  "Returns the length of the line between [x_1, y_1] and [x_2, y_2]."
+  [[x_1, y_1] [x_2, y_2]]
+  (Math/sqrt (+ (square (- x_1 x_2))
+		(square (- y_1 y_2)))))
+
+(defn- attractive-energy
+  "Computes the attractive energy of the given layout."
+  [[node-positions node-connections]]
+  (reduce (fn [sum [x y]]
+	    (+ sum
+	       (square (line-length [(node-positions x), (node-positions y)]))))
+	  0
+	  node-connections))
 
 ;; Gravitative Energy
 
-(defn gravitative-energy [[node-positions node-connections]]
+(defn- gravitative-energy [[node-positions node-connections]]
   0)
 
 ;; Overall Energy
 
-(defn layout-energy
+(defn- layout-energy
   "Returns the overall energy of the given layout. The coefficients r,
   a and g give the amount of repulsive, attractive and gravitative
   energy, respectively."
@@ -35,7 +65,7 @@
      (* a (attractive-energy layout))
      (* g (gravitative-energy layout))))
 
-(defn energy-by-inf-irr-positions
+(defn- energy-by-inf-irr-positions
   "Returns a function calculating the energy of an attribute additive
   layout of lattice given by the positions of the infimum irreducible
   elements. seq-of-inf-irrs gives the order of the infimum irreducible
