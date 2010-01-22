@@ -81,11 +81,11 @@
   "Default node style for lattice diagrams.")
 
 (defvar- *default-object-concept-style* (doto (GStyle.)
-					  (.setBackgroundColor Color/BLUE))
+					  (.setBackgroundColor Color/BLACK))
   "Default style for nodes being an object concept.")
 
 (defvar- *default-attribute-concept-style* (doto (GStyle.)
-					     (.setBackgroundColor Color/BLACK))
+					     (.setBackgroundColor Color/BLUE))
   "Default style for nodes being an attribute concept.")
 
 (defn- create-two-halfcircles

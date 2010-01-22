@@ -160,7 +160,6 @@
 			    inf-irr-points),
 
 	;; minimize layout energy with above placement as initial value
-	_ (println inf-irr-points),
 	[new-points, value] (minimize (energy-by-inf-irr-positions lattice inf-irrs)
 				      (apply concat inf-irr-points)),
 

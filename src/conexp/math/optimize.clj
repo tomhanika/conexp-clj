@@ -9,10 +9,10 @@
 
 ;;;
 
-(defvar #^DirectSearchOptimizer *direct-optimizer* (NelderMead.)
+(defvar *direct-optimizer* (fn [] (NelderMead.))
   "Direct optimizer used by directly-optimize")
-(defvar #^AbstractScalarDifferentiableOptimizer *differential-optimizer*
-  (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES)
+(defvar *differential-optimizer*
+  (fn [] (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES))
   "Optimizer for differentiable functions used by differentially-optimize.")
 
 (defn- point-value-pair-to-vector
@@ -23,7 +23,7 @@
 (defn- directly-optimize
   "Optimizes fn according to goal as given by *direct-optimizer*."
   [fn starting-point goal]
-  (let [point-value-pair (.optimize (NelderMead.)
+  (let [point-value-pair (.optimize (*direct-optimizer*)
 				    (as-multivariate-real-fn fn)
 				    goal
 				    (into-array Double/TYPE starting-point))]
@@ -34,7 +34,7 @@
   *differential-optimizer*. partial-derivatives must be a function
   computing the k-th partial derivation (as clojure function) when given k."
   [fn partial-derivatives starting-point goal]
-  (let [point-value-pair (.optimize *differential-optimizer*
+  (let [point-value-pair (.optimize (*differential-optimizer*)
 				    (as-differentiable-multivariate-real-fn fn partial-derivatives)
 				    goal
 				    (into-array Double/TYPE starting-point))]
