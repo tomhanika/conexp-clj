@@ -97,7 +97,7 @@
     [(into-array Double/TYPE (concat l [(first circle), (second circle)])),
      (into-array Double/TYPE (concat (take-last 2 l) u))]))
 
-(defvar *default-node-radius* 30.0
+(defvar *default-node-radius* 20.0
   "Default radius for nodes.")
 
 (defn- add-node

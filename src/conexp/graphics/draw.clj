@@ -107,7 +107,7 @@
   ([lattice layout-function]
      (doto (JFrame. "conexp-clj Lattice")
        (.add (make-lattice-editor lattice layout-function))
-       (.setSize (Dimension. 200 200))
+       (.setSize (Dimension. 300 300))
        (.setVisible true))))
 
 
