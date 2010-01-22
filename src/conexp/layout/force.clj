@@ -1,5 +1,6 @@
 (ns conexp.layout.force
-  (:use conexp.fca.lattices
+  (:use conexp.base
+        conexp.fca.lattices
 	conexp.layout.util
 	[conexp.math.util :only (pos-infinity)]
 	conexp.math.optimize
@@ -73,8 +74,41 @@
 
 ;; Gravitative Energy
 
-(defn- gravitative-energy [[node-positions node-connections]]
-  0)
+(defn- phi
+  "Returns the angle between a inf-irreducible node [x_1,y_1]
+  and its upper neighbor [x_2, y_2]."
+  [[x_1,y_1] [x_2,y_2]]
+  (let [result (Math/atan2 (- y_2 y_1) (- x_2 x_1))]
+    (min (max 0 result) Math/PI)))
+
+(defn- gravitative-energy
+  "Returns the gravitative energy of the given layout. inf-irrs are
+  the infimum irreducible elements, upper-neighbors is a hash of
+  infimum-irreducible elements to their upper neighbour, both given
+  some perfomances sake."
+  [[node-positions node-connections] inf-irrs upper-neighbours]
+  (let [phi_0 (/ Math/PI (+ 1 (count inf-irrs))),
+	E_0 (+ (- phi_0) (- (* (Math/sin phi_0) (Math/cos phi_0)))),
+	E_1 (+ E_0 Math/PI)]
+    (try
+     (reduce (fn [sum n]
+	       (+ sum
+		  (let [phi_n (phi (node-positions n)
+				   (node-positions (upper-neighbours n)))]
+		    (cond
+		     (<= 0 phi_n phi_0) (+ phi_n
+					   (/ (square (Math/sin phi_0))
+					      (Math/tan phi_n))
+					   E_0),
+		     (<= (- Math/PI phi_0) phi_n Math/PI) (+ (- phi_n)
+							     (/ (- (square (Math/sin phi_0)))
+								(Math/tan phi_n))
+							     E_1),
+		     :else 0))))
+	     0
+	     inf-irrs)
+     (catch ArithmeticException e
+       pos-infinity))))
 
 ;; Overall Energy
 
@@ -84,10 +118,12 @@
 
 (defn- layout-energy
   "Returns the overall energy of the given layout."
-  [layout]
+  [layout inf-irrs upper-neighbours]
   (+ (* *repulsive-energy-amount* (repulsive-energy layout))
      (* *attractive-energy-amount* (attractive-energy layout))
-     (* *gravitative-energy-amount* (gravitative-energy layout))))
+     (* *gravitative-energy-amount* (gravitative-energy layout
+							inf-irrs
+							upper-neighbours))))
 
 (defn- energy-by-inf-irr-positions
   "Returns a function calculating the energy of an attribute additive
@@ -95,12 +131,17 @@
   elements. seq-of-inf-irrs gives the order of the infimum irreducible
   elements."
   [lattice seq-of-inf-irrs]
-  (fn [& point-coordinates]
-    (let [points (partition 2 point-coordinates),
-	  inf-irr-placement (apply hash-map
-				   (interleave seq-of-inf-irrs
-					       points))]
-      (layout-energy (layout-by-placement lattice inf-irr-placement)))))
+  (let [upper-neighbours (hash-by-function (fn [n]
+					     (first (lattice-upper-neighbours lattice n)))
+					   seq-of-inf-irrs)]
+    (fn [& point-coordinates]
+      (let [points (partition 2 point-coordinates),
+	    inf-irr-placement (apply hash-map
+				     (interleave seq-of-inf-irrs
+						 points))]
+	(layout-energy (layout-by-placement lattice inf-irr-placement)
+		       seq-of-inf-irrs
+		       upper-neighbours)))))
 
 ;; Force Layout
 
@@ -119,6 +160,7 @@
 			    inf-irr-points),
 
 	;; minimize layout energy with above placement as initial value
+	_ (println inf-irr-points),
 	[new-points, value] (minimize (energy-by-inf-irr-positions lattice inf-irrs)
 				      (apply concat inf-irr-points)),
 
@@ -136,13 +178,14 @@
 ;;;
 
 (comment "For Testing"
-  (require 'conexp :reload-all)
-  (def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5} 0.4)))
-  (defn simple-layered-force-layout [lat]
-    (force-layout lat (conexp/simple-layered-layout lat)))
-  (conexp/draw-lattice lat simple-layered-force-layout)
-)
 
+(require 'conexp :reload-all)
+(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5} 0.4)))
+(defn simple-layered-force-layout [lat]
+  (force-layout lat (conexp/simple-layered-layout lat)))
+(conexp/draw-lattice lat simple-layered-force-layout)
+
+)
 ;;;
 
 nil

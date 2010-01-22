@@ -26,7 +26,7 @@
 	scn (GScene. wnd)]
     (doto scn
       (.setWorldExtent (double x_min) (double y_min) (double x_max) (double y_max))
-      (.shouldZoomOnResize true)
+      (.shouldZoomOnResize false)
       (.shouldWorldExtentFitViewport false)
       (.setStyle *default-scene-style*)
       (add-nodes-with-connections points-to-coordinates point-connections))

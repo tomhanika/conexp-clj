@@ -78,7 +78,7 @@
   [lattice layout-function]
   (let [main-panel (JPanel. (BorderLayout.)),
 
-	scn (draw-on-scene [0.0 0.0] [400.0 400.0]
+	scn (draw-on-scene [-50.0 -50.0] [450.0 450.0]
 			   (scale-layout [0.0 0.0] [400.0 400.0]
 					 (layout-function lattice))),
 	canvas (.. scn getWindow getCanvas),

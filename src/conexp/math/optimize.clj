@@ -23,7 +23,7 @@
 (defn- directly-optimize
   "Optimizes fn according to goal as given by *direct-optimizer*."
   [fn starting-point goal]
-  (let [point-value-pair (.optimize *direct-optimizer*
+  (let [point-value-pair (.optimize (NelderMead.)
 				    (as-multivariate-real-fn fn)
 				    goal
 				    (into-array Double/TYPE starting-point))]
