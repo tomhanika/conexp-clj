@@ -23,13 +23,19 @@
     (+ (square (- x_1 x_2))
        (square (- y_1 y_2)))))
 
+(defn- distance
+  "Returns distance of two points."
+  [[x_1 y_1] [x_2 y_2]]
+  (with-doubles [x_1 y_1 x_2 y_2]
+    (Math/sqrt (+ (square (- x_1 x_2)) (square (- y_1 y_2))))))
+
 (defmacro sum
   "Sums up all values of bindings obtained with expr. See for."
   [bindings expr]
   `(reduce +
 	   (double 0)
 	   (for ~bindings
-	     ~expr)))
+	     (double ~expr))))
 
 ;; Repulsive Energy
 
@@ -38,30 +44,29 @@
   [[x, y] [[x_1, y_1] [x_2, y_2]]]
   (with-doubles [x, y, x_1, y_1, x_2, y_2]
     (if (and (= x_1 x_2) (= y_1 y_2))
-      (Math/sqrt (line-length-squared [x, y] [x_1, y_1]))
-      (let [ ;; position of projection of [x y] onto the line, single coordinate
+      (distance [x, y] [x_1, y_1])
+      (let [;; position of projection of [x y] onto the line, single coordinate
 	    r (/ (+ (* (- x x_1)
 		       (- x_2 x_1))
 		    (* (- y y_1)
 		       (- y_2 y_1)))
 		 (+ (square (- x_2 x_1))
-		    (square (- y_2 y_1))))]
-	(Math/sqrt (line-length-squared [x, y]
-					(cond
-					 (<= r 0) [x_1, y_1], ; node is behind [x_1, y_1]
-					 (>= r 1) [x_2, y_2], ; node is ahead [x_2, y_2]
-					 :else [(+ x_1 (* r (- x_2 x_1))), (+ y_1 (* r (- y_2 y_1)))])))))))
+		    (square (- y_2 y_1)))),
+	    r (min (max r 0) 1)]
+	(distance [x, y] [(+ x_1 (* r (- x_2 x_1))),
+			  (+ y_1 (* r (- y_2 y_1)))])))))
 
 (defn- repulsive-energy
   "Computes the repulsive energy of the given layout."
   [[node-positions node-connections]]
   (try
-   (sum [v (keys node-positions),
-	 [x y] node-connections,
-	 :when (and (not= x v)
-		    (not= y v))]
-	(/ 1 (node-line-distance (node-positions v)
-				 [(node-positions x), (node-positions y)])))
+   (let [edges (map (fn [[x y]]
+		      [x y (get node-positions x) (get node-positions y)])
+		    node-connections)]
+     (sum [[v pos-v] node-positions,
+	   [x y pos-x pos-y] edges
+	   :when (not (#{x, y} v))]
+	 (/ (node-line-distance pos-v [pos-x, pos-y]))))
    (catch Exception e
      pos-infinity)))
 
@@ -87,9 +92,9 @@
   "Returns the gravitative energy of the given layout."
   [[node-positions node-connections] {inf-irrs :inf-irrs,
 				      upper-neighbours :upper-neighbours-of-inf-irrs}]
-  (let [phi_0 (/ Math/PI (+ 1 (count inf-irrs))),
-	E_0 (+ (- phi_0) (- (* (Math/sin phi_0) (Math/cos phi_0)))),
-	E_1 (+ E_0 Math/PI)]
+  (let [phi_0 (double (/ Math/PI (+ 1 (count inf-irrs)))),
+	E_0   (double (+ (- phi_0) (- (* (Math/sin phi_0) (Math/cos phi_0))))),
+	E_1   (double (+ E_0 Math/PI))]
     (try
      (sum [n inf-irrs]
 	  (let [phi_n (double (phi (node-positions n)
