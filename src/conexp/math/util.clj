@@ -3,7 +3,7 @@
 	                                     DifferentiableMultivariateRealFunction
 	                                     MultivariateVectorialFunction]))
 
-;;;
+;;; Interfacing Apache Math
 
 (def pos-infinity Double/POSITIVE_INFINITY)
 (def neg-infinity Double/NEGATIVE_INFINITY)
@@ -44,6 +44,18 @@
 	 (fn [& args]
 	   (map #(%1 %2) partials args)))))))
 
+;;; Types
+
+(defmacro with-doubles
+  ""
+  [vars & body]
+  `(let ~(vec (mapcat (fn [var]
+			`[~var (double ~var)])
+		      vars))
+     ~@body))
+		       
+
 ;;;
+
 
 nil
