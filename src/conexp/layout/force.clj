@@ -84,11 +84,9 @@
       (min (max 0 result) Math/PI))))
 
 (defn- gravitative-energy
-  "Returns the gravitative energy of the given layout. inf-irrs are
-  the infimum irreducible elements, upper-neighbors is a hash of
-  infimum-irreducible elements to their upper neighbour, both given
-  some perfomances sake."
-  [[node-positions node-connections] inf-irrs upper-neighbours]
+  "Returns the gravitative energy of the given layout."
+  [[node-positions node-connections] {inf-irrs :inf-irrs,
+				      upper-neighbours :upper-neighbours-of-inf-irrs}]
   (let [phi_0 (/ Math/PI (+ 1 (count inf-irrs))),
 	E_0 (+ (- phi_0) (- (* (Math/sin phi_0) (Math/cos phi_0)))),
 	E_1 (+ E_0 Math/PI)]
@@ -121,12 +119,11 @@
 
 (defn- layout-energy
   "Returns the overall energy of the given layout."
-  [layout inf-irrs upper-neighbours]
+  [layout additional-information]
   (+ (* *repulsive-energy-amount* (repulsive-energy layout))
      (* *attractive-energy-amount* (attractive-energy layout))
-     (* *gravitative-energy-amount* (gravitative-energy layout
-							inf-irrs
-							upper-neighbours))))
+     (* *gravitative-energy-amount* (gravitative-energy layout additional-information))))
+
 
 (defn- energy-by-inf-irr-positions
   "Returns a function calculating the energy of an attribute additive
@@ -143,8 +140,8 @@
 				     (interleave seq-of-inf-irrs
 						 points))]
 	(layout-energy (layout-by-placement lattice inf-irr-placement)
-		       seq-of-inf-irrs
-		       upper-neighbours)))))
+		       {:inf-irrs seq-of-inf-irrs,
+			:upper-neighbours-of-inf-irrs upper-neighbours})))))
 
 ;; Force Layout
 
