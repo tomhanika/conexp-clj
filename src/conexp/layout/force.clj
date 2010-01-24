@@ -37,7 +37,7 @@
 	   (for ~bindings
 	     (double ~expr))))
 
-;; Repulsive Energy
+;; Repulsive Energy and Force
 
 (defn- node-line-distance
   "Returns the distance from node to the line between [x_1, y_1] and [x_2, y_2]."
@@ -70,7 +70,14 @@
    (catch Exception e
      pos-infinity)))
 
-;; Attractive Energy
+(defn- repulsive-force
+  "Computes the n-th component of the vector of repulsive forces
+  acting on the inf-irreducible elements of layout. The vector
+  itself has 2n entries."
+  [layout inf-irrs n]
+  (throw (UnsupportedOperationException. "Not yet implemented.")))
+
+;; Attractive Energy and Force
 
 (defn- attractive-energy
   "Computes the attractive energy of the given layout."
@@ -78,7 +85,14 @@
   (sum [[x y] node-connections]
        (double (line-length-squared (node-positions x) (node-positions y)))))
 
-;; Gravitative Energy
+(defn- attractive-force
+  "Computes the n-th component of the vector of attractive forces
+  acting on the inf-irreducible elements of layout. The vector
+  itself has 2n entries."
+  [layout inf-irrs n]
+  (throw (UnsupportedOperationException. "Not yet implemented.")))
+
+;; Gravitative Energy and Force
 
 (defn- phi
   "Returns the angle between a inf-irreducible node [x_1,y_1]
@@ -116,19 +130,30 @@
      (catch Exception e
        pos-infinity))))
 
-;; Overall Energy
+(defn- gravitative-force
+  "Computes the n-th component of the vector of gravitative forces
+  acting on the inf-irreducible elements of layout. The vector itself
+  has 2n entries."
+  [layout inf-irrs n]
+  (throw (UnsupportedOperationException. "Not yet implemented.")))
 
-(def *repulsive-energy-amount* 1)
-(def *attractive-energy-amount* 1)
-(def *gravitative-energy-amount* 1)
+;; Overall Energy and Force
+
+(def *repulsive-amount* 1)
+(def *attractive-amount* 1)
+(def *gravitative-amount* 1)
 
 (defn- layout-energy
   "Returns the overall energy of the given layout."
   [layout additional-information]
-  (+ (* *repulsive-energy-amount* (repulsive-energy layout))
-     (* *attractive-energy-amount* (attractive-energy layout))
-     (* *gravitative-energy-amount* (gravitative-energy layout additional-information))))
+  (+ (* *repulsive-amount* (repulsive-energy layout))
+     (* *attractive-amount* (attractive-energy layout))
+     (* *gravitative-amount* (gravitative-energy layout additional-information))))
 
+(defn- layout-force
+  "Computes overall force _component_ of index n in the inf-irreducible elements."
+  [layout inf-irrs n additional-information]
+  (throw (UnsupportedOperationException. "Not yet implemented.")))
 
 (defn- energy-by-inf-irr-positions
   "Returns a function calculating the energy of an attribute additive
@@ -147,6 +172,16 @@
 	(layout-energy (layout-by-placement lattice inf-irr-placement)
 		       {:inf-irrs seq-of-inf-irrs,
 			:upper-neighbours-of-inf-irrs upper-neighbours})))))
+
+(defn- force-by-inf-irr-positions
+  "Returns a function representing the forces on the infimum
+  irreducible elements of lattice. The function returned takes as
+  input and index representing the coordinate to derive at and returns
+  itself a function from a placement of the inf-irreducible elements
+  to the force component given by the index. seq-of-inf-irrs gives the
+  order of the inf-irreducible elements."
+  [lattice seq-of-inf-irrs]
+  (throw (UnsupportedOperationException. "Not yet implemented.")))
 
 ;; Force Layout
 
@@ -181,15 +216,17 @@
 
 ;;;
 
-(comment "For Testing"
-
-(require 'conexp :reload-all)
-(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5 6} 0.4)))
+(require 'conexp)
 (defn simple-layered-force-layout [lat]
   (force-layout lat (conexp/simple-layered-layout lat)))
+
+(comment "For Testing"
+
+(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5 6} 0.4)))
 (conexp/draw-lattice lat simple-layered-force-layout)
 
 )
+
 ;;;
 
 nil
