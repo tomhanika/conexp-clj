@@ -2,7 +2,7 @@
   (:use conexp.base
         conexp.fca.lattices
 	conexp.layout.util
-	[conexp.math.util :only (pos-infinity, with-doubles)]
+	[conexp.math.util :only (pos-infinity, with-doubles, partial-derivatives)]
 	conexp.math.optimize
 	clojure.contrib.pprint))
 
@@ -66,9 +66,10 @@
      (sum [[v pos-v] node-positions,
 	   [x y pos-x pos-y] edges
 	   :when (not (#{x, y} v))]
-	 (/ (node-line-distance pos-v [pos-x, pos-y]))))
+	 (/ 1.0
+	    (double (node-line-distance pos-v [pos-x, pos-y])))))
    (catch Exception e
-     pos-infinity)))
+     Double/MAX_VALUE)))
 
 (defn- repulsive-force
   "Computes the n-th component of the vector of repulsive forces
@@ -83,7 +84,7 @@
   "Computes the attractive energy of the given layout."
   [[node-positions node-connections]]
   (sum [[x y] node-connections]
-       (double (line-length-squared (node-positions x) (node-positions y)))))
+       (line-length-squared (node-positions x) (node-positions y))))
 
 (defn- attractive-force
   "Computes the n-th component of the vector of attractive forces
@@ -128,7 +129,7 @@
 
 	     :else 0)))
      (catch Exception e
-       pos-infinity))))
+       Double/MAX_VALUE))))
 
 (defn- gravitative-force
   "Computes the n-th component of the vector of gravitative forces
@@ -200,7 +201,9 @@
 			    inf-irr-points),
 
 	;; minimize layout energy with above placement as initial value
-	[new-points, value] (minimize (energy-by-inf-irr-positions lattice inf-irrs)
+	energy         (energy-by-inf-irr-positions lattice inf-irrs),
+	[new-points, value] (minimize energy
+				      ;;(partial-derivatives energy 0.06)
 				      (apply concat inf-irr-points)),
 
 	;; make hash
@@ -222,7 +225,7 @@
 
 (comment "For Testing"
 
-(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5 6} 0.4)))
+(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5 6 7} 0.4)))
 (conexp/draw-lattice lat simple-layered-force-layout)
 
 )

@@ -32,10 +32,14 @@
 (defn- differentially-optimize
   "Optimizes fn according to goal as given by
   *differential-optimizer*. partial-derivatives must be a function
-  computing the k-th partial derivation (as clojure function) when given k."
+  computing the k-th partial derivation (as clojure function) when
+  given k."
   [fn partial-derivatives starting-point goal]
   (let [point-value-pair (.optimize (*differential-optimizer*)
-				    (as-differentiable-multivariate-real-fn fn partial-derivatives)
+				    (as-differentiable-multivariate-real-fn
+				     fn
+				     (count starting-point)
+				     partial-derivatives)
 				    goal
 				    (into-array Double/TYPE starting-point))]
     (point-value-pair-to-vector point-value-pair)))

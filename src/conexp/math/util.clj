@@ -32,8 +32,8 @@
   and partial-derivatives must be a function taking a variable index k and returning
   a function representing the k-th partial derivative of fn, also being suitable for
   as-multivariate-real-fn."
-  [fun partial-derivatives]
-  (let [partials (map partial-derivatives (iterate inc 0))]
+  [fun number-of-args partial-derivatives]
+  (let [partials (map partial-derivatives (range number-of-args))]
     (proxy [DifferentiableMultivariateRealFunction] []
       (value [double-point]
         (double (apply fun (seq double-point))))
@@ -42,7 +42,7 @@
       (gradient []
         (as-multivariate-vectorial-fn
 	 (fn [& args]
-	   (map #(%1 %2) partials args)))))))
+	   (map #(apply % args) partials)))))))
 
 ;;; Types
 
@@ -55,7 +55,25 @@
      ~@body))
 		       
 
-;;;
+;;; Dirty Math Tricks
 
+(defn partial-derivatives
+  "Returns a function returning for an index n the partial derivative
+  after the n-th coordinate of the given function f.
+
+  The derivatives are computed with double-side differential quotients, so
+  be aware of every anomaly which may occur."
+  [f precision]
+  (let [advance-coord-by (fn [values index h]
+			   (assoc values index
+				  (+ (nth values index) h)))]
+    (fn [n]
+      (fn [& args]
+	(let [args (vec args)]
+	  (/ (- (apply f (advance-coord-by args n precision))
+		(apply f (advance-coord-by args n (- precision))))
+	     (* 2 precision)))))))
+
+;;;
 
 nil
