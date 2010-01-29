@@ -126,7 +126,9 @@
 	  (= (sup x (inf y z))
 	     (inf (sup x y) z))))))
 
-(defn lattice-one [lat]
+(defn lattice-one
+  "Returns the one element of lattice lat."
+  [lat]
   (let [order (order lat)
 	base  (base-set lat)]
     (first (set-of x [x base :when (forall [y base] (order [y x]))]))))

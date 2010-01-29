@@ -2,14 +2,14 @@
   (:use conexp.math.util
 	conexp.base)
   (:import [org.apache.commons.math.optimization RealPointValuePair GoalType]
-	   [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead]
+	   [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead MultiDirectional]
 	   [org.apache.commons.math.optimization.general AbstractScalarDifferentiableOptimizer
 	                                                 NonLinearConjugateGradientOptimizer
 	                                                 ConjugateGradientFormula]))
 
 ;;;
 
-(defvar *direct-optimizer* (fn [] (NelderMead.))
+(defvar *direct-optimizer* (fn [] (MultiDirectional.))
   "Direct optimizer used by directly-optimize")
 (defvar *differential-optimizer*
   (fn [] (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES))

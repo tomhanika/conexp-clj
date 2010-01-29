@@ -68,6 +68,13 @@
 	:when (directly-neighboured? lattice x y)]
     [x y]))
 
+(defn lattice-from-layout
+  "Computes lattice from a given layout."
+  [layout]
+  (let [base-set (set (keys (first layout))),
+	order (union (transitive-closure (set (second layout)))
+		     (set-of [x x] [x base-set]))]
+    (make-lattice base-set order)))
 
 ;;; inf-irreducible additive layout
 

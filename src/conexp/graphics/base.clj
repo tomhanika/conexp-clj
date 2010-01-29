@@ -88,6 +88,15 @@
 		   (get-name (upper-node %)))
 	  connections)]))
 
+(defn set-layout-of-scene
+  "Sets given layout as current layout of scene."
+  [#^GScene scene, layout]
+  (doto scene
+    (.removeAll)
+    (add-nodes-with-connections (first layout) (second layout))
+    (.refresh)
+    (.zoom 1.0))) ; ? updates the scene and draw it's new content...
+
 
 ;;; node and line iterators
 

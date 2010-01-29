@@ -2,7 +2,7 @@
   (:use conexp.base
         conexp.fca.lattices
 	conexp.layout.util
-	[conexp.math.util :only (pos-infinity, with-doubles, partial-derivatives)]
+	[conexp.math.util :only (with-doubles, partial-derivatives)]
 	conexp.math.optimize
 	clojure.contrib.pprint))
 
@@ -225,7 +225,7 @@
 
 (comment "For Testing"
 
-(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5 6 7} 0.4)))
+(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5} 0.4)))
 (conexp/draw-lattice lat simple-layered-force-layout)
 
 )

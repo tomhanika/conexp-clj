@@ -1,13 +1,14 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!)]
 	[conexp.layout :only (*standard-layout-function*)]
-	[conexp.layout.util :only (scale-layout)]
+	[conexp.layout.util :only (scale-layout, lattice-from-layout)]
+	[conexp.layout.force :only (force-layout)]
 	[conexp.graphics.nodes-and-connections :only (*default-node-radius*, move-interaction)]
-	[conexp.graphics.base :only (draw-on-scene)])
+	[conexp.graphics.base :only (draw-on-scene, get-layout-from-scene, set-layout-of-scene)])
   (:import [javax.swing JFrame JPanel JButton]
 	   [java.awt Dimension BorderLayout FlowLayout]
 	   [java.awt.event ActionListener]
-	   [no.geosoft.cc.graphics ZoomInteraction]))
+	   [no.geosoft.cc.graphics ZoomInteraction GScene]))
 
 (update-ns-meta! conexp.graphics.draw
   :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
@@ -24,10 +25,29 @@
   [scn buttons]
   nil)
 
+(defn- toggle-labels
+  "Install label-toggler."
+  [scn buttons]
+  nil)
+
 (defn- change-layout
   "Install lattice layout changer."
   [scn buttons]
   nil)
+
+(defn- improve-layout-by-force
+  "Improves layout on screen by force layout."
+  [#^GScene scn, buttons]
+  (let [button (make-button buttons "Force")]
+    (.addActionListener
+     button
+     (proxy [ActionListener] []
+       (actionPerformed [evt]
+	 (let [layout (get-layout-from-scene scn),
+	       new-layout (force-layout (lattice-from-layout layout)
+					layout)]
+	   (set-layout-of-scene scn (scale-layout [0.0 0.0] [400.0 400.0]
+						  new-layout))))))))
 
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
@@ -44,10 +64,6 @@
 				(.. scn getWindow (startInteraction (move-interaction)))
 				(.setText button "Zoom"))))))))
 
-(defn- toggle-labels
-  "Install label-toggler."
-  [scn buttons]
-  nil)
 
 (defn- export-as-file
   "Installs a file exporter."
@@ -76,9 +92,9 @@
 (defn make-lattice-editor
   "Creates a lattice editor for lattice with initial layout."
   [lattice layout-function]
-  (let [main-panel (JPanel. (BorderLayout.)),
+  (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
-	scn (draw-on-scene [-50.0 -50.0] [450.0 450.0]
+	#^GScene scn (draw-on-scene [-50.0 -50.0] [450.0 450.0]
 			   (scale-layout [0.0 0.0] [400.0 400.0]
 					 (layout-function lattice))),
 	canvas (.. scn getWindow getCanvas),
@@ -86,10 +102,11 @@
 	buttons (JPanel. (FlowLayout.))]
     (.setPreferredSize buttons (Dimension. 110 0))
     (install-changers scn buttons
-      change-node-radius
       toggle-zoom-move
+      change-node-radius
       toggle-labels
       change-layout
+      improve-layout-by-force
       export-as-file)
     (doto main-panel
       (.add canvas BorderLayout/CENTER)
