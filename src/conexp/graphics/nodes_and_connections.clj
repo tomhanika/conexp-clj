@@ -98,6 +98,9 @@
     [(into-array Double/TYPE (concat l [(first circle), (second circle)])),
      (into-array Double/TYPE (concat (take-last 2 l) u))]))
 
+(defvar *default-node-radius* 5.0
+  "Initial node radius when drawing lattices.")
+
 (defn- add-node
   "Adds a node to scn at position [x y]. Default name is \"[x y]\"."
   ([#^GScene scn, x y]
@@ -126,7 +129,7 @@
 	 (.addSegment upper-segment)
 	 (.setUserData (ref {:type :node,
 			     :position [(double x), (double y)],
-			     :radius 5.0}))
+			     :radius *default-node-radius*}))
 	 (.setName name))
        (doto scn
 	 (.add object))
