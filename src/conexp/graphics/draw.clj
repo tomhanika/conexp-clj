@@ -1,9 +1,8 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!)]
 	[conexp.layout :only (*standard-layout-function*)]
-	[conexp.layout.util :only (scale-layout)]
 	[conexp.layout.force :only (force-layout)]
-	[conexp.graphics.nodes-and-connections :only (*default-node-radius*, move-interaction)]
+	[conexp.graphics.nodes-and-connections :only (move-interaction)]
 	[conexp.graphics.base :only (draw-on-scene, get-layout-from-scene, set-layout-of-scene)])
   (:import [javax.swing JFrame JPanel JButton]
 	   [java.awt Dimension BorderLayout FlowLayout]
@@ -20,33 +19,20 @@
 
 ;; editor features
 
-(defn- change-node-radius
-  "Install node radius changer."
+(defn- change-parameters
+  "Installs parameter list which influences lattice drawing."
   [scn buttons]
+  ;; node radius
+  ;; labels
+  ;; layout
   nil)
 
-;;
-
-(defn- toggle-labels
-  "Install label-toggler."
-  [scn buttons]
-  nil)
-
-;;
-
-(defn- change-layout
-  "Install lattice layout changer."
-  [scn buttons]
-  nil)
-
-;; Improve with force layout
+;; improve with force layout
 
 (defn- improve-with-force
   "Improves layout on scene with force layout."
   [scn]
-  (set-layout-of-scene scn
-		       (scale-layout [0.0 0.0] [400.0 400.0]
-				     (force-layout (get-layout-from-scene scn)))))
+  (set-layout-of-scene scn (force-layout (get-layout-from-scene scn))))
 
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
@@ -108,18 +94,14 @@
   [lattice layout-function]
   (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
-	#^GScene scn (draw-on-scene [-50.0 -50.0] [450.0 450.0]
-				    (scale-layout [0.0 0.0] [400.0 400.0]
-						  (layout-function lattice))),
+	#^GScene scn (draw-on-scene (layout-function lattice)),
 	canvas (.. scn getWindow getCanvas),
 
 	buttons (JPanel. (FlowLayout.))]
     (.setPreferredSize buttons (Dimension. 110 0))
     (install-changers scn buttons
       toggle-zoom-move
-      change-node-radius
-      toggle-labels
-      change-layout
+      change-parameters
       improve-layout-by-force
       export-as-file)
     (doto main-panel

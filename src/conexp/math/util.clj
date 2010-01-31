@@ -5,9 +5,6 @@
 
 ;;; Interfacing Apache Math
 
-(def pos-infinity Double/POSITIVE_INFINITY)
-(def neg-infinity Double/NEGATIVE_INFINITY)
-
 (defn as-multivariate-real-fn
   "Transforms given function fn to a MultivariateRealFunction as
   needed by commons-math. fn must be a function taking a fixed number

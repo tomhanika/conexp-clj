@@ -23,7 +23,8 @@
   [number layer]
   (let [start (double (- (/ (- (count layer) 1) 2)))]
     (interleave layer
-		(map #(vector % number) (iterate inc start)))))
+		(map #(vector % number)
+		     (iterate inc start)))))
 
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."
@@ -33,12 +34,13 @@
 				(map layer-coordinates
 				     (iterate inc 0)
 				     (layers lattice))))]
-    [positions,
-     (for [x (base-set lattice),
-	   y (base-set lattice),
-	   :when (and (not= x y)
-		      (directly-neighboured? lattice x y))]
-       [x y])]))
+    (scale-layout [0.0 0.0] [100.0 100.0]
+		  [positions,
+		   (for [x (base-set lattice),
+			 y (base-set lattice),
+			 :when (and (not= x y)
+				    (directly-neighboured? lattice x y))]
+		     [x y])])))
 
 
 ;;;

@@ -90,15 +90,13 @@
 
 (defn- create-two-halfcircles
   "Creates points for two half circles."
+  ;; FIXME
   [x y radius]
   (let [circle (Geometry/createCircle (double x) (double y) (double radius)),
 	nrs (* 2 (round (/ (count circle) 4))),
 	[l u] (split-at nrs circle)]
     [(into-array Double/TYPE (concat l [(first circle), (second circle)])),
      (into-array Double/TYPE (concat (take-last 2 l) u))]))
-
-(defvar *default-node-radius* 20.0
-  "Default radius for nodes.")
 
 (defn- add-node
   "Adds a node to scn at position [x y]. Default name is \"[x y]\"."
@@ -128,7 +126,7 @@
 	 (.addSegment upper-segment)
 	 (.setUserData (ref {:type :node,
 			     :position [(double x), (double y)],
-			     :radius *default-node-radius*}))
+			     :radius 5.0}))
 	 (.setName name))
        (doto scn
 	 (.add object))

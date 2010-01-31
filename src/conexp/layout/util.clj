@@ -9,10 +9,11 @@
 
 ;;;
 
-(defn scale-points-to-rectangle
-  "Scales the collection of points such that they fit in the
-  rectangle given by [x1 y1] and [x2 y2]."
-  [[x1 y1] [x2 y2] points]
+(defn edges-of-points
+  "Returns left lower and right upper edge of the minimal rectangle
+  containing all points. The coordinates are given in a vector of the
+  form [x_min y_min x_max y_max]."
+  [points]
   (if (empty? points)
     (illegal-argument (str "Cannot scale empty sequence of points.")))
   (let [[x0 y0] (first points),
@@ -28,7 +29,14 @@
 					       (min y y_min)
 					       (max x x_max)
 					       (max y y_max)
-					       (rest points))))),
+					       (rest points)))))]
+    [x_min y_min x_max y_max]))
+
+(defn scale-points-to-rectangle
+  "Scales the collection of points such that they fit in the
+  rectangle given by [x1 y1] and [x2 y2]."
+  [[x1 y1] [x2 y2] points]
+  (let [[x_min y_min x_max y_max] (edges-of-points points),
 	a_x (/ (- x1 x2) (- x_min x_max 0.1)), ; -0.1 for (= x_min x_max)
 	b_x (- x1 (* a_x x_min)),
 	a_y (/ (- y1 y2) (- y_min y_max 0.1)),
@@ -38,7 +46,7 @@
 	 points)))
 
 (defn scale-layout
-  "Scales given layout to rectangle (x1 y1), (x2 y2). Layout is given
+  "Scales given layout to rectangle [x1 y1], [x2 y2]. Layout is given
   as a map of points to coordinates and a sequence of connection pairs."
   [[x1 y1] [x2 y2] [points-to-coordinates point-connections]]
   (let [points (seq points-to-coordinates)]
@@ -75,6 +83,7 @@
 	order (union (transitive-closure (set (second layout)))
 		     (set-of [x x] [x base-set]))]
     (make-lattice base-set order)))
+
 
 ;;; inf-irreducible additive layout
 

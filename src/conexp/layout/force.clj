@@ -69,7 +69,7 @@
 	 (/ 1.0
 	    (double (node-line-distance pos-v [pos-x, pos-y])))))
    (catch Exception e
-     Double/MAX_VALUE)))
+     Double/POSITIVE_INFINITY)))
 
 (defn- repulsive-force
   "Computes the n-th component of the vector of repulsive forces
@@ -129,7 +129,7 @@
 
 	     :else 0)))
      (catch Exception e
-       Double/MAX_VALUE))))
+       Double/POSITIVE_INFINITY))))
 
 (defn- gravitative-force
   "Computes the n-th component of the vector of gravitative forces
@@ -140,16 +140,17 @@
 
 ;; Overall Energy and Force
 
-(def *repulsive-amount* 1)
-(def *attractive-amount* 1)
-(def *gravitative-amount* 1)
+(def *repulsive-amount* 100.0)
+(def *attractive-amount* 0.001)
+(def *gravitative-amount* 10.0)
 
 (defn layout-energy
   "Returns the overall energy of the given layout."
   [layout additional-information]
-  (+ (* *repulsive-amount* (repulsive-energy layout))
-     (* *attractive-amount* (attractive-energy layout))
-     (* *gravitative-amount* (gravitative-energy layout additional-information))))
+  (double
+   (+ (* *repulsive-amount* (repulsive-energy layout))
+      (* *attractive-amount* (attractive-energy layout))
+      (* *gravitative-amount* (gravitative-energy layout additional-information)))))
 
 (defn- layout-force
   "Computes overall force _component_ of index n in the inf-irreducible elements."
@@ -198,27 +199,34 @@
 	inf-irr-points (map node-positions inf-irrs),
 
 	;; move top element to [0,0], needed by layout-by-placement
-	[top_x, top_y] (node-positions (lattice-one lattice)),
+	[top-x, top-y] (node-positions (lattice-one lattice)),
 	inf-irr-points (map (fn [[x y]]
-			      [(- x top_x), (- y top_y)])
+			      [(- x top-x), (- y top-y)])
 			    inf-irr-points),
 
 	;; minimize layout energy with above placement as initial value
 	energy         (energy-by-inf-irr-positions lattice inf-irrs),
 	[new-points, value] (minimize energy
-				      ;;(partial-derivatives energy 0.06)
+				      ;;(partial-derivatives energy 0.1)
 				      (apply concat inf-irr-points)),
 
 	;; make hash
 	point-hash (apply hash-map (interleave inf-irrs
-					       (partition 2 new-points)))]
+					       (partition 2 new-points))),
 
-    ;; (pprint (apply hash-map (interleave inf-irrs inf-irr-points)))
-    ;; (pprint point-hash)
-    ;; (pprint value)
+	;; compute layout given by the result
+	[placement connections] (layout-by-placement lattice point-hash),
 
-    ;; compute layout given by the result
-    (layout-by-placement lattice point-hash)))
+	;; move points such that top element is at [top-x, top-y] again
+	placement (apply hash-map
+			 (interleave (keys placement)
+				     (map (fn [[x y]]
+					    [(+ x top-x), (+ y top-y)])
+					  (vals placement))))]
+
+    (pprint placement)
+    [placement connections]))
+
 
 ;;;
 
@@ -228,7 +236,7 @@
 
 (comment "For Testing"
 
-(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5} 0.4)))
+(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5 6} 0.4)))
 (conexp/draw-lattice lat simple-layered-force-layout)
 
 )

@@ -9,7 +9,7 @@
 
 ;;;
 
-(defvar *direct-optimizer* (fn [] (MultiDirectional.))
+(defvar *direct-optimizer* (fn [] (NelderMead.))
   "Direct optimizer used by directly-optimize")
 (defvar *differential-optimizer*
   (fn [] (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES))
