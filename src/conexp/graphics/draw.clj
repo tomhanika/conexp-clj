@@ -1,7 +1,7 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!)]
 	[conexp.layout :only (*standard-layout-function*)]
-	[conexp.layout.util :only (scale-layout, lattice-from-layout)]
+	[conexp.layout.util :only (scale-layout)]
 	[conexp.layout.force :only (force-layout)]
 	[conexp.graphics.nodes-and-connections :only (*default-node-radius*, move-interaction)]
 	[conexp.graphics.base :only (draw-on-scene, get-layout-from-scene, set-layout-of-scene)])
@@ -25,29 +25,42 @@
   [scn buttons]
   nil)
 
+;;
+
 (defn- toggle-labels
   "Install label-toggler."
   [scn buttons]
   nil)
+
+;;
 
 (defn- change-layout
   "Install lattice layout changer."
   [scn buttons]
   nil)
 
+;; Improve with force layout
+
+(defn- improve-with-force
+  "Improves layout on scene with force layout."
+  [scn]
+  (set-layout-of-scene scn
+		       (scale-layout [0.0 0.0] [400.0 400.0]
+				     (force-layout (get-layout-from-scene scn)))))
+
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
   [#^GScene scn, buttons]
   (let [button (make-button buttons "Force")]
-    (.addActionListener
-     button
-     (proxy [ActionListener] []
-       (actionPerformed [evt]
-	 (let [layout (get-layout-from-scene scn),
-	       new-layout (force-layout (lattice-from-layout layout)
-					layout)]
-	   (set-layout-of-scene scn (scale-layout [0.0 0.0] [400.0 400.0]
-						  new-layout))))))))
+    (.addActionListener button
+			(proxy [ActionListener] []
+			  (actionPerformed [evt]
+			    (improve-with-force scn))))))
+
+;; TODO: Add energy label,
+;;       Add sliders for repulsive, attractive and gravitative amount
+
+;;
 
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
@@ -64,6 +77,7 @@
 				(.. scn getWindow (startInteraction (move-interaction)))
 				(.setText button "Zoom"))))))))
 
+;;
 
 (defn- export-as-file
   "Installs a file exporter."
@@ -79,7 +93,7 @@
      ~@(map (fn [method#] `(~method# ~scene ~buttons))
 	    methods)))
 
-(defn make-button
+(defn- make-button
   "Uniformly create buttons for lattice editor."
   [buttons text]
   (let [button (JButton. text)]
@@ -95,8 +109,8 @@
   (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
 	#^GScene scn (draw-on-scene [-50.0 -50.0] [450.0 450.0]
-			   (scale-layout [0.0 0.0] [400.0 400.0]
-					 (layout-function lattice))),
+				    (scale-layout [0.0 0.0] [400.0 400.0]
+						  (layout-function lattice))),
 	canvas (.. scn getWindow getCanvas),
 
 	buttons (JPanel. (FlowLayout.))]

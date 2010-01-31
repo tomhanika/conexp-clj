@@ -144,7 +144,7 @@
 (def *attractive-amount* 1)
 (def *gravitative-amount* 1)
 
-(defn- layout-energy
+(defn layout-energy
   "Returns the overall energy of the given layout."
   [layout additional-information]
   (+ (* *repulsive-amount* (repulsive-energy layout))
@@ -188,8 +188,11 @@
 
 (defn force-layout
   "Improves given layout with force layout."
-  [lattice layout]
-  (let [;; get positions of inf-irreducibles from layout as starting point
+  [layout]
+  (let [;; compute lattice from layout; this will be changed in the future
+	lattice (lattice-from-layout layout),
+
+	;; get positions of inf-irreducibles from layout as starting point
 	inf-irrs (seq (lattice-inf-irreducibles lattice)),
 	node-positions (first layout),
 	inf-irr-points (map node-positions inf-irrs),
@@ -221,7 +224,7 @@
 
 (require 'conexp)
 (defn simple-layered-force-layout [lat]
-  (force-layout lat (conexp/simple-layered-layout lat)))
+  (force-layout (conexp/simple-layered-layout lat)))
 
 (comment "For Testing"
 
