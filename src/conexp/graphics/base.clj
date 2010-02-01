@@ -1,5 +1,5 @@
 (ns conexp.graphics.base
-  (:use [conexp.util :only (update-ns-meta!)]
+  (:use [conexp.util :only (update-ns-meta!, illegal-argument)]
 	[conexp.base :only (defvar-)]
 	[conexp.layout.util :only (edges-of-points)]
 	[clojure.contrib.ns-utils :only (immigrate)])
@@ -8,6 +8,7 @@
 	   [no.geosoft.cc.graphics GWindow GScene GStyle]))
 
 (immigrate 'conexp.graphics.util
+	   'conexp.graphics.scenes
 	   'conexp.graphics.nodes-and-connections)
 
 (update-ns-meta! conexp.graphics.base
@@ -18,7 +19,7 @@
 
 (defn get-diagram-from-scene
   "Returns nodes and lines of a scene."
-  [scene]
+  [#^GScene scene]
   (seq (.getChildren scene)))
 
 (defn get-layout-from-scene
@@ -61,23 +62,15 @@
 
 ;;; draw nodes with coordinates and connections on a scene
 
-(defvar- *default-scene-style* (doto (GStyle.)
-				 (.setBackgroundColor Color/WHITE)
-				 (.setAntialiased true))
-  "Default GScene style.")
-
 (defn draw-on-scene
   "Draws given layout on a GScene and returns it."
   [[points-to-coordinates point-connections]]
-  (let [wnd (GWindow. Color/WHITE)
-	scn (GScene. wnd)]
+  (let [#^GWindow wnd (make-window)
+	scn (make-scene wnd)]
     (doto scn
-      (set-layout-of-scene [points-to-coordinates point-connections])
-      (.shouldZoomOnResize true)
-      (.shouldWorldExtentFitViewport false)
-      (.setStyle *default-scene-style*))
+      (set-layout-of-scene [points-to-coordinates point-connections]))
     (doto wnd
-      (.startInteraction (move-interaction)))
+      (.startInteraction (move-interaction scn)))
     scn))
 
 

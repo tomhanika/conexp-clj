@@ -2,10 +2,11 @@
   (:use [conexp.util :only (update-ns-meta!)]
 	[conexp.base :only (defvar-, defvar, round)]
 	conexp.graphics.util
+	conexp.graphics.scenes
 	[clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
 	   [no.geosoft.cc.geometry Geometry]
-	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment GStyle GInteraction]))
+	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment GStyle GInteraction ZoomInteraction]))
 
 
 (update-ns-meta! conexp.graphics.nodes-and-connections
@@ -233,7 +234,7 @@
 
 (defn move-interaction
   "Standard move interaction for lattice diagrams."
-  []
+  [scene]
   (let [interaction-obj (atom nil)]
     (proxy [GInteraction] []
       (event [#^GScene scn, evt, x, y]
@@ -247,6 +248,14 @@
 				     (.refresh scn))),
 	   GWindow/BUTTON1_UP    (reset! interaction-obj nil)
 	   nil)))))
+
+(defn zoom-interaction
+  "Standrd zoom interaction for lattice diagrams."
+  [scene]
+  (let [#^ZoomInteraction zoom-obj (ZoomInteraction. scene)]
+    (proxy [GInteraction] []
+      (event [#^GScene scn, evt, x, y]
+	(.event zoom-obj scn evt x y)))))
 
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected

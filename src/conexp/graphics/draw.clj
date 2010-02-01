@@ -2,12 +2,14 @@
   (:use [conexp.util :only (update-ns-meta!)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.force :only (force-layout)]
-	[conexp.graphics.nodes-and-connections :only (move-interaction)]
-	[conexp.graphics.base :only (draw-on-scene, get-layout-from-scene, set-layout-of-scene)])
+	[conexp.graphics.base :only (draw-on-scene,
+				     get-layout-from-scene,
+				     set-layout-of-scene,
+				     move-interaction,
+				     zoom-interaction)])
   (:import [javax.swing JFrame JPanel JButton]
 	   [java.awt Dimension BorderLayout FlowLayout]
-	   [java.awt.event ActionListener]
-	   [no.geosoft.cc.graphics ZoomInteraction GScene]))
+	   [java.awt.event ActionListener]))
 
 (update-ns-meta! conexp.graphics.draw
   :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
@@ -36,7 +38,7 @@
 
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
-  [#^GScene scn, buttons]
+  [scn, buttons]
   (let [button (make-button buttons "Force")]
     (.addActionListener button
 			(proxy [ActionListener] []
@@ -57,10 +59,10 @@
 			  (actionPerformed [evt]
 			    (if (= "Zoom" (.getText button))
 			      (do
-				(.. scn getWindow (startInteraction (ZoomInteraction. scn)))
+				(.. scn getWindow (startInteraction (zoom-interaction scn)))
 				(.setText button "Move"))
 			      (do
-				(.. scn getWindow (startInteraction (move-interaction)))
+				(.. scn getWindow (startInteraction (move-interaction scn)))
 				(.setText button "Zoom"))))))))
 
 ;;
@@ -94,7 +96,7 @@
   [lattice layout-function]
   (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
-	#^GScene scn (draw-on-scene (layout-function lattice)),
+	scn (draw-on-scene (layout-function lattice)),
 	canvas (.. scn getWindow getCanvas),
 
 	buttons (JPanel. (FlowLayout.))]
