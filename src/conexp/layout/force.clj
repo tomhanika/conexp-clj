@@ -230,17 +230,4 @@
 
 ;;;
 
-(require 'conexp)
-(defn simple-layered-force-layout [lat]
-  (force-layout (conexp/simple-layered-layout lat)))
-
-(comment "For Testing"
-
-(def lat (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5 6} 0.4)))
-(conexp/draw-lattice lat simple-layered-force-layout)
-
-)
-
-;;;
-
 nil

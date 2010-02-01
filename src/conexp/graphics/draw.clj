@@ -13,7 +13,7 @@
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
 	                BoxLayout Box]
-	   [java.awt Dimension BorderLayout GridLayout Component]
+	   [java.awt Color Dimension BorderLayout GridLayout Component]
 	   [java.awt.event ActionListener]))
 
 (update-ns-meta! conexp.graphics.draw
@@ -22,7 +22,7 @@
 
 ;;; lattice editor -- a lot TODO
 
-(declare make-button, make-panel, make-text-field)
+(declare make-button, make-labeled-text-field, make-padding, make-separator)
 
 ;; editor features
 
@@ -48,37 +48,27 @@
   "Improves layout on screen by force layout."
   [frame scn buttons]
   ;; Add parameters for repulsive, attractive and gravitative amount
-  (let [panel (make-panel buttons),
-	#^JTextField rep-field (make-text-field (str *repulsive-amount*)),
-	#^JTextField attr-field (make-text-field (str *attractive-amount*)),
-	#^JTextField grav-field (make-text-field (str *gravitative-amount*))]
-    (doto panel
-      (.setLayout (GridLayout. 3 2))
-      (.setMaximumSize (Dimension. 100 70))
-      (.add (JLabel. "rep"))
-      (.add rep-field)
-      (.add (JLabel. "attr"))
-      (.add attr-field)
-      (.add (JLabel. "grav"))
-      (.add grav-field))
-    (.add buttons panel)
-    (let [button (make-button buttons "Force")]
-      (.addActionListener button
-			  (proxy [ActionListener] []
-			    (actionPerformed [evt]
-			      (try
-			       (let [r (Double/parseDouble (.getText rep-field)),
-				     a (Double/parseDouble (.getText attr-field)),
-				     g (Double/parseDouble (.getText grav-field))]
-				 (improve-with-force scn r a g))
-			       (catch NumberFormatException e
-				 (JOptionPane/showMessageDialog
-				  frame,
-				  "Invalid number in parameters.",
-				  "Invalid parameters.",
-				  JOptionPane/ERROR_MESSAGE)))))))))
+  (let [#^JTextField rep-field  (make-labeled-text-field buttons "rep"  (str *repulsive-amount*)),
+	#^JTextField attr-field (make-labeled-text-field buttons "attr" (str *attractive-amount*)),
+	#^JTextField grav-field (make-labeled-text-field buttons "grav" (str *gravitative-amount*)),
+	_                       (make-padding buttons),
+	#^JButton button (make-button buttons "Force")]
+    (.addActionListener button
+			(proxy [ActionListener] []
+			  (actionPerformed [evt]
+			    (try
+			     (let [r (Double/parseDouble (.getText rep-field)),
+				   a (Double/parseDouble (.getText attr-field)),
+				   g (Double/parseDouble (.getText grav-field))]
+			       (improve-with-force scn r a g))
+			     (catch NumberFormatException e
+			       (JOptionPane/showMessageDialog
+				frame,
+				"Invalid number in parameters.",
+				"Invalid parameters.",
+				JOptionPane/ERROR_MESSAGE))))))))
 
-;; TODO: Add energy label,
+;; TODO: Add energy label
 
 
 ;; zoom-move
@@ -86,17 +76,22 @@
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
   [frame scn buttons]
-  (let [button (make-button buttons "Zoom")]
-    (.addActionListener button
+  (let [zoom-button (make-button buttons "Zoom"),
+	move-button (make-button buttons "Move")]
+    (.addActionListener zoom-button
 			(proxy [ActionListener] []
 			  (actionPerformed [evt]
-			    (if (= "Zoom" (.getText button))
-			      (do
-				(.. scn getWindow (startInteraction (zoom-interaction scn)))
-				(.setText button "Move"))
-			      (do
-				(.. scn getWindow (startInteraction (move-interaction scn)))
-				(.setText button "Zoom"))))))))
+			    (.. scn getWindow (startInteraction (zoom-interaction scn)))
+			    (.setEnabled move-button true)
+			    (.setEnabled zoom-button false))))
+    (.addActionListener move-button
+			(proxy [ActionListener] []
+			  (actionPerformed [evt]
+			    (.. scn getWindow (startInteraction (move-interaction scn)))
+			    (.setEnabled zoom-button true)
+			    (.setEnabled move-button false))))
+    (.setEnabled zoom-button false)
+    (.setEnabled move-button true)))
 
 ;;
 
@@ -111,16 +106,27 @@
   "Installs given methods to scene with buttons."
   [frame scene buttons & methods]
   `(do
-     (.add ~buttons (Box/createRigidArea (Dimension. 0 2)))
+     (make-padding ~buttons)
      ~@(map (fn [method#]
 	      `(~method# ~frame ~scene ~buttons))
 	    (interpose (fn [_ _ buttons]
-			 (.add buttons (Box/createRigidArea (Dimension. 0 2)))
-			 (let [sep (JSeparator. SwingConstants/HORIZONTAL)]
-			   (.setMaximumSize sep (Dimension. 100 1))
-			   (.add buttons sep))
-			 (.add buttons (Box/createRigidArea (Dimension. 0 2))))
+			 (make-padding buttons)
+			 (make-separator buttons)
+			 (make-padding buttons))
 		       methods))))
+
+(defn- make-padding
+  "Adds a padding to buttons."
+  [buttons]
+  (.add buttons (Box/createRigidArea (Dimension. 0 2))))
+
+(defn- make-separator
+  "Adds a separator to buttons."
+  [buttons]
+  (let [sep (JSeparator. SwingConstants/HORIZONTAL)]
+    (.setMaximumSize sep (Dimension. 100 1))
+    (.add buttons sep)
+    sep))
 
 (defn- make-button
   "Uniformly creates buttons for lattice editor."
@@ -128,21 +134,22 @@
   (let [button (JButton. text)]
     (.add buttons button)
     (.setAlignmentX button Component/CENTER_ALIGNMENT)
-    (.setPreferredSize button (Dimension. 40000 20))
+    (.setMaximumSize button (Dimension. 100 20))
     button))
 
-(defn- make-panel
-  "Uniformly creates a label for lattice editor."
-  [buttons]
-  (let [panel (JPanel.)]
-    (.add buttons panel)
-    (.setPreferredSize panel (Dimension. 100 0))
-    panel))
-
-(defn- make-text-field
+(defn- make-labeled-text-field
   "Uniformly creates a text field for lattice editor."
-  [text]
-  (let [text-field (JTextField. text)]
+  [buttons label text]
+  (let [#^JTextField text-field (JTextField. text),
+	#^JLabel label (JLabel. label),
+	#^JPanel panel (JPanel.)]
+    (doto panel
+      (.add label)
+      (.add text-field)
+      (.setMaximumSize (Dimension. 100 25)))
+    (.setPreferredSize label (Dimension. 40 20))
+    (.setPreferredSize text-field (Dimension. 50 20))
+    (.add buttons panel)
     text-field))
 
 ;; constructor
