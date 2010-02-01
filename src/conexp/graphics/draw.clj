@@ -1,14 +1,19 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!)]
 	[conexp.layout :only (*standard-layout-function*)]
-	[conexp.layout.force :only (force-layout)]
+	[conexp.layout.force :only (force-layout,
+				    *repulsive-amount*,
+				    *attractive-amount*,
+				    *gravitative-amount*)]
 	[conexp.graphics.base :only (draw-on-scene,
 				     get-layout-from-scene,
 				     set-layout-of-scene,
 				     move-interaction,
 				     zoom-interaction)])
-  (:import [javax.swing JFrame JPanel JButton]
-	   [java.awt Dimension BorderLayout FlowLayout]
+  (:import [javax.swing JFrame JPanel JButton JTextField JLabel
+	                JOptionPane JSeparator SwingConstants
+	                BoxLayout Box]
+	   [java.awt Dimension BorderLayout GridLayout Component]
 	   [java.awt.event ActionListener]))
 
 (update-ns-meta! conexp.graphics.draw
@@ -17,13 +22,13 @@
 
 ;;; lattice editor -- a lot TODO
 
-(declare make-button)
+(declare make-button, make-panel, make-text-field)
 
 ;; editor features
 
 (defn- change-parameters
   "Installs parameter list which influences lattice drawing."
-  [scn buttons]
+  [frame scn buttons]
   ;; node radius
   ;; labels
   ;; layout
@@ -33,26 +38,54 @@
 
 (defn- improve-with-force
   "Improves layout on scene with force layout."
-  [scn]
-  (set-layout-of-scene scn (force-layout (get-layout-from-scene scn))))
+  [scn r a g]
+  (binding [*repulsive-amount* r,
+	    *attractive-amount* a,
+	    *gravitative-amount* g]
+    (set-layout-of-scene scn (force-layout (get-layout-from-scene scn)))))
 
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
-  [scn, buttons]
-  (let [button (make-button buttons "Force")]
-    (.addActionListener button
-			(proxy [ActionListener] []
-			  (actionPerformed [evt]
-			    (improve-with-force scn))))))
+  [frame scn buttons]
+  ;; Add parameters for repulsive, attractive and gravitative amount
+  (let [panel (make-panel buttons),
+	#^JTextField rep-field (make-text-field (str *repulsive-amount*)),
+	#^JTextField attr-field (make-text-field (str *attractive-amount*)),
+	#^JTextField grav-field (make-text-field (str *gravitative-amount*))]
+    (doto panel
+      (.setLayout (GridLayout. 3 2))
+      (.setMaximumSize (Dimension. 100 70))
+      (.add (JLabel. "rep"))
+      (.add rep-field)
+      (.add (JLabel. "attr"))
+      (.add attr-field)
+      (.add (JLabel. "grav"))
+      (.add grav-field))
+    (.add buttons panel)
+    (let [button (make-button buttons "Force")]
+      (.addActionListener button
+			  (proxy [ActionListener] []
+			    (actionPerformed [evt]
+			      (try
+			       (let [r (Double/parseDouble (.getText rep-field)),
+				     a (Double/parseDouble (.getText attr-field)),
+				     g (Double/parseDouble (.getText grav-field))]
+				 (improve-with-force scn r a g))
+			       (catch NumberFormatException e
+				 (JOptionPane/showMessageDialog
+				  frame,
+				  "Invalid number in parameters.",
+				  "Invalid parameters.",
+				  JOptionPane/ERROR_MESSAGE)))))))))
 
 ;; TODO: Add energy label,
-;;       Add sliders for repulsive, attractive and gravitative amount
 
-;;
+
+;; zoom-move
 
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
-  [scn buttons]
+  [frame scn buttons]
   (let [button (make-button buttons "Zoom")]
     (.addActionListener button
 			(proxy [ActionListener] []
@@ -69,39 +102,64 @@
 
 (defn- export-as-file
   "Installs a file exporter."
-  [scn buttons]
+  [frame scn buttons]
   nil)
 
 ;; technical helpers
 
 (defmacro install-changers
   "Installs given methods to scene with buttons."
-  [scene buttons & methods]
+  [frame scene buttons & methods]
   `(do
-     ~@(map (fn [method#] `(~method# ~scene ~buttons))
-	    methods)))
+     (.add ~buttons (Box/createRigidArea (Dimension. 0 2)))
+     ~@(map (fn [method#]
+	      `(~method# ~frame ~scene ~buttons))
+	    (interpose (fn [_ _ buttons]
+			 (.add buttons (Box/createRigidArea (Dimension. 0 2)))
+			 (let [sep (JSeparator. SwingConstants/HORIZONTAL)]
+			   (.setMaximumSize sep (Dimension. 100 1))
+			   (.add buttons sep))
+			 (.add buttons (Box/createRigidArea (Dimension. 0 2))))
+		       methods))))
 
 (defn- make-button
-  "Uniformly create buttons for lattice editor."
+  "Uniformly creates buttons for lattice editor."
   [buttons text]
   (let [button (JButton. text)]
     (.add buttons button)
-    (.setPreferredSize button (Dimension. 100 20))
+    (.setAlignmentX button Component/CENTER_ALIGNMENT)
+    (.setPreferredSize button (Dimension. 40000 20))
     button))
+
+(defn- make-panel
+  "Uniformly creates a label for lattice editor."
+  [buttons]
+  (let [panel (JPanel.)]
+    (.add buttons panel)
+    (.setPreferredSize panel (Dimension. 100 0))
+    panel))
+
+(defn- make-text-field
+  "Uniformly creates a text field for lattice editor."
+  [text]
+  (let [text-field (JTextField. text)]
+    text-field))
 
 ;; constructor
 
 (defn make-lattice-editor
   "Creates a lattice editor for lattice with initial layout."
-  [lattice layout-function]
+  [frame lattice layout-function]
   (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
 	scn (draw-on-scene (layout-function lattice)),
 	canvas (.. scn getWindow getCanvas),
 
-	buttons (JPanel. (FlowLayout.))]
+	buttons (JPanel.),
+	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
+    (.setLayout buttons box-layout)
     (.setPreferredSize buttons (Dimension. 110 0))
-    (install-changers scn buttons
+    (install-changers frame scn buttons
       toggle-zoom-move
       change-parameters
       improve-layout-by-force
@@ -120,10 +178,11 @@
   ([lattice]
      (draw-lattice lattice *standard-layout-function*))
   ([lattice layout-function]
-     (doto (JFrame. "conexp-clj Lattice")
-       (.add (make-lattice-editor lattice layout-function))
-       (.setSize (Dimension. 300 300))
-       (.setVisible true))))
+     (let [#^JFrame frame (JFrame. "conexp-clj Lattice")]
+       (doto frame
+	 (.add (make-lattice-editor frame lattice layout-function))
+	 (.setSize (Dimension. 300 300))
+	 (.setVisible true)))))
 
 
 ;;;

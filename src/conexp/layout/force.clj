@@ -10,7 +10,7 @@
 
 ;; Helpers
 
-(defn square
+(defn- square
   "Squares."
   [x]
   (with-doubles [x]
@@ -224,7 +224,7 @@
 					    [(+ x top-x), (+ y top-y)])
 					  (vals placement))))]
 
-    (pprint placement)
+    ;; (pprint placement)
     [placement connections]))
 
 

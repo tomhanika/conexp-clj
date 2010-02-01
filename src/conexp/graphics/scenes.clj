@@ -50,9 +50,8 @@
 (defn add-hook
   "Adds hook for scene."
   [#^GScene scn, hook]
-  (when (contains? (get-scene-hooks scn) hook)
-    (illegal-argument "Cannot add hook " hook ", it is already present in given scene."))
-  (.setUserData (update-in (.getUserData scn) [:hooks hook] [])))
+  (when (not (contains? (get-scene-hooks scn) hook))
+    (.setUserData (update-in (.getUserData scn) [:hooks hook] []))))
 
 (defn set-callback-for-hook
   "Sets given functions as callbacks for hook on scene."
