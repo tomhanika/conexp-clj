@@ -34,7 +34,7 @@
 				(map layer-coordinates
 				     (iterate inc 0)
 				     (layers lattice))))]
-    (scale-layout [0.0 0.0] [100.0 100.0]
+    (scale-layout [0.0 0.0] [200.0 200.0]
 		  [positions,
 		   (for [x (base-set lattice),
 			 y (base-set lattice),

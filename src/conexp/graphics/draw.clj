@@ -13,7 +13,7 @@
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
 	                BoxLayout Box]
-	   [java.awt Color Dimension BorderLayout GridLayout Component]
+	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]))
 
 (update-ns-meta! conexp.graphics.draw

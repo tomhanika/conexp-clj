@@ -77,7 +77,7 @@
 
 (defvar- *default-node-style* (doto (GStyle.)
 				(.setForegroundColor Color/BLACK)
-				(.setBackgroundColor Color/GRAY)
+				(.setBackgroundColor Color/WHITE)
 				(.setLineWidth 1.0))
   "Default node style for lattice diagrams.")
 
@@ -123,18 +123,18 @@
 	   #^GSegment lower-segment (GSegment.),
 	   object (proxy [GObject] []
 		    (draw []
-		      (let [[x y] (position this),
+		      (let [upper-style (if (= 1 (-?> this upper-neighbors count))
+					  *default-attribute-concept-style*
+					  nil),
+			    lower-style (if (= 1 (-?> this lower-neighbors count))
+					  *default-object-concept-style*
+					  nil),
+			    [x y] (position this),
 			    [l u] (create-two-halfcircles x y (radius this))]
 			(.setGeometryXy lower-segment l)
-			(.setGeometryXy upper-segment u))
-		      (.setStyle lower-segment 
-				 (if (= 1 (-?> this lower-neighbors count))
-				   *default-object-concept-style*
-				   nil))
-		      (.setStyle upper-segment
-				 (if (= 1 (-?> this upper-neighbors count))
-				   *default-attribute-concept-style*
-				   nil)))),
+			(.setGeometryXy upper-segment u)
+			(.setStyle lower-segment lower-style)
+			(.setStyle upper-segment upper-style))))
 	   style (GStyle.)]
        (doto object
 	 (.setStyle *default-node-style*)
