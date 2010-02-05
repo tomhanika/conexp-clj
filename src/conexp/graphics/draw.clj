@@ -90,8 +90,8 @@
 			    (.. scn getWindow (startInteraction (move-interaction scn)))
 			    (.setEnabled zoom-button true)
 			    (.setEnabled move-button false))))
-    (.setEnabled zoom-button false)
-    (.setEnabled move-button true)))
+    (.setEnabled zoom-button true)
+    (.setEnabled move-button false)))
 
 ;;
 
