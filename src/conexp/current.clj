@@ -1,5 +1,7 @@
 (ns conexp.current
-  (:require conexp))
+  (:require conexp
+	    clojure.contrib.pprint
+	    clojure.contrib.repl-utils))
 
 ;;;
 

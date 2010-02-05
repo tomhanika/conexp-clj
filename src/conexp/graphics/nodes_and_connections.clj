@@ -90,14 +90,26 @@
   "Default style for nodes being an attribute concept.")
 
 (defn- create-two-halfcircles
-  "Creates points for two half circles."
-  ;; FIXME
+  "Creates points for two half circles, lower circle points first."
   [x y radius]
-  (let [circle (Geometry/createCircle (double x) (double y) (double radius)),
-	nrs (* 2 (round (/ (count circle) 4))),
-	[l u] (split-at nrs circle)]
-    [(into-array Double/TYPE (concat l [(first circle), (second circle)])),
-     (into-array Double/TYPE (concat (take-last 2 l) u))]))
+  (let [x (double x),
+	y (double y),
+	radius (double radius),
+	samples 100,
+	angle (/ Math/PI samples),
+	[upper-points, lower-points] (loop [current-angle (double (- (/ Math/PI 2.0))),
+					    acc-samples 0,
+					    upper-points [],
+					    lower-points []]
+				       (if (> acc-samples samples)
+					 [upper-points, lower-points]
+					 (let [new-x (+ x (* radius (Math/sin current-angle))),
+					       new-y (+ y (* radius (Math/cos current-angle)))]
+					   (recur (double (+ current-angle angle))
+						  (inc acc-samples)
+						  (conj upper-points new-x new-y)
+						  (conj lower-points new-x (+ y y (- new-y)))))))]
+    [(into-array Double/TYPE lower-points), (into-array Double/TYPE upper-points)]))
 
 (defvar *default-node-radius* 5.0
   "Initial node radius when drawing lattices.")
