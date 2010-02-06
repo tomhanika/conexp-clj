@@ -35,9 +35,9 @@
 
 (defn ManyValuedContext-hashCode
   [#^conexp.fca.ManyValuedContext this]
-  (+ (.hashCode (objects this))
-     (.hashCode (attributes this))
-     (.hashCode (incidence this))))
+  (+ (hash (objects this))
+     (hash (attributes this))
+     (hash (incidence this))))
 
 (defn print-mv-context [mv-ctx]
   (let [objs (objects mv-ctx)
@@ -78,8 +78,6 @@
 
 (defn ManyValuedContext-toString [this]
   (print-mv-context this))
-
-; (defn ManyValuedContext-hashCode [this])
 
 ;;;
 
@@ -173,5 +171,7 @@
 
 (defn dichotomic-scale [base]
   (diag-context base))
+
+;;;
 
 nil

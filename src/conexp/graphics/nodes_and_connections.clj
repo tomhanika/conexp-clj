@@ -5,7 +5,6 @@
 	conexp.graphics.scenes
 	[clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
-	   [no.geosoft.cc.geometry Geometry]
 	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment GStyle GInteraction ZoomInteraction]))
 
 

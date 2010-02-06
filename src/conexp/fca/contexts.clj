@@ -113,9 +113,9 @@
 (defn Context-hashCode
   "Implements hashCode for contexts."
   [this]
-  (+ (.hashCode (objects this))
-     (.hashCode (attributes this))
-     (.hashCode (incidence this))))
+  (+ (hash (objects this))
+     (hash (attributes this))
+     (hash (incidence this))))
 
 ;;;
 

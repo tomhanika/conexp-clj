@@ -32,8 +32,8 @@
 (defn Implication-hashCode
   "Implements hashCode for implications."
   [this]
-  (+ (.hashCode (premise this))
-     (.hashCode (conclusion this))))
+  (+ (hash (premise this))
+     (hash (conclusion this))))
 
 (defn make-implication
   "Creates an implication (premise => conclusion $\\setminus$ premise)."

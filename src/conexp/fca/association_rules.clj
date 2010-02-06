@@ -46,8 +46,8 @@
        (= (conclusion this) (conclusion other))))
 
 (defn AssociationRule-hashCode [this]
-  (+ (.hashCode (premise this))
-     (.hashCode (conclusion this))))
+  (+ (hash (premise this))
+     (hash (conclusion this))))
 
 (defn make-association-rule [context premise conclusion]
   (let [premise (set premise)

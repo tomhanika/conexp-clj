@@ -70,11 +70,11 @@
 	order    ((.state this) :order)
 	inf      ((.state this) :inf)
 	sup      ((.state this) :sup)]
-    (+ (.hashCode base-set)
+    (+ (hash base-set)
        (if order
-	 (.hashCode order)
-	 (+ (.hashCode inf)
-	    (.hashCode sup))))))
+	 (hash order)
+	 (+ (hash inf)
+	    (hash sup))))))
 
 (defn type-of [thing]
   (cond
