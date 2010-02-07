@@ -42,6 +42,28 @@
   [[a b]]
   [(- b) a])
 
+(defn- side-number
+  "Returns +1 if node (first argument) is situated on the left of
+  line (given by two points as second argument), -1 otherwise."
+  ;; intermediate function; will be deleted later
+  [[x y] [[x_1 y_1] [x_2 y_2]]]
+    (with-doubles [x y x_1 y_1 x_2 y_2]
+      (let [r (/ (+ (* (- x x_1) (- x_2 x_1))
+		    (* (- y y_1) (- y_2 y_1)))
+		 (+ (square (- x_2 x_1)) (square (- y_2 y_1)))),
+	    perp-x (+ x_1 (* r (- x_2 x_1)))]
+	(cond
+	 (< x perp-x) 1,
+	 :else -1))))
+
+(defn- unit-vector
+  "Returns unit vector between first and second point."
+  [[x_1 y_1] [x_2 y_2]]
+  (with-doubles [x_1 y_1 x_2 y_2]
+    (let [length (distance [x_1 y_1] [x_2 y_2])]
+      [(/ (- x_2 x_1) length), (/ (- y_2 y_1) length)])))
+
+
 ;; Repulsive Energy and Force
 
 (defn- node-line-distance
