@@ -216,22 +216,22 @@
 
 	[new-x new-y] [(+ x dx) (+ y dy)]]
 
-    ; update self position
+    ;; update self position
     (dosync
      (alter (.getUserData node) assoc :position [new-x new-y]))
 
-    ; move node on the device
+    ;; move node on the device
     (.redraw node)
 
-    ; update connections to upper neighbors
+    ;; update connections to upper neighbors
     (doseq [#^GObject c (upper-connections node)]
       (.redraw c))
 
-    ; update connections to lower neighbors
+    ;; update connections to lower neighbors
     (doseq [#^GObject c (lower-connections node)]
       (.redraw c))
 
-    ; done
+    ;; done
     [new-x new-y]))
 
 (defn- move-node-to
