@@ -45,17 +45,17 @@
 (defn- set-scene-hooks
   "Sets hash-map of hooks to callbacks as scene hooks."
   [#^GScene scn, hooks]
-  (.setUserData (assoc (.getUserData scn) :hooks hooks)))
+  (.setUserData scn (assoc (.getUserData scn) :hooks hooks)))
 
 (defn add-hook
   "Adds hook for scene."
   [#^GScene scn, hook]
   (when (not (contains? (get-scene-hooks scn) hook))
-    (.setUserData (update-in (.getUserData scn) [:hooks hook] []))))
+    (.setUserData scn (assoc-in (.getUserData scn) [:hooks hook] []))))
 
 (defn set-callback-for-hook
   "Sets given functions as callbacks for hook on scene."
-  [scn hook & functions]
+  [scn hook functions]
   (when (not (contains? (get-scene-hooks scn) hook))
     (illegal-argument "Hook " hook " not known for scene."))
   (set-scene-hooks scn (assoc (get-scene-hooks scn) hook functions)))
@@ -67,7 +67,7 @@
 			 (conj (get (get-scene-hooks scn) hook)
 			       function)))
 
-(defn call-hooks-with
+(defn call-hook-with
   "Calls all callbacks of hook with given arguments."
   [scn hook & args]
   (when (not (contains? (get-scene-hooks scn) hook))

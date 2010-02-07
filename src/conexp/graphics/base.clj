@@ -65,7 +65,7 @@
 (defn draw-on-scene
   "Draws given layout on a GScene and returns it."
   [[points-to-coordinates point-connections]]
-  (let [#^GWindow wnd (make-window)
+  (let [#^GWindow wnd (make-window),
 	scn (make-scene wnd)]
     (doto scn
       (set-layout-of-scene [points-to-coordinates point-connections]))

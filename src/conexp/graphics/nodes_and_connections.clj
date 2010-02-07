@@ -244,8 +244,11 @@
 ;;;
 
 (defn move-interaction
-  "Standard move interaction for lattice diagrams."
+  "Standard move interaction for lattice diagrams. Installs
+  :move-interaction hook on scene to be called whenever a
+  node is moved. Callbacks get the moved vertex as argument."
   [scene]
+  (add-hook scene :move-interaction)
   (let [interaction-obj (atom nil)]
     (proxy [GInteraction] []
       (event [#^GScene scn, evt, x, y]
@@ -256,17 +259,22 @@
 	   GWindow/BUTTON1_DRAG  (when @interaction-obj
 				   (let [[x y] (device-to-world scn x y)]
 				     (move-node-to @interaction-obj x y)
-				     (.refresh scn))),
+				     (.refresh scn))
+				   (call-hook-with scn :move-interaction @interaction-obj)),
 	   GWindow/BUTTON1_UP    (reset! interaction-obj nil)
 	   nil)))))
 
 (defn zoom-interaction
-  "Standrd zoom interaction for lattice diagrams."
+  "Standrd zoom interaction for lattice diagrams. Installs
+  :zoom-interaction hook called whenever view changes. Callbacks
+  take no arguments."
   [scene]
+  (add-hook scene :zoom-interaction)
   (let [#^ZoomInteraction zoom-obj (ZoomInteraction. scene)]
     (proxy [GInteraction] []
       (event [#^GScene scn, evt, x, y]
-	(.event zoom-obj scn evt x y)))))
+	(.event zoom-obj scn evt x y)
+	(call-hook-with scn :zoom-interaction)))))
 
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected

@@ -5,6 +5,7 @@
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
+	[conexp.graphics.scenes :only (add-callback-for-hook)]
 	[conexp.graphics.base :only (draw-on-scene,
 				     get-layout-from-scene,
 				     set-layout-of-scene,
