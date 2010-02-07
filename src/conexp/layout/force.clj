@@ -70,16 +70,28 @@
 		    node-connections)]
      (sum [[v pos-v] node-positions,
 	   [x y pos-x pos-y] edges
-	   :when (not (#{x, y} v))]
-	 (/ 1.0
-	    (double (node-line-distance pos-v [pos-x, pos-y])))))
+	   :when (not (contains? #{x, y} v))]
+       (/ 1.0
+	  (double (node-line-distance pos-v [pos-x, pos-y])))))
    (catch Exception e
      Double/POSITIVE_INFINITY)))
 
+(defn- node-line-distance-derivative
+  "Computes partial derivative of node-line-distance between w and
+  [x y] after n_i, given part only."
+  [w [x y] n_i part]
+  (throw (UnsupportedOperationException. (str "Not yet implemented."))))
+
 (defn- repulsive-force
-  ""
-  [layout n_i part information]
-  (throw (UnsupportedOperationException. "Not yet implemented.")))
+  "Computes given part of repulsive force in layout on the
+  inf-irreducible element n_i."
+  [[node-positions node-connections] n_i part information]
+  (sum [v (keys node-positions),
+	[x y] node-connections,
+	:when (not (contains? #{x,y} v))]
+    (* (/ (square (node-line-distance (node-positions v)
+				      [(node-positions x), (node-positions y)])))
+       (node-line-distance-derivative v [x y] n_i part))))
 
 ;; Attractive Energy and Force
 
@@ -105,7 +117,7 @@
 ;; Gravitative Energy and Force
 
 (defn- phi
-  "Returns the angle between a inf-irreducible node [x_1,y_1]
+  "Returns the angle between an inf-irreducible node [x_1,y_1]
   and its upper neighbor [x_2, y_2]."
   [[x_1,y_1] [x_2,y_2]]
   (with-doubles [x_1, y_1, x_2, y_2]
@@ -123,22 +135,22 @@
 	E_1   (double (+ E_0 Math/PI))]
     (try
      (sum [n inf-irrs]
-	  (let [phi_n (double (phi (node-positions n)
-				   (node-positions (upper-neighbours n))))]
-	    (cond
-	     (<= 0 phi_n phi_0)
-	     (+ phi_n
-		(/ (square (Math/sin phi_0))
-		   (Math/tan phi_n))
-		E_0),
+       (let [phi_n (double (phi (node-positions n)
+				(node-positions (upper-neighbours n))))]
+	 (cond
+	  (<= 0 phi_n phi_0)
+	  (+ phi_n
+	     (/ (square (Math/sin phi_0))
+		(Math/tan phi_n))
+	     E_0),
 
-	     (<= (- Math/PI phi_0) phi_n Math/PI)
-	     (+ (- phi_n)
-		(/ (- (square (Math/sin phi_0)))
-		   (Math/tan phi_n))
-		E_1),
+	  (<= (- Math/PI phi_0) phi_n Math/PI)
+	  (+ (- phi_n)
+	     (/ (- (square (Math/sin phi_0)))
+		(Math/tan phi_n))
+	     E_1),
 
-	     :else 0)))
+	  :else 0)))
      (catch Exception e
        Double/POSITIVE_INFINITY))))
 
@@ -184,7 +196,7 @@
       (* *gravitative-amount* (gravitative-energy layout information)))))
 
 (defn- layout-force
-  "Computes overall force _component_ of index n in the inf-irreducible elements."
+  "Computes overall force component of index n in the inf-irreducible elements."
   [layout inf-irrs n information]
   (let [part (mod n 2),
 	n_i (nth inf-irrs (div n 2))]
