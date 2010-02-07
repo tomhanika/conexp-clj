@@ -209,7 +209,7 @@
 		  xs seen)))]
     (step sequence #{})))
 
-(defn hash-by-function
+(defn hashmap-by-function
   "Returns a hash map with the values of keys as keys and their values
   under function as values."
   [function keys]

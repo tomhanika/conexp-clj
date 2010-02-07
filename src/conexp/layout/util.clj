@@ -113,7 +113,7 @@
 			    (vector-plus [x y] (pos w))))
 			(offset)
 			inf-irrs)))]
-    (hash-by-function pos inf-irrs)))
+    (hashmap-by-function pos inf-irrs)))
 
 (defn layout-by-placement
   "Computes additive layout of lattice by given positions of the keys
@@ -128,7 +128,7 @@
 			       p))
 			   [0 0]
 			   (keys placement)))),
-	overall-placement (hash-by-function pos (base-set lattice))]
+	overall-placement (hashmap-by-function pos (base-set lattice))]
     [ overall-placement, (edges lattice) ]))
 
 ;;;

@@ -211,9 +211,9 @@
   elements. seq-of-inf-irrs gives the order of the infimum irreducible
   elements."
   [lattice seq-of-inf-irrs]
-  (let [upper-neighbours (hash-by-function (fn [n]
-					     (first (lattice-upper-neighbours lattice n)))
-					   seq-of-inf-irrs)]
+  (let [upper-neighbours (hashmap-by-function (fn [n]
+						(first (lattice-upper-neighbours lattice n)))
+					      seq-of-inf-irrs)]
     (fn [& point-coordinates]
       (let [points (partition 2 point-coordinates),
 	    inf-irr-placement (apply hash-map
@@ -232,9 +232,9 @@
   order of the inf-irreducible elements."
   [lattice seq-of-inf-irrs]
   (let [information {:upper-neighbours-of-inf-irrs
-		     (hash-by-function (fn [n]
-					 (first (lattice-upper-neighbours lattice n)))
-				       seq-of-inf-irrs),
+		     (hashmap-by-function (fn [n]
+					    (first (lattice-upper-neighbours lattice n)))
+					  seq-of-inf-irrs),
 		     :inf-irrs seq-of-inf-irrs,
 		     :lattice lattice}]
     (fn [index]
@@ -248,7 +248,7 @@
 			index
 			information))))))
 
-;; Force Layout
+;;; Force Layout
 
 (defn force-layout
   "Improves given layout with force layout."
@@ -273,18 +273,18 @@
 				      (apply concat inf-irr-points)),
 
 	;; make hash
-	point-hash (apply hash-map (interleave inf-irrs
-					       (partition 2 new-points))),
+	point-hash     (apply hash-map (interleave inf-irrs
+						   (partition 2 new-points))),
 
 	;; compute layout given by the result
 	[placement connections] (layout-by-placement lattice point-hash),
 
 	;; move points such that top element is at [top-x, top-y] again
-	placement (apply hash-map
-			 (interleave (keys placement)
-				     (map (fn [[x y]]
-					    [(+ x top-x), (+ y top-y)])
-					  (vals placement))))]
+	placement      (apply hash-map
+			      (interleave (keys placement)
+					  (map (fn [[x y]]
+						 [(+ x top-x), (+ y top-y)])
+					       (vals placement))))]
 
     ;; (pprint placement)
     [placement connections]))
