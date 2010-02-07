@@ -37,6 +37,11 @@
 	   (for ~bindings
 	     (double ~expr))))
 
+(defn- rotate-pi2
+  "Rotates given vector by pi/2 in positive direction."
+  [[a b]]
+  [(- b) a])
+
 ;; Repulsive Energy and Force
 
 (defn- node-line-distance
@@ -72,10 +77,8 @@
      Double/POSITIVE_INFINITY)))
 
 (defn- repulsive-force
-  "Computes the n-th component of the vector of repulsive forces
-  acting on the inf-irreducible elements of layout. The vector
-  itself has 2n entries."
-  [layout inf-irrs n]
+  ""
+  [layout n_i part information]
   (throw (UnsupportedOperationException. "Not yet implemented.")))
 
 ;; Attractive Energy and Force
@@ -87,11 +90,17 @@
        (line-length-squared (node-positions x) (node-positions y))))
 
 (defn- attractive-force
-  "Computes the n-th component of the vector of attractive forces
-  acting on the inf-irreducible elements of layout. The vector
-  itself has 2n entries."
-  [layout inf-irrs n]
-  (throw (UnsupportedOperationException. "Not yet implemented.")))
+  "Computes given part of attractive force in layout on the
+  inf-irreducible element n_i."
+  [layout n_i part information]
+  (let [lattice (:lattice information),
+	order (order lattice),
+	pos (first layout),
+	edges (second layout)]
+    (* 2 (sum [[v_1 v_2] edges,
+	       :when (and (order [n_i v_1])
+			  (not (order [n_i v_2])))]
+	   (- (nth (pos v_1) part) (nth (pos v_2) part))))))
 
 ;; Gravitative Energy and Force
 
@@ -105,9 +114,11 @@
 
 (defn- gravitative-energy
   "Returns the gravitative energy of the given layout."
-  [[node-positions node-connections] {inf-irrs :inf-irrs,
-				      upper-neighbours :upper-neighbours-of-inf-irrs}]
-  (let [phi_0 (double (/ Math/PI (+ 1 (count inf-irrs)))),
+  [[node-positions node-connections] information]
+  (let [inf-irrs (:inf-irrs information),
+	upper-neighbours (:upper-neighbours-of-inf-irrs information),
+
+	phi_0 (double (/ Math/PI (+ 1 (count inf-irrs)))),
 	E_0   (double (+ (- phi_0) (- (* (Math/sin phi_0) (Math/cos phi_0))))),
 	E_1   (double (+ E_0 Math/PI))]
     (try
@@ -132,11 +143,31 @@
        Double/POSITIVE_INFINITY))))
 
 (defn- gravitative-force
-  "Computes the n-th component of the vector of gravitative forces
-  acting on the inf-irreducible elements of layout. The vector itself
-  has 2n entries."
-  [layout inf-irrs n]
-  (throw (UnsupportedOperationException. "Not yet implemented.")))
+  "Computes given part of gravitative force in layout on the
+  inf-irreducible element n_i."
+  ;; unsure, paper gives contradicting formulas
+  [layout n_i part information]
+  (let [upper-neighbours (:upper-neighbours-of-inf-irrs information),
+	inf-irrs (:inf-irrs information),
+	positions (first layout),
+
+	phi_n_i (double (phi (positions n_i) (positions (upper-neighbours n_i)))),
+	phi_0 (double (/ Math/PI (+ 1 (count inf-irrs))))]
+    (cond
+     (<= 0 phi_n_i phi_0)
+     (* (nth (rotate-pi2 n_i) part)
+        (/ (- (square (Math/sin phi_n_i))
+	      (square (Math/sin phi_0)))
+	   (square (Math/sin phi_n_i)))),
+
+     (<= phi_0 phi_n_i (- Math/PI phi_0))
+     0.0,
+
+     (<= (- Math/PI phi_0) phi_n_i Math/PI)
+     (* (nth (rotate-pi2 n_i) part)
+	(/ (- (square (Math/sin phi_0))
+	      (square (Math/sin phi_n_i)))
+	   (square (Math/sin phi_n_i)))))))
 
 ;; Overall Energy and Force
 
@@ -146,16 +177,21 @@
 
 (defn layout-energy
   "Returns the overall energy of the given layout."
-  [layout additional-information]
+  [layout information]
   (double
    (+ (* *repulsive-amount* (repulsive-energy layout))
       (* *attractive-amount* (attractive-energy layout))
-      (* *gravitative-amount* (gravitative-energy layout additional-information)))))
+      (* *gravitative-amount* (gravitative-energy layout information)))))
 
 (defn- layout-force
   "Computes overall force _component_ of index n in the inf-irreducible elements."
-  [layout inf-irrs n additional-information]
-  (throw (UnsupportedOperationException. "Not yet implemented.")))
+  [layout inf-irrs n information]
+  (let [part (mod n 2),
+	n_i (nth inf-irrs (div n 2))]
+    (double
+     (+ (repulsive-force layout n_i part information)
+	(attractive-force layout n_i part information)
+	(gravitative-force layout n_i part information)))))
 
 (defn- energy-by-inf-irr-positions
   "Returns a function calculating the energy of an attribute additive
@@ -178,12 +214,27 @@
 (defn- force-by-inf-irr-positions
   "Returns a function representing the forces on the infimum
   irreducible elements of lattice. The function returned takes as
-  input and index representing the coordinate to derive at and returns
+  input an index representing the coordinate to derive at and returns
   itself a function from a placement of the inf-irreducible elements
   to the force component given by the index. seq-of-inf-irrs gives the
   order of the inf-irreducible elements."
   [lattice seq-of-inf-irrs]
-  (throw (UnsupportedOperationException. "Not yet implemented.")))
+  (let [information {:upper-neighbours-of-inf-irrs
+		     (hash-by-function (fn [n]
+					 (first (lattice-upper-neighbours lattice n)))
+				       seq-of-inf-irrs),
+		     :inf-irrs seq-of-inf-irrs,
+		     :lattice lattice}]
+    (fn [index]
+      (fn [& point-coordinates]
+	(let [points (partition 2 point-coordinates),
+	      inf-irr-placement (apply hash-map
+				       (interleave seq-of-inf-irrs
+						   points))]
+	  (layout-force (layout-by-placement lattice inf-irr-placement)
+			seq-of-inf-irrs
+			index
+			information))))))
 
 ;; Force Layout
 
@@ -207,7 +258,6 @@
 	;; minimize layout energy with above placement as initial value
 	energy         (energy-by-inf-irr-positions lattice inf-irrs),
 	[new-points, value] (minimize energy
-				      ;;(partial-derivatives energy 0.1)
 				      (apply concat inf-irr-points)),
 
 	;; make hash

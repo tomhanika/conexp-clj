@@ -1,5 +1,6 @@
 (ns conexp.util
-  (:use clojure.contrib.profile))
+  (:use clojure.contrib.profile
+	[clojure.contrib.math :only (round)]))
 
 ;;; Compilation
 
@@ -183,6 +184,11 @@
   "Macro for writing sets as mathematicians do (at least similar to it.)"
   [thing condition]
   `(set (for ~condition ~thing)))
+
+(defn div
+  "Integer division."
+  [a b]
+  (round (/ a b)))
 
 (defn distinct-by-key
   "Returns a sequence of all elements of the given sequence with distinct key values,
