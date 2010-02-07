@@ -35,9 +35,10 @@
 
 (defn ManyValuedContext-hashCode
   [#^conexp.fca.ManyValuedContext this]
-  (+ (hash (objects this))
-     (hash (attributes this))
-     (hash (incidence this))))
+  (reduce bit-xor 0
+	  [(hash ((.state this) :objects)),
+	   (hash ((.state this) :attributes)),
+	   (hash ((.state this) :incidence))]))
 
 (defn print-mv-context [mv-ctx]
   (let [objs (objects mv-ctx)

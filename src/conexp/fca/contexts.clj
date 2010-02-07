@@ -9,6 +9,8 @@
 	conexp.base)
   (:require [clojure.contrib.graph :as graph]))
 
+;;;
+
 (defn Context-init
   "Context initializer, types must be [PersistentHashSet
   PersistentHashSet PersistentHashSep]."
@@ -35,6 +37,14 @@
 
 (defmethod incidence conexp.fca.Context [#^conexp.fca.Context ctx]
   ((.state ctx) :incidence))
+
+(defn Context-hashCode
+  "Implements hashCode for contexts."
+  [#^conexp.fca.Context this]
+  (reduce bit-xor 0
+	  [(hash ((.state this) :objects)),
+	   (hash ((.state this) :attributes)),
+	   (hash ((.state this) :incidence))]))
 
 (defn compare-order
   "Orders things for proper output of formal contexts."
@@ -109,13 +119,6 @@
        (= (objects this) (objects other))
        (= (attributes this) (attributes other))
        (= (incidence this) (incidence other))))
-
-(defn Context-hashCode
-  "Implements hashCode for contexts."
-  [this]
-  (+ (hash (objects this))
-     (hash (attributes this))
-     (hash (incidence this))))
 
 ;;;
 

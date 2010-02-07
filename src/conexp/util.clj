@@ -204,7 +204,8 @@
     (step sequence #{})))
 
 (defn hash-by-function
-  "Returns a hash with the values of keys as keys and their values under function as values."
+  "Returns a hash map with the values of keys as keys and their values
+  under function as values."
   [function keys]
   (reduce (fn [map k]
 	    (assoc map k (function k)))
@@ -217,6 +218,11 @@
   `(alter-meta! (find-ns '~ns)
 		(fn [meta-hash#]
 		  (merge meta-hash# ~(apply hash-map key-value-description)))))
+
+(defn hash-from-attributes
+  "Computes a hash value from the values returned from funs applied to this."
+  [this funs]
+  (reduce bit-xor 0 (map #(%1 this) funs)))
 
 ;;;
 

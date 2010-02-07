@@ -8,6 +8,8 @@
   (:use conexp.base
 	conexp.fca.contexts))
 
+;;;
+
 (defn Implication-init [premise conclusion]
   [ [] {:premise premise :conclusion conclusion} ])
 
@@ -21,6 +23,12 @@
 (defmethod conclusion conexp.fca.Implication [#^conexp.fca.Implication impl]
   ((.state impl) :conclusion))
 
+(defn Implication-hashCode
+  "Implements hashCode for implications."
+  [this]
+  (bit-xor (hash ((.state this) :premise))
+	   (hash ((.state this) :conclusion))))
+
 (defn Implication-toString [this]
   (str "( " (premise this) "  ==>  " (conclusion this) " )"))
 
@@ -29,11 +37,7 @@
        (= (premise this) (premise other))
        (= (conclusion this) (conclusion other))))
 
-(defn Implication-hashCode
-  "Implements hashCode for implications."
-  [this]
-  (+ (hash (premise this))
-     (hash (conclusion this))))
+;;;
 
 (defn make-implication
   "Creates an implication (premise => conclusion $\\setminus$ premise)."
@@ -115,5 +119,7 @@
 	(if next
 	  (recur implications next)
 	  implications)))))
+
+;;;
 
 nil

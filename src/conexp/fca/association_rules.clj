@@ -9,10 +9,20 @@
 	conexp.fca.contexts
 	conexp.fca.implications))
 
+;;;
+
 (defn AssociationRule-init [context premise conclusion]
   [ [] {:context context
 	:premise premise
 	:conclusion conclusion} ])
+
+(defn AssociationRule-hashCode
+  "Computes hash code for an association rule object."
+  [this]
+  (reduce bit-xor 0
+	  [(hash ((.state this) :premise)),
+	   (hash ((.state this) :conclusion)),
+	   (hash ((.state this) :context))]))
 
 (defmethod premise conexp.fca.AssociationRule [ar]
   ((.state ar) :premise))
@@ -45,9 +55,7 @@
        (= (premise this) (premise other))
        (= (conclusion this) (conclusion other))))
 
-(defn AssociationRule-hashCode [this]
-  (+ (hash (premise this))
-     (hash (conclusion this))))
+;;;
 
 (defn make-association-rule [context premise conclusion]
   (let [premise (set premise)
@@ -75,5 +83,7 @@
 	  :let [ar (make-association-rule context B_1 B_2)]
 	  :when (>= (confidence ar) minconf)]
       ar)))
+
+;;;
 
 nil
