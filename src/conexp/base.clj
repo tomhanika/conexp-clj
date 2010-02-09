@@ -52,6 +52,7 @@
   [n]
   (reduce * (range 2 (inc n))))
 
+
 ;;; Next Closure
 
 (defn subelts
@@ -102,11 +103,23 @@
 	    (oplus-A i)
 	    (recur (rest i-s))))))))
 
+(defn improve-basic-order
+  "Improves basic order on the sequence base, where the closure operator
+  clop operates on."
+  [base clop]
+  (let [base (seq base),
+	clop (memoize clop)]
+    (sort (fn [x y]
+	    (or (subset? (clop #{y}) (clop #{x}))
+		(and (not (subset? (clop #{x}) (clop #{y})))
+		     (lectic-< base (clop #{y}) (clop #{x})))))
+	  base)))
+
 (defn next-closed-set
   "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
   interpreted as increasing, is taken to be the basic order of the elements."
   [G clop A]
-  ; is this fast enough?
+  ;; is this fast enough?
   (next-closed-set-in-family (constantly true) G clop A))
 
 (defn all-closed-sets
