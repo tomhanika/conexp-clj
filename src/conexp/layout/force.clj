@@ -42,26 +42,15 @@
   [[a b]]
   [(- b) a])
 
-(defn- side-number
-  "Returns +1 if node (first argument) is situated on the left of
-  line (given by two points as second argument), -1 otherwise."
-  ;; intermediate function; will be deleted later
-  [[x y] [[x_1 y_1] [x_2 y_2]]]
-    (with-doubles [x y x_1 y_1 x_2 y_2]
-      (let [r (/ (+ (* (- x x_1) (- x_2 x_1))
-		    (* (- y y_1) (- y_2 y_1)))
-		 (+ (square (- x_2 x_1)) (square (- y_2 y_1)))),
-	    perp-x (+ x_1 (* r (- x_2 x_1)))]
-	(cond
-	 (< x perp-x) 1,
-	 :else -1))))
-
 (defn- unit-vector
-  "Returns unit vector between first and second point."
+  "Returns unit vector between first and second point. Returns
+  [0.0 0.0] when given zero vector."
   [[x_1 y_1] [x_2 y_2]]
   (with-doubles [x_1 y_1 x_2 y_2]
     (let [length (distance [x_1 y_1] [x_2 y_2])]
-      [(/ (- x_2 x_1) length), (/ (- y_2 y_1) length)])))
+      (if (zero? length)
+	[0.0 0.0]
+	[(/ (- x_2 x_1) length), (/ (- y_2 y_1) length)]))))
 
 
 ;; Repulsive Energy and Force
@@ -99,10 +88,41 @@
      Double/POSITIVE_INFINITY)))
 
 (defn- node-line-distance-derivative
-  "Computes partial derivative of node-line-distance between w and
-  [x y] after n_i, given part only."
-  [w [x y] n_i part]
-  (throw (UnsupportedOperationException. (str "Not yet implemented."))))
+  "Computes partial derivative of node-line-distance between [x y] and
+  the edge through [x_1 y_1] and [x_2 y_2], after n_i, given part only."
+  [[x y] [[x_1 y_1] [x_2 y_2]] n_i part lattice]
+  (with-doubles [x y x_1 y_1 x_2 y_2]
+    (let [r (/ (+ (* (- x x_1) (- x_2 x_1))
+		  (* (- y y_1) (- y_2 y_1)))
+	       (+ (square (- x_2 x_1)) (square (- y_2 y_1)))),
+	  case-1 (<= r 0),
+	  case-2 (<= 1 r),
+	  case-3 (< 0 r 1),
+
+	  order (order lattice),
+	  t_1 (order n_i [x y]),
+	  t_2 (order n_i [x_1 y_1]),
+	  t_3 (order n_i [x_2 y_2]),
+	  F_3 (and (not t_1) t_2 (not t_3)),
+	  F_4 (and (not t_1) t_2 t_3),
+	  F_5 (and t_1 (not t_2) (not t_3)),
+	  F_7 (and t_1 t_2 (not t_3))]
+
+      (or (cond
+	   case-1 (cond
+		   F_3 nil,
+		   F_4 nil,
+		   F_5 nil)
+	   case-2 (cond
+		   F_4 nil,
+		   F_5 nil,
+		   F_7 nil)
+	   case-3 (cond
+		   F_3 nil,
+		   F_4 nil,
+		   F_5 nil,
+		   F_7 nil))
+	  0.0))))			; default value
 
 (defn- repulsive-force
   "Computes given part of repulsive force in layout on the
@@ -113,7 +133,7 @@
 	:when (not (contains? #{x,y} v))]
     (* (/ (square (node-line-distance (node-positions v)
 				      [(node-positions x), (node-positions y)])))
-       (node-line-distance-derivative v [x y] n_i part))))
+       (node-line-distance-derivative v [x y] n_i part (:lattice information)))))
 
 ;; Attractive Energy and Force
 
