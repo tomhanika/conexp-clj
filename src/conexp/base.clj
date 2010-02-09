@@ -128,10 +128,13 @@
   ([G clop]
      (all-closed-sets G clop #{}))
   ([G clop initial]
-     (binding [subelts (memoize subelts)]
-       (take-while identity
-		   (iterate (partial next-closed-set G clop)
-			    (clop initial))))))
+     (let [G (if (set? G)
+	       (improve-basic-order G clop)
+	       G)]
+       (binding [subelts (memoize subelts)]
+	 (take-while identity
+		     (iterate (partial next-closed-set G clop)
+			      (clop initial)))))))
 
 (defn all-closed-sets-in-family
   "Computes all closed sets of a given closure operator on a given set
@@ -141,11 +144,14 @@
   ([predicate G clop]
      (all-closed-sets-in-family predicate G clop #{}))
   ([predicate G clop initial]
-     (binding [subelts (memoize subelts)]
-       (let [start (first (filter predicate (all-closed-sets G clop initial)))]
-	 (take-while identity
-		     (iterate (partial next-closed-set-in-family predicate G clop)
-			      start))))))
+     (let [G (if (set? G)
+	       (improve-basic-order G clop)
+	       G)]
+       (binding [subelts (memoize subelts)]
+	 (let [start (first (filter predicate (all-closed-sets G clop initial)))]
+	   (take-while identity
+		       (iterate (partial next-closed-set-in-family predicate G clop)
+				start)))))))
 
 ;;; Common Math Algorithms
 
