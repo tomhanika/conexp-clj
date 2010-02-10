@@ -110,18 +110,25 @@
 
       (or (cond
 	   case-1 (cond
-		   F_3 nil,
-		   F_4 nil,
-		   F_5 nil)
+		   (or F_3 F_4) (nth (unit-vector [x y] [x_1 y_1]) part),
+		   F_5          (nth (unit-vector [x_1 y_1] [x y]) part))
 	   case-2 (cond
-		   F_4 nil,
-		   F_5 nil,
-		   F_7 nil)
-	   case-3 (cond
-		   F_3 nil,
-		   F_4 nil,
-		   F_5 nil,
-		   F_7 nil))
+		   F_4          (nth (unit-vector [x y] [x_2 y_2]) part),
+		   (or F_5 F_7) (nth (unit-vector [x_2 y_2] [x y]) part))
+	   case-3 (let [[x_b, y_b] [(+ x_1 (* r (- x_2 x_1))), (+ y_1 (* r (- y_2 y_1)))], ; projection of [x y]
+			normal (unit-vector [x_b y_b] [x y])]
+		    (cond
+		     F_3 (* (Math/sqrt (/ (- (line-length-squared [x y] [x_2 y_2])
+					     (line-length-squared [x_b y_b] [x y]))
+					  (line-length-squared [x_1 y_1] [x_2 y_2])))
+			    (nth normal part)
+			    -1),
+		     F_4 (- (nth normal part)),
+		     F_5 (nth normal part),
+		     F_7 (* (Math/sqrt (/ (- (line-length-squared [x y] [x_1 y_1])
+					     (line-length-squared [x_b y_b] [x y]))
+					  (line-length-squared [x_1 y_1] [x_2 y_2])))
+			    (nth normal part)))))
 	  0.0))))			; default value
 
 (defn- repulsive-force
@@ -134,6 +141,7 @@
     (* (/ (square (node-line-distance (node-positions v)
 				      [(node-positions x), (node-positions y)])))
        (node-line-distance-derivative v [x y] n_i part (:lattice information)))))
+
 
 ;; Attractive Energy and Force
 
@@ -155,6 +163,7 @@
 	       :when (and (order [n_i v_1])
 			  (not (order [n_i v_2])))]
 	   (- (nth (pos v_1) part) (nth (pos v_2) part))))))
+
 
 ;; Gravitative Energy and Force
 
@@ -222,6 +231,7 @@
 	      (square (Math/sin phi_n_i)))
 	   (square (double (second n_i))))))))
 
+
 ;; Overall Energy and Force
 
 (def *repulsive-amount* 500.0)
@@ -288,6 +298,7 @@
 			seq-of-inf-irrs
 			index
 			information))))))
+
 
 ;;; Force Layout
 
