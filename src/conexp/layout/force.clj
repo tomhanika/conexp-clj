@@ -199,7 +199,6 @@
 (defn- gravitative-force
   "Computes given part of gravitative force in layout on the
   inf-irreducible element n_i."
-  ;; unsure, paper gives contradicting formulas
   [layout n_i part information]
   (let [upper-neighbours (:upper-neighbours-of-inf-irrs information),
 	inf-irrs (:inf-irrs information),
@@ -212,7 +211,7 @@
      (* (nth (rotate-pi2 n_i) part)
         (/ (- (square (Math/sin phi_n_i))
 	      (square (Math/sin phi_0)))
-	   (square (Math/sin phi_n_i)))),
+	   (square (double (second n_i))))),
 
      (<= phi_0 phi_n_i (- Math/PI phi_0))
      0.0,
@@ -221,7 +220,7 @@
      (* (nth (rotate-pi2 n_i) part)
 	(/ (- (square (Math/sin phi_0))
 	      (square (Math/sin phi_n_i)))
-	   (square (Math/sin phi_n_i)))))))
+	   (square (double (second n_i))))))))
 
 ;; Overall Energy and Force
 
