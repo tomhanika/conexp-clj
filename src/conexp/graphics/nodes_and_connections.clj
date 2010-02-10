@@ -274,7 +274,8 @@
     (proxy [GInteraction] []
       (event [#^GScene scn, evt, x, y]
 	(.event zoom-obj scn evt x y)
-	(call-hook-with scn :zoom-interaction)))))
+	(when scn
+	  (call-hook-with scn :zoom-interaction))))))
 
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected
