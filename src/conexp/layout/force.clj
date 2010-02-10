@@ -100,9 +100,9 @@
 	  case-3 (< 0 r 1),
 
 	  order (order lattice),
-	  t_1 (order n_i [x y]),
-	  t_2 (order n_i [x_1 y_1]),
-	  t_3 (order n_i [x_2 y_2]),
+	  t_1 (order [n_i [x y]]),
+	  t_2 (order [n_i [x_1 y_1]]),
+	  t_3 (order [n_i [x_2 y_2]]),
 	  F_3 (and (not t_1) t_2 (not t_3)),
 	  F_4 (and (not t_1) t_2 t_3),
 	  F_5 (and t_1 (not t_2) (not t_3)),
@@ -138,9 +138,12 @@
   (sum [v (keys node-positions),
 	[x y] node-connections,
 	:when (not (contains? #{x,y} v))]
-    (* (/ (square (node-line-distance (node-positions v)
-				      [(node-positions x), (node-positions y)])))
-       (node-line-distance-derivative v [x y] n_i part (:lattice information)))))
+    (let [pos-v (node-positions v),
+	  pos-x (node-positions x),
+	  pos-y (node-positions y)]
+      (* (/ (square (node-line-distance pos-v [pos-x, pos-y])))
+	 (node-line-distance-derivative pos-v [pos-x pos-y] n_i part
+					(:lattice information))))))
 
 
 ;; Attractive Energy and Force
@@ -213,23 +216,26 @@
 	inf-irrs (:inf-irrs information),
 	positions (first layout),
 
-	phi_n_i (double (phi (positions n_i) (positions (upper-neighbours n_i)))),
+	pos-n_i (positions n_i),
+	pos-u_i (positions (upper-neighbours n_i)),
+
+	phi_n_i (double (phi pos-n_i pos-u_i)),
 	phi_0 (double (/ Math/PI (+ 1 (count inf-irrs))))]
     (cond
      (<= 0 phi_n_i phi_0)
-     (* (nth (rotate-pi2 n_i) part)
+     (* (nth (rotate-pi2 pos-n_i) part)
         (/ (- (square (Math/sin phi_n_i))
 	      (square (Math/sin phi_0)))
-	   (square (double (second n_i))))),
+	   (square (double (second pos-n_i))))),
 
      (<= phi_0 phi_n_i (- Math/PI phi_0))
      0.0,
 
      (<= (- Math/PI phi_0) phi_n_i Math/PI)
-     (* (nth (rotate-pi2 n_i) part)
+     (* (nth (rotate-pi2 pos-n_i) part)
 	(/ (- (square (Math/sin phi_0))
 	      (square (Math/sin phi_n_i)))
-	   (square (double (second n_i))))))))
+	   (square (double (second pos-n_i))))))))
 
 
 ;; Overall Energy and Force
@@ -252,9 +258,9 @@
   (let [part (mod n 2),
 	n_i (nth inf-irrs (div n 2))]
     (double
-     (+ (repulsive-force layout n_i part information)
-	(attractive-force layout n_i part information)
-	(gravitative-force layout n_i part information)))))
+     (+ (* *repulsive-amount* (repulsive-force layout n_i part information))
+	(* *attractive-amount* (attractive-force layout n_i part information))
+	(* *gravitative-amount* (gravitative-force layout n_i part information))))))
 
 (defn- energy-by-inf-irr-positions
   "Returns a function calculating the energy of an attribute additive
@@ -321,7 +327,9 @@
 
 	;; minimize layout energy with above placement as initial value
 	energy         (energy-by-inf-irr-positions lattice inf-irrs),
+	force          (force-by-inf-irr-positions lattice inf-irrs),
 	[new-points, value] (minimize energy
+				      ;;force
 				      (apply concat inf-irr-points)),
 
 	;; make hash

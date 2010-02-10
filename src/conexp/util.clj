@@ -188,7 +188,7 @@
 (defn div
   "Integer division."
   [a b]
-  (round (/ a b)))
+  (round (Math/floor (/ a b))))
 
 (defn distinct-by-key
   "Returns a sequence of all elements of the given sequence with distinct key values,
