@@ -37,11 +37,6 @@
 	   (for ~bindings
 	     (double ~expr))))
 
-(defn- rotate-pi2
-  "Rotates given vector by pi/2 in positive direction."
-  [[a b]]
-  [(- b) a])
-
 (defn- unit-vector
   "Returns unit vector between first and second point. Returns
   [0.0 0.0] when given zero vector."
@@ -88,9 +83,10 @@
      Double/POSITIVE_INFINITY)))
 
 (defn- node-line-distance-derivative
-  "Computes partial derivative of node-line-distance between [x y] and
-  the edge through [x_1 y_1] and [x_2 y_2], after n_i, given part only."
-  [[x y] [[x_1 y_1] [x_2 y_2]] n_i part lattice]
+  "Computes partial derivative of node-line-distance between w = [x y]
+  and the edge through w_1 = [x_1 y_1] and w_2 = [x_2 y_2], after n_i,
+  given part only."
+  [w [w_1 w_2] [x y] [[x_1 y_1] [x_2 y_2]] n_i part order]
   (with-doubles [x y x_1 y_1 x_2 y_2]
     (let [r (/ (+ (* (- x x_1) (- x_2 x_1))
 		  (* (- y y_1) (- y_2 y_1)))
@@ -99,10 +95,9 @@
 	  case-2 (<= 1 r),
 	  case-3 (< 0 r 1),
 
-	  order (order lattice),
-	  t_1 (order [n_i [x y]]),
-	  t_2 (order [n_i [x_1 y_1]]),
-	  t_3 (order [n_i [x_2 y_2]]),
+	  t_1 (order [w n_i]),
+	  t_2 (order [w_1 n_i]),
+	  t_3 (order [w_2 n_i]),
 	  F_3 (and (not t_1) t_2 (not t_3)),
 	  F_4 (and (not t_1) t_2 t_3),
 	  F_5 (and t_1 (not t_2) (not t_3)),
@@ -142,8 +137,10 @@
 	  pos-x (node-positions x),
 	  pos-y (node-positions y)]
       (* (/ (square (node-line-distance pos-v [pos-x, pos-y])))
-	 (node-line-distance-derivative pos-v [pos-x pos-y] n_i part
-					(:lattice information))))))
+	 (node-line-distance-derivative v [x, y]
+					pos-v [pos-x, pos-y]
+					n_i part
+					(:order information))))))
 
 
 ;; Attractive Energy and Force
@@ -158,14 +155,13 @@
   "Computes given part of attractive force in layout on the
   inf-irreducible element n_i."
   [layout n_i part information]
-  (let [lattice (:lattice information),
-	order (order lattice),
+  (let [order (:order information),
 	pos (first layout),
 	edges (second layout)]
     (* 2 (sum [[v_1 v_2] edges,
-	       :when (and (order [n_i v_1])
-			  (not (order [n_i v_2])))]
-	   (- (nth (pos v_1) part) (nth (pos v_2) part))))))
+	       :when (and (order [v_1 n_i])
+			  (not (order [v_2 n_i])))]
+	      (- (nth (pos v_2) part) (nth (pos v_1) part))))))
 
 
 ;; Gravitative Energy and Force
@@ -218,24 +214,27 @@
 
 	pos-n_i (positions n_i),
 	pos-u_i (positions (upper-neighbours n_i)),
+	[x_e y_e] [(- (first pos-u_i) (first pos-n_i)),
+		   (- (second pos-u_i) (second pos-n_i))]
+	edge-rot [(- y_e), x_e],	; rotated edge from n_i to u_i
 
 	phi_n_i (double (phi pos-n_i pos-u_i)),
 	phi_0 (double (/ Math/PI (+ 1 (count inf-irrs))))]
     (cond
      (<= 0 phi_n_i phi_0)
-     (* (nth (rotate-pi2 pos-n_i) part)
+     (* (nth edge-rot part)
         (/ (- (square (Math/sin phi_n_i))
 	      (square (Math/sin phi_0)))
-	   (square (double (second pos-n_i))))),
+	   (square y_e))),
 
      (<= phi_0 phi_n_i (- Math/PI phi_0))
      0.0,
 
      (<= (- Math/PI phi_0) phi_n_i Math/PI)
-     (* (nth (rotate-pi2 pos-n_i) part)
+     (* (nth edge-rot part)
 	(/ (- (square (Math/sin phi_0))
 	      (square (Math/sin phi_n_i)))
-	   (square (double (second pos-n_i))))))))
+	   (square y_e))))))
 
 
 ;; Overall Energy and Force
@@ -268,17 +267,18 @@
   elements. seq-of-inf-irrs gives the order of the infimum irreducible
   elements."
   [lattice seq-of-inf-irrs]
-  (let [upper-neighbours (hashmap-by-function (fn [n]
-						(first (lattice-upper-neighbours lattice n)))
-					      seq-of-inf-irrs)]
+  (let [information {:upper-neighbours-of-inf-irrs
+		     (hashmap-by-function (fn [n]
+					    (first (lattice-upper-neighbours lattice n)))
+					  seq-of-inf-irrs),
+		     :inf-irrs seq-of-inf-irrs}]
     (fn [& point-coordinates]
       (let [points (partition 2 point-coordinates),
 	    inf-irr-placement (apply hash-map
 				     (interleave seq-of-inf-irrs
 						 points))]
 	(layout-energy (layout-by-placement lattice inf-irr-placement)
-		       {:inf-irrs seq-of-inf-irrs,
-			:upper-neighbours-of-inf-irrs upper-neighbours})))))
+		       information)))))
 
 (defn- force-by-inf-irr-positions
   "Returns a function representing the forces on the infimum
@@ -293,7 +293,7 @@
 					    (first (lattice-upper-neighbours lattice n)))
 					  seq-of-inf-irrs),
 		     :inf-irrs seq-of-inf-irrs,
-		     :lattice lattice}]
+		     :order (order lattice)}]
     (fn [index]
       (fn [& point-coordinates]
 	(let [points (partition 2 point-coordinates),
@@ -329,7 +329,7 @@
 	energy         (energy-by-inf-irr-positions lattice inf-irrs),
 	force          (force-by-inf-irr-positions lattice inf-irrs),
 	[new-points, value] (minimize energy
-				      ;;force
+				      force
 				      (apply concat inf-irr-points)),
 
 	;; make hash
@@ -349,6 +349,25 @@
     ;; (pprint placement)
     [placement connections]))
 
+
+;;;
+
+(defn- test-repulsive-force
+  ""
+  [pos-w n_i]
+  (let [layout [{:w pos-w, :w-1 [0 0], :w-2 [1 1]}
+		#{[:w-1 :w-2]}],
+	order #{[:w-1 :w-1], [:w-1 :w-2], [:w-2 :w-2]
+		[:w :w]}]
+    [(repulsive-force layout n_i 0 {:order order}),
+     (repulsive-force layout n_i 1 {:order order})]))
+
+(require 'conexp)
+(defn- make-test-lattice
+  ""
+  [n]
+  (conexp/concept-lattice (conexp/rand-context (conexp/set-of-range n) 0.4)))
+		      
 
 ;;;
 
