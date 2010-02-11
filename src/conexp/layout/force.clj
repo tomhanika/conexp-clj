@@ -110,7 +110,8 @@
 	   case-2 (cond
 		   F_4          (nth (unit-vector [x y] [x_2 y_2]) part),
 		   (or F_5 F_7) (nth (unit-vector [x_2 y_2] [x y]) part))
-	   case-3 (let [[x_b, y_b] [(+ x_1 (* r (- x_2 x_1))), (+ y_1 (* r (- y_2 y_1)))], ; projection of [x y]
+	   case-3 (let [;; projection of [x y] on line [[x_1 y_1] [x_2 y_2]]
+			[x_b, y_b] [(+ x_1 (* r (- x_2 x_1))), (+ y_1 (* r (- y_2 y_1)))],
 			normal (unit-vector [x_b y_b] [x y])]
 		    (cond
 		     F_3 (* (Math/sqrt (/ (- (line-length-squared [x y] [x_2 y_2])
@@ -130,17 +131,17 @@
   "Computes given part of repulsive force in layout on the
   inf-irreducible element n_i."
   [[node-positions node-connections] n_i part information]
-  (sum [v (keys node-positions),
+  (sum [v (keys node-positions)
+	:let [pos-v (node-positions v)],
 	[x y] node-connections,
-	:when (not (contains? #{x,y} v))]
-    (let [pos-v (node-positions v),
-	  pos-x (node-positions x),
-	  pos-y (node-positions y)]
-      (* (/ (square (node-line-distance pos-v [pos-x, pos-y])))
-	 (node-line-distance-derivative v [x, y]
+	:when (not (contains? #{x,y} v)),
+	:let [pos-x (node-positions x),
+	      pos-y (node-positions y)]]
+      (/ (node-line-distance-derivative v [x, y]
 					pos-v [pos-x, pos-y]
 					n_i part
-					(:order information))))))
+					(:order information))
+	 (square (node-line-distance pos-v [pos-x, pos-y])))))
 
 
 ;; Attractive Energy and Force
@@ -161,7 +162,7 @@
     (* 2 (sum [[v_1 v_2] edges,
 	       :when (and (order [v_1 n_i])
 			  (not (order [v_2 n_i])))]
-	      (- (nth (pos v_2) part) (nth (pos v_1) part))))))
+	    (- (nth (pos v_2) part) (nth (pos v_1) part))))))
 
 
 ;; Gravitative Energy and Force
@@ -179,14 +180,14 @@
   [[node-positions node-connections] information]
   (let [inf-irrs (:inf-irrs information),
 	upper-neighbours (:upper-neighbours-of-inf-irrs information),
+	phi_0 (:phi_0 information),
 
-	phi_0 (double (/ Math/PI (+ 1 (count inf-irrs)))),
 	E_0   (double (+ (- phi_0) (- (* (Math/sin phi_0) (Math/cos phi_0))))),
 	E_1   (double (+ E_0 Math/PI))]
     (try
-     (sum [n inf-irrs]
-       (let [phi_n (double (phi (node-positions n)
-				(node-positions (upper-neighbours n))))]
+     (sum [n inf-irrs,
+	   :let [phi_n (double (phi (node-positions n)
+				(node-positions (upper-neighbours n))))]]
 	 (cond
 	  (<= 0 phi_n phi_0)
 	  (+ phi_n
@@ -200,7 +201,7 @@
 		(Math/tan phi_n))
 	     E_1),
 
-	  :else 0)))
+	  :else 0))
      (catch Exception e
        Double/POSITIVE_INFINITY))))
 
@@ -209,7 +210,7 @@
   inf-irreducible element n_i."
   [layout n_i part information]
   (let [upper-neighbours (:upper-neighbours-of-inf-irrs information),
-	inf-irrs (:inf-irrs information),
+	phi_0 (:phi_0 information),
 	positions (first layout),
 
 	pos-n_i (positions n_i),
@@ -218,8 +219,7 @@
 		   (- (second pos-u_i) (second pos-n_i))]
 	edge-rot [(- y_e), x_e],	; rotated edge from n_i to u_i
 
-	phi_n_i (double (phi pos-n_i pos-u_i)),
-	phi_0 (double (/ Math/PI (+ 1 (count inf-irrs))))]
+	phi_n_i (double (phi pos-n_i pos-u_i))]
     (cond
      (<= 0 phi_n_i phi_0)
      (* (nth edge-rot part)
@@ -261,49 +261,39 @@
 	(* *attractive-amount* (attractive-force layout n_i part information))
 	(* *gravitative-amount* (gravitative-force layout n_i part information))))))
 
-(defn- energy-by-inf-irr-positions
-  "Returns a function calculating the energy of an attribute additive
-  layout of lattice given by the positions of the infimum irreducible
-  elements. seq-of-inf-irrs gives the order of the infimum irreducible
-  elements."
-  [lattice seq-of-inf-irrs]
-  (let [information {:upper-neighbours-of-inf-irrs
-		     (hashmap-by-function (fn [n]
-					    (first (lattice-upper-neighbours lattice n)))
-					  seq-of-inf-irrs),
-		     :inf-irrs seq-of-inf-irrs}]
-    (fn [& point-coordinates]
-      (let [points (partition 2 point-coordinates),
-	    inf-irr-placement (apply hash-map
-				     (interleave seq-of-inf-irrs
-						 points))]
-	(layout-energy (layout-by-placement lattice inf-irr-placement)
-		       information)))))
+;;
 
-(defn- neg-force-by-inf-irr-positions
-  "Returns a function representing the negative forces on the infimum
-  irreducible elements of lattice. The function returned takes as
-  input an index representing the coordinate to derive at and returns
-  itself a function from a placement of the inf-irreducible elements
-  to the force component given by the index. seq-of-inf-irrs gives the
-  order of the inf-irreducible elements."
+(defn- energy-by-inf-irr-positions
+  "Returns pair of energy function and function returning n-th partial
+  derivative when given index n."
   [lattice seq-of-inf-irrs]
   (let [information {:upper-neighbours-of-inf-irrs
 		     (hashmap-by-function (fn [n]
 					    (first (lattice-upper-neighbours lattice n)))
 					  seq-of-inf-irrs),
 		     :inf-irrs seq-of-inf-irrs,
-		     :order (order lattice)}]
-    (fn [index]
-      (fn [& point-coordinates]
-	(let [points (partition 2 point-coordinates),
-	      inf-irr-placement (apply hash-map
-				       (interleave seq-of-inf-irrs
-						   points))]
-	  (- (layout-force (layout-by-placement lattice inf-irr-placement)
-			   seq-of-inf-irrs
-			   index
-			   information)))))))
+		     :order (order lattice),
+		     :phi_0 (double (/ Math/PI (+ 1 (count seq-of-inf-irrs))))},
+
+	energy   (fn [& point-coordinates]
+		   (let [points (partition 2 point-coordinates),
+			 inf-irr-placement (apply hash-map
+						  (interleave seq-of-inf-irrs
+							      points))]
+		     (layout-energy (layout-by-placement lattice inf-irr-placement)
+				    information))),
+
+	d-energy (fn [index]
+		   (fn [& point-coordinates]
+		     (let [points (partition 2 point-coordinates),
+			   inf-irr-placement (apply hash-map
+						    (interleave seq-of-inf-irrs
+								points))]
+		       (- (layout-force (layout-by-placement lattice inf-irr-placement)
+					seq-of-inf-irrs
+					index
+					information)))))]
+    [energy, d-energy]))
 
 
 ;;; Force Layout
@@ -326,10 +316,9 @@
 			    inf-irr-points),
 
 	;; minimize layout energy with above placement as initial value
-	energy         (energy-by-inf-irr-positions lattice inf-irrs),
-	neg-force          (neg-force-by-inf-irr-positions lattice inf-irrs),
+	[energy, neg-force] (energy-by-inf-irr-positions lattice inf-irrs),
 	[new-points, value] (minimize energy
-				      neg-force
+				      ;;neg-force
 				      (apply concat inf-irr-points)),
 
 	;; make hash
@@ -346,7 +335,6 @@
 						 [(+ x top-x), (+ y top-y)])
 					       (vals placement))))]
 
-    ;; (pprint placement)
     [placement connections]))
 
 
