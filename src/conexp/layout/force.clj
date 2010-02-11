@@ -280,8 +280,8 @@
 	(layout-energy (layout-by-placement lattice inf-irr-placement)
 		       information)))))
 
-(defn- force-by-inf-irr-positions
-  "Returns a function representing the forces on the infimum
+(defn- neg-force-by-inf-irr-positions
+  "Returns a function representing the negative forces on the infimum
   irreducible elements of lattice. The function returned takes as
   input an index representing the coordinate to derive at and returns
   itself a function from a placement of the inf-irreducible elements
@@ -300,10 +300,10 @@
 	      inf-irr-placement (apply hash-map
 				       (interleave seq-of-inf-irrs
 						   points))]
-	  (layout-force (layout-by-placement lattice inf-irr-placement)
-			seq-of-inf-irrs
-			index
-			information))))))
+	  (- (layout-force (layout-by-placement lattice inf-irr-placement)
+			   seq-of-inf-irrs
+			   index
+			   information)))))))
 
 
 ;;; Force Layout
@@ -327,9 +327,9 @@
 
 	;; minimize layout energy with above placement as initial value
 	energy         (energy-by-inf-irr-positions lattice inf-irrs),
-	force          (force-by-inf-irr-positions lattice inf-irrs),
+	neg-force          (neg-force-by-inf-irr-positions lattice inf-irrs),
 	[new-points, value] (minimize energy
-				      force
+				      neg-force
 				      (apply concat inf-irr-points)),
 
 	;; make hash
