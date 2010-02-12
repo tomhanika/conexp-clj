@@ -10,6 +10,12 @@
 
 ;; Helpers
 
+(defmacro with-printed-result [string & body]
+  `(let [result# (do
+		   ~@body)]
+     (println ~string result#)
+     result#))
+
 (defn- square
   "Squares."
   [x]
@@ -187,7 +193,7 @@
     (try
      (sum [n inf-irrs,
 	   :let [phi_n (double (phi (node-positions n)
-				(node-positions (upper-neighbours n))))]]
+				    (node-positions (upper-neighbours n))))]]
 	 (cond
 	  (<= 0 phi_n phi_0)
 	  (+ phi_n
@@ -221,20 +227,17 @@
 
 	phi_n_i (double (phi pos-n_i pos-u_i))]
     (cond
-     (<= 0 phi_n_i phi_0)
-     (* (nth edge-rot part)
-        (/ (- (square (Math/sin phi_n_i))
-	      (square (Math/sin phi_0)))
-	   (square y_e))),
-
-     (<= phi_0 phi_n_i (- Math/PI phi_0))
-     0.0,
-
-     (<= (- Math/PI phi_0) phi_n_i Math/PI)
-     (* (nth edge-rot part)
-	(/ (- (square (Math/sin phi_0))
-	      (square (Math/sin phi_n_i)))
-	   (square y_e))))))
+     (<= y_e 0) (if (zero? part)
+		  0.0
+		  Double/NEGATIVE_INFINITY),
+     (<= phi_0 phi_n_i (- Math/PI phi_0)) 0.0,
+     :else (* (if (<= 0 phi_n_i phi_0)
+		1
+		-1)
+	      (nth edge-rot part)
+	      (/ (- (square (Math/sin phi_n_i))
+		    (square (Math/sin phi_0)))
+		 (square y_e))))))
 
 
 ;; Overall Energy and Force
@@ -246,10 +249,11 @@
 (defn layout-energy
   "Returns the overall energy of the given layout."
   [layout information]
+  (with-printed-result "energe ="
   (double
-   (+ (* *repulsive-amount* (repulsive-energy layout))
-      (* *attractive-amount* (attractive-energy layout))
-      (* *gravitative-amount* (gravitative-energy layout information)))))
+   (+ (* *repulsive-amount* (with-printed-result "rep =" (repulsive-energy layout)))
+      (* *attractive-amount* (with-printed-result "att =" (attractive-energy layout)))
+      (* *gravitative-amount* (with-printed-result "grav =" (gravitative-energy layout information)))))))
 
 (defn- layout-force
   "Computes overall force component of index n in the inf-irreducible elements."
@@ -257,9 +261,12 @@
   (let [part (mod n 2),
 	n_i (nth inf-irrs (div n 2))]
     (double
-     (+ (* *repulsive-amount* (repulsive-force layout n_i part information))
-	(* *attractive-amount* (attractive-force layout n_i part information))
-	(* *gravitative-amount* (gravitative-force layout n_i part information))))))
+     (+ (* *repulsive-amount* (with-printed-result (str "F_rep(" (div n 2) ", " part ") =")
+				(repulsive-force layout n_i part information)))
+	(* *attractive-amount* (with-printed-result (str "F_att(" (div n 2) ", " part ") =")
+				 (attractive-force layout n_i part information)))
+	(* *gravitative-amount* (with-printed-result (str "F_gra(" (div n 2) ", " part ") =")
+				  (gravitative-force layout n_i part information)))))))
 
 ;;
 
@@ -318,7 +325,7 @@
 	;; minimize layout energy with above placement as initial value
 	[energy, neg-force] (energy-by-inf-irr-positions lattice inf-irrs),
 	[new-points, value] (minimize energy
-				      ;;neg-force
+				      neg-force
 				      (apply concat inf-irr-points)),
 
 	;; make hash
@@ -341,7 +348,7 @@
 ;;;
 
 (defn- test-repulsive-force
-  ""
+  "Testing repulsive forces with a tiny example."
   [pos-w n_i]
   (let [layout [{:w pos-w, :w-1 [0 0], :w-2 [1 1]}
 		#{[:w-1 :w-2]}],
@@ -349,6 +356,15 @@
 		[:w :w]}]
     [(repulsive-force layout n_i 0 {:order order}),
      (repulsive-force layout n_i 1 {:order order})]))
+
+(defn- test-gravitative-force
+  "Testing gravitative forces with a tiny example."
+  [pos-a]
+  (let [information {:upper-neighbours-of-inf-irrs {:a :b},
+		     :phi_0 (/ Math/PI 2)},
+	layout [{:a pos-a, :b [0 0]}, #{[:a :b]}]]
+    [(gravitative-force layout :a 0 information),
+     (gravitative-force layout :a 1 information)]))
 
 (require 'conexp)
 (defn- make-test-lattice
