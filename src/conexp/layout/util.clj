@@ -92,33 +92,10 @@
   [vec1 vec2]
   (vec (map + vec1 vec2)))
 
-(defn- place-inf-irr-by-coatoms
-  "Places all other inf-irreducible elements of lattice by placement
-  of coatoms."
-  [lattice placement]
-  (let [inf-irrs (lattice-inf-irreducibles lattice),
-
-	;; determine minimal distance
-	;; is this a good idea? -> lattice gets "noisy" downwards
-	offset (fn []
-		 [(- (rand) 0.5), -1]),
-
-	pos (memo-fn pos [v]
-	      (if (contains? placement v)
-		(get placement v)
-		(reduce (fn [[x y] w]
-			  (if (or (= v w)
-				  (not ((order lattice) [v w])))
-			    [x y]
-			    (vector-plus [x y] (pos w))))
-			(offset)
-			inf-irrs)))]
-    (hashmap-by-function pos inf-irrs)))
-
-(defn layout-by-placement
-  "Computes additive layout of lattice by given positions of the keys
-  of placement. The values of placement should be the positions of the
-  corresponding keys. Top element will be at [0,0], if not explicitly given."
+(defn placement-by-initials
+  "Computes placement for all elements by of some positions of some
+  initial nodes. Top element will be at [0,0] if not otherwise
+  stated."
   [lattice placement]
   (let [pos (fn pos [v]
 	      (get placement v
@@ -127,9 +104,15 @@
 			       (vector-plus p (placement w))
 			       p))
 			   [0 0]
-			   (keys placement)))),
-	overall-placement (hashmap-by-function pos (base-set lattice))]
-    [ overall-placement, (edges lattice) ]))
+			   (keys placement))))]
+    (hashmap-by-function pos (base-set lattice))))
+
+(defn layout-by-placement
+  "Computes additive layout of lattice by given positions of the keys
+  of placement. The values of placement should be the positions of the
+  corresponding keys. Top element will be at [0,0], if not explicitly given."
+  [lattice placement]
+  [(placement-by-initials lattice placement), (edges lattice)])
 
 ;;;
 

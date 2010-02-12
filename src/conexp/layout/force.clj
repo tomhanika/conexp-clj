@@ -240,10 +240,11 @@
 (defn layout-energy
   "Returns the overall energy of the given layout."
   [layout information]
-  (double
-   (+ (* *repulsive-amount* (repulsive-energy layout))
-      (* *attractive-amount* (attractive-energy layout))
-      (* *gravitative-amount* (gravitative-energy layout information)))))
+  (with-printed-result "energy ="
+    (double
+     (+ (* *repulsive-amount* (repulsive-energy layout))
+	(* *attractive-amount* (attractive-energy layout))
+	(* *gravitative-amount* (gravitative-energy layout information))))))
 
 (defn- layout-force
   "Computes overall force component of index n in the inf-irreducible elements."
@@ -271,13 +272,14 @@
 		     :inf-irrs seq-of-inf-irrs,
 		     :order (order lattice),
 		     :phi_0 (/ Math/PI 2.0)},
+	edges    (edges lattice),
 
 	energy   (fn [& point-coordinates]
 		   (let [points (partition 2 point-coordinates),
 			 inf-irr-placement (apply hash-map
 						  (interleave seq-of-inf-irrs
 							      points))]
-		     (layout-energy (layout-by-placement lattice inf-irr-placement)
+		     (layout-energy [(placement-by-initials lattice inf-irr-placement), edges]
 				    information))),
 
 	d-energy (fn [index]
@@ -286,7 +288,7 @@
 			   inf-irr-placement (apply hash-map
 						    (interleave seq-of-inf-irrs
 								points))]
-		       (- (layout-force (layout-by-placement lattice inf-irr-placement)
+		       (- (layout-force [(placement-by-initials lattice inf-irr-placement), edges]
 					seq-of-inf-irrs
 					index
 					information)))))]
@@ -300,7 +302,7 @@
   ([layout]
      (force-layout layout nil))
   ([layout iterations]
-     (let [ ;; compute lattice from layout; this will be changed in the future
+     (let [;; compute lattice from layout; this will be changed in the future
 	   lattice (lattice-from-layout layout),
 
 	   ;; get positions of inf-irreducibles from layout as starting point
