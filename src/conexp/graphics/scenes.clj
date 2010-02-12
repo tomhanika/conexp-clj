@@ -57,7 +57,7 @@
   "Sets given functions as callbacks for hook on scene."
   [scn hook functions]
   (when (not (contains? (get-scene-hooks scn) hook))
-    (illegal-argument "Hook " hook " not known for scene."))
+    (add-hook scn hook))
   (set-scene-hooks scn (assoc (get-scene-hooks scn) hook functions)))
 
 (defn add-callback-for-hook

@@ -8,9 +8,12 @@
 	[conexp.graphics.scenes :only (add-callback-for-hook)]
 	[conexp.graphics.base :only (draw-on-scene,
 				     get-layout-from-scene,
-				     set-layout-of-scene,
+				     update-layout-of-scene,
 				     move-interaction,
-				     zoom-interaction)])
+				     zoom-interaction,
+				     do-nodes)]
+	[conexp.graphics.nodes-and-connections :only (*default-node-radius*, set-radius!)]
+	[clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
 	                BoxLayout Box]
@@ -23,16 +26,25 @@
 
 ;;; lattice editor -- a lot TODO
 
-(declare make-button, make-labeled-text-field, make-padding, make-separator)
+(declare make-button, make-label, make-labeled-text-field, make-padding, make-separator)
 
 ;; editor features
 
 (defn- change-parameters
   "Installs parameter list which influences lattice drawing."
   [frame scn buttons]
+  (let [#^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
+    (.addActionListener node-radius (proxy [ActionListener] []
+				      (actionPerformed [evt]
+				        (let [new-radius (Double/parseDouble (.getText node-radius))]
+					  (do-swing
+					   (do-nodes [n scn]
+					    (set-radius! n new-radius))
+					   (.unzoom scn)))))))
   ;; node radius
   ;; labels
   ;; layout
+  ;; move mode (ideal, filter, chain, single)
   nil)
 
 ;; improve with force layout
@@ -43,20 +55,20 @@
   (binding [*repulsive-amount* r,
 	    *attractive-amount* a,
 	    *gravitative-amount* g]
-    (set-layout-of-scene scn
-			 (if (<= iterations 0)
-			   (force-layout (get-layout-from-scene scn))
-			   (force-layout (get-layout-from-scene scn) iterations)))))
+    (update-layout-of-scene scn
+			    (if (<= iterations 0)
+			      (force-layout (get-layout-from-scene scn))
+			      (force-layout (get-layout-from-scene scn) iterations)))))
 
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
   [frame scn buttons]
-  (let [#^JTextField rep-field  (make-labeled-text-field buttons "rep"  (str *repulsive-amount*)),
-	#^JTextField attr-field (make-labeled-text-field buttons "attr" (str *attractive-amount*)),
-	#^JTextField grav-field (make-labeled-text-field buttons "grav" (str *gravitative-amount*)),
-	#^JTextField iter-field (make-labeled-text-field buttons "iter" (str "300")),
-	_                       (make-padding buttons),
-	#^JButton button (make-button buttons "Force")]
+  (let [#^JTextField rep-field    (make-labeled-text-field buttons "rep"  (str *repulsive-amount*)),
+	#^JTextField attr-field   (make-labeled-text-field buttons "attr" (str *attractive-amount*)),
+	#^JTextField grav-field   (make-labeled-text-field buttons "grav" (str *gravitative-amount*)),
+	#^JTextField iter-field   (make-labeled-text-field buttons "iter" (str "300")),
+	_                         (make-padding buttons),
+	#^JButton button          (make-button buttons "Force")]
     (.addActionListener button
 			(proxy [ActionListener] []
 			  (actionPerformed [evt]
@@ -74,16 +86,14 @@
 				JOptionPane/ERROR_MESSAGE)
 			       (throw e))))))))
 
-;; TODO: Add energy label
-
-
 ;; zoom-move
 
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
   [frame scn buttons]
-  (let [zoom-button (make-button buttons "Zoom"),
-	move-button (make-button buttons "Move")]
+  (let [#^JButton zoom-button (make-button buttons "Zoom"),
+	#^JButton move-button (make-button buttons "Move"),
+	#^JLabel  zoom-info   (make-label buttons "1.0")]
     (.addActionListener zoom-button
 			(proxy [ActionListener] []
 			  (actionPerformed [evt]
@@ -97,7 +107,12 @@
 			    (.setEnabled zoom-button true)
 			    (.setEnabled move-button false))))
     (.setEnabled zoom-button true)
-    (.setEnabled move-button false)))
+    (.setEnabled move-button false)
+    (add-callback-for-hook scn :zoom-event
+			   (fn []
+			     (do-swing
+			      ;; TODO: Show current zoom factor
+			      (.setText zoom-info "??"))))))
 
 ;;
 
@@ -142,6 +157,16 @@
     (.setAlignmentX button Component/CENTER_ALIGNMENT)
     (.setMaximumSize button (Dimension. 100 20))
     button))
+
+(defn- make-label
+  "Uniformly creates labels for lattice editor."
+  [buttons text]
+  (let [label (JLabel. text)]
+    (.add buttons label)
+    (.setMaximumSize label (Dimension. 100 25))
+    (.setAlignmentX label Component/CENTER_ALIGNMENT)
+    (.setHorizontalAlignment label SwingConstants/CENTER)
+    label))
 
 (defn- make-labeled-text-field
   "Uniformly creates a text field for lattice editor."

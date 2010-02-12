@@ -237,7 +237,7 @@
 (def *attractive-amount* 0.005)
 (def *gravitative-amount* 100.0)
 
-(defn layout-energy
+(defn- layout-energy
   "Returns the overall energy of the given layout."
   [layout information]
   (with-printed-result "energy ="

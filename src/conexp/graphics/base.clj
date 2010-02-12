@@ -2,7 +2,8 @@
   (:use [conexp.util :only (update-ns-meta!, illegal-argument)]
 	[conexp.base :only (defvar-)]
 	[conexp.layout.util :only (edges-of-points)]
-	[clojure.contrib.ns-utils :only (immigrate)])
+	[clojure.contrib.ns-utils :only (immigrate)]
+	[clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JFrame JButton JPanel JLabel]
 	   [java.awt Dimension BorderLayout Color]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle]))
@@ -15,12 +16,28 @@
   :doc "Basic namespace for drawing lattice.")
 
 
-;;; get layout and diagram from scene
+;;; get diagram from scene
 
 (defn get-diagram-from-scene
   "Returns nodes and lines of a scene."
   [#^GScene scene]
   (seq (.getChildren scene)))
+
+;;; node and line iterators
+
+(defmacro do-nodes
+  "Do whatever with every node on the scene."
+  [[node scene] & body]
+  `(doseq [~node (filter node? (get-diagram-from-scene ~scene))]
+     ~@body))
+
+(defmacro do-lines
+  "Do whatever with every connection on the scene."
+  [[line scene] & body]
+  `(doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
+     ~@body))
+
+;;; manipulate layout of scene
 
 (defn get-layout-from-scene
   "Returns layout from a scene."
@@ -46,6 +63,22 @@
 		   (get-name (upper-node %)))
 	  connections)]))
 
+(defn update-layout-of-scene
+  "Updates layout according to new layout."
+  [#^GScene scene, layout]
+  (do-swing
+   (let [pos (first layout),
+	 [x_min y_min x_max y_max] (edges-of-points (vals pos))]
+     (do-nodes [node scene]
+       (let [[x y] (pos (get-name node))]
+	 (move-node-to node x y)))
+     (.setWorldExtent scene
+		      (double (- x_min (* 2 *default-node-radius*)))
+		      (double (- y_min (* 2 *default-node-radius*)))
+		      (double (- x_max x_min (* -4 *default-node-radius*)))
+		      (double (- y_max y_min (* -4 *default-node-radius*))))
+     (.unzoom scene))))
+
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
   [#^GScene scene, layout]
@@ -53,12 +86,11 @@
     (doto scene
       (.removeAll)
       (.setWorldExtent (double (- x_min (* 2 *default-node-radius*)))
-		       (double (- y_min (* 2 *default-node-radius*)))
-		       (double (- x_max x_min (* -4 *default-node-radius*)))
-		       (double (- y_max y_min (* -4 *default-node-radius*))))
+                      (double (- y_min (* 2 *default-node-radius*)))
+                      (double (- x_max x_min (* -4 *default-node-radius*)))
+                      (double (- y_max y_min (* -4 *default-node-radius*))))
       (add-nodes-with-connections (first layout) (second layout))
-      (.unzoom)))) ; ? the only way I kown to call updateRegion...
-
+      (.unzoom))))
 
 ;;; draw nodes with coordinates and connections on a scene
 
@@ -72,22 +104,6 @@
     (doto wnd
       (.startInteraction (move-interaction scn)))
     scn))
-
-
-;;; node and line iterators
-
-(defmacro donodes
-  "Do whatever with every node on the scene."
-  [[node scene] & body]
-  `(doseq [~node (filter node? (get-diagram-from-scene ~scene))]
-     ~@body))
-
-(defmacro dolines
-  "Do whatever with every connection on the scene."
-  [[line scene] & body]
-  `(doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
-     ~@body))
-
 
 
 ;;;

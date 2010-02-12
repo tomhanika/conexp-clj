@@ -36,6 +36,12 @@
   [#^GObject node]
   (:radius @(.getUserData node)))
 
+(defn set-radius!
+  "Sets radius of node."
+  [#^GObject node, radius]
+  (dosync
+   (alter (.getUserData node) assoc :radius radius)))
+
 (defn get-name
   "Returns name of thing."
   [#^GObject thing]
@@ -234,7 +240,7 @@
     ;; done
     [new-x new-y]))
 
-(defn- move-node-to
+(defn move-node-to
   "Moves node to position [x y]."
   [node x y]
   (let [[current-x current-y] (position node)]
@@ -245,37 +251,43 @@
 
 (defn move-interaction
   "Standard move interaction for lattice diagrams. Installs
-  :move-interaction hook on scene to be called whenever a
-  node is moved. Callbacks get the moved vertex as argument."
+  :move-start, :move-drag and :move-stop hooks on scene to be called
+  whenever a node is moved. Callbacks get the moved vertex as
+  argument."
   [scene]
-  (add-hook scene :move-interaction)
+  (add-hook scene :move-start)
+  (add-hook scene :move-drag)
+  (add-hook scene :move-stop)
   (let [interaction-obj (atom nil)]
     (proxy [GInteraction] []
       (event [#^GScene scn, evt, x, y]
 	(condp = evt
 	   GWindow/BUTTON1_DOWN  (let [thing (.find scn x y)]
 				   (when (node? thing)
-				     (reset! interaction-obj thing))),
+				     (reset! interaction-obj thing)
+				     (call-hook-with scn :move-start thing))),
 	   GWindow/BUTTON1_DRAG  (when @interaction-obj
 				   (let [[x y] (device-to-world scn x y)]
 				     (move-node-to @interaction-obj x y)
 				     (.refresh scn))
-				   (call-hook-with scn :move-interaction @interaction-obj)),
-	   GWindow/BUTTON1_UP    (reset! interaction-obj nil)
+				   (call-hook-with scn :move-drag @interaction-obj)),
+	   GWindow/BUTTON1_UP    (do
+				   (call-hook-with scn :move-stop @interaction-obj)
+				   (reset! interaction-obj nil))
 	   nil)))))
 
 (defn zoom-interaction
   "Standrd zoom interaction for lattice diagrams. Installs
-  :zoom-interaction hook called whenever view changes. Callbacks
+  :zoom-event hook called whenever view changes. Callbacks
   take no arguments."
   [scene]
-  (add-hook scene :zoom-interaction)
+  (add-hook scene :zoom-event)
   (let [#^ZoomInteraction zoom-obj (ZoomInteraction. scene)]
     (proxy [GInteraction] []
       (event [#^GScene scn, evt, x, y]
 	(.event zoom-obj scn evt x y)
 	(when scn
-	  (call-hook-with scn :zoom-interaction))))))
+	  (call-hook-with scn :zoom-event))))))
 
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected
