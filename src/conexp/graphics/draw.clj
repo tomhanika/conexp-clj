@@ -1,5 +1,5 @@
 (ns conexp.graphics.draw
-  (:use [conexp.util :only (update-ns-meta!)]
+  (:use [conexp.util :only (update-ns-meta!, get-root-cause)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.force :only (force-layout,
 				    *repulsive-amount*,
@@ -39,19 +39,22 @@
 
 (defn- improve-with-force
   "Improves layout on scene with force layout."
-  [scn r a g]
+  [scn iterations r a g]
   (binding [*repulsive-amount* r,
 	    *attractive-amount* a,
 	    *gravitative-amount* g]
-    (set-layout-of-scene scn (force-layout (get-layout-from-scene scn)))))
+    (set-layout-of-scene scn
+			 (if (<= iterations 0)
+			   (force-layout (get-layout-from-scene scn))
+			   (force-layout (get-layout-from-scene scn) iterations)))))
 
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
   [frame scn buttons]
-  ;; Add parameters for repulsive, attractive and gravitative amount
   (let [#^JTextField rep-field  (make-labeled-text-field buttons "rep"  (str *repulsive-amount*)),
 	#^JTextField attr-field (make-labeled-text-field buttons "attr" (str *attractive-amount*)),
 	#^JTextField grav-field (make-labeled-text-field buttons "grav" (str *gravitative-amount*)),
+	#^JTextField iter-field (make-labeled-text-field buttons "iter" (str "300")),
 	_                       (make-padding buttons),
 	#^JButton button (make-button buttons "Force")]
     (.addActionListener button
@@ -60,20 +63,16 @@
 			    (try
 			     (let [r (Double/parseDouble (.getText rep-field)),
 				   a (Double/parseDouble (.getText attr-field)),
-				   g (Double/parseDouble (.getText grav-field))]
-			       (improve-with-force scn r a g))
-			     (catch NumberFormatException e
-			       (JOptionPane/showMessageDialog
-				frame,
-				"Invalid number in parameters.",
-				"Invalid parameters.",
-				JOptionPane/ERROR_MESSAGE))
+				   g (Double/parseDouble (.getText grav-field)),
+				   i (Integer/parseInt (.getText iter-field))]
+			       (improve-with-force scn i r a g))
 			     (catch Exception e
 			       (JOptionPane/showMessageDialog
 				frame,
-				(.getMessage e)
-				"An Error occured."
-				JOptionPane/ERROR_MESSAGE))))))))
+				(get-root-cause e),
+				"An Error occured.",
+				JOptionPane/ERROR_MESSAGE)
+			       (throw e))))))))
 
 ;; TODO: Add energy label
 

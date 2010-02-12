@@ -230,6 +230,13 @@
   [this funs]
   (reduce bit-xor 0 (map #(%1 this) funs)))
 
+(defn get-root-cause
+  "Returns original message of first exception causing the given one."
+  [#^Throwable exception]
+  (if-let [cause (.getCause exception)]
+    (get-root-cause cause)
+    (.getMessage exception)))
+
 ;;;
 
 nil

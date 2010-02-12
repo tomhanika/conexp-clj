@@ -147,7 +147,10 @@
 					pos-v [pos-x, pos-y]
 					n_i part
 					(:order information))
-	 (square (node-line-distance pos-v [pos-x, pos-y])))))
+	 (let [denom (square (node-line-distance pos-v [pos-x, pos-y]))]
+	   (if (zero? denom)
+	     Double/MIN_VALUE
+	     denom)))))
 
 
 ;; Attractive Energy and Force
@@ -156,7 +159,7 @@
   "Computes the attractive energy of the given layout."
   [[node-positions node-connections]]
   (sum [[x y] node-connections]
-       (line-length-squared (node-positions x) (node-positions y))))
+    (line-length-squared (node-positions x) (node-positions y))))
 
 (defn- attractive-force
   "Computes given part of attractive force in layout on the
@@ -168,7 +171,7 @@
     (* 2 (sum [[v_1 v_2] edges,
 	       :when (and (order [v_1 n_i])
 			  (not (order [v_2 n_i])))]
-	    (- (nth (pos v_2) part) (nth (pos v_1) part))))))
+	   (- (nth (pos v_2) part) (nth (pos v_1) part))))))
 
 
 ;; Gravitative Energy and Force
@@ -186,28 +189,17 @@
   [[node-positions node-connections] information]
   (let [inf-irrs (:inf-irrs information),
 	upper-neighbours (:upper-neighbours-of-inf-irrs information),
-	phi_0 (:phi_0 information),
-
-	E_0   (double (+ (- phi_0) (- (* (Math/sin phi_0) (Math/cos phi_0))))),
-	E_1   (double (+ E_0 Math/PI))]
+	E_0   (double (- (/ Math/PI 2.0)))]
     (try
      (sum [n inf-irrs,
 	   :let [phi_n (double (phi (node-positions n)
 				    (node-positions (upper-neighbours n))))]]
-	 (cond
-	  (<= 0 phi_n phi_0)
+       (* (if (<= phi_n (/ Math/PI 2.0))
+	    1
+	    -1)
 	  (+ phi_n
-	     (/ (square (Math/sin phi_0))
-		(Math/tan phi_n))
-	     E_0),
-
-	  (<= (- Math/PI phi_0) phi_n Math/PI)
-	  (+ (- phi_n)
-	     (/ (- (square (Math/sin phi_0)))
-		(Math/tan phi_n))
-	     E_1),
-
-	  :else 0))
+	     (/ (Math/tan phi_n))
+	     E_0)))
      (catch Exception e
        Double/MAX_VALUE))))
 
@@ -216,7 +208,6 @@
   inf-irreducible element n_i."
   [layout n_i part information]
   (let [upper-neighbours (:upper-neighbours-of-inf-irrs information),
-	phi_0 (:phi_0 information),
 	positions (first layout),
 
 	pos-n_i (positions n_i),
@@ -225,19 +216,19 @@
 		   (- (second pos-u_i) (second pos-n_i))]
 	edge-rot [(- y_e), x_e],	; rotated edge from n_i to u_i
 
-	phi_n_i (double (phi pos-n_i pos-u_i))]
-    (cond
-     (<= y_e 0) (if (zero? part)
-		  0.0
-		  (- Double/MAX_VALUE)),
-     (<= phi_0 phi_n_i (- Math/PI phi_0)) 0.0,
-     :else (* (if (<= 0 phi_n_i phi_0)
-		1
-		-1)
-	      (nth edge-rot part)
-	      (/ (- (square (Math/sin phi_n_i))
-		    (square (Math/sin phi_0)))
-		 (square y_e))))))
+	phi_n_i (double (phi pos-n_i pos-u_i)),
+
+	result (if (<= y_e 0)
+		 (if (zero? part)
+		   (- (Math/sqrt Double/MAX_VALUE))
+		   (- Double/MAX_VALUE))
+		 (* (if (<= 0 phi_n_i (/ Math/PI 2.0))
+		      1
+		      -1)
+		    (nth edge-rot part)
+		    (/ (- (square (Math/sin phi_n_i)) 1.0)
+		       (square y_e))))]
+    (max result (- Double/MAX_VALUE))))
 
 
 ;; Overall Energy and Force
@@ -249,11 +240,10 @@
 (defn layout-energy
   "Returns the overall energy of the given layout."
   [layout information]
-  (with-printed-result "energe ="
   (double
-   (+ (* *repulsive-amount* (with-printed-result "rep =" (repulsive-energy layout)))
-      (* *attractive-amount* (with-printed-result "att =" (attractive-energy layout)))
-      (* *gravitative-amount* (with-printed-result "grav =" (gravitative-energy layout information)))))))
+   (+ (* *repulsive-amount* (repulsive-energy layout))
+      (* *attractive-amount* (attractive-energy layout))
+      (* *gravitative-amount* (gravitative-energy layout information)))))
 
 (defn- layout-force
   "Computes overall force component of index n in the inf-irreducible elements."
@@ -280,7 +270,7 @@
 					  seq-of-inf-irrs),
 		     :inf-irrs seq-of-inf-irrs,
 		     :order (order lattice),
-		     :phi_0 (double (/ Math/PI (+ 1 (count seq-of-inf-irrs))))},
+		     :phi_0 (/ Math/PI 2.0)},
 
 	energy   (fn [& point-coordinates]
 		   (let [points (partition 2 point-coordinates),
@@ -307,42 +297,45 @@
 
 (defn force-layout
   "Improves given layout with force layout."
-  [layout]
-  (let [;; compute lattice from layout; this will be changed in the future
-	lattice (lattice-from-layout layout),
+  ([layout]
+     (force-layout layout nil))
+  ([layout iterations]
+     (let [ ;; compute lattice from layout; this will be changed in the future
+	   lattice (lattice-from-layout layout),
 
-	;; get positions of inf-irreducibles from layout as starting point
-	inf-irrs (seq (lattice-inf-irreducibles lattice)),
-	node-positions (first layout),
-	inf-irr-points (map node-positions inf-irrs),
+	   ;; get positions of inf-irreducibles from layout as starting point
+	   inf-irrs (seq (lattice-inf-irreducibles lattice)),
+	   node-positions (first layout),
+	   inf-irr-points (map node-positions inf-irrs),
 
-	;; move top element to [0,0], needed by layout-by-placement
-	[top-x, top-y] (node-positions (lattice-one lattice)),
-	inf-irr-points (map (fn [[x y]]
-			      [(- x top-x), (- y top-y)])
-			    inf-irr-points),
+	   ;; move top element to [0,0], needed by layout-by-placement
+	   [top-x, top-y] (node-positions (lattice-one lattice)),
+	   inf-irr-points (map (fn [[x y]]
+				 [(- x top-x), (- y top-y)])
+			       inf-irr-points),
 
-	;; minimize layout energy with above placement as initial value
-	[energy, neg-force] (energy-by-inf-irr-positions lattice inf-irrs),
-	[new-points, value] (minimize energy
-				      neg-force
-				      (apply concat inf-irr-points)),
+	   ;; minimize layout energy with above placement as initial value
+	   [energy, neg-force] (energy-by-inf-irr-positions lattice inf-irrs),
+	   [new-points, value] (minimize energy
+					 ;;neg-force
+					 (apply concat inf-irr-points)
+					 {:iterations iterations}),
 
-	;; make hash
-	point-hash     (apply hash-map (interleave inf-irrs
-						   (partition 2 new-points))),
+	   ;; make hash
+	   point-hash     (apply hash-map (interleave inf-irrs
+						      (partition 2 new-points))),
 
-	;; compute layout given by the result
-	[placement connections] (layout-by-placement lattice point-hash),
+	   ;; compute layout given by the result
+	   [placement connections] (layout-by-placement lattice point-hash),
 
-	;; move points such that top element is at [top-x, top-y] again
-	placement      (apply hash-map
-			      (interleave (keys placement)
-					  (map (fn [[x y]]
-						 [(+ x top-x), (+ y top-y)])
-					       (vals placement))))]
+	   ;; move points such that top element is at [top-x, top-y] again
+	   placement      (apply hash-map
+				 (interleave (keys placement)
+					     (map (fn [[x y]]
+						    [(+ x top-x), (+ y top-y)])
+						  (vals placement))))]
 
-    [placement connections]))
+       [placement connections])))
 
 
 ;;;

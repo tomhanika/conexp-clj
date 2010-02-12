@@ -1,7 +1,9 @@
 (ns conexp.math.optimize
   (:use conexp.math.util
 	conexp.base)
-  (:import [org.apache.commons.math.optimization RealPointValuePair GoalType]
+  (:import [org.apache.commons.math.optimization RealPointValuePair GoalType
+	                                         DifferentiableMultivariateRealOptimizer
+	                                         RealConvergenceChecker]
 	   [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead MultiDirectional]
 	   [org.apache.commons.math.optimization.general AbstractScalarDifferentiableOptimizer
 	                                                 NonLinearConjugateGradientOptimizer
@@ -9,11 +11,29 @@
 
 ;;;
 
-(defvar *direct-optimizer* (fn [] (NelderMead.))
-  "Direct optimizer used by directly-optimize")
-(defvar *differential-optimizer*
-  (fn [] (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES))
-  "Optimizer for differentiable functions used by differentially-optimize.")
+(defn- customize-optimizer
+  "Customizes given optimizer with options."
+  [optimizer options]
+  (when (:iterations options)
+    (let [#^RealConvergenceChecker cc (.getConvergenceChecker optimizer)]
+      (.setConvergenceChecker optimizer
+			      (proxy [RealConvergenceChecker] []
+				(converged [iterations previous current]
+				  (or (.converged cc iterations previous current)
+				      (>= iterations (:iterations options))))))))
+  optimizer)
+
+(defn- make-direct-optimizer
+  "Direct optimizer used by directly-optimize."
+  [options]
+  (doto (NelderMead.)
+    (customize-optimizer options)))
+
+(defn- make-differential-optimizer
+  "Optimizer for differentiable functions used by differentially-optimize."
+  [options]
+  (doto (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES)
+    (customize-optimizer options)))
 
 (defn- point-value-pair-to-vector
   "Converts RealPointValuePair to a point-value-vector."
@@ -22,8 +42,8 @@
 
 (defn- directly-optimize
   "Optimizes fn according to goal as given by *direct-optimizer*."
-  [fn starting-point goal]
-  (let [point-value-pair (.optimize (*direct-optimizer*)
+  [fn starting-point goal options]
+  (let [point-value-pair (.optimize (make-direct-optimizer options)
 				    (as-multivariate-real-fn fn)
 				    goal
 				    (into-array Double/TYPE starting-point))]
@@ -34,8 +54,8 @@
   *differential-optimizer*. partial-derivatives must be a function
   computing the k-th partial derivation (as clojure function) when
   given k."
-  [fn partial-derivatives starting-point goal]
-  (let [point-value-pair (.optimize (*differential-optimizer*)
+  [fn partial-derivatives starting-point goal options]
+  (let [point-value-pair (.optimize (make-differential-optimizer options)
 				    (as-differentiable-multivariate-real-fn
 				     fn
 				     (count starting-point)
@@ -48,10 +68,10 @@
   "Minimizes fn starting at starting-point. When given
   partial-derivatives uses a differential optimizer, otherwise uses a
   direct one."
-  ([fn starting-point]
-     (directly-optimize fn starting-point GoalType/MINIMIZE))
-  ([fn partial-derivatives starting-point]
-     (differentially-optimize fn partial-derivatives starting-point GoalType/MINIMIZE)))
+  ([fn starting-point options]
+     (directly-optimize fn starting-point GoalType/MINIMIZE options))
+  ([fn partial-derivatives starting-point options]
+     (differentially-optimize fn partial-derivatives starting-point GoalType/MINIMIZE options)))
 
 (comment
   Use this way
@@ -70,10 +90,10 @@
   "Maximizes fn starting at starting-point. When given
   partial-derivatives uses a differential optimizer, otherwise uses a
   direct one."
-  ([fn starting-point]
-     (directly-optimize fn starting-point GoalType/MAXIMIZE))
-  ([fn partial-derivatives starting-point]
-     (differentially-optimize fn partial-derivatives starting-point GoalType/MAXIMIZE)))
+  ([fn starting-point options]
+     (directly-optimize fn starting-point GoalType/MAXIMIZE options))
+  ([fn partial-derivatives starting-point options]
+     (differentially-optimize fn partial-derivatives starting-point GoalType/MAXIMIZE options)))
 
 ;;;
 
