@@ -67,6 +67,12 @@
 				frame,
 				"Invalid number in parameters.",
 				"Invalid parameters.",
+				JOptionPane/ERROR_MESSAGE))
+			     (catch Exception e
+			       (JOptionPane/showMessageDialog
+				frame,
+				(.getMessage e)
+				"An Error occured."
 				JOptionPane/ERROR_MESSAGE))))))))
 
 ;; TODO: Add energy label
