@@ -86,7 +86,7 @@
        (/ 1.0
 	  (double (node-line-distance pos-v [pos-x, pos-y])))))
    (catch Exception e
-     Double/POSITIVE_INFINITY)))
+     Double/MAX_VALUE)))
 
 (defn- node-line-distance-derivative
   "Computes partial derivative of node-line-distance between w = [x y]
@@ -209,7 +209,7 @@
 
 	  :else 0))
      (catch Exception e
-       Double/POSITIVE_INFINITY))))
+       Double/MAX_VALUE))))
 
 (defn- gravitative-force
   "Computes given part of gravitative force in layout on the
@@ -229,7 +229,7 @@
     (cond
      (<= y_e 0) (if (zero? part)
 		  0.0
-		  Double/NEGATIVE_INFINITY),
+		  (- Double/MAX_VALUE)),
      (<= phi_0 phi_n_i (- Math/PI phi_0)) 0.0,
      :else (* (if (<= 0 phi_n_i phi_0)
 		1
