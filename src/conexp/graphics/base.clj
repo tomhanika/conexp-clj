@@ -77,7 +77,7 @@
 		      (double (- y_min (* 2 *default-node-radius*)))
 		      (double (- x_max x_min (* -4 *default-node-radius*)))
 		      (double (- y_max y_min (* -4 *default-node-radius*))))
-     (.unzoom scene))))
+     (redraw-scene scene))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."

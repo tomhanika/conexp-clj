@@ -36,7 +36,7 @@
   [#^GObject node]
   (:radius @(.getUserData node)))
 
-(defn set-radius!
+(defn set-node-radius!
   "Sets radius of node."
   [#^GObject node, radius]
   (dosync

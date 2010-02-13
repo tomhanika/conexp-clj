@@ -5,14 +5,16 @@
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
-	[conexp.graphics.scenes :only (add-callback-for-hook)]
 	[conexp.graphics.base :only (draw-on-scene,
 				     get-layout-from-scene,
 				     update-layout-of-scene,
 				     move-interaction,
 				     zoom-interaction,
-				     do-nodes)]
-	[conexp.graphics.nodes-and-connections :only (*default-node-radius*, set-radius!)]
+				     do-nodes,
+				     *default-node-radius*,
+				     set-node-radius!,
+				     add-callback-for-hook,
+				     redraw-scene)]
 	[clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
@@ -39,9 +41,8 @@
 				        (let [new-radius (Double/parseDouble (.getText node-radius))]
 					  (do-swing
 					   (do-nodes [n scn]
-					    (set-radius! n new-radius))
-					   (.unzoom scn)))))))
-  ;; node radius
+					    (set-node-radius! n new-radius))
+					   (redraw-scene scn)))))))
   ;; labels
   ;; layout
   ;; move mode (ideal, filter, chain, single)

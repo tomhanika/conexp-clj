@@ -37,6 +37,11 @@
       (.setStyle *default-scene-style*))
     scn))
 
+(defn redraw-scene
+  "Redraws current viewport of scene."
+  [#^GScene scn]
+  (.zoom scn 1.0))
+
 (defn- get-scene-hooks
   "Returns the hooks with their corresponding callbacks for scene."
   [#^GScene scn]
