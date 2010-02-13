@@ -1,10 +1,10 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!, get-root-cause)]
-	[conexp.layout :only (*standard-layout-function*)]
-	[conexp.layout.force :only (force-layout,
-				    *repulsive-amount*,
-				    *attractive-amount*,
-				    *gravitative-amount*)]
+	[conexp.layout :only (*standard-layout-function*,
+			      force-layout,
+			      *repulsive-amount*,
+			      *attractive-amount*,
+			      *gravitative-amount*)]
 	[conexp.graphics.base :only (draw-on-scene,
 				     get-layout-from-scene,
 				     update-layout-of-scene,
@@ -15,7 +15,7 @@
 				     set-node-radius!,
 				     add-callback-for-hook,
 				     redraw-scene)]
-	[clojure.contrib.swing-utils :only (do-swing)])
+	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
 	                BoxLayout Box JScrollBar]
@@ -36,13 +36,12 @@
   "Installs parameter list which influences lattice drawing."
   [frame scn buttons]
   (let [#^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
-    (.addActionListener node-radius (proxy [ActionListener] []
-				      (actionPerformed [evt]
-				        (let [new-radius (Double/parseDouble (.getText node-radius))]
-					  (do-swing
-					   (do-nodes [n scn]
-					    (set-node-radius! n new-radius))
-					   (redraw-scene scn)))))))
+    (add-action-listener node-radius (fn [evt]
+				       (let [new-radius (Double/parseDouble (.getText node-radius))]
+					 (do-swing
+					  (do-nodes [n scn]
+					   (set-node-radius! n new-radius))
+					  (redraw-scene scn))))))
   ;; labels
   ;; layout
   ;; move mode (ideal, filter, chain, single)
@@ -70,22 +69,20 @@
 	#^JTextField iter-field   (make-labeled-text-field buttons "iter" (str "300")),
 	_                         (make-padding buttons),
 	#^JButton button          (make-button buttons "Force")]
-    (.addActionListener button
-			(proxy [ActionListener] []
-			  (actionPerformed [evt]
-			    (try
-			     (let [r (Double/parseDouble (.getText rep-field)),
-				   a (Double/parseDouble (.getText attr-field)),
-				   g (Double/parseDouble (.getText grav-field)),
-				   i (Integer/parseInt (.getText iter-field))]
-			       (improve-with-force scn i r a g))
-			     (catch Exception e
-			       (JOptionPane/showMessageDialog
-				frame,
-				(get-root-cause e),
-				"An Error occured.",
-				JOptionPane/ERROR_MESSAGE)
-			       (throw e))))))))
+    (add-action-listener button (fn [evt]
+				  (try
+				   (let [r (Double/parseDouble (.getText rep-field)),
+					 a (Double/parseDouble (.getText attr-field)),
+					 g (Double/parseDouble (.getText grav-field)),
+					 i (Integer/parseInt (.getText iter-field))]
+				     (improve-with-force scn i r a g))
+				   (catch Exception e
+				     (JOptionPane/showMessageDialog
+				      frame,
+				      (get-root-cause e),
+				      "An Error occured.",
+				      JOptionPane/ERROR_MESSAGE)
+				     (throw e)))))))
 
 ;; zoom-move
 
@@ -95,18 +92,14 @@
   (let [#^JButton zoom-button (make-button buttons "Zoom"),
 	#^JButton move-button (make-button buttons "Move"),
 	#^JLabel  zoom-info   (make-label buttons "1.0")]
-    (.addActionListener zoom-button
-			(proxy [ActionListener] []
-			  (actionPerformed [evt]
-			    (.. scn getWindow (startInteraction (zoom-interaction scn)))
-			    (.setEnabled move-button true)
-			    (.setEnabled zoom-button false))))
-    (.addActionListener move-button
-			(proxy [ActionListener] []
-			  (actionPerformed [evt]
-			    (.. scn getWindow (startInteraction (move-interaction scn)))
-			    (.setEnabled zoom-button true)
-			    (.setEnabled move-button false))))
+    (add-action-listener zoom-button (fn [evt]
+				       (.. scn getWindow (startInteraction (zoom-interaction scn)))
+				       (.setEnabled move-button true)
+				       (.setEnabled zoom-button false)))
+    (add-action-listener move-button (fn [evt]
+				       (.. scn getWindow (startInteraction (move-interaction scn)))
+				       (.setEnabled zoom-button true)
+				       (.setEnabled move-button false)))
     (.setEnabled zoom-button true)
     (.setEnabled move-button false)
     (add-callback-for-hook scn :zoom-event

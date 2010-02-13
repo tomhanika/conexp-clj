@@ -1,8 +1,8 @@
 (ns conexp.layout.force
   (:use conexp.base
         conexp.fca.lattices
-	conexp.layout.util
-	[conexp.math.util :only (with-doubles, partial-derivatives)]
+	conexp.layout.base
+	[conexp.math.util :only (with-doubles)]
 	conexp.math.optimize
 	clojure.contrib.pprint))
 
@@ -359,14 +359,7 @@
 		     :phi_0 (/ Math/PI 2)},
 	layout [{:a pos-a, :b [0 0]}, #{[:a :b]}]]
     [(gravitative-force layout :a 0 information),
-     (gravitative-force layout :a 1 information)]))
-
-(require 'conexp)
-(defn- make-test-lattice
-  ""
-  [n]
-  (conexp/concept-lattice (conexp/rand-context (conexp/set-of-range n) 0.4)))
-		      
+     (gravitative-force layout :a 1 information)]))		      
 
 ;;;
 
