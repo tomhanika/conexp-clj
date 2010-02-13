@@ -1,7 +1,8 @@
 (ns conexp.layout
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
-(immigrate 'conexp.layout.base)
+(immigrate 'conexp.layout.layered
+	   'conexp.layout.force)
 
 ;;;
 
