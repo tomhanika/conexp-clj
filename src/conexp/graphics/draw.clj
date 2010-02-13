@@ -18,7 +18,7 @@
 	[clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box]
+	                BoxLayout Box JScrollBar]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]))
 
@@ -194,7 +194,11 @@
 	scn (draw-on-scene (layout-function lattice)),
 	canvas (.. scn getWindow getCanvas),
 
-	buttons (JPanel.),
+	#^JPanel canvas-panel (JPanel. (BorderLayout.)),
+	hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
+	vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+
+	#^JPanel buttons (JPanel.),
 	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
     (.setLayout buttons box-layout)
     (.setPreferredSize buttons (Dimension. 110 0))
@@ -203,8 +207,13 @@
       change-parameters
       improve-layout-by-force
       export-as-file)
-    (doto main-panel
+    (doto canvas-panel
       (.add canvas BorderLayout/CENTER)
+      (.add hscrollbar BorderLayout/SOUTH)
+      (.add vscrollbar BorderLayout/EAST))
+    (.installScrollHandler scn hscrollbar vscrollbar)
+    (doto main-panel
+      (.add canvas-panel BorderLayout/CENTER)
       (.add buttons BorderLayout/WEST))
     main-panel))
 
