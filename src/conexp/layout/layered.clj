@@ -1,7 +1,8 @@
 (ns conexp.layout.layered
   (:use conexp.base
 	conexp.layout.util
-	conexp.fca.lattices
+	conexp.layout.base
+	[conexp.fca.lattices :exclude (order)]
 	[clojure.contrib.graph :only (dependency-list)]
 	[clojure.contrib.ns-utils :only (immigrate)]))
 
@@ -35,12 +36,7 @@
 				     (iterate inc 0)
 				     (layers lattice))))]
     (scale-layout [0.0 0.0] [200.0 200.0]
-		  [positions,
-		   (for [x (base-set lattice),
-			 y (base-set lattice),
-			 :when (and (not= x y)
-				    (directly-neighboured? lattice x y))]
-		     [x y])])))
+		  (make-layout positions (edges lattice)))))
 
 
 ;;;

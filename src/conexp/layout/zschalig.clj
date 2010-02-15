@@ -4,8 +4,6 @@
 
 ;; initial positioning as described in paper
 
-;; force layout as described in paper
-
 ;;;
 
 nil

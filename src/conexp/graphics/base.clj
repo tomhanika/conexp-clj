@@ -1,6 +1,7 @@
 (ns conexp.graphics.base
   (:use [conexp.util :only (update-ns-meta!, illegal-argument)]
 	[conexp.base :only (defvar-)]
+	[conexp.layout.base :only (make-layout, positions, connections, nodes)]
 	[conexp.layout.util :only (edges-of-points)]
 	[clojure.contrib.ns-utils :only (immigrate)]
 	[clojure.contrib.swing-utils :only (do-swing)])
@@ -55,19 +56,19 @@
 				   (recur (rest things) nodes (conj connections thing)),
 				   :else
 				   (throw (IllegalStateException. "Invalid item in lattice diagram."))))))]
-    [(reduce (fn [hash node]
-	       (assoc hash (get-name node) (position node)))
-	     {}
-	     nodes),
-     (map #(vector (get-name (lower-node %))
-		   (get-name (upper-node %)))
-	  connections)]))
+    (make-layout (reduce (fn [hash node]
+			   (assoc hash (get-name node) (position node)))
+			 {}
+			 nodes),
+		 (map #(vector (get-name (lower-node %))
+			       (get-name (upper-node %)))
+		      connections))))
 
 (defn update-layout-of-scene
   "Updates layout according to new layout."
   [#^GScene scene, layout]
   (do-swing
-   (let [pos (first layout),
+   (let [pos (positions layout),
 	 [x_min y_min x_max y_max] (edges-of-points (vals pos))]
      (do-nodes [node scene]
        (let [[x y] (pos (get-name node))]
@@ -82,25 +83,25 @@
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
   [#^GScene scene, layout]
-  (let [[x_min y_min x_max y_max] (edges-of-points (vals (first layout)))]
+  (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout)))]
     (doto scene
       (.removeAll)
       (.setWorldExtent (double (- x_min (* 2 *default-node-radius*)))
-                      (double (- y_min (* 2 *default-node-radius*)))
-                      (double (- x_max x_min (* -4 *default-node-radius*)))
-                      (double (- y_max y_min (* -4 *default-node-radius*))))
-      (add-nodes-with-connections (first layout) (second layout))
+		       (double (- y_min (* 2 *default-node-radius*)))
+		       (double (- x_max x_min (* -4 *default-node-radius*)))
+		       (double (- y_max y_min (* -4 *default-node-radius*))))
+      (add-nodes-with-connections (positions layout) (connections layout))
       (.unzoom))))
 
 ;;; draw nodes with coordinates and connections on a scene
 
 (defn draw-on-scene
   "Draws given layout on a GScene and returns it."
-  [[points-to-coordinates point-connections]]
+  [layout]
   (let [#^GWindow wnd (make-window),
 	scn (make-scene wnd)]
     (doto scn
-      (set-layout-of-scene [points-to-coordinates point-connections]))
+      (set-layout-of-scene layout))
     (doto wnd
       (.startInteraction (move-interaction scn)))
     scn))

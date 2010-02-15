@@ -1,6 +1,6 @@
 (ns conexp.layout.force
   (:use conexp.base
-        conexp.fca.lattices
+        [conexp.fca.lattices :exclude (order)]
 	conexp.layout.util
 	conexp.layout.base
 	[conexp.math.util :only (with-doubles)]
@@ -76,18 +76,20 @@
 
 (defn- repulsive-energy
   "Computes the repulsive energy of the given layout."
-  [[node-positions node-connections]]
-  (try
-   (let [edges (map (fn [[x y]]
-		      [x y (get node-positions x) (get node-positions y)])
-		    node-connections)]
-     (sum [[v pos-v] node-positions,
-	   [x y pos-x pos-y] edges
-	   :when (not (contains? #{x, y} v))]
-       (/ 1.0
-	  (double (node-line-distance pos-v [pos-x, pos-y])))))
-   (catch Exception e
-     Double/MAX_VALUE)))
+  [layout]
+  (let [node-positions (positions layout),
+	node-connections (connections layout)]
+    (try
+     (let [edges (map (fn [[x y]]
+			[x y (get node-positions x) (get node-positions y)])
+		      node-connections)]
+       (sum [[v pos-v] node-positions,
+	     [x y pos-x pos-y] edges
+	     :when (not (contains? #{x, y} v))]
+	    (/ 1.0
+	       (double (node-line-distance pos-v [pos-x, pos-y])))))
+     (catch Exception e
+       Double/MAX_VALUE))))
 
 (defn- node-line-distance-derivative
   "Computes partial derivative of node-line-distance between w = [x y]
@@ -137,38 +139,42 @@
 (defn- repulsive-force
   "Computes given part of repulsive force in layout on the
   inf-irreducible element n_i."
-  [[node-positions node-connections] n_i part information]
-  (sum [v (keys node-positions)
-	:let [pos-v (node-positions v)],
-	[x y] node-connections,
-	:when (not (contains? #{x,y} v)),
-	:let [pos-x (node-positions x),
-	      pos-y (node-positions y)]]
-      (/ (node-line-distance-derivative v [x, y]
-					pos-v [pos-x, pos-y]
-					n_i part
-					(:order information))
-	 (let [denom (square (node-line-distance pos-v [pos-x, pos-y]))]
-	   (if (zero? denom)
-	     Double/MIN_VALUE
-	     denom)))))
+  [layout n_i part]
+  (let [node-positions (positions layout),
+	node-connections (connections layout)]
+    (sum [v (nodes layout)
+	  :let [pos-v (node-positions v)],
+	  [x y] node-connections,
+	  :when (not (contains? #{x,y} v)),
+	  :let [pos-x (node-positions x),
+		pos-y (node-positions y)]]
+	 (/ (node-line-distance-derivative v [x, y]
+					   pos-v [pos-x, pos-y]
+					   n_i part
+					   (order layout))
+	    (let [denom (square (node-line-distance pos-v [pos-x, pos-y]))]
+	      (if (zero? denom)
+		Double/MIN_VALUE
+		denom))))))
 
 
 ;; Attractive Energy and Force
 
 (defn- attractive-energy
   "Computes the attractive energy of the given layout."
-  [[node-positions node-connections]]
-  (sum [[x y] node-connections]
-    (line-length-squared (node-positions x) (node-positions y))))
+  [layout]
+  (let [node-positions (positions layout),
+	node-connections (connections layout)]
+    (sum [[x y] node-connections]
+	 (line-length-squared (node-positions x) (node-positions y)))))
 
 (defn- attractive-force
   "Computes given part of attractive force in layout on the
   inf-irreducible element n_i."
-  [layout n_i part information]
-  (let [order (:order information),
-	pos (first layout),
-	edges (second layout)]
+  [layout n_i part]
+  (let [order (order layout),
+	pos (positions layout),
+	edges (connections layout)]
     (* 2 (sum [[v_1 v_2] edges,
 	       :when (and (order [v_1 n_i])
 			  (not (order [v_2 n_i])))]
@@ -187,9 +193,11 @@
 
 (defn- gravitative-energy
   "Returns the gravitative energy of the given layout."
-  [[node-positions node-connections] information]
-  (let [inf-irrs (:inf-irrs information),
-	upper-neighbours (:upper-neighbours-of-inf-irrs information),
+  [layout]
+  (let [node-positions (positions layout),
+	node-connections (connections layout),
+	inf-irrs (inf-irreducibles layout),
+	upper-neighbours (upper-neighbours-of-inf-irreducibles layout),
 	E_0   (double (- (/ Math/PI 2.0)))]
     (try
      (sum [n inf-irrs,
@@ -207,9 +215,9 @@
 (defn- gravitative-force
   "Computes given part of gravitative force in layout on the
   inf-irreducible element n_i."
-  [layout n_i part information]
-  (let [upper-neighbours (:upper-neighbours-of-inf-irrs information),
-	positions (first layout),
+  [layout n_i part]
+  (let [upper-neighbours (upper-neighbours-of-inf-irreducibles layout),
+	positions (positions layout),
 
 	pos-n_i (positions n_i),
 	pos-u_i (positions (upper-neighbours n_i)),
@@ -240,47 +248,40 @@
 
 (defn- layout-energy
   "Returns the overall energy of the given layout."
-  [layout information]
+  [layout]
   (with-printed-result "energy ="
     (double
      (+ (* *repulsive-amount* (repulsive-energy layout))
 	(* *attractive-amount* (attractive-energy layout))
-	(* *gravitative-amount* (gravitative-energy layout information))))))
+	(* *gravitative-amount* (gravitative-energy layout))))))
 
 (defn- layout-force
   "Computes overall force component of index n in the inf-irreducible elements."
-  [layout inf-irrs n information]
+  [layout inf-irrs n]
   (let [part (mod n 2),
 	n_i (nth inf-irrs (div n 2))]
     (double
      (+ (* *repulsive-amount* (with-printed-result (str "F_rep(" (div n 2) ", " part ") =")
-				(repulsive-force layout n_i part information)))
+				(repulsive-force layout n_i part)))
 	(* *attractive-amount* (with-printed-result (str "F_att(" (div n 2) ", " part ") =")
-				 (attractive-force layout n_i part information)))
+				 (attractive-force layout n_i part)))
 	(* *gravitative-amount* (with-printed-result (str "F_gra(" (div n 2) ", " part ") =")
-				  (gravitative-force layout n_i part information)))))))
+				  (gravitative-force layout n_i part)))))))
 
 ;;
 
 (defn- energy-by-inf-irr-positions
   "Returns pair of energy function and function returning n-th partial
   derivative when given index n."
-  [lattice seq-of-inf-irrs]
-  (let [information {:upper-neighbours-of-inf-irrs
-		     (hashmap-by-function (fn [n]
-					    (first (lattice-upper-neighbours lattice n)))
-					  seq-of-inf-irrs),
-		     :inf-irrs seq-of-inf-irrs,
-		     :order (order lattice)}
-	edges    (edges lattice),
-
+  [layout seq-of-inf-irrs]
+  (let [lattice  (lattice layout),
 	energy   (fn [& point-coordinates]
 		   (let [points (partition 2 point-coordinates),
 			 inf-irr-placement (apply hash-map
 						  (interleave seq-of-inf-irrs
 							      points))]
-		     (layout-energy [(placement-by-initials lattice inf-irr-placement), edges]
-				    information))),
+		     (layout-energy (update-positions layout
+						      (placement-by-initials lattice inf-irr-placement)))))
 
 	d-energy (fn [index]
 		   (fn [& point-coordinates]
@@ -288,10 +289,10 @@
 			   inf-irr-placement (apply hash-map
 						    (interleave seq-of-inf-irrs
 								points))]
-		       (- (layout-force [(placement-by-initials lattice inf-irr-placement), edges]
+		       (- (layout-force (update-positions layout
+							  (placement-by-initials lattice inf-irr-placement))
 					seq-of-inf-irrs
-					index
-					information)))))]
+					index)))))]
     [energy, d-energy]))
 
 
@@ -302,12 +303,12 @@
   ([layout]
      (force-layout layout nil))
   ([layout iterations]
-     (let [;; compute lattice from layout; this will be changed in the future
-	   lattice (lattice-from-layout layout),
+     (let [;; compute lattice from layout
+	   lattice        (lattice layout),
 
 	   ;; get positions of inf-irreducibles from layout as starting point
-	   inf-irrs (seq (lattice-inf-irreducibles lattice)),
-	   node-positions (first layout),
+	   inf-irrs       (inf-irreducibles layout),
+	   node-positions (positions layout),
 	   inf-irr-points (map node-positions inf-irrs),
 
 	   ;; move top element to [0,0], needed by layout-by-placement
@@ -317,7 +318,7 @@
 			       inf-irr-points),
 
 	   ;; minimize layout energy with above placement as initial value
-	   [energy, neg-force] (energy-by-inf-irr-positions lattice inf-irrs),
+	   [energy, neg-force] (energy-by-inf-irr-positions layout inf-irrs),
 	   [new-points, value] (minimize energy
 					 ;;neg-force
 					 (apply concat inf-irr-points)
@@ -328,16 +329,16 @@
 						      (partition 2 new-points))),
 
 	   ;; compute layout given by the result
-	   [placement connections] (layout-by-placement lattice point-hash),
+	   inter-layout   (layout-by-placement lattice point-hash),
 
 	   ;; move points such that top element is at [top-x, top-y] again
 	   placement      (apply hash-map
-				 (interleave (keys placement)
+				 (interleave (nodes inter-layout)
 					     (map (fn [[x y]]
 						    [(+ x top-x), (+ y top-y)])
-						  (vals placement))))]
+						  (vals (positions inter-layout)))))]
 
-       [placement connections])))
+       (make-layout placement (connections inter-layout)))))
 
 
 ;;;
@@ -345,20 +346,17 @@
 (defn- test-repulsive-force
   "Testing repulsive forces with a tiny example."
   [pos-w n_i]
-  (let [layout [{:w pos-w, :w-1 [0 0], :w-2 [1 1]}
-		#{[:w-1 :w-2]}],
-	order #{[:w-1 :w-1], [:w-1 :w-2], [:w-2 :w-2]
-		[:w :w]}]
-    [(repulsive-force layout n_i 0 {:order order}),
-     (repulsive-force layout n_i 1 {:order order})]))
+  (let [layout (make-layout {:w pos-w, :w-1 [0 0], :w-2 [1 1]}
+			    #{[:w-1 :w-2]})]
+    [(repulsive-force layout n_i 0),
+     (repulsive-force layout n_i 1)]))
 
 (defn- test-gravitative-force
   "Testing gravitative forces with a tiny example."
   [pos-a]
-  (let [information {:upper-neighbours-of-inf-irrs {:a :b}}
-	layout [{:a pos-a, :b [0 0]}, #{[:a :b]}]]
-    [(gravitative-force layout :a 0 information),
-     (gravitative-force layout :a 1 information)]))		      
+  (let [layout (make-layout {:a pos-a, :b [0 0]}, #{[:a :b]})]
+    [(gravitative-force layout :a 0),
+     (gravitative-force layout :a 1)]))		      
 
 ;;;
 

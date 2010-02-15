@@ -1,6 +1,6 @@
 (ns conexp.layout.base
   (:use conexp.base
-	conexp.layout.util))
+	[conexp.fca.lattices :only (make-lattice)]))
 
 (update-ns-meta! conexp.layout.base
   :doc "Basic definition of layout datatype")
@@ -14,7 +14,7 @@
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout."
   [positions connections]
-  (Layout positions connections (ref {})))
+  (Layout positions (set connections) (ref {})))
 
 (defn positions
   "Return positions map of layout."
@@ -46,7 +46,7 @@
 (defn nodes
   "Returns all nodes of a given layout."
   [layout]
-  (keys (positions layout)))
+  (set (keys (positions layout))))
   
 
 ;;; Layout Auxiliary Functions
@@ -101,6 +101,11 @@
   [layout]
   (union (transitive-closure (connections layout))
 	 (set-of [x x] [x (nodes layout)])))
+
+(defn- lattice-from-layout
+  "Computes lattice from a given layout."
+  [layout]
+  (make-lattice (nodes layout) (order layout)))
 
 (def-layout-fn lattice
   "Returns lattice represented by layout."

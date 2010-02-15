@@ -1,6 +1,7 @@
 (ns conexp.layout.util
   (:use conexp.base
-	conexp.fca.lattices
+	[conexp.layout.base :only (make-layout, positions, connections)]
+	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)]
 	[clojure.contrib.graph :exclude (transitive-closure)]))
 
 (update-ns-meta! conexp.layout.util
@@ -48,12 +49,13 @@
 (defn scale-layout
   "Scales given layout to rectangle [x1 y1], [x2 y2]. Layout is given
   as a map of points to coordinates and a sequence of connection pairs."
-  [[x1 y1] [x2 y2] [points-to-coordinates point-connections]]
-  (let [points (seq points-to-coordinates)]
-    [(apply hash-map (interleave (map first points)
-				 (scale-points-to-rectangle [x1 y1] [x2 y2]
-							    (map second points))))
-     point-connections]))
+  [[x1 y1] [x2 y2] layout]
+  (let [points (seq (positions layout))]
+    (make-layout (apply hash-map
+			(interleave (map first points)
+				    (scale-points-to-rectangle [x1 y1] [x2 y2]
+							       (map second points))))
+		 (connections layout))))
 
 (defn lattice->graph
   "Converts given lattice to it's corresponding graph with loops
@@ -75,14 +77,6 @@
 	y (base-set lattice),
 	:when (directly-neighboured? lattice x y)]
     [x y]))
-
-(defn lattice-from-layout
-  "Computes lattice from a given layout."
-  [layout]
-  (let [base-set (set (keys (first layout))),
-	order (union (transitive-closure (set (second layout)))
-		     (set-of [x x] [x base-set]))]
-    (make-lattice base-set order)))
 
 
 ;;; inf-irreducible additive layout
@@ -112,7 +106,7 @@
   of placement. The values of placement should be the positions of the
   corresponding keys. Top element will be at [0,0], if not explicitly given."
   [lattice placement]
-  [(placement-by-initials lattice placement), (edges lattice)])
+  (make-layout (placement-by-initials lattice placement), (edges lattice)))
 
 ;;;
 
