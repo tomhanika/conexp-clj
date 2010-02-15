@@ -1,6 +1,7 @@
 (ns conexp.layout.force
   (:use conexp.base
         conexp.fca.lattices
+	conexp.layout.util
 	conexp.layout.base
 	[conexp.math.util :only (with-doubles)]
 	conexp.math.optimize
@@ -270,8 +271,7 @@
 					    (first (lattice-upper-neighbours lattice n)))
 					  seq-of-inf-irrs),
 		     :inf-irrs seq-of-inf-irrs,
-		     :order (order lattice),
-		     :phi_0 (/ Math/PI 2.0)},
+		     :order (order lattice)}
 	edges    (edges lattice),
 
 	energy   (fn [& point-coordinates]
@@ -355,8 +355,7 @@
 (defn- test-gravitative-force
   "Testing gravitative forces with a tiny example."
   [pos-a]
-  (let [information {:upper-neighbours-of-inf-irrs {:a :b},
-		     :phi_0 (/ Math/PI 2)},
+  (let [information {:upper-neighbours-of-inf-irrs {:a :b}}
 	layout [{:a pos-a, :b [0 0]}, #{[:a :b]}]]
     [(gravitative-force layout :a 0 information),
      (gravitative-force layout :a 1 information)]))		      
