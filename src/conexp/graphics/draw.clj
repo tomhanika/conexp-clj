@@ -23,7 +23,8 @@
 	                JOptionPane JSeparator SwingConstants
 	                BoxLayout Box JScrollBar JComboBox]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
-	   [java.awt.event ActionListener]))
+	   [java.awt.event ActionListener]
+	   [no.geosoft.cc.graphics GScene]))
 
 (update-ns-meta! conexp.graphics.draw
   :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
@@ -42,14 +43,28 @@
   [frame scn buttons]
   ;; node radius
   (let [#^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
-    (add-action-listener node-radius (fn [evt]
-				       (let [new-radius (Double/parseDouble (.getText node-radius))]
-					 (do-swing
-					  (do-nodes [n scn]
-					   (set-node-radius! n new-radius))
-					  (redraw-scene scn))))))
+    (add-action-listener node-radius
+			 (fn [evt]
+			   (let [new-radius (Double/parseDouble (.getText node-radius))]
+			     (do-swing
+			      (do-nodes [n scn]
+					(set-node-radius! n new-radius))
+			      (redraw-scene scn))))))
 
   ;; labels
+  (let [#^JButton label-toggler (make-button buttons "No Labels")]
+    (.setVisibility scn GScene/ANNOTATION_INVISIBLE)
+    (add-action-listener label-toggler
+			 (fn [evt]
+			   (do-swing
+			    (if (= "Labels" (.getText label-toggler))
+			      (do
+				(.setVisibility scn GScene/ANNOTATION_INVISIBLE)
+				(.setText label-toggler "No Labels"))
+			      (do
+				(.setVisibility scn GScene/ANNOTATION_VISIBLE)
+				(.setText label-toggler  "Labels")))
+			    (redraw-scene scn)))))
 
   ;; layouts
   (let [layouts {"standard" *standard-layout-function*},
@@ -58,9 +73,10 @@
 			 (fn [evt]
 			   (let [selected (.. evt getSource getSelectedItem),
 				 layout-fn (get layouts selected)]
-			     (update-layout-of-scene
-			      scn
-			      (layout-fn (lattice (get-layout-from-scene scn))))))))
+			     (do-swing
+			      (update-layout-of-scene
+			       scn
+			       (layout-fn (lattice (get-layout-from-scene scn)))))))))
 
   ;; move mode (ideal, filter, chain, single)
   nil)

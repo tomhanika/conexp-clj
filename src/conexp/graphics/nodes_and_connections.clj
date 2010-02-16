@@ -5,7 +5,9 @@
 	conexp.graphics.scenes
 	[clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
-	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment GStyle GInteraction ZoomInteraction]))
+	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment
+	                           GStyle GInteraction ZoomInteraction
+	                           GText GPosition]))
 
 
 (update-ns-meta! conexp.graphics.nodes-and-connections
@@ -94,6 +96,10 @@
 					     (.setBackgroundColor Color/BLUE))
   "Default style for nodes being an attribute concept.")
 
+(defvar- *default-node-label-style* (doto (GStyle.)
+				      (.setBackgroundColor Color/WHITE))
+  "Default style for node labels.")
+
 (defn- create-two-halfcircles
   "Creates points for two half circles, lower circle points first."
   [x y radius]
@@ -151,6 +157,13 @@
 	 (.setName name))
        (doto scn
 	 (.add object))
+
+       ;; testing labels
+       (let [#^GText label (GText. name (bit-or GPosition/NORTH GPosition/RIGHT))]
+	 (.setStyle label *default-node-label-style*)
+	 (.addText upper-segment label))
+       ;;
+
        object)))
 
 (defvar- *default-line-style* (doto (GStyle.)
