@@ -1,6 +1,7 @@
 (ns conexp.layout.base
   (:use conexp.base
-	[conexp.fca.lattices :only (make-lattice)]))
+	[conexp.fca.lattices :only (make-lattice)]
+	clojure.contrib.pprint))
 
 (update-ns-meta! conexp.layout.base
   :doc "Basic definition of layout datatype")
@@ -39,9 +40,12 @@
 
 (defmethod print-method ::Layout [layout out]
   (.write out
-	  (str "Layout on "
-	       (count (positions layout)) " nodes with "
-	       (count (connections layout)) " edge(s).")))
+	  (with-out-str
+	    (println "Layout")
+	    (println "Positions")
+	    (pprint (positions layout))
+	    (println "Connections")
+	    (pprint (connections layout)))))
 
 (defn nodes
   "Returns all nodes of a given layout."

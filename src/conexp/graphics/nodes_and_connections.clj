@@ -220,7 +220,28 @@
 			 ((position node) 1))
 		       uppers)))))
 
-(defn- move-node-by
+(defn move-node-unchecked-to
+  "Moves node to [new-x new-y]."
+  [#^GObject node, new-x, new-y]
+  ;; update self position
+  (dosync
+   (alter (.getUserData node) assoc :position [new-x new-y]))
+
+  ;; move node on the device
+  (.redraw node)
+
+  ;; update connections to upper neighbors
+  (doseq [#^GObject c (upper-connections node)]
+    (.redraw c))
+
+  ;; update connections to lower neighbors
+  (doseq [#^GObject c (lower-connections node)]
+    (.redraw c))
+
+  ;; done
+  [new-x new-y])
+
+(defn move-node-by
   "Moves node by [dx dy] making sure it will not be over some of its
   upper neighbors or under some of its lower neighbors."
   ;; race condition when move nodes too fast?
@@ -231,30 +252,12 @@
 	max-y (height-of-upper-neighbors node),
 	min-y (height-of-lower-neighbors node),
 	dy    (if max-y (min dy (- max-y y)) dy),
-	dy    (if min-y (max dy (- min-y y)) dy),
-
-	[new-x new-y] [(+ x dx) (+ y dy)]]
-
-    ;; update self position
-    (dosync
-     (alter (.getUserData node) assoc :position [new-x new-y]))
-
-    ;; move node on the device
-    (.redraw node)
-
-    ;; update connections to upper neighbors
-    (doseq [#^GObject c (upper-connections node)]
-      (.redraw c))
-
-    ;; update connections to lower neighbors
-    (doseq [#^GObject c (lower-connections node)]
-      (.redraw c))
-
-    ;; done
-    [new-x new-y]))
+	dy    (if min-y (max dy (- min-y y)) dy)]
+    (move-node-unchecked-to node (+ x dx) (+ y dy))))
 
 (defn move-node-to
-  "Moves node to position [x y]."
+  "Moves node to position [x y], restricted by it's upper and lower
+  neighbours."
   [node x y]
   (let [[current-x current-y] (position node)]
     (move-node-by node (- x current-x) (- y current-y))))

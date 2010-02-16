@@ -1,5 +1,8 @@
 (ns conexp.graphics.draw
-  (:use [conexp.util :only (update-ns-meta!, get-root-cause, with-swing-error-msg)]
+  (:use [conexp.util :only (update-ns-meta!,
+			    get-root-cause,
+			    with-swing-error-msg,
+			    with-printed-result)]
 	[conexp.base :only (defvar-)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.base :only (lattice)]
