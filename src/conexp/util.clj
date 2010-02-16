@@ -249,6 +249,14 @@
   [this funs]
   (reduce bit-xor 0 (map #(%1 this) funs)))
 
+(defmacro with-printed-result
+  "Prints string followed by result, returning it."
+  [string & body]
+  `(let [result# (do
+		   ~@body)]
+     (println ~string result#)
+     result#))
+
 
 ;;; Swings
 

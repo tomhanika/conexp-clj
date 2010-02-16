@@ -11,12 +11,6 @@
 
 ;; Helpers
 
-(defmacro with-printed-result [string & body]
-  `(let [result# (do
-		   ~@body)]
-     (println ~string result#)
-     result#))
-
 (defn- square
   "Squares."
   [x]
@@ -249,11 +243,10 @@
 (defn layout-energy
   "Returns the overall energy of the given layout."
   [layout]
-  (with-printed-result "energy ="
-    (double
-     (+ (* *repulsive-amount* (repulsive-energy layout))
-	(* *attractive-amount* (attractive-energy layout))
-	(* *gravitative-amount* (gravitative-energy layout))))))
+  (double
+   (+ (* *repulsive-amount* (repulsive-energy layout))
+      (* *attractive-amount* (attractive-energy layout))
+      (* *gravitative-amount* (gravitative-energy layout)))))
 
 (defn- layout-force
   "Computes overall force component of index n in the inf-irreducible elements."
