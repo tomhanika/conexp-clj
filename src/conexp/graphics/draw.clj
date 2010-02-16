@@ -1,6 +1,8 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!, get-root-cause, with-swing-error-msg)]
+	[conexp.base :only (defvar-)]
 	[conexp.layout :only (*standard-layout-function*)]
+	[conexp.layout.base :only (lattice)]
 	[conexp.layout.force :only (force-layout,
 				    layout-energy,
 				    *repulsive-amount*,
@@ -19,7 +21,7 @@
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box JScrollBar]
+	                BoxLayout Box JScrollBar JComboBox]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]))
 
@@ -27,15 +29,18 @@
   :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
 
 
-;;; lattice editor -- a lot TODO
+;;; Lattice Editor
 
-(declare make-button, make-label, make-labeled-text-field, make-padding, make-separator)
+(declare make-button, make-label, make-labeled-text-field,
+	 make-padding, make-separator, make-combo-box)
+
 
 ;; editor features
 
 (defn- change-parameters
   "Installs parameter list which influences lattice drawing."
   [frame scn buttons]
+  ;; node radius
   (let [#^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
     (add-action-listener node-radius (fn [evt]
 				       (let [new-radius (Double/parseDouble (.getText node-radius))]
@@ -43,10 +48,23 @@
 					  (do-nodes [n scn]
 					   (set-node-radius! n new-radius))
 					  (redraw-scene scn))))))
+
   ;; labels
-  ;; layout
+
+  ;; layouts
+  (let [layouts {"standard" *standard-layout-function*},
+	#^JComboBox combo-box (make-combo-box buttons (keys layouts))]
+    (add-action-listener combo-box
+			 (fn [evt]
+			   (let [selected (.. evt getSource getSelectedItem),
+				 layout-fn (get layouts selected)]
+			     (update-layout-of-scene
+			      scn
+			      (layout-fn (lattice (get-layout-from-scene scn))))))))
+
   ;; move mode (ideal, filter, chain, single)
   nil)
+
 
 ;; improve with force layout
 
@@ -72,16 +90,16 @@
 	#^JButton button          (make-button buttons "Force"),
 
 	get-force-parameters      (fn []
-				    (with-swing-error-msg frame "Invalid Parameter given."
-				     (let [r (Double/parseDouble (.getText rep-field)),
-					   a (Double/parseDouble (.getText attr-field)),
-					   g (Double/parseDouble (.getText grav-field)),
-					   i (Integer/parseInt (.getText iter-field))]
-				       [r a g i])))]
+				    (let [r (Double/parseDouble (.getText rep-field)),
+					  a (Double/parseDouble (.getText attr-field)),
+					  g (Double/parseDouble (.getText grav-field)),
+					  i (Integer/parseInt (.getText iter-field))]
+				      [r a g i]))]
     (add-action-listener button (fn [evt]
 				  (with-swing-error-msg frame "An Error occured."
 				   (let [[r a g i] (get-force-parameters)]
 				     (improve-with-force scn i r a g)))))))
+
 
 ;; zoom-move
 
@@ -107,14 +125,85 @@
 			      ;; TODO: Show current zoom factor
 			      (.setText zoom-info "??"))))))
 
-;;
+
+;; export images to files
 
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
   nil)
 
-;; technical helpers
+
+;;; Buttons, Labels and the like
+
+(defvar- *item-width* 100
+  "Width of items in toolbar.")
+
+(defvar- *item-height* 25
+  "Heights of items on toolbar.")
+
+(defvar- *toolbar-width* (+ 10 *item-width*)
+  "Width of toolbar containing buttons, labels and so on.")
+
+(defn- make-padding
+  "Adds a padding to buttons."
+  [buttons]
+  (.add buttons (Box/createRigidArea (Dimension. 0 2))))
+
+(defn- make-separator
+  "Adds a separator to buttons."
+  [buttons]
+  (let [sep (JSeparator. SwingConstants/HORIZONTAL)]
+    (.setMaximumSize sep (Dimension. *item-width* 1))
+    (.add buttons sep)
+    sep))
+
+(defn- make-button
+  "Uniformly creates buttons for lattice editor."
+  [buttons text]
+  (let [button (JButton. text)]
+    (.add buttons button)
+    (.setAlignmentX button Component/CENTER_ALIGNMENT)
+    (.setMaximumSize button (Dimension. *item-width* *item-height*))
+    button))
+
+(defn- make-label
+  "Uniformly creates labels for lattice editor."
+  [buttons text]
+  (let [label (JLabel. text)]
+    (.add buttons label)
+    (.setMaximumSize label (Dimension. *item-width* *item-height*))
+    (.setAlignmentX label Component/CENTER_ALIGNMENT)
+    (.setHorizontalAlignment label SwingConstants/CENTER)
+    label))
+
+(defn- make-labeled-text-field
+  "Uniformly creates a text field for lattice editor."
+  [buttons label text]
+  (let [#^JTextField text-field (JTextField. text),
+	#^JLabel label (JLabel. label),
+	#^JPanel panel (JPanel.)]
+    (doto panel
+      (.add label)
+      (.add text-field)
+      (.setMaximumSize (Dimension. *item-width* *item-height*)))
+    (.setPreferredSize label (Dimension. (* 0.4 *item-width*) (* 0.8 *item-height*)))
+    (.setPreferredSize text-field (Dimension. (* 0.5 *item-width*) (* 0.8 *item-height*)))
+    (.add buttons panel)
+    text-field))
+
+(defn- make-combo-box
+  "Uniformly creates a combo box from the given choices. First item is
+  selected by default."
+  [buttons choices]
+  (let [#^JComboBox combo-box (JComboBox. (into-array String choices))]
+    (doto combo-box
+      (.setMaximumSize (Dimension. *item-width* *item-height*)))
+    (.add buttons combo-box)
+    combo-box))
+
+
+;;; Technical Helpers
 
 (defmacro install-changers
   "Installs given methods to scene with buttons."
@@ -129,54 +218,8 @@
 			 (make-padding buttons))
 		       methods))))
 
-(defn- make-padding
-  "Adds a padding to buttons."
-  [buttons]
-  (.add buttons (Box/createRigidArea (Dimension. 0 2))))
 
-(defn- make-separator
-  "Adds a separator to buttons."
-  [buttons]
-  (let [sep (JSeparator. SwingConstants/HORIZONTAL)]
-    (.setMaximumSize sep (Dimension. 100 1))
-    (.add buttons sep)
-    sep))
-
-(defn- make-button
-  "Uniformly creates buttons for lattice editor."
-  [buttons text]
-  (let [button (JButton. text)]
-    (.add buttons button)
-    (.setAlignmentX button Component/CENTER_ALIGNMENT)
-    (.setMaximumSize button (Dimension. 100 20))
-    button))
-
-(defn- make-label
-  "Uniformly creates labels for lattice editor."
-  [buttons text]
-  (let [label (JLabel. text)]
-    (.add buttons label)
-    (.setMaximumSize label (Dimension. 100 25))
-    (.setAlignmentX label Component/CENTER_ALIGNMENT)
-    (.setHorizontalAlignment label SwingConstants/CENTER)
-    label))
-
-(defn- make-labeled-text-field
-  "Uniformly creates a text field for lattice editor."
-  [buttons label text]
-  (let [#^JTextField text-field (JTextField. text),
-	#^JLabel label (JLabel. label),
-	#^JPanel panel (JPanel.)]
-    (doto panel
-      (.add label)
-      (.add text-field)
-      (.setMaximumSize (Dimension. 100 25)))
-    (.setPreferredSize label (Dimension. 40 20))
-    (.setPreferredSize text-field (Dimension. 50 20))
-    (.add buttons panel)
-    text-field))
-
-;; constructor
+;;; Constructor
 
 (defn make-lattice-editor
   "Creates a lattice editor for lattice with initial layout."
@@ -193,7 +236,7 @@
 	#^JPanel buttons (JPanel.),
 	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
     (.setLayout buttons box-layout)
-    (.setPreferredSize buttons (Dimension. 110 0))
+    (.setPreferredSize buttons (Dimension. *toolbar-width* 0))
     (install-changers frame scn buttons
       toggle-zoom-move
       change-parameters
@@ -210,7 +253,7 @@
     main-panel))
 
 
-;;; drawing routine for the repl
+;;; Drawing Routine for the REPL
 
 (defn draw-lattice
   "Draws given lattice with given layout-function on a canvas and returns
