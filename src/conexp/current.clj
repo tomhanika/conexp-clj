@@ -12,8 +12,4 @@
 
 ;;;
 
-(use 'conexp.layout.base)
-
-;;;
-
 nil

@@ -59,7 +59,7 @@
         result-rdr (PipedReader.)
         piped-in (clojure.lang.LineNumberingPushbackReader. (PipedReader. cmd-wtr))
         piped-out (PrintWriter. (PipedWriter. result-rdr))
-        repl-thread-fn #(with-bindings
+        repl-thread-fn #(clojure.main/with-bindings
 			  (binding [*print-stack-trace-on-error* *print-stack-trace-on-error*
 				    *in* piped-in
 				    *out* piped-out
