@@ -1,10 +1,10 @@
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!, get-root-cause)]
-	[conexp.layout :only (*standard-layout-function*,
-			      force-layout,
-			      *repulsive-amount*,
-			      *attractive-amount*,
-			      *gravitative-amount*)]
+	[conexp.layout :only (*standard-layout-function*)]
+	[conexp.layout.force :only (force-layout,
+				    *repulsive-amount*,
+				    *attractive-amount*,
+				    *gravitative-amount*)]
 	[conexp.graphics.base :only (draw-on-scene,
 				     get-layout-from-scene,
 				     update-layout-of-scene,
