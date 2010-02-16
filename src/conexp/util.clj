@@ -3,6 +3,20 @@
 	[clojure.contrib.math :only (round)])
   (:import javax.swing.JOptionPane))
 
+
+;;; Namespace documentation
+
+(defmacro update-ns-meta!
+  "Updates meta hash of given namespace with given description."
+  [ns & key-value-description]
+  `(alter-meta! (find-ns '~ns)
+		(fn [meta-hash#]
+		  (merge meta-hash# ~(apply hash-map key-value-description)))))
+
+(update-ns-meta! conexp.util
+  :doc "Loose collection of some useful functions and macros for conexp.")
+
+
 ;;; Compilation
 
 (defn compile-conexp
@@ -16,10 +30,11 @@
   (compile 'conexp.gui.repl)
   nil)
 
+
 ;;; Types
 
-; work over this and make it more flexible
-; we may need our own hierachy?
+;; work over this and make it more flexible
+;; we may need our own hierachy?
 
 (defn math-type
   "Dispatch function for multimethods. Identifies sets and sequences
@@ -32,6 +47,7 @@
     (or (set? thing)
 	(sequential? thing)) ::set
     :else                    ::other))
+
 
 ;;; Technical Helpers
 
@@ -94,7 +110,9 @@
   [& strings]
   (throw (IllegalArgumentException. #^String (apply str strings))))
 
-(defmacro with-profiled-fns [fns & body]
+(defmacro with-profiled-fns
+  "Runs code in body with all given functions being profiled."
+  [fns & body]
   `(binding ~(vec (apply concat
 			 (for [fn (distinct fns)]
 			   `[~fn (let [orig-fn# ~fn]
@@ -105,7 +123,9 @@
        (if (not (empty? data#))
 	 (print-summary (summarize data#))))))
 
-(defmacro memo-fn [name args & body]
+(defmacro memo-fn
+  "Defines memoized, anonymous function."
+  [name args & body]
   `(let [cache# (ref {})]
      (fn ~name ~args
        (if (contains? @cache# ~args)
@@ -115,7 +135,9 @@
 	    (alter cache# assoc ~args rslt#))
 	   rslt#)))))
 
-(defmacro recur-sequence [& things]
+(defmacro recur-sequence
+  "Define a recursive sequence in a math-like notation."
+  [& things]
   (let [initials (vec (butlast things))
 	recur-fn (last things)]
     `(let [initials# (lazy-seq ~initials)]
@@ -126,7 +148,9 @@
 		      (cons new-val# (step# (inc n#) (concat (rest old-vals#) (list new-val#)))))))
 		~(count initials) initials#)))))
 
-(defmacro with-recur-seqs [seq-definitions & body]
+(defmacro with-recur-seqs
+  "Allow simple definitions of recursive sequences."
+  [seq-definitions & body]
   (let [seq-names (take-nth 2 seq-definitions)
 	seq-defs  (take-nth 2 (rest seq-definitions))]
     `(let [~@(reduce concat (map (fn [seq-name] `(~seq-name (ref []))) seq-names))]
@@ -154,6 +178,7 @@
 		   (lazy-seq
 		     (cons (vec rest) (runner (next rest))))))]
     (runner sqn)))
+
 
 ;;; Math
 
@@ -219,17 +244,13 @@
 	  {}
 	  keys))
 
-(defmacro update-ns-meta!
-  "Updates meta hash of given namespace with given description."
-  [ns & key-value-description]
-  `(alter-meta! (find-ns '~ns)
-		(fn [meta-hash#]
-		  (merge meta-hash# ~(apply hash-map key-value-description)))))
-
 (defn hash-from-attributes
   "Computes a hash value from the values returned from funs applied to this."
   [this funs]
   (reduce bit-xor 0 (map #(%1 this) funs)))
+
+
+;;; Swings
 
 (defn get-root-cause
   "Returns original message of first exception causing the given one."
