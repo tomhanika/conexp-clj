@@ -1,5 +1,5 @@
 (ns conexp.graphics.draw
-  (:use [conexp.util :only (update-ns-meta!, get-root-cause)]
+  (:use [conexp.util :only (update-ns-meta!, get-root-cause, with-swing-error-msg)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.force :only (force-layout,
 				    layout-energy,
@@ -72,27 +72,16 @@
 	#^JButton button          (make-button buttons "Force"),
 
 	get-force-parameters      (fn []
-				    (try
+				    (with-swing-error-msg frame "Invalid Parameter given."
 				     (let [r (Double/parseDouble (.getText rep-field)),
 					   a (Double/parseDouble (.getText attr-field)),
 					   g (Double/parseDouble (.getText grav-field)),
 					   i (Integer/parseInt (.getText iter-field))]
-				       [r a g i])
-				     (catch NumberFormatException e
-				       (JOptionPane/showMessageDialog frame
-								      (get-root-cause e)
-								      "Invalid Parameter given"
-								      JOptionPane/ERROR_MESSAGE))))]
+				       [r a g i])))]
     (add-action-listener button (fn [evt]
-				  (try
+				  (with-swing-error-msg frame "An Error occured."
 				   (let [[r a g i] (get-force-parameters)]
-				     (improve-with-force scn i r a g))
-				   (catch Exception e
-				     (JOptionPane/showMessageDialog frame
-								    (get-root-cause e)
-								    "An Error occured."
-								    JOptionPane/ERROR_MESSAGE)
-				     (throw e)))))))
+				     (improve-with-force scn i r a g)))))))
 
 ;; zoom-move
 

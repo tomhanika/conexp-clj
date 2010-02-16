@@ -1,6 +1,7 @@
 (ns conexp.util
   (:use clojure.contrib.profile
-	[clojure.contrib.math :only (round)]))
+	[clojure.contrib.math :only (round)])
+  (:import javax.swing.JOptionPane))
 
 ;;; Compilation
 
@@ -236,6 +237,18 @@
   (if-let [cause (.getCause exception)]
     (get-root-cause cause)
     (.getMessage exception)))
+
+(defmacro with-swing-error-msg
+  "Runs given code and catches any thrown exception, which is then
+  displayed in a message dialog."
+  [frame title & body]
+  `(try
+    ~@body
+    (catch Exception e#
+      (javax.swing.JOptionPane/showMessageDialog ~frame
+						 (get-root-cause e#)
+						 ~title
+						 javax.swing.JOptionPane/ERROR_MESSAGE))))
 
 ;;;
 
