@@ -122,19 +122,18 @@
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
   [frame scn buttons]
-  (let [#^JButton zoom-button (make-button buttons "Zoom"),
-	#^JButton move-button (make-button buttons "Move"),
+  (let [#^JButton zoom-move (make-button buttons "Move"),
 	#^JLabel  zoom-info   (make-label buttons "1.0")]
-    (add-action-listener zoom-button (fn [evt]
-				       (.. scn getWindow (startInteraction (zoom-interaction scn)))
-				       (.setEnabled move-button true)
-				       (.setEnabled zoom-button false)))
-    (add-action-listener move-button (fn [evt]
-				       (.. scn getWindow (startInteraction (move-interaction scn)))
-				       (.setEnabled zoom-button true)
-				       (.setEnabled move-button false)))
-    (.setEnabled zoom-button true)
-    (.setEnabled move-button false)
+    (add-action-listener zoom-move
+			 (fn [evt]
+			   (do-swing
+			    (if (= "Move" (.getText zoom-move))
+			      (do
+				(.. scn getWindow (startInteraction (zoom-interaction scn)))
+				(.setText zoom-move "Zoom"))
+			      (do
+				(.. scn getWindow (startInteraction (move-interaction scn)))
+				(.setText zoom-move "Move"))))))
     (add-callback-for-hook scn :zoom-event
 			   (fn []
 			     (do-swing
