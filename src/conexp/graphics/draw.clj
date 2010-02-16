@@ -2,6 +2,7 @@
   (:use [conexp.util :only (update-ns-meta!, get-root-cause)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.force :only (force-layout,
+				    layout-energy,
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
@@ -68,20 +69,29 @@
 	#^JTextField grav-field   (make-labeled-text-field buttons "grav" (str *gravitative-amount*)),
 	#^JTextField iter-field   (make-labeled-text-field buttons "iter" (str "300")),
 	_                         (make-padding buttons),
-	#^JButton button          (make-button buttons "Force")]
+	#^JButton button          (make-button buttons "Force"),
+
+	get-force-parameters      (fn []
+				    (try
+				     (let [r (Double/parseDouble (.getText rep-field)),
+					   a (Double/parseDouble (.getText attr-field)),
+					   g (Double/parseDouble (.getText grav-field)),
+					   i (Integer/parseInt (.getText iter-field))]
+				       [r a g i])
+				     (catch NumberFormatException e
+				       (JOptionPane/showMessageDialog frame
+								      (get-root-cause e)
+								      "Invalid Parameter given"
+								      JOptionPane/ERROR_MESSAGE))))]
     (add-action-listener button (fn [evt]
 				  (try
-				   (let [r (Double/parseDouble (.getText rep-field)),
-					 a (Double/parseDouble (.getText attr-field)),
-					 g (Double/parseDouble (.getText grav-field)),
-					 i (Integer/parseInt (.getText iter-field))]
+				   (let [[r a g i] (get-force-parameters)]
 				     (improve-with-force scn i r a g))
 				   (catch Exception e
-				     (JOptionPane/showMessageDialog
-				      frame,
-				      (get-root-cause e),
-				      "An Error occured.",
-				      JOptionPane/ERROR_MESSAGE)
+				     (JOptionPane/showMessageDialog frame
+								    (get-root-cause e)
+								    "An Error occured."
+								    JOptionPane/ERROR_MESSAGE)
 				     (throw e)))))))
 
 ;; zoom-move
@@ -222,7 +232,7 @@
      (let [#^JFrame frame (JFrame. "conexp-clj Lattice")]
        (doto frame
 	 (.add (make-lattice-editor frame lattice layout-function))
-	 (.setSize (Dimension. 300 300))
+	 (.setSize (Dimension. 600 600))
 	 (.setVisible true)))))
 
 
