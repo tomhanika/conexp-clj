@@ -172,8 +172,15 @@
 		     (set-of [x y]
 			     [[x z_1] (difference new old)
 			      [z_2 y] set-of-pairs
-			      :when (= z_1 z_2)]))
+                             :when (= z_1 z_2)]))
 	      new))))
+	      
+(defn reflexive-transitive-closure
+  "Computes the reflexive, transitive closure of a given set of pairs
+  on base-set."
+  [base-set set-of-pairs]
+  (transitive-closure (union set-of-pairs
+			     (set-of [x x] [x base-set]))))
 
 (defn graph-of-function?
   "Returns true iff relation is the graph of a function from source to target."

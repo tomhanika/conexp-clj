@@ -103,8 +103,7 @@
 (def-layout-fn order
   "Returns underlying order relation of layout."
   [layout]
-  (union (transitive-closure (connections layout))
-	 (set-of [x x] [x (nodes layout)])))
+  (reflexive-transitive-closure (nodes layout) (connections layout)))
 
 (defn- lattice-from-layout
   "Computes lattice from a given layout."
