@@ -105,15 +105,10 @@
   [layout]
   (reflexive-transitive-closure (nodes layout) (connections layout)))
 
-(defn- lattice-from-layout
-  "Computes lattice from a given layout."
-  [layout]
-  (make-lattice (nodes layout) (order layout)))
-
 (def-layout-fn lattice
   "Returns lattice represented by layout."
   [layout]
-  (lattice-from-layout layout))
+  (make-lattice (nodes layout) (order layout)))
 
 
 ;;;
