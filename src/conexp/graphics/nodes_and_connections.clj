@@ -47,7 +47,7 @@
 (defn get-name
   "Returns name of thing."
   [#^GObject thing]
-  (.getName thing))
+  (:name @(.getUserData thing)))
 
 (defn lower-node
   "Returns for a connection conn the lower node in a lattice diagram."
@@ -127,9 +127,9 @@
 
 (defn- add-node
   "Adds a node to scn at position [x y]. Default name is \"[x y]\"."
-  ([#^GScene scn, x y]
+  ([#^GScene scn, x, y]
      (add-node scn x y (str [x y])))
-  ([#^GScene scn x y name]
+  ([#^GScene scn, x, y, name]
      (let [#^GSegment upper-segment (GSegment.),
 	   #^GSegment lower-segment (GSegment.),
 	   object (proxy [GObject] []
@@ -153,13 +153,13 @@
 	 (.addSegment upper-segment)
 	 (.setUserData (ref {:type :node,
 			     :position [(double x), (double y)],
-			     :radius *default-node-radius*}))
-	 (.setName name))
+			     :radius *default-node-radius*,
+			     :name name})))
        (doto scn
 	 (.add object))
 
        ;; testing labels
-       (let [#^GText label (GText. name (bit-or GPosition/NORTH GPosition/RIGHT))]
+       (let [#^GText label (GText. (str name) (bit-or GPosition/NORTH GPosition/RIGHT))]
 	 (.setStyle label *default-node-label-style*)
 	 (.addText upper-segment label))
        ;;
@@ -174,14 +174,16 @@
 (defn- connect-nodes
   "Connects two nodes on scene."
   ([#^GScene scn, #^GObject x, #^GObject y]
-     (connect-nodes scn x y (str (.getName x) " -> " (.getName y))))
+    (connect-nodes scn x y (str (get-name x) " -> " (get-name y))))
   ([#^GScene scn, #^GObject x, #^GObject y, name]
      (let [line (GSegment.),
 	   c    (proxy [GObject] []
 		  (draw []
 		    (let [[x1 y1] (position (lower-node this))
 			  [x2 y2] (position (upper-node this))]
-		      (.setGeometry line (double x1) (double y1) (double x2) (double y2)))))]
+		      (.setGeometry line
+				    (double x1) (double y1)
+				    (double x2) (double y2)))))]
        (doto scn
 	 (.add c))
        (doto line
@@ -191,8 +193,8 @@
 	 (.toBack)
 	 (.setUserData (ref {:type :connection,
 			     :lower x,
-			     :upper y}))
-	 (.setName name))
+			     :upper y,
+			     :name name})))
        (dosync
 	(alter (.getUserData x) update-in [:upper] conj c)
 	(alter (.getUserData y) update-in [:lower] conj c)))))
@@ -312,7 +314,7 @@
   (let [node-map (apply hash-map
 			(apply concat (map (fn [[node [x y]]]
 					     [node
-					      (add-node scn x y (str node))])
+					      (add-node scn x y node)])
 					   node-coordinate-map)))]
     (doseq [[node-1 node-2] node-connections]
       (connect-nodes scn (node-map node-1) (node-map node-2)))

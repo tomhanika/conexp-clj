@@ -71,8 +71,8 @@
    (let [pos (positions layout),
 	 [x_min y_min x_max y_max] (edges-of-points (vals pos))]
      (do-nodes [node scene]
-       (let [[x y] (pos (get-name node))]
-	 (move-node-unchecked-to node x y)))
+      (let [[x y] (pos (get-name node))]
+	(move-node-unchecked-to node x y)))
      (.setWorldExtent scene
 		      (double (- x_min (* 2 *default-node-radius*)))
 		      (double (- y_min (* 2 *default-node-radius*)))
