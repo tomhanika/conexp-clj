@@ -1,7 +1,7 @@
 (ns conexp.current
-  (:require conexp
-	    clojure.contrib.pprint
-	    clojure.contrib.repl-utils))
+  (:require conexp)
+  (:use clojure.contrib.pprint
+	clojure.contrib.repl-utils))
 ;;;
 
 (defmulti go

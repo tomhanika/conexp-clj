@@ -1,5 +1,7 @@
 (ns conexp.io.util
-  (:use [clojure.contrib.duck-streams :only (reader)]))
+  (:use [clojure.contrib.io :only (reader)]))
+
+;;;
 
 (defn get-line []
   (read-line))
@@ -11,3 +13,7 @@
   `(with-open [input# (reader ~file)]
      (binding [*in* input#]
        ~@body)))
+
+;;;
+
+nil

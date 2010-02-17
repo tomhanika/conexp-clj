@@ -1,6 +1,6 @@
 (ns conexp.contrib.doc
   (:use [conexp :only (*conexp-namespaces*)]
-	[clojure.contrib.duck-streams :only (with-out-writer)]))
+	[clojure.contrib.io :only (with-out-writer)]))
 
 
 (defn public-api
