@@ -7,6 +7,7 @@
 )
   (:use conexp.gui.plugins.base
         conexp.gui.util
+        clojure.contrib.swing-utils
     ))
 
 (def context-data (ref {}))
@@ -21,19 +22,19 @@
   "Updates the data displayed in the current workspace tree
    in order to reflect the current @context-data map-var."
   []
-  (with-swing-threads
-   (dosync
-    (do
-     (.removeAllChildren @context-workspace-tree)
-     (map (fn [key]                
-               (.add @context-workspace-tree 
-                  (DefaultMutableTreeNode. (str key)
-                  )
-                )
-              )(keys @context-data) )
-     (.reload @context-workspace)
-    )
-   )
+  (let [nodenames (map str (keys @context-data))]
+    (with-swing-threads
+         (.removeAllChildren @context-workspace-tree)
+         (loop [nodes nodenames]
+            (if (empty? nodes) (.reload @context-workspace)
+             (do
+                       (.add @context-workspace-tree 
+                        (DefaultMutableTreeNode. (first nodes)))
+                       (recur (rest nodes) )
+             )
+            )
+         )
+     )
   )
 )
 
