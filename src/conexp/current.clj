@@ -1,7 +1,9 @@
 (ns conexp.current
-  (:require conexp)
+  (:require conexp
+	    [conexp.contrib.algorithms.concepts :as concepts])
   (:use clojure.contrib.pprint
 	clojure.contrib.repl-utils))
+
 ;;;
 
 (defmulti go
@@ -10,6 +12,7 @@
 
 (defmethod go :default [& args]
   (conexp/illegal-argument "No tester for " args))
+
 ;;;
 
 (defn- make-test-lattice
@@ -19,6 +22,9 @@
 
 (defmethod go :draw [_ n]
   (conexp/draw-lattice (make-test-lattice n)))
+
+;;;
+
 
 ;;;
 
