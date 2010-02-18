@@ -1,5 +1,6 @@
 (ns conexp.io.contexts
-  (:use conexp.io.base))
+  (:use conexp.io.base
+	[clojure.contrib.string :only (split)]))
 
 ;;; Method Declaration
 
@@ -250,7 +251,7 @@
 	(recur in objs inz)
 	:else
 	(let [[_ g atts] (re-matches #"^\s*(.+)\s*:\s*(.+)?\s*;\s*(?:#.*)?$" line)
-	      atts (and atts (re-split #"\s+" atts))]
+	      atts (and atts (split #"\s+" atts))]
 	  (recur in (conj objs g) (union inz (set-of [g m] [m atts]))))))))
 
 

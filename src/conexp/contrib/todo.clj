@@ -1,8 +1,10 @@
 (ns #^{:doc "Provides information on all tasks planned for conexp-clj."}
   conexp.contrib.todo
   (:use clojure.contrib.def)
-  (:use [clojure.contrib.str-utils :only (re-split)])
+  (:use [clojure.contrib.string :only (split)])
   (:use [clojure.contrib.pprint :only (pprint)]))
+
+;;;
 
 (defvar- *conexp-todo-list*
   { "conexp" { "layout" { "util"     [ "Implement function for inf-irr-addivite layout." ],
@@ -88,8 +90,10 @@
   ([]
      (print (format-output *conexp-todo-list*)))
   ([ns]
-     (let [ns-as-seq (re-split #"\." (str ns))
+     (let [ns-as-seq (split #"\." (str ns))
 	   tasks (access-todo-list ns-as-seq)]
        (print (format-output tasks)))))
+
+;;;
 
 nil

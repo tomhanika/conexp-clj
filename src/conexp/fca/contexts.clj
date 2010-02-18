@@ -5,8 +5,7 @@
    :init init
    :constructors { [ Object Object Object ] [] }
    :state state)
-  (:use [clojure.contrib.str-utils :only (str-join)]
-	conexp.base)
+  (:use conexp.base)
   (:require [clojure.contrib.graph :as graph]))
 
 ;;;

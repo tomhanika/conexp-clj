@@ -5,7 +5,6 @@
 
 (immigrate 'conexp.base
 	   'conexp.fca.contexts
-	   'clojure.contrib.str-utils
 	   'clojure.contrib.io
 	   'clojure.contrib.lazy-xml
 	   'clojure.contrib.prxml
