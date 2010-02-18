@@ -1,19 +1,16 @@
-(ns conexp.graphics.base
+(ns conexp.graphics.scene-layouts
   (:use [conexp.util :only (update-ns-meta!, illegal-argument)]
 	[conexp.base :only (defvar-)]
 	[conexp.layout.base :only (make-layout, positions, connections, nodes)]
 	[conexp.layout.util :only (edges-of-points)]
-	[clojure.contrib.ns-utils :only (immigrate)]
+	conexp.graphics.nodes-and-connections
+	conexp.graphics.scenes
 	[clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JFrame JButton JPanel JLabel]
 	   [java.awt Dimension BorderLayout Color]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle]))
 
-(immigrate 'conexp.graphics.util
-	   'conexp.graphics.scenes
-	   'conexp.graphics.nodes-and-connections)
-
-(update-ns-meta! conexp.graphics.base
+(update-ns-meta! conexp.graphics.scene-layouts
   :doc "Basic namespace for drawing lattice.")
 
 

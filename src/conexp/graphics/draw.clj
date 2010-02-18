@@ -11,16 +11,16 @@
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
-	[conexp.graphics.base :only (draw-on-scene,
-				     get-layout-from-scene,
-				     update-layout-of-scene,
-				     move-interaction,
-				     zoom-interaction,
-				     do-nodes,
-				     *default-node-radius*,
-				     set-node-radius!,
-				     add-callback-for-hook,
-				     redraw-scene)]
+	[conexp.graphics.scenes :only (add-callback-for-hook,
+				       redraw-scene)]
+	[conexp.graphics.scene-layouts :only (draw-on-scene,
+					      get-layout-from-scene,
+					      update-layout-of-scene,
+					      do-nodes)]
+	[conexp.graphics.nodes-and-connections :only (move-interaction,
+						      zoom-interaction,
+						      *default-node-radius*,
+						      set-node-radius!)]
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
