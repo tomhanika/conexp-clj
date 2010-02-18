@@ -325,12 +325,9 @@
 	   inter-layout   (layout-by-placement lattice point-hash),
 
 	   ;; move points such that top element is at [top-x, top-y] again
-	   inter-points   (seq (positions inter-layout)),
-	   placement      (apply hash-map
-				 (interleave (map first inter-points)
-					     (map (fn [[x y]]
-						    [(+ x top-x), (+ y top-y)])
-						  (map second inter-points))))]
+	   placement      (hashmap-from-pairs (map (fn [[node [x y]]]
+						     [node [(+ x top-x), (+ y top-y)]])
+						   (positions inter-layout)))]
 
        (make-layout placement (connections inter-layout)))))
 
