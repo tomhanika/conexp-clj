@@ -50,6 +50,8 @@
   (and (subset? (premise impl) new-atts)
        (not (subset? (conclusion impl) new-atts))))
 
+;;
+
 (defn ask
   "Performs simple quering. prompt is printed first and then the user
   is asked for an answer (via read). If this answer does not satisfy
@@ -79,7 +81,7 @@
 	[true []]
 	(let [new-obj (ask (str "Please enter new object: ")
 			   (fn [new-obj] (not ((objects ctx) new-obj)))
-			   "This object is already present, please enter a new one: ")
+			   "This object is already present, please enter a new one: "),
 	      new-att (ask (str "Please enter the attributes the new object should have: ")
 			   (fn [new-atts]
 			     (and (subset? new-atts (attributes ctx))
@@ -87,6 +89,10 @@
 			   (str "These attributes are not valid or do not falsify the implication.\n"
 				"Please enter a new set (in the form #{... atts ...}): "))]
 	  [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]])))))
+
+;;;
+
+;; Background Knowledge!
 
 ;;;
 
