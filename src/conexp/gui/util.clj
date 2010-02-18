@@ -200,5 +200,15 @@
     (.addTab (get-tabpane frame) name icon pane tooltip)
     (.validate frame)))
 
+(defn remove-tab
+  "Removes a panel from the windows JTabbedPane.
+   Parameters:
+     frame       _frame that contains the JTabbedPane element
+     panel       _panel to remove from tab
+  "
+   [frame pane]
+  (with-swing-threads
+     (.remove (get-tabpane frame) pane)
+     (.validate frame)))
 
 nil
