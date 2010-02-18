@@ -73,7 +73,7 @@
 	(.setBottomComponent clj-repl)
 	(.setOneTouchExpandable true)
 	(.setResizeWeight 0.8)
-	(.setDividerLocation 1000))
+	(.setDividerLocation 640))
       (doto (.getContentPane main-frame)
 	(.add split-pane BorderLayout/CENTER))
       ;; for testing

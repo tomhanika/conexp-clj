@@ -2,6 +2,7 @@
   (:import [javax.swing UIManager])
   (:use conexp.gui.base))
 
+
 (defn gui
   "Starts the standard gui for conexp-clj."
   []

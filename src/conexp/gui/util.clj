@@ -193,5 +193,12 @@
     (.add (get-tabpane frame) pane)
     (.validate frame)))
 
+(defn add-tab-with-name-icon-tooltip
+  "Addes given panel to the tabpane of frame, giving name icon and tooltip"
+  [frame pane name icon tooltip]
+  (with-swing-threads
+    (.addTab (get-tabpane frame) name icon pane tooltip)
+    (.validate frame)))
+
 
 nil
