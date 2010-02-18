@@ -159,9 +159,14 @@
 	 (.add object))
 
        ;; testing labels
-       (let [#^GText label (GText. (str name) (bit-or GPosition/NORTH GPosition/RIGHT))]
-	 (.setStyle label *default-node-label-style*)
-	 (.addText upper-segment label))
+       (when (and (vector? name)
+		  (= 2 (count name)))
+	 (let [#^GText upper-label (GText. (str (first name)) GPosition/NORTH),
+	       #^GText lower-label (GText. (str (second name)) GPosition/SOUTH)]
+	   (.setStyle upper-label *default-node-label-style*)
+	   (.setStyle lower-label *default-node-label-style*)
+	   (.addText upper-segment upper-label)
+	   (.addText lower-segment lower-label)))
        ;;
 
        object)))

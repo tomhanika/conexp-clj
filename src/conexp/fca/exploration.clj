@@ -3,9 +3,19 @@
 	conexp.fca.contexts
 	conexp.fca.implications))
 
-(defn explore-attributes [ctx handler]
-  (loop [implications #{}
-	 last         #{}
+;;;
+
+(defn explore-attributes
+  "Performs attribute exploration in given context. Interaction is
+  accomplished via the given handler, which is called with the current
+  context and a new implication. It has to return a pair [status
+  new-row], where status is a boolean, indicating whether this
+  implication is to be accepted or not, and a new-row, which, in the
+  case of not accepting an implication, has to be a valid
+  counterexample."
+  [ctx handler]
+  (loop [implications #{},
+	 last         #{},
 	 ctx          ctx]
     (if (not last)
       implications
@@ -16,7 +26,7 @@
 				  (clop-by-implications* implications)
 				  last)
 		 ctx)
-	  (let [new-impl (make-implication last conclusion-from-last)
+	  (let [new-impl (make-implication last conclusion-from-last),
 		[ok new-row] (handler ctx new-impl)]
 	    (if ok
 	      (let [new-implications (conj implications new-impl)]
@@ -34,11 +44,20 @@
 					last)
 		       new-ctx)))))))))
 
-(defn falsifies-implication? [new-atts impl]
+(defn falsifies-implication?
+  "Returns true iff set of new attributes does not respect implication impl."
+  [new-atts impl]
   (and (subset? (premise impl) new-atts)
        (not (subset? (conclusion impl) new-atts))))
 
-(defn ask [prompt pred fail-message]
+;;
+
+(defn ask
+  "Performs simple quering. prompt is printed first and then the user
+  is asked for an answer (via read). If this answer does not satisfy
+  pred, fail-message is printed and the user is asked again, until the
+  given answer fulfills pred."
+  [prompt pred fail-message]
   (do
     (print prompt)
     (flush)
@@ -50,7 +69,9 @@
 	  (flush)
 	  (recur (read)))))))
 
-(defn default-handler [ctx impl]
+(defn default-handler
+  "Default handler for attribute exploration. Does it's interaction on the console."
+  [ctx impl]
   (do
     (prn ctx)
     (let [answer (ask (str "Does the implication " impl " hold? ") 
@@ -60,10 +81,19 @@
 	[true []]
 	(let [new-obj (ask (str "Please enter new object: ")
 			   (fn [new-obj] (not ((objects ctx) new-obj)))
-			   "This object is already present, please enter a new one: ")
+			   "This object is already present, please enter a new one: "),
 	      new-att (ask (str "Please enter the attributes the new object should have: ")
 			   (fn [new-atts]
 			     (and (subset? new-atts (attributes ctx))
 				  (falsifies-implication? new-atts impl)))
-			   "These attributes are not valid or do not falsify the implication.\nPlease enter a new set (in the form #{... atts ...}): ")]
+			   (str "These attributes are not valid or do not falsify the implication.\n"
+				"Please enter a new set (in the form #{... atts ...}): "))]
 	  [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]])))))
+
+;;;
+
+;; Background Knowledge!
+
+;;;
+
+nil

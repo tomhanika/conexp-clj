@@ -244,6 +244,11 @@
 	  {}
 	  keys))
 
+(defn hashmap-from-pairs
+  "Returns a hash map of given key-value pairs."
+  [seq-of-pairs]
+  (into {} seq-of-pairs))
+
 (defn hash-from-attributes
   "Computes a hash value from the values returned from funs applied to this."
   [this funs]
