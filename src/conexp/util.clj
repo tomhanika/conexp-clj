@@ -9,7 +9,9 @@
 (ns conexp.util
   (:use clojure.contrib.profile
 	[clojure.contrib.math :only (round)])
-  (:import javax.swing.JOptionPane))
+  (:import javax.swing.JOptionPane
+	   java.util.Calendar
+	   java.text.SimpleDateFormat))
 
 
 ;;; Namespace documentation
@@ -186,6 +188,13 @@
 		   (lazy-seq
 		     (cons (vec rest) (runner (next rest))))))]
     (runner sqn)))
+
+(defn now
+  "Returns the current time in a human readable format."
+  []
+  (let [#^Calendar cal (Calendar/getInstance),
+        #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
+    (.format sdf (.getTime cal))))
 
 
 ;;; Math

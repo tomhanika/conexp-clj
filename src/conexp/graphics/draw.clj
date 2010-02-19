@@ -10,7 +10,8 @@
   (:use [conexp.util :only (update-ns-meta!,
 			    get-root-cause,
 			    with-swing-error-msg,
-			    with-printed-result)]
+			    with-printed-result,
+			    now)]
 	[conexp.base :only (defvar-)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.base :only (lattice)]
@@ -159,6 +160,29 @@
   [frame scn buttons]
   nil)
 
+;; safe changes
+
+(defn- snapshot-saver
+  "Installs a snapshot safer, which, whenever a node has been moved,
+  saves the image."
+  [frame scn buttons]
+  (let [saved-layouts (atom {}),
+	#^JComboBox combo (make-combo-box buttons @saved-layouts),
+	save-layout   (fn [_]
+			(do-swing
+			 (let [layout (get-layout-from-scene scn),
+			       key    (now)]
+			   (swap! saved-layouts conj [key, layout])
+			   (.addItem combo key))))]
+    (add-callback-for-hook scn :move-stop save-layout)
+    (add-action-listener combo
+			 (fn [evt]
+			   (do-swing
+			    (let [selected (.. evt getSource getSelectedItem),
+				  layout (@saved-layouts selected)]
+			      (update-layout-of-scene scn layout)))))
+    (save-layout nil)))
+
 
 ;;; Buttons, Labels and the like
 
@@ -267,6 +291,7 @@
       toggle-zoom-move
       change-parameters
       improve-layout-by-force
+      snapshot-saver
       export-as-file)
     (doto canvas-panel
       (.add canvas BorderLayout/CENTER)
