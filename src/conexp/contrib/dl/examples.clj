@@ -16,12 +16,14 @@
 		      :when (exists [y (interpret model C)]
 			      (contains? (interpret model r) [x y]))])))
 
-(def some-model (make-model Simple-DL '#{John Marry Peter}
-			    {'Mother   '#{Marry},
-			     'Father   '#{John},
-			     'Male     '#{John, Peter},
-			     'Female   '#{Marry},
-			     'hasChild '#{[John Peter], [Marry Peter]}}))
+(def some-model (make-model Simple-DL
+			    '#{John Marry Peter}
+			    '{Mother   #{Marry},
+			      Father   #{John, Peter},
+			      Male     #{John, Peter},
+			      Female   #{Marry, Jana},
+			      hasChild #{[John Peter], [Marry Peter],
+					 [Peter Jana]}}))
 
 (def dl-exp-1 (make-dl-expression Simple-DL '(exists hasChild Male)))
 (def dl-exp-2 (make-dl-expression Simple-DL 'Father))

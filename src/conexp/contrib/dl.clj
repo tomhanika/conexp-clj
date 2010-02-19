@@ -18,6 +18,12 @@
   [language]
   (:role-names language))
 
+(defn signature
+  "Returns the signature of the given language, i.e. the pair of role
+  names and concept names."
+  [language]
+  [(role-names language), (concept-names language)])
+
 (defn constructors
   "Returns all allowed constructors of the given language."
   [language]
@@ -101,15 +107,15 @@
        [language# dl-sexp#]
        (fn [model#]
 	 ((model-base-interpretation model#) dl-sexp#)))
-     ~@(map (fn [cons-int-pair#]
-	      (let [constructor# (first cons-int-pair#),
-		    interpretation# (second cons-int-pair#)]
-		`(defmethod compile-dl-expression [~name '~constructor#]
+     ~@(map (fn [cons-int-pair]
+	      (let [constructor (first cons-int-pair),
+		    interpretation (second cons-int-pair)]
+		`(defmethod compile-dl-expression [~name '~constructor]
 		   [language# dl-sexp#]
 		   (fn [model#]
 		     (binding [~'interpret (fn [model# thing#]
 					     (thing# model#))]
-		       (apply ~interpretation# model# 
+		       (apply ~interpretation model#
 			      (map (fn [sexp#]
 				     (compile-dl-expression language# sexp#))
 				   (rest dl-sexp#))))))))
