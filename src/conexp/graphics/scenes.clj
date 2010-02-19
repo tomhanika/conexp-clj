@@ -10,7 +10,7 @@
   (:use conexp.base
 	conexp.graphics.util)
   (:import [java.awt Color]
-	   [no.geosoft.cc.graphics GWindow GScene GStyle]))
+	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent]))
 
 (update-ns-meta! conexp.graphics.scenes
  :doc "Namespace for scene abstraction.")
@@ -87,6 +87,20 @@
     (illegal-argument "Hook " hook " cannot be called for scene."))
   (doseq [callback (get (get-scene-hooks scn) hook)]
     (apply callback args)))
+
+(defn start-interaction
+  "Starts a given interaction for scene. interaction must be a
+  function from a scene to a GInteraction object."
+  [#^GScene scn interaction]
+  (.. scn getWindow (startInteraction (interaction scn))))
+
+(defn get-zoom-factors
+  "Returns zoom factors for height and width of given scene."
+  [#^GScene scn]
+  (let [#^GWorldExtent current-world-extent (.getWorldExtent scn),
+	#^GWorldExtent initial-world-extent (.getInitialWorldExtent scn)]
+    [(/ (.getHeight current-world-extent) (.getHeight initial-world-extent)),
+     (/ (.getWidth current-world-extent) (.getWidth initial-world-extent))]))
 
 ;;;
 

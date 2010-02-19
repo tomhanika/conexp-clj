@@ -358,7 +358,7 @@ public class GScene extends GObject
    * 
    * @return  The world extent as it was specified through setWorldExtent().
    */
-  GWorldExtent getInitialWorldExtent()
+  public GWorldExtent getInitialWorldExtent()
   {
     return initialWorldExtent_;
   }

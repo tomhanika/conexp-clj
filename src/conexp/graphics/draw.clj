@@ -20,8 +20,11 @@
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
+	[conexp.graphics.util :only (device-to-world)]
 	[conexp.graphics.scenes :only (add-callback-for-hook,
-				       redraw-scene)]
+				       redraw-scene,
+				       start-interaction,
+				       get-zoom-factors)]
 	[conexp.graphics.scene-layouts :only (draw-on-scene,
 					      get-layout-from-scene,
 					      update-layout-of-scene,
@@ -62,6 +65,7 @@
 			      (do-nodes [n scn]
 					(set-node-radius! n new-radius))
 			      (redraw-scene scn))))))
+  (make-padding buttons)
 
   ;; labels
   (let [#^JButton label-toggler (make-button buttons "No Labels")]
@@ -91,6 +95,7 @@
 			       (layout-fn (lattice (get-layout-from-scene scn)))))))))
 
   ;; move mode (ideal, filter, chain, single)
+  ;; TODO
   nil)
 
 
@@ -134,23 +139,28 @@
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
   [frame scn buttons]
-  (let [#^JButton zoom-move (make-button buttons "Move"),
-	#^JLabel  zoom-info   (make-label buttons "1.0")]
+  (let [zoom-factors (fn []
+		       (let [[zoom-x zoom-y] (get-zoom-factors scn)]
+			 (with-out-str
+			   (printf "%1.2f" zoom-x)
+			   (print " x ")
+			   (printf "%1.2f" zoom-y)))),
+	#^JButton zoom-move (make-button buttons "Move"),
+	#^JLabel  zoom-info (make-label buttons " -- ")]
     (add-action-listener zoom-move
 			 (fn [evt]
 			   (do-swing
 			    (if (= "Move" (.getText zoom-move))
 			      (do
-				(.. scn getWindow (startInteraction (zoom-interaction scn)))
+				(start-interaction scn zoom-interaction)
 				(.setText zoom-move "Zoom"))
 			      (do
-				(.. scn getWindow (startInteraction (move-interaction scn)))
+				(start-interaction scn move-interaction)
 				(.setText zoom-move "Move"))))))
     (add-callback-for-hook scn :zoom-event
 			   (fn []
 			     (do-swing
-			      ;; TODO: Show current zoom factor
-			      (.setText zoom-info "??"))))))
+			      (.setText zoom-info (zoom-factors)))))))
 
 
 ;; export images to files
@@ -158,7 +168,11 @@
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
-  nil)
+  (let [#^JButton gif-exporter (make-button buttons "to GIF"),
+	#^JButton png-exporter (make-button buttons "to PNG"),
+	#^JButton jpg-exporter (make-button buttons "to JPG")]
+    ;; TODO: add handlers to save to file
+    nil))
 
 ;; safe changes
 
