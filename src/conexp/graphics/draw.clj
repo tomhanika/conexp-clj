@@ -36,7 +36,7 @@
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box JScrollBar JComboBox]
+	                BoxLayout Box JScrollBar JComboBox JScrollPane]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]
 	   [no.geosoft.cc.graphics GScene]))
@@ -168,16 +168,14 @@
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
-  (let [#^JButton gif-exporter (make-button buttons "to GIF"),
-	#^JButton png-exporter (make-button buttons "to PNG"),
-	#^JButton jpg-exporter (make-button buttons "to JPG")]
+  (let [#^JButton save-button (make-button buttons "Save")]
     ;; TODO: add handlers to save to file
     nil))
 
-;; safe changes
+;; save changes
 
 (defn- snapshot-saver
-  "Installs a snapshot safer, which, whenever a node has been moved,
+  "Installs a snapshot saver, which, whenever a node has been moved,
   saves the image."
   [frame scn buttons]
   (let [saved-layouts (atom {}),
@@ -206,7 +204,7 @@
 (defvar- *item-height* 25
   "Heights of items on toolbar.")
 
-(defvar- *toolbar-width* (+ 10 *item-width*)
+(defvar- *toolbar-width* (+ 20 *item-width*)
   "Width of toolbar containing buttons, labels and so on.")
 
 (defn- make-padding
@@ -300,7 +298,7 @@
 	#^JPanel buttons (JPanel.),
 	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
     (.setLayout buttons box-layout)
-    (.setPreferredSize buttons (Dimension. *toolbar-width* 0))
+    (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
     (install-changers frame scn buttons
       toggle-zoom-move
       change-parameters
@@ -314,7 +312,9 @@
     (.installScrollHandler scn hscrollbar vscrollbar)
     (doto main-panel
       (.add canvas-panel BorderLayout/CENTER)
-      (.add buttons BorderLayout/WEST))
+      (.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
+			          JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
+	    BorderLayout/WEST))
     main-panel))
 
 
