@@ -1,7 +1,7 @@
 (ns helper)
 
 ;;;
-;;; This file contains stuff which I think are great
+;;; This file contains great stuff
 ;;;
 
 (defmacro one-by-one
