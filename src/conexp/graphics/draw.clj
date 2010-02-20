@@ -1,8 +1,17 @@
+;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; The use and distribution terms for this software are covered by the
+;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;; which can be found in the file LICENSE at the root of this distribution.
+;; By using this software in any fashion, you are agreeing to be bound by
+;; the terms of this license.
+;; You must not remove this notice, or any other, from this software.
+
 (ns conexp.graphics.draw
   (:use [conexp.util :only (update-ns-meta!,
 			    get-root-cause,
 			    with-swing-error-msg,
-			    with-printed-result)]
+			    with-printed-result,
+			    now)]
 	[conexp.base :only (defvar-)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.base :only (lattice)]
@@ -11,8 +20,11 @@
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
+	[conexp.graphics.util :only (device-to-world)]
 	[conexp.graphics.scenes :only (add-callback-for-hook,
-				       redraw-scene)]
+				       redraw-scene,
+				       start-interaction,
+				       get-zoom-factors)]
 	[conexp.graphics.scene-layouts :only (draw-on-scene,
 					      get-layout-from-scene,
 					      update-layout-of-scene,
@@ -24,7 +36,7 @@
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box JScrollBar JComboBox]
+	                BoxLayout Box JScrollBar JComboBox JScrollPane]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]
 	   [no.geosoft.cc.graphics GScene]))
@@ -53,6 +65,7 @@
 			      (do-nodes [n scn]
 					(set-node-radius! n new-radius))
 			      (redraw-scene scn))))))
+  (make-padding buttons)
 
   ;; labels
   (let [#^JButton label-toggler (make-button buttons "No Labels")]
@@ -82,6 +95,7 @@
 			       (layout-fn (lattice (get-layout-from-scene scn)))))))))
 
   ;; move mode (ideal, filter, chain, single)
+  ;; TODO
   nil)
 
 
@@ -125,23 +139,28 @@
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
   [frame scn buttons]
-  (let [#^JButton zoom-move (make-button buttons "Move"),
-	#^JLabel  zoom-info   (make-label buttons "1.0")]
+  (let [zoom-factors (fn []
+		       (let [[zoom-x zoom-y] (get-zoom-factors scn)]
+			 (with-out-str
+			   (printf "%1.2f" zoom-x)
+			   (print " x ")
+			   (printf "%1.2f" zoom-y)))),
+	#^JButton zoom-move (make-button buttons "Move"),
+	#^JLabel  zoom-info (make-label buttons " -- ")]
     (add-action-listener zoom-move
 			 (fn [evt]
 			   (do-swing
 			    (if (= "Move" (.getText zoom-move))
 			      (do
-				(.. scn getWindow (startInteraction (zoom-interaction scn)))
+				(start-interaction scn zoom-interaction)
 				(.setText zoom-move "Zoom"))
 			      (do
-				(.. scn getWindow (startInteraction (move-interaction scn)))
+				(start-interaction scn move-interaction)
 				(.setText zoom-move "Move"))))))
     (add-callback-for-hook scn :zoom-event
 			   (fn []
 			     (do-swing
-			      ;; TODO: Show current zoom factor
-			      (.setText zoom-info "??"))))))
+			      (.setText zoom-info (zoom-factors)))))))
 
 
 ;; export images to files
@@ -149,7 +168,32 @@
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
-  nil)
+  (let [#^JButton save-button (make-button buttons "Save")]
+    ;; TODO: add handlers to save to file
+    nil))
+
+;; save changes
+
+(defn- snapshot-saver
+  "Installs a snapshot saver, which, whenever a node has been moved,
+  saves the image."
+  [frame scn buttons]
+  (let [saved-layouts (atom {}),
+	#^JComboBox combo (make-combo-box buttons @saved-layouts),
+	save-layout   (fn [_]
+			(do-swing
+			 (let [layout (get-layout-from-scene scn),
+			       key    (now)]
+			   (swap! saved-layouts conj [key, layout])
+			   (.addItem combo key))))]
+    (add-callback-for-hook scn :move-stop save-layout)
+    (add-action-listener combo
+			 (fn [evt]
+			   (do-swing
+			    (let [selected (.. evt getSource getSelectedItem),
+				  layout (@saved-layouts selected)]
+			      (update-layout-of-scene scn layout)))))
+    (save-layout nil)))
 
 
 ;;; Buttons, Labels and the like
@@ -160,7 +204,7 @@
 (defvar- *item-height* 25
   "Heights of items on toolbar.")
 
-(defvar- *toolbar-width* (+ 10 *item-width*)
+(defvar- *toolbar-width* (+ 20 *item-width*)
   "Width of toolbar containing buttons, labels and so on.")
 
 (defn- make-padding
@@ -254,11 +298,12 @@
 	#^JPanel buttons (JPanel.),
 	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
     (.setLayout buttons box-layout)
-    (.setPreferredSize buttons (Dimension. *toolbar-width* 0))
+    (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
     (install-changers frame scn buttons
       toggle-zoom-move
       change-parameters
       improve-layout-by-force
+      snapshot-saver
       export-as-file)
     (doto canvas-panel
       (.add canvas BorderLayout/CENTER)
@@ -267,7 +312,9 @@
     (.installScrollHandler scn hscrollbar vscrollbar)
     (doto main-panel
       (.add canvas-panel BorderLayout/CENTER)
-      (.add buttons BorderLayout/WEST))
+      (.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
+			          JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
+	    BorderLayout/WEST))
     main-panel))
 
 

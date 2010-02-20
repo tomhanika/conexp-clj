@@ -1,7 +1,17 @@
+;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; The use and distribution terms for this software are covered by the
+;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;; which can be found in the file LICENSE at the root of this distribution.
+;; By using this software in any fashion, you are agreeing to be bound by
+;; the terms of this license.
+;; You must not remove this notice, or any other, from this software.
+
 (ns conexp.util
   (:use clojure.contrib.profile
 	[clojure.contrib.math :only (round)])
-  (:import javax.swing.JOptionPane))
+  (:import javax.swing.JOptionPane
+	   java.util.Calendar
+	   java.text.SimpleDateFormat))
 
 
 ;;; Namespace documentation
@@ -178,6 +188,13 @@
 		   (lazy-seq
 		     (cons (vec rest) (runner (next rest))))))]
     (runner sqn)))
+
+(defn now
+  "Returns the current time in a human readable format."
+  []
+  (let [#^Calendar cal (Calendar/getInstance),
+        #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
+    (.format sdf (.getTime cal))))
 
 
 ;;; Math
