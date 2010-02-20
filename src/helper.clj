@@ -14,7 +14,7 @@
   `(loop [args# ~coll]
      (if (empty? args#) nil (do (~@f (first args#))
                                 (recur (rest args#))))))
-   
+
 (defmacro lambda
   "Takes the free argument as first parameter and the function value as
     following parameters as function body, i.e.
@@ -47,7 +47,27 @@
   (if (empty? more) `(.*. ~f ~g)
       `(f*g ~f (chain ~g ~@more ))))
 
-(defn do-map-tree
+(defmacro do-map-tree
+  "Returns a function that maps a named list tree using the given functions
+   to a new tree structure, utilizing side effects heavily.
+   (This is Java inspired madness....)
+   (A list tree is a tree which nodes are of the form (name child1 child2)
+    (where the childs are optional) such that the whole tree is represented
+    by its root node.)
+ 
+   Parameters:
+     mk        _function that maps a node name to the new node data structure
+     add       _function that takes as arguments the root and the child node
+                (as side effect!!)"
+  [mk add]
+  `(fn mapper# [tree#]
+     (let [root# (~mk (first tree#))
+           childs# (rest tree#)]
+       (do
+         (one-by-one childs# (lambda (x#) (~add root# (mapper# x#))))
+         root#))))
+
+(defmacro do-map-tree*
   "Maps a named list tree using the given functions to a new tree structure,
    utilizing side effects heavily. (This is Java inspired madness....)
    (A list tree is a tree which nodes are of the form (name child1 child2)
@@ -60,8 +80,4 @@
                 (as side effect!!)
      tree      _the tree that is mapped"
   [mk add tree]
-  (let [root (mk (first tree))
-        childs (rest tree)]
-    (do
-      (one-by-one childs (lambda (x) (add root (do-map-tree mk add x)))) 
-      root )))
+  `((do-map-tree ~mk ~add) ~tree))
