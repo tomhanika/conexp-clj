@@ -28,11 +28,36 @@
   []
   (GWindow. Color/WHITE))
 
+;; setting custom data
+
 (defn- initialize-scene
   "Initializies given scene."
   [#^GScene scn]
-  (.setUserData scn {:hooks {}})
+  (.setUserData scn (ref {}))
   scn)
+
+(defn add-data-to-scene
+  "Adds given data under keyword to scene."
+  [#^GScene scn, key, data]
+  (dosync
+   (alter (.getUserData scn) assoc key data)))
+
+(defn update-data-for-scene
+  "Updates data item associated with keys in scene."
+  [#^GScene scn, keys, data]
+  (dosync
+   (alter (.getUserData scn) assoc-in keys data)))
+
+(defn remove-data-from-scene
+  "Removes all data associated with key from scene."
+  [#^GScene scn, key]
+  (dosync
+   (alter (.getUserData scn) disj key)))
+
+(defn get-data-from-scene
+  "Returns data associated with key from scene."
+  [#^GScene scn, key]
+  (-> scn .getUserData deref (get key)))
 
 (defn make-scene
   "Makes scene on given window."
@@ -40,6 +65,7 @@
   (let [#^GScene scn (GScene. window)]
     (doto scn
       (initialize-scene)
+      (add-data-to-scene :hooks {})
       (.shouldZoomOnResize true)
       (.shouldWorldExtentFitViewport false)
       (.setStyle *default-scene-style*))
@@ -50,21 +76,23 @@
   [#^GScene scn]
   (.zoom scn 1.0))
 
+;; hooks
+
 (defn- get-scene-hooks
   "Returns the hooks with their corresponding callbacks for scene."
-  [#^GScene scn]
-  (:hooks (.getUserData scn)))
+  [scn]
+  (get-data-from-scene scn :hooks))
 
 (defn- set-scene-hooks
   "Sets hash-map of hooks to callbacks as scene hooks."
-  [#^GScene scn, hooks]
-  (.setUserData scn (assoc (.getUserData scn) :hooks hooks)))
+  [scn, hooks]
+  (add-data-to-scene scn :hooks hooks))
 
 (defn add-hook
   "Adds hook for scene."
-  [#^GScene scn, hook]
+  [scn, hook]
   (when (not (contains? (get-scene-hooks scn) hook))
-    (.setUserData scn (assoc-in (.getUserData scn) [:hooks hook] []))))
+    (update-data-for-scene scn [:hooks hook] [])))
 
 (defn set-callback-for-hook
   "Sets given functions as callbacks for hook on scene."
@@ -88,6 +116,8 @@
   (doseq [callback (get (get-scene-hooks scn) hook)]
     (apply callback args)))
 
+;; methods on scenes
+
 (defn start-interaction
   "Starts a given interaction for scene. interaction must be a
   function from a scene to a GInteraction object."
@@ -101,6 +131,11 @@
 	#^GWorldExtent initial-world-extent (.getInitialWorldExtent scn)]
     [(/ (.getHeight current-world-extent) (.getHeight initial-world-extent)),
      (/ (.getWidth current-world-extent) (.getWidth initial-world-extent))]))
+
+(defn get-canvas-from-scene
+  "Returns canvas associated with a scene."
+  [#^GScene scn]
+  (.. scn getWindow getCanvas))
 
 ;;;
 
