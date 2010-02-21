@@ -262,7 +262,8 @@
        (let [#^JTabbedPane tabpane (get-tabpane frame)]
 	 (.add tabpane pane)
 	 (let [index (.indexOfComponent tabpane pane)]
-	   (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))))
+	   (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
+	   (.setSelectedIndex tabpane index)))
        (.validate frame)))
   ([frame pane]
      (add-tab frame pane "")))
