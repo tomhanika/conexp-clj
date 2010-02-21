@@ -32,4 +32,9 @@
 
 ;;;
 
+(defn test-tab []
+  (start-lattice-editor (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5} 0.4))))
+
+;;;
+
 nil

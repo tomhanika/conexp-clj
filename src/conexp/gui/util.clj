@@ -9,13 +9,16 @@
 (ns conexp.gui.util
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
-	                JLabel JTextArea JScrollPane SwingUtilities]
+	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
+	                AbstractButton]
 	   [javax.imageio ImageIO]
-	   [java.awt GridLayout BorderLayout Dimension Image Font Color]
-	   [java.awt.event KeyEvent ActionListener]
+	   [java.awt GridLayout BorderLayout Dimension Image Font Color
+	             Graphics Graphics2D BasicStroke FlowLayout]
+	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar first-non-nil)]
-	[clojure.contrib.seq-utils :only (indexed)]))
+	[clojure.contrib.seq-utils :only (indexed)]
+	clojure.contrib.swing-utils))
 
 
 ;;; Helper functions
@@ -195,12 +198,71 @@
   [frame]
   (get-component frame #(= (class %) javax.swing.JTabbedPane)))
 
+(defn- make-tab-button
+  "Creates and returns a button for a tab component in tabpane to
+  close the tab containing component when it is pressed."
+  [#^JTabbedPane tabpane, component]
+  ;; This contains code copied from TabComponentDemo and
+  ;; ButtonTabComponent from the Java Tutorial
+  (let [tabbutton      (proxy [JButton] []
+		         (paintComponent [#^Graphics g]
+		           (proxy-super paintComponent g)
+			   (let [#^Graphics2D g2 (.create g),
+				 delta 6]
+			     (when (.. this getModel isPressed)
+			       (.translate g2 1 1))
+			     (.setStroke g2 (BasicStroke. 2))
+			     (.setColor g2 Color/BLACK)
+			     (when (.. this getModel isRollover)
+			       (.setColor g2 Color/MAGENTA))
+			     (.drawLine g2 delta delta
+					(- (. this getWidth) delta 1) (- (. this getHeight) delta 1))
+			     (.drawLine g2 (- (. this getWidth) delta 1) delta
+					delta (- (. this getHeight) delta 1))
+			     (.dispose g2)))),
+	mouse-listener (proxy [MouseAdapter] []
+			 (mouseEntered [#^MouseEvent evt]
+			   (let [component (.getComponent evt)]
+			     (when (instance? AbstractButton component)
+			       (.setBorderPainted #^AbstractButton component true))))
+			 (mouseExited [#^MouseEvent evt]
+			   (let [component (.getComponent evt)]
+			     (when (instance? AbstractButton component)
+			       (.setBorderPainted #^AbstractButton component false)))))]
+    (doto tabbutton
+      (add-action-listener (fn [evt]
+			     (.remove tabpane (.indexOfComponent tabpane component))))
+      (.addMouseListener mouse-listener)
+      (.setPreferredSize (Dimension. 17 17))
+      (.setToolTipText "Close this tab")
+      (.setContentAreaFilled false)
+      (.setBorderPainted false)
+      (.setFocusable false))))
+
+(defn- make-tab-head
+  "Creates and returns a panel to be used as tab component."
+  [#^JTabbedPane tabpane, component, title]
+  (let [#^JPanel head (JPanel.),
+	#^JLabel text (JLabel.),
+	#^JButton btn (make-tab-button tabpane component)]
+    (doto text
+      (.setText title)
+      (.setBorder (BorderFactory/createEmptyBorder 0 0 0 5)))
+    (doto head
+      (.setLayout (FlowLayout. FlowLayout/LEFT 0 0))
+      (.add text)
+      (.add btn)
+      (.setOpaque false)
+      (.setBorder (BorderFactory/createEmptyBorder 2 0 0 0)))))
+
 (defn add-tab
   "Addes given panel to the tabpane of frame with given title, if given."
   ([frame pane title]
      (with-swing-threads
        (let [#^JTabbedPane tabpane (get-tabpane frame)]
-	 (.addTab tabpane title pane))
+	 (.add tabpane pane)
+	 (let [index (.indexOfComponent tabpane pane)]
+	   (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))))
        (.validate frame)))
   ([frame pane]
      (add-tab frame pane "")))
