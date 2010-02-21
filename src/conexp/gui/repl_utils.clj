@@ -13,8 +13,8 @@
 
 (defn add-tab
   "Adds given panel to tabpane of current frame."
-  [name panel]
-  (util/add-tab (get-main-frame) name panel))
+  [panel name]
+  (util/add-tab (get-main-frame) panel name))
 
 (defn get-tabs
   "Returns hashmap of indices to tab contents."
@@ -27,8 +27,8 @@
 (defn start-lattice-editor
   "Starts lattice editor with given lattice."
   [lattice]
-  (add-tab "Lattice"
-	   (make-lattice-editor (get-main-frame) lattice *standard-layout-function*)))
+  (add-tab (make-lattice-editor (get-main-frame) lattice *standard-layout-function*)
+	   "Lattice"))
 
 ;;;
 

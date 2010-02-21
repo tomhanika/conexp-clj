@@ -197,13 +197,13 @@
 
 (defn add-tab
   "Addes given panel to the tabpane of frame with given title, if given."
-  ([frame title pane]
+  ([frame pane title]
      (with-swing-threads
        (let [#^JTabbedPane tabpane (get-tabpane frame)]
 	 (.addTab tabpane title pane))
        (.validate frame)))
   ([frame pane]
-     (add-tab frame "" pane)))
+     (add-tab frame pane "")))
 
 (defn get-tabs
   "Returns hashmap from numbers to tab contents of given frame."
