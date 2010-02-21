@@ -14,7 +14,8 @@
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color]
 	   [java.awt.event KeyEvent ActionListener]
 	   [java.io File])
-  (:use [conexp.base :only (defvar first-non-nil)]))
+  (:use [conexp.base :only (defvar first-non-nil)]
+	[clojure.contrib.seq-utils :only (indexed)]))
 
 
 ;;; Helper functions
@@ -195,11 +196,21 @@
   (get-component frame #(= (class %) javax.swing.JTabbedPane)))
 
 (defn add-tab
-  "Addes given panel to the tabpane of frame."
-  [frame pane]
-  (with-swing-threads
-    (.add (get-tabpane frame) pane)
-    (.validate frame)))
+  "Addes given panel to the tabpane of frame with given title, if given."
+  ([frame title pane]
+     (with-swing-threads
+       (let [#^JTabbedPane tabpane (get-tabpane frame)]
+	 (.addTab tabpane title pane))
+       (.validate frame)))
+  ([frame pane]
+     (add-tab frame "" pane)))
 
+(defn get-tabs
+  "Returns hashmap from numbers to tab contents of given frame."
+  [frame]
+  (let [#^JTabbedPane tabpane (get-tabpane frame)]
+    (into {} (indexed (seq (.getComponents tabpane))))))
+
+;;;
 
 nil
