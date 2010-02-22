@@ -17,16 +17,15 @@
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar first-non-nil)]
-	[clojure.contrib.seq-utils :only (indexed)]
+	[clojure.contrib.seq :only (indexed)]
 	clojure.contrib.swing-utils))
 
 
 ;;; Helper functions
 
-(defn add-handler
+(defn- add-handler
   "Adds an ActionListener to thing that calls function with frame and
   thing when activated (i.e. when actionPerformed is called)."
-  ;; shall we also pass the given event?
   [thing frame function]
   (.addActionListener thing
     (proxy [ActionListener] []
