@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.dl.examples
   (:use conexp
-	conexp.contrib.dl))
+	conexp.contrib.dl.base))
 
 (update-ns-meta! conexp.contrib.dl.examples
   :doc "Examples of some description logics.")
