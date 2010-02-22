@@ -10,6 +10,7 @@
   (:use conexp.base
 	conexp.graphics.util)
   (:import [java.awt Color]
+	   [java.io File]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent]))
 
 (update-ns-meta! conexp.graphics.scenes
@@ -136,6 +137,16 @@
   "Returns canvas associated with a scene."
   [#^GScene scn]
   (.. scn getWindow getCanvas))
+
+(defn save-image
+  "Saves image on scene scn in given file with given format."
+  [#^GScene scn, #^File file, format]
+  (let [#^GWindow wnd (.getWindow scn)]
+    (condp contains? format
+      #{"jpg", "jpeg"} (.saveAsJpg wnd file),
+      #{"png"}         (.saveAsPng wnd file),
+      #{"gif"}         (.saveAsGif wnd file),
+      (illegal-argument "Format " format " not supported for saving images."))))
 
 ;;;
 

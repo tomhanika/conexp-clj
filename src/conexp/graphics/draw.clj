@@ -24,7 +24,8 @@
 	[conexp.graphics.scenes :only (add-callback-for-hook,
 				       redraw-scene,
 				       start-interaction,
-				       get-zoom-factors)]
+				       get-zoom-factors,
+				       save-image)]
 	[conexp.graphics.scene-layouts :only (draw-on-scene,
 					      get-layout-from-scene,
 					      update-layout-of-scene,
@@ -36,9 +37,12 @@
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box JScrollBar JComboBox JScrollPane]
+	                BoxLayout Box JScrollBar JComboBox JScrollPane
+	                JFileChooser]
+	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]
+	   [java.io File]
 	   [no.geosoft.cc.graphics GScene]))
 
 (update-ns-meta! conexp.graphics.draw
@@ -160,17 +164,46 @@
     (add-callback-for-hook scn :zoom-event
 			   (fn []
 			     (do-swing
-			      (.setText zoom-info (zoom-factors)))))))
-
+			      (.setText zoom-info (zoom-factors))))))
+  nil)
 
 ;; export images to files
+
+(defn- get-file-extension
+  "Returns file extension of given file."
+  [#^File file]
+  (let [name (.getName file),
+	idx  (.lastIndexOf name ".")]
+    (if-not (= -1 idx)
+      (.toLowerCase (.substring name (+ 1 idx)))
+      nil)))
 
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
-  (let [#^JButton save-button (make-button buttons "Save")]
-    ;; TODO: add handlers to save to file
-    nil))
+  (let [#^JButton save-button (make-button buttons "Save"),
+	#^JFileChooser fc (JFileChooser.),
+	jpg-filter (FileNameExtensionFilter. "JPEG Files" (into-array ["jpg" "jpeg"])),
+	gif-filter (FileNameExtensionFilter. "GIF Files"  (into-array ["gif"])),
+	png-filter (FileNameExtensionFilter. "PNG Files"  (into-array ["png"]))]
+    (doto fc
+      (.addChoosableFileFilter jpg-filter)
+      (.addChoosableFileFilter gif-filter)
+      (.addChoosableFileFilter png-filter))
+    (add-action-listener save-button
+			 (fn [evt]
+			   (let [retVal (.showSaveDialog fc frame)]
+			     (when (= retVal JFileChooser/APPROVE_OPTION)
+			       (let [#^File file (.getSelectedFile fc)]
+				 (try
+				  (save-image scn file (get-file-extension file))
+				  (catch Exception e
+				    (JOptionPane/showMessageDialog
+				     frame
+				     (get-root-cause e)
+				     "Error while saving"
+				     JOptionPane/ERROR_MESSAGE)))))))))
+  nil)
 
 ;; save changes
 
