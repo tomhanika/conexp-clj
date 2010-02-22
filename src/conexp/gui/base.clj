@@ -83,9 +83,7 @@
 	(.setResizeWeight 0.8)
 	(.setDividerLocation 640))
       (doto (.getContentPane main-frame)
-	(.add split-pane BorderLayout/CENTER))
-      ;; for testing
-      (add-tab main-frame (JLabel. "Test Tab")))
+	(.add split-pane BorderLayout/CENTER)))
 
     ;; standard plugins
     (let [pm (get-plugin-manager main-frame)]

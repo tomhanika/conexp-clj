@@ -77,7 +77,8 @@
                               :init (fn [] 
 				      (use 'conexp)
 				      (in-ns 'conexp)
-				      (intern (find-ns 'conexp) '*main-frame* frame))
+				      (intern (find-ns 'conexp) '*main-frame* frame)
+				      (require '[conexp.gui.repl-utils :as gui]))
                               :caught (fn [e]
 					(if *print-stack-trace-on-error*
                                           (.printStackTrace e *out*)
