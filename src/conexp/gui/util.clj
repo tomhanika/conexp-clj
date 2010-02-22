@@ -17,7 +17,7 @@
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar first-non-nil)]
-	[clojure.contrib.seq-utils :only (indexed)]
+	[clojure.contrib.seq :only (indexed)]
 	clojure.contrib.swing-utils))
 
 

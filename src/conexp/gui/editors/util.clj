@@ -155,15 +155,12 @@
      direction   _may be eighter :horiz or :vert
      topleft     _top or left widget
      bottomright _bottom or right widget
-     &setup      _an optional number of vectors that may contain additional
+     & setup     _an optional number of vectors that may contain additional
                   tweaks that are called after widget creation, i.e.
                   [:set-divider-location 150] will call the
                   :set-divider-location map with 150 as single parameter
   "
-  ([direction topleft bottomright]
-    (do-mk-split-pane direction topleft bottomright [])
-    )
-  ([direction topleft bottomright & setup]
+  [direction topleft bottomright & setup]
     (let [split-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
                                     :vert JSplitPane/VERTICAL_SPLIT})
                        (get-widget topleft)
@@ -177,7 +174,33 @@
            }
            ]
       (do
-        (one-by-one setup unroll-parameters-fn-map widget) widget ))))
+        (one-by-one setup unroll-parameters-fn-map widget) 
+        widget )))
+
+(defn do-mk-tree-control
+  "Creates a scrollable tree control object.
+
+   Parameters:
+     name        _the name of the root node of the tree
+     & setup     _an optional number of vectors that may contain additional
+                  tweaks that are called after widget creation
+  " [name & setup] 
+  (let [ treeroot     (DefaultMutableTreeNode. (str name))
+         treemodel    (DefaultTreeModel. treeroot)
+         treecontrol  (JTree. treemodel)
+         pane         (JScrollPane. treecontrol 
+                        JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
+                        JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED)
+         widget   {:managed-by-conexp-gui-editors-util "tree-control"
+         :widget  pane
+         :root    treeroot
+         :model   treemodel
+         :control treecontrol
+         }
+         ]
+      (do
+        (one-by-one setup unroll-parameters-fn-map widget) 
+        widget )))
 
 nil
 
