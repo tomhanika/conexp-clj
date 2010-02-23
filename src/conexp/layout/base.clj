@@ -8,7 +8,7 @@
 
 (ns conexp.layout.base
   (:use conexp.base
-	[conexp.fca.lattices :only (make-lattice)]
+	[conexp.fca.lattices :only (make-lattice, standard-context)]
 	clojure.contrib.pprint))
 
 (update-ns-meta! conexp.layout.base
@@ -117,6 +117,11 @@
   "Returns lattice represented by layout."
   [layout]
   (make-lattice (nodes layout) (order layout)))
+
+(def-layout-fn context
+  "Returns a context whose lattice is represented by this layout."
+  [layout]
+  (standard-context (lattice layout)))
 
 
 ;;;
