@@ -81,25 +81,33 @@
   [language dl-sexp]
   (DL-expression language (transform-expression language dl-sexp)))
 
+(defn dl-expression?
+  "Returns true iff thing is a DL expression."
+  [thing]
+  (= (type thing) ::DL-expression))
+
 ;;;
 
 (defmacro define-dl
   "Defines a DL."
-  ;; FIXME: Extend description
-  [name concept-names role-names constructors & syntax-transformers]
-  `(do
-     (def ~name (make-language '~concept-names '~role-names '~constructors))
-     (defmethod transform-expression ~name [language# expression#]
-       expression#)
-     ~@(map (fn [dl-sexp body]
-	      (let [cons-name (first dl-sexp),
-		    cons-args (rest dl-sexp)]		
-		`(defmethod transform-expression [~name '~cons-name]
-		   [language# expression#]
-		   (let [~(vec cons-args) (map transform-expression (rest expression#))]
-		     ~@body))))
-	    syntax-transformers)
-     ~name))
+  [name concept-names role-names constructors & options]
+  (let [options (apply hash-map options)]
+    `(do
+       (def ~name (make-language '~concept-names '~role-names '~constructors))
+
+       ;; untested
+       (defmethod transform-expression ~name [language# expression#]
+	 expression#)
+       ~@(map (fn [dl-sexp body]
+		(let [cons-name (first dl-sexp),
+		      cons-args (rest dl-sexp)]
+		  `(defmethod transform-expression [~name '~cons-name]
+		     [language# expression#]
+		     (let [~(vec cons-args) (map transform-expression (rest expression#))]
+		       ~@body))))
+	      (:syntax-transformers options))
+
+       ~name)))
 
 ;;;
 
@@ -112,6 +120,16 @@
   "Returns true iff given expression is an atomic expression."
   [dl-expression]
   (not (compound? dl-expression)))
+
+(defn primitive?
+  "Returns true iff given expression consists of a concept name or a
+  role name only."
+  [dl-expression]
+  (and (atomic? dl-expression)
+       (or (contains? (concept-names (expression-language dl-expression))
+		      (expression dl-expression))
+	   (contains? (role-names (expression-language dl-expression))
+		      (expression dl-expression)))))
 
 (defn operator
   "Returns the operator of the expression."

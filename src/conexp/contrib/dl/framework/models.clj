@@ -40,18 +40,22 @@
   "Compiles an expression to a function mapping a model to the extent
   of this expression in the model."
   (fn [dl-expression]
-    (if (compound? dl-expression)
-      (operator dl-expression)
-      ::base-case)))
+    (cond
+     (compound? dl-expression)  (operator dl-expression),
+     (primitive? dl-expression) ::base-case,
+     :else                      [(expression-language dl-expression) ::base-semantics])))
 
 (defmethod compile-expression :default [dl-expression]
-  (illegal-argument "Operator " (operator dl-expression) " is not known."))
+  (illegal-argument "Dont know how to interpret " (print-str dl-expression)))
 
 (defn interpret
   "Interprets given expression in given model and returns the
   corresponding extent."
   [model dl-expression]
-  ((compile-expression dl-expression) model))
+  ((compile-expression (if (dl-expression? dl-expression)
+			 dl-expression
+			 (make-dl-expression (model-language model) dl-expression)))
+   model))
 
 (defmethod compile-expression ::base-case [dl-expression]
   (fn [model]
@@ -69,6 +73,14 @@
       (set-of x [x (model-base-set model),
 		 :when (exists [y C-I]
 			 (contains? r-I [x y]))]))))
+
+(defmacro define-base-semantics
+  "Define how to interpret an expression which is neither compound nor
+  a primitive concept, i.e. TBox-ABox pairs and the like."
+  [language [model dl-expression] & body]
+  `(defmethod compile-expression [~language ::base-semantics] [~dl-expression]
+     (fn [~model]
+       ~@body)))
 
 ;;;
 

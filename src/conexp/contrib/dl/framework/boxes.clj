@@ -26,8 +26,8 @@
 
 (defmethod print-method ::TBox [tbox out]
   (.write out (with-out-str
-		(doseq [def (tbox-definitions tbox)]
-		  (println def)))))
+		(doseq [def (interpose ", " (tbox-definitions tbox))]
+		  (print def)))))
 
 (defn make-tbox
   "Creates and returns a tbox for language from the given
