@@ -39,14 +39,7 @@
                @context-data)
         workspace-tree (conj nodes :root)
         ]
-    (with-swing-threads
-     (.removeAllChildren @context-workspace-tree)
-     (do-map-tree* (fn [x] (if (= :root x) 
-                             @context-workspace-tree 
-                             (DefaultMutableTreeNode. x)))
-                   .add
-                   workspace-tree)
-     (.reload @context-workspace))))
+    ((@context-workspace-tree :set-tree) workspace-tree)))
 
 (defn add-to-workspace
   "Adds a named context to the current workspace or replaces 
@@ -56,8 +49,10 @@
        context  _the context data structure
    "
   [name context]
-  (dosync (commute context-data conj {(str name) context}))
-  (update-workspace-tree)
+  (do
+    (dosync (commute context-data conj {(str name) context}))
+    (update-workspace-tree)
+    )
   )
 
 
@@ -69,35 +64,40 @@
   [frame]
   (do
     (dosync (ref-set context-data {}))
+
     (with-swing-threads
       
-     (let [ treeroot (DefaultMutableTreeNode. "context workspace")
-            treemodel (DefaultTreeModel. treeroot)
-            tree (JTree. treemodel)
-            topleft (JScrollPane. tree JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
-                                  JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED )   
-            bottomleft (JTextArea. "bottomleft")
-            left (JSplitPane. JSplitPane/VERTICAL_SPLIT topleft bottomleft)
-            tablemodel (DefaultTableModel. (Vector. (list "[objects]" "wee")) 20 )
-            table (JTable. tablemodel)
-            right (JScrollPane. table JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
-                                JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED )             pane (JSplitPane. JSplitPane/HORIZONTAL_SPLIT left right )]
+     (let [ workspace-tree (do-mk-tree-control "context workspace"
+                             [:set-selection-mode :single]
+                             [:set-selection-handler 
+                               (fn [x] (message-box (vec (first x))))])
+            left workspace-tree
+            right (JTextArea. "right")
+            pane (do-mk-split-pane :horiz left right
+                   [:set-divider-location 200])
+            ;bottomleft (JTextArea. "bottomleft")
+            ;left (do-mk-split-pane :vert workspace-tree bottomleft 
+            ;       [:set-divider-location 250])
+            ;tablemodel (DefaultTableModel. (Vector. (list "[objects]" "wee"))
+            ;             20 )
+            ;table (JTable. tablemodel)
+            ;right (JScrollPane. table JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED )
+
+            ;pane (do-mk-split-pane :horiz left right [:set-divider-location 200])
+]
        (do
-         (doto table
-           (.setColumnSelectionAllowed true)
-           (.setAutoResizeMode JTable/AUTO_RESIZE_OFF)
-           (.setMinimumSize (java.awt.Dimension. 35 35))
-           )
-         (.setDividerLocation left 250)
-         (.setDividerLocation pane 200)
-         (add-tab-with-name-icon-tooltip frame pane 
+         ;(doto table
+         ;  (.setColumnSelectionAllowed true)
+         ;  (.setAutoResizeMode JTable/AUTO_RESIZE_OFF)
+         ;  (.setMinimumSize (java.awt.Dimension. 35 35))
+         ;  )
+         (add-tab-with-name-icon-tooltip frame (get-widget pane)
                                          "Contexts" nil "View and edit contexts")
-         (dosync (ref-set context-pane pane)
-                 (ref-set context-workspace treemodel)
-                 (ref-set context-attributes bottomleft)
-                 (ref-set context-table table)
-                 (ref-set context-tablemodel tablemodel)
-                 (ref-set context-workspace-tree treeroot)     
+         (dosync ;(ref-set context-pane pane)
+                 ;(ref-set context-attributes bottomleft)
+                 ;(ref-set context-table table)
+                 ;(ref-set context-tablemodel tablemodel)
+                 (ref-set context-workspace-tree workspace-tree)     
                  )
          )))
     )

@@ -8,9 +8,11 @@
 
 (ns conexp.gui.editors.util
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
-             JScrollPane]
-    [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode]
+             JScrollPane JOptionPane]
+    [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
+      TreeSelectionModel]
     [java.util Vector]
+    [javax.swing.event TreeSelectionListener]
     [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
     conexp.gui.util))
@@ -124,10 +126,26 @@
        (= count# 6) ((~fn_map (vec# 0)) (vec# 1) (vec# 2) (vec# 3) (vec# 4)
                       (vec# 5)))))
 
+(defn extract-array
+  "Takes a java-array and turns it into a list"
+  [array]
+  (map (rho aget array) (range (alength array))))
 
 ;;;
 ;;; java & swing utils
 ;;;
+
+(defn message-box
+  "Pops up a swing message box.
+
+   Parameters:
+     text    _message text to be displayed
+     title   _optional title of the message box-equal
+  "
+  ( [text title] (with-swing-threads
+                   (JOptionPane/showMessageDialog nil (str text) (str title) 0)))
+  ( [text] (with-swing-threads
+                   (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
 
 (defn managed-by-conexp-gui-editors-util? 
   "Returns true if the object given as parameter is managed by the
@@ -196,11 +214,50 @@
          :root    treeroot
          :model   treemodel
          :control treecontrol
-         }
-         ]
-      (do
-        (one-by-one setup unroll-parameters-fn-map widget) 
-        widget )))
+
+         :set-tree
+         (fn [tree]
+           (let [t (conj (rest tree) :root)]
+             (with-swing-threads
+               (.removeAllChildren treeroot)
+               (do-map-tree* (fn [x] (if (= :root x) treeroot 
+                                       (DefaultMutableTreeNode. x)))
+                 .add t)
+               (.reload treemodel) ) ))
+
+         :set-selection-mode
+         (fn [mode]
+           (let [selection-model (.getSelectionModel treecontrol)]
+             (.setSelectionMode selection-model 
+               ({:single TreeSelectionModel/SINGLE_TREE_SELECTION
+                 :multi TreeSelectionModel/CONTIGUOUS_TREE_SELECTION
+                 :free TreeSelectionModel/DISCONTIGUOUS_TREE_SELECTION} mode))))
+
+         :set-selection-handler
+         (fn [handler]                ; handler is a function that will take 
+                                        ; the labels of the paths from the root
+                                        ; to the selected nodes as lazy-seq as
+                                        ; single argument
+           (with-swing-threads
+             (let [current-handlers (.getTreeSelectionListeners treecontrol)
+                    listeners (extract-array current-handlers) ]
+               (one-by-one listeners .removeTreeSelectionListener treecontrol))
+             (let [listener (proxy [TreeSelectionListener] []
+                              (valueChanged [event] 
+                                (let [ paths (.getSelectionPaths treecontrol)
+                                       treepaths (map (*comp
+                                                        (rho .getPath)
+                                                        extract-array
+                                                        (rho map 
+                                                          (rho .getUserObject))
+                                                        )
+                                                   (extract-array paths))
+                                       ]
+                                  (handler treepaths) )))]
+               (.addTreeSelectionListener treecontrol listener) ) )) }]
+    (do
+      (one-by-one setup unroll-parameters-fn-map widget) 
+      widget )))
 
 nil
 
