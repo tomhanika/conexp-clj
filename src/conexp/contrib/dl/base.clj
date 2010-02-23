@@ -14,36 +14,6 @@
 
 ;;;
 
-(deftype DL [concept-names role-names constructors])
-
-(defn concept-names
-  "Returns the concept names of the given language."
-  [language]
-  (:concept-names language))
-
-(defn role-names
-  "Returns the role names of the given language."
-  [language]
-  (:role-names language))
-
-(defn signature
-  "Returns the signature of the given language, i.e. the pair of role
-  names and concept names."
-  [language]
-  [(role-names language), (concept-names language)])
-
-(defn constructors
-  "Returns all allowed constructors of the given language."
-  [language]
-  (:constructors language))
-
-(defn make-language
-  "Creates a DL from concept-names, role-names and constructors."
-  [concept-names role-names constructors]
-  (DL (set concept-names) (set role-names) (set constructors)))
-
-;;;
-
 (deftype Model [langauge base-set base-interpretation])
 
 (defn model-base-set
@@ -67,36 +37,6 @@
   (Model language base-set base-interpretation))
 
 ;;;
-
-(deftype DL-expression [language sexp function])
-
-(defn expression
-  "Returns the s-exp describing this expression."
-  [dl-expression]
-  (:sexp dl-expression))
-
-(defn expression-language
-  "Returns the language of this expression."
-  [dl-expression]
-  (:language dl-expression))
-
-(defmethod print-method ::DL-expression [dl-exp out]
-  (.write out (str (expression dl-exp))))
-
-(defmulti compile-dl-expression
-  "Compiles given DL s-expression in language, returning a function
-  mapping a model to the interpretation of this expression in this
-  model."
-  (fn [language dl-sexp]
-    [language (if (seq? dl-sexp)
-		(first dl-sexp)
-		::base-case)]))
-
-(defn make-dl-expression
-  "Takes a DL and a s-exp describing a concept description and returns
-  a DL-expression."
-  [language dl-sexp]
-  (DL-expression language dl-sexp (compile-dl-expression language dl-sexp)))
 
 (defn interpret
   "Interprets given dl-expression in model."
