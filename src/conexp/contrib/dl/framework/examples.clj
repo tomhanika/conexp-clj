@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.dl.framework.examples
   (:use conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.models))
+	conexp.contrib.dl.framework.models
+	conexp.contrib.dl.framework.boxes))
 
 ;;;
 
@@ -23,6 +24,9 @@
    Male   #{John, Peter},
    Female #{Marry, Jana},
    child  #{[John Peter], [Marry Peter], [Peter Jana]}})
+
+(define-tbox some-tbox SimpleDL
+  Grandfather (and Male (exists child (exists child (and)))))
 
 ;;;
 

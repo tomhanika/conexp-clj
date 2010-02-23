@@ -6,9 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.boxes
+(ns conexp.contrib.dl.framework.boxes
   (:use conexp
-	conexp.contrib.dl.base))
+	conexp.contrib.dl.framework.syntax))
 
 ;;; TBox definitions
 
@@ -25,11 +25,47 @@
   (:definitions tbox))
 
 (defmethod print-method ::TBox [tbox out]
-  (.write out "TBox"))
+  (.write out (with-out-str
+		(doseq [def (tbox-definitions tbox)]
+		  (println def)))))
 
-;;; normalizing TBoxes
+(defn make-tbox
+  "Creates and returns a tbox for language from the given
+  definitions."
+  [language definitions]
+  (TBox language definitions))
 
-;;; acessing used role name, primitive and defined concepts
+;;; accessing used role names, primitive and defined concepts
+
+(defn defined-concepts
+  "Returns all defined concepts in tbox."
+  [tbox]
+  (set-of (definition-target def) [def (tbox-definitions tbox)]))
+
+(defn used-role-names
+  "Returns all used role names in tbox."
+  [tbox]
+  (apply union #{}
+	 (map #(role-names-in-expression (definition-expression %))
+	      (tbox-definitions tbox))))
+
+(defn used-concept-names
+  "Returns all used concept names in tbox."
+  [tbox]
+  (apply union #{}
+	 (map #(concept-names-in-expression (definition-expression %))
+	      (tbox-definitions tbox))))
+
+;;;
+
+(defmacro define-tbox
+  "Defines a TBox. Definitions are names interleaved with dl-sexps."
+  [name language & definitions]
+  (let [definitions (partition 2 definitions)]
+  `(def ~name (make-tbox ~language
+			 (set (for [pair# '~definitions]
+				(make-dl-definition (first pair#)
+						    (make-dl-expression ~language (second pair#)))))))))
 
 ;;;
 

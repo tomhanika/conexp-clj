@@ -60,30 +60,6 @@
 (defmethod print-method ::DL-expression [dl-exp out]
   (.write out (str (expression dl-exp))))
 
-(defn compound?
-  "Returns true iff given expression is a compound expression."
-  [dl-expression]
-  (list? (expression dl-expression)))
-
-(defn atomic?
-  "Returns true iff given expression is an atomic expression."
-  [dl-expression]
-  (not (compound? dl-expression)))
-
-(defn operator
-  "Returns the operator of the expression."
-  [dl-expression]
-  (when-not (compound? dl-expression)
-    (illegal-argument "Given expression is atomic and has no operator."))
-  (first (expression dl-expression)))
-
-(defn arguments
-  "Returns the operator arguments of the expression."
-  [dl-expression]
-  (when-not (compound? dl-expression)
-    (illegal-argument "Given expression is atomic and has no arguments."))
-  (rest (expression dl-expression)))
-
 ;;;
 
 (defmulti transform-expression
@@ -124,6 +100,83 @@
 		     ~@body))))
 	    syntax-transformers)
      ~name))
+
+;;;
+
+(defn compound?
+  "Returns true iff given expression is a compound expression."
+  [dl-expression]
+  (list? (expression dl-expression)))
+
+(defn atomic?
+  "Returns true iff given expression is an atomic expression."
+  [dl-expression]
+  (not (compound? dl-expression)))
+
+(defn operator
+  "Returns the operator of the expression."
+  [dl-expression]
+  (when-not (compound? dl-expression)
+    (illegal-argument "Given expression is atomic and has no operator."))
+  (first (expression dl-expression)))
+
+(defn arguments
+  "Returns the operator arguments of the expression."
+  [dl-expression]
+  (when-not (compound? dl-expression)
+    (illegal-argument "Given expression is atomic and has no arguments."))
+  (map #(make-dl-expression (expression-language dl-expression) %)
+       (rest (expression dl-expression))))
+
+(defn symbols-in-expression
+  "Returns all symbols used in expressions."
+  [dl-expression]
+  (let [collector (fn collector [expr]
+		    (if-not (list? expr)
+		      [expr]
+		      (vec (reduce concat (map collector (rest expr))))))]
+    (set (collector (expression dl-expression)))))
+
+(defn role-names-in-expression
+  "Returns all role names used in the given expression."
+  [dl-expression]
+  (intersection (role-names (expression-language dl-expression))
+		(symbols-in-expression dl-expression)))
+
+(defn concept-names-in-expression
+  "Returns all concept names used in the given expression."
+  [dl-expression]
+  (intersection (concept-names (expression-language dl-expression))
+		(symbols-in-expression dl-expression)))
+
+;;; Definitions
+
+(deftype DL-definition [target dl-expression])
+
+(defn definition-target
+  "Returns target of this definition."
+  [definition]
+  (:target definition))
+
+(defn definition-expression
+  "Returns expression of this definition."
+  [definition]
+  (:dl-expression definition))
+
+(defmethod print-method ::DL-definition [definition out]
+  (.write out (with-out-str
+		(print (definition-target definition))
+		(print " := ")
+		(print (definition-expression definition)))))
+
+(defn make-dl-definition
+  "Creates and returns a DL definition."
+  [target definition-expression]
+  (DL-definition target definition-expression))
+
+;;; Subsumptions
+
+;;; Equivalences
 
 ;;;
 

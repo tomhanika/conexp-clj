@@ -55,7 +55,7 @@
 
 (defmethod compile-expression ::base-case [dl-expression]
   (fn [model]
-    ((model-base-interpretation model) dl-expression)))
+    ((model-base-interpretation model) (expression dl-expression))))
 
 (defmethod compile-expression 'and [dl-expression]
   (fn [model]
