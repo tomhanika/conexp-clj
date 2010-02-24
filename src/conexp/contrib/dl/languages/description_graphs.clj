@@ -10,7 +10,8 @@
   (:use conexp
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
-	conexp.contrib.dl.framework.boxes))
+	conexp.contrib.dl.framework.boxes)
+  (:use clojure.contrib.pprint))
 
 ;;;
 
@@ -50,19 +51,95 @@
 		   [r B] ((neighbours description-graph) A)]))
 
 (defmethod print-method ::Description-Graph [dg out]
-  (.write out "Description Graph"))
+  (let [#^String output (with-out-str
+			  (pprint (list 'Description-Graph
+					(vertices dg)
+					(neighbours dg)
+					(vertex-labels dg))))]
+    (.write out (.trim output))))
 
 ;;;
 
-(defn normalize-tbox
+(defn- new-var
+  "Returns a new variable name (globally unique)."
+  []
+  (gensym "C"))
+
+(defn- normalize-definition
+  "Normalzes given definition with additional defintions, returning
+  the normalized definition and a possibly enhanced structure of
+  definitions."
+  ;; stupid description
+  [definition term-names]
+  (let [language (expression-language (definition-expression definition)),
+	target   (definition-target definition),
+	expr     (let [expr (definition-expression definition)]
+		   (if (or (not (compound? expr))
+			   (not= 'and (operator expr)))
+		     (make-dl-expression language (list 'and expr))
+		     expr))]
+    (loop [args       (vec (arguments expr)),
+	   normalized [],
+	   names      term-names]
+      (if (empty? args)
+	[(make-dl-definition target (make-dl-expression language (if (= 1 (count normalized))
+								   (first normalized)
+								   (list* 'and normalized))))
+	 names]
+	(let [next-term (first args)]
+	  (if (atomic? next-term)
+	    (recur (rest args) (conj normalized next-term) names)
+	    ;; next-term is an existential quantification
+	    (let [[r B] (vec (arguments next-term))]
+	      (if (atomic? B)
+		(recur (rest args) (conj normalized next-term) names)
+		;; B is an existential quantification
+		(let [name (get names B nil)]
+		  (if-not (nil? name)
+		    (recur (rest args) (conj normalized (list 'exists r name)) names)
+		    (let [new-name (new-var),
+			  new-names (conj names [B new-name])]
+		      (recur (rest args) (conj normalized (list 'exists r new-name)) new-names))))))))))))
+
+(defn- tbox-from-names
+  "Creates and returns a tbox from given names and language."
+  [language names]
+  (make-tbox language (set-of (make-dl-definition A (make-dl-expression language def-A))
+			      [[def-A A] names])))
+
+(defn normalize
   "Normalizes given tbox."
   [tbox]
-  'to-be-done)
+  (let [language (tbox-language tbox),
+	[normalized-definitions new-names] (reduce (fn [[n-definitions names] definition]
+						     (let [[n-definition new-names] (normalize-definition definition names)]
+						       [(conj n-definitions n-definition) new-names]))
+						   [#{} {}]
+						   (tbox-definitions tbox))]
+    (if (empty? new-names)
+      (make-tbox language normalized-definitions)
+      (let [names-tbox (normalize (tbox-from-names language new-names))]
+	(make-tbox language (union normalized-definitions
+				   (tbox-definitions names-tbox)))))))
 
 (defn tbox->description-graph
   "Converts a tbox to a description graph."
   [tbox]
-  'to-be-done)
+  (let [normalized-tbox (normalize tbox),
+	definitions     (tbox-definitions tbox),
+
+	language        (tbox-language tbox),
+	vertices        (defined-concepts tbox),
+	neighbours      (into {} (for [def definitions]
+				   [(definition-target def)
+				    (set (map (comp vec arguments)
+					      (filter compound?
+						      (arguments (definition-expression def)))))])),
+	vertex-labels   (into {} (for [def definitions]
+				   [(definition-target def),
+				    (set (filter atomic?
+						 (arguments (definition-expression def))))]))]
+    (make-description-graph language vertices neighbours vertex-labels)))
 
 (defn description-graph->tbox
   "Converts a description graph to a tbox."

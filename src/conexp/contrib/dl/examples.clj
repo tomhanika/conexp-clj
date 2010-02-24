@@ -29,6 +29,11 @@
 (define-tbox some-tbox SimpleDL
   Grandfather (and Male (exists child (exists child (and)))))
 
+(define-tbox some-normal-tbox SimpleDL
+  A (and Male Father (exists child B)),
+  B (and Female (exists child T)),
+  T (and))
+
 (define-base-semantics SimpleDL
   [model dl-expression]
   ;; note: dl-expression is neither compound nor primitive (i.e. not a

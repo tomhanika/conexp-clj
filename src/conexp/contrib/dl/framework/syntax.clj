@@ -64,7 +64,7 @@
   (:language dl-expression))
 
 (defmethod print-method ::DL-expression [dl-exp out]
-  (.write out (str (expression dl-exp))))
+  (.write out (print-str (expression dl-exp))))
 
 ;;;
 
@@ -80,19 +80,21 @@
 	default-transformer (get-method transform-expression :default)]
     (when (or (nil? base-transformer)
 	      (= base-transformer default-transformer))
-      (illegal-argument "Language " (print-str language) " not known."))
+      (illegal-argument "Language " (print-str language) " not known for transformation."))
     (base-transformer language expression)))
-
-(defn make-dl-expression
-  "Takes a DL and a s-exp describing a concept description and returns
-  a DL-expression."
-  [language dl-sexp]
-  (DL-expression language (transform-expression language dl-sexp)))
 
 (defn dl-expression?
   "Returns true iff thing is a DL expression."
   [thing]
   (= (type thing) ::DL-expression))
+
+(defn make-dl-expression
+  "Takes a DL and a s-exp describing a concept description and returns
+  a DL-expression."
+  [language dl-sexp]
+  (cond
+   (dl-expression? dl-sexp) dl-sexp,
+   :else                    (DL-expression language (transform-expression language dl-sexp))))
 
 ;;;
 
@@ -122,7 +124,8 @@
 (defn compound?
   "Returns true iff given expression is a compound expression."
   [dl-expression]
-  (list? (expression dl-expression)))
+  (let [expr (expression dl-expression)]
+    (list? expr)))
 
 (defn atomic?
   "Returns true iff given expression is an atomic expression."
@@ -151,7 +154,9 @@
   [dl-expression]
   (when-not (compound? dl-expression)
     (illegal-argument "Given expression is atomic and has no arguments."))
-  (map #(make-dl-expression (expression-language dl-expression) %)
+  (map #(if-not (dl-expression? %)
+	  (make-dl-expression (expression-language dl-expression) %)
+	  %)
        (rest (expression dl-expression))))
 
 (defn symbols-in-expression
