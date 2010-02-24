@@ -82,9 +82,7 @@
 	   normalized [],
 	   names      term-names]
       (if (empty? args)
-	[(make-dl-definition target (make-dl-expression language (if (= 1 (count normalized))
-								   (first normalized)
-								   (list* 'and normalized))))
+	[(make-dl-definition target (make-dl-expression language (list* 'and normalized)))
 	 names]
 	(let [next-term (first args)]
 	  (if (atomic? next-term)
@@ -125,7 +123,7 @@
 (defn tbox->description-graph
   "Converts a tbox to a description graph."
   [tbox]
-  (let [normalized-tbox (normalize tbox),
+  (let [tbox            (normalize tbox),
 	definitions     (tbox-definitions tbox),
 
 	language        (tbox-language tbox),
@@ -174,6 +172,24 @@
 							      :when (contains? (base-interpretation P) x)]))
 						 (model-base-set model))]
     (make-description-graph language vertices neighbours vertex-labels)))
+
+;;;
+
+(defn graph-product
+  "Returns the product of the two description graphs given."
+  [graph-1 graph-2]
+  (let [language      (graph-language graph-1),
+	vertices      (cross-product (vertices graph-1) (vertices graph-2)),
+	neighbours    (hashmap-by-function (fn [[A B]]
+					     (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
+								[s D] ((neighbours graph-2) B),
+								:when (= r s)]))
+					   vertices),
+	vertex-labels (hashmap-by-function (fn [[A B]]
+					     (intersection ((vertex-labels graph-1) A)
+							   ((vertex-labels graph-2) B)))
+					   vertices)]
+ (make-description-graph language vertices neighbours vertex-labels)))
 
 ;;;
 

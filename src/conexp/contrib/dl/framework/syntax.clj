@@ -125,7 +125,8 @@
   "Returns true iff given expression is a compound expression."
   [dl-expression]
   (let [expr (expression dl-expression)]
-    (list? expr)))
+    (or (list? expr)
+	(instance? clojure.lang.Cons expr))))
 
 (defn atomic?
   "Returns true iff given expression is an atomic expression."
