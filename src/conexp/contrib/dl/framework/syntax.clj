@@ -98,6 +98,26 @@
 
 ;;;
 
+(defn dl-syntax-fn
+  "Transforms given expression in language into an evaluatable form."
+  [language expression]
+  (let [concepts  (concept-names language),
+	roles     (role-names language),
+	constrs   (constructors language),
+	symbols   (union concepts roles constrs),
+
+	transform (fn transform [sexp]
+		      (cond
+		       (seq? sexp) `(list ~@(map transform sexp)),
+		       (contains? symbols sexp) (list 'quote sexp),
+		       :else sexp))]
+     (transform expression)))
+
+(defmacro dl-expression
+  "Allows input of DL s-expression without quoting."
+  [language expression]
+  `(make-dl-expression ~language (eval (dl-syntax-fn ~language '~expression))))
+
 (defmacro define-dl
   "Defines a DL."
   [name concept-names role-names constructors & options]
@@ -202,8 +222,10 @@
 
 (defn make-dl-definition
   "Creates and returns a DL definition."
-  [target definition-expression]
-  (DL-definition target definition-expression))
+  ([target definition-expression]
+     (DL-definition target definition-expression))
+  ([language target definition-sexp]
+     (DL-definition target (make-dl-expression language definition-sexp))))
 
 ;;; Subsumptions
 
