@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.syntax
-  (:use conexp))
+  (:use conexp)
+  (:use clojure.contrib.pprint))
 
 
 ;;;
@@ -36,7 +37,12 @@
   (:constructors language))
 
 (defmethod print-method ::DL [dl out]
-  (.write out "DL"))
+  (let [#^String output (with-out-str
+			  (pprint (list 'DL
+					(concept-names dl)
+					(role-names dl)
+					(constructors dl))))]
+    (.write out (.trim output))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
@@ -70,9 +76,11 @@
       language)))
 
 (defmethod transform-expression :default [language expression]
-  (let [base-transformer (get-method transform-expression language)]
-    (when (nil? base-transformer)
-      (illegal-argument "Language " language " not known."))
+  (let [base-transformer (get-method transform-expression language),
+	default-transformer (get-method transform-expression :default)]
+    (when (or (nil? base-transformer)
+	      (= base-transformer default-transformer))
+      (illegal-argument "Language " (print-str language) " not known."))
     (base-transformer language expression)))
 
 (defn make-dl-expression
