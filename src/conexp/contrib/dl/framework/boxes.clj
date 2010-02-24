@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.dl.framework.boxes
   (:use conexp
-	conexp.contrib.dl.framework.syntax))
+	conexp.contrib.dl.framework.syntax)
+  (:use clojure.contrib.pprint))
 
 ;;; TBox definitions
 
@@ -25,11 +26,8 @@
   (:definitions tbox))
 
 (defmethod print-method ::TBox [tbox out]
-  (.write out (with-out-str
-		(print "#{")
-		(doseq [def (interpose ", " (tbox-definitions tbox))]
-		  (print def))
-		(print "}"))))
+  (let [#^String output (with-out-str (pprint (tbox-definitions tbox)))]
+    (.write out (.trim output))))
 
 (defn make-tbox
   "Creates and returns a tbox for language from the given

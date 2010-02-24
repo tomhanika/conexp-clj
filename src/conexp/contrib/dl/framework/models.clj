@@ -87,8 +87,8 @@
 (defmacro define-model
   "Defines model for language on base-set: interpretation maps atomic
   expressions to their extents."
-  [name language base-set interpretation]
-  `(def ~name (make-model ~language (set '~base-set) '~interpretation)))
+  [name language base-set & interpretation]
+  `(def ~name (make-model ~language (set '~base-set) '~(apply hash-map interpretation))))
 
 ;;;
 
