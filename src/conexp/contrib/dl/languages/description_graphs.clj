@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.dl.description-graphs
   (:use conexp
-	conexp.contrib.dl.base))
+	conexp.contrib.dl.framework.syntax))
 
 ;;;
 

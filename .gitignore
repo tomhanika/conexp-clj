@@ -12,3 +12,4 @@ src/doc/*.toc
 src/doc/*.pdf
 src/doc/*.thm
 .#*
+.nfs*
