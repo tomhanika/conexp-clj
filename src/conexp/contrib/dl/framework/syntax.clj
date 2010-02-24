@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.dl.framework.syntax
   (:use conexp)
-  (:use clojure.contrib.pprint))
+  (:use clojure.contrib.pprint
+	[clojure.walk :only (walk)]))
 
 
 ;;;
@@ -106,11 +107,17 @@
 	constrs   (constructors language),
 	symbols   (union concepts roles constrs),
 
+	transform-symbol (fn [symbol]
+			   (if (or (contains? symbols symbol)
+				   (Character/isUpperCase (first (str symbol))))
+			      (list 'quote symbol)
+			      symbol))
 	transform (fn transform [sexp]
-		      (cond
-		       (seq? sexp) `(list ~@(map transform sexp)),
-		       (contains? symbols sexp) (list 'quote sexp),
-		       :else sexp))]
+		    (cond
+		     (seq? sexp)        (cons 'list (walk transform identity sexp)),
+		     (sequential? sexp) (walk transform identity sexp),
+		     (symbol? sexp)     (transform-symbol sexp),
+		     :else              sexp))]
      (transform expression)))
 
 (defmacro dl-expression
