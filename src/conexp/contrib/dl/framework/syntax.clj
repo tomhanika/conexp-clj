@@ -123,6 +123,9 @@
   "Defines a DL."
   [name concept-names role-names constructors & options]
   (let [options (apply hash-map options)]
+    (when (exists [name (concat concept-names role-names)]
+	    (not (Character/isUpperCase (first (str name)))))
+      (illegal-argument "Concept and role names must start with a capital letter."))
     `(do
        (def ~name (make-language '~concept-names '~role-names '~constructors))
 
