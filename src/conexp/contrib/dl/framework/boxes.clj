@@ -66,7 +66,7 @@
   `(def ~name (make-tbox ~language
 			 (for [pair# '~definitions]
 			   (make-dl-definition (first pair#)
-					       (dl-syntax ~language (second pair#))))))))
+					       (make-dl-expression ~language (second pair#))))))))
 
 ;;;
 

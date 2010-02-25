@@ -14,9 +14,9 @@
 
 ;;;
 
-(define-dl SimpleDL [Father Mother Male Female] [child] [exists and])
+(define-dl SimpleDL [Father Mother Male Female] [Child] [exists and])
 
-(def dl-exp (make-dl-expression SimpleDL '(exists child Male)))
+(def dl-exp (make-dl-expression SimpleDL '(exists Child Male)))
 
 (define-model some-model SimpleDL
   #{John Marry Peter Jana}
@@ -27,12 +27,12 @@
   child  #{[John Peter], [Marry Peter], [Peter Jana]})
 
 (define-tbox some-tbox SimpleDL
-  Grandfather (and Male (exists child (exists child (and))))
-  Grandmother (and Female (exists child (exists child (and)))))
+  Grandfather (and Male (exists Child (exists Child (and))))
+  Grandmother (and Female (exists Child (exists Child (and)))))
 
 (define-tbox some-normal-tbox SimpleDL
-  A (and Male Father (exists child B)),
-  B (and Female (exists child T)),
+  A (and Male Father (exists Child B)),
+  B (and Female (exists Child T)),
   T (and))
 
 (define-base-semantics SimpleDL
@@ -46,8 +46,8 @@
       (interpret model (definition-expression exp))
       (throw (IllegalArgumentException. (str "Not a valid expression: " (print-str exp)))))))
 
-(def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
-(def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
+(def ext-dl-exp (dl-expression [some-tbox, Grandfather]))
+(def ext-dl-exp-2 (dl-expression (and [some-tbox, Grandfather])))
 
 ;;;
 

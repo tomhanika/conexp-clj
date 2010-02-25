@@ -99,36 +99,25 @@
 
 ;;;
 
-(defn dl-syntax-fn
-  "Transforms given expression in language into an evaluatable form."
-  [language expression]
-  (let [concepts  (concept-names language),
-	roles     (role-names language),
-	constrs   (constructors language),
-	symbols   (union concepts roles constrs),
-
-	transform-symbol (fn [symbol]
-			   (if (or (contains? symbols symbol)
-				   (Character/isUpperCase (first (str symbol))))
-			      (list 'quote symbol)
-			      symbol))
+(defmacro dl-expression
+  "Allows input of DL s-expression without quoting. Symbols starting
+  with a capital letter are quoted, symbols in the first position of a
+  sequence are quoted and everything else is left as it is."
+  [expression]
+  (let [transform-symbol (fn [symbol]
+			   (if (Character/isUpperCase (first (str symbol)))
+			     (list 'quote symbol)
+			     symbol)),
 	transform (fn transform [sexp]
 		    (cond
-		     (seq? sexp)        (cons 'list (walk transform identity sexp)),
+		     (seq? sexp)        (if (empty? sexp)
+					  sexp
+					  (list* 'list (list 'quote (first sexp))
+						 (walk transform identity (rest sexp)))),
 		     (sequential? sexp) (walk transform identity sexp),
 		     (symbol? sexp)     (transform-symbol sexp),
 		     :else              sexp))]
      (transform expression)))
-
-(defn dl-syntax
-  "Returns evaluated expression."
-  [language expression]
-  (make-dl-expression language (eval (dl-syntax-fn language expression))))
-
-(defmacro dl-expression
-  "Allows input of DL s-expression without quoting."
-  [language expression]
-  `(dl-syntax ~language '~expression))
 
 (defmacro define-dl
   "Defines a DL."
