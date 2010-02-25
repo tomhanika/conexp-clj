@@ -170,6 +170,16 @@
   ( [text] (with-swing-threads
                    (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
 
+;;
+;; clipboard functions
+;;
+
+;;
+;;
+;; managed/unmanaged interop
+;;
+
+
 (defn managed-by-conexp-gui-editors-util? 
   "Returns true if the object given as parameter is managed by the
    conexp.gui.editors.util module.
@@ -272,7 +282,7 @@
                (do-map-tree* (fn [x] (if (= :root x) treeroot 
                                        (DefaultMutableTreeNode. x)))
                  .add t)
-               (.reload treemodel) ) ))
+               (.reload treemodel)) ))
 
          :set-selection-mode
          (fn-doc "Sets the tree control's selection mode.
@@ -314,6 +324,78 @@
                (.addTreeSelectionListener treecontrol listener) ) )) }]
     (do
       (one-by-one setup unroll-parameters-fn-map widget) 
+      widget )))
+
+;;
+;;
+;;  Table
+;;
+;;
+;;
+
+(defn do-mk-table-control
+  "Creates a table control in Java.
+
+  Parameters:
+     & setup     _an optional number of vectors that may contain additional
+                  tweaks that are called after widget creation"
+  [& setup]
+  (let [ model (DefaultTableModel.)
+         table (JTable. model)
+         pane  (JScrollPane. table 
+                 JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
+                 JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED)
+         widget {:managed-by-conexp-gui-editors-util "table-control"
+         :widget   pane
+         :control  table
+         :model    model
+
+         :set-column-count 
+         (fn-doc "Sets the number of columns of the table.
+   Parameters:
+     count     _number of columns in the altered table"
+           [count]
+           (with-swing-threads
+             (.setColumnCount model count)))
+
+         :set-row-count 
+         (fn-doc "Sets the number of rows of the table.
+   Parameters:
+     count     _number of rows in the altered table"
+           [count]
+           (with-swing-threads
+             (.setRowCount model count)))
+
+         :set-resize-mode
+         (fn-doc "Sets the behaviour of the table on resize.
+   Parameters:
+     mode      _either :all, :last, :next, :off, or :subseq"
+           [mode]
+           (with-swing-threads
+             (.setAutoResizeMode table ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
+               :last JTable/AUTO_RESIZE_LAST_COLUMN
+               :next JTable/AUTO_RESIZE_NEXT_COLUMN
+               :off JTable/AUTO_RESIZE_OFF
+               :subseq JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS} mode))))
+
+         :set-cell-selection-mode
+         (fn-doc "Sets the cell selection mode.
+   Parameters:
+     mode      _either :none, :rows, :columns or :cells"
+           [mode]
+           (with-swing-threads
+             (cond (= mode :none) (.setCellSelectionEnabled table false)
+               (= mode :rows) (doto table (.setColumnSelectionAllowed false)
+                                (.setRowSelectionAllowed true))
+               (= mode :columns) (doto table (.setRowSelectionAllowed false)
+                                (.setColumnSelectionAllowed true))
+               (= mode :cells) (.setCellSelectionEnabled table true))))
+         }
+         defaults [ [:set-resize-mode :off] 
+                    [:set-cell-selection-mode :cells]] ]
+    (do
+      (one-by-one defaults unroll-parameters-fn-map widget)
+      (one-by-one setup unroll-parameters-fn-map widget)
       widget )))
 
 nil

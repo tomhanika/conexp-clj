@@ -11,5 +11,10 @@
 
 (ns conexp.gui.editors.util)
 
-(add-to-workspace "test" 0)
-(add-to-workspace "test-1" 0)
+(conexp.gui.editors.contexts/add-to-workspace "test" 0)
+(conexp.gui.editors.contexts/add-to-workspace "test-1" 0)
+(conexp.gui.editors.contexts/add-to-workspace "test-3" 0)
+(conexp.gui.editors.contexts/add-to-workspace "test31" 0)
+(conexp.gui.editors.contexts/add-to-workspace "test-21" 0)
+(conexp.gui.editors.contexts/add-to-workspace "test-31" 0)
+(conexp.gui.editors.contexts/update-workspace-tree)

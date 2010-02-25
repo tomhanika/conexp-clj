@@ -63,6 +63,21 @@
   [& body]
   `(invoke-later #(do ~@body)))
 
+(defmacro do-swing-threads
+  "Executes body with invoke-and-wait to make it thread-safe to Swing."
+  [& body]
+  `(invoke-and-wait #(do ~@body)))
+
+(defmacro do-swing-return
+  "Executes body with invoke-and-wait to make it thread-safe to Swing,
+   returning the value of the last statement using a promise!"
+  [& body]
+  `(let [ returnvalue# (promise)]
+     (do
+       (invoke-and-wait #(deliver returnvalue# (do ~@body)))
+       @returnvalue#)))
+
+
 (defn get-resource
   "Returns the resource res if found, nil otherwise."
   [res]
