@@ -46,8 +46,8 @@
       (interpret model (definition-expression exp))
       (throw (IllegalArgumentException. (str "Not a valid expression: " (print-str exp)))))))
 
-(def ext-dl-exp (dl-expression [some-tbox, Grandfather]))
-(def ext-dl-exp-2 (dl-expression (and [some-tbox, Grandfather])))
+(def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
+(def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
 
 ;;;
 

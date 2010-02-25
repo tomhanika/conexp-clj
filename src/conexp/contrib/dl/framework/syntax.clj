@@ -109,7 +109,7 @@
   "Allows input of DL s-expression without quoting. Symbols starting
   with a capital letter are quoted, symbols in the first position of a
   sequence are quoted and everything else is left as it is."
-  [expression]
+  [language expression]
   (let [transform-symbol (fn [symbol]
 			   (if (Character/isUpperCase (first (str symbol)))
 			     (list 'quote symbol)
@@ -123,7 +123,7 @@
 		     (sequential? sexp) (walk transform identity sexp),
 		     (symbol? sexp)     (transform-symbol sexp),
 		     :else              sexp))]
-     (transform expression)))
+    `(make-dl-expression ~language ~(transform expression))))
 
 (defmacro define-dl
   "Defines a DL."
@@ -217,6 +217,21 @@
   (difference (symbols-in-expression dl-expression)
 	      (union (role-names-in-expression dl-expression)
 		     (concept-names-in-expression dl-expression))))
+
+(defn- substitute-syntax
+  "Substitues in first sexp every occurence of name by the second one."
+  [sexp-1 name sexp-2]
+  (cond
+   (= sexp-1 name) sexp-2,
+   (sequential? sexp-1) (walk #(substitute-syntax % name sexp-2) identity sexp-1),
+   :else sexp-1))
+
+(defn substitute
+  "Substitutes in the first dl-expression all occurences of name by
+  the second dl-expression, returning the resulting expression."
+  [dl-expr name new-dl-expr]
+  (make-dl-expression (expression-language dl-expr)
+		      (substitute-syntax (expression dl-expr) name (expression new-dl-expr))))
 
 ;;; Definitions
 
