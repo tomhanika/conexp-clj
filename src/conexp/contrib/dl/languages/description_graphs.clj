@@ -76,7 +76,7 @@
 	expr     (let [expr (definition-expression definition)]
 		   (if (or (not (compound? expr))
 			   (not= 'and (operator expr)))
-		     (make-dl-expression language (list 'and expr))
+		     (dl-expression language (and expr))
 		     expr))]
     (loop [args       (vec (arguments expr)),
 	   normalized [],

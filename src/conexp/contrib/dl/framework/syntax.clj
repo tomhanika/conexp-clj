@@ -120,10 +120,15 @@
 		     :else              sexp))]
      (transform expression)))
 
+(defn dl-syntax
+  "Returns evaluated expression."
+  [language expression]
+  (make-dl-expression language (eval (dl-syntax-fn language expression))))
+
 (defmacro dl-expression
   "Allows input of DL s-expression without quoting."
   [language expression]
-  `(make-dl-expression ~language (eval (dl-syntax-fn ~language '~expression))))
+  `(dl-syntax ~language '~expression))
 
 (defmacro define-dl
   "Defines a DL."
