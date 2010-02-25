@@ -89,13 +89,19 @@
   [thing]
   (= (type thing) ::DL-expression))
 
+(defn- dl-sexp->term
+  "Ensures no dl-expression objects in the syntax expression given."
+  [expr]
+  (cond
+   (dl-expression? expr) (expression expr),
+   (sequential? expr)    (walk dl-sexp->term identity expr),
+   :else                 expr))
+
 (defn make-dl-expression
   "Takes a DL and a s-exp describing a concept description and returns
   a DL-expression."
   [language dl-sexp]
-  (cond
-   (dl-expression? dl-sexp) dl-sexp,
-   :else                    (DL-expression language (transform-expression language dl-sexp))))
+  (DL-expression language (dl-sexp->term dl-sexp)))
 
 ;;;
 
