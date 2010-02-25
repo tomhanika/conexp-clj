@@ -65,7 +65,9 @@
   (:language dl-expression))
 
 (defmethod print-method ::DL-expression [dl-exp out]
-  (.write out (print-str (list 'DL-expr (expression dl-exp)))))
+  (let [#^String output (with-out-str
+			  (pprint (list 'DL-expr (expression dl-exp))))]
+    (.write out (.trim output))))
 
 ;;;
 
@@ -185,7 +187,7 @@
   (when-not (compound? dl-expression)
     (illegal-argument "Given expression is atomic and has no arguments."))
   (map #(if-not (dl-expression? %)
-	  (make-dl-expression (expression-language dl-expression) %)
+	  (DL-expression (expression-language dl-expression) %)
 	  %)
        (rest (expression dl-expression))))
 
@@ -230,8 +232,8 @@
   "Substitutes in the first dl-expression all occurences of name by
   the second dl-expression, returning the resulting expression."
   [dl-expr name new-dl-expr]
-  (make-dl-expression (expression-language dl-expr)
-		      (substitute-syntax (expression dl-expr) name (expression new-dl-expr))))
+  (DL-expression (expression-language dl-expr)
+		 (substitute-syntax (expression dl-expr) name (expression new-dl-expr))))
 
 ;;; Definitions
 

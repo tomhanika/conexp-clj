@@ -122,11 +122,38 @@
 		  def)),
      A]))
 
+(defn substitute-definitions
+  "Substitutes defined concepts in the definition of target by their
+  definitions. Note that this function does not finish when the tbox is
+  recursive in target."
+  [tbox target]
+  (let [symbols (free-symbols-in-expression (definition-expression (find-definition tbox target)))]
+    (if (empty? symbols)
+      tbox
+      (let [target-definition  (find-definition tbox target),
+	    rest-definitions   (disj (tbox-definitions tbox) target-definition),
+	    needed-definitions (for [def rest-definitions
+				     :when (contains? symbols (definition-target def))]
+				 [(definition-target def) (definition-expression def)]),
+
+	    new-target-definition (make-dl-definition target
+						      (reduce (fn [expr [name new-expr]]
+								(substitute expr name new-expr))
+							      (definition-expression target-definition)
+							      needed-definitions)),
+	    [new-tbox target]  (clarify-tbox (make-tbox (tbox-language tbox)
+							(conj rest-definitions new-target-definition))
+					     target)]
+	(recur new-tbox target)))))
+
 (defn reduce-tbox
   "Reduces tbox for target as much as possible, returning a pair of
   the reduced tbox and target."
   [tbox target]
-  (clarify-tbox tbox target))
+  (let [[c-tbox target] (clarify-tbox tbox target)]
+    (if (acyclic? c-tbox)
+      (substitute-definitions c-tbox target)
+      [c-tbox target])))
 
 ;;;
 

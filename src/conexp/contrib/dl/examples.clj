@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.examples
-  (:use conexp.contrib.dl.framework.syntax
+  (:use conexp
+	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.languages.description-graphs))
@@ -24,7 +25,7 @@
   Father #{John, Peter},
   Male   #{John, Peter},
   Female #{Marry, Jana},
-  child  #{[John Peter], [Marry Peter], [Peter Jana]})
+  Child  #{[John Peter], [Marry Peter], [Peter Jana]})
 
 (define-tbox some-tbox SimpleDL
   Grandfather (and Male (exists Child (exists Child (and))))
@@ -40,11 +41,11 @@
   ;; note: dl-expression is neither compound nor primitive (i.e. not a
   ;; concept name and not a role name)
   (let [[tbox, target] (expression dl-expression),
-	exp    (first (filter #(= (definition-target %) target)
-			      (tbox-definitions tbox)))]
+	exp            (first (filter #(= (definition-target %) target)
+				      (tbox-definitions tbox)))]
     (if exp
       (interpret model (definition-expression exp))
-      (throw (IllegalArgumentException. (str "Not a valid expression: " (print-str exp)))))))
+      (illegal-argument "Not a valid expression: " (print-str exp)))))
 
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
