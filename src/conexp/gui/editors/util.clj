@@ -126,6 +126,29 @@
        (= count# 6) ((~fn_map (vec# 0)) (vec# 1) (vec# 2) (vec# 3) (vec# 4)
                       (vec# 5)))))
 
+(defn print-doc* [v]
+  (println "-------------------------")
+  (println " " (:doc (meta v))))
+
+(defmacro doc*
+  "Own implementation of doc that allows to document 'anonymous' functions
+   which are bound to something via def"
+  [v]
+  `(if (contains? ^~v :alternate-doc) (print-doc* ~v) (doc ~v)))
+
+(defmacro doc!
+  "Own implementation of doc that also can take arguments that are not bound"
+  [v]
+  `(do
+     (def object-to-be-documented ~v)
+     (doc* object-to-be-documented)))
+
+(defmacro fn-doc
+  "Create a documented anonymous function. (Currently does nothing.)"
+  [doc & rest]
+  `(with-meta (fn ~@rest) {:doc ~doc :alternate-doc 0}))
+
+
 (defn extract-array
   "Takes a java-array and turns it into a list"
   [array]
@@ -166,6 +189,14 @@
   [obj]
   (if (managed-by-conexp-gui-editors-util? obj) (:widget obj) obj))
 
+;;
+;;
+;;  Split Pane
+;;
+;;
+;;
+;;
+
 (defn do-mk-split-pane
   "Creates a managed split pane object.
 
@@ -186,7 +217,10 @@
            widget  {:managed-by-conexp-gui-editors-util "split-pane"
            :widget split-pane
            :set-divider-location 
-           (fn [location]
+           (fn-doc "Sets the location of the divider.
+   Parameters:
+     location   _location of the divider (nbr of pixels from left/top)"
+             [location]
              (with-swing-threads 
                (.setDividerLocation split-pane location))) 
            }
@@ -194,6 +228,13 @@
       (do
         (one-by-one setup unroll-parameters-fn-map widget) 
         widget )))
+
+;;
+;;
+;; Tree Control
+;;
+;;
+;;
 
 (defn do-mk-tree-control
   "Creates a scrollable tree control object.
@@ -216,7 +257,15 @@
          :control treecontrol
 
          :set-tree
-         (fn [tree]
+         (fn-doc "Sets the tree that the control displays.
+
+   Parameters:
+     tree       _a tree represented by the root node and its children,
+                 where each node is represented by a list that has
+                 the node's name as first element and all its child
+                 trees as rest, where each child is again represented by
+                 its respective root node"
+           [tree]
            (let [t (conj (rest tree) :root)]
              (with-swing-threads
                (.removeAllChildren treeroot)
@@ -226,7 +275,12 @@
                (.reload treemodel) ) ))
 
          :set-selection-mode
-         (fn [mode]
+         (fn-doc "Sets the tree control's selection mode.
+
+   Parameters:
+     mode       _either :single, :multi (contiguous multiselection) or
+                 :free (free multiselection)"
+           [mode]
            (let [selection-model (.getSelectionModel treecontrol)]
              (.setSelectionMode selection-model 
                ({:single TreeSelectionModel/SINGLE_TREE_SELECTION
@@ -234,10 +288,13 @@
                  :free TreeSelectionModel/DISCONTIGUOUS_TREE_SELECTION} mode))))
 
          :set-selection-handler
-         (fn [handler]                ; handler is a function that will take 
-                                        ; the labels of the paths from the root
-                                        ; to the selected nodes as lazy-seq as
-                                        ; single argument
+         (fn-doc "Sets the selection-handler for the tree-control which is
+   called every time the selection changes to handler.
+
+   Parameters:
+     handler    _function that will be called with a list of the selected nodes
+                 represented each by a list of labels starting from the root."
+           [handler]
            (with-swing-threads
              (let [current-handlers (.getTreeSelectionListeners treecontrol)
                     listeners (extract-array current-handlers) ]

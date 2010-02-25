@@ -50,8 +50,9 @@
    "
   [name context]
   (do
-    (dosync (commute context-data conj {(str name) context}))
-    (update-workspace-tree)
+    (dosync 
+      (commute context-data conj {(str name) context})
+      (update-workspace-tree))
     )
   )
 
