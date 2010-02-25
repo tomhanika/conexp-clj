@@ -63,7 +63,7 @@
 (defn- new-var
   "Returns a new variable name (globally unique)."
   []
-  (gensym "C"))
+  (gensym "C-"))
 
 (defn- normalize-definition
   "Normalzes given definition with additional defintions, returning
@@ -76,7 +76,7 @@
 	expr     (let [expr (definition-expression definition)]
 		   (if (or (not (compound? expr))
 			   (not= 'and (operator expr)))
-		     (dl-expression language (and expr))
+		     (make-dl-expression language (list 'and expr))
 		     expr))]
     (loop [args       (vec (arguments expr)),
 	   normalized [],
@@ -86,18 +86,18 @@
 	 names]
 	(let [next-term (first args)]
 	  (if (atomic? next-term)
-	    (recur (rest args) (conj normalized next-term) names)
+	    (recur (rest args) (conj normalized (expression next-term)) names)
 	    ;; next-term is an existential quantification
 	    (let [[r B] (vec (arguments next-term))]
 	      (if (atomic? B)
-		(recur (rest args) (conj normalized next-term) names)
+		(recur (rest args) (conj normalized (expression next-term)) names)
 		;; B is an existential quantification
 		(let [name (get names B nil)]
 		  (if-not (nil? name)
-		    (recur (rest args) (conj normalized (list 'exists r name)) names)
+		    (recur (rest args) (conj normalized (list 'exists (expression r) name)) names)
 		    (let [new-name (new-var),
 			  new-names (conj names [B new-name])]
-		      (recur (rest args) (conj normalized (list 'exists r new-name)) new-names))))))))))))
+		      (recur (rest args) (conj normalized (list 'exists (expression r) new-name)) new-names))))))))))))
 
 (defn- tbox-from-names
   "Creates and returns a tbox from given names and language."
@@ -130,13 +130,14 @@
 	vertices        (defined-concepts tbox),
 	neighbours      (into {} (for [def definitions]
 				   [(definition-target def)
-				    (set (map (comp vec arguments)
+				    (set (map #(vec (map expression (arguments %)))
 					      (filter compound?
 						      (arguments (definition-expression def)))))])),
 	vertex-labels   (into {} (for [def definitions]
 				   [(definition-target def),
-				    (set (filter atomic?
-						 (arguments (definition-expression def))))]))]
+				    (set (map expression
+					      (filter atomic?
+						      (arguments (definition-expression def)))))]))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
 (defn description-graph->tbox
@@ -190,6 +191,16 @@
 							   ((vertex-labels graph-2) B)))
 					   vertices)]
  (make-description-graph language vertices neighbours vertex-labels)))
+
+;;;
+
+(defn EL-gfp-lcs
+  "Returns the least common subsumer of A and B in tbox (in EL-gfp)."
+  [tbox A B]
+  (let [G_T_1 (tbox->description-graph tbox)
+	G-x-G (graph-product G_T_1 G_T_1),
+	T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
+    (reduce-tbox T_2, [A,B])))
 
 ;;;
 

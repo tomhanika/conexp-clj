@@ -7,9 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.boxes
-  (:use conexp
+  (:use [conexp :exclude (transitive-closure)]
 	conexp.contrib.dl.framework.syntax)
-  (:use clojure.contrib.pprint))
+  (:use clojure.contrib.pprint
+	clojure.contrib.graph))
 
 ;;; TBox definitions
 
@@ -33,7 +34,7 @@
   "Creates and returns a tbox for language from the given
   definitions."
   [language definitions]
-  (TBox language definitions))
+  (TBox language (set definitions)))
 
 ;;; accessing used role names, primitive and defined concepts
 
@@ -63,9 +64,69 @@
   [name language & definitions]
   (let [definitions (partition 2 definitions)]
   `(def ~name (make-tbox ~language
-			 (set (for [pair# '~definitions]
-				(make-dl-definition (first pair#)
-						    (dl-syntax ~language (second pair#)))))))))
+			 (for [pair# '~definitions]
+			   (make-dl-definition (first pair#)
+					       (dl-syntax ~language (second pair#))))))))
+
+;;;
+
+(defn find-definition
+  "Returns definition of target A in tbox, if it exists."
+  [tbox A]
+  (first (filter #(= A (definition-target %))
+		 (tbox-definitions tbox))))
+
+(defn tbox-union
+  "Returns the union of tbox-1 and tbox-2."
+  [tbox-1 tbox-2]
+  (make-tbox (tbox-language tbox-1)
+	     (union (tbox-definitions tbox-1)
+		    (tbox-definitions tbox-2))))
+
+;;;
+
+(defn- usage-graph
+  "Returns usage graph of a given tbox."
+  [tbox]
+  (struct directed-graph
+	  (defined-concepts tbox)
+	  (fn [A]
+	    (free-symbols-in-expression (definition-expression (find-definition tbox A))))))
+
+(defn acyclic?
+  "Returns true iff tbox is acyclic."
+  [tbox]
+  (zero? (count (self-recursive-sets (usage-graph tbox)))))
+
+(defn collect-targets
+  "Collects all targets reachable in the usage graph of tbox, starting
+  from targets."
+  [tbox targets seen]
+  (if (empty? targets)
+    seen
+    (let [target  (first targets),
+	  seen    (conj seen target),
+	  targets (difference (into targets (free-symbols-in-expression
+					     (definition-expression (find-definition tbox target))))
+			      seen)]
+      (recur tbox targets seen))))
+
+(defn clarify-tbox
+  "Clarifies tbox for target A, i.e. removes all definitions from tbox
+  which are not needed to define A."
+  [tbox A]
+  (let [needed-targets (collect-targets tbox #{A} #{})]
+    [(make-tbox (tbox-language tbox)
+		(for [def (tbox-definitions tbox)
+		      :when (contains? needed-targets (definition-target def))]
+		  def)),
+     A]))
+
+(defn reduce-tbox
+  "Reduces tbox for target as much as possible, returning a pair of
+  the reduced tbox and target."
+  [tbox target]
+  (clarify-tbox tbox target))
 
 ;;;
 

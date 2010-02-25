@@ -65,7 +65,7 @@
   (:language dl-expression))
 
 (defmethod print-method ::DL-expression [dl-exp out]
-  (.write out (print-str (expression dl-exp))))
+  (.write out (print-str (list 'DL-expr (expression dl-exp)))))
 
 ;;;
 
@@ -195,9 +195,10 @@
   "Returns all symbols used in expressions."
   [dl-expression]
   (let [collector (fn collector [expr]
-		    (if-not (list? expr)
-		      [expr]
-		      (vec (reduce concat (map collector (rest expr))))))]
+		    (cond
+		     (seq? expr) (vec (reduce concat (map collector (rest expr)))),
+		     (dl-expression? expr) (collector (expression expr)),
+		     :else [expr]))]
     (set (collector (expression dl-expression)))))
 
 (defn role-names-in-expression
@@ -211,6 +212,13 @@
   [dl-expression]
   (intersection (concept-names (expression-language dl-expression))
 		(symbols-in-expression dl-expression)))
+
+(defn free-symbols-in-expression
+  "Returns all free symbols in the given expression."
+  [dl-expression]
+  (difference (symbols-in-expression dl-expression)
+	      (union (role-names-in-expression dl-expression)
+		     (concept-names-in-expression dl-expression))))
 
 ;;; Definitions
 

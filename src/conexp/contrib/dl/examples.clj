@@ -27,7 +27,8 @@
   child  #{[John Peter], [Marry Peter], [Peter Jana]})
 
 (define-tbox some-tbox SimpleDL
-  Grandfather (and Male (exists child (exists child (and)))))
+  Grandfather (and Male (exists child (exists child (and))))
+  Grandmother (and Female (exists child (exists child (and)))))
 
 (define-tbox some-normal-tbox SimpleDL
   A (and Male Father (exists child B)),
