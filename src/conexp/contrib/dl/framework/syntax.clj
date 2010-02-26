@@ -267,14 +267,31 @@
 
 ;;; Subsumptions
 
-(deftype DL-subsumption [C D])
+(deftype DL-subsumption [subsumee subsumer])
+
+(defn subsumee
+  "Returns the subsumee of the given subsumption."
+  [subsumption]
+  (:subsumee subsumption))
+
+(defn subsumer
+  "Returns the subsumer of the given subsumption."
+  [subsumption]
+  (:subsumer subsumption))
 
 (defn make-subsumption
   "Creates and returns a subsumption."
   [C D]
+  (when-not (and (dl-expression? C) (dl-expression? D))
+    (illegal-argument "Arguments to make-subsumption must be DL-expressions."))
   (DL-subsumption C D))
 
-;;; Equivalences
+(defmethod print-method ::DL-subsumption [susu out]
+  (let [#^String output (with-out-str
+			  (pprint (list 'DL-subsumption
+					(subsumee susu)
+					(subsumer susu))))]
+    (.write out (.trim output))))
 
 ;;;
 

@@ -111,7 +111,7 @@
 (defmacro define-msc
   "Defines model based most specific concepts for a language, a model
   and a set of objects."
-  [[language model objects] & body]
+  [language [model objects] & body]
   `(defmethod most-specific-concept ~language
      [~model ~objects]
      ~@body))
