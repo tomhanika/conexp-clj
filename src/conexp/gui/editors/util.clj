@@ -144,9 +144,19 @@
      (doc* object-to-be-documented)))
 
 (defmacro fn-doc
-  "Create a documented anonymous function. (Currently does nothing.)"
+  "Create a documented anonymous function."
   [doc & rest]
   `(with-meta (fn ~@rest) {:doc ~doc :alternate-doc 0}))
+
+(defmacro fn-swing-doc
+  "Create a documented anonymous function."
+  [doc & rest]
+  `(with-meta (fn-swing ~@rest) {:doc ~doc :alternate-doc 0}))
+
+(defmacro fn-swing-threads*-doc
+  "Create a documented anonymous function."
+  [doc & rest]
+  `(with-meta (fn-swing-threads* ~@rest) {:doc ~doc :alternate-doc 0}))
 
 
 (defn extract-array
@@ -168,7 +178,7 @@
   ( [text title] (with-swing-threads
                    (JOptionPane/showMessageDialog nil (str text) (str title) 0)))
   ( [text] (with-swing-threads
-                   (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
+             (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
 
 ;;
 ;; clipboard functions
@@ -207,7 +217,7 @@
 ;;
 ;;
 
-(defn do-mk-split-pane
+(defn-swing do-mk-split-pane
   "Creates a managed split pane object.
 
    Parameters:
@@ -220,24 +230,24 @@
                   :set-divider-location map with 150 as single parameter
   "
   [direction topleft bottomright & setup]
-    (let [split-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
-                                    :vert JSplitPane/VERTICAL_SPLIT})
-                       (get-widget topleft)
-                       (get-widget bottomright))
-           widget  {:managed-by-conexp-gui-editors-util "split-pane"
-           :widget split-pane
-           :set-divider-location 
-           (fn-doc "Sets the location of the divider.
+  (let [split-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
+                                  :vert JSplitPane/VERTICAL_SPLIT})
+                     (get-widget topleft)
+                     (get-widget bottomright))
+         widget  {:managed-by-conexp-gui-editors-util "split-pane"
+         :widget split-pane
+         :set-divider-location 
+         (fn-doc "Sets the location of the divider.
    Parameters:
      location   _location of the divider (nbr of pixels from left/top)"
-             [location]
-             (with-swing-threads 
-               (.setDividerLocation split-pane location))) 
-           }
-           ]
-      (do
-        (one-by-one setup unroll-parameters-fn-map widget) 
-        widget )))
+           [location]
+           (with-swing-threads* 
+             (.setDividerLocation split-pane location))) 
+         }
+         ]
+    (do
+      (one-by-one setup unroll-parameters-fn-map widget) 
+      widget )))
 
 ;;
 ;;
@@ -246,7 +256,7 @@
 ;;
 ;;
 
-(defn do-mk-tree-control
+(defn-swing do-mk-tree-control
   "Creates a scrollable tree control object.
 
    Parameters:
@@ -277,7 +287,7 @@
                  its respective root node"
            [tree]
            (let [t (conj (rest tree) :root)]
-             (with-swing-threads
+             (with-swing-threads*
                (.removeAllChildren treeroot)
                (do-map-tree* (fn [x] (if (= :root x) treeroot 
                                        (DefaultMutableTreeNode. x)))
@@ -285,43 +295,46 @@
                (.reload treemodel)) ))
 
          :set-selection-mode
-         (fn-doc "Sets the tree control's selection mode.
+         (fn-swing-threads*-doc
+           "Sets the tree control's selection mode.
 
    Parameters:
      mode       _either :single, :multi (contiguous multiselection) or
                  :free (free multiselection)"
-           [mode]
+           [mode]           
            (let [selection-model (.getSelectionModel treecontrol)]
              (.setSelectionMode selection-model 
                ({:single TreeSelectionModel/SINGLE_TREE_SELECTION
                  :multi TreeSelectionModel/CONTIGUOUS_TREE_SELECTION
-                 :free TreeSelectionModel/DISCONTIGUOUS_TREE_SELECTION} mode))))
+                 :free TreeSelectionModel/DISCONTIGUOUS_TREE_SELECTION} 
+                 mode))))
 
          :set-selection-handler
-         (fn-doc "Sets the selection-handler for the tree-control which is
+         (fn-swing-threads*-doc
+           "Sets the selection-handler for the tree-control which is
    called every time the selection changes to handler.
 
    Parameters:
      handler    _function that will be called with a list of the selected nodes
                  represented each by a list of labels starting from the root."
            [handler]
-           (with-swing-threads
-             (let [current-handlers (.getTreeSelectionListeners treecontrol)
-                    listeners (extract-array current-handlers) ]
-               (one-by-one listeners .removeTreeSelectionListener treecontrol))
-             (let [listener (proxy [TreeSelectionListener] []
-                              (valueChanged [event] 
-                                (let [ paths (.getSelectionPaths treecontrol)
-                                       treepaths (map (*comp
-                                                        (rho .getPath)
-                                                        extract-array
-                                                        (rho map 
-                                                          (rho .getUserObject))
-                                                        )
-                                                   (extract-array paths))
-                                       ]
-                                  (handler treepaths) )))]
-               (.addTreeSelectionListener treecontrol listener) ) )) }]
+           
+           (let [current-handlers (.getTreeSelectionListeners treecontrol)
+                  listeners (extract-array current-handlers) ]
+             (one-by-one listeners .removeTreeSelectionListener treecontrol))
+           (let [listener (proxy [TreeSelectionListener] []
+                            (valueChanged [event] 
+                              (let [ paths (.getSelectionPaths treecontrol)
+                                     treepaths (map (*comp
+                                                      (rho .getPath)
+                                                      extract-array
+                                                      (rho map 
+                                                        (rho .getUserObject))
+                                                      )
+                                                 (extract-array paths))
+                                     ]
+                                (handler treepaths) )))]
+             (.addTreeSelectionListener treecontrol listener) ) ) }]
     (do
       (one-by-one setup unroll-parameters-fn-map widget) 
       widget )))
@@ -333,7 +346,7 @@
 ;;
 ;;
 
-(defn do-mk-table-control
+(defn-swing do-mk-table-control
   "Creates a table control in Java.
 
   Parameters:
@@ -351,45 +364,44 @@
          :model    model
 
          :set-column-count 
-         (fn-doc "Sets the number of columns of the table.
+         (fn-swing-threads*-doc "Sets the number of columns of the table.
    Parameters:
      count     _number of columns in the altered table"
            [count]
-           (with-swing-threads
-             (.setColumnCount model count)))
+
+           (.setColumnCount model count))
 
          :set-row-count 
-         (fn-doc "Sets the number of rows of the table.
+         (fn-swing-threads*-doc "Sets the number of rows of the table.
    Parameters:
      count     _number of rows in the altered table"
            [count]
-           (with-swing-threads
-             (.setRowCount model count)))
+           (.setRowCount model count))
 
          :set-resize-mode
-         (fn-doc "Sets the behaviour of the table on resize.
+         (fn-swing-threads*-doc "Sets the behaviour of the table on resize.
    Parameters:
      mode      _either :all, :last, :next, :off, or :subseq"
            [mode]
-           (with-swing-threads
-             (.setAutoResizeMode table ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
-               :last JTable/AUTO_RESIZE_LAST_COLUMN
-               :next JTable/AUTO_RESIZE_NEXT_COLUMN
-               :off JTable/AUTO_RESIZE_OFF
-               :subseq JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS} mode))))
+
+           (.setAutoResizeMode table ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
+                                       :last JTable/AUTO_RESIZE_LAST_COLUMN
+                                       :next JTable/AUTO_RESIZE_NEXT_COLUMN
+                                       :off JTable/AUTO_RESIZE_OFF
+                                       :subseq JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS} mode)))
 
          :set-cell-selection-mode
-         (fn-doc "Sets the cell selection mode.
+         (fn-swing-threads*-doc "Sets the cell selection mode.
    Parameters:
      mode      _either :none, :rows, :columns or :cells"
            [mode]
-           (with-swing-threads
-             (cond (= mode :none) (.setCellSelectionEnabled table false)
-               (= mode :rows) (doto table (.setColumnSelectionAllowed false)
-                                (.setRowSelectionAllowed true))
-               (= mode :columns) (doto table (.setRowSelectionAllowed false)
-                                (.setColumnSelectionAllowed true))
-               (= mode :cells) (.setCellSelectionEnabled table true))))
+
+           (cond (= mode :none) (.setCellSelectionEnabled table false)
+             (= mode :rows) (doto table (.setColumnSelectionAllowed false)
+                              (.setRowSelectionAllowed true))
+             (= mode :columns) (doto table (.setRowSelectionAllowed false)
+                                 (.setColumnSelectionAllowed true))
+             (= mode :cells) (.setCellSelectionEnabled table true)))
          }
          defaults [ [:set-resize-mode :off] 
                     [:set-cell-selection-mode :cells]] ]

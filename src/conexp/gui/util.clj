@@ -53,36 +53,81 @@
   [fn]
   (SwingUtilities/invokeLater fn))
 
+(defn invoke-later-or-now
+"Calls fn with SwingUtilities/invokeLater."
+[fn]
+(if (SwingUtilities/isEventDispatchThread)
+  (fn)
+  (SwingUtilities/invokeLater fn)))
+
+
 (defn invoke-and-wait
-  "Calls fn with SwingUtilities/invokeAndWait."
-  [fn]
-  (SwingUtilities/invokeAndWait fn))
+"Calls fn with SwingUtilities/invokeAndWait if necessary."
+[fn]
+(if (SwingUtilities/isEventDispatchThread)
+  (fn)
+  (SwingUtilities/invokeAndWait fn)))
 
 (defmacro with-swing-threads
-  "Executes body with invoke-later to make it thread-safe to Swing."
-  [& body]
-  `(invoke-later #(do ~@body)))
+"Executes body with invoke-later to make it thread-safe to Swing."
+[& body]
+`(invoke-later #(do ~@body)))
+
+(defmacro with-swing-threads*
+"Executes body if in Swing thread or with invoke-later to make it
+ thread-safe to Swing otherwise."
+[& body]
+`(invoke-later-or-now #(do ~@body)))
 
 (defmacro do-swing-threads
-  "Executes body with invoke-and-wait to make it thread-safe to Swing."
-  [& body]
-  `(invoke-and-wait #(do ~@body)))
+"Executes body with invoke-and-wait to make it thread-safe to Swing."
+[& body]
+`(invoke-and-wait #(do ~@body)))
 
 (defmacro do-swing-return
-  "Executes body with invoke-and-wait to make it thread-safe to Swing,
+"Executes body with invoke-and-wait to make it thread-safe to Swing,
    returning the value of the last statement using a promise!"
-  [& body]
-  `(let [ returnvalue# (promise)]
-     (do
-       (invoke-and-wait #(deliver returnvalue# (do ~@body)))
-       @returnvalue#)))
+[& body]
+`(let [ returnvalue# (promise)]
+   (do
+     (invoke-and-wait #(deliver returnvalue# (do ~@body)))
+     @returnvalue#)))
 
+(defmacro defn-swing
+"Defines a function that is surrounded by do-swing-return"
+[name doc params & body]
+(if (vector? doc)                       ;in this case, there is no doc
+  `(defn ~name ~doc (do-swing-return ~params ~@body))
+  `(defn ~name ~doc ~params
+     (do-swing-return ~@body))))        ; TODO: allow adic overloading
+
+(defmacro fn-swing
+"Returns a function that is surrounded by do-swing-return"
+[name params & body]
+(if (vector? name)                      ;anonymous function
+  `(fn ~name (do-swing-return ~params ~@body))
+  `(fn ~name ~params (do-swing-return ~@body)))) ;TODO: adic overloading
+
+(defmacro defn-swing-threads*
+"Defines a function that is surrounded by with-swing-threads*"
+[name doc params & body]
+(if (vector? doc)                       ;in this case, there is no doc
+  `(defn ~name ~doc (with-swing-threads* ~params ~@body))
+  `(defn ~name ~doc ~params
+     (with-swing-threads* ~@body))))        ; TODO: allow adic overloading
+
+(defmacro fn-swing-threads*
+"Returns a function that is surrounded by with-swing-threads*"
+[name params & body]
+(if (vector? name)                      ;anonymous function
+  `(fn ~name (with-swing-threads* ~params ~@body))
+  `(fn ~name ~params (with-swing-threads* ~@body)))) ;TODO: adic overloading
 
 (defn get-resource
-  "Returns the resource res if found, nil otherwise."
-  [res]
-  (let [cl (.getContextClassLoader (Thread/currentThread))]
-    (.getResource cl res)))
+"Returns the resource res if found, nil otherwise."
+[res]
+(let [cl (.getContextClassLoader (Thread/currentThread))]
+  (.getResource cl res)))
 
 
 ;;; Menus
