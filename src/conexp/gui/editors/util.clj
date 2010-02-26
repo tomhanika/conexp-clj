@@ -8,11 +8,12 @@
 
 (ns conexp.gui.editors.util
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
-             JScrollPane JOptionPane]
+             JScrollPane JOptionPane KeyStroke JComponent AbstractAction]
     [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
       TreeSelectionModel]
     [java.util Vector]
     [java.awt Toolkit]
+    [java.awt.event KeyEvent ActionEvent ActionListener]
     [java.awt.datatransfer DataFlavor StringSelection]
     [javax.swing.event TreeSelectionListener]
     [javax.swing.table DefaultTableModel])
@@ -58,6 +59,16 @@
     of them"
   [& fns]
   `(comp ~@(reverse fns)))
+
+(defmacro dosync-wait
+  "Returns a dosync block that will block until the operation
+   has been carried out, the last value of the body will
+   be returned."
+  [ & body]
+  `(let [waiting# (promise)]
+     (do
+       (dosync (deliver waiting# (do ~@body)))
+       (deref waiting#))))
 
 (defmacro do-map-tree
   "Returns a function that maps a named list tree using the given functions
@@ -142,8 +153,9 @@
   "Own implementation of doc that also can take arguments that are not bound"
   [v]
   `(do
-     (def object-to-be-documented ~v)
-     (doc* object-to-be-documented)))
+     (def object-to-be-documented# ~v)
+     (doc* object-to-be-documented#)
+     (ns-unmap *ns* 'object-to-be-documented#)))
 
 (defmacro fn-doc
   "Create a documented anonymous function."
@@ -190,8 +202,8 @@
   "Returns the contents of the system clipboard"
   []
   (let [toolkit (Toolkit/getDefaultToolkit)
-        clipboard (.getSystemClipboard toolkit)
-        transferable (.getContents clipboard nil)]
+         clipboard (.getSystemClipboard toolkit)
+         transferable (.getContents clipboard nil)]
     (if (.isDataFlavorSupported transferable DataFlavor/stringFlavor)
       (.getTransferData transferable DataFlavor/stringFlavor)
       nil)))
@@ -207,7 +219,7 @@
          data (StringSelection. (str contents))]
     (.setContents clipboard data nil)))
 
-;;
+
 ;;
 ;; managed/unmanaged interop
 ;;
@@ -231,6 +243,15 @@
      obj         _object representing some java object"
   [obj]
   (if (managed-by-conexp-gui-editors-util? obj) (:widget obj) obj))
+
+(defn get-control
+  "Returns the appropriate java control widget for managed java code or
+   just the input parameter for other objects.
+
+   Parameters:
+     obj         _object representing some java object"
+  [obj]
+  (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))
 
 ;;
 ;;
@@ -347,16 +368,17 @@
              (one-by-one listeners .removeTreeSelectionListener treecontrol))
            (let [listener (proxy [TreeSelectionListener] []
                             (valueChanged [event] 
-                              (let [ paths (.getSelectionPaths treecontrol)
-                                     treepaths (map (*comp
-                                                      (rho .getPath)
-                                                      extract-array
-                                                      (rho map 
-                                                        (rho .getUserObject))
-                                                      )
-                                                 (extract-array paths))
-                                     ]
-                                (handler treepaths) )))]
+                              (with-swing-threads*
+                                (let [ paths (.getSelectionPaths treecontrol)
+                                       treepaths (map (*comp
+                                                        (rho .getPath)
+                                                        extract-array
+                                                        (rho map 
+                                                          (rho .getUserObject))
+                                                        )
+                                                   (extract-array paths))
+                                       ]
+                                  (handler treepaths) ))))]
              (.addTreeSelectionListener treecontrol listener) ) ) }]
     (do
       (one-by-one setup unroll-parameters-fn-map widget) 
@@ -376,15 +398,47 @@
      & setup     _an optional number of vectors that may contain additional
                   tweaks that are called after widget creation"
   [& setup]
-  (let [ model (DefaultTableModel.)
+  (let [ self  (promise)
+         model (DefaultTableModel.)
          table (JTable. model)
+         keystroke-copy (KeyStroke/getKeyStroke KeyEvent/VK_C
+                          ActionEvent/CTRL_MASK false)
+         keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
+                           ActionEvent/CTRL_MASK false)
          pane  (JScrollPane. table 
                  JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
                  JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED)
          widget {:managed-by-conexp-gui-editors-util "table-control"
+
          :widget   pane
          :control  table
          :model    model
+  
+         :register-keyboard-action
+         (fn-swing-threads*-doc "Registers a keyboard action on the table.
+  Parameters:
+    handler    _function that will be called when the keystroke is hit,
+                it will be given the widget as single parameter
+    name       _name of the handler (implicit str)
+    keystroke  _a corresponding keystroke object
+    condition  _can be either :focus, :widget, or :ancestor
+                (determines which widget has to be focused to trigger the
+                 action)"
+           [handler name keystroke condition]
+           (let [ java-condition ({:focus JComponent/WHEN_FOCUSED
+                                   :widget JComponent/WHEN_IN_FOCUSED_WINDOW
+                                   :ancestor JComponent/WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+                                   } condition)
+                  widget @self
+                  action (proxy [AbstractAction ActionListener] []
+                           (actionPerformed [event] 
+                             (handler widget)))
+                  input-map (.getInputMap table java-condition)
+                  action-map (.getActionMap table)
+                  cmd-name (str name)]             
+             (do
+               (.put input-map keystroke cmd-name)
+               (.put action-map cmd-name action))))
 
          :set-column-count 
          (fn-swing-threads*-doc "Sets the number of columns of the table.
@@ -427,8 +481,13 @@
              (= mode :cells) (.setCellSelectionEnabled table true)))
          }
          defaults [ [:set-resize-mode :off] 
-                    [:set-cell-selection-mode :cells]] ]
+                    [:set-cell-selection-mode :cells]
+                    [:register-keyboard-action 
+                      (fn [x] (message-box "Control-C"))
+                      "Copy" keystroke-copy :focus] 
+                    ]]
     (do
+      (deliver self widget)
       (one-by-one defaults unroll-parameters-fn-map widget)
       (one-by-one setup unroll-parameters-fn-map widget)
       widget )))

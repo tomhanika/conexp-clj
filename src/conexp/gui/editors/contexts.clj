@@ -88,7 +88,8 @@
           (add-tab-with-name-icon-tooltip frame (get-widget pane)
             "Contexts" nil "View and edit contexts")
           (dosync 
-            (ref-set context-workspace-tree workspace-tree) ) ))) ) )
+            (ref-set context-workspace-tree workspace-tree)
+            (ref-set context-pane right)) ))) ) )
 
 (defn plug-unload-hook
   "Unloads the context-editor plugin.
