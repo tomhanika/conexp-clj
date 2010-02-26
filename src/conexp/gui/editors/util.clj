@@ -12,6 +12,8 @@
     [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
       TreeSelectionModel]
     [java.util Vector]
+    [java.awt Toolkit]
+    [java.awt.datatransfer DataFlavor StringSelection]
     [javax.swing.event TreeSelectionListener]
     [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
@@ -183,6 +185,27 @@
 ;;
 ;; clipboard functions
 ;;
+
+(defn-swing get-clipboard-contents
+  "Returns the contents of the system clipboard"
+  []
+  (let [toolkit (Toolkit/getDefaultToolkit)
+        clipboard (.getSystemClipboard toolkit)
+        transferable (.getContents clipboard nil)]
+    (if (.isDataFlavorSupported transferable DataFlavor/stringFlavor)
+      (.getTransferData transferable DataFlavor/stringFlavor)
+      nil)))
+
+(defn-swing-threads* set-clipboard-contents
+  "Set the contents of the system clipboard to the given string
+  Parameters:
+    contents    _contents that the system clipboard will be set to
+                 (implicitly converted by str)"
+  [contents]
+  (let [ toolkit (Toolkit/getDefaultToolkit)
+         clipboard (.getSystemClipboard toolkit)
+         data (StringSelection. (str contents))]
+    (.setContents clipboard data nil)))
 
 ;;
 ;;
