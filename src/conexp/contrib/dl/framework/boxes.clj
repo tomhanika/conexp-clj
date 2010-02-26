@@ -73,8 +73,11 @@
 (defn find-definition
   "Returns definition of target A in tbox, if it exists."
   [tbox A]
-  (first (filter #(= A (definition-target %))
-		 (tbox-definitions tbox))))
+  (let [result (first (filter #(= A (definition-target %))
+			      (tbox-definitions tbox)))]
+    (if (nil? result)
+      (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
+      result)))
 
 (defn tbox-union
   "Returns the union of tbox-1 and tbox-2."
@@ -129,7 +132,7 @@
   [[tbox target]]
   (let [symbols (free-symbols-in-expression (definition-expression (find-definition tbox target)))]
     (if (empty? symbols)
-      tbox
+      [tbox target]
       (let [target-definition  (find-definition tbox target),
 	    rest-definitions   (disj (tbox-definitions tbox) target-definition),
 	    needed-definitions (for [def rest-definitions
@@ -141,9 +144,9 @@
 								(substitute expr name new-expr))
 							      (definition-expression target-definition)
 							      needed-definitions)),
-	    [new-tbox target]  (clarify-tbox (make-tbox (tbox-language tbox)
+	    [new-tbox target]  (clarify-tbox [(make-tbox (tbox-language tbox)
 							(conj rest-definitions new-target-definition))
-					     target)]
+					      target])]
 	(recur [new-tbox target])))))
 
 (defn reduce-tbox

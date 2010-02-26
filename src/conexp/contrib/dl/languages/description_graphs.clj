@@ -192,15 +192,44 @@
 					   vertices)]
  (make-description-graph language vertices neighbours vertex-labels)))
 
-;;;
+;;; least common subsumers in EL-gfp
 
 (defn EL-gfp-lcs
   "Returns the least common subsumer of A and B in tbox (in EL-gfp)."
-  [tbox A B]
-  (let [G_T_1 (tbox->description-graph tbox)
-	G-x-G (graph-product G_T_1 G_T_1),
-	T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
-    (clarify-tbox [T_2, [A,B]])))
+  ([tbox A]
+     [tbox A])
+  ([tbox A B]
+     (let [G_T_1 (tbox->description-graph tbox)
+	   G-x-G (graph-product G_T_1 G_T_1),
+	   T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
+       (clarify-tbox [T_2, [A,B]])))
+  ([tbox A B & more]
+     (let [[new-tbox new-target] (EL-gfp-lcs tbox A B)]
+       (apply EL-gfp-lcs (tbox-union tbox new-tbox) new-target more))))
+
+;;; most specific concepts in EL-gfp for objects
+
+(defn EL-gfp-object-msc
+  "Returns the model based most specific concept of x in model."
+  [model x]
+  (clarify-tbox
+   [(description-graph->tbox (model->description-graph model)), x]))
+
+(defn EL-gfp-msc
+  "Returns the model based most specific concept of args in model."
+  [model & args]
+  (if-not (empty? args)
+    (let [tbox (reduce tbox-union
+		       (map (comp first (partial EL-gfp-object-msc model))
+			    args))]
+      (apply EL-gfp-lcs tbox args))
+    (let [language (model-language model),
+	  all (make-dl-expression language
+				  (list* 'and
+					 (concat (concept-names language)
+						 (for [r (role-names language)]
+						   (list 'exists r 'All)))))]
+      [(make-tbox language #{(make-dl-definition 'All all)}), 'All])))
 
 ;;;
 

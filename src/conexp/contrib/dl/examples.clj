@@ -17,7 +17,7 @@
 
 (define-dl SimpleDL [Father Mother Male Female] [Child] [exists and])
 
-(def dl-exp (make-dl-expression SimpleDL '(exists Child Male)))
+(def dl-exp (dl-expression SimpleDL (exists Child Male)))
 
 (define-model some-model SimpleDL
   #{John Marry Peter Jana}
@@ -38,11 +38,11 @@
 
 (define-base-semantics SimpleDL
   [model dl-expression]
-  ;; note: dl-expression is neither compound nor primitive (i.e. not a
-  ;; concept name and not a role name)
-  (let [[tbox, target] (expression dl-expression),
-	exp            (first (filter #(= (definition-target %) target)
-				      (tbox-definitions tbox)))]
+  (let [; note: dl-expression is neither compound nor primitive (i.e. not a
+	; concept name and not a role name), therefore it must be a pair of
+	; a TBox and a target symbol
+	[tbox, target] (expression dl-expression),
+	exp            (find-definition tbox target)]
     (if exp
       (interpret model (definition-expression exp))
       (illegal-argument "Not a valid expression: " (print-str exp)))))
