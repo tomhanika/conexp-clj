@@ -44,8 +44,9 @@
 	; a TBox and a target symbol
 	[tbox, target] (expression dl-expression),
 	exp            (find-definition tbox target)]
+    ;; WRONG!!!! CHANGE ME!!!
     (if-not (acyclic? tbox)
-      #{} ;;; WRONG!!!! CHANG ME!!!
+      #{}
       (if exp
 	(interpret model (definition-expression exp))
 	(illegal-argument "Not a valid expression: " (print-str exp))))))

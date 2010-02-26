@@ -42,15 +42,12 @@
 	   Pi_k  [],
 	   P_k   #{},
 	   model initial-model]
-      (println "M_k = " M_k)
       (if (nil? P_k)
 	;; return set of implications
-	(do
-	  (println "Pi_k" Pi_k)
-	  (set-of (make-subsumption all-P mc-all-P)
-		  [P Pi_k
-		   :let [all-P (make-dl-expression language (cons 'and P)),
-			 mc-all-P (make-dl-expression language (model-closure model all-P))]]))
+	(set-of (make-subsumption all-P mc-all-P)
+		[P Pi_k
+		 :let [all-P (make-dl-expression language (cons 'and P)),
+		       mc-all-P (make-dl-expression language (model-closure model all-P))]])
 
 	;; search for next implication
 	(let [all-P_k    (make-dl-expression language (cons 'and P_k)),
@@ -61,7 +58,6 @@
 			       (recur (extend-model-by-contradiction model susu))))),
 	      next-M_k   (into M_k (for [r (role-names language)]
 				     (dl-expression language (exists r (model-closure next-model all-P_k))))),
-	      _ (println "next-M_k = " next-M_k),
 	      next-M_k-1 M_k,
 	      next-K     (induced-context next-M_k next-model),
 	      next-Pi_k  (conj Pi_k P_k),
