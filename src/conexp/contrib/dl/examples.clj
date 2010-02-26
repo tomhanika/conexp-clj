@@ -50,6 +50,13 @@
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
 
+(define-msc SimpleDL
+  [model objects]
+  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects))]
+    (if (= 1 (count (tbox-definitions tbox)))
+      (definition-expression (first (tbox-definitions tbox)))
+      [tbox target])))
+
 ;;;
 
 ;;;
