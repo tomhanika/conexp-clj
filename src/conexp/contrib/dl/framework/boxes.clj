@@ -154,7 +154,7 @@
   the reduced tbox and target."
   [[tbox target]]
   (let [c-tbox (clarify-tbox [tbox target])]
-    (if (acyclic? c-tbox)
+    (if (acyclic? (first c-tbox))
       (substitute-definitions c-tbox)
       c-tbox)))
 

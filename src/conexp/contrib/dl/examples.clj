@@ -11,6 +11,7 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
+	conexp.contrib.dl.framework.exploration
 	conexp.contrib.dl.languages.description-graphs))
 
 ;;;
@@ -43,9 +44,11 @@
 	; a TBox and a target symbol
 	[tbox, target] (expression dl-expression),
 	exp            (find-definition tbox target)]
-    (if exp
-      (interpret model (definition-expression exp))
-      (illegal-argument "Not a valid expression: " (print-str exp)))))
+    (if-not (acyclic? tbox)
+      #{} ;;; WRONG!!!! CHANG ME!!!
+      (if exp
+	(interpret model (definition-expression exp))
+	(illegal-argument "Not a valid expression: " (print-str exp))))))
 
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
@@ -53,7 +56,7 @@
 (define-msc SimpleDL
   [model objects]
   (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects))]
-    (if (= 1 (count (tbox-definitions tbox)))
+    (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))
 

@@ -118,13 +118,16 @@
   sequence are quoted and everything else is left as it is."
   [language expression]
   (let [transform-symbol (fn [symbol]
-			   (if (or (contains? *common-constructors* symbol)
-				   (Character/isUpperCase (first (str symbol))))
+			   (if (Character/isUpperCase (first (str symbol)))
 			     (list 'quote symbol)
 			     symbol)),
 	transform (fn transform [sexp]
 		    (cond
-		     (seq? sexp)        (list* 'list (walk transform identity sexp)),
+		     (seq? sexp)        (cond
+					 (empty? sexp) sexp,
+					 (contains? *common-constructors* (first sexp))
+					 (list* 'list (list 'quote (first sexp)) (walk transform identity (rest sexp))),
+					 :else (walk transform identity sexp)),
 		     (sequential? sexp) (walk transform identity sexp),
 		     (symbol? sexp)     (transform-symbol sexp),
 		     :else              sexp))]
@@ -287,11 +290,11 @@
   (DL-subsumption C D))
 
 (defmethod print-method ::DL-subsumption [susu out]
-  (let [#^String output (with-out-str
-			  (pprint (list 'DL-subsumption
-					(subsumee susu)
-					(subsumer susu))))]
-    (.write out (.trim output))))
+  (pprint (list 'DL-subsumption
+		(subsumee susu)
+		'==>
+		(subsumer susu))
+	  out))
 
 ;;;
 

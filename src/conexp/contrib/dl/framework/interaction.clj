@@ -7,12 +7,23 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.interaction
-  (:use conexp))
+  (:use conexp
+	conexp.contrib.dl.framework.syntax))
 
 ;;;
 
-;; expert-refuses?
-;; extend-model-by-contradiction
+(defn expert-refuses?
+  "Asks an expert (the user) whether a given subsumption is to be refuted or not."
+  [subsumption]
+  ;; stupid implementation for testing right now
+  false)
+
+(defn extend-model-by-contradiction
+  "Extends given model by asking an expert (the user) to extend model
+  to a connected supermodel in which the given subsumption does not
+  hold."
+  [model subsumption]
+  (throw (UnsupportedOperationException. (str "extend-model-by-contradiction not yet implemented"))))
 
 ;;;
 

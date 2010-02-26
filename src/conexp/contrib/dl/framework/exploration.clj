@@ -12,7 +12,7 @@
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.interaction))
 
-(update-ns-meta! conexp.contrib.dl.exploration
+(update-ns-meta! conexp.contrib.dl.framework.exploration
   :doc "Implements exploration for description logics EL and EL-gfp.")
 
 
@@ -30,43 +30,51 @@
 
 ;;;
 
-(comment
-
-  (defn algorithm-5
-    "Model exploration algorithm without background knowledge."
-    [language initial-model]
+(defn explore-model
+  "Model exploration algorithm without background knowledge."
+  ;; This is algorithm 5
+  [initial-model]
+  (let [language (model-language initial-model)]
     (loop [k     0,
 	   M_k   (vec (concept-names language)),
 	   M_k-1 [],
-	   K     (induced-context M_k working-model),
+	   K     (induced-context M_k initial-model),
 	   Pi_k  [],
 	   P_k   #{},
 	   model initial-model]
+      (println "M_k = " M_k)
       (if (nil? P_k)
 	;; return set of implications
-	(set-of (make-subsumption P (model-closure model P))
-		[P Pi_k])
+	(do
+	  (println "Pi_k" Pi_k)
+	  (set-of (make-subsumption all-P mc-all-P)
+		  [P Pi_k
+		   :let [all-P (make-dl-expression language (cons 'and P)),
+			 mc-all-P (make-dl-expression language (model-closure model all-P))]]))
 
-	;; serach for next implication
+	;; search for next implication
 	(let [all-P_k    (make-dl-expression language (cons 'and P_k)),
 	      next-model (loop [model model]
-			   (let [susu (make-subsumption all-P_k (model-closure model all-P_k))]
+			   (let [susu (make-subsumption all-P_k (make-dl-expression language (model-closure model all-P_k)))]
 			     (if-not (expert-refuses? susu)
 			       model
 			       (recur (extend-model-by-contradiction model susu))))),
 	      next-M_k   (into M_k (for [r (role-names language)]
-				     (dl-expression (exists r (model-closure next-model all-P_k))))),
+				     (dl-expression language (exists r (model-closure next-model all-P_k))))),
+	      _ (println "next-M_k = " next-M_k),
 	      next-M_k-1 M_k,
-	      next-K     (induced-context M_k next-model),
+	      next-K     (induced-context next-M_k next-model),
 	      next-Pi_k  (conj Pi_k P_k),
-	      next-P_k   (if (= M_k M_k-1)
+	      next-P_k   (if (= (set M_k) (set M_k-1))
 			   nil
 			   (next-closed-set M_k
 					    (clop-by-implications
 					     (set-of (make-implication P_l (context-attribute-closure next-K P_l))
 						     [P_l (rest Pi_k)]))
 					    P_k))]
-	  (recur (inc k) next-M_k next-M_k-1 next-K next-Pi_k next-P_k next-model)))))
+	  (recur (inc k) next-M_k next-M_k-1 next-K next-Pi_k next-P_k next-model))))))
+
+(comment
 
   (defn algorithm-6
     "Model exploration algorithm using background knowledge."
