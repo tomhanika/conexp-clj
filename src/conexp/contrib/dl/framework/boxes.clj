@@ -112,21 +112,21 @@
       (recur tbox targets seen))))
 
 (defn clarify-tbox
-  "Clarifies tbox for target A, i.e. removes all definitions from tbox
-  which are not needed to define A."
-  [tbox A]
-  (let [needed-targets (collect-targets tbox #{A} #{})]
+  "Clarifies tbox for target, i.e. removes all definitions from tbox
+  which are not needed to define target."
+  [[tbox target]]
+  (let [needed-targets (collect-targets tbox #{target} #{})]
     [(make-tbox (tbox-language tbox)
 		(for [def (tbox-definitions tbox)
 		      :when (contains? needed-targets (definition-target def))]
 		  def)),
-     A]))
+     target]))
 
 (defn substitute-definitions
   "Substitutes defined concepts in the definition of target by their
   definitions. Note that this function does not finish when the tbox is
   recursive in target."
-  [tbox target]
+  [[tbox target]]
   (let [symbols (free-symbols-in-expression (definition-expression (find-definition tbox target)))]
     (if (empty? symbols)
       tbox
@@ -144,16 +144,16 @@
 	    [new-tbox target]  (clarify-tbox (make-tbox (tbox-language tbox)
 							(conj rest-definitions new-target-definition))
 					     target)]
-	(recur new-tbox target)))))
+	(recur [new-tbox target])))))
 
 (defn reduce-tbox
   "Reduces tbox for target as much as possible, returning a pair of
   the reduced tbox and target."
-  [tbox target]
-  (let [[c-tbox target] (clarify-tbox tbox target)]
+  [[tbox target]]
+  (let [c-tbox (clarify-tbox [tbox target])]
     (if (acyclic? c-tbox)
-      (substitute-definitions c-tbox target)
-      [c-tbox target])))
+      (substitute-definitions c-tbox)
+      c-tbox)))
 
 ;;;
 

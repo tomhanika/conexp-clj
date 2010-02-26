@@ -200,7 +200,7 @@
   (let [G_T_1 (tbox->description-graph tbox)
 	G-x-G (graph-product G_T_1 G_T_1),
 	T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
-    (reduce-tbox T_2, [A,B])))
+    (clarify-tbox [T_2, [A,B]])))
 
 ;;;
 
