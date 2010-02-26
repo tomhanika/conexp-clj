@@ -100,4 +100,28 @@
 
 ;;;
 
+(defmulti most-specific-concept
+  "Computes the model based most specific concept of a set of objects
+  in a given model."
+  (fn [model dl-exp] (model-language model)))
+
+(defmethod most-specific-concept :default [model _]
+  (illegal-argument "Language " (model-language model) " does not provide msc."))
+
+(defmacro define-msc
+  "Defines model based most specific concepts for a language, a model
+  and a set of objects."
+  [[language model objects] & body]
+  `(defmethod most-specific-concept ~language
+     [~model ~objects]
+     ~@body))
+
+(defn model-closure
+  "Return the most specific concept of the interpretation of dl-exp in
+  model."
+  [model dl-exp]
+  (most-specific-concept model (interpret model dl-exp)))
+
+;;;
+
 nil

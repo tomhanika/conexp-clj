@@ -6,15 +6,27 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.exploration
+(ns conexp.contrib.dl.framework.exploration
   (:use conexp
-	conexp.contrib.dl.base
-	conexp.contrib.dl.interaction
-	conexp.contrib.dl.interpretations))
+	conexp.contrib.dl.framework.syntax
+	conexp.contrib.dl.framework.models
+	conexp.contrib.dl.framework.interaction))
 
 (update-ns-meta! conexp.contrib.dl.exploration
   :doc "Implements exploration for description logics EL and EL-gfp.")
 
+
+;;;
+
+(defn induced-context
+  "Returns context induced by the set of concept descriptions and the
+  given model."
+  [descriptions model]
+  (let [objects    (model-base-set model),
+	attributes descriptions,
+	incidence  (set-of [g m] [m attributes,
+				  g (interpret model m)])]
+    (make-context objects attributes incidence)))
 
 ;;;
 
@@ -36,14 +48,14 @@
 		[P Pi_k])
 
 	;; serach for next implication
-	(let [all-P_k    (make-dl-expression language '(all P_k)),
+	(let [all-P_k    (make-dl-expression language (cons 'and P_k)),
 	      next-model (loop [model model]
 			   (let [susu (make-subsumption all-P_k (model-closure model all-P_k))]
 			     (if-not (expert-refuses? susu)
 			       model
 			       (recur (extend-model-by-contradiction model susu))))),
 	      next-M_k   (into M_k (for [r (role-names language)]
-				     (make-dl-expression '(exists r (model-closure next-model all-P_k))))),
+				     (dl-expression (exists r (model-closure next-model all-P_k))))),
 	      next-M_k-1 M_k,
 	      next-K     (induced-context M_k next-model),
 	      next-Pi_k  (conj Pi_k P_k),

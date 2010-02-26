@@ -107,21 +107,24 @@
 
 ;;;
 
+(defvar *common-constructors*
+  '#{and or exists forall}
+  "Common constructors for DL expression. They will be quoted in
+  dl-expression automatically.")
+
 (defmacro dl-expression
   "Allows input of DL s-expression without quoting. Symbols starting
   with a capital letter are quoted, symbols in the first position of a
   sequence are quoted and everything else is left as it is."
   [language expression]
   (let [transform-symbol (fn [symbol]
-			   (if (Character/isUpperCase (first (str symbol)))
+			   (if (or (contains? *common-constructors* symbol)
+				   (Character/isUpperCase (first (str symbol))))
 			     (list 'quote symbol)
 			     symbol)),
 	transform (fn transform [sexp]
 		    (cond
-		     (seq? sexp)        (if (empty? sexp)
-					  sexp
-					  (list* 'list (list 'quote (first sexp))
-						 (walk transform identity (rest sexp)))),
+		     (seq? sexp)        (list* 'list (walk transform identity sexp)),
 		     (sequential? sexp) (walk transform identity sexp),
 		     (symbol? sexp)     (transform-symbol sexp),
 		     :else              sexp))]
@@ -263,6 +266,13 @@
      (DL-definition target (make-dl-expression language definition-sexp))))
 
 ;;; Subsumptions
+
+(deftype DL-subsumption [C D])
+
+(defn make-subsumption
+  "Creates and returns a subsumption."
+  [C D]
+  (DL-subsumption C D))
 
 ;;; Equivalences
 
