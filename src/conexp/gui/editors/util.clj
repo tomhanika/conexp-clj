@@ -18,7 +18,8 @@
     [javax.swing.event TreeSelectionListener]
     [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
-    conexp.gui.util))
+    conexp.gui.util
+    [clojure.contrib.string :only (join split-lines split)]))
 
 ;;;
 ;;; General purpose & macros
@@ -483,8 +484,44 @@
          defaults [ [:set-resize-mode :off] 
                     [:set-cell-selection-mode :cells]
                     [:register-keyboard-action 
-                      (fn [x] (message-box "Control-C"))
+                      (fn-swing-threads* [obj] 
+                        (let [control (get-control obj)
+                              sel-columns ((*comp (rho .getSelectedColumns) extract-array)
+                                           control)
+                              sel-rows ((*comp (rho .getSelectedRows) extract-array)
+                                           control)
+                              sel-pairs (map (fn [y] (map (fn [x] (list y x)) sel-columns))
+                                             sel-rows)
+                              sel-values (map (fn [l] (map (fn [p] (str (.getValueAt control 
+                                                                                     (first p) 
+                                                                                     (second p)))) l))
+                                              sel-pairs)
+                              sel-lines (map (rho join "\t") sel-values)
+                              selection (join "\n" sel-lines)]
+                          (set-clipboard-contents selection)))
                       "Copy" keystroke-copy :focus] 
+                    [:register-keyboard-action 
+                      (fn-swing-threads* [obj] 
+                        (let [control (get-control obj)
+                              sel-columns ((*comp (rho .getSelectedColumns) extract-array)
+                                           control)
+                              sel-rows ((*comp (rho .getSelectedRows) extract-array)
+                                           control)]
+                          (if (or (empty? sel-columns) (empty? sel-rows)) nil
+                              (let [data (str (get-clipboard-contents))
+                                    startx (first sel-columns)
+                                    starty (first sel-rows)
+                                    cells (vec (map (*comp (rho split #"\t") (rho vec))
+                                               (split-lines data)))
+                                    lns (range (count cells))]
+                                (one-by-one lns (fn [r] 
+                                                  (one-by-one (range (count (cells r)))
+                                                              (fn [c]
+                                                                (.setValueAt control 
+                                                                             ((cells r) c)
+                                                                             (+ starty r)
+                                                                             (+ startx c))))))))))
+                      "Paste" keystroke-paste :focus]
                     ]]
     (do
       (deliver self widget)
