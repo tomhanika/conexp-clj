@@ -13,7 +13,7 @@
 
 ;;; Model definition
 
-(deftype Model [language base-set base-interpretation])
+(deftype Model [language base-set interpretation])
 
 (defn model-base-set
   "Returns base set of a given model."
@@ -25,21 +25,21 @@
   [model]
   (:language model))
 
-(defn model-base-interpretation
-  "Returns base interpretation of given model."
+(defn model-interpretation
+  "Returns interpretation function of given model."
   [model]
-  (:base-interpretation model))
+  (:interpretation model))
 
 (defn make-model
   "Returns a model for a given DL language on the given base set."
-  [language base-set base-interpretation]
-  (Model language base-set base-interpretation))
+  [language base-set interpretation]
+  (Model language base-set interpretation))
 
 (defmethod print-method ::Model [model out]
   (let [#^String output (with-out-str (pprint (list 'Model
 						    (model-language model)
 						    (model-base-set model)
-						    (model-base-interpretation model))))]
+						    (model-interpretation model))))]
     (.write out (.trim output))))
 
 ;;; Interpretation
@@ -50,8 +50,7 @@
   (fn [dl-expression]
     (cond
      (compound? dl-expression)  (operator dl-expression),
-     (primitive? dl-expression) ::base-case,
-     :else                      [(expression-language dl-expression) ::base-semantics])))
+     :else                      ::base-case)))
 
 (defmethod compile-expression :default [dl-expression]
   (illegal-argument "Dont know how to interpret " (print-str dl-expression)))
@@ -67,7 +66,16 @@
 
 (defmethod compile-expression ::base-case [dl-expression]
   (fn [model]
-    ((model-base-interpretation model) (expression dl-expression))))
+    (let [result ((model-interpretation model) (expression dl-expression))]
+      (if (nil? result)
+	(let [base-semantics (get-method compile-expression
+					 [(expression-language dl-expression) ::base-semantics]),
+	      default        (get-method compile-expression
+					 :default)]
+	  (when (= base-semantics default)
+	    (throw (IllegalStateException. (str "Cannot interpret " (print-str dl-expression) "."))))
+	  ((base-semantics dl-expression) model))
+	result))))
 
 (defmethod compile-expression 'and [dl-expression]
   (fn [model]
@@ -96,7 +104,15 @@
   "Defines model for language on base-set: interpretation maps atomic
   expressions to their extents."
   [name language base-set & interpretation]
-  `(def ~name (make-model ~language (set '~base-set) '~(apply hash-map interpretation))))
+  `(let [interpretation-map# '~(apply hash-map interpretation),
+	 defined-symbols# (keys interpretation-map#),
+	 undefined-symbols# (difference (union (concept-names ~language)
+					       (role-names ~language))
+					(set defined-symbols#))]
+     (when (not (empty? undefined-symbols#))
+       (illegal-argument "Definition of model " ~name " is incomplete. The symbols "
+			 undefined-symbols# " are missing."))
+     (def ~name (make-model ~language (set '~base-set) '~(apply hash-map interpretation)))))
 
 ;;;
 
@@ -121,6 +137,19 @@
   model."
   [model dl-exp]
   (most-specific-concept model (interpret model dl-exp)))
+
+;;;
+
+(defn extend-model
+  "Extends model by given interpretation function i. i should return
+  nil if it doesn't change a value of model's original interpretion,
+  where this original interpretation is used."
+  [model i]
+  (make-model (model-language model)
+	      (model-base-set model)
+	      (fn [A]
+		(or (i A)
+		    ((model-interpretation model) A)))))
 
 ;;;
 

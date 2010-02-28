@@ -160,17 +160,17 @@
   "Converts given model to a description graph."
   [model]
   (let [language            (model-language model),
-	base-interpretation (model-base-interpretation model),
+	interpretation      (model-interpretation model),
 
 	vertices            (model-base-set model),
 	neighbours          (hashmap-by-function (fn [x]
 						   (set-of [r y] [r (role-names language),
 								  y (model-base-set model),
-								  :when (contains? (base-interpretation r) [x y])]))
+								  :when (contains? (interpretation r) [x y])]))
 						 (model-base-set model)),
 	vertex-labels       (hashmap-by-function (fn [x]
 						   (set-of P [P (concept-names language),
-							      :when (contains? (base-interpretation P) x)]))
+							      :when (contains? (interpretation P) x)]))
 						 (model-base-set model))]
     (make-description-graph language vertices neighbours vertex-labels)))
 

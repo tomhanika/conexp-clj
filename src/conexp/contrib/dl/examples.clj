@@ -12,7 +12,8 @@
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.framework.exploration
-	conexp.contrib.dl.languages.description-graphs))
+	conexp.contrib.dl.languages.description-graphs
+	conexp.contrib.dl.framework.semantics))
 
 ;;;
 
@@ -39,17 +40,14 @@
 
 (define-base-semantics SimpleDL
   [model dl-expression]
-  (let [; note: dl-expression is neither compound nor primitive (i.e. not a
-	; concept name and not a role name), therefore it must be a pair of
-	; a TBox and a target symbol
-	[tbox, target] (expression dl-expression),
-	exp            (find-definition tbox target)]
-    ;; WRONG!!!! CHANGE ME!!!
-    (if-not (acyclic? tbox)
-      #{}
-      (if exp
-	(interpret model (definition-expression exp))
-	(illegal-argument "Not a valid expression: " (print-str exp))))))
+  ;; quit, if dl-expression is not a tbox with target
+  (when (not (and (vector? (expression dl-expression))
+		  (= 2 (count (expression dl-expression)))))
+    (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
+  ;; compute gfp-model and interpret target
+  (let [[tbox, target] (expression dl-expression),
+	interpretation (gfp-model tbox model)]
+    (interpretation target)))
 
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
