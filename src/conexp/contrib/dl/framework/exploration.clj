@@ -28,6 +28,14 @@
 				  g (interpret model m)])]
     (make-context objects attributes incidence)))
 
+(defn clarify-subsumption-set
+  "Removes all sumsumptions with equal subsumee and subsumer from the
+  set of given subsumptions."
+  [subs]
+  (set-of susu [susu subs
+		:when (not= (subsumee susu)
+			    (subsumer susu))]))
+
 ;;;
 
 (defn explore-model
@@ -44,10 +52,11 @@
 	   model initial-model]
       (if (nil? P_k)
 	;; return set of implications
-	(set-of (make-subsumption all-P mc-all-P)
-		[P Pi_k
-		 :let [all-P (make-dl-expression language (cons 'and P)),
-		       mc-all-P (make-dl-expression language (model-closure model all-P))]])
+	(clarify-subsumption-set
+	 (set-of (make-subsumption all-P mc-all-P)
+		 [P Pi_k
+		  :let [all-P (make-dl-expression language (cons 'and P)),
+			mc-all-P (make-dl-expression language (model-closure model all-P))]]))
 
 	;; search for next implication
 	(let [all-P_k    (make-dl-expression language (cons 'and P_k)),
@@ -61,7 +70,7 @@
 	      next-M_k-1 M_k,
 	      next-K     (induced-context next-M_k next-model),
 	      next-Pi_k  (conj Pi_k P_k),
-	      next-P_k   (if (= (set M_k) (set M_k-1))
+	      next-P_k   (if (= (set M_k) (set M_k-1) (set P_k))
 			   nil
 			   (next-closed-set M_k
 					    (clop-by-implications

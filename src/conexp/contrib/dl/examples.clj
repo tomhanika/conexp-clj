@@ -59,6 +59,15 @@
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))
 
+(define-model paper-model SimpleDL
+  [John Michelle Mackenzie Paul Linda James]
+  Male   #{John Paul James}
+  Female #{Michelle Mackenzie Linda}
+  Father #{John Paul}
+  Mother #{Michelle Linda}
+  Child  #{[John Mackenzie] [Michelle Mackenzie]
+	   [Paul James] [Linde James]})
+
 ;;;
 
 ;;;

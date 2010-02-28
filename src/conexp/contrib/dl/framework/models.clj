@@ -110,7 +110,7 @@
 					       (role-names ~language))
 					(set defined-symbols#))]
      (when (not (empty? undefined-symbols#))
-       (illegal-argument "Definition of model " ~name " is incomplete. The symbols "
+       (illegal-argument "Definition of model " '~name " is incomplete. The symbols "
 			 undefined-symbols# " are missing."))
      (def ~name (make-model ~language (set '~base-set) '~(apply hash-map interpretation)))))
 
