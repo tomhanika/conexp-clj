@@ -24,7 +24,7 @@
   "Define subsumption algorithm for given language."
   [language [C D] & body]
   `(defmethod subsumption ~language [~language ~C ~D]
-     ~body))
+     ~@body))
 
 (defn subsumes?
   "Returns true iff C is subsumed by D in the given language."

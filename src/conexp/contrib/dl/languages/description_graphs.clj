@@ -60,7 +60,7 @@
 
 ;;;
 
-(defn- new-var
+(defn new-var
   "Returns a new variable name (globally unique)."
   []
   (gensym "C-"))
@@ -274,7 +274,7 @@
 			u-s
 			(rest v-s))))))))
 
-(defn- simulates
+(defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
