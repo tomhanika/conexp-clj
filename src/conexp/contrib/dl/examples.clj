@@ -12,6 +12,7 @@
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.framework.exploration
+	conexp.contrib.dl.framework.interaction
 	conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.framework.semantics))
 
