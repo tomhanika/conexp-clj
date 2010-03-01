@@ -38,27 +38,27 @@
     (set (arguments dl-expression))))
 
 (defn- abbreviate-subsumption
-  "Takes a subsumption whose subsumee and subsumer are in normal form
-  and returns a subsumption where from the subsumer every term already
-  present in the subsumee is removed."
+  "Takes a subsumption whose subsumer and subsumee are in normal form
+  and returns a subsumption where from the subsumee every term already
+  present in the subsumer is removed."
   [subsumption]
-  (if (or (atomic? (subsumee subsumption))
-	  (atomic? (subsumer subsumption)))
+  (if (or (atomic? (subsumer subsumption))
+	  (atomic? (subsumee subsumption)))
     subsumption
-    (let [language (expression-language (subsumee subsumption)),
-	  premise-args (arguments* (subsumee subsumption)),
-	  conclusion-args (arguments* (subsumer subsumption))]
+    (let [language (expression-language (subsumer subsumption)),
+	  premise-args (arguments* (subsumer subsumption)),
+	  conclusion-args (arguments* (subsumee subsumption))]
       (make-subsumption (make-dl-expression language (cons 'and premise-args))
 			(make-dl-expression language (cons 'and (difference conclusion-args premise-args)))))))
 
 (defn- clarify-subsumption-set
-  "Removes all sumsumptions with equal subsumee and subsumer from the
+  "Removes all sumsumptions with equal subsumer and subsumee from the
   set of given subsumptions."
   [subs]
   (set-of susu
 	  [susu (map abbreviate-subsumption (seq subs)),
-	   :when (not (superset? (arguments* (subsumee susu))
-				 (arguments* (subsumer susu))))]))
+	   :when (not (superset? (arguments* (subsumer susu))
+				 (arguments* (subsumee susu))))]))
 
 ;;;
 
@@ -103,15 +103,6 @@
 						       [P_l (rest Pi_k)]))
 					      P_k))]
 	    (recur (inc k) next-M_k next-M_k-1 next-K next-Pi_k next-P_k next-model)))))))
-
-(comment
-
-  (defn algorithm-6
-    "Model exploration algorithm using background knowledge."
-    [language initial-model]
-    'to-be-done)
-  
-  'end-comment)
 
 ;;;
 
