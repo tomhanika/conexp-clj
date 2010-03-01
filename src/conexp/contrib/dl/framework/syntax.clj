@@ -66,7 +66,7 @@
 
 (defmethod print-method ::DL-expression [dl-exp out]
   (let [#^String output (with-out-str
-			  (pprint (list 'DL-expr (expression dl-exp))))]
+			  (pprint (expression dl-exp)))]
     (.write out (.trim output))))
 
 ;;;
@@ -99,11 +99,17 @@
    (sequential? expr)    (walk dl-sexp->term identity expr),
    :else                 expr))
 
+(defn make-dl-expression-nc
+  "Creates a DL expression without any checks on already present DL
+  expression. Use with care."
+  [language dl-sexp]
+  (DL-expression language dl-sexp))
+
 (defn make-dl-expression
   "Takes a DL and a s-exp describing a concept description and returns
   a DL-expression."
   [language dl-sexp]
-  (DL-expression language (dl-sexp->term dl-sexp)))
+  (make-dl-expression-nc language (dl-sexp->term dl-sexp)))
 
 ;;;
 
@@ -290,11 +296,11 @@
   (DL-subsumption C D))
 
 (defmethod print-method ::DL-subsumption [susu out]
-  (pprint (list 'DL-subsumption
-		(subsumee susu)
-		'==>
-		(subsumer susu))
-	  out))
+  (let [#^String output (with-out-str
+			  (pprint (list (subsumee susu)
+					'==>
+					(subsumer susu))))]
+    (.write out (.trim output))))
 
 ;;;
 

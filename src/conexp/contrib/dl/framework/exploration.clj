@@ -28,13 +28,37 @@
 				  g (interpret model m)])]
     (make-context objects attributes incidence)))
 
-(defn clarify-subsumption-set
+(defn- arguments*
+  "Returns the arguments of the given DL expression as set, if it is
+  not atomic. If it is, returns the singleton set of the dl-expression
+  itself."
+  [dl-expression]
+  (if (atomic? dl-expression)
+    (set [dl-expression])
+    (set (arguments dl-expression))))
+
+(defn- abbreviate-subsumption
+  "Takes a subsumption whose subsumee and subsumer are in normal form
+  and returns a subsumption where from the subsumer every term already
+  present in the subsumee is removed."
+  [subsumption]
+  (if (or (atomic? (subsumee subsumption))
+	  (atomic? (subsumer subsumption)))
+    subsumption
+    (let [language (expression-language (subsumee subsumption)),
+	  premise-args (arguments* (subsumee subsumption)),
+	  conclusion-args (arguments* (subsumer subsumption))]
+      (make-subsumption (make-dl-expression language (cons 'and premise-args))
+			(make-dl-expression language (cons 'and (difference conclusion-args premise-args)))))))
+
+(defn- clarify-subsumption-set
   "Removes all sumsumptions with equal subsumee and subsumer from the
   set of given subsumptions."
   [subs]
-  (set-of susu [susu subs
-		:when (not= (subsumee susu)
-			    (subsumer susu))]))
+  (set-of susu
+	  [susu (map abbreviate-subsumption (seq subs)),
+	   :when (not (superset? (arguments* (subsumee susu))
+				 (arguments* (subsumer susu))))]))
 
 ;;;
 
@@ -42,42 +66,43 @@
   "Model exploration algorithm without background knowledge."
   ;; This is algorithm 5
   [initial-model]
-  (let [language (model-language initial-model)]
-    (loop [k     0,
-	   M_k   (vec (concept-names language)),
-	   M_k-1 [],
-	   K     (induced-context M_k initial-model),
-	   Pi_k  [],
-	   P_k   #{},
-	   model initial-model]
-      (if (nil? P_k)
-	;; return set of implications
-	(clarify-subsumption-set
-	 (set-of (make-subsumption all-P mc-all-P)
-		 [P Pi_k
-		  :let [all-P (make-dl-expression language (cons 'and P)),
-			mc-all-P (make-dl-expression language (model-closure model all-P))]]))
+  (binding [model-closure (memoize model-closure)]
+    (let [language (model-language initial-model)]
+      (loop [k     0,
+	     M_k   (vec (concept-names language)),
+	     M_k-1 [],
+	     K     (induced-context M_k initial-model),
+	     Pi_k  [],
+	     P_k   #{},
+	     model initial-model]
+	(if (nil? P_k)
+	  ;; return set of implications
+	  (clarify-subsumption-set
+	   (set-of (make-subsumption all-P mc-all-P)
+		   [P Pi_k
+		    :let [all-P (make-dl-expression language (cons 'and P)),
+			  mc-all-P (make-dl-expression language (model-closure model all-P))]]))
 
-	;; search for next implication
-	(let [all-P_k    (make-dl-expression language (cons 'and P_k)),
-	      next-model (loop [model model]
-			   (let [susu (make-subsumption all-P_k (make-dl-expression language (model-closure model all-P_k)))]
-			     (if-not (expert-refuses? susu)
-			       model
-			       (recur (extend-model-by-contradiction model susu))))),
-	      next-M_k   (into M_k (for [r (role-names language)]
-				     (dl-expression language (exists r (model-closure next-model all-P_k))))),
-	      next-M_k-1 M_k,
-	      next-K     (induced-context next-M_k next-model),
-	      next-Pi_k  (conj Pi_k P_k),
-	      next-P_k   (if (= (set M_k) (set M_k-1) (set P_k))
-			   nil
-			   (next-closed-set M_k
-					    (clop-by-implications
-					     (set-of (make-implication P_l (context-attribute-closure next-K P_l))
-						     [P_l (rest Pi_k)]))
-					    P_k))]
-	  (recur (inc k) next-M_k next-M_k-1 next-K next-Pi_k next-P_k next-model))))))
+	  ;; search for next implication
+	  (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
+		next-model (loop [model model]
+			     (let [susu (make-subsumption all-P_k (make-dl-expression language (model-closure model all-P_k)))]
+			       (if-not (expert-refuses? susu)
+				 model
+				 (recur (extend-model-by-contradiction model susu))))),
+		next-M_k   (into M_k (for [r (role-names language)]
+				       (dl-expression language (exists r (model-closure next-model all-P_k))))),
+		next-M_k-1 M_k,
+		next-K     (induced-context next-M_k next-model),
+		next-Pi_k  (conj Pi_k P_k),
+		next-P_k   (if (= (set M_k) (set M_k-1) (set P_k))
+			     nil
+			     (next-closed-set M_k
+					      (clop-by-implications
+					       (set-of (make-implication P_l (context-attribute-closure next-K P_l))
+						       [P_l (rest Pi_k)]))
+					      P_k))]
+	    (recur (inc k) next-M_k next-M_k-1 next-K next-Pi_k next-P_k next-model)))))))
 
 (comment
 

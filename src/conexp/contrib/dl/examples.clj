@@ -66,7 +66,7 @@
   Father #{John Paul}
   Mother #{Michelle Linda}
   Child  #{[John Mackenzie] [Michelle Mackenzie]
-	   [Paul James] [Linde James]})
+	   [Paul James] [Linda James]})
 
 ;;;
 
