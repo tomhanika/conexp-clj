@@ -15,8 +15,14 @@
 (defn expert-refuses?
   "Asks an expert (the user) whether a given subsumption is to be refuted or not."
   [subsumption]
-  ;; stupid implementation for testing right now
-  false)
+  (let [answer (ask (str "Do you accept the subsumption \n\n"
+			 (print-str subsumption)
+			 "\n\n")
+		    '#{yes no}
+		    "Please enter yes or no.")]
+    (if (= answer 'yes)
+      false
+      true)))
 
 (defn extend-model-by-contradiction
   "Extends given model by asking an expert (the user) to extend model
