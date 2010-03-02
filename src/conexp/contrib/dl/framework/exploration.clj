@@ -72,9 +72,9 @@
 	    subsumes?     (memoize subsumes?)]
     (let [language (model-language initial-model)]
       (loop [k     0,
-	     M_k   (vec (map #(dl-expression language %)
-			     (concept-names language))),
-	     M_k-1 [],
+	     M_k   (map #(dl-expression language %)
+			(concept-names language)),
+	     M_k-1 (),
 	     K     (induced-context M_k initial-model),
 	     Pi_k  [],
 	     P_k   #{},
@@ -95,22 +95,21 @@
 			       (if-not (expert-refuses? susu)
 				 model
 				 (recur (extend-model-by-contradiction model susu))))),
-		next-M_k   (into M_k (for [r (role-names language)]
-				       (dl-expression language (exists r (model-closure next-model all-P_k))))),
+		next-M_k   (into M_k (difference (set-of (dl-expression language (exists r (model-closure next-model all-P_k)))
+							 [r (role-names language)])
+						 (set M_k))),
 		next-M_k-1 M_k,
 		next-K     (induced-context next-M_k next-model),
 		next-Pi_k  (conj Pi_k P_k),
-		next-P_k   (if (= (set M_k) (set M_k-1) (set P_k))
-			     nil
-			     (next-closed-set M_k
-					      (clop-by-implications
-					       (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
-							      [P_l (rest Pi_k)])
-						      (set-of (make-implication #{C} #{D})
-							      [C M_k, D M_k
-							       :when (and (not= C D)
-									  (subsumes? C D))])))
-					      P_k))]
+		next-P_k   (next-closed-set M_k
+					    (clop-by-implications
+					     (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
+							    [P_l (rest Pi_k)])
+						    (set-of (make-implication #{C} #{D})
+							    [C M_k, D M_k
+							     :when (and (not= C D)
+									(subsumes? C D))])))
+					    P_k)]
 	    (recur (inc k) next-M_k next-M_k-1 next-K next-Pi_k next-P_k next-model)))))))
 
 ;;;
