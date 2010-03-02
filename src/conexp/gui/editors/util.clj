@@ -16,7 +16,7 @@
     [java.awt Toolkit]
     [java.awt.event KeyEvent ActionEvent ActionListener]
     [java.awt.datatransfer DataFlavor StringSelection]
-    [javax.swing.event TreeSelectionListener]
+    [javax.swing.event TreeSelectionListener TableModelListener]
     [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
     conexp.gui.util
@@ -499,7 +499,7 @@
         (one-by-one lns (fn [r] 
                           (one-by-one (range (count (cells r)))
                             (fn [c]
-                              (!!!! obj :set-cell-value
+                              (!! obj :set-value-at
                                 (+ starty r)
                                 (+ startx c)
                                 ((cells r) c))))))))))
@@ -517,7 +517,7 @@
                     control)
          sel-pairs (map (fn [y] (map (fn [x] (list y x)) sel-columns))
                      sel-rows)
-         sel-values (map (fn [l] (map (fn [p] (str (.getValueAt control 
+         sel-values (map (fn [l] (map (fn [p] (str (!! obj :get-value-at 
                                                      (first p) 
                                                      (second p)))) l))
                       sel-pairs)
@@ -624,6 +624,42 @@
            [count]
            (.setRowCount model count))
 
+         :get-value-at
+         (fn-swing-doc "Gets the value of the cell at specified position.
+
+  Parameters:
+    row        _row of the cell
+    column     _column of the cell
+  Returns the cell value"
+           [row column]
+           (.getValueAt table row column))
+
+         :get-column-index
+         (fn-swing-doc "Returns the tables model index of the specified
+   column in the view.
+
+  Parameters:
+    column    _viewport column
+  Returns the model index"
+           [column]
+           (let [ col-model (.getColumnModel table)
+                  table-col (.getColumn col-model column)]
+             (.getModelIndex table-col)))
+         
+         :get-index-column
+         (fn-swing-doc "Returns the column in the view that corresponds
+  to the specified table model index.
+
+  Parameters:
+    index     _table model index"
+           [index]
+           (let [ col-model (.getColumnModel table)
+                  cols (range (.getColumnCount col-model))
+                  matching (filter 
+                             (fn [x] (= index (.getModelIndex (.getColumn col-model x))))
+                             cols)]
+             (first matching)))
+
          :set-resize-mode
          (fn-swing-threads*-doc "Sets the behaviour of the table on resize.
    Parameters:
@@ -648,6 +684,15 @@
              (= mode :columns) (doto table (.setRowSelectionAllowed false)
                                  (.setColumnSelectionAllowed true))
              (= mode :cells) (.setCellSelectionEnabled table true)))
+
+         :set-value-at
+         (fn-doc "Sets the value of a cell in the table.
+  Parameters:
+    row        _integer identifying a row
+    column     _integer identifying a column
+    contents   _the new contents"
+           [row column contents]
+           (!!!! @self :set-cell-value row column contents))
          }
          defaults [ [:set-resize-mode :off] 
                     [:set-cell-selection-mode :cells]
@@ -673,7 +718,7 @@
                             (if (>= row rows)
                               (!!!! widget :extend-rows-to (+ 1 row)))
                             (.setValueAt (get-control widget) 
-                              (!!!! widget :set-cell-value-hook row column contents) 
+                              (str contents) 
                               row column))))]
                     [:set-handler :set-cell-value-hook
                       (fn-doc "This hook takes requested contents and turns them into
@@ -687,7 +732,7 @@
 
   Returns the new allowed contents for the cell (as string)."
                         [widget row column contents]
-                        (str contents))]
+                        contents)]
                     [:set-handler :extend-columns-to
                       (fn-swing-doc "Extends the current table to have (at least) the
   specified number of columns.
@@ -718,9 +763,39 @@
                       (fn-doc "Dummy extend hook" [widget old-rows new-rows] nil)]
                     [:set-handler :extend-columns-hook 
                       (fn-doc "Dummy extend hook" [widget old-columns new-columns] nil)]
+                    [:set-handler :table-changed-hook
+                      (fn-doc "Table changed hook, we only catch single-cell-change-events here.
+  Parameters:
+    widget    _the tables widget object
+    column    _the altered column, -1 means all columns
+    first-row _the first altered row, -1 means all rows
+    last-row  _the last altered row, -1 means all rows
+    type      _0 means update, 1 insert and -1 delete" 
+                        [widget column first-row last-row type] 
+                        (if (and
+                          
+                              (= 0 type)
+                              (<= 0 (min column first-row last-row))
+                              (= first-row last-row))
+                           (let [ current-value (!! widget :get-value-at first-row column)
+                                   good-value (!!!! widget :set-cell-value-hook 
+                                                first-row column current-value)]
+                              (if (not= current-value good-value)
+                                (!! widget :set-value-at first-row column good-value)))))]
+
                     ]]
     (do
       (deliver self widget)
+      (let [change-listener (proxy [TableModelListener] [] 
+                              (tableChanged [event]
+                                (with-swing-threads*
+                                  (let [ column (.getColumn event)
+                                         first  (.getFirstRow event)
+                                         last   (.getLastRow event)
+                                         type   (.getType event)]
+                                    (!!!! widget :table-changed-hook 
+                                      column first last type)))))]
+        (.addTableModelListener model change-listener))
       (one-by-one defaults unroll-parameters-fn-map widget)
       (one-by-one setup unroll-parameters-fn-map widget)
       widget )))

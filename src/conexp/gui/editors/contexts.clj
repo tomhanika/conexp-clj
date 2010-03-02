@@ -18,6 +18,7 @@
     conexp.gui.util
     clojure.contrib.swing-utils
     conexp.gui.editors.util
+    conexp.fca
     ))
 
 ;;
@@ -27,6 +28,7 @@
 ;;
 ;;
 ;;
+
 (defn-swing do-mk-context-editor
   "Creates a control for editing contexts.
 
@@ -70,23 +72,52 @@
       widget )))
 
 
-
-
+;;
+;;
+;; Editable contexts
 ;;
 ;;
 ;;
 
-(def context-data (ref {}))
+(defn editable-context?
+  "Tests whether the argument is an editable context."
+  [ctx?]
+  (and (map? ctx?)
+    (contains? ctx? :editable-context)))
+
+(defn get-context
+  "Tests whether ctx is an editable context and returns
+  the appropriate context value, or otherwise ctx itself."
+  [ctx]
+  (if (editable-context? ctx)
+    @(ctx :context)
+    ctx))
+
+(defn make-editable-context
+  "Takes an optional context as input and returns the appropriate
+   editable context structure.
+
+  Parameters:
+    ctx     _context or editable context"
+  ([ctx]
+    (let [editable-ctx 
+           {:editable-context 1
+           :context (ref (get-context ctx))
+           :associated-widgets (ref [])}]
+      editable-ctx))
+  ([]
+    (make-editable-context (make-context [] [] []))))
+
+(def ctx (conexp.fca/make-context ["a" "b" "c"] [1 2 3] [["a" 1] ["c" 3]]))
+
 (def context-pane (ref nil))
 (def context-workspace (ref nil))
-(def context-attributes (ref nil))
-(def context-table (ref nil))
-(def context-tablemodel (ref nil))
 (def context-workspace-tree (ref nil))
+(def +debug+ (ref nil))
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
-   in order to reflect the current @context-data map-var."
+   in order to reflect the current @context-workspace map-var."
   []
   (with-swing-threads*
     (let [nodes ((*comp 
@@ -94,7 +125,7 @@
                    (rho map str)        ; turn them into strings
                    sort                 ; sort them
                    (rho map list))      ; and make them leaf nodes
-                  @context-data)
+                  @context-workspace)
            workspace-tree (conj nodes :root)
            ]
       ((@context-workspace-tree :set-tree) workspace-tree))))
@@ -110,7 +141,7 @@
   (do
     (let [done (promise)]
       (dosync 
-        (commute context-data conj {(str name) context})
+        (commute context-workspace conj {(str name) context})
         (deliver done nil))
       (deref done)
       (update-workspace-tree)
@@ -128,7 +159,7 @@
   "
   [frame]
   (do
-    (dosync (ref-set context-data {}))
+    (dosync (ref-set context-workspace {}))
 
     (with-swing-threads
       
@@ -149,7 +180,8 @@
             "Contexts" nil "View and edit contexts")
           (dosync 
             (ref-set context-workspace-tree workspace-tree)
-            (ref-set context-pane right)) ))) ) )
+            (ref-set context-pane pane)
+            (ref-set +debug+ right)) ))) ) )
 
 (defn plug-unload-hook
   "Unloads the context-editor plugin.
@@ -160,13 +192,9 @@
   (with-swing-threads
     (remove-tab frame @context-pane)
     (dosync 
-      (ref-set context-workspace nil)
-      (ref-set context-attributes nil)
-      (ref-set context-table nil)
       (ref-set context-pane nil)
-      (ref-set context-data nil)
-      )
-    ))
+      (ref-set context-workspace nil)
+      (ref-set context-workspace-tree nil))))
    
 
 (define-plugin context-editor
