@@ -233,46 +233,34 @@
 
 ;;; simulations
 
-(defn- simulator-sets
+(defn simulator-sets
   "Returns for all vertices v in the description graph G-1 the sets of
   vertices (sim v) in G-2 such that there exists a simulation from v to
   every vertex in (sim v)."
   [G-1 G-2]
   (let [label-1 (vertex-labels G-1),
 	label-2 (vertex-labels G-2),
-	edge-1? (let [neighbours-1 (neighbours G-1)]
-		  (fn [v w]
-		    (contains? (neighbours-1 v) w))),
-	edge-2? (let [neighbours-2 (neighbours G-2)]
-		  (fn [v w]
-		    (contains? (neighbours-2 v) w))),
+	neighbours-1 (neighbours G-1),
+	neighbours-2 (neighbours G-2),
+	edge-1? (fn [v r w]
+		  (contains? (neighbours-1 v) [r w])),
+	edge-2? (fn [v r w]
+		  (contains? (neighbours-2 v) [r w])),
 
 	initial-sim-sets (hashmap-by-function (fn [v]
 						(set-of w [w (vertices G-2)
 							   :when (subset? (label-1 v) (label-2 w))]))
 					      (vertices G-1))]
-    (loop [sim-sets initial-sim-sets,
-	   u-s      (vertices G-1),
-	   v-s      (vertices G-1)]
-      (cond
-       ;; all vertices checked
-       (empty? u-s) sim-sets,
-
-       ;; all vertices in G-1 checked for being neighbours of (first u-s)
-       ;; new round for next element in u-s
-       (empty? v-s) (recur sim-sets (rest u-s) (vertices G-1)),
-
-       ;; investigate first vertices of u and v
-       :else (let [u (first u-s),
-		   v (first v-s)]
-	       (if-not (edge-1? u v)
-		 (recur sim-sets u-s (rest v-s))
-		 (recur (assoc sim-sets
-			  u (set-of w [w (sim-sets u)
-				       :when (exists [x (sim-sets v)]
-					       (edge-2? w x))]))
-			u-s
-			(rest v-s))))))))
+    (loop [sim-sets initial-sim-sets]
+      (let [u-w (first (for [u (vertices G-1),
+			     [r v] (neighbours-1 u)
+			     w (sim-sets u),
+			     :when (forall [x (sim-sets v)]
+				     (not (edge-2? w r x)))]
+			 [u w]))]
+	(if (nil? u-w)
+	  sim-sets
+	  (recur (update-in sim-sets [(first u-w)] disj (second u-w))))))))
 
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where

@@ -15,6 +15,9 @@
 (defmulti subsumption
   "Defines subsumption algorithms for specific languages."
   (fn [C D]
+    (when (or (not (dl-expression? C))
+	      (not (dl-expression? D)))
+      (illegal-argument "Arguments to subsumption must be dl-expressions."))
     (let [C-language (expression-language C),
 	  D-language (expression-language D)]
       (when (not= C-language D-language)
