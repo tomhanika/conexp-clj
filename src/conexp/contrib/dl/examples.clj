@@ -72,7 +72,6 @@
 
 (defn ensure-EL-gfp-concept
   "Ensures dl-expression to be a pair of a tbox and a target."
-  ;; wrong, should be recursive
   [dl-expression]
   (let [expr (expression dl-expression)]
     (if (and (vector? expr)
@@ -82,13 +81,13 @@
 	    target   (new-var)]
 	(make-dl-expression-nc language
 			       [(make-tbox language
-					   #{(make-dl-definition target expr)}),
+					   #{(make-dl-definition target dl-expression)}),
 				target])))))
 
 (define-subsumption SimpleDL
   [C D]
-  (let [[C-tbox C-target] (ensure-EL-gfp-concept C),
-	[D-tbox D-target] (ensure-EL-gfp-concept D),
+  (let [[C-tbox C-target] (expression (ensure-EL-gfp-concept C)),
+	[D-tbox D-target] (expression (ensure-EL-gfp-concept D)),
 
 	G (tbox->description-graph (tbox-union C-tbox D-tbox))]
     (simulates? G G D-target C-target)))

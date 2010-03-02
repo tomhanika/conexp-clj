@@ -14,22 +14,26 @@
 
 (defmulti subsumption
   "Defines subsumption algorithms for specific languages."
-  (fn [language C D]
-    language))
+  (fn [C D]
+    (let [C-language (expression-language C),
+	  D-language (expression-language D)]
+      (when (not= C-language D-language)
+	(illegal-argument "For subsumption the expression must be formulated in the same language."))
+      C-language)))
 
-(defmethod subsumption :default [language C D]
-  (illegal-argument "There is no algorithm defined for subsumption in language " language "."))
+(defmethod subsumption :default [C D]
+  (illegal-argument "There is no algorithm defined for subsumption in language " (expression-language C) "."))
 
 (defmacro define-subsumption
   "Define subsumption algorithm for given language."
   [language [C D] & body]
-  `(defmethod subsumption ~language [~language ~C ~D]
+  `(defmethod subsumption ~language [~C ~D]
      ~@body))
 
 (defn subsumes?
   "Returns true iff C is subsumed by D in the given language."
-  [language C D]
-  (subsumption language C D))
+  [C D]
+  (subsumption C D))
 
 ;;;
 

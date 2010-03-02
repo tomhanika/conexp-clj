@@ -270,6 +270,8 @@
 (defn make-dl-definition
   "Creates and returns a DL definition."
   ([target definition-expression]
+     (when-not (dl-expression? definition-expression)
+       (illegal-argument "make-dl-expression requires a valid dl-expression as second arguments."))
      (DL-definition target definition-expression))
   ([language target definition-sexp]
      (DL-definition target (make-dl-expression language definition-sexp))))
