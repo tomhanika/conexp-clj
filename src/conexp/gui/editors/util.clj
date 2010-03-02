@@ -179,6 +179,28 @@
   [array]
   (map (rho aget array) (range (alength array))))
 
+(defmacro !!
+  "Takes a map, a key and arbitrary additional parameters and calls
+   the function that is the value of the map under the key with
+   the given additional parameters"
+  [map key & parameters]
+  `((~map ~key) ~@parameters))
+
+(defmacro !!!
+  "Takes a map, a key and arbitrary additional parameters and calls
+   the function that is the value of that map, which is the map under
+   the key :handler, under the key with the given additional parameters"
+  [map key & parameters]
+  `(((~map :handler) ~key) ~@parameters))
+
+(defmacro !!!!
+  "Takes a widget, a key and arbitrary additional parameters and calls
+   the handler function of the widget that is associated with the key
+   with the widget as first parameter and the given additional parameters"
+  [map key & parameters]
+  `(((~map :handler) ~key) ~map ~@parameters))
+
+
 ;;;
 ;;; java & swing utils
 ;;;
@@ -414,10 +436,10 @@
         (one-by-one lns (fn [r] 
                           (one-by-one (range (count (cells r)))
                             (fn [c]
-                              (.setValueAt control 
-                                ((cells r) c)
+                              (!!!! obj :set-cell-value
                                 (+ starty r)
-                                (+ startx c))))))))))
+                                (+ startx c)
+                                ((cells r) c))))))))))
 
 (defn-swing-threads* table-to-clipboard!
   "Takes a table widget as parameter and copies the current
@@ -462,6 +484,33 @@
          :widget   pane
          :control  table
          :model    model
+         :handler  (ref {})
+
+         :set-handler
+         (fn-doc "Set the widgets handler function.
+
+  Parameters:
+    key        _a key that identifies the handler
+    handler    _the new handler function"
+           [key handler]
+           (let [ widget @self
+                  handler-map (widget :handler) ]
+             (dosync (commute handler-map conj {key handler}))))
+
+         :set-handler-and-wait
+         (fn-doc "Set the widgets handler function,
+  and waits for the completion of the setup.
+
+  Parameters:
+    key        _a key that identifies the handler
+    handler    _the new handler function"
+           [key handler]
+           (let [ widget @self
+                  handler-map (widget :handler)
+                  dowaitfor (promise)]
+             (dosync (commute handler-map conj {key handler})
+               (deliver dowaitfor nil))
+             @dowaitfor))
   
          :register-keyboard-action
          (fn-swing-threads*-doc "Registers a keyboard action on the table.
@@ -537,7 +586,31 @@
                     [:register-keyboard-action 
                       clipboard-to-table!
                       "Paste" keystroke-paste :focus]
-                    ]]
+                    [:set-handler :set-cell-value
+                      (fn-swing-threads*-doc "Sets the value of a cell in the table.
+  Parameters:
+    widget     _the widget object
+    row        _integer identifying a row
+    column     _integer identifying a column
+    contents   _the new contents"
+                        [widget row column contents]
+                        (.setValueAt (get-control widget) 
+                          (!!!! widget :set-cell-value-hook row column contents) 
+                          row column))]
+                    [:set-handler :set-cell-value-hook
+                      (fn-doc "This hook takes requested contents and turns them into
+  allowed contents.
+
+  Parameters:
+    widget     _the widget object
+    row        _integer identifying a row
+    column     _integer identifying a column
+    contents   _the desired new contents
+
+  Returns the new allowed contents for the cell (as string)."
+                        [widget row column contents]
+                        (str contents))
+                    ]]]
     (do
       (deliver self widget)
       (one-by-one defaults unroll-parameters-fn-map widget)
