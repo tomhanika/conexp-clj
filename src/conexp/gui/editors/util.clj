@@ -392,6 +392,54 @@
 ;;
 ;;
 
+(defn-swing-threads* clipboard-to-table!
+  "Takes a table widget as parameter and will paste the current
+   clipboard contents in the cell block marked by the current
+   selected cell.
+
+  Parameters:
+    obj     _a table widget" [obj] 
+  (let [control (get-control obj)
+         sel-columns ((*comp (rho .getSelectedColumns) extract-array)
+                       control)
+         sel-rows ((*comp (rho .getSelectedRows) extract-array)
+                    control)]
+    (if (or (empty? sel-columns) (empty? sel-rows)) nil
+      (let [data (str (get-clipboard-contents))
+             startx (first sel-columns)
+             starty (first sel-rows)
+             cells (vec (map (*comp (rho split #"\t") (rho vec))
+                          (split-lines data)))
+             lns (range (count cells))]
+        (one-by-one lns (fn [r] 
+                          (one-by-one (range (count (cells r)))
+                            (fn [c]
+                              (.setValueAt control 
+                                ((cells r) c)
+                                (+ starty r)
+                                (+ startx c))))))))))
+
+(defn-swing-threads* table-to-clipboard!
+  "Takes a table widget as parameter and copies the current
+   selected cells to the clipboard.
+
+  Parameters:
+    obj      _a table widget" [obj] 
+  (let [control (get-control obj)
+         sel-columns ((*comp (rho .getSelectedColumns) extract-array)
+                       control)
+         sel-rows ((*comp (rho .getSelectedRows) extract-array)
+                    control)
+         sel-pairs (map (fn [y] (map (fn [x] (list y x)) sel-columns))
+                     sel-rows)
+         sel-values (map (fn [l] (map (fn [p] (str (.getValueAt control 
+                                                     (first p) 
+                                                     (second p)))) l))
+                      sel-pairs)
+         sel-lines (map (rho join "\t") sel-values)
+         selection (join "\n" sel-lines)]
+    (set-clipboard-contents selection)))
+
 (defn-swing do-mk-table-control
   "Creates a table control in Java.
 
@@ -484,43 +532,10 @@
          defaults [ [:set-resize-mode :off] 
                     [:set-cell-selection-mode :cells]
                     [:register-keyboard-action 
-                      (fn-swing-threads* [obj] 
-                        (let [control (get-control obj)
-                              sel-columns ((*comp (rho .getSelectedColumns) extract-array)
-                                           control)
-                              sel-rows ((*comp (rho .getSelectedRows) extract-array)
-                                           control)
-                              sel-pairs (map (fn [y] (map (fn [x] (list y x)) sel-columns))
-                                             sel-rows)
-                              sel-values (map (fn [l] (map (fn [p] (str (.getValueAt control 
-                                                                                     (first p) 
-                                                                                     (second p)))) l))
-                                              sel-pairs)
-                              sel-lines (map (rho join "\t") sel-values)
-                              selection (join "\n" sel-lines)]
-                          (set-clipboard-contents selection)))
+                      table-to-clipboard!
                       "Copy" keystroke-copy :focus] 
                     [:register-keyboard-action 
-                      (fn-swing-threads* [obj] 
-                        (let [control (get-control obj)
-                              sel-columns ((*comp (rho .getSelectedColumns) extract-array)
-                                           control)
-                              sel-rows ((*comp (rho .getSelectedRows) extract-array)
-                                           control)]
-                          (if (or (empty? sel-columns) (empty? sel-rows)) nil
-                              (let [data (str (get-clipboard-contents))
-                                    startx (first sel-columns)
-                                    starty (first sel-rows)
-                                    cells (vec (map (*comp (rho split #"\t") (rho vec))
-                                               (split-lines data)))
-                                    lns (range (count cells))]
-                                (one-by-one lns (fn [r] 
-                                                  (one-by-one (range (count (cells r)))
-                                                              (fn [c]
-                                                                (.setValueAt control 
-                                                                             ((cells r) c)
-                                                                             (+ starty r)
-                                                                             (+ startx c))))))))))
+                      clipboard-to-table!
                       "Paste" keystroke-paste :focus]
                     ]]
     (do
