@@ -26,7 +26,8 @@
 				       start-interaction,
 				       get-zoom-factors,
 				       save-image,
-				       get-canvas-from-scene)]
+				       get-canvas-from-scene,
+				       show-labels)]
 	[conexp.graphics.scene-layouts :only (draw-on-scene,
 					      get-layout-from-scene,
 					      update-layout-of-scene,
@@ -43,8 +44,7 @@
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]
-	   [java.io File]
-	   [no.geosoft.cc.graphics GScene]))
+	   [java.io File]))
 
 (update-ns-meta! conexp.graphics.draw
   :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
@@ -57,6 +57,8 @@
 
 
 ;; editor features
+
+(declare single-move, ideal-move, filter-move, chain-move)
 
 (defn- change-parameters
   "Installs parameter list which influences lattice drawing."
@@ -74,16 +76,16 @@
 
   ;; labels
   (let [#^JButton label-toggler (make-button buttons "No Labels")]
-    (.setVisibility scn GScene/ANNOTATION_INVISIBLE)
+    (show-labels scn false)
     (add-action-listener label-toggler
 			 (fn [evt]
 			   (do-swing
 			    (if (= "Labels" (.getText label-toggler))
 			      (do
-				(.setVisibility scn GScene/ANNOTATION_INVISIBLE)
+				(show-labels scn false)
 				(.setText label-toggler "No Labels"))
 			      (do
-				(.setVisibility scn GScene/ANNOTATION_VISIBLE)
+				(show-labels scn true)
 				(.setText label-toggler  "Labels")))
 			    (redraw-scene scn)))))
 
@@ -100,8 +102,42 @@
 			       (layout-fn (lattice (get-layout-from-scene scn)))))))))
 
   ;; move mode (ideal, filter, chain, single)
-  ;; TODO
+  (let [move-modes {"single" single-move,
+		    "ideal"  ideal-move,
+		    "filter" filter-move,
+		    "chain"  chain-move}
+	#^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
+	current-move-mode (atom single-move-mode)]
+    (add-callback-for-hook scn :move-drag
+			   (fn [node dx dy]
+			     (@current-move-mode node dx dy)))
+    (add-action-listener combo-box
+			 (fn [evt]
+			   (let [selected (.. evt getSource getSelectedItem),
+				 move-mode (get move-modes selected)]
+			     (reset! current-move-mode move-mode)))))
   nil)
+
+(defn- single-move
+  "Moves the single node only."
+  [node dx dy]
+  nil)
+
+(defn- ideal-move
+  "Moves all nodes below the current node."
+  [node dx dy]
+  nil)
+
+(defn- filter-move
+  "Moves all nodes above the current node."
+  [node dx dy]
+  nil)
+
+(defn- chain-move
+  "Combined ideal and filter move mode."
+  [node dx dy]
+  (ideal-move node dx dy)
+  (filter-move node dx dy))
 
 
 ;; improve with force layout

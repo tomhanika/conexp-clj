@@ -154,6 +154,13 @@
       #{"gif"}         (.saveAsGif wnd file),
       (illegal-argument "Format " format " not supported for saving images."))))
 
+(defn show-labels
+  "Turns visibility of labels on scene on and off."
+  [#^GScene scn, toggle]
+  (.setVisibility scn (if toggle
+			GScene/ANNOTATION_VISIBLE
+			GScene/ANNOTATION_INVISIBLE)))
+
 ;;;
 
 nil
