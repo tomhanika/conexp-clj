@@ -486,6 +486,14 @@
          :model    model
          :handler  (ref {})
 
+         :get-row-count
+         (fn-swing-doc "Gets the row count of the table"
+           [] (.getRowCount table))
+
+         :get-column-count
+         (fn-swing-doc "Gets the column count of the table"
+           [] (.getColumnCount table))
+
          :set-handler
          (fn-doc "Set the widgets handler function.
 
@@ -594,9 +602,16 @@
     column     _integer identifying a column
     contents   _the new contents"
                         [widget row column contents]
-                        (.setValueAt (get-control widget) 
-                          (!!!! widget :set-cell-value-hook row column contents) 
-                          row column))]
+                        (let [ columns (!! widget :get-column-count)
+                               rows    (!! widget :get-row-count)]
+                          (do
+                            (if (>= column columns)
+                              (!!!! widget :extend-columns-to (+ 1 column)))
+                            (if (>= row rows)
+                              (!!!! widget :extend-rows-to (+ 1 row)))
+                            (.setValueAt (get-control widget) 
+                              (!!!! widget :set-cell-value-hook row column contents) 
+                              row column))))]
                     [:set-handler :set-cell-value-hook
                       (fn-doc "This hook takes requested contents and turns them into
   allowed contents.
@@ -609,8 +624,38 @@
 
   Returns the new allowed contents for the cell (as string)."
                         [widget row column contents]
-                        (str contents))
-                    ]]]
+                        (str contents))]
+                    [:set-handler :extend-columns-to
+                      (fn-swing-doc "Extends the current table to have (at least) the
+  specified number of columns.
+  
+  Parameters:
+    widget     _the widget object
+    columns    _desired number of columns"
+                        [widget columns]
+                        (let [old-columns (!! widget :get-column-count)]
+                          (if (< old-columns columns)
+                            (do
+                              (!! widget :set-column-count columns)
+                              (!!!! widget :extend-columns-hook old-columns columns)))))]
+                    [:set-handler :extend-rows-to
+                      (fn-swing-doc "Extends the current table to have (at least) the
+  specified number of rows.
+  
+  Parameters:
+    widget     _the widget object
+    rows    _desired number of rows"
+                        [widget rows]
+                        (let [old-rows (!! widget :get-row-count)]
+                          (if (< old-rows rows)
+                            (do
+                              (!! widget :set-row-count rows)
+                              (!!!! widget :extend-rows-hook old-rows rows)))))]                    
+                    [:set-handler :extend-rows-hook 
+                      (fn-doc "Dummy extend hook" [widget old-rows new-rows] nil)]
+                    [:set-handler :extend-columns-hook 
+                      (fn-doc "Dummy extend hook" [widget old-columns new-columns] nil)]
+                    ]]
     (do
       (deliver self widget)
       (one-by-one defaults unroll-parameters-fn-map widget)
