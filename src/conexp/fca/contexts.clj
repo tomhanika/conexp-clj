@@ -102,15 +102,15 @@
     (with-str-out
       "\n" 
       (ensure-length "" max-obj " ") " |" (for [att attributes]
-					    [(str att) " "]) "\n"
+					    [(print-str att) " "]) "\n"
       (ensure-length "" max-obj "-") "-+" (for [att attributes]
-					    (ensure-length "" (inc (count (str att))) "-")) "\n"
+					    (ensure-length "" (inc (count (print-str att))) "-")) "\n"
       (for [obj objects]
-	[(ensure-length (str obj) max-obj)
+	[(ensure-length (print-str obj) max-obj)
 	 " |"
 	 (for [att attributes]
 	   [(ensure-length (if (incidence [obj att]) "x" ".")
-			   (count (str att)))
+			   (count (print-str att)))
 	    " "])
 	 "\n"]))))
 
