@@ -113,10 +113,27 @@
 		  0)]
     (split-at index sequence)))
 
+(defn- die-with-error
+  "Stops program by raising the given error with strings as message."
+  [#^Throwable error strings]
+  (throw (.. error
+	     (getConstructor (into-array Class [String]))
+	     (newInstance (into-array Object [(apply str strings)])))))
+
 (defn illegal-argument
-  "Throws IllegalArgumentException with given strings as message"
+  "Throws IllegalArgumentException with given strings as message."
   [& strings]
-  (throw (IllegalArgumentException. #^String (apply str strings))))
+  (die-with-error IllegalArgumentException strings))
+
+(defn unsupported-operation
+  "Throws UnsupportedOperationException with given strings as message."
+  [& strings]
+  (die-with-error UnsupportedOperationException strings))
+
+(defn illegal-state
+  "Throws IllegalStateException with given strings as message."
+  [& strings]
+  (die-with-error IllegalStateException strings))
 
 (defmacro with-profiled-fns
   "Runs code in body with all given functions being profiled."
