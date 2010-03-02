@@ -11,7 +11,8 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.interaction
-	conexp.contrib.dl.framework.reasoning))
+	conexp.contrib.dl.framework.reasoning)
+  (:use clojure.contrib.pprint))
 
 (update-ns-meta! conexp.contrib.dl.framework.exploration
   :doc "Implements exploration for description logics EL and EL-gfp.")
@@ -79,17 +80,18 @@
 	     P_k   #{},
 	     model initial-model]
 	(if (nil? P_k)
-	  ;; return set of implications
+	  ;; then return set of implications
 	  (clarify-subsumption-set
 	   (set-of (make-subsumption all-P mc-all-P)
 		   [P Pi_k
 		    :let [all-P (make-dl-expression language (cons 'and P)),
 			  mc-all-P (make-dl-expression language (model-closure model all-P))]]))
 
-	  ;; search for next implication
+	  ;; else search for next implication
 	  (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
 		next-model (loop [model model]
-			     (let [susu (make-subsumption all-P_k (make-dl-expression language (model-closure model all-P_k)))]
+			     (let [susu (make-subsumption all-P_k
+							  (make-dl-expression language (model-closure model all-P_k)))]
 			       (if-not (expert-refuses? susu)
 				 model
 				 (recur (extend-model-by-contradiction model susu))))),

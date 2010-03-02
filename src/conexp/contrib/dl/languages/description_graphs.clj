@@ -233,7 +233,7 @@
 
 ;;; simulations
 
-(defn simulator-sets
+(defn- simulator-sets
   "Returns for all vertices v in the description graph G-1 the sets of
   vertices (sim v) in G-2 such that there exists a simulation from v to
   every vertex in (sim v)."
