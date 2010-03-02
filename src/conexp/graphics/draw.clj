@@ -25,7 +25,8 @@
 				       redraw-scene,
 				       start-interaction,
 				       get-zoom-factors,
-				       save-image)]
+				       save-image,
+				       get-canvas-from-scene)]
 	[conexp.graphics.scene-layouts :only (draw-on-scene,
 					      get-layout-from-scene,
 					      update-layout-of-scene,
@@ -161,7 +162,7 @@
 			      (do
 				(start-interaction scn move-interaction)
 				(.setText zoom-move "Move"))))))
-    (add-callback-for-hook scn :zoom-event
+    (add-callback-for-hook scn :image-changed
 			   (fn []
 			     (do-swing
 			      (.setText zoom-info (zoom-factors))))))
@@ -322,7 +323,7 @@
   (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
 	scn (draw-on-scene (layout-function lattice)),
-	canvas (.. scn getWindow getCanvas),
+	canvas (get-canvas-from-scene scn),
 
 	#^JPanel canvas-panel (JPanel. (BorderLayout.)),
 	hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),

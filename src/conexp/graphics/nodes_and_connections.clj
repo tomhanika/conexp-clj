@@ -318,7 +318,8 @@
       (event [#^GScene scn, evt, x, y]
 	(.event zoom-obj scn evt x y)
 	(when scn
-	  (call-hook-with scn :zoom-event))))))
+	  (call-hook-with scn :zoom-event)
+	  (call-hook-with scn :image-changed))))))
 
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected
