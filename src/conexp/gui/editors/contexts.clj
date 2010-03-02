@@ -8,7 +8,8 @@
 
 (ns conexp.gui.editors.contexts
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
-             JScrollPane]
+             JScrollPane JPanel JButton]
+    [java.awt GridLayout BorderLayout Dimension]
     [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode]
     [java.util Vector]
     [javax.swing.table DefaultTableModel]
@@ -18,6 +19,62 @@
     clojure.contrib.swing-utils
     conexp.gui.editors.util
     ))
+
+;;
+;;
+;; Context editor control
+;;
+;;
+;;
+;;
+(defn-swing do-mk-context-editor
+  "Creates a control for editing contexts.
+
+  Parameters:
+     & setup     _an optional number of vectors that may contain additional
+                  tweaks that are called after widget creation"
+  [& setup]
+  (let [ self (promise)
+         root (JRootPane.)
+         table (do-mk-table-control
+                 [:set-row-count 10]
+                 [:set-column-count 10])
+         toolbar (do-mk-toolbar-control :vert
+                   [:add-button 
+                     (do-mk-button "Copy" 
+                       (get-ui-icon "OptionPane.informationIcon")
+                       [:set-handler (fn [] (table-to-clipboard! table))])]
+                   [:add-button 
+                     (do-mk-button "Paste" 
+                       (get-ui-icon "OptionPane.informationIcon")
+                       [:set-handler (fn [] (clipboard-to-table! table))])]
+                   ;[:add-button (JButton. "copy")])
+                   )
+         widget {:managed-by-conexp-gui-editors-util "context-editor"
+
+         :widget root
+         :table table
+         :control (get-control table)
+
+         }
+
+         defaults []]
+    (do
+      (deliver self widget)
+      (.. root getContentPane 
+        (add (get-widget toolbar) BorderLayout/LINE_START))
+      (.. root getContentPane
+        (add (get-widget table)))
+      (one-by-one defaults unroll-parameters-fn-map widget)
+      (one-by-one setup unroll-parameters-fn-map widget)
+      widget )))
+
+
+
+
+;;
+;;
+;;
 
 (def context-data (ref {}))
 (def context-pane (ref nil))
@@ -79,11 +136,14 @@
                               [:set-selection-mode :single]
                               [:set-selection-handler 
                                 (fn [x] (with-swing-threads
-                                          (message-box (vec (first x)))))]) left
-             workspace-tree right (do-mk-table-control [:set-column-count 12]
-                                    [:set-row-count 5]) pane 
-             (do-mk-split-pane :horiz left right
-               [:set-divider-location 200]) ]
+                                          (message-box (vec (first x)))))])
+             left  workspace-tree
+;;             right (do-mk-table-control [:set-column-count 12]
+;;                                    [:set-row-count 5])
+             right (do-mk-context-editor)
+             
+             pane (do-mk-split-pane :horiz left right
+                    [:set-divider-location 200]) ]
         (do
           (add-tab-with-name-icon-tooltip frame (get-widget pane)
             "Contexts" nil "View and edit contexts")

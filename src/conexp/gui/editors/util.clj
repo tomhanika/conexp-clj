@@ -8,7 +8,8 @@
 
 (ns conexp.gui.editors.util
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
-             JScrollPane JOptionPane KeyStroke JComponent AbstractAction]
+             JScrollPane JOptionPane KeyStroke JComponent AbstractAction
+             JToolBar JButton UIManager]
     [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
       TreeSelectionModel]
     [java.util Vector]
@@ -242,6 +243,26 @@
          data (StringSelection. (str contents))]
     (.setContents clipboard data nil)))
 
+;;
+;; resources
+;;
+
+(defn-swing get-ui-resource
+  "Returns the resource associated with object.
+
+  Parameters:
+    object   _object identifying the resource"
+  [object]
+  (UIManager/get object))
+
+(defn-swing get-ui-icon
+  "Returns the icon resource associated with object.
+
+  Parameters:
+    object   _object identifying the resource"
+  [object]
+  (UIManager/getIcon object))
+
 
 ;;
 ;; managed/unmanaged interop
@@ -275,6 +296,48 @@
      obj         _object representing some java object"
   [obj]
   (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))
+
+
+;;
+;;
+;; Button
+;;
+;;
+;;
+;;
+(defn-swing do-mk-button
+  "Creates a managed button object.
+
+  Parameters:
+    name     _Buttons name
+    icon     _Buttons icon
+    & setup  _an optional number of vectors that may contain additional
+                  tweaks that are called after widget creation"
+  [name icon & setup]
+  (let [ button (JButton. name icon)
+         widget { :managed-by-conexp-gui-editors-util "button"
+         :widget button
+         
+         :set-handler
+         (fn-swing-threads*-doc "Sets the action handler for the button object.
+  Parameters:
+    handler    _0-ary function that will be called on button press"
+           [handler]
+           (let [current-handlers (.getActionListeners button)
+                  listeners (extract-array current-handlers) ]
+             (one-by-one listeners .removeActionListener button))
+           (let [action (proxy [ActionListener] []
+                           (actionPerformed [event] 
+                             (handler)))]
+             (.addActionListener button action)))
+
+
+         }]
+  (do
+      (one-by-one setup unroll-parameters-fn-map widget) 
+      widget )))
+
+   
 
 ;;
 ;;
@@ -656,6 +719,62 @@
                     [:set-handler :extend-columns-hook 
                       (fn-doc "Dummy extend hook" [widget old-columns new-columns] nil)]
                     ]]
+    (do
+      (deliver self widget)
+      (one-by-one defaults unroll-parameters-fn-map widget)
+      (one-by-one setup unroll-parameters-fn-map widget)
+      widget )))
+
+;;
+;;
+;;  Toolbar
+;;
+;;
+;;
+
+(defn-swing do-mk-toolbar-control
+  "Creates a toolbar control in Java.
+
+  Parameters:
+     orientation _either :horiz or :vert
+     & setup     _an optional number of vectors that may contain additional
+                  tweaks that are called after widget creation"
+  [orientation & setup]
+  (let [ self (promise)
+         toolbar (JToolBar. ({:horiz JToolBar/HORIZONTAL
+                                      :vert JToolBar/VERTICAL} 
+                                      orientation))
+         widget {:managed-by-conexp-gui-editors-util "toolbar-control"
+
+         :widget toolbar
+         :control toolbar
+
+         :set-orientation 
+         (fn-swing-threads*-doc "Sets the toolbars orientation.
+
+  Parameters:
+    orientation   _either :horiz or :vert" 
+           [orientation]
+           (.setOrientation toolbar ({:horiz JToolBar/HORIZONTAL
+                                      :vert JToolBar/VERTICAL} 
+                                      orientation)))
+
+         :add-button
+         (fn-swing-threads*-doc "Adds a button to the toolbar
+
+  Parameters:
+    button    _the button widget"
+           [button]
+           (.add toolbar (get-widget button)))
+
+         :add-separator
+         (fn-swing-threads*-doc "Adds a separator to the toolbar."
+           []
+           (.addSeparator toolbar))
+         
+         }
+
+         defaults []]
     (do
       (deliver self widget)
       (one-by-one defaults unroll-parameters-fn-map widget)
