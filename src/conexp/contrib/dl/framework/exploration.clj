@@ -62,19 +62,22 @@
 	   :when (not (superset? (arguments* (subsumer susu))
 				 (arguments* (subsumee susu))))]))
 
+(defn- obviously-true?
+  "Returns true iff the given subsumption is obviously
+  true (i.e. premise is a superset of conclusion)."
+  [subsumption]
+  (superset? (arguments* (subsumer subsumption)) (arguments* (subsumee subsumption))))
+
 ;;;
 
 (defn explore-model
   "Model exploration algorithm."
-  ;; This is algorithm 6
   [initial-model]
   (binding [model-closure (memoize model-closure),
 	    subsumes?     (memoize subsumes?)]
     (let [language (model-language initial-model)]
       (loop [k     0,
-	     M_k   (map #(dl-expression language %)
-			(concept-names language)),
-	     M_k-1 (),
+	     M_k   (map #(dl-expression language %) (concept-names language)),
 	     K     (induced-context M_k initial-model),
 	     Pi_k  [],
 	     P_k   #{},
@@ -84,33 +87,41 @@
 	  (clarify-subsumption-set
 	   (set-of (make-subsumption all-P mc-all-P)
 		   [P Pi_k
-		    :let [all-P (make-dl-expression language (cons 'and P)),
-			  mc-all-P (make-dl-expression language (model-closure model all-P))]]))
+		    :let [all-P    (make-dl-expression language (cons 'and P)),
+			  mc-all-P (make-dl-expression language (model-closure model all-P))]
+		    :when (not= all-P mc-all-P)]))
 
 	  ;; else search for next implication
 	  (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
 		next-model (loop [model model]
 			     (let [susu (make-subsumption all-P_k
-							  (make-dl-expression language (model-closure model all-P_k)))]
-			       (if-not (expert-refuses? susu)
+							  (make-dl-expression language
+									      (model-closure model all-P_k)))]
+			       (if (or (obviously-true? susu) (not (expert-refuses? susu)))
 				 model
 				 (recur (extend-model-by-contradiction model susu))))),
-		next-M_k   (into M_k (difference (set-of (dl-expression language (exists r (model-closure next-model all-P_k)))
+		next-M_k   (into M_k (difference (set-of (dl-expression language
+									(exists r (model-closure next-model all-P_k)))
 							 [r (role-names language)])
 						 (set M_k))),
-		next-M_k-1 M_k,
 		next-K     (induced-context next-M_k next-model),
 		next-Pi_k  (conj Pi_k P_k),
-		next-P_k   (next-closed-set M_k
-					    (clop-by-implications
-					     (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
-							    [P_l (rest Pi_k)])
-						    (set-of (make-implication #{C} #{D})
-							    [C M_k, D M_k
-							     :when (and (not= C D)
-									(subsumes? C D))])))
+		next-P_k   (next-closed-set M_k (clop-by-implications
+						 (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
+								[P_l (rest Pi_k)])
+							(set-of (make-implication #{C} #{D})
+								[C M_k, D M_k
+								 :when (and (not= C D) (subsumes? C D))])))
 					    P_k)]
-	    (recur (inc k) next-M_k next-M_k-1 next-K next-Pi_k next-P_k next-model)))))))
+	    (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model)))))))
+
+;;;
+
+(defn model-gcis
+  "Returns a complete and sound set of gcis holding in model."
+  [model]
+  (binding [expert-refuses? (constantly false)]
+    (explore-model model)))
 
 ;;;
 

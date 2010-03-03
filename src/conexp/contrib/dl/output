@@ -1,0 +1,129 @@
+;; Notation: Prefix, #{...} Menge, [...] Vektoren (Tupel, hier nur
+;; Paare). Hier alle Implikationen, auch solche mit gleicher Prämisse
+;; und Konklusion, in chronologischer Reihenfolge
+"Elapsed time: 397.740247 msecs"
+
+((and) ==> (and))
+
+((and Female) ==> (and Female))
+
+((and Mother) ==> (and Mother Female (exists Child (and))))
+
+((and Female Mother) ==> (and Mother Female (exists Child (and))))
+
+((and Male) ==> (and Male))
+
+((and Female Male)
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and Father) ==> (and Father Male (exists Child (and))))
+
+((and Female Father)
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and (exists Child (and))) ==> (and (exists Child (and))))
+
+((and Female (exists Child (and)))
+ ==>
+ (and Mother Female (exists Child (and))))
+
+((and Female Mother (exists Child (and)))
+ ==>
+ (and Mother Female (exists Child (and))))
+
+((and Male (exists Child (and)))
+ ==>
+ (and Father Male (exists Child (and))))
+
+((and Father Male (exists Child (and)))
+ ==>
+ (and Father Male (exists Child (and))))
+
+((and (exists Child (and Female)) (exists Child (and)))
+ ==>
+ (and (exists Child (and Female))))
+
+((and Female Mother (exists Child (and Female)) (exists Child (and)))
+ ==>
+ (and Mother Female (exists Child (and Female))))
+
+((and Father Male (exists Child (and Female)) (exists Child (and)))
+ ==>
+ (and Father Male (exists Child (and Female))))
+
+((and (exists Child (and Male)) (exists Child (and)))
+ ==>
+ (and (exists Child (and Male))))
+
+((and Female Mother (exists Child (and Male)) (exists Child (and)))
+ ==>
+ (and Mother Female (exists Child (and Male))))
+
+((and Father Male (exists Child (and Male)) (exists Child (and)))
+ ==>
+ (and Father Male (exists Child (and Male))))
+
+((and (exists Child (and Male))
+      (exists Child (and Female))
+      (exists Child (and)))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and Female
+      Mother
+      (exists Child (and Male))
+      (exists Child (and Female))
+      (exists Child (and)))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and (exists Child
+	      [#{All := (and Father Male Mother Female (exists Child All))} All]))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and Female
+      (exists Child
+	      [#{All := (and Father Male Mother Female (exists Child All))} All]))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and Female
+      (exists Child
+	      [#{All := (and Father Male Mother Female (exists Child All))} All]))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and (exists Child (and (exists Child (and)))) (exists Child (and)))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and Female
+      Mother
+      (exists Child (and (exists Child (and))))
+      (exists Child (and)))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
+
+((and Female
+      Father
+      (exists Child (and (exists Child (and Male))))
+      (exists Child (and Father Male (exists Child (and))))
+      Male
+      Mother
+      (exists Child (and (exists Child (and))))
+      (exists Child (and Mother Female (exists Child (and))))
+      (exists Child
+	      [#{All := (and Father Male Mother Female (exists Child All))} All])
+      (exists Child (and Father Male (exists Child (and Female))))
+      (exists Child (and Male))
+      (exists Child (and Father Male (exists Child (and Male))))
+      (exists Child (and Mother Female (exists Child (and Male))))
+      (exists Child (and Mother Female (exists Child (and Female))))
+      (exists Child (and Female))
+      (exists Child (and))
+      (exists Child (and (exists Child (and Female)))))
+ ==>
+ [#{All := (and Father Male Mother Female (exists Child All))} All])
