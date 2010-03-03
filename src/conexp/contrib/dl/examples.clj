@@ -90,7 +90,6 @@
 	[D-tbox D-target] (expression (ensure-EL-gfp-concept D)),
 
 	G (tbox->description-graph (tbox-union C-tbox D-tbox))]
-    (println G)
     (simulates? G G D-target C-target)))
 
 ;;;

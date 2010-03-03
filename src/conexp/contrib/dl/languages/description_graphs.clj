@@ -95,7 +95,6 @@
 		;; atomic term, possibly a tbox-target-pair
 		(if (tbox-target-pair? B)
 		  (let [[tbox target] (uniquify-tbox-target-pair (expression B))]
-		    (println [tbox target])
 		    (recur (rest args)
 			   (conj normalized (list 'exists (expression r) target))
 			   (into names (for [def (tbox-definitions tbox)]

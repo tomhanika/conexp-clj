@@ -120,11 +120,9 @@
 (defn tbox-union
   "Returns the union of tbox-1 and tbox-2."
   [tbox-1 tbox-2]
-  (let [tbox-1 (uniquify-tbox tbox-1),
-	tbox-2 (uniquify-tbox tbox-2)]
-    (make-tbox (tbox-language tbox-1)
-	       (union (tbox-definitions tbox-1)
-		      (tbox-definitions tbox-2)))))
+  (make-tbox (tbox-language tbox-1)
+	     (union (tbox-definitions tbox-1)
+		    (tbox-definitions tbox-2))))
 
 ;;;
 
