@@ -63,7 +63,7 @@
 (defn- normalize-definition
   "Normalzes given definition with additional defintions, returning
   the normalized definition and a possibly enhanced structure of
-  definitions."
+  definitions. Mixes in tbox-target-pairs."
   ;; stupid description
   [definition term-names]
   (let [language (expression-language (definition-expression definition)),
@@ -81,11 +81,27 @@
 	 names]
 	(let [next-term (first args)]
 	  (if (atomic? next-term)
-	    (recur (rest args) (conj normalized (expression next-term)) names)
+	    ;; atomic term, possibly a tbox-target-pair
+	    (if (tbox-target-pair? next-term)
+	      (let [[tbox target] (uniquify-tbox-target-pair (expression next-term))]
+		(recur (rest args) (conj normalized target)
+		       (into names (for [def (tbox-definitions tbox)]
+				     [(definition-expression def) (definition-target def)]))))
+	      (recur (rest args) (conj normalized (expression next-term)) names))
+
 	    ;; next-term is an existential quantification
 	    (let [[r B] (vec (arguments next-term))]
 	      (if (atomic? B)
-		(recur (rest args) (conj normalized (expression next-term)) names)
+		;; atomic term, possibly a tbox-target-pair
+		(if (tbox-target-pair? B)
+		  (let [[tbox target] (uniquify-tbox-target-pair (expression B))]
+		    (println [tbox target])
+		    (recur (rest args)
+			   (conj normalized (list 'exists (expression r) target))
+			   (into names (for [def (tbox-definitions tbox)]
+					 [(definition-expression def) (definition-target def)]))))
+		  (recur (rest args) (conj normalized (expression next-term)) names))
+
 		;; B is an existential quantification
 		(let [name (get names B nil)]
 		  (if-not (nil? name)

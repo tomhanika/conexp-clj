@@ -36,6 +36,21 @@
   [language definitions]
   (TBox language (set definitions)))
 
+(defn tbox?
+  "Returns true iff thing is a tbox."
+  [thing]
+  (= (type thing) ::TBox))
+
+(defn tbox-target-pair?
+  "Returns true iff dl-expr is a tbox-target-pair."
+  [dl-expr]
+  (and (dl-expression? dl-expr)
+       (let [expr (expression dl-expr)]
+	 (and (vector? expr)
+	      (= 2 (count expr))
+	      (tbox? (first expr))
+	      (contains? (defined-concepts (first expr)) (second expr))))))
+
 ;;; accessing used role names, primitive and defined concepts
 
 (defn defined-concepts
@@ -79,22 +94,37 @@
       (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
       result)))
 
-(defn uniquify-tbox
-  "Substitutes for every used concept name in tbox a new, globally
-  unique, concept name."
-  [tbox]
+(defn uniquify-tbox-target-pair
+  "Substitutes for every defined concept name in tbox a new, globally
+  unique, concept name and finally substitutes traget with its new name."
+  [[tbox target]]
   (let [symbols     (defined-concepts tbox),
 	new-symbols (hashmap-by-function (fn [sym]
 					   (gensym (str sym)))
 					 symbols)]
-    new-symbols))
+    [(make-tbox (tbox-language tbox)
+		(set-of (make-dl-definition (new-symbols target) (substitute def-exp new-symbols))
+			[def (tbox-definitions tbox),
+			 :let [target (definition-target def),
+			       def-exp (definition-expression def)]]))
+     (new-symbols target)]))
+
+(defn uniquify-tbox
+  "Substitutes for every defined concept anme in tbox a new, globally
+  unique, concept name."
+  [tbox]
+  (if (empty? (tbox-definitions tbox))
+    tbox
+    (first (uniquify-tbox-target-pair [tbox (definition-target (first (tbox-definitions tbox)))]))))
 
 (defn tbox-union
   "Returns the union of tbox-1 and tbox-2."
   [tbox-1 tbox-2]
-  (make-tbox (tbox-language tbox-1)
-	     (union (tbox-definitions tbox-1)
-		    (tbox-definitions tbox-2))))
+  (let [tbox-1 (uniquify-tbox tbox-1),
+	tbox-2 (uniquify-tbox tbox-2)]
+    (make-tbox (tbox-language tbox-1)
+	       (union (tbox-definitions tbox-1)
+		      (tbox-definitions tbox-2)))))
 
 ;;;
 
