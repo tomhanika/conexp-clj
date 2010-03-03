@@ -107,7 +107,7 @@
 		    "filter" filter-move,
 		    "chain"  chain-move}
 	#^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
-	current-move-mode (atom single-move-mode)]
+	current-move-mode (atom single-move)]
     (add-callback-for-hook scn :move-drag
 			   (fn [node dx dy]
 			     (@current-move-mode node dx dy)))
