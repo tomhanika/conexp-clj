@@ -242,7 +242,10 @@
   "Substitues in sexp-1 every occurence of a key in names by its value."
   [sexp-1 names]
   (cond
-   (some #{sexp-1} (keys names)) (names sexp-1),
+   (some #{sexp-1} (keys names)) (let [new (names sexp-1)]
+				   (if (dl-expression? new)
+				     (expression new)
+				     new)),
    (sequential? sexp-1) (walk #(substitute-syntax % names) identity sexp-1),
    :else sexp-1))
 
