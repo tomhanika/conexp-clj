@@ -60,11 +60,6 @@
 
 ;;;
 
-(defn new-var
-  "Returns a new variable name (globally unique)."
-  []
-  (gensym "C-"))
-
 (defn- normalize-definition
   "Normalzes given definition with additional defintions, returning
   the normalized definition and a possibly enhanced structure of
@@ -95,7 +90,7 @@
 		(let [name (get names B nil)]
 		  (if-not (nil? name)
 		    (recur (rest args) (conj normalized (list 'exists (expression r) name)) names)
-		    (let [new-name (new-var),
+		    (let [new-name (gensym),
 			  new-names (conj names [B new-name])]
 		      (recur (rest args) (conj normalized (list 'exists (expression r) new-name)) new-names))))))))))))
 

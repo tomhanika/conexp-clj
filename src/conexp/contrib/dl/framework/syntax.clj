@@ -239,19 +239,19 @@
 		     (concept-names-in-expression dl-expression))))
 
 (defn- substitute-syntax
-  "Substitues in first sexp every occurence of name by the second one."
-  [sexp-1 name sexp-2]
+  "Substitues in sexp-1 every occurence of a key in names by its value."
+  [sexp-1 names]
   (cond
-   (= sexp-1 name) sexp-2,
-   (sequential? sexp-1) (walk #(substitute-syntax % name sexp-2) identity sexp-1),
+   (some #{sexp-1} (keys names)) (names sexp-1),
+   (sequential? sexp-1) (walk #(substitute-syntax % names) identity sexp-1),
    :else sexp-1))
 
 (defn substitute
-  "Substitutes in the first dl-expression all occurences of name by
-  the second dl-expression, returning the resulting expression."
-  [dl-expr name new-dl-expr]
+  "Substitutes in the first dl-expression all occurences of keys in
+  names by their values, returning the resulting expression."
+  [dl-expr names]
   (DL-expression (expression-language dl-expr)
-		 (substitute-syntax (expression dl-expr) name (expression new-dl-expr))))
+		 (substitute-syntax (expression dl-expr) names)))
 
 ;;; Definitions
 

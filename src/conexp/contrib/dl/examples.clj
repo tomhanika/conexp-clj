@@ -78,7 +78,7 @@
 	     (= 2 (count expr)))
       dl-expression
       (let [language (expression-language dl-expression),
-	    target   (new-var)]
+	    target   (gensym)]
 	(make-dl-expression-nc language
 			       [(make-tbox language
 					   #{(make-dl-definition target dl-expression)}),
