@@ -270,13 +270,6 @@
 	dy    (if min-y (max dy (- min-y y)) dy)]
     (move-node-unchecked-to node (+ x dx) (+ y dy))))
 
-(defn move-node-to
-  "Moves node to position [x y], restricted by it's upper and lower
-  neighbours."
-  [node x y]
-  (let [[current-x current-y] (position node)]
-    (move-node-by node (- x current-x) (- y current-y))))
-
 
 ;;;
 
@@ -284,7 +277,8 @@
   "Standard move interaction for lattice diagrams. Installs
   :move-start, :move-drag and :move-stop hooks on scene to be called
   whenever a node is moved. Callbacks get the moved vertex as
-  argument."
+  argument, :move-drag additionally gets the vector by which the given
+  vertex has been moved."
   [scene]
   (add-hook scene :move-start)
   (add-hook scene :move-drag)
@@ -298,10 +292,11 @@
 				     (reset! interaction-obj thing)
 				     (call-hook-with scn :move-start thing))),
 	   GWindow/BUTTON1_DRAG  (when @interaction-obj
-				   (let [[x y] (device-to-world scn x y)]
-				     (move-node-to @interaction-obj x y)
-				     (.refresh scn))
-				   (call-hook-with scn :move-drag @interaction-obj)),
+				   (let [[a b] (position @interaction-obj),
+					 [x y] (device-to-world scn x y)]
+				     (move-node-by @interaction-obj (- x a) (- y b))
+				     (.refresh scn)
+				     (call-hook-with scn :move-drag @interaction-obj (- x a) (- y b)))),
 	   GWindow/BUTTON1_UP    (do
 				   (call-hook-with scn :move-stop @interaction-obj)
 				   (reset! interaction-obj nil))
@@ -318,7 +313,8 @@
       (event [#^GScene scn, evt, x, y]
 	(.event zoom-obj scn evt x y)
 	(when scn
-	  (call-hook-with scn :zoom-event))))))
+	  (call-hook-with scn :zoom-event)
+	  (call-hook-with scn :image-changed))))))
 
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected

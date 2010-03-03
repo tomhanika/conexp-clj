@@ -9,7 +9,8 @@
 (ns conexp.graphics.scenes
   (:use conexp.base
 	conexp.graphics.util)
-  (:import [java.awt Color]
+  (:import [java.awt Color Canvas]
+	   [java.awt.event ComponentListener]
 	   [java.io File]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent]))
 
@@ -67,6 +68,7 @@
     (doto scn
       (initialize-scene)
       (add-data-to-scene :hooks {})
+      (add-hook :image-changed)
       (.shouldZoomOnResize true)
       (.shouldWorldExtentFitViewport false)
       (.setStyle *default-scene-style*))
@@ -136,7 +138,11 @@
 (defn get-canvas-from-scene
   "Returns canvas associated with a scene."
   [#^GScene scn]
-  (.. scn getWindow getCanvas))
+  (let [#^Canvas canvas (.. scn getWindow getCanvas)]
+    (.addComponentListener canvas (proxy [ComponentListener] []
+				    (componentResized [comp-evt]
+				      (call-hook-with scn :image-changed))))
+    canvas))
 
 (defn save-image
   "Saves image on scene scn in given file with given format."
@@ -147,6 +153,13 @@
       #{"png"}         (.saveAsPng wnd file),
       #{"gif"}         (.saveAsGif wnd file),
       (illegal-argument "Format " format " not supported for saving images."))))
+
+(defn show-labels
+  "Turns visibility of labels on scene on and off."
+  [#^GScene scn, toggle]
+  (.setVisibility scn (if toggle
+			GScene/ANNOTATION_VISIBLE
+			GScene/ANNOTATION_INVISIBLE)))
 
 ;;;
 

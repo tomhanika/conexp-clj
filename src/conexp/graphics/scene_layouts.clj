@@ -69,7 +69,8 @@
 			(double (- y_min (* 2 *default-node-radius*)))
 			(double (- x_max x_min (* -4 *default-node-radius*)))
 			(double (- y_max y_min (* -4 *default-node-radius*))))
-       (redraw-scene)))))
+       (redraw-scene))
+     (call-hook-with scene :image-changed))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
@@ -83,7 +84,8 @@
 		       (double (- y_max y_min (* -4 *default-node-radius*))))
       (add-nodes-with-connections (positions layout) (connections layout))
       (add-data-to-scene :layout layout)
-      (.unzoom))))
+      (.unzoom))
+    (call-hook-with scene :image-changed)))
 
 ;;; draw nodes with coordinates and connections on a scene
 

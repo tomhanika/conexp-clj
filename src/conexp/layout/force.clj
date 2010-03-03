@@ -11,7 +11,7 @@
         [conexp.fca.lattices :exclude (order)]
 	conexp.layout.util
 	conexp.layout.base
-	[conexp.math.util :only (with-doubles)]
+	conexp.math.util
 	conexp.math.optimize
 	clojure.contrib.pprint))
 
