@@ -60,11 +60,22 @@
 
 ;;;
 
+(declare normalize)
+
+(defn- normalize-atomic
+  "Normalizes an atomic expression as needed by normalize-definition."
+  [expr term-names]
+  (if (tbox-target-pair? expr)
+    (let [[tbox target] (uniquify-tbox-target-pair (expression expr)),
+	  tbox (normalize tbox)]
+      [target (into term-names (for [def (tbox-definitions tbox)]
+				 [(definition-expression def) (definition-target def)]))])
+    [expr term-names]))
+
 (defn- normalize-definition
-  "Normalzes given definition with additional defintions, returning
-  the normalized definition and a possibly enhanced structure of
-  definitions. Mixes in tbox-target-pairs."
-  ;; stupid description
+  "Normalizes given definition using term-names (i.e. a map mapping
+  expressions to names), extending term-names if necessary."
+  ;; ugly code, can we do this with monads?
   [definition term-names]
   (let [language (expression-language (definition-expression definition)),
 	target   (definition-target definition),
@@ -82,26 +93,17 @@
 	(let [next-term (first args)]
 	  (if (atomic? next-term)
 	    ;; atomic term, possibly a tbox-target-pair
-	    (if (tbox-target-pair? next-term)
-	      (let [[tbox target] (uniquify-tbox-target-pair (expression next-term))]
-		(recur (rest args) (conj normalized target)
-		       (into names (for [def (tbox-definitions tbox)]
-				     [(definition-expression def) (definition-target def)]))))
-	      (recur (rest args) (conj normalized (expression next-term)) names))
+	    (let [[normal-term new-names] (normalize-atomic next-term names)]
+	      (recur (rest args) (conj normalized normal-term) new-names))
 
 	    ;; next-term is an existential quantification
 	    (let [[r B] (vec (arguments next-term))]
 	      (if (atomic? B)
 		;; atomic term, possibly a tbox-target-pair
-		(if (tbox-target-pair? B)
-		  (let [[tbox target] (uniquify-tbox-target-pair (expression B))]
-		    (recur (rest args)
-			   (conj normalized (list 'exists (expression r) target))
-			   (into names (for [def (tbox-definitions tbox)]
-					 [(definition-expression def) (definition-target def)]))))
-		  (recur (rest args) (conj normalized (expression next-term)) names))
+		(let [[normal-B new-names] (normalize-atomic B names)]
+		  (recur (rest args) (conj normalized (list 'exists (expression r) normal-B)) new-names))
 
-		;; B is an existential quantification
+		;; B is compound
 		(let [name (get names B nil)]
 		  (if-not (nil? name)
 		    (recur (rest args) (conj normalized (list 'exists (expression r) name)) names)
