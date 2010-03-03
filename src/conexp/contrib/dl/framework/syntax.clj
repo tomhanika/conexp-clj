@@ -147,7 +147,12 @@
 	    (not (Character/isUpperCase (first (str name)))))
       (illegal-argument "Concept and role names must start with a capital letter."))
     `(do
+       ;; defining the language
        (def ~name (make-language '~concept-names '~role-names '~constructors))
+
+       ;; extending languages
+       ~(when (contains? (keys options) :extends)
+	  `(derive ~name ~(:extends options)))
 
        ;; untested
        (defmethod transform-expression ~name [language# expression#]
@@ -161,6 +166,7 @@
 		       ~@body))))
 	      (:syntax-transformers options))
 
+       ;; finished
        ~name)))
 
 ;;;

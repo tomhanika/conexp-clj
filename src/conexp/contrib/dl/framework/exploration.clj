@@ -53,20 +53,18 @@
       (make-subsumption (make-dl-expression language (cons 'and premise-args))
 			(make-dl-expression language (cons 'and (difference conclusion-args premise-args)))))))
 
+(defn- obviously-true?
+  "Returns true iff the given subsumption is obviously true."
+  [subsumption]
+  (subsumes? (subsumer subsumption) (subsumee subsumption)))
+
 (defn- clarify-subsumption-set
   "Removes all sumsumptions with equal subsumer and subsumee from the
   set of given subsumptions."
   [subs]
   (set-of susu
 	  [susu (map abbreviate-subsumption (seq subs)),
-	   :when (not (superset? (arguments* (subsumer susu))
-				 (arguments* (subsumee susu))))]))
-
-(defn- obviously-true?
-  "Returns true iff the given subsumption is obviously
-  true (i.e. premise is a superset of conclusion)."
-  [subsumption]
-  (superset? (arguments* (subsumer subsumption)) (arguments* (subsumee subsumption))))
+	   :when (not (obviously-true? susu))]))
 
 ;;;
 
@@ -97,7 +95,8 @@
 			     (let [susu (make-subsumption all-P_k
 							  (make-dl-expression language
 									      (model-closure model all-P_k)))]
-			       (if (or (obviously-true? susu) (not (expert-refuses? susu)))
+			       (if (or (obviously-true? susu)
+				       (not (expert-refuses? susu)))
 				 model
 				 (recur (extend-model-by-contradiction model susu))))),
 		next-M_k   (into M_k (difference (set-of (dl-expression language
@@ -108,7 +107,7 @@
 		next-Pi_k  (conj Pi_k P_k),
 		next-P_k   (next-closed-set M_k (clop-by-implications
 						 (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
-								[P_l (rest Pi_k)])
+								[P_l (rest next-Pi_k)])
 							(set-of (make-implication #{C} #{D})
 								[C M_k, D M_k
 								 :when (and (not= C D) (subsumes? C D))])))
