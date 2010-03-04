@@ -162,7 +162,15 @@
     [(make-tbox (tbox-language tbox)
 		(for [def (tbox-definitions tbox)
 		      :when (contains? needed-targets (definition-target def))]
-		  def)),
+		    (if (compound? (definition-expression def))
+		      ;; remove duplicate terms
+		      (let [expr (definition-expression def)]
+			(make-dl-definition (definition-target def)
+					    (make-dl-expression (tbox-language tbox)
+								(list* (operator expr)
+								       (distinct (arguments expr))))))
+		      ;;
+		      def)))
      target]))
 
 (defn substitute-definitions

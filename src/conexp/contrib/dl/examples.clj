@@ -15,7 +15,7 @@
 	conexp.contrib.dl.framework.interaction
 	conexp.contrib.dl.languages.EL-gfp))
 
-;;;
+;;; Initial Example
 
 (define-dl SimpleDL [Father Mother Male Female] [Child] []
   :extends EL-gfp)
@@ -50,6 +50,21 @@
   Mother #{Michelle Linda}
   Child  #{[John Mackenzie] [Michelle Mackenzie]
 	   [Paul James] [Linda James]})
+
+;;; Fahrräder
+
+(define-dl Riding [Fahrzeug, Fahrrad, Rad, Auto] [HatKomponente] []
+  :extends EL-gfp)
+
+(define-model riding-model Riding
+  [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto, LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
+  Fahrzeug #{MeinFahrrad, FranzSeinAuto},
+  Fahrrad  #{MeinFahrrad},
+  Auto     #{FranzSeinAuto},
+  Rad      #{Hinterrad, Vorderrad, LinkesHinterrad, LinkesVorderrad, RechtesHinterrad, RechtesVorderrad},
+  HatKomponente #{[MeinFahrrad Hinterrad] [MeinFahrrad Vorderrad]
+		  [FranzSeinAuto LinkesVorderrad] [FranzSeinAuto LinkesHinterrad]
+		  [FranzSeinAuto RechtesVorderrad] [FranzSeinAuto RechtesHinterrad]})
 
 ;;;
 
