@@ -66,6 +66,21 @@
 	  [susu (map abbreviate-subsumption (seq subs)),
 	   :when (not (obviously-true? susu))]))
 
+(defn- extend-attributes
+  "Takes a sequence of concepts and a sequence of new concepts to be
+  added to the first sequence. If any element in the new sequence is
+  equivalent to some element in the old one, it is not added."
+  [concepts new-concepts]
+  (loop [concepts concepts,
+	 new-concepts new-concepts]
+    (if (empty? new-concepts)
+      concepts
+      (recur (let [next (first new-concepts)]
+	       (if (some #(equivalent? next %) concepts)
+		 concepts
+		 (conj concepts next)))
+	     (rest new-concepts)))))
+
 ;;;
 
 (defn explore-model
@@ -106,10 +121,9 @@
 					  (not (expert-refuses? susu)))
 				    model
 				    (recur (extend-model-by-contradiction model susu))))),
-		   next-M_k   (into M_k (difference (set-of (dl-expression language
-									   (exists r (model-closure next-model all-P_k)))
-							    [r (role-names language)])
-						    (set M_k))),
+		   next-M_k   (extend-attributes M_k (set-of (dl-expression language
+									    (exists r (model-closure next-model all-P_k)))
+							     [r (role-names language)])),
 		   next-K     (induced-context next-M_k next-model),
 		   next-Pi_k  (conj Pi_k P_k),
 		   next-P_k   (next-closed-set M_k (clop-by-implications
