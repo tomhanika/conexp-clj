@@ -267,17 +267,17 @@
 
 ;;; Subsumptions
 
-(deftype DL-subsumption [subsumer subsumee])
-
-(defn subsumer
-  "Returns the subsumer of the given subsumption."
-  [subsumption]
-  (:subsumer subsumption))
+(deftype DL-subsumption [subsumee subsumer])
 
 (defn subsumee
   "Returns the subsumee of the given subsumption."
   [subsumption]
   (:subsumee subsumption))
+
+(defn subsumer
+  "Returns the subsumer of the given subsumption."
+  [subsumption]
+  (:subsumer subsumption))
 
 (defn make-subsumption
   "Creates and returns a subsumption."
@@ -288,9 +288,9 @@
 
 (defmethod print-method ::DL-subsumption [susu out]
   (let [#^String output (with-out-str
-			  (pprint (list (subsumer susu)
+			  (pprint (list (subsumee susu)
 					'==>
-					(subsumee susu))))]
+					(subsumer susu))))]
     (.write out (.trim output))))
 
 ;;;
