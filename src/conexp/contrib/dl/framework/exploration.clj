@@ -70,49 +70,56 @@
 
 (defn explore-model
   "Model exploration algorithm."
-  [initial-model]
-  (binding [model-closure (memoize model-closure),
-	    subsumes?     (memoize subsumes?)]
-    (let [language (model-language initial-model)]
-      (loop [k     0,
-	     M_k   (map #(dl-expression language %) (concept-names language)),
-	     K     (induced-context M_k initial-model),
-	     Pi_k  [],
-	     P_k   #{},
-	     model initial-model]
-	(if (nil? P_k)
-	  ;; then return set of implications
-	  (clarify-subsumption-set
-	   (set-of (make-subsumption all-P mc-all-P)
-		   [P Pi_k
-		    :let [all-P    (make-dl-expression language (cons 'and P)),
-			  mc-all-P (make-dl-expression language (model-closure model all-P))]
-		    :when (not= all-P mc-all-P)]))
+  ([initial-model]
+     (explore-model initial-model (concept-names (model-language initial-model))))
+  ([initial-model initial-ordering]
+     (binding [model-closure (memoize model-closure),
+	       subsumes?     (memoize subsumes?)]
+       (let [language (model-language initial-model)]
+	 (when (and (not= (set initial-ordering) (concept-names language))
+		    (not= (count initial-ordering) (count (concept-names language))))
+	   (illegal-argument "Given initial-ordering for explore-model must consist "
+			     "of all concept names of the language of the given model."))
 
-	  ;; else search for next implication
-	  (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
-		next-model (loop [model model]
-			     (let [susu (make-subsumption all-P_k
-							  (make-dl-expression language
-									      (model-closure model all-P_k)))]
-			       (if (or (obviously-true? susu)
-				       (not (expert-refuses? susu)))
-				 model
-				 (recur (extend-model-by-contradiction model susu))))),
-		next-M_k   (into M_k (difference (set-of (dl-expression language
-									(exists r (model-closure next-model all-P_k)))
-							 [r (role-names language)])
-						 (set M_k))),
-		next-K     (induced-context next-M_k next-model),
-		next-Pi_k  (conj Pi_k P_k),
-		next-P_k   (next-closed-set M_k (clop-by-implications
-						 (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
-								[P_l (rest next-Pi_k)])
-							(set-of (make-implication #{C} #{D})
-								[C M_k, D M_k
-								 :when (and (not= C D) (subsumes? C D))])))
-					    P_k)]
-	    (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model)))))))
+	 (loop [k     0,
+		M_k   (map #(dl-expression language %) initial-ordering),
+		K     (induced-context M_k initial-model),
+		Pi_k  [],
+		P_k   #{},
+		model initial-model]
+	   (if (nil? P_k)
+	     ;; then return set of implications
+	     (clarify-subsumption-set
+	      (set-of (make-subsumption all-P mc-all-P)
+		      [P Pi_k
+		       :let [all-P    (make-dl-expression language (cons 'and P)),
+			     mc-all-P (make-dl-expression language (model-closure model all-P))]
+		       :when (not= all-P mc-all-P)]))
+
+	     ;; else search for next implication
+	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
+		   next-model (loop [model model]
+				(let [susu (make-subsumption all-P_k
+							     (make-dl-expression language
+										 (model-closure model all-P_k)))]
+				  (if (or (obviously-true? susu)
+					  (not (expert-refuses? susu)))
+				    model
+				    (recur (extend-model-by-contradiction model susu))))),
+		   next-M_k   (into M_k (difference (set-of (dl-expression language
+									   (exists r (model-closure next-model all-P_k)))
+							    [r (role-names language)])
+						    (set M_k))),
+		   next-K     (induced-context next-M_k next-model),
+		   next-Pi_k  (conj Pi_k P_k),
+		   next-P_k   (next-closed-set M_k (clop-by-implications
+						    (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
+								   [P_l (rest next-Pi_k)])
+							   (set-of (make-implication #{C} #{D})
+								   [C M_k, D M_k
+								    :when (and (not= C D) (subsumes? C D))])))
+					       P_k)]
+	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model))))))))
 
 ;;;
 

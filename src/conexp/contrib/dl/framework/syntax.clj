@@ -14,7 +14,12 @@
 
 ;;;
 
-(deftype DL [concept-names role-names constructors])
+(deftype DL [name concept-names role-names constructors])
+
+(defn language-name
+  "Returns the name of the given language."
+  [language]
+  (:name language))
 
 (defn concept-names
   "Returns the concept names of the given language."
@@ -38,17 +43,12 @@
   (:constructors language))
 
 (defmethod print-method ::DL [dl out]
-  (let [#^String output (with-out-str
-			  (pprint (list 'DL
-					(concept-names dl)
-					(role-names dl)
-					(constructors dl))))]
-    (.write out (.trim output))))
+  (.write out (str "DL " (name (language-name dl)))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
-  [concept-names role-names constructors]
-  (DL (set concept-names) (set role-names) (set constructors)))
+  [name concept-names role-names constructors]
+  (DL (keyword "conexp.contrib.dl.framework" (str name)) (set concept-names) (set role-names) (set constructors)))
 
 ;;;
 
@@ -70,21 +70,6 @@
     (.write out (.trim output))))
 
 ;;;
-
-(defmulti transform-expression
-  "Transforms given DL expression as defined in language."
-  (fn [language expression]
-    (if (list? expression)
-      [language (first expression)]
-      language)))
-
-(defmethod transform-expression :default [language expression]
-  (let [base-transformer (get-method transform-expression language),
-	default-transformer (get-method transform-expression :default)]
-    (when (or (nil? base-transformer)
-	      (= base-transformer default-transformer))
-      (illegal-argument "Language " (print-str language) " not known for transformation."))
-    (base-transformer language expression)))
 
 (defn dl-expression?
   "Returns true iff thing is a DL expression."
@@ -147,27 +132,22 @@
 	    (not (Character/isUpperCase (first (str name)))))
       (illegal-argument "Concept and role names must start with a capital letter."))
     `(do
-       ;; defining the language
-       (def ~name (make-language '~concept-names '~role-names '~constructors))
+       (let [concept-names# (into '~concept-names ~(when-let [base-lang (:extends options)]
+						     `(concept-names ~base-lang))),
+	     role-names#    (into '~role-names ~(when-let [base-lang (:extends options)]
+						  `(role-names ~base-lang))),
+	     constructors#  (into '~constructors ~(when-let [base-lang (:extends options)]
+						    `(constructors ~base-lang)))]
 
-       ;; extending languages
-       ~(when (contains? (keys options) :extends)
-	  `(derive ~name ~(:extends options)))
+	 ;; defining the language
+	 (def ~name (make-language '~name concept-names# role-names# constructors#))
 
-       ;; untested
-       (defmethod transform-expression ~name [language# expression#]
-	 expression#)
-       ~@(map (fn [dl-sexp body]
-		(let [cons-name (first dl-sexp),
-		      cons-args (rest dl-sexp)]
-		  `(defmethod transform-expression [~name '~cons-name]
-		     [language# expression#]
-		     (let [~(vec cons-args) (map transform-expression (rest expression#))]
-		       ~@body))))
-	      (:syntax-transformers options))
+	 ;; extending languages
+	 ~(when-let [base-lang (:extends options)]
+	    `(derive (language-name ~name) (language-name ~base-lang)))
 
-       ;; finished
-       ~name)))
+	 ;; finished
+	 ~name))))
 
 ;;;
 

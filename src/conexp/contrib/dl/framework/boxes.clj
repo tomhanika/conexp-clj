@@ -36,21 +36,6 @@
   [language definitions]
   (TBox language (set definitions)))
 
-(defn tbox?
-  "Returns true iff thing is a tbox."
-  [thing]
-  (= (type thing) ::TBox))
-
-(defn tbox-target-pair?
-  "Returns true iff dl-expr is a tbox-target-pair."
-  [dl-expr]
-  (and (dl-expression? dl-expr)
-       (let [expr (expression dl-expr)]
-	 (and (vector? expr)
-	      (= 2 (count expr))
-	      (tbox? (first expr))
-	      (contains? (defined-concepts (first expr)) (second expr))))))
-
 ;;; accessing used role names, primitive and defined concepts
 
 (defn defined-concepts
@@ -71,6 +56,23 @@
   (apply union #{}
 	 (map #(concept-names-in-expression (definition-expression %))
 	      (tbox-definitions tbox))))
+
+;;;
+
+(defn tbox?
+  "Returns true iff thing is a tbox."
+  [thing]
+  (= (type thing) ::TBox))
+
+(defn tbox-target-pair?
+  "Returns true iff dl-expr is a tbox-target-pair."
+  [dl-expr]
+  (and (dl-expression? dl-expr)
+       (let [expr (expression dl-expr)]
+	 (and (vector? expr)
+	      (= 2 (count expr))
+	      (tbox? (first expr))
+	      (contains? (defined-concepts (first expr)) (second expr))))))
 
 ;;;
 

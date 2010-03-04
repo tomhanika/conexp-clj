@@ -13,13 +13,12 @@
 	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.framework.exploration
 	conexp.contrib.dl.framework.interaction
-	conexp.contrib.dl.languages.description-graphs
-	conexp.contrib.dl.framework.semantics
-	conexp.contrib.dl.framework.reasoning))
+	conexp.contrib.dl.languages.EL-gfp))
 
 ;;;
 
-(define-dl SimpleDL [Father Mother Male Female] [Child] [exists and])
+(define-dl SimpleDL [Father Mother Male Female] [Child] []
+  :extends EL-gfp)
 
 (def dl-exp (dl-expression SimpleDL (exists Child Male)))
 
@@ -40,26 +39,8 @@
   B (and Female (exists Child T)),
   T (and))
 
-(define-base-semantics SimpleDL
-  [model dl-expression]
-  ;; quit, if dl-expression is not a tbox with target
-  (when (not (and (vector? (expression dl-expression))
-		  (= 2 (count (expression dl-expression)))))
-    (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
-  ;; compute gfp-model and interpret target
-  (let [[tbox, target] (expression dl-expression),
-	interpretation (gfp-model tbox model)]
-    (interpretation target)))
-
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
-
-(define-msc SimpleDL
-  [model objects]
-  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects))]
-    (if (acyclic? tbox)
-      (definition-expression (first (tbox-definitions tbox)))
-      [tbox target])))
 
 (define-model paper-model SimpleDL
   [John Michelle Mackenzie Paul Linda James]
@@ -69,28 +50,6 @@
   Mother #{Michelle Linda}
   Child  #{[John Mackenzie] [Michelle Mackenzie]
 	   [Paul James] [Linda James]})
-
-(defn ensure-EL-gfp-concept
-  "Ensures dl-expression to be a pair of a tbox and a target."
-  [dl-expression]
-  (let [expr (expression dl-expression)]
-    (if (and (vector? expr)
-	     (= 2 (count expr)))
-      dl-expression
-      (let [language (expression-language dl-expression),
-	    target   (gensym)]
-	(make-dl-expression-nc language
-			       [(make-tbox language
-					   #{(make-dl-definition target dl-expression)}),
-				target])))))
-
-(define-subsumption SimpleDL
-  [C D]
-  (let [[C-tbox C-target] (expression (ensure-EL-gfp-concept C)),
-	[D-tbox D-target] (expression (ensure-EL-gfp-concept D)),
-
-	G (tbox->description-graph (tbox-union C-tbox D-tbox))]
-    (simulates? G G D-target C-target)))
 
 ;;;
 

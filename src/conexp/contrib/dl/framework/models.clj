@@ -69,7 +69,7 @@
     (let [result ((model-interpretation model) (expression dl-expression))]
       (if (nil? result)
 	(let [base-semantics (get-method compile-expression
-					 [(expression-language dl-expression) ::base-semantics]),
+					 [(language-name (expression-language dl-expression)) ::base-semantics]),
 	      default        (get-method compile-expression
 					 :default)]
 	  (when (= base-semantics default)
@@ -94,7 +94,7 @@
   "Define how to interpret an expression which is neither compound nor
   a primitive concept, i.e. TBox-ABox pairs and the like."
   [language [model dl-expression] & body]
-  `(defmethod compile-expression [~language ::base-semantics] [~dl-expression]
+  `(defmethod compile-expression [(language-name ~language) ::base-semantics] [~dl-expression]
      (fn [~model]
        ~@body)))
 
@@ -119,7 +119,7 @@
 (defmulti most-specific-concept
   "Computes the model based most specific concept of a set of objects
   in a given model."
-  (fn [model dl-exp] (model-language model)))
+  (fn [model dl-exp] (language-name (model-language model))))
 
 (defmethod most-specific-concept :default [model _]
   (illegal-argument "Language " (model-language model) " does not provide msc."))
@@ -128,7 +128,7 @@
   "Defines model based most specific concepts for a language, a model
   and a set of objects."
   [language [model objects] & body]
-  `(defmethod most-specific-concept ~language
+  `(defmethod most-specific-concept (language-name ~language)
      [~model ~objects]
      ~@body))
 
