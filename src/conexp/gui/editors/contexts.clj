@@ -19,7 +19,38 @@
     clojure.contrib.swing-utils
     conexp.gui.editors.util
     conexp.fca
-    ))
+    [clojure.contrib.string :only (join split-lines split)]))
+
+;; (ns conexp.gui.editors.contexts)
+
+;;
+;;
+;; Helper functions
+;;
+;;
+;;
+;;
+
+(defn map-to-unique-strings
+  "Takes a sequence of (unique) keys and returns a map
+   that maps each unique key to a unique string
+
+  Parameters:
+   keys    _sequence of (unique) keys"
+  [keys]
+  (loop [ k (set keys)        
+          m {} 
+          taken #{}
+          nbr 0]
+    (if (empty? k) m
+      (let [ k1 (first k)
+             k1-as-str (if (< 0 nbr)
+                         (join "-" [(str k1) (str nbr)])
+                         (str k1))]
+        (if (contains? taken k1-as-str)
+          (recur k m taken (+ 1 nbr))
+          (recur (disj k k1) (conj m {k1 k1-as-str})
+            (conj taken k1-as-str) 0))))))
 
 ;;
 ;;
@@ -57,6 +88,25 @@
          :widget root
          :table table
          :control (get-control table)
+         :context (ref nil)
+
+         :associate-context
+         (fn-doc "Associates a context with the widget object and implicitly
+  updates the control
+
+  Parameters:
+    ectx      _editable context"
+           [ectx]
+           (let [ ctx (if (editable-context? ectx) ectx 
+                       (make-editable-context ectx))
+                  ctx-ref (@self :context)
+                  old-ctx @ctx-ref]
+             (do
+               (dosync-wait (ref-set ctx-ref nil))
+               (if (not (nil? old-ctx)) (!! old-ctx :remove-widget- @self))
+               (!! ctx :add-widget- @self))
+               (dosync-wait (ref-set ctx-ref ctx))))
+
 
          }
 
@@ -98,22 +148,71 @@
    editable context structure.
 
   Parameters:
-    ctx     _context or editable context"
-  ([ctx]
-    (let [editable-ctx 
+    context-in     _context or editable context"
+  ([context-in]
+    (let [ ctx (get-context context-in)
+           obj (objects ctx)
+           attr (attributes ctx)
+           inc (incidence ctx)
+           obj-map (map-to-unique-strings obj)
+           attr-map (map-to-unique-strings attr)
+           compatible-obj (map obj-map obj)
+           compatible-attr (map attr-map attr)
+           compatible-inc  (map (fn [x] [(obj-map (first x)) 
+                                          (attr-map (second x))]) inc)
+           compatible-ctx (make-context compatible-obj
+                            compatible-attr compatible-inc)
+           attr-range (range 1 (+ 1 (count compatible-attr)))
+           assoc-widgets (ref #{})
+           context (ref compatible-ctx)
+           editable-ctx 
            {:editable-context 1
-           :context (ref (get-context ctx))
-           :associated-widgets (ref [])}]
-      editable-ctx))
-  ([]
-    (make-editable-context (make-context [] [] []))))
+           :context context
+           :associated-widgets assoc-widgets
+           :attribute-columns (ref (conj 
+                                     (zipmap compatible-attr attr-range)
+                                     (zipmap attr-range compatible-attr)))
+
+           :remove-widget-
+           (fn-doc "Removes a widget from associated widgets.
+  Parameters:
+    widget     _widget to be removed"
+             [widget]
+             (dosync-wait (commute assoc-widgets disj widget)))
+
+           :add-widget-
+           (fn-doc "Adds a widget to associated widgets and updates the control
+  accordingly.
+
+  Parameters:
+    widget    _context-widget to be added"
+             [widget]
+             (do
+               (dosync-wait (commute assoc-widgets conj widget))
+               (let [ table (widget :table)
+                      ctx @context 
+                      fca-ctx (get-context ctx)]
+                 (do
+                   (!! table :set-column-count 
+                     (+ 1 (count (attributes fca-ctx))))
+                   (!! table :set-row-count
+                     (+ 1 (count (objects fca-ctx))))
+                   ))))
+          }]
+        editable-ctx))
+ ([]
+   (make-editable-context (make-context [] [] []))))
 
 (def ctx (conexp.fca/make-context ["a" "b" "c"] [1 2 3] [["a" 1] ["c" 3]]))
+(def ectx (make-editable-context ctx))
+(def gui conexp/gui)
 
 (def context-pane (ref nil))
 (def context-workspace (ref nil))
 (def context-workspace-tree (ref nil))
 (def +debug+ (ref nil))
+(defn +debug-hook+ []
+  (!! @+debug+ :associate-context ectx))
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
@@ -178,10 +277,11 @@
         (do
           (add-tab-with-name-icon-tooltip frame (get-widget pane)
             "Contexts" nil "View and edit contexts")
-          (dosync 
+          (dosync-wait 
             (ref-set context-workspace-tree workspace-tree)
             (ref-set context-pane pane)
-            (ref-set +debug+ right)) ))) ) )
+            (ref-set +debug+ right)) 
+          (+debug-hook+)))) ) )
 
 (defn plug-unload-hook
   "Unloads the context-editor plugin.
