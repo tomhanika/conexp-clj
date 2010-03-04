@@ -53,10 +53,10 @@
 
 ;;; Fahrräder
 
-(define-dl Riding [Fahrzeug, Fahrrad, Rad, Auto] [HatKomponente] []
+(define-dl RidingDL [Fahrzeug, Fahrrad, Rad, Auto] [HatKomponente] []
   :extends EL-gfp)
 
-(define-model riding-model Riding
+(define-model riding-model RidingDL
   [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto, LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
   Fahrzeug #{MeinFahrrad, FranzSeinAuto},
   Fahrrad  #{MeinFahrrad},
@@ -65,6 +65,22 @@
   HatKomponente #{[MeinFahrrad Hinterrad] [MeinFahrrad Vorderrad]
 		  [FranzSeinAuto LinkesVorderrad] [FranzSeinAuto LinkesHinterrad]
 		  [FranzSeinAuto RechtesVorderrad] [FranzSeinAuto RechtesHinterrad]})
+
+;;; Cyclic Example
+
+(define-dl FamilyDL [Mother, Female, Father, Male] [MarriedTo, HasChild] []
+  :extends EL-gfp)
+
+(define-model family-model FamilyDL
+  [John Michelle Mackenzie Paul Linda James]
+  Male   #{John Paul James}
+  Female #{Michelle Mackenzie Linda}
+  Father #{John Paul}
+  Mother #{Michelle Linda}
+  HasChild  #{[John Mackenzie] [Michelle Mackenzie]
+	      [Paul James] [Linda James]}
+  MarriedTo #{[Paul Linda] [Linda Paul]
+	      [John Michelle] [Michelle John]})
 
 ;;;
 

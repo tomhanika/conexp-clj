@@ -1,0 +1,497 @@
+((and (exists MarriedTo (and))
+      (exists MarriedTo
+	      [#{[[[Mackenzie James] Mackenzie] James] := (and),
+	         [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))
+		 [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+	       [[[John Linda] Michelle] Paul]])
+      (exists HasChild
+	      [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+		 [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+		 [James James] := (and Male)}
+	       [Linda Paul]])
+      (exists HasChild [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			  [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								 (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			  [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								 (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			[[[John Linda] Michelle] Paul]])
+      (exists HasChild (and)))
+ ==> [#{All := (and Father Male Mother Female (exists HasChild All) (exists MarriedTo All))}
+      All])
+
+((and
+  (exists MarriedTo (and))
+  (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+		       [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+							      (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+		       [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+							      (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+		     [[[John Linda] Michelle] Paul]])
+ Father
+ (exists MarriedTo
+	 [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+	    [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+	    [James James] := (and Male)}
+	  [Linda Paul]])
+ (exists MarriedTo (and Female))
+ Male
+ (exists MarriedTo
+	 [#{[James Mackenzie] := (and)
+	    [Linda Michelle] := (and Mother
+				     Female
+				     (exists HasChild [James Mackenzie])
+				     (exists MarriedTo [Paul John]))
+	    [Paul John] := (and Father
+				Male
+				(exists HasChild [James Mackenzie])
+				(exists MarriedTo [Linda Michelle]))}
+	  [Linda Michelle]])
+ (exists HasChild (and Male))
+ (exists HasChild (and)))
+ ==> [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+	James := (and Male)
+	Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+      Paul])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo
+	      [#{[[[Mackenzie James] Mackenzie] James] := (and)
+		 [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))
+		 [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+	       [[[John Linda] Michelle] Paul]])
+      (exists MarriedTo
+	      [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+		 [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+		 [James James] := (and Male)}
+	       [Linda Paul]])
+      (exists MarriedTo [#{[Michelle John] := (and (exists MarriedTo [John Michelle])
+						   (exists HasChild [Mackenzie Mackenzie]))
+			   [John Michelle] := (and (exists HasChild [Mackenzie Mackenzie])
+						   (exists MarriedTo [Michelle John]))
+			   [Mackenzie Mackenzie] := (and Female)}
+			 [John Michelle]])
+      (exists HasChild (and)))
+ ==> [#{All := (and Father Male Mother Female (exists HasChild All) (exists MarriedTo All))}
+      All])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      (exists HasChild [#{[John Paul] := (and Father Male (exists HasChild [Mackenzie James])
+					      (exists MarriedTo [Michelle Linda]))
+			  [Michelle Linda] := (and Mother Female (exists HasChild [Mackenzie James])
+						   (exists MarriedTo [John Paul]))
+			  [Mackenzie James] := (and)}
+			[John Paul]])
+      (exists MarriedTo
+	      [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+		 [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+		 [James James] := (and Male)}
+	       [Linda Paul]])
+      (exists HasChild (and Male))
+      (exists HasChild (and)))
+ ==> [#{All := (and Father Male Mother Female (exists HasChild All) (exists MarriedTo All))}
+      All])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo
+	      [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+		 James := (and Male)
+		 Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+	       Linda])
+      (exists MarriedTo
+	      [#{[[[Mackenzie James] Mackenzie] James] := (and)
+		 [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))
+		 [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+	       [[[John Linda] Michelle] Paul]])
+      Father
+      (exists MarriedTo
+	      [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+		 [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+		 [James James] := (and Male)}
+	       [Linda Paul]])
+      (exists MarriedTo (and Female))
+      Male
+      (exists MarriedTo
+	      [#{[James Mackenzie] := (and)
+		 [Linda Michelle] := (and Mother Female (exists HasChild [James Mackenzie])
+					  (exists MarriedTo [Paul John]))
+		 [Paul John] := (and Father Male
+				     (exists HasChild [James Mackenzie])
+				     (exists MarriedTo [Linda Michelle]))}
+	       [Linda Michelle]])
+      (exists HasChild (and Male))
+      (exists HasChild (and)))
+ ==> [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+	James := (and Male)
+	Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+      Paul])
+
+((and (exists MarriedTo (and Male))
+      (exists MarriedTo (and))
+      (exists MarriedTo
+	      [#{[[[Mackenzie James] Mackenzie] James] := (and)
+		 [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))
+		 [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+	       [[[John Linda] Michelle] Paul]])
+      Mother
+      (exists MarriedTo [#{[John Paul] := (and Father Male
+					       (exists HasChild [Mackenzie James])
+					       (exists MarriedTo [Michelle Linda]))
+			   [Michelle Linda] := (and Mother Female (exists HasChild [Mackenzie James])
+						    (exists MarriedTo [John Paul]))
+			   [Mackenzie James] := (and)}
+			 [John Paul]])
+      (exists MarriedTo
+	      [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+		 James := (and Male)
+		 Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+	       Paul])
+      Female
+      (exists HasChild (and)))
+ ==> [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+	James := (and Male)
+	Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+      Linda])
+
+((and (exists MarriedTo (and Male))
+      (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      (exists HasChild (and)))
+ ==> [#{[James Mackenzie] := (and)
+	[Linda Michelle] := (and Mother Female
+				 (exists HasChild [James Mackenzie])
+				 (exists MarriedTo [Paul John]))
+	[Paul John] := (and Father Male
+			    (exists HasChild [James Mackenzie])
+			    (exists MarriedTo [Linda Michelle]))}
+      [Linda Michelle]])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      (exists HasChild (and Male))
+      (exists HasChild (and)))
+ ==> [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+	[Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+	[James James] := (and Male)}
+      [Linda Paul]])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo
+	      [#{[[[Mackenzie James] Mackenzie] James] := (and)
+		 [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))
+		 [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+	       [[[John Linda] Michelle] Paul]])
+      Female
+      (exists HasChild (and)))
+ ==> [#{[James Mackenzie] := (and)
+	[Linda Michelle] := (and Mother Female
+				 (exists HasChild [James Mackenzie])
+				 (exists MarriedTo [Paul John]))
+	[Paul John] := (and Father Male
+			    (exists HasChild [James Mackenzie])
+			    (exists MarriedTo [Linda Michelle]))}
+      [Linda Michelle]])
+
+((and (exists MarriedTo (and)))
+ ==> [#{[[[Mackenzie James] Mackenzie] James] := (and)
+	[[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+					       (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+	[[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+					       (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+      [[[John Linda] Michelle] Paul]])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      Male
+      (exists HasChild (and)))
+ ==> [#{[John Paul] := (and Father Male
+			    (exists HasChild [Mackenzie James])
+			    (exists MarriedTo [Michelle Linda]))
+	[Michelle Linda] := (and Mother Female
+				 (exists HasChild [Mackenzie James])
+				 (exists MarriedTo [John Paul]))
+	[Mackenzie James] := (and)}
+      [John Paul]])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      (exists MarriedTo (and Female))
+      (exists HasChild (and)))
+ ==> [#{[John Paul] := (and Father Male
+			    (exists HasChild [Mackenzie James])
+			    (exists MarriedTo [Michelle Linda]))
+	[Michelle Linda] := (and Mother Female
+				 (exists HasChild [Mackenzie James])
+				 (exists MarriedTo [John Paul]))
+	[Mackenzie James] := (and)}
+      [John Paul]])
+
+((and (exists MarriedTo (and Male))
+      (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      Mother
+      (exists MarriedTo [#{[John Paul] := (and Father Male
+					       (exists HasChild [Mackenzie James])
+					       (exists MarriedTo [Michelle Linda]))
+			   [Michelle Linda] := (and Mother Female
+						    (exists HasChild [Mackenzie James])
+						    (exists MarriedTo [John Paul]))
+			   [Mackenzie James] := (and)}
+			 [John Paul]])
+      (exists MarriedTo [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+			   James := (and Male)
+			   Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+			 Paul])
+      (exists MarriedTo [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+			   [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+			   [James James] := (and Male)}
+			 [Linda Paul]])
+      (exists HasChild (and Male))
+      Female
+      (exists HasChild (and)))
+ ==> [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+	James := (and Male)
+	Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+      Linda])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      (exists MarriedTo [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+			   [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+			   [James James] := (and Male)}
+			 [Linda Paul]])
+      (exists HasChild [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			  [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								 (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			  [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								 (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			[[[John Linda] Michelle] Paul]])
+      (exists HasChild (and)))
+ ==> [#{All := (and Father Male Mother Female (exists HasChild All) (exists MarriedTo All))}
+      All])
+
+((and (exists MarriedTo (and))
+      (exists HasChild (and Female))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      (exists HasChild [#{[James Mackenzie] := (and)
+			  [Linda Michelle] := (and Mother Female
+						   (exists HasChild [James Mackenzie])
+						   (exists MarriedTo [Paul John]))
+			  [Paul John] := (and Father Male
+					      (exists HasChild [James Mackenzie])
+					      (exists MarriedTo [Linda Michelle]))}
+			[Linda Michelle]])
+      (exists HasChild [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			  [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								 (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			  [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								 (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			[[[John Linda] Michelle] Paul]])
+      (exists MarriedTo [#{[Michelle John] := (and (exists MarriedTo [John Michelle])
+						   (exists HasChild [Mackenzie Mackenzie]))
+			   [John Michelle] := (and (exists HasChild [Mackenzie Mackenzie])
+						   (exists MarriedTo [Michelle John]))
+			   [Mackenzie Mackenzie] := (and Female)}
+			 [John Michelle]])
+      (exists HasChild (and))
+      (exists HasChild
+	      [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+		 James := (and Male)
+		 Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+	       Linda]))
+ ==> [#{All := (and Father Male Mother Female (exists HasChild All) (exists MarriedTo All))}
+      All])
+
+((and (exists MarriedTo (and))
+      (exists MarriedTo [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+			   James := (and Male)
+			   Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+			 Linda])
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      Father
+      (exists MarriedTo (and Female))
+      Male
+      (exists MarriedTo [#{[James Mackenzie] := (and)
+			   [Linda Michelle] := (and Mother Female
+						    (exists HasChild [James Mackenzie])
+						    (exists MarriedTo [Paul John]))
+			   [Paul John] := (and Father Male
+					       (exists HasChild [James Mackenzie])
+					       (exists MarriedTo [Linda Michelle]))}
+			 [Linda Michelle]])
+      (exists HasChild (and)))
+ ==> [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+	James := (and Male)
+	Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+      Paul])
+
+((and (exists MarriedTo (and Male))
+      (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      Mother
+      (exists MarriedTo [#{[John Paul] := (and Father Male
+					       (exists HasChild [Mackenzie James])
+					       (exists MarriedTo [Michelle Linda]))
+			   [Michelle Linda] := (and Mother Female
+						    (exists HasChild [Mackenzie James])
+						    (exists MarriedTo [John Paul]))
+			   [Mackenzie James] := (and)}
+			 [John Paul]])
+      (exists MarriedTo [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+			   [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+			   [James James] := (and Male)}
+			 [Linda Paul]])
+      Female
+      (exists HasChild (and)))
+ ==> [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+	James := (and Male)
+	Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+      Linda])
+
+((and (exists MarriedTo (and Male))
+      (exists MarriedTo (and))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      Mother
+      (exists MarriedTo [#{[John Paul] := (and Father Male
+					       (exists HasChild [Mackenzie James])
+					       (exists MarriedTo [Michelle Linda]))
+			   [Michelle Linda] := (and Mother Female
+						    (exists HasChild [Mackenzie James])
+						    (exists MarriedTo [John Paul]))
+			   [Mackenzie James] := (and)}
+			 [John Paul]])
+      (exists MarriedTo [#{[Paul Linda] := (and (exists HasChild [James James]) (exists MarriedTo [Linda Paul]))
+			   [Linda Paul] := (and (exists MarriedTo [Paul Linda]) (exists HasChild [James James]))
+			   [James James] := (and Male)}
+			 [Linda Paul]])
+      Female
+      (exists HasChild (and)))
+ ==> [#{Paul := (and Father Male (exists MarriedTo Linda) (exists HasChild James))
+	James := (and Male)
+	Linda := (and Mother Female (exists MarriedTo Paul) (exists HasChild James))}
+      Linda])
+
+((and (exists HasChild (and)))
+ ==> [#{[[[Mackenzie James] Mackenzie] James] := (and)
+	[[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+					       (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+	[[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+					       (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+      [[[John Linda] Michelle] Paul]])
+
+((and (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]]))
+ ==> [#{[[[Mackenzie James] Mackenzie] James] := (and)
+	[[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+					       (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+	[[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+					       (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+      [[[John Linda] Michelle] Paul]])
+
+((and Mother)
+ ==> [#{[James Mackenzie] := (and)
+	[Linda Michelle] := (and Mother Female (exists HasChild [James Mackenzie])
+				 (exists MarriedTo [Paul John]))
+	[Paul John] := (and Father Male
+			    (exists HasChild [James Mackenzie])
+			    (exists MarriedTo [Linda Michelle]))}
+      [Linda Michelle]])
+
+((and Father)
+ ==> [#{[John Paul] := (and Father Male
+			    (exists HasChild [Mackenzie James])
+			    (exists MarriedTo [Michelle Linda]))
+	[Michelle Linda] := (and Mother Female
+				 (exists HasChild [Mackenzie James])
+				 (exists MarriedTo [John Paul]))
+	[Mackenzie James] := (and)}
+      [John Paul]])
+
+((and (exists MarriedTo (and))
+      (exists HasChild (and Female))
+      (exists MarriedTo [#{[[[Mackenzie James] Mackenzie] James] := (and)
+			   [[[John Linda] Michelle] Paul] := (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))
+			   [[[Michelle Paul] John] Linda] := (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+								  (exists HasChild [[[Mackenzie James] Mackenzie] James]))}
+			 [[[John Linda] Michelle] Paul]])
+      (exists HasChild (and)))
+ ==> [#{[Michelle John] := (and (exists MarriedTo [John Michelle])
+				(exists HasChild [Mackenzie Mackenzie]))
+	[John Michelle] := (and (exists HasChild [Mackenzie Mackenzie])
+				(exists MarriedTo [Michelle John]))
+	[Mackenzie Mackenzie] := (and Female)}
+      [John Michelle]])
+
+((and Male Female)
+ ==> [#{All := (and Father Male Mother Female (exists HasChild All) (exists MarriedTo All))}
+      All])

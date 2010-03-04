@@ -38,6 +38,12 @@
   [C D]
   (subsumption C D))
 
+(defn equivalent?
+  "Returns true iff C and D are equivalent."
+  [C D]
+  (and (subsumes? C D)
+       (subsumes? D C)))
+
 ;;;
 
 nil

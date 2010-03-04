@@ -101,8 +101,7 @@
   unique, concept name and finally substitutes traget with its new name."
   [[tbox target]]
   (let [symbols     (defined-concepts tbox),
-	new-symbols (hashmap-by-function (fn [sym]
-					   (gensym (str sym)))
+	new-symbols (hashmap-by-function (fn [_] (gensym))
 					 symbols)]
     [(make-tbox (tbox-language tbox)
 		(set-of (make-dl-definition (new-symbols target) (substitute def-exp new-symbols))
