@@ -52,10 +52,11 @@
 
 (define-subsumption EL-gfp
   [C D]
-  (let [[C-tbox C-target] (expression (ensure-EL-gfp-concept C)),
-	[D-tbox D-target] (expression (ensure-EL-gfp-concept D)),
+  (let [[C-tbox C-target] (uniquify-tbox-target-pair (expression (ensure-EL-gfp-concept C))),
+	[D-tbox D-target] (uniquify-tbox-target-pair (expression (ensure-EL-gfp-concept D))),
 
-	G (tbox->description-graph (tbox-union C-tbox D-tbox))]
+	tbox (tbox-union C-tbox D-tbox),
+	G (tbox->description-graph tbox)]
     (simulates? G G D-target C-target)))
 
 ;;;

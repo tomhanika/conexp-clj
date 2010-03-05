@@ -189,6 +189,15 @@
 	  %)
        (rest (expression dl-expression))))
 
+;;;
+
+(defn all
+  "Returns for a set of concepts the conjunction of all those concepts."
+  [language concepts]
+  (make-dl-expression language (cons 'and concepts)))
+
+;;;
+
 (defn symbols-in-expression
   "Returns all symbols used in expressions."
   [dl-expression]

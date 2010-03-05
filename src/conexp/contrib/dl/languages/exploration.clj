@@ -71,17 +71,17 @@
   added to the first sequence. If any element in the new sequence is
   equivalent to some element in the old one, it is not added."
   [concepts new-concepts]
+  (println "Trying to add " new-concepts)
   (loop [concepts concepts,
 	 new-concepts new-concepts]
-    (println "Trying to add " new-concepts)
     (if (empty? new-concepts)
       concepts
       (recur (let [next (first new-concepts)]
-	       (if (some #(let [out? (equivalent? next %)]
-			    (when out?
-			      (println "Kicking " next)
-			      (println "It's equivalent to " %))
-			    out?)
+	       (if (some #(with-printed-result (str "Testing " (print-str next) " against " (print-str %) ":")
+			    (when (and (not (equivalent? next %))
+				       (= next %))
+			      (illegal-state "HERE IT IS" (print-str next) (print-str %)))
+			    (equivalent? next %))
 			 concepts)
 		 concepts
 		 (conj concepts next)))
@@ -123,8 +123,8 @@
 				(let [susu (make-subsumption all-P_k
 							     (make-dl-expression language
 										 (model-closure model all-P_k)))]
-				  (println susu)
-				  (println "-----------------------")
+				  ;(println susu)
+				  ;(println "-----------------------")
 				  (if (or (obviously-true? susu)
 					  (not (expert-refuses? susu)))
 				    model
@@ -132,14 +132,19 @@
 		   next-M_k   (extend-attributes M_k (set-of (dl-expression language
 									    (exists r (model-closure next-model all-P_k)))
 							     [r (role-names language)])),
+		   _ (println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"),
+		   _ (println "(count next-M_k) =" (count next-M_k)),
+		   _ (println next-M_k),
+		   _ (println "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"),
 		   next-K     (induced-context next-M_k next-model),
 		   next-Pi_k  (conj Pi_k P_k),
-		   next-P_k   (next-closed-set M_k (clop-by-implications
-						    (union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
-								   [P_l (rest next-Pi_k)])
-							   (set-of (make-implication #{C} #{D})
-								   [C M_k, D M_k
-								    :when (and (not= C D) (subsumed-by? C D))])))
+		   next-P_k   (next-closed-set next-M_k
+					       (clop-by-implications
+						(union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
+							       [P_l (rest next-Pi_k)])
+						       (set-of (make-implication #{C} #{D})
+							       [C next-M_k, D next-M_k
+								:when (and (not= C D) (subsumed-by? C D))])))
 					       P_k)]
 	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model))))))))
 
