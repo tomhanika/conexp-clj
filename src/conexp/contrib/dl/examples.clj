@@ -11,8 +11,8 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.exploration
-	conexp.contrib.dl.framework.interaction
+	conexp.contrib.dl.languages.exploration
+	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.languages.EL-gfp))
 
 ;;; Initial Example

@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.framework.interaction
+(ns conexp.contrib.dl.languages.interaction
   (:use conexp
 	conexp.contrib.dl.framework.syntax))
 

@@ -33,7 +33,7 @@
   `(defmethod subsumption (language-name ~language) [~C ~D]
      ~@body))
 
-(defn subsumes?
+(defn subsumed-by?
   "Returns true iff C is subsumed by D in the given language."
   [C D]
   (subsumption C D))

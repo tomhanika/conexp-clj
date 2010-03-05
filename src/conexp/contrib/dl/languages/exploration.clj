@@ -6,15 +6,15 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.framework.exploration
+(ns conexp.contrib.dl.languages.exploration
   (:use conexp
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
-	conexp.contrib.dl.framework.interaction
+	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.framework.reasoning)
   (:use clojure.contrib.pprint))
 
-(update-ns-meta! conexp.contrib.dl.framework.exploration
+(update-ns-meta! conexp.contrib.dl.languages.exploration
   :doc "Implements exploration for description logics EL and EL-gfp.")
 
 
@@ -56,7 +56,7 @@
 (defn- obviously-true?
   "Returns true iff the given subsumption is obviously true."
   [subsumption]
-  (subsumes? (subsumee subsumption) (subsumer subsumption)))
+  (subsumed-by? (subsumee subsumption) (subsumer subsumption)))
 
 (defn- clarify-subsumption-set
   "Removes all sumsumptions with equal subsumee and subsumer from the
@@ -73,10 +73,16 @@
   [concepts new-concepts]
   (loop [concepts concepts,
 	 new-concepts new-concepts]
+    (println "Trying to add " new-concepts)
     (if (empty? new-concepts)
       concepts
       (recur (let [next (first new-concepts)]
-	       (if (some #(equivalent? next %) concepts)
+	       (if (some #(let [out? (equivalent? next %)]
+			    (when out?
+			      (println "Kicking " next)
+			      (println "It's equivalent to " %))
+			    out?)
+			 concepts)
 		 concepts
 		 (conj concepts next)))
 	     (rest new-concepts)))))
@@ -89,7 +95,7 @@
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
      (binding [model-closure (memoize model-closure),
-	       subsumes?     (memoize subsumes?)]
+	       subsumed-by?  (memoize subsumed-by?)]
        (let [language (model-language initial-model)]
 	 (when (and (not= (set initial-ordering) (concept-names language))
 		    (not= (count initial-ordering) (count (concept-names language))))
@@ -117,6 +123,8 @@
 				(let [susu (make-subsumption all-P_k
 							     (make-dl-expression language
 										 (model-closure model all-P_k)))]
+				  (println susu)
+				  (println "-----------------------")
 				  (if (or (obviously-true? susu)
 					  (not (expert-refuses? susu)))
 				    model
@@ -131,7 +139,7 @@
 								   [P_l (rest next-Pi_k)])
 							   (set-of (make-implication #{C} #{D})
 								   [C M_k, D M_k
-								    :when (and (not= C D) (subsumes? C D))])))
+								    :when (and (not= C D) (subsumed-by? C D))])))
 					       P_k)]
 	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model))))))))
 
@@ -139,9 +147,9 @@
 
 (defn model-gcis
   "Returns a complete and sound set of gcis holding in model."
-  [model]
+  [model & args]
   (binding [expert-refuses? (constantly false)]
-    (explore-model model)))
+    (apply explore-model model args)))
 
 ;;;
 
