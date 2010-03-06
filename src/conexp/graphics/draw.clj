@@ -83,7 +83,6 @@
     (add-action-listener label-toggler
 			 (fn [evt]
 			   (do-swing
-			    (println (annotation (get-layout-from-scene scn)))
 			    (if (= "Labels" (.getText label-toggler))
 			      (do
 				(show-labels scn false)

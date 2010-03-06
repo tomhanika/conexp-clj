@@ -121,7 +121,8 @@
   (keys (upper-neighbours-of-inf-irreducibles layout)))
 
 (def-layout-fn order
-  "Returns underlying order relation of layout."
+  "Returns underlying order relation of layout. This operation may be
+  very costly."
   [layout]
   (reflexive-transitive-closure (nodes layout) (connections layout)))
 
@@ -149,6 +150,11 @@
 	     (and (subset? (first node-1) (first node-2))
 		  (superset? (second node-1) (second node-2)))))))
 
+(defn- set-to-label
+  "Converts set of elements to a label."
+  [set]
+  (apply str (interpose ", " set)))
+
 (def-layout-fn annotation
   "Returns the annotation of this layout."
   [layout]
@@ -157,8 +163,10 @@
     (let [uppers (upper-neighbours layout),
 	  lowers (lower-neighbours layout)]
       (hashmap-by-function (fn [node]
-			     [(apply difference (first node) (map first (lowers node)))
-			      (apply difference (second node) (map second (uppers node)))])
+			     [(set-to-label
+			       (apply difference (first node) (map first (lowers node))))
+			      (set-to-label
+			       (apply difference (second node) (map second (uppers node))))])
 			   (nodes layout)))))
 
 ;;;

@@ -9,7 +9,8 @@
 (ns conexp.graphics.scene-layouts
   (:use [conexp.util :only (update-ns-meta!, illegal-argument)]
 	[conexp.base :only (defvar-)]
-	[conexp.layout.base :only (make-layout, positions, connections, nodes, update-positions)]
+	[conexp.layout.base :only (make-layout, positions, connections,
+						nodes, update-positions, annotation)]
 	[conexp.layout.util :only (edges-of-points)]
 	conexp.graphics.nodes-and-connections
 	conexp.graphics.scenes
@@ -82,7 +83,7 @@
 		       (double (- y_min (* 2 *default-node-radius*)))
 		       (double (- x_max x_min (* -4 *default-node-radius*)))
 		       (double (- y_max y_min (* -4 *default-node-radius*))))
-      (add-nodes-with-connections (positions layout) (connections layout))
+      (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
       (add-data-to-scene :layout layout)
       (.unzoom))
     (call-hook-with scene :image-changed)))

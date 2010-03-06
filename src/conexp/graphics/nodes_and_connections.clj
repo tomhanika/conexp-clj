@@ -134,50 +134,45 @@
   "Initial node radius when drawing lattices.")
 
 (defn- add-node
-  "Adds a node to scn at position [x y]. Default name is \"[x y]\"."
-  ([#^GScene scn, x, y]
-     (add-node scn x y (str [x y])))
-  ([#^GScene scn, x, y, name]
-     (let [#^GSegment upper-segment (GSegment.),
-	   #^GSegment lower-segment (GSegment.),
-	   object (proxy [GObject] []
-		    (draw []
-		      (let [upper-style (if (= 1 (-?> this upper-neighbors count))
-					  *default-attribute-concept-style*
-					  nil),
-			    lower-style (if (= 1 (-?> this lower-neighbors count))
-					  *default-object-concept-style*
-					  nil),
-			    [x y] (position this),
-			    [l u] (create-two-halfcircles x y (radius this))]
-			(.setGeometryXy lower-segment l)
-			(.setGeometryXy upper-segment u)
-			(.setStyle lower-segment lower-style)
-			(.setStyle upper-segment upper-style))))
-	   style (GStyle.)]
-       (doto object
-	 (.setStyle *default-node-style*)
-	 (.addSegment lower-segment)
-	 (.addSegment upper-segment)
-	 (.setUserData (ref {:type :node,
-			     :position [(double x), (double y)],
-			     :radius *default-node-radius*,
-			     :name name})))
-       (doto scn
-	 (.add object))
+  "Adds a node to scn at position [x y]."
+  [#^GScene scn, x, y, name, [upper-label lower-label]]
+  (let [#^GSegment upper-segment (GSegment.),
+	#^GSegment lower-segment (GSegment.),
+	object (proxy [GObject] []
+		 (draw []
+		   (let [upper-style (if (= 1 (-?> this upper-neighbors count))
+				       *default-attribute-concept-style*
+				       nil),
+			 lower-style (if (= 1 (-?> this lower-neighbors count))
+				       *default-object-concept-style*
+				       nil),
+			 [x y] (position this),
+			 [l u] (create-two-halfcircles x y (radius this))]
+		     (.setGeometryXy lower-segment l)
+		     (.setGeometryXy upper-segment u)
+		     (.setStyle lower-segment lower-style)
+		     (.setStyle upper-segment upper-style))))
+	style (GStyle.)]
+    (doto object
+      (.setStyle *default-node-style*)
+      (.addSegment lower-segment)
+      (.addSegment upper-segment)
+      (.setUserData (ref {:type :node,
+			  :position [(double x), (double y)],
+			  :radius *default-node-radius*,
+			  :name name})))
+    (doto scn
+      (.add object))
 
-       ;; testing labels
-       (when (and (vector? name)
-		  (= 2 (count name)))
-	 (let [#^GText upper-label (GText. (str (first name)) GPosition/NORTH),
-	       #^GText lower-label (GText. (str (second name)) GPosition/SOUTH)]
-	   (.setStyle upper-label *default-node-label-style*)
-	   (.setStyle lower-label *default-node-label-style*)
-	   (.addText upper-segment upper-label)
-	   (.addText lower-segment lower-label)))
-       ;;
+    (let [#^GText upper-text (GText. upper-label GPosition/NORTH),
+	  #^GText lower-text (GText. lower-label GPosition/SOUTH)]
+	(.setStyle upper-text *default-node-label-style*)
+	(.setStyle lower-text *default-node-label-style*)
+	(.addText upper-segment upper-text)
+	(.addText lower-segment lower-text))
+    ;;
 
-       object)))
+    object))
 
 (defvar- *default-line-style* (doto (GStyle.)
 				(.setLineWidth 2.0)
@@ -340,11 +335,11 @@
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected
   via pairs in the sequence node-connections."
-  [scn node-coordinate-map node-connections]
+  [scn node-coordinate-map node-connections annotation]
   (let [node-map (apply hash-map
 			(apply concat (map (fn [[node [x y]]]
 					     [node
-					      (add-node scn x y node)])
+					      (add-node scn x y node (annotation node))])
 					   node-coordinate-map)))]
     (doseq [[node-1 node-2] node-connections]
       (connect-nodes scn (node-map node-1) (node-map node-2)))
