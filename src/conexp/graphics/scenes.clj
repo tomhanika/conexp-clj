@@ -61,6 +61,8 @@
   [#^GScene scn, key]
   (-> scn .getUserData deref (get key)))
 
+(declare add-hook)
+
 (defn make-scene
   "Makes scene on given window."
   [window]
