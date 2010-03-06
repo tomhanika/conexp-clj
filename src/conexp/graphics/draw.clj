@@ -34,6 +34,7 @@
 					      do-nodes)]
 	[conexp.graphics.nodes-and-connections :only (move-interaction,
 						      zoom-interaction,
+						      move-node-by,
 						      *default-node-radius*,
 						      set-node-radius!)]
 	clojure.contrib.swing-utils)
@@ -170,9 +171,15 @@
 					  i (Integer/parseInt (.getText iter-field))]
 				      [r a g i]))]
     (add-action-listener button (fn [evt]
-				  (with-swing-error-msg frame "An Error occured."
-				   (let [[r a g i] (get-force-parameters)]
-				     (improve-with-force scn i r a g)))))))
+				  (do-swing
+				   (with-swing-error-msg frame "An Error occured."
+				     (let [[r a g i] (get-force-parameters)]
+				       (improve-with-force scn i r a g)))))))
+  (let [#^JButton shaker (make-button buttons "Shake")]
+    (add-action-listener shaker (fn [evt]
+				  (do-swing
+				   (do-nodes [node scn]
+				     (move-node-by node 0 0)))))))
 
 
 ;; zoom-move
