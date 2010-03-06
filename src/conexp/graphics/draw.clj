@@ -14,7 +14,7 @@
 			    now)]
 	[conexp.base :only (defvar-)]
 	[conexp.layout :only (*standard-layout-function*)]
-	[conexp.layout.base :only (lattice)]
+	[conexp.layout.base :only (lattice, annotation)]
 	[conexp.layout.force :only (force-layout,
 				    layout-energy,
 				    *repulsive-amount*,
@@ -83,6 +83,7 @@
     (add-action-listener label-toggler
 			 (fn [evt]
 			   (do-swing
+			    (println (annotation (get-layout-from-scene scn)))
 			    (if (= "Labels" (.getText label-toggler))
 			      (do
 				(show-labels scn false)

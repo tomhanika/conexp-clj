@@ -74,7 +74,7 @@
 	 result#
 	 (dosync
 	  (let [new-result# (do ~@body)]
-	    (alter (information ~layout) assoc ~keyword new-result#)
+	    (alter (information ~layout) assoc (keyword '~name) new-result#)
 	    new-result#))))))
 
 (def-layout-fn upper-neighbours
@@ -88,6 +88,18 @@
 		     (recur (update-in uppers [a] conj b)
 			    (rest connections)))))]
     uppers))
+
+(def-layout-fn lower-neighbours
+  "Returns hash-map mapping node names to sets of their upper neighbours."
+  [layout]
+  (let [lowers (loop [lowers {},
+		      connections (seq (connections layout))]
+		 (if (empty? connections)
+		   lowers
+		   (let [[a b] (first connections)]
+		     (recur (update-in lowers [b] conj a)
+			    (rest connections)))))]
+    lowers))
 
 (def-layout-fn upper-neighbours-of-inf-irreducibles
   "Returns hash-map mapping the infimum irreducible elements to their
@@ -123,6 +135,31 @@
   [layout]
   (standard-context (lattice layout)))
 
+(defn- concept-lattice-layout?
+  "Tests whether layout comes from a concept lattice."
+  [layout]
+  (and (forall [node (nodes layout)]
+	 (and (vector? node)
+	      (= 2 (count node))
+	      (set? (first node))
+	      (set? (second node))))
+       (forall [node-1 (nodes layout),
+		node-2 (nodes layout)]
+	 (=> ((order layout) [node-1 node-2])
+	     (and (subset? (first node-1) (first node-2))
+		  (superset? (second node-1) (second node-2)))))))
+
+(def-layout-fn annotation
+  "Returns the annotation of this layout."
+  [layout]
+  (if-not (concept-lattice-layout? layout)
+    (hashmap-by-function (fn [x] [x ""]) (nodes layout))
+    (let [uppers (upper-neighbours layout),
+	  lowers (lower-neighbours layout)]
+      (hashmap-by-function (fn [node]
+			     [(apply difference (first node) (map first (lowers node)))
+			      (apply difference (second node) (map second (uppers node)))])
+			   (nodes layout)))))
 
 ;;;
 
