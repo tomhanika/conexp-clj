@@ -35,6 +35,8 @@
 	[conexp.graphics.nodes-and-connections :only (move-interaction,
 						      zoom-interaction,
 						      move-node-by,
+						      all-nodes-above,
+						      all-nodes-below,
 						      *default-node-radius*,
 						      set-node-radius!)]
 	clojure.contrib.swing-utils)
@@ -124,15 +126,26 @@
   [node dx dy]
   nil)
 
+(defn- neighbor-move-mode
+  "Moves nodes neighbored to node by [dx dy]."
+  [neighbors node dx dy]
+  (do-swing
+   (doseq [n (neighbors node)]
+     (move-node-by n dx dy))))
+
+(def all-nodes-above* (memoize all-nodes-above))
+
 (defn- ideal-move
   "Moves all nodes below the current node."
   [node dx dy]
-  nil)
+  (neighbor-move-mode all-nodes-above* node dx dy))
+
+(def all-nodes-below* (memoize all-nodes-below))
 
 (defn- filter-move
   "Moves all nodes above the current node."
   [node dx dy]
-  nil)
+  (neighbor-move-mode all-nodes-below* node dx dy))
 
 (defn- chain-move
   "Combined ideal and filter move mode."

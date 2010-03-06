@@ -8,7 +8,7 @@
 
 (ns conexp.graphics.nodes-and-connections
   (:use [conexp.util :only (update-ns-meta!)]
-	[conexp.base :only (defvar-, defvar, round)]
+	[conexp.base :only (defvar-, defvar, round, union)]
 	conexp.graphics.util
 	conexp.graphics.scenes
 	[clojure.contrib.core :only (-?>)])
@@ -259,7 +259,7 @@
 (defn move-node-by
   "Moves node by [dx dy] making sure it will not be over some of its
   upper neighbors or under some of its lower neighbors."
-  ;; race condition when move nodes too fast?
+  ;; race condition when moving nodes too fast?
   [#^GObject node, dx, dy]
   (let [[x y] (position node),
 
@@ -269,6 +269,27 @@
 	dy    (if max-y (min dy (- max-y y)) dy),
 	dy    (if min-y (max dy (- min-y y)) dy)]
     (move-node-unchecked-to node (+ x dx) (+ y dy))))
+
+
+;;; moving utilities
+
+(defn- all-neighbored-nodes
+  "Returns all directly and indirectly neighbored nodes of node."
+  [node neighbors]
+  (let [neighs (neighbors node)]
+    (if (empty? neighs)
+      #{}
+      (apply union (set neighs) (map #(all-neighbored-nodes % neighbors) neighs)))))
+
+(defn all-nodes-above
+  "Returns the set of all nodes above node."
+  [node]
+  (all-neighbored-nodes node upper-neighbors))
+
+(defn all-nodes-below
+  "Returns the set of all nodes below node."
+  [node]
+  (all-neighbored-nodes node lower-neighbors))
 
 
 ;;;
@@ -328,7 +349,6 @@
     (doseq [[node-1 node-2] node-connections]
       (connect-nodes scn (node-map node-1) (node-map node-2)))
     node-map))
-
 
 ;;;
 
