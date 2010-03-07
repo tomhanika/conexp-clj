@@ -8,7 +8,7 @@
 
 (ns conexp.graphics.nodes-and-connections
   (:use [conexp.util :only (update-ns-meta!)]
-	[conexp.base :only (defvar-, defvar, round, union)]
+	[conexp.base :only (defvar-, defvar, round, union, difference)]
 	conexp.graphics.util
 	conexp.graphics.scenes
 	[clojure.contrib.core :only (-?>)])
@@ -270,11 +270,18 @@
 
 (defn- all-neighbored-nodes
   "Returns all directly and indirectly neighbored nodes of node."
-  [node neighbors]
-  (let [neighs (neighbors node)]
-    (if (empty? neighs)
-      #{}
-      (apply union (set neighs) (map #(all-neighbored-nodes % neighbors) neighs)))))
+  ([node neighbors]
+     (all-neighbored-nodes neighbors (set (neighbors node)) #{}))
+  ([neighbors to-process visited]
+     (if (empty? to-process)
+       visited
+       (let [next (first to-process)]
+	 (if (contains? visited next)
+	   (recur neighbors (rest to-process) visited)
+	   (let [neighs (neighbors next)]
+	     (recur neighbors
+		    (into (rest to-process) neighs)
+		    (conj visited next))))))))
 
 (defn all-nodes-above
   "Returns the set of all nodes above node."
