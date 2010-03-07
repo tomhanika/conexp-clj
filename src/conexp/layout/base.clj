@@ -156,7 +156,9 @@
   (apply str (interpose ", " set)))
 
 (def-layout-fn annotation
-  "Returns the annotation of this layout."
+  "Returns the annotation of this layout as hash-map of nodes to
+  pairs, where the first entry is the upper label and second one is
+  the lower label."
   [layout]
   (if-not (concept-lattice-layout? layout)
     (hashmap-by-function (fn [x] [x ""]) (nodes layout))
@@ -164,9 +166,9 @@
 	  lowers (lower-neighbours layout)]
       (hashmap-by-function (fn [node]
 			     [(set-to-label
-			       (apply difference (first node) (map first (lowers node))))
+			       (apply difference (second node) (map second (uppers node))))
 			      (set-to-label
-			       (apply difference (second node) (map second (uppers node))))])
+			       (apply difference (first node) (map first (lowers node))))])
 			   (nodes layout)))))
 
 ;;;
