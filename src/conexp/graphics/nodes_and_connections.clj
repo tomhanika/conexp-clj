@@ -376,8 +376,8 @@
 				   (let [[a b] (position @interaction-obj),
 					 [x y] (device-to-world scn x y)]
 				     (move-node-by @interaction-obj (- x a) (- y b))
-				     (.refresh scn)
-				     (call-hook-with scn :move-drag @interaction-obj (- x a) (- y b)))),
+				     (call-hook-with scn :move-drag @interaction-obj (- x a) (- y b))
+				     (.refresh scn))),
 	   GWindow/BUTTON1_UP    (do
 				   (call-hook-with scn :move-stop @interaction-obj)
 				   (reset! interaction-obj nil))
