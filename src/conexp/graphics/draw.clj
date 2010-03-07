@@ -13,6 +13,7 @@
 			    with-printed-result,
 			    now)]
 	[conexp.base :only (defvar-)]
+	[conexp.math.util :only (with-doubles)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.base :only (lattice, annotation)]
 	[conexp.layout.force :only (force-layout,
@@ -37,6 +38,8 @@
 						      move-node-by,
 						      all-nodes-above,
 						      all-nodes-below,
+						      all-inf-add-influenced-nodes,
+						      all-sup-add-influenced-nodes,
 						      *default-node-radius*,
 						      set-node-radius!)]
 	clojure.contrib.swing-utils)
@@ -61,7 +64,8 @@
 
 ;; editor features
 
-(declare single-move, ideal-move, filter-move, chain-move)
+(declare single-move, ideal-move, filter-move, chain-move,
+	 infimum-additive-move, supremum-additive-move)
 
 (defn- change-parameters
   "Installs parameter list which influences lattice drawing."
@@ -108,7 +112,9 @@
   (let [move-modes {"single" single-move,
 		    "ideal"  ideal-move,
 		    "filter" filter-move,
-		    "chain"  chain-move}
+		    "chain"  chain-move,
+		    "inf"    infimum-additive-move,
+		    "sup"    supremum-additive-move}
 	#^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
 	current-move-mode (atom single-move)]
     (add-callback-for-hook scn :move-drag
@@ -152,6 +158,29 @@
   [node dx dy]
   (ideal-move node dx dy)
   (filter-move node dx dy))
+
+(defn- additive-move
+  "Abstract move mode for moving nodes according to additive
+  influence."
+  [influenced-nodes dx dy]
+  (do-swing
+   (doseq [[n weight] influenced-nodes]
+     (with-doubles [dx dy weight]
+       (move-node-by n (* dx weight) (* dy weight))))))
+
+(def all-inf-add-influenced-nodes* all-inf-add-influenced-nodes)
+
+(defn- infimum-additive-move
+  "Moves all nodes infimum-additively with node."
+  [node dx dy]
+  (additive-move (all-inf-add-influenced-nodes* node) dx dy))
+
+(def all-sup-add-influenced-nodes* all-sup-add-influenced-nodes)
+
+(defn- supremum-additive-move
+  "Moves all nodes supremum-additively with node."
+  [node dx dy]
+  (additive-move (all-sup-add-influenced-nodes* node) dx dy))
 
 
 ;; improve with force layout
