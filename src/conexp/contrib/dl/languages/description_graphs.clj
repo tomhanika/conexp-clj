@@ -110,9 +110,16 @@
 	;; examine arguments
 	(let [next-term (first args)]
 	  (if (atomic? next-term)
-	    ;; atomic term, possibly a tbox-target-pair
-	    (let [[normal-term new-names] (normalize-atomic next-term names)]
-	      (recur (rest args) (conj normalized normal-term) new-names))
+	    (do
+	      ;; this is only a restricted normalization algorithm
+	      (when (and (not (primitive? next-term))
+			 (not (tbox-target-pair? next-term)))
+		(illegal-argument "Sorry, but this normalization algorithm cannot handle your TBox.\n"
+				  "The definition " definition " contains definied concepts at top-level."))
+
+	      ;; atomic term, possibly a tbox-target-pair
+	      (let [[normal-term new-names] (normalize-atomic next-term names)]
+		(recur (rest args) (conj normalized normal-term) new-names)))
 
 	    ;; next-term is an existential quantification
 	    (let [[r B] (vec (arguments next-term))]
