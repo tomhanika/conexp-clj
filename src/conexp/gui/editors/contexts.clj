@@ -31,6 +31,16 @@
 ;;
 ;;
 
+(defn string-to-cross
+  "Takes a string and decides, whether it should be a cross or not
+
+  Parameters:
+   s     _string
+  Returns true if there should be a cross"
+  [s]
+  (let [trimmed (.trim s)]
+    (if (re-matches #"0*[,.]?0*" trimmed) false true)))
+
 (defn map-to-unique-strings
   "Takes a sequence of (unique) keys and returns a map
    that maps each unique key to a unique string
@@ -226,9 +236,15 @@
     widget   _the widget object where the paste operation takes place
     old-rows _the number of rows that were present in the table before
     new-rows _the number of rows that will be needed for the paste"
-             [widget old-rows new-rows]
-             nil ;TODO update the other widgets row-counts and add dummy objs
-             )
+             [table old-rows new-rows]
+             (let [ other-widgets (filter
+                                    (fn [w] (not= (w :table) table))
+                                    @assoc-widgets)]
+               (do
+                 (one-by-one other-widgets
+                   (fn [w] (!!!! (w :table) :extend-rows-to new-rows)))
+                 (one-by-one (range old-rows new-rows)
+                   (fn [x] (!! table :set-index-at x 0 "new object"))))))
 
            extend-columns-hook
            (fn-doc "This hook is called when the number of columns is extended
@@ -238,9 +254,32 @@
     widget      _the widget object where the paste operation takes place
     old-columns _the number of rows that were present in the table before
     new-columns _the number of rows that will be needed for the paste"
-             [widget old-columns new-columns]
-             nil ;TODO update the other widgets col-counts and add dummy attrs
-             )
+             [table old-columns new-columns]
+             (let [ other-widgets (filter
+                                    (fn [w] (not= (w :table) table))
+                                    @assoc-widgets)]
+               (do
+                 (one-by-one other-widgets
+                   (fn [w] (!!!! (w :table) :extend-columns-to new-columns)))
+                 (one-by-one (range old-columns new-columns)
+                   (fn [x] (!! table :set-index-at 0 x "new attribute"))))))
+
+           update-incidence
+           (fn-doc "This function updates the incidence relation.
+
+  Parameters:
+    object     _the object
+    attribute  _the attribute
+    cross      _true, if object has attribute, false otherwise"
+             [object attribute cross]
+             (dosync-wait (commute context 
+                            (fn [x]
+                              (let [ objs (objects x)
+                                     attrs (attributes x)
+                                     inc (incidence x) 
+                                     op (if cross conj disj)]
+                                (make-context objs attrs 
+                                  (op inc [object attribute])))))))
 
            change-attribute-name
            (fn-doc "This function will change the name of the attribute in
@@ -339,7 +378,18 @@
                              current-name (object-rows model-row)]
                         (if (= contents current-name) current-name
                           (change-object-name model-row contents)))
-                      true contents)
+                      true ;else
+                      (let [ cross (string-to-cross contents)
+                             obj-name (@obj-rows model-row)
+                             attr-name (@attr-cols model-column)
+                             fca-ctx (get-context @context)
+                             inc (incidence fca-ctx)
+                             current-state (contains? inc [obj-name attr-name])]
+                        (do
+                          (if (not= current-state cross)
+                            (update-incidence obj-name attr-name cross))
+                          (if cross "X" " ")))
+                      )
                     other-widgets (filter
                                     (fn [w] (not= (w :table) table))
                                     @assoc-widgets)]
@@ -360,6 +410,9 @@
              (let [ ctx @context 
                     fca-ctx (get-context ctx)
                     attrs (attributes fca-ctx)
+                    inc (incidence fca-ctx)
+                    get-cross (fn [obj att] (if (contains? inc [obj att])
+                                              "X" " "))
                     attr-count (count attrs)
                     objs (objects fca-ctx)
                     obj-count (count objs)
@@ -372,7 +425,16 @@
                    (one-by-one attrs
                      (fn [x] (let [column (attrib-cols x)]
                                (!! table :set-index-at 0 column x))))
-                 )))
+                   (one-by-one objs
+                     (fn [x] (let [row (object-rows x)]
+                               (!! table :set-index-at row 0 x))))
+                   (one-by-one attrs
+                     (fn [a] (one-by-one objs
+                               (fn [o] 
+                                 (let [ row (object-rows o)
+                                        column (attrib-cols a)]
+                                   (!! table :set-index-at row column 
+                                     (get-cross o a))))))))))
 
            
 
