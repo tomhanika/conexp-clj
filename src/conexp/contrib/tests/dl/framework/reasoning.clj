@@ -6,20 +6,19 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests
-  (:use conexp)
-  (:use [clojure.test :only (*stack-trace-depth* run-tests)]))
+(ns conexp.contrib.tests.dl.framework.reasoning
+  (:use conexp
+	conexp.contrib.dl.framework.syntax
+	conexp.contrib.dl.framework.reasoning
+	conexp.contrib.dl.examples)
+  (:use clojure.test))
 
 ;;;
 
-(defvar- *testing-namespaces* '[conexp.contrib.tests.dl])
+(defvar- mf-exp (dl-expression FamilyDL (exists Child (and Mother Female (exists Child (and))))))
 
-(apply require *testing-namespaces*)
-
-(defn test-ns-hook []
-  (binding [*stack-trace-depth* 13]
-    (apply run-tests *testing-namespaces*))
-  nil)
+(deftest test-subsumed-by?
+  (is (subsumed-by? mf-exp mf-exp)))
 
 ;;;
 
