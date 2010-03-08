@@ -276,6 +276,41 @@
                            model-column current-name
                            model-column new-name))))                         
                    new-name))))
+
+           change-object-name
+           (fn-doc "This function will change the name of the object in
+  the specified row to the new given name, if the new name does not conflict,
+  or otherwise to a conflict free new name; and returns the new name of the
+  object.
+
+  Parameters:
+    model-row      _row of the object in the model
+    req-name       _requested new object name"
+             [model-row req-name]
+             (dosync-wait
+               (let [ objs (objects (get-context @context))
+                      current-name (@obj-rows model-row)
+                      other-objs (disj objs current-name)
+                      new-name (req-unique-string other-objs
+                                 req-name) ]
+                 (do
+                   (if (not= current-name new-name)
+                     (let [ omap (fn [x] (if (= x current-name) new-name x))]
+                       (dosync
+                         (commute context
+                           (fn [x] (let [os (conj (disj (objects x) 
+                                                    current-name)
+                                              new-name)
+                                         as (attributes x)
+                                         inc (map 
+                                               (fn [x] [ (omap (first x))
+                                                         (second x)])
+                                               (incidence x))]
+                                     (make-context os as inc))))
+                         (commute obj-rows switch-bipartit-auto 
+                           model-row current-name
+                           model-row new-name))))                         
+                   new-name))))
              
            set-cell-value-hook
            (fn-doc "This hook is called when a cell's value in the table widget
@@ -298,8 +333,12 @@
                       (let [attrib-cols @attr-cols
                             current-name (attrib-cols model-column)] 
                         (if (= contents current-name) current-name
-                             (change-attribute-name model-column contents)))
-                      (= model-column 0) "Object name"
+                          (change-attribute-name model-column contents)))
+                      (= model-column 0)
+                      (let [object-rows @obj-rows
+                             current-name (object-rows model-row)]
+                        (if (= contents current-name) current-name
+                          (change-object-name model-row contents)))
                       true contents)
                     other-widgets (filter
                                     (fn [w] (not= (w :table) table))
