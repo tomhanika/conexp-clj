@@ -10,15 +10,21 @@
   (:use conexp
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.reasoning
-	conexp.contrib.dl.examples)
+	conexp.contrib.dl.languages.EL-gfp)
   (:use clojure.test))
 
 ;;;
 
-(defvar- mf-exp (dl-expression FamilyDL (exists Child (and Mother Female (exists Child (and))))))
+(define-dl FamilyDL [Mother, Female, Father, Male] [MarriedTo, HasChild] []
+  :extends EL-gfp)
 
 (deftest test-subsumed-by?
-  (is (subsumed-by? mf-exp mf-exp)))
+  (are [dl exp] (subsumed-by? (dl-expression dl exp) (dl-expression dl exp))
+       FamilyDL (exists Child (and Mother Female (exists Child (and))))
+       FamilyDL Mother)
+  (are [dl exp-1 exp-2] (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2))
+       FamilyDL (exists Child Female) (exists Child (and)),
+       FamilyDL (and Female Mother) (and Female)))
 
 ;;;
 

@@ -116,8 +116,8 @@
 
 	    ;; next-term is an existential quantification
 	    (let [[r B] (vec (arguments next-term))]
-	      (if (atomic? B)
-		;; atomic term, possibly a tbox-target-pair
+	      (if (and (atomic? B) (not (primitive? B)))
+		;; atomic term not being a concept name, but possibly a tbox-target-pair
 		(let [[normal-B new-names] (normalize-atomic B names)]
 		  (recur (rest args) (conj normalized (list 'exists (expression r) normal-B)) new-names))
 
