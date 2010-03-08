@@ -9,6 +9,7 @@
 (ns conexp.contrib.tests.dl.framework.reasoning
   (:use conexp
 	conexp.contrib.dl.framework.syntax
+	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.languages.EL-gfp)
   (:use clojure.test))
@@ -18,14 +19,21 @@
 (define-dl FamilyDL [Mother, Female, Father, Male] [MarriedTo, HasChild] []
   :extends EL-gfp)
 
+(def parent* (make-tbox FamilyDL #{(make-dl-definition 'Child (dl-expression FamilyDL (and))),
+				   (make-dl-definition 'Partner (dl-expression FamilyDL
+									       (and (exists HasChild Child)
+										    (exists MarriedTo Self))))
+				   (make-dl-definition 'Self (dl-expression FamilyDL
+									    (and (exists HasChild Child)
+										 (exists MarriedTo Partner))))}))
 (deftest test-subsumed-by?
   (are [dl exp] (subsumed-by? (dl-expression dl exp) (dl-expression dl exp))
-       FamilyDL (exists Child (and Mother Female (exists Child (and))))
+       FamilyDL (exists HasChild (and Mother Female (exists HasChild (and))))
        FamilyDL Mother)
   (are [dl exp-1 exp-2] (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2))
-       FamilyDL (exists Child Female) (exists Child (and)),
-       FamilyDL (and Female Mother) (and Female)))
-
+       FamilyDL (exists HasChild Female) (exists HasChild (and)),
+       FamilyDL (and Female Mother) (and Female)
+       FamilyDL [parent* Self] (exists MarriedTo [parent* Self])))
 ;;;
 
 nil
