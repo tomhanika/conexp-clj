@@ -61,6 +61,20 @@
   [#^GScene scn, key]
   (-> scn .getUserData deref (get key)))
 
+(declare add-hook)
+
+(defn make-scene
+  "Makes scene on given window."
+  [window]
+  (let [#^GScene scn (GScene. window)]
+    (doto scn
+      (initialize-scene)
+      (add-data-to-scene :hooks {})
+      (add-hook :image-changed)
+      (.shouldZoomOnResize true)
+      (.shouldWorldExtentFitViewport false)
+      (.setStyle *default-scene-style*))
+    scn))
 
 (defn redraw-scene
   "Redraws current viewport of scene."
@@ -84,20 +98,6 @@
   [scn, hook]
   (when (not (contains? (get-scene-hooks scn) hook))
     (update-data-for-scene scn [:hooks hook] [])))
-
-(defn make-scene
-  "Makes scene on given window."
-  [window]
-  (let [#^GScene scn (GScene. window)]
-    (doto scn
-      (initialize-scene)
-      (add-data-to-scene :hooks {})
-      (add-hook :image-changed)
-      (.shouldZoomOnResize true)
-      (.shouldWorldExtentFitViewport false)
-      (.setStyle *default-scene-style*))
-    scn))
-
 
 (defn set-callback-for-hook
   "Sets given functions as callbacks for hook on scene."

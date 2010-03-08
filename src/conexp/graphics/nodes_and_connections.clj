@@ -8,7 +8,7 @@
 
 (ns conexp.graphics.nodes-and-connections
   (:use [conexp.util :only (update-ns-meta!)]
-	[conexp.base :only (defvar-, defvar, round)]
+	[conexp.base :only (defvar-, defvar, round, union, difference)]
 	conexp.graphics.util
 	conexp.graphics.scenes
 	[clojure.contrib.core :only (-?>)])
@@ -134,50 +134,45 @@
   "Initial node radius when drawing lattices.")
 
 (defn- add-node
-  "Adds a node to scn at position [x y]. Default name is \"[x y]\"."
-  ([#^GScene scn, x, y]
-     (add-node scn x y (str [x y])))
-  ([#^GScene scn, x, y, name]
-     (let [#^GSegment upper-segment (GSegment.),
-	   #^GSegment lower-segment (GSegment.),
-	   object (proxy [GObject] []
-		    (draw []
-		      (let [upper-style (if (= 1 (-?> this upper-neighbors count))
-					  *default-attribute-concept-style*
-					  nil),
-			    lower-style (if (= 1 (-?> this lower-neighbors count))
-					  *default-object-concept-style*
-					  nil),
-			    [x y] (position this),
-			    [l u] (create-two-halfcircles x y (radius this))]
-			(.setGeometryXy lower-segment l)
-			(.setGeometryXy upper-segment u)
-			(.setStyle lower-segment lower-style)
-			(.setStyle upper-segment upper-style))))
-	   style (GStyle.)]
-       (doto object
-	 (.setStyle *default-node-style*)
-	 (.addSegment lower-segment)
-	 (.addSegment upper-segment)
-	 (.setUserData (ref {:type :node,
-			     :position [(double x), (double y)],
-			     :radius *default-node-radius*,
-			     :name name})))
-       (doto scn
-	 (.add object))
+  "Adds a node to scn at position [x y]."
+  [#^GScene scn, x, y, name, [upper-label lower-label]]
+  (let [#^GSegment upper-segment (GSegment.),
+	#^GSegment lower-segment (GSegment.),
+	object (proxy [GObject] []
+		 (draw []
+		   (let [upper-style (if (= 1 (-?> this upper-neighbors count))
+				       *default-attribute-concept-style*
+				       nil),
+			 lower-style (if (= 1 (-?> this lower-neighbors count))
+				       *default-object-concept-style*
+				       nil),
+			 [x y] (position this),
+			 [l u] (create-two-halfcircles x y (radius this))]
+		     (.setGeometryXy lower-segment l)
+		     (.setGeometryXy upper-segment u)
+		     (.setStyle lower-segment lower-style)
+		     (.setStyle upper-segment upper-style))))
+	style (GStyle.)]
+    (doto object
+      (.setStyle *default-node-style*)
+      (.addSegment lower-segment)
+      (.addSegment upper-segment)
+      (.setUserData (ref {:type :node,
+			  :position [(double x), (double y)],
+			  :radius *default-node-radius*,
+			  :name name})))
+    (doto scn
+      (.add object))
 
-       ;; testing labels
-       (when (and (vector? name)
-		  (= 2 (count name)))
-	 (let [#^GText upper-label (GText. (str (first name)) GPosition/NORTH),
-	       #^GText lower-label (GText. (str (second name)) GPosition/SOUTH)]
-	   (.setStyle upper-label *default-node-label-style*)
-	   (.setStyle lower-label *default-node-label-style*)
-	   (.addText upper-segment upper-label)
-	   (.addText lower-segment lower-label)))
-       ;;
+    (let [#^GText upper-text (GText. upper-label GPosition/NORTH),
+	  #^GText lower-text (GText. lower-label GPosition/SOUTH)]
+	(.setStyle upper-text *default-node-label-style*)
+	(.setStyle lower-text *default-node-label-style*)
+	(.addText upper-segment upper-text)
+	(.addText lower-segment lower-text))
+    ;;
 
-       object)))
+    object))
 
 (defvar- *default-line-style* (doto (GStyle.)
 				(.setLineWidth 2.0)
@@ -259,7 +254,7 @@
 (defn move-node-by
   "Moves node by [dx dy] making sure it will not be over some of its
   upper neighbors or under some of its lower neighbors."
-  ;; race condition when move nodes too fast?
+  ;; race condition when moving nodes too fast?
   [#^GObject node, dx, dy]
   (let [[x y] (position node),
 
@@ -269,6 +264,92 @@
 	dy    (if max-y (min dy (- max-y y)) dy),
 	dy    (if min-y (max dy (- min-y y)) dy)]
     (move-node-unchecked-to node (+ x dx) (+ y dy))))
+
+
+;;; moving utilities
+
+(defn- all-neighbored-nodes
+  "Returns all directly and indirectly neighbored nodes of node."
+  ([node neighbors]
+     (all-neighbored-nodes neighbors (set (neighbors node)) #{}))
+  ([neighbors to-process visited]
+     (if (empty? to-process)
+       visited
+       (let [next (first to-process)]
+	 (if (contains? visited next)
+	   (recur neighbors (rest to-process) visited)
+	   (let [neighs (neighbors next)]
+	     (recur neighbors
+		    (into (rest to-process) neighs)
+		    (conj visited next))))))))
+
+(defn all-nodes-above
+  "Returns the set of all nodes above node."
+  [node]
+  (all-neighbored-nodes node upper-neighbors))
+
+(defn all-nodes-below
+  "Returns the set of all nodes below node."
+  [node]
+  (all-neighbored-nodes node lower-neighbors))
+
+(defn- all-irreducible-neighbored-nodes
+  "Returns all directly and indirectly neighbored nodes of node being
+  irreducible."
+  ;; copy and paste, how can this be changed?
+  ([node neighbors]
+     (all-irreducible-neighbored-nodes neighbors #{node} #{}))
+  ([neighbors to-process visited]
+     (if (empty? to-process)
+       visited
+       (let [next (first to-process)]
+	 (if (contains? visited next)
+	   (recur neighbors (rest to-process) visited)
+	   (let [neighs (neighbors next)]
+	     (if (= 1 (count neighs))
+	       (recur neighbors (into (rest to-process) neighs) (conj visited next))
+	       (recur neighbors (into (rest to-process) neighs) visited))))))))
+
+(defn- group-by
+  "Categorizes elements in coll by their value under f."
+  [f coll]
+  (loop [elements coll,
+	 category {}]
+    (if (empty? elements)
+      (vals category)
+      (let [next (first elements)]
+	(recur (rest elements) (update-in category [(f next)] conj next))))))
+
+(defn- all-additively-influenced-nodes
+  "Returns all nodes which are additively influenced by node. upper
+  and lower are functions returning the upper and lower neighbors
+  respectively (these roles can be interchanged without any harm). The
+  nodes are given with weights (as pair of node and weight)
+  representing the influence by node."
+  [node uppers lowers]
+  (let [irrs (all-irreducible-neighbored-nodes node uppers),
+	others (group-by identity
+			 (apply concat (map #(all-neighbored-nodes % lowers) irrs))),
+
+	irr-count (count irrs)]
+    (concat (for [n irrs
+		  :when (not= n node)]
+	      [n (/ irr-count)])
+	    (for [nodes others
+		  :when (not= (first nodes) node)]
+	      [(first nodes) (/ (count nodes) irr-count)]))))
+
+(defn all-inf-add-influenced-nodes
+  "Returns all nodes (with weights) which are infimum-additively
+  influenced by node."
+  [node]
+  (all-additively-influenced-nodes node upper-neighbors lower-neighbors))
+
+(defn all-sup-add-influenced-nodes
+  "Returns all nodes (with weights) which are supremum-additively
+  influenced by node."
+  [node]
+  (all-additively-influenced-nodes node lower-neighbors upper-neighbors))
 
 
 ;;;
@@ -295,8 +376,8 @@
 				   (let [[a b] (position @interaction-obj),
 					 [x y] (device-to-world scn x y)]
 				     (move-node-by @interaction-obj (- x a) (- y b))
-				     (.refresh scn)
-				     (call-hook-with scn :move-drag @interaction-obj (- x a) (- y b)))),
+				     (call-hook-with scn :move-drag @interaction-obj (- x a) (- y b))
+				     (.refresh scn))),
 	   GWindow/BUTTON1_UP    (do
 				   (call-hook-with scn :move-stop @interaction-obj)
 				   (reset! interaction-obj nil))
@@ -319,16 +400,15 @@
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected
   via pairs in the sequence node-connections."
-  [scn node-coordinate-map node-connections]
+  [scn node-coordinate-map node-connections annotation]
   (let [node-map (apply hash-map
 			(apply concat (map (fn [[node [x y]]]
 					     [node
-					      (add-node scn x y node)])
+					      (add-node scn x y node (annotation node))])
 					   node-coordinate-map)))]
     (doseq [[node-1 node-2] node-connections]
       (connect-nodes scn (node-map node-1) (node-map node-2)))
     node-map))
-
 
 ;;;
 

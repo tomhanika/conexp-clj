@@ -13,7 +13,7 @@
   (:use [conexp.fca.contexts :only (objects attributes incidence)]))
 
 
-(set! *warn-on-reflection* true)
+;(set! *warn-on-reflection* true)
 
 ;;; Helpers to convert to and from BitSets
 

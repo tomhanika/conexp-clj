@@ -301,6 +301,8 @@
 
 (defn force-layout
   "Improves given layout with force layout."
+  ;; FIXME: What to do if given layout is not valid as an attribute
+  ;; additive layout?
   ([layout]
      (force-layout layout nil))
   ([layout iterations]
