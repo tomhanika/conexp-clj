@@ -6,26 +6,10 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests
-  (:use [conexp.base :only (defvar-)])
-  (:use [clojure.test :only (*stack-trace-depth* run-tests)]))
-
+(ns conexp.contrib.tests.dl
+  (:use conexp))
 
 ;;;
-
-(defvar- *testing-namespaces* '[conexp.tests.util
-				conexp.tests.base
-				conexp.tests.fca.contexts
-				conexp.tests.fca.implications])
-
-(apply require *testing-namespaces*)
-
-(defn test-conexp
-  "Run tests for conexp."
-  []
-  (binding [*stack-trace-depth* 13]
-    (apply run-tests *testing-namespaces*)
-    nil))
 
 ;;;
 
