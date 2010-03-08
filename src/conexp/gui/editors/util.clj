@@ -726,6 +726,22 @@
              (!! widget :set-value-at (!! widget :get-index-row row)
                (!! widget :get-index-column column) contents)))
 
+         :update-index-at
+         (fn-doc "Sets the value of a model-indexed cell in the table, if it is
+  different from the current cells value.
+  Parameters:
+    row        _integer identifying a row
+    column     _integer identifying a column
+    contents   _the new contents"
+           [row column contents]
+           (let [widget @self
+                 r (!! widget :get-index-row row)
+                 c (!! widget :get-index-column column)
+                 current (!! widget :get-value-at r c)]
+             (if (not= current contents)
+               (!! widget :set-value-at r c contents))))
+
+
          :set-value-at
          (fn-doc "Sets the value of a cell in the table.
   Parameters:

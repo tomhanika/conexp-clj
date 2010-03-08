@@ -52,6 +52,24 @@
           (recur (disj k k1) (conj m {k1 k1-as-str})
             (conj taken k1-as-str) 0))))))
 
+(defn req-unique-string
+  "Takes a sequence of keys and a new requested key and
+  returns a new key that will not conflict with any of the
+  keys in the sequence.
+
+  Parameters:
+    old-keys  _sequence of keys
+    req-key   _requested new key"
+  [old-keys req-key]
+  (let [keys (set old-keys)]
+    (loop [ nbr 0 ]
+      (let [new-key (if (< 0 nbr)
+                      (join "-" [(str req-key) (str nbr)])
+                      (str req-key))]
+        (if (contains? keys new-key)
+          (recur (+ 1 nbr))
+          new-key)))))
+
 (defn switch-bipartit-auto
   "Takes a bipartit auto map and removes the old-key and old-value
    associations and associates new-key with new-value and new-value
@@ -224,6 +242,41 @@
              nil ;TODO update the other widgets col-counts and add dummy attrs
              )
 
+           change-attribute-name
+           (fn-doc "This function will change the name of the attribute in
+  the specified column to the new given name, if the new name does not conflict,
+  or otherwise to a conflict free new name; and returns the new name of the
+  attribute.
+
+  Parameters:
+    model-column   _column of the attribute in the model
+    req-name       _requested new attribute name"
+             [model-column req-name]
+             (dosync-wait
+               (let [ attribs (attributes (get-context @context))
+                      current-name (@attr-cols model-column)
+                      other-attribs (disj attribs current-name)
+                      new-name (req-unique-string other-attribs
+                                 req-name) ]
+                 (do
+                   (if (not= current-name new-name)
+                     (let [ amap (fn [x] (if (= x current-name) new-name x))]
+                       (dosync
+                         (commute context
+                           (fn [x] (let [as (conj (disj (attributes x) 
+                                                    current-name)
+                                              new-name)
+                                         os (objects x)
+                                         inc (map 
+                                               (fn [x] [ (first x) 
+                                                         (amap (second x))])
+                                               (incidence x))]
+                                     (make-context os as inc))))
+                         (commute attr-cols switch-bipartit-auto 
+                           model-column current-name
+                           model-column new-name))))                         
+                   new-name))))
+             
            set-cell-value-hook
            (fn-doc "This hook is called when a cell's value in the table widget
   has been changed, the passed contents have to be translated into allowed con-
@@ -238,13 +291,51 @@
   Returns the new allowed contents for the cell (as string)."
              [table row column contents]
              (let [ model-column column
-                    model-row row]
-               (cond (= model-column model-row 0) "⇊objects⇊"
-                 (= model-row 0) "Attribute name"
-                 (= model-column 0) "Object name"
-                 true contents)))
+                    model-row row
+                    good-value
+                    (cond (= model-column model-row 0) "⇊objects⇊"
+                      (= model-row 0) 
+                      (let [attrib-cols @attr-cols
+                            current-name (attrib-cols model-column)] 
+                        (if (= contents current-name) current-name
+                             (change-attribute-name model-column contents)))
+                      (= model-column 0) "Object name"
+                      true contents)
+                    other-widgets (filter
+                                    (fn [w] (not= (w :table) table))
+                                    @assoc-widgets)]
+               (do
+                 (one-by-one other-widgets 
+                   (fn [w] (!! (w :table) :update-index-at 
+                             row column good-value)))
+                 good-value)))
+            
+           
+           fill-table-widget
+           (fn-doc "This function will fill the given table widget with the
+  contents of the editable context.
 
+  Parameters:
+    table   _table widget"
+             [table]
+             (let [ ctx @context 
+                    fca-ctx (get-context ctx)
+                    attrs (attributes fca-ctx)
+                    attr-count (count attrs)
+                    objs (objects fca-ctx)
+                    obj-count (count objs)
+                    attrib-cols @attr-cols
+                    object-rows @obj-rows]
+               (do
+                   (!! table :set-column-count (+ 1 attr-count))
+                   (!! table :set-row-count (+ 1 obj-count))
+                   (!! table :set-index-at 0 0 "")
+                   (one-by-one attrs
+                     (fn [x] (let [column (attrib-cols x)]
+                               (!! table :set-index-at 0 column x))))
+                 )))
 
+           
 
            editable-ctx 
            {:editable-context 1
@@ -272,8 +363,7 @@
                    (!! table :set-handler-and-wait 
                      :extend-columns-hook empty-ext-hook)
                    (!! table :set-handler-and-wait 
-                     :extend-rows-hook empty-ext-hook)
-                   ))))
+                     :extend-rows-hook empty-ext-hook)))))
 
            :add-widget-
            (fn-doc "Adds a widget to associated widgets and updates the control
@@ -284,9 +374,7 @@
              [widget]
              (do
                (dosync-wait (commute assoc-widgets conj widget))
-               (let [ table (widget :table)
-                      ctx @context 
-                      fca-ctx (get-context ctx)]
+               (let [ table (widget :table)]
                  (do
                    (!! table :set-handler-and-wait 
                      :set-cell-value-hook set-cell-value-hook)
@@ -294,11 +382,7 @@
                      :extend-columns-hook extend-columns-hook)
                    (!! table :set-handler-and-wait 
                      :extend-rows-hook extend-rows-hook)
-                   (!! table :set-column-count 
-                     (+ 1 (count (attributes fca-ctx))))
-                   (!! table :set-row-count
-                     (+ 1 (count (objects fca-ctx))))
-                   ))))
+                   (fill-table-widget table)))))
           }]
         editable-ctx))
  ([]
@@ -313,7 +397,7 @@
 (def context-workspace-tree (ref nil))
 (def +debug+ (ref nil))
 (defn +debug-hook+ []
-  (!! @+debug+ :associate-context ectx))
+  (one-by-one @+debug+ (fn [x] (!! x :associate-context ectx))))
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
@@ -372,8 +456,11 @@
 ;;             right (do-mk-table-control [:set-column-count 12]
 ;;                                    [:set-row-count 5])
              right (do-mk-context-editor)
+             right2 (do-mk-context-editor)
+             rpane (do-mk-split-pane :vert right right2
+                     [:set-divider-location 300])
              
-             pane (do-mk-split-pane :horiz left right
+             pane (do-mk-split-pane :horiz left rpane
                     [:set-divider-location 200]) ]
         (do
           (add-tab-with-name-icon-tooltip frame (get-widget pane)
@@ -381,7 +468,7 @@
           (dosync-wait 
             (ref-set context-workspace-tree workspace-tree)
             (ref-set context-pane pane)
-            (ref-set +debug+ right)) 
+            (ref-set +debug+ [right right2])) 
           (+debug-hook+)))) ) )
 
 (defn plug-unload-hook
