@@ -122,7 +122,7 @@
 		  (recur (rest args) (conj normalized (list 'exists (expression r) normal-B)) new-names))
 
 		;; B is compound
-		(let [name (get names B nil)]
+		(let [name (get-name-for-expr names B)]
 		  (if-not (nil? name)
 		    (recur (rest args) (conj normalized (list 'exists (expression r) name)) names)
 		    (let [new-name (gensym)]
