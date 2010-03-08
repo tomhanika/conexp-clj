@@ -52,6 +52,23 @@
           (recur (disj k k1) (conj m {k1 k1-as-str})
             (conj taken k1-as-str) 0))))))
 
+(defn switch-bipartit-auto
+  "Takes a bipartit auto map and removes the old-key and old-value
+   associations and associates new-key with new-value and new-value
+   with new-key, then returns the new map
+
+   Parameters:
+     m         _bipartit auto map   
+     old-key   _old key
+     old-value _old value
+     new-key   _new key
+     new-value _new value"
+  [m old-key old-value new-key new-value]
+  (let [m-without-old (dissoc m old-key old-value)
+        m-with-new (assoc m-without-old new-key new-value new-value new-key)]
+    m-with-new))
+
+
 ;;
 ;;
 ;; Context editor control
@@ -59,6 +76,8 @@
 ;;
 ;;
 ;;
+
+(declare editable-context? make-editable-context)
 
 (defn-swing do-mk-context-editor
   "Creates a control for editing contexts.
@@ -163,22 +182,98 @@
            compatible-ctx (make-context compatible-obj
                             compatible-attr compatible-inc)
            attr-range (range 1 (+ 1 (count compatible-attr)))
-           assoc-widgets (ref #{})
-           context (ref compatible-ctx)
+           obj-range (range 1 (+ 1 (count compatible-obj)))
+
+
+           assoc-widgets   (ref #{})
+           context         (ref compatible-ctx)
+           attr-cols       (ref (conj (zipmap compatible-attr attr-range)
+                                  (zipmap attr-range compatible-attr)))
+           obj-rows        (ref (conj (zipmap compatible-obj obj-range)
+                                  (zipmap obj-range compatible-obj)))
+
+           write-obj-to-table 
+           (fn-doc "Writes the objects of the context to the table-widget.
+
+  Parameters:
+    widget   _table widget to write the object cell values to"
+             [widget]
+             nil)
+
+           extend-rows-hook
+           (fn-doc "This hook is called when the number of rows is extended by
+  pasting content that is too big for the table.
+
+  Parameters:
+    widget   _the widget object where the paste operation takes place
+    old-rows _the number of rows that were present in the table before
+    new-rows _the number of rows that will be needed for the paste"
+             [widget old-rows new-rows]
+             nil ;TODO update the other widgets row-counts and add dummy objs
+             )
+
+           extend-columns-hook
+           (fn-doc "This hook is called when the number of columns is extended
+  by pasting content that is too big for the table.
+
+  Parameters:
+    widget      _the widget object where the paste operation takes place
+    old-columns _the number of rows that were present in the table before
+    new-columns _the number of rows that will be needed for the paste"
+             [widget old-columns new-columns]
+             nil ;TODO update the other widgets col-counts and add dummy attrs
+             )
+
+           set-cell-value-hook
+           (fn-doc "This hook is called when a cell's value in the table widget
+  has been changed, the passed contents have to be translated into allowed con-
+  tents that will eventually be set in the widget.
+
+  Parameters:
+    widget     _the widget object
+    row        _integer identifying a row 
+    column     _integer identifying a column 
+    contents   _the desired new contents
+
+  Returns the new allowed contents for the cell (as string)."
+             [table row column contents]
+             (let [ model-column column
+                    model-row row]
+               (cond (= model-column model-row 0) "⇊objects⇊"
+                 (= model-row 0) "Attribute name"
+                 (= model-column 0) "Object name"
+                 true contents)))
+
+
+
            editable-ctx 
            {:editable-context 1
            :context context
            :associated-widgets assoc-widgets
-           :attribute-columns (ref (conj 
-                                     (zipmap compatible-attr attr-range)
-                                     (zipmap attr-range compatible-attr)))
+           :attribute-columns attr-cols
+           :object-rows obj-rows
 
            :remove-widget-
            (fn-doc "Removes a widget from associated widgets.
   Parameters:
     widget     _widget to be removed"
              [widget]
-             (dosync-wait (commute assoc-widgets disj widget)))
+             (do
+               (dosync-wait (commute assoc-widgets disj widget))
+               (let [ table (widget :table)
+                      empty-ext-hook (fn-doc "Empty extend hook" 
+                                       [widget old-rows new-rows] nil)
+                      empty-val-hook (fn-doc "Empty set cell value hook"
+                        [widget row column contents]
+                        contents)]
+                 (do
+                   (!! table :set-handler-and-wait 
+                     :set-cell-value-hook empty-val-hook)
+                   (!! table :set-handler-and-wait 
+                     :extend-columns-hook empty-ext-hook)
+                   (!! table :set-handler-and-wait 
+                     :extend-rows-hook empty-ext-hook)
+                   ))))
 
            :add-widget-
            (fn-doc "Adds a widget to associated widgets and updates the control
@@ -193,6 +288,12 @@
                       ctx @context 
                       fca-ctx (get-context ctx)]
                  (do
+                   (!! table :set-handler-and-wait 
+                     :set-cell-value-hook set-cell-value-hook)
+                   (!! table :set-handler-and-wait 
+                     :extend-columns-hook extend-columns-hook)
+                   (!! table :set-handler-and-wait 
+                     :extend-rows-hook extend-rows-hook)
                    (!! table :set-column-count 
                      (+ 1 (count (attributes fca-ctx))))
                    (!! table :set-row-count
@@ -205,7 +306,7 @@
 
 (def ctx (conexp.fca/make-context ["a" "b" "c"] [1 2 3] [["a" 1] ["c" 3]]))
 (def ectx (make-editable-context ctx))
-(def gui conexp/gui)
+
 
 (def context-pane (ref nil))
 (def context-workspace (ref nil))

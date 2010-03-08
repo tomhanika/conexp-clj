@@ -624,6 +624,19 @@
            [count]
            (.setRowCount model count))
 
+         :get-index-at
+         (fn-doc "Gets the value of the cell at specified model index.
+
+  Parameters:
+    row        _row of the cell
+    column     _column of the cell
+  Returns the cell value"
+           [row column]
+           (let [widget @self]
+             (!! widget :get-value-at (!! widget :get-index-row row)
+               (!! widget :get-index-column column))))
+
+
          :get-value-at
          (fn-swing-doc "Gets the value of the cell at specified position.
 
@@ -633,6 +646,13 @@
   Returns the cell value"
            [row column]
            (.getValueAt table row column))
+
+         :get-row-index
+         (fn-doc "Returns the tables model index of the specified row in view.
+  Parameters:
+    row      _viewport row
+  Returns the model row-index"
+           [row] row)
 
          :get-column-index
          (fn-swing-doc "Returns the tables model index of the specified
@@ -660,6 +680,16 @@
                              cols)]
              (first matching)))
 
+         :get-index-row
+         (fn-doc "Returns the row in the view that corresponds
+  to the specified table model index.
+
+  Parameters:
+    index     _table model index"
+           [index]
+           index)
+
+
          :set-resize-mode
          (fn-swing-threads*-doc "Sets the behaviour of the table on resize.
    Parameters:
@@ -684,6 +714,17 @@
              (= mode :columns) (doto table (.setRowSelectionAllowed false)
                                  (.setColumnSelectionAllowed true))
              (= mode :cells) (.setCellSelectionEnabled table true)))
+
+         :set-index-at
+         (fn-doc "Sets the value of a model-indexed cell in the table.
+  Parameters:
+    row        _integer identifying a row
+    column     _integer identifying a column
+    contents   _the new contents"
+           [row column contents]
+           (let [widget @self]
+             (!! widget :set-value-at (!! widget :get-index-row row)
+               (!! widget :get-index-column column) contents)))
 
          :set-value-at
          (fn-doc "Sets the value of a cell in the table.
@@ -777,11 +818,11 @@
                               (= 0 type)
                               (<= 0 (min column first-row last-row))
                               (= first-row last-row))
-                           (let [ current-value (!! widget :get-value-at first-row column)
+                           (let [ current-value (!! widget :get-index-at first-row column)
                                    good-value (!!!! widget :set-cell-value-hook 
                                                 first-row column current-value)]
                               (if (not= current-value good-value)
-                                (!! widget :set-value-at first-row column good-value)))))]
+                                (!! widget :set-index-at first-row column good-value)))))]
 
                     ]]
     (do
