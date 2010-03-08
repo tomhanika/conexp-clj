@@ -58,27 +58,39 @@
 					(vertex-labels dg))))]
     (.write out (.trim output))))
 
-;;;
+;;; Normalizing
 
 (declare normalize)
+
+(defn- get-name-for-expr
+  "Returns name for a given expression, if known."
+  [names expr]
+  (let [syms (get names expr)]
+    (and syms (first syms))))
+
+(defn- add-name-for-expr
+  "Adds name for expr to names."
+  [names expr name]
+  (update-in names [expr] conj name))
 
 (defn- normalize-atomic
   "Normalizes an atomic expression as needed by normalize-definition."
   [expr term-names]
-  (if (tbox-target-pair? expr)
-    (let [[tbox target] (uniquify-tbox-target-pair (expression expr)),
-	  tbox (normalize tbox term-names)]
-      [target (into term-names (for [def (tbox-definitions tbox)]
-				 (let [name (get term-names (definition-expression def))]
-				   (if (and name (not= name (definition-target def)))
-				     [name (definition-target def)]
-				     [(definition-expression def) (definition-target def)]))))])
-    [expr term-names]))
+  (cond
+   (tbox-target-pair? expr) (let [[tbox target] (uniquify-tbox-target-pair (expression expr)),
+				  tbox (normalize tbox term-names)]
+			      [target (reduce (fn [term-names def]
+						(let [def-expr (definition-expression def),
+						      def-trgt (definition-target def)]
+						  (add-name-for-expr term-names def-expr def-trgt)))
+					      term-names
+					      (tbox-definitions tbox))]),
+   :else [expr term-names]))
 
 (defn- normalize-definition
   "Normalizes given definition using term-names (i.e. a map mapping
   expressions to names), extending term-names if necessary."
-  ;; ugly code, can we do this with monads?
+  ;; ugly code, can we do this with a monad?
   [definition term-names]
   (let [language (expression-language (definition-expression definition)),
 	target   (definition-target definition),
@@ -111,19 +123,18 @@
 
 		;; B is compound
 		(let [name (get names B nil)]
-		  (println B)
-		  (println names)
 		  (if-not (nil? name)
 		    (recur (rest args) (conj normalized (list 'exists (expression r) name)) names)
-		    (let [new-name (gensym),
-			  new-names (conj names [B new-name])]
-		      (recur (rest args) (conj normalized (list 'exists (expression r) new-name)) new-names))))))))))))
+		    (let [new-name (gensym)]
+		      (recur (rest args) (conj normalized (list 'exists (expression r) new-name))
+			     (add-name-for-expr names B new-name)))))))))))))
 
 (defn- tbox-from-names
   "Creates and returns a tbox from given names and language."
   [language names]
   (make-tbox language (set-of (make-dl-definition A (make-dl-expression language def-A))
-			      [[def-A A] names])))
+			      [[def-A As] names,
+			       A As])))
 
 (defn normalize
   "Normalizes given tbox."
@@ -142,11 +153,13 @@
 	   (make-tbox language (union normalized-definitions
 				      (tbox-definitions names-tbox))))))))
 
+
+;;; Conversion to and from description graphs
+
 (defn tbox->description-graph
   "Converts a tbox to a description graph."
   [tbox]
   (let [tbox            (normalize tbox),
-	_ (println "tbox = " tbox),
 	definitions     (tbox-definitions tbox),
 
 	language        (tbox-language tbox),

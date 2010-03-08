@@ -58,31 +58,25 @@
   [subsumption]
   (subsumed-by? (subsumee subsumption) (subsumer subsumption)))
 
-(defn- clarify-subsumption-set
+(defn- clarify-subsumption-seq
   "Removes all sumsumptions with equal subsumee and subsumer from the
-  set of given subsumptions."
+  seq of given subsumptions."
   [subs]
-  (set-of susu
-	  [susu (map abbreviate-subsumption (seq subs)),
-	   :when (not (obviously-true? susu))]))
+  (for [susu (map abbreviate-subsumption subs),
+	:when (not (obviously-true? susu))]
+    susu))
 
 (defn- extend-attributes
   "Takes a sequence of concepts and a sequence of new concepts to be
   added to the first sequence. If any element in the new sequence is
   equivalent to some element in the old one, it is not added."
   [concepts new-concepts]
-  (println "Trying to add " new-concepts)
   (loop [concepts concepts,
 	 new-concepts new-concepts]
     (if (empty? new-concepts)
       concepts
       (recur (let [next (first new-concepts)]
-	       (if (some #(with-printed-result (str "Testing " (print-str next) " against " (print-str %) ":")
-			    (when (and (not (equivalent? next %))
-				       (= next %))
-			      (illegal-state "HERE IT IS" (print-str next) (print-str %)))
-			    (equivalent? next %))
-			 concepts)
+	       (if (some #(equivalent? next %) concepts)
 		 concepts
 		 (conj concepts next)))
 	     (rest new-concepts)))))
@@ -110,12 +104,12 @@
 		model initial-model]
 	   (if (nil? P_k)
 	     ;; then return set of implications
-	     (clarify-subsumption-set
-	      (set-of (make-subsumption all-P mc-all-P)
-		      [P Pi_k
-		       :let [all-P    (make-dl-expression language (cons 'and P)),
-			     mc-all-P (make-dl-expression language (model-closure model all-P))]
-		       :when (not= all-P mc-all-P)]))
+	     (clarify-subsumption-seq
+	      (for [P Pi_k
+		    :let [all-P    (make-dl-expression language (cons 'and P)),
+			  mc-all-P (make-dl-expression language (model-closure model all-P))]
+		    :when (not= all-P mc-all-P)]
+		(make-subsumption all-P mc-all-P)))
 
 	     ;; else search for next implication
 	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
@@ -123,8 +117,6 @@
 				(let [susu (make-subsumption all-P_k
 							     (make-dl-expression language
 										 (model-closure model all-P_k)))]
-				  ;(println susu)
-				  ;(println "-----------------------")
 				  (if (or (obviously-true? susu)
 					  (not (expert-refuses? susu)))
 				    model
@@ -132,16 +124,14 @@
 		   next-M_k   (extend-attributes M_k (set-of (dl-expression language
 									    (exists r (model-closure next-model all-P_k)))
 							     [r (role-names language)])),
-		   _ (println ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"),
-		   _ (println "(count next-M_k) =" (count next-M_k)),
-		   _ (println next-M_k),
-		   _ (println "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"),
 		   next-K     (induced-context next-M_k next-model),
 		   next-Pi_k  (conj Pi_k P_k),
 		   next-P_k   (next-closed-set next-M_k
 					       (clop-by-implications
-						(union (set-of (make-implication P_l (context-attribute-closure next-K P_l))
-							       [P_l (rest next-Pi_k)])
+						(union (set-of impl
+							       [P_l next-Pi_k
+								:let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
+								:when (not (empty? (conclusion impl)))])
 						       (set-of (make-implication #{C} #{D})
 							       [C next-M_k, D next-M_k
 								:when (and (not= C D) (subsumed-by? C D))])))
