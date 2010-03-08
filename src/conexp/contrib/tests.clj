@@ -7,19 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests
-  (:use conexp)
-  (:use [clojure.test :only (*stack-trace-depth* run-tests)]))
+  (:use conexp))
 
 ;;;
 
-(defvar- *testing-namespaces* '[conexp.contrib.tests.dl])
-
-(apply require *testing-namespaces*)
-
-(defn test-ns-hook []
-  (binding [*stack-trace-depth* 13]
-    (apply run-tests *testing-namespaces*))
-  nil)
+(tests-to-run conexp.contrib.tests.dl)
 
 ;;;
 

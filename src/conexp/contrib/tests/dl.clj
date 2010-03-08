@@ -7,12 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.dl
-  (:use clojure.test))
+  (:use conexp))
 
 ;;;
 
-(defn test-ns-hook []
-  (run-tests 'conexp.contrib.tests.dl.framework.reasoning))
+(tests-to-run conexp.contrib.tests.dl.framework.reasoning)
 
 ;;;
 
