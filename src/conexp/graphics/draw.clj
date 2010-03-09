@@ -64,8 +64,8 @@
 
 ;; editor features
 
-(declare single-move, ideal-move, filter-move, chain-move,
-	 infimum-additive-move, supremum-additive-move)
+(declare single-move-mode, ideal-move-mode, filter-move-mode, chain-move-mode,
+	 infimum-additive-move-mode, supremum-additive-move-mode)
 
 (defn- change-parameters
   "Installs parameter list which influences lattice drawing."
@@ -109,14 +109,14 @@
 			       (layout-fn (lattice (get-layout-from-scene scn)))))))))
 
   ;; move mode (ideal, filter, chain, single)
-  (let [move-modes {"single" single-move,
-		    "ideal"  ideal-move,
-		    "filter" filter-move,
-		    "chain"  chain-move,
-		    "inf"    infimum-additive-move,
-		    "sup"    supremum-additive-move}
+  (let [move-modes {"single" (single-move-mode),
+		    "ideal"  (ideal-move-mode),
+		    "filter" (filter-move-mode),
+		    "chain"  (chain-move-mode),
+		    "inf"    (infimum-additive-move-mode),
+		    "sup"    (supremum-additive-move-mode)}
 	#^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
-	current-move-mode (atom single-move)]
+	current-move-mode (atom (move-modes "single"))]
     (add-callback-for-hook scn :move-drag
 			   (fn [node dx dy]
 			     (@current-move-mode node dx dy)))
@@ -127,60 +127,58 @@
 			     (reset! current-move-mode move-mode)))))
   nil)
 
-(defn- single-move
+(defn- single-move-mode
   "Moves the single node only."
-  [node dx dy]
-  nil)
+  []
+  (fn [node dx dy]
+    nil))
 
 (defn- neighbor-move-mode
   "Moves nodes neighbored to node by [dx dy]."
-  [neighbors node dx dy]
-  (do-swing
-   (doseq [n (neighbors node)]
-     (move-node-by n dx dy))))
+  [neighbors]
+  (fn [node dx dy]
+    (do-swing
+     (doseq [n (neighbors node)]
+       (move-node-by n dx dy)))))
 
-(def all-nodes-above* (memoize all-nodes-above))
-
-(defn- ideal-move
+(defn- ideal-move-mode
   "Moves all nodes below the current node."
-  [node dx dy]
-  (neighbor-move-mode all-nodes-above* node dx dy))
+  []
+  (neighbor-move-mode (memoize all-nodes-above)))
 
-(def all-nodes-below* (memoize all-nodes-below))
-
-(defn- filter-move
+(defn- filter-move-mode
   "Moves all nodes above the current node."
-  [node dx dy]
-  (neighbor-move-mode all-nodes-below* node dx dy))
+  []
+  (neighbor-move-mode (memoize all-nodes-below)))
 
-(defn- chain-move
+(defn- chain-move-mode
   "Combined ideal and filter move mode."
-  [node dx dy]
-  (ideal-move node dx dy)
-  (filter-move node dx dy))
+  []
+  (let [ideal (ideal-move),
+	filter (filter-move)]
+    (fn [node dx dy]
+      (ideal node dx dy)
+      (filter node dx dy))))
 
-(defn- additive-move
+(defn- additive-move-mode
   "Abstract move mode for moving nodes according to additive
   influence."
-  [influenced-nodes dx dy]
-  (do-swing
-   (doseq [[n weight] influenced-nodes]
-     (with-doubles [dx dy weight]
-       (move-node-by n (* dx weight) (* dy weight))))))
+  [influenced-nodes]
+  (fn [node dx dy]
+    (do-swing
+     (doseq [[n weight] (influenced-nodes node)]
+       (with-doubles [dx dy weight]
+	 (move-node-by n (* dx weight) (* dy weight)))))))
 
-(def all-inf-add-influenced-nodes* all-inf-add-influenced-nodes)
-
-(defn- infimum-additive-move
+(defn- infimum-additive-move-mode
   "Moves all nodes infimum-additively with node."
-  [node dx dy]
-  (additive-move (all-inf-add-influenced-nodes* node) dx dy))
+  []
+  (additive-move (memoize all-inf-add-influenced-nodes)))
 
-(def all-sup-add-influenced-nodes* all-sup-add-influenced-nodes)
-
-(defn- supremum-additive-move
+(defn- supremum-additive-move-mode
   "Moves all nodes supremum-additively with node."
-  [node dx dy]
-  (additive-move (all-sup-add-influenced-nodes* node) dx dy))
+  []
+  (additive-move (memoize all-sup-add-influenced-nodes)))
 
 
 ;; improve with force layout
