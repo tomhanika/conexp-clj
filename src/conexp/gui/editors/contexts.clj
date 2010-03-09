@@ -221,13 +221,6 @@
            obj-rows        (ref (conj (zipmap compatible-obj obj-range)
                                   (zipmap obj-range compatible-obj)))
 
-           write-obj-to-table 
-           (fn-doc "Writes the objects of the context to the table-widget.
-
-  Parameters:
-    widget   _table widget to write the object cell values to"
-             [widget]
-             nil)
 
            extend-rows-hook
            (fn-doc "This hook is called when the number of rows is extended by
@@ -400,6 +393,25 @@
                              row column good-value)))
                  good-value)))
             
+
+           set-table-extents
+           (fn-doc "This function will set the row and column count of the
+  table widget to the appropriate sizes.
+
+  Parameters:
+    table  _table widget"
+             [table]
+             (dosync
+               (let [ ctx @context 
+                      fca-ctx (get-context ctx)
+                      attrs (attributes fca-ctx)
+                      attr-count (count attrs)
+                      objs (objects fca-ctx)
+                      obj-count (count objs)]
+                 (do
+                   (!! table :set-column-count (+ 1 attr-count))
+                   (!! table :set-row-count (+ 1 obj-count))))))
+                      
            
            fill-table-widget
            (fn-doc "This function will fill the given table widget with the
@@ -494,7 +506,9 @@
              []
              (let [ widgets @assoc-widgets
                     tables  (map :table widgets)]
-               (one-by-one tables fill-table-widget)))
+               (dosync
+                 (one-by-one tables set-table-extents)
+                 (one-by-one tables fill-table-widget))))
 
            :remove-widget-
            (fn-doc "Removes a widget from associated widgets.
@@ -543,6 +557,11 @@
    (make-editable-context (make-context [] [] []))))
 
 (def ctx (conexp.fca/make-context ["a" "b" "c"] [1 2 3] [["a" 1] ["c" 3]]))
+(def ctx2 (make-context #{"Apfel" "Birne" "Möhre" "Gurke"} 
+            #{"lecker" "geht so" "iieh"} 
+            #{["Apfel" "lecker"] ["Birne" "lecker"] ["Möhre" "iieh"]
+            ["Gurke" "geht so"]}))
+
 (def ectx (make-editable-context ctx))
 
 
