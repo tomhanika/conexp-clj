@@ -201,6 +201,11 @@
   [map key & parameters]
   `(((~map :handler) ~key) ~map ~@parameters))
 
+(defmacro map!
+  "Just like map, but not lazy."
+  [f & colls]
+   `(seq (map ~f ~@colls)))
+
 
 ;;;
 ;;; java & swing utils
@@ -485,10 +490,12 @@
   Parameters:
     obj     _a table widget" [obj] 
   (let [control (get-control obj)
-         sel-columns ((*comp (rho .getSelectedColumns) extract-array)
+         sel-columns ((*comp (rho .getSelectedColumns)  extract-array)
                        control)
          sel-rows ((*comp (rho .getSelectedRows) extract-array)
-                    control)]
+                    control)
+         col-index (!! obj :get-column-index-permutator)
+         row-index (!! obj :get-row-index-permutator)]
     (if (or (empty? sel-columns) (empty? sel-rows)) nil
       (let [data (str (get-clipboard-contents))
              startx (first sel-columns)
@@ -499,9 +506,9 @@
         (one-by-one lns (fn [r] 
                           (one-by-one (range (count (cells r)))
                             (fn [c]
-                              (!! obj :set-value-at
-                                (+ starty r)
-                                (+ startx c)
+                              (!! obj :set-index-at
+                                (row-index (+ starty r))
+                                (col-index (+ startx c))
                                 ((cells r) c))))))))))
 
 (defn-swing-threads* table-to-clipboard!
@@ -654,6 +661,24 @@
   Returns the model row-index"
            [row] row)
 
+         :get-row-index-permutator
+         (fn-doc "Returns a function that will map the current view rows to
+   the according index values."
+           [] identity)
+
+         :get-column-index-permutator
+         (fn-swing-doc "Returns a function that will map the current view
+   columns to the according index values."
+           [] 
+           (let [ col-count (.getColumnCount table)
+                  col-range (range col-count)
+                  col-model (.getColumnModel table)
+                  col-map  (zipmap col-range (map (*comp
+                                                    (rho .getColumn col-model)
+                                                    (rho .getModelIndex))
+                                               col-range)) ]
+             (fn [i] (if (>= i col-count) i (col-map i)))))
+
          :get-column-index
          (fn-swing-doc "Returns the tables model index of the specified
    column in the view.
@@ -662,9 +687,11 @@
     column    _viewport column
   Returns the model index"
            [column]
-           (let [ col-model (.getColumnModel table)
-                  table-col (.getColumn col-model column)]
-             (.getModelIndex table-col)))
+           (let [ col-count (.getColumnCount table) ]
+             (if (>= column col-count) column
+               (let [ col-model (.getColumnModel table)
+                      table-col (.getColumn col-model column)]
+                 (.getModelIndex table-col)))))
          
          :get-index-column
          (fn-swing-doc "Returns the column in the view that corresponds
@@ -677,8 +704,9 @@
                   cols (range (.getColumnCount col-model))
                   matching (filter 
                              (fn [x] (= index (.getModelIndex (.getColumn col-model x))))
-                             cols)]
-             (first matching)))
+                             cols)
+                  found  (first matching)]
+             (if found found index)))
 
          :get-index-row
          (fn-doc "Returns the row in the view that corresponds
