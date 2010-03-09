@@ -197,7 +197,8 @@
   Parameters:
     context-in     _context or editable context"
   ([context-in]
-    (let [ ctx (get-context context-in)
+    (let [ self (promise)
+           ctx (get-context context-in)
            obj (objects ctx)
            attr (attributes ctx)
            inc (incidence ctx)
@@ -407,18 +408,19 @@
   Parameters:
     table   _table widget"
              [table]
-             (let [ ctx @context 
-                    fca-ctx (get-context ctx)
-                    attrs (attributes fca-ctx)
-                    inc (incidence fca-ctx)
-                    get-cross (fn [obj att] (if (contains? inc [obj att])
-                                              "X" " "))
-                    attr-count (count attrs)
-                    objs (objects fca-ctx)
-                    obj-count (count objs)
-                    attrib-cols @attr-cols
-                    object-rows @obj-rows]
-               (do
+             (dosync
+               (let [ ctx @context 
+                      fca-ctx (get-context ctx)
+                      attrs (attributes fca-ctx)
+                      inc (incidence fca-ctx)
+                      get-cross (fn [obj att] (if (contains? inc [obj att])
+                                                "X" " "))
+                      attr-count (count attrs)
+                      objs (objects fca-ctx)
+                      obj-count (count objs)
+                      attrib-cols @attr-cols
+                      object-rows @obj-rows]
+                 (do
                    (!! table :set-column-count (+ 1 attr-count))
                    (!! table :set-row-count (+ 1 obj-count))
                    (!! table :set-index-at 0 0 "")
@@ -434,7 +436,7 @@
                                  (let [ row (object-rows o)
                                         column (attrib-cols a)]
                                    (!! table :set-index-at row column 
-                                     (get-cross o a))))))))))
+                                     (get-cross o a)))))))))))
 
            
 
@@ -444,6 +446,55 @@
            :associated-widgets assoc-widgets
            :attribute-columns attr-cols
            :object-rows obj-rows
+
+           :get
+           (fn-doc "Returns the fca-context that is associated with the
+  current state of the editable context."
+             [] (get-context @context))
+
+           :set
+           (fn-doc "Sets the current state of the editable context to the
+  given fca context.
+
+  Parameters:
+    context-in  _(fca) context"
+             [context-in]
+             (let [ ctx (get-context context-in)
+                    obj (objects ctx)
+                    attr (attributes ctx)
+                    inc (incidence ctx)
+                    obj-map (map-to-unique-strings obj)
+                    attr-map (map-to-unique-strings attr)
+                    compatible-obj (map obj-map obj)
+                    compatible-attr (map attr-map attr)
+                    compatible-inc  (map (fn [x] [(obj-map (first x)) 
+                                                   (attr-map (second x))])
+                                      inc)
+                    compatible-ctx (make-context compatible-obj
+                                     compatible-attr compatible-inc) 
+                    attr-range (range 1 (+ 1 (count compatible-attr)))
+                    obj-range (range 1 (+ 1 (count compatible-obj)))
+
+
+                    
+                    new-attr-cols  (conj (zipmap compatible-attr attr-range)
+                                     (zipmap attr-range compatible-attr))
+                    new-obj-rows   (conj (zipmap compatible-obj obj-range)
+                                     (zipmap obj-range compatible-obj)) ]
+               (do
+                 (dosync-wait 
+                   (ref-set context compatible-ctx)
+                   (ref-set attr-cols new-attr-cols)
+                   (ref-set obj-rows new-obj-rows))
+                 (!! @self :update-))))
+
+           :update-
+           (fn-doc "Updates all widgets that are associated with the editable
+  context by forcing a complete table refresh from data."
+             []
+             (let [ widgets @assoc-widgets
+                    tables  (map :table widgets)]
+               (one-by-one tables fill-table-widget)))
 
            :remove-widget-
            (fn-doc "Removes a widget from associated widgets.
@@ -485,7 +536,9 @@
                      :extend-rows-hook extend-rows-hook)
                    (fill-table-widget table)))))
           }]
-        editable-ctx))
+               (do
+                 (deliver self editable-ctx)
+                 editable-ctx)))
  ([]
    (make-editable-context (make-context [] [] []))))
 
