@@ -151,6 +151,12 @@
 		(or (i A)
 		    ((model-interpretation model) A)))))
 
+(defn holds-in-model?
+  "Returns true iff subsumption holds in given model."
+  [model subsumption]
+  (subset? (interpret model (subsumee subsumption))
+	   (interpret model (subsumer subsumption))))
+
 ;;;
 
 nil
