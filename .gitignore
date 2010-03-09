@@ -13,3 +13,5 @@ src/doc/*.pdf
 src/doc/*.thm
 .#*
 .nfs*
+*~
+output*

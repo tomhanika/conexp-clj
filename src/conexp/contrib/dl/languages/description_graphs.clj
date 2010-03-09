@@ -60,16 +60,25 @@
 
 ;;;
 
-(defn new-var
-  "Returns a new variable name (globally unique)."
-  []
-  (gensym "C-"))
+(declare normalize)
+
+(defn- normalize-atomic
+  "Normalizes an atomic expression as needed by normalize-definition."
+  [expr term-names]
+  (if (tbox-target-pair? expr)
+    (let [[tbox target] (uniquify-tbox-target-pair (expression expr)),
+	  tbox (normalize tbox term-names)]
+      [target (into term-names (for [def (tbox-definitions tbox)]
+				 (let [name (get term-names (definition-expression def))]
+				   (if (and name (not= name (definition-target def)))
+				     [name (definition-target def)]
+				     [(definition-expression def) (definition-target def)]))))])
+    [expr term-names]))
 
 (defn- normalize-definition
-  "Normalzes given definition with additional defintions, returning
-  the normalized definition and a possibly enhanced structure of
-  definitions."
-  ;; stupid description
+  "Normalizes given definition using term-names (i.e. a map mapping
+  expressions to names), extending term-names if necessary."
+  ;; ugly code, can we do this with monads?
   [definition term-names]
   (let [language (expression-language (definition-expression definition)),
 	target   (definition-target definition),
@@ -82,20 +91,31 @@
 	   normalized [],
 	   names      term-names]
       (if (empty? args)
-	[(make-dl-definition target (make-dl-expression language (list* 'and normalized)))
-	 names]
+	;; make definition
+	(let [def-expression (make-dl-expression language (cons 'and normalized))]
+	  [(make-dl-definition target def-expression) names])
+
+	;; examine arguments
 	(let [next-term (first args)]
 	  (if (atomic? next-term)
-	    (recur (rest args) (conj normalized (expression next-term)) names)
+	    ;; atomic term, possibly a tbox-target-pair
+	    (let [[normal-term new-names] (normalize-atomic next-term names)]
+	      (recur (rest args) (conj normalized normal-term) new-names))
+
 	    ;; next-term is an existential quantification
 	    (let [[r B] (vec (arguments next-term))]
 	      (if (atomic? B)
-		(recur (rest args) (conj normalized (expression next-term)) names)
-		;; B is an existential quantification
+		;; atomic term, possibly a tbox-target-pair
+		(let [[normal-B new-names] (normalize-atomic B names)]
+		  (recur (rest args) (conj normalized (list 'exists (expression r) normal-B)) new-names))
+
+		;; B is compound
 		(let [name (get names B nil)]
+		  (println B)
+		  (println names)
 		  (if-not (nil? name)
 		    (recur (rest args) (conj normalized (list 'exists (expression r) name)) names)
-		    (let [new-name (new-var),
+		    (let [new-name (gensym),
 			  new-names (conj names [B new-name])]
 		      (recur (rest args) (conj normalized (list 'exists (expression r) new-name)) new-names))))))))))))
 
@@ -107,23 +127,26 @@
 
 (defn normalize
   "Normalizes given tbox."
-  [tbox]
-  (let [language (tbox-language tbox),
-	[normalized-definitions new-names] (reduce (fn [[n-definitions names] definition]
-						     (let [[n-definition new-names] (normalize-definition definition names)]
-						       [(conj n-definitions n-definition) new-names]))
-						   [#{} {}]
-						   (tbox-definitions tbox))]
-    (if (empty? new-names)
-      (make-tbox language normalized-definitions)
-      (let [names-tbox (normalize (tbox-from-names language new-names))]
-	(make-tbox language (union normalized-definitions
-				   (tbox-definitions names-tbox)))))))
+  ([tbox]
+     (normalize tbox {}))
+  ([tbox names]
+     (let [language (tbox-language tbox),
+	   [normalized-definitions new-names] (reduce (fn [[n-definitions names] definition]
+							(let [[n-definition new-names] (normalize-definition definition names)]
+							  [(conj n-definitions n-definition) new-names]))
+						      [#{} names]
+						      (tbox-definitions tbox))]
+       (if (= names new-names)
+	 (make-tbox language normalized-definitions)
+	 (let [names-tbox (normalize (tbox-from-names language new-names) new-names)]
+	   (make-tbox language (union normalized-definitions
+				      (tbox-definitions names-tbox))))))))
 
 (defn tbox->description-graph
   "Converts a tbox to a description graph."
   [tbox]
   (let [tbox            (normalize tbox),
+	_ (println "tbox = " tbox),
 	definitions     (tbox-definitions tbox),
 
 	language        (tbox-language tbox),

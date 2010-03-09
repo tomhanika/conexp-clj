@@ -59,6 +59,23 @@
 
 ;;;
 
+(defn tbox?
+  "Returns true iff thing is a tbox."
+  [thing]
+  (= (type thing) ::TBox))
+
+(defn tbox-target-pair?
+  "Returns true iff dl-expr is a tbox-target-pair."
+  [dl-expr]
+  (and (dl-expression? dl-expr)
+       (let [expr (expression dl-expr)]
+	 (and (vector? expr)
+	      (= 2 (count expr))
+	      (tbox? (first expr))
+	      (contains? (defined-concepts (first expr)) (second expr))))))
+
+;;;
+
 (defmacro define-tbox
   "Defines a TBox. Definitions are names interleaved with dl-sexps."
   [name language & definitions]
@@ -78,6 +95,28 @@
     (if (nil? result)
       (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
       result)))
+
+(defn uniquify-tbox-target-pair
+  "Substitutes for every defined concept name in tbox a new, globally
+  unique, concept name and finally substitutes traget with its new name."
+  [[tbox target]]
+  (let [symbols     (defined-concepts tbox),
+	new-symbols (hashmap-by-function (fn [_] (gensym))
+					 symbols)]
+    [(make-tbox (tbox-language tbox)
+		(set-of (make-dl-definition (new-symbols target) (substitute def-exp new-symbols))
+			[def (tbox-definitions tbox),
+			 :let [target (definition-target def),
+			       def-exp (definition-expression def)]]))
+     (new-symbols target)]))
+
+(defn uniquify-tbox
+  "Substitutes for every defined concept anme in tbox a new, globally
+  unique, concept name."
+  [tbox]
+  (if (empty? (tbox-definitions tbox))
+    tbox
+    (first (uniquify-tbox-target-pair [tbox (definition-target (first (tbox-definitions tbox)))]))))
 
 (defn tbox-union
   "Returns the union of tbox-1 and tbox-2."
@@ -122,7 +161,15 @@
     [(make-tbox (tbox-language tbox)
 		(for [def (tbox-definitions tbox)
 		      :when (contains? needed-targets (definition-target def))]
-		  def)),
+		    (if (compound? (definition-expression def))
+		      ;; remove duplicate terms
+		      (let [expr (definition-expression def)]
+			(make-dl-definition (definition-target def)
+					    (make-dl-expression (tbox-language tbox)
+								(list* (operator expr)
+								       (distinct (arguments expr))))))
+		      ;;
+		      def)))
      target]))
 
 (defn substitute-definitions
@@ -140,12 +187,11 @@
 				 [(definition-target def) (definition-expression def)]),
 
 	    new-target-definition (make-dl-definition target
-						      (reduce (fn [expr [name new-expr]]
-								(substitute expr name new-expr))
-							      (definition-expression target-definition)
-							      needed-definitions)),
+						      (substitute (definition-expression target-definition)
+								  (into {} needed-definitions)))
+
 	    [new-tbox target]  (clarify-tbox [(make-tbox (tbox-language tbox)
-							(conj rest-definitions new-target-definition))
+							 (conj rest-definitions new-target-definition))
 					      target])]
 	(recur [new-tbox target])))))
 
