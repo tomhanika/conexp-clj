@@ -6,10 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-
 ;;;
 
-(defproject conexp "0.0"
+(defproject conexp "0.1"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj"
   :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
