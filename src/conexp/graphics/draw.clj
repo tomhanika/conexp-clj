@@ -154,8 +154,8 @@
 (defn- chain-move-mode
   "Combined ideal and filter move mode."
   []
-  (let [ideal (ideal-move),
-	filter (filter-move)]
+  (let [ideal (ideal-move-mode),
+	filter (filter-move-mode)]
     (fn [node dx dy]
       (ideal node dx dy)
       (filter node dx dy))))
@@ -173,12 +173,12 @@
 (defn- infimum-additive-move-mode
   "Moves all nodes infimum-additively with node."
   []
-  (additive-move (memoize all-inf-add-influenced-nodes)))
+  (additive-move-mode (memoize all-inf-add-influenced-nodes)))
 
 (defn- supremum-additive-move-mode
   "Moves all nodes supremum-additively with node."
   []
-  (additive-move (memoize all-sup-add-influenced-nodes)))
+  (additive-move-mode (memoize all-sup-add-influenced-nodes)))
 
 
 ;; improve with force layout

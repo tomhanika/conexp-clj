@@ -15,3 +15,5 @@ src/doc/*.thm
 .nfs*
 *~
 output*
+*.jar
+lib/clojure*.jar

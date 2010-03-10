@@ -27,20 +27,6 @@
   :doc "Loose collection of some useful functions and macros for conexp.")
 
 
-;;; Compilation
-
-(defn compile-conexp
-  "Compiles Java classes needed for conexp-clj."
-  []
-  (compile 'conexp.fca.contexts)
-  (compile 'conexp.fca.implications)
-  (compile 'conexp.fca.association-rules)
-  (compile 'conexp.fca.lattices)
-  (compile 'conexp.fca.many-valued-contexts)
-  (compile 'conexp.gui.repl)
-  nil)
-
-
 ;;; Types
 
 ;; work over this and make it more flexible
