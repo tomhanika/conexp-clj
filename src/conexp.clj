@@ -22,22 +22,28 @@
 (dorun (map immigrate *conexp-namespaces*))
 
 (def *conexp-version* {:major 0,
-		       :minor 1,
+		       :minor 0,
+		       :patch 1
 		       :qualifier "pre-alpha"})
 
 (defn conexp-version
   "Returns the version of conexp as a string."
   []
-  (let [{:keys [major minor qualifier]} *conexp-version*]
-    (str major "." minor "_" qualifier)))
+  (let [{:keys [major minor patch qualifier]} *conexp-version*]
+    (str major "." minor "." patch qualifier)))
 
 (defn has-version?
   "Compares given version of conexp and returns true if and only if
   the current version of conexp is higher or equal than the given one"
-  [{my-major :major, my-minor :minor}]
-  (let [{:keys [major, minor]} *conexp-version*]
+  [{my-major :major, my-minor :minor, my-patch :patch}]
+  (let [{:keys [major, minor, patch]} *conexp-version*]
     (or (and (< my-major major))
 	(and (= my-major major)
-	     (< my-minor minor)))))
+	     (< my-minor minor))
+	(and (= my-major major)
+	     (= my-minor minor)
+	     (< my-patch patch)))))
+
+;;;
 
 nil
