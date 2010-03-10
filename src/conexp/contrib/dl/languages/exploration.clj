@@ -101,7 +101,8 @@
 		K     (induced-context M_k initial-model),
 		Pi_k  [],
 		P_k   #{},
-		model initial-model]
+		model initial-model,
+		background-knowledge #{}]
 	   (if (nil? P_k)
 	     ;; then return set of implications
 	     (clarify-subsumption-seq
@@ -126,17 +127,19 @@
 							     [r (role-names language)])),
 		   next-K     (induced-context next-M_k next-model),
 		   next-Pi_k  (conj Pi_k P_k),
+
+		   implications (set-of impl
+					[P_l next-Pi_k
+					 :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
+					 :when (not (empty? (conclusion impl)))])
+		   background-knowledge (set-of (make-implication #{C} #{D})
+						[C next-M_k, D next-M_k
+						 :when (and (not= C D) (subsumed-by? C D))])
+
 		   next-P_k   (next-closed-set next-M_k
-					       (clop-by-implications
-						(union (set-of impl
-							       [P_l next-Pi_k
-								:let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
-								:when (not (empty? (conclusion impl)))])
-						       (set-of (make-implication #{C} #{D})
-							       [C next-M_k, D next-M_k
-								:when (and (not= C D) (subsumed-by? C D))])))
+					       (clop-by-implications (union implications background-knowledge))
 					       P_k)]
-	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model))))))))
+	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model background-knowledge))))))))
 
 ;;;
 

@@ -115,7 +115,7 @@
 	      (when (and (not (primitive? next-term))
 			 (not (tbox-target-pair? next-term)))
 		(illegal-argument "Sorry, but this normalization algorithm cannot handle your TBox.\n"
-				  "The definition " definition " contains definied concepts at top-level."))
+				  "The definition " (print-str definition) " contains definied concepts at top-level."))
 
 	      ;; atomic term, possibly a tbox-target-pair
 	      (let [[normal-term new-names] (normalize-atomic next-term names)]
@@ -304,6 +304,68 @@
 	(if (nil? u-w)
 	  sim-sets
 	  (recur (update-in sim-sets [(first u-w)] disj (second u-w))))))))
+
+(defn- post
+  "Returns all neighbours of v in G."
+  [G v]
+  ((neighbours G) v))
+
+(defn- pre
+  "Returns all vertices in G which have v as its neighbour."
+  [G v]
+  (set-of w [w (vertices G)
+	     :when (contains? (neighbours w) v)]))
+
+(defn- efficient-initialize
+  "Returns initialization for sim-sets and remove-sets for
+  EfficientSimliarity. Returns pair of sim-sets and remove-sets, both
+  as transient data structures."
+  [G-1 G-2]
+  (let [label-1      (vertex-labels G-1),
+	label-2      (vertex-labels G-2),
+
+	sim-sets     (transient {}),
+	remove-sets  (transient {})]
+    (doseq [v (vertices G-1)]
+      (assoc! sim-sets v
+	      (if (empty? (post G-1 v))
+		(set-of u [u (vertices G-2),
+			   :when (subset? (label-1 v) (label-2 u))])
+		(set-of u [u (vertices G-2),
+			   :when (and (subset? (label-1 v) (label-2 u))
+				      (not (empty? (post G-2 u))))])))
+      (assoc! remove-sets v
+	      (difference (set-of u [[u _ _] (edges G-2)])
+			  (set-of u [[u _ w] (edges G-2)
+				     :when (contains? (sim-sets v) w)]))))
+    [sim-sets remove-sets]))
+
+(defn- efficient-simulator-sets
+  "Implements (as far as I can see) the EfficientSimilarity Algorithm
+  from \"Computing Simulations on Finite and Infinite Graphs\" by
+  Henzinger, Henzinger and Kopke, adapted for computing the maximal
+  simulation from G-1 to G-2."
+  [G-1 G-2]
+  (let [[sim-sets remove-sets] (efficient-initialize G-1 G-2)]
+    (loop []
+      (let [v (first (filter (fn [v]
+			       (not (empty? (remove-sets v))))
+			     (vertices G-1)))]
+	(if-not v
+	  (persistent! sim-sets)
+	  (do
+	    (doseq [u (pre G-1 v)]
+	      (doseq [w (remove-sets v)]
+		(when (contains? (sim-sets u) w)
+		  (assoc! sim-sets u
+			  (disj (sim-sets u) w))
+		  (assoc! remove-sets u
+			  (into (remove-sets u)
+				(filter #(empty? (intersection (post G-2 %)
+							       (sim-sets u)))
+					(pre G-2 w)))))))
+	    (assoc! remove-sets v #{})
+	    (recur)))))))
 
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where
