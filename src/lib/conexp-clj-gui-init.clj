@@ -9,5 +9,5 @@
 (use 'conexp)
 (import 'javax.swing.JFrame)
 
-(let [frame (conexp-gui)]
+(let [frame (gui)]
   (.setDefaultCloseOperation frame JFrame/EXIT_ON_CLOSE))
