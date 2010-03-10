@@ -51,6 +51,14 @@
   Child  #{[John Mackenzie] [Michelle Mackenzie]
 	   [Paul James] [Linda James]})
 
+(define-model small-model SimpleDL
+  [John Michelle Mackenzie]
+  Male   #{John}
+  Female #{Michelle Mackenzie}
+  Mother #{Michelle}
+  Father #{John}
+  Child  #{[John Mackenzie] [Michelle Mackenzie]})
+
 ;;; Fahrräder
 
 (define-dl RidingDL [Fahrzeug, Fahrrad, Rad, Auto] [HatKomponente] []

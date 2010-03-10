@@ -18,7 +18,7 @@
   [subsumption]
   (let [answer (ask (str "Do you accept the subsumption \n\n"
 			 (print-str subsumption)
-			 "\n\n")
+			 " ?\n\n")
 		    '#{yes no}
 		    "Please enter yes or no.")]
     (if (= answer 'yes)
@@ -30,6 +30,8 @@
   to a connected supermodel in which the given subsumption does not
   hold."
   [model subsumption]
+  (when-not (holds-in-model? model subsumption)
+    (illegal-argument "Given subsumption " (print-str subsumption) " is already wrong in model."))
   (let [language (model-language model),
 	old-objects (model-base-set model),
 

@@ -122,7 +122,7 @@
   (fn [model dl-exp] (language-name (model-language model))))
 
 (defmethod most-specific-concept :default [model _]
-  (illegal-argument "Language " (model-language model) " does not provide msc."))
+  (illegal-argument "Language " (print-str (model-language model)) " does not provide msc."))
 
 (defmacro define-msc
   "Defines model based most specific concepts for a language, a model
