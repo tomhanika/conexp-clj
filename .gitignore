@@ -16,4 +16,6 @@ src/doc/*.thm
 *~
 output*
 *.jar
-lib/clojure*.jar
+lib
+resources
+classes
