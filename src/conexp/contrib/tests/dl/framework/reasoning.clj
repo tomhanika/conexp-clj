@@ -33,7 +33,11 @@
   (are [dl exp-1 exp-2] (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2))
        FamilyDL (exists HasChild Female) (exists HasChild (and)),
        FamilyDL (and Female Mother) (and Female)
-       FamilyDL [parent* Self] (exists MarriedTo [parent* Self])))
+       FamilyDL [parent* Self] (exists MarriedTo [parent* Self])
+       FamilyDL (exists Child Female) (exists Child (and)))
+  (are [dl exp-1 exp-2] (not (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2)))
+       FamilyDL (exists Child (and)) (exists Child Female)))
+
 ;;;
 
 nil

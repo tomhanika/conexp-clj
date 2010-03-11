@@ -11,7 +11,8 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes)
-  (:use clojure.contrib.pprint))
+  (:use clojure.contrib.pprint)
+  (:import java.util.HashMap))
 
 ;;;
 
@@ -308,13 +309,13 @@
 (defn- post
   "Returns all neighbours of v in G."
   [G v]
-  ((neighbours G) v))
+  (set-of x [[_ x] ((neighbours G) v)]))
 
 (defn- pre
   "Returns all vertices in G which have v as its neighbour."
   [G v]
   (set-of w [w (vertices G)
-	     :when (contains? (neighbours w) v)]))
+	     :when (contains? (post G w) v)]))
 
 (defn- efficient-initialize
   "Returns initialization for sim-sets and remove-sets for
@@ -324,20 +325,20 @@
   (let [label-1      (vertex-labels G-1),
 	label-2      (vertex-labels G-2),
 
-	sim-sets     (transient {}),
-	remove-sets  (transient {})]
+	#^HashMap sim-sets    (HashMap.),
+	#^HashMap remove-sets (HashMap.)]
     (doseq [v (vertices G-1)]
-      (assoc! sim-sets v
-	      (if (empty? (post G-1 v))
-		(set-of u [u (vertices G-2),
-			   :when (subset? (label-1 v) (label-2 u))])
-		(set-of u [u (vertices G-2),
-			   :when (and (subset? (label-1 v) (label-2 u))
-				      (not (empty? (post G-2 u))))])))
-      (assoc! remove-sets v
-	      (difference (set-of u [[u _ _] (edges G-2)])
-			  (set-of u [[u _ w] (edges G-2)
-				     :when (contains? (sim-sets v) w)]))))
+      (.put sim-sets v
+	    (if (empty? (post G-1 v))
+	      (set-of u [u (vertices G-2),
+			 :when (subset? (label-1 v) (label-2 u))])
+	      (set-of u [u (vertices G-2),
+			 :when (and (subset? (label-1 v) (label-2 u))
+				    (not (empty? (post G-2 u))))])))
+      (.put remove-sets v
+	    (difference (set-of u [[u _ _] (edges G-2)])
+			(set-of u [[u _ w] (edges G-2)
+				   :when (contains? (.get sim-sets v) w)]))))
     [sim-sets remove-sets]))
 
 (defn- efficient-simulator-sets
@@ -346,32 +347,34 @@
   Henzinger, Henzinger and Kopke, adapted for computing the maximal
   simulation from G-1 to G-2."
   [G-1 G-2]
-  (let [[sim-sets remove-sets] (efficient-initialize G-1 G-2)]
+  (let [[#^HashMap sim-sets, #^HashMap remove-sets] (efficient-initialize G-1 G-2)]
     (loop []
       (let [v (first (filter (fn [v]
-			       (not (empty? (remove-sets v))))
+			       (not (empty? (.get remove-sets v))))
 			     (vertices G-1)))]
 	(if-not v
-	  (persistent! sim-sets)
+	  (into {} (for [k (.keySet sim-sets)]
+		     [k (.get sim-sets k)]))
 	  (do
+	    ;; u and v are vertices of G-1
+	    ;; w and x are vertices of G-2
 	    (doseq [u (pre G-1 v)]
-	      (doseq [w (remove-sets v)]
-		(when (contains? (sim-sets u) w)
-		  (assoc! sim-sets u
-			  (disj (sim-sets u) w))
-		  (assoc! remove-sets u
-			  (into (remove-sets u)
-				(filter #(empty? (intersection (post G-2 %)
-							       (sim-sets u)))
-					(pre G-2 w)))))))
-	    (assoc! remove-sets v #{})
+	      (doseq [w (.get remove-sets v)]
+		(when (contains? (.get sim-sets u) w)
+		  (.put sim-sets u
+			(disj (.get sim-sets u) w))
+		  (doseq [x (pre G-2 w)]
+		    (when (empty? (intersection (post G-2 x) (.get sim-sets u)))
+		      (.put remove-sets u
+			    (conj (.get remove-sets u) x)))))))
+	    (.put remove-sets v #{})
 	    (recur)))))))
 
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
-  (let [sim-sets (simulator-sets G-1 G-2)]
+  (let [sim-sets (efficient-simulator-sets G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
 ;;;
