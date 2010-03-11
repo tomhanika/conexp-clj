@@ -15,3 +15,7 @@ src/doc/*.thm
 .nfs*
 *~
 output*
+*.jar
+lib
+resources
+classes

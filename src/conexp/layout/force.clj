@@ -11,7 +11,7 @@
         [conexp.fca.lattices :exclude (order)]
 	conexp.layout.util
 	conexp.layout.base
-	[conexp.math.util :only (with-doubles)]
+	conexp.math.util
 	conexp.math.optimize
 	clojure.contrib.pprint))
 
@@ -301,6 +301,8 @@
 
 (defn force-layout
   "Improves given layout with force layout."
+  ;; FIXME: What to do if given layout is not valid as an attribute
+  ;; additive layout?
   ([layout]
      (force-layout layout nil))
   ([layout iterations]

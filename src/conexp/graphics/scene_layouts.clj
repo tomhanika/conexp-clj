@@ -9,7 +9,8 @@
 (ns conexp.graphics.scene-layouts
   (:use [conexp.util :only (update-ns-meta!, illegal-argument)]
 	[conexp.base :only (defvar-)]
-	[conexp.layout.base :only (make-layout, positions, connections, nodes)]
+	[conexp.layout.base :only (make-layout, positions, connections,
+						nodes, update-positions, annotation)]
 	[conexp.layout.util :only (edges-of-points)]
 	conexp.graphics.nodes-and-connections
 	conexp.graphics.scenes
@@ -48,26 +49,11 @@
 (defn get-layout-from-scene
   "Returns layout from a scene."
   [scn]
-  (let [[nodes connections] (loop [things (get-diagram-from-scene scn),
-				   nodes [],
-				   connections []]
-			      (if (empty? things)
-				[nodes connections]
-				(let [thing (first things)]
-				  (cond
-				   (node? thing)
-				   (recur (rest things) (conj nodes thing) connections),
-				   (connection? thing)
-				   (recur (rest things) nodes (conj connections thing)),
-				   :else
-				   (throw (IllegalStateException. "Invalid item in lattice diagram."))))))]
-    (make-layout (reduce (fn [hash node]
-			   (assoc hash (get-name node) (position node)))
-			 {}
-			 nodes),
-		 (map #(vector (get-name (lower-node %))
-			       (get-name (upper-node %)))
-		      connections))))
+  (update-positions (get-data-from-scene scn :layout)
+		    (reduce (fn [hash node]
+			      (assoc hash (get-name node) (position node)))
+			    {}
+			    (filter node? (get-diagram-from-scene scn)))))
 
 (defn update-layout-of-scene
   "Updates layout according to new layout."
@@ -78,12 +64,14 @@
      (do-nodes [node scene]
       (let [[x y] (pos (get-name node))]
 	(move-node-unchecked-to node x y)))
-     (.setWorldExtent scene
-		      (double (- x_min (* 2 *default-node-radius*)))
-		      (double (- y_min (* 2 *default-node-radius*)))
-		      (double (- x_max x_min (* -4 *default-node-radius*)))
-		      (double (- y_max y_min (* -4 *default-node-radius*))))
-     (redraw-scene scene))))
+     (doto scene
+       (add-data-to-scene :layout layout)
+       (.setWorldExtent (double (- x_min (* 2 *default-node-radius*)))
+			(double (- y_min (* 2 *default-node-radius*)))
+			(double (- x_max x_min (* -4 *default-node-radius*)))
+			(double (- y_max y_min (* -4 *default-node-radius*))))
+       (redraw-scene))
+     (call-hook-with scene :image-changed))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
@@ -95,8 +83,10 @@
 		       (double (- y_min (* 2 *default-node-radius*)))
 		       (double (- x_max x_min (* -4 *default-node-radius*)))
 		       (double (- y_max y_min (* -4 *default-node-radius*))))
-      (add-nodes-with-connections (positions layout) (connections layout))
-      (.unzoom))))
+      (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
+      (add-data-to-scene :layout layout)
+      (.unzoom))
+    (call-hook-with scene :image-changed)))
 
 ;;; draw nodes with coordinates and connections on a scene
 

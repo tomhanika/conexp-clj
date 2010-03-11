@@ -181,6 +181,14 @@
 
 ;;; Common Operations in Contexts
 
+(defn context-size
+  "Returns tuple of number of objects, number of attributes and fill rate."
+  [ctx]
+  (let [obj-cnt (count (objects ctx)),
+	att-cnt (count (attributes ctx)),
+	inz-cnt (count (incidence ctx))]
+    [obj-cnt, att-cnt, (double (/ inz-cnt obj-cnt att-cnt))]))
+
 (defn rename-objects
   "Rename objects in ctx by given hash old-to-new."
   [ctx old-to-new]

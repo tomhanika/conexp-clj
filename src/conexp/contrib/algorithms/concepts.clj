@@ -12,7 +12,7 @@
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue]))
 
-(set! *warn-on-reflection* true)
+;(set! *warn-on-reflection* true)
 
 ;;; Concept Calculation
 

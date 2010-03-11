@@ -10,7 +10,9 @@
   (:use clojure.contrib.profile
 	[clojure.contrib.math :only (round)]
 	clojure.test)
-  (:import javax.swing.JOptionPane))
+  (:import javax.swing.JOptionPane
+	   java.util.Calendar
+	   java.text.SimpleDateFormat))
 
 
 ;;; Namespace documentation
@@ -24,20 +26,6 @@
 
 (update-ns-meta! conexp.util
   :doc "Loose collection of some useful functions and macros for conexp.")
-
-
-;;; Compilation
-
-(defn compile-conexp
-  "Compiles Java classes needed for conexp-clj."
-  []
-  (compile 'conexp.fca.contexts)
-  (compile 'conexp.fca.implications)
-  (compile 'conexp.fca.association-rules)
-  (compile 'conexp.fca.lattices)
-  (compile 'conexp.fca.many-valued-contexts)
-  (compile 'conexp.gui.repl)
-  nil)
 
 
 ;;; Testing
@@ -220,6 +208,13 @@
 		   (lazy-seq
 		     (cons (vec rest) (runner (next rest))))))]
     (runner sqn)))
+
+(defn now
+  "Returns the current time in a human readable format."
+  []
+  (let [#^Calendar cal (Calendar/getInstance),
+        #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
+    (.format sdf (.getTime cal))))
 
 
 ;;; Math

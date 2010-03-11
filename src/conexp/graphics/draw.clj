@@ -10,32 +10,47 @@
   (:use [conexp.util :only (update-ns-meta!,
 			    get-root-cause,
 			    with-swing-error-msg,
-			    with-printed-result)]
+			    with-printed-result,
+			    now)]
 	[conexp.base :only (defvar-)]
+	[conexp.math.util :only (with-doubles)]
 	[conexp.layout :only (*standard-layout-function*)]
-	[conexp.layout.base :only (lattice)]
+	[conexp.layout.base :only (lattice, annotation)]
 	[conexp.layout.force :only (force-layout,
 				    layout-energy,
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
+	[conexp.graphics.util :only (device-to-world)]
 	[conexp.graphics.scenes :only (add-callback-for-hook,
-				       redraw-scene)]
+				       redraw-scene,
+				       start-interaction,
+				       get-zoom-factors,
+				       save-image,
+				       get-canvas-from-scene,
+				       show-labels)]
 	[conexp.graphics.scene-layouts :only (draw-on-scene,
 					      get-layout-from-scene,
 					      update-layout-of-scene,
 					      do-nodes)]
 	[conexp.graphics.nodes-and-connections :only (move-interaction,
 						      zoom-interaction,
+						      move-node-by,
+						      all-nodes-above,
+						      all-nodes-below,
+						      all-inf-add-influenced-nodes,
+						      all-sup-add-influenced-nodes,
 						      *default-node-radius*,
 						      set-node-radius!)]
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box JScrollBar JComboBox]
+	                BoxLayout Box JScrollBar JComboBox JScrollPane
+	                JFileChooser]
+	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]
-	   [no.geosoft.cc.graphics GScene]))
+	   [java.io File]))
 
 (update-ns-meta! conexp.graphics.draw
   :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
@@ -49,6 +64,9 @@
 
 ;; editor features
 
+(declare single-move-mode, ideal-move-mode, filter-move-mode, chain-move-mode,
+	 infimum-additive-move-mode, supremum-additive-move-mode)
+
 (defn- change-parameters
   "Installs parameter list which influences lattice drawing."
   [frame scn buttons]
@@ -61,19 +79,20 @@
 			      (do-nodes [n scn]
 					(set-node-radius! n new-radius))
 			      (redraw-scene scn))))))
+  (make-padding buttons)
 
   ;; labels
   (let [#^JButton label-toggler (make-button buttons "No Labels")]
-    (.setVisibility scn GScene/ANNOTATION_INVISIBLE)
+    (show-labels scn false)
     (add-action-listener label-toggler
 			 (fn [evt]
 			   (do-swing
 			    (if (= "Labels" (.getText label-toggler))
 			      (do
-				(.setVisibility scn GScene/ANNOTATION_INVISIBLE)
+				(show-labels scn false)
 				(.setText label-toggler "No Labels"))
 			      (do
-				(.setVisibility scn GScene/ANNOTATION_VISIBLE)
+				(show-labels scn true)
 				(.setText label-toggler  "Labels")))
 			    (redraw-scene scn)))))
 
@@ -90,7 +109,76 @@
 			       (layout-fn (lattice (get-layout-from-scene scn)))))))))
 
   ;; move mode (ideal, filter, chain, single)
+  (let [move-modes {"single" (single-move-mode),
+		    "ideal"  (ideal-move-mode),
+		    "filter" (filter-move-mode),
+		    "chain"  (chain-move-mode),
+		    "inf"    (infimum-additive-move-mode),
+		    "sup"    (supremum-additive-move-mode)}
+	#^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
+	current-move-mode (atom (move-modes "single"))]
+    (add-callback-for-hook scn :move-drag
+			   (fn [node dx dy]
+			     (@current-move-mode node dx dy)))
+    (add-action-listener combo-box
+			 (fn [evt]
+			   (let [selected (.. evt getSource getSelectedItem),
+				 move-mode (get move-modes selected)]
+			     (reset! current-move-mode move-mode)))))
   nil)
+
+(defn- single-move-mode
+  "Moves the single node only."
+  []
+  (fn [node dx dy]
+    nil))
+
+(defn- neighbor-move-mode
+  "Moves nodes neighbored to node by [dx dy]."
+  [neighbors]
+  (fn [node dx dy]
+    (do-swing
+     (doseq [n (neighbors node)]
+       (move-node-by n dx dy)))))
+
+(defn- ideal-move-mode
+  "Moves all nodes below the current node."
+  []
+  (neighbor-move-mode (memoize all-nodes-above)))
+
+(defn- filter-move-mode
+  "Moves all nodes above the current node."
+  []
+  (neighbor-move-mode (memoize all-nodes-below)))
+
+(defn- chain-move-mode
+  "Combined ideal and filter move mode."
+  []
+  (let [ideal (ideal-move-mode),
+	filter (filter-move-mode)]
+    (fn [node dx dy]
+      (ideal node dx dy)
+      (filter node dx dy))))
+
+(defn- additive-move-mode
+  "Abstract move mode for moving nodes according to additive
+  influence."
+  [influenced-nodes]
+  (fn [node dx dy]
+    (do-swing
+     (doseq [[n weight] (influenced-nodes node)]
+       (with-doubles [dx dy weight]
+	 (move-node-by n (* dx weight) (* dy weight)))))))
+
+(defn- infimum-additive-move-mode
+  "Moves all nodes infimum-additively with node."
+  []
+  (additive-move-mode (memoize all-inf-add-influenced-nodes)))
+
+(defn- supremum-additive-move-mode
+  "Moves all nodes supremum-additively with node."
+  []
+  (additive-move-mode (memoize all-sup-add-influenced-nodes)))
 
 
 ;; improve with force layout
@@ -123,9 +211,15 @@
 					  i (Integer/parseInt (.getText iter-field))]
 				      [r a g i]))]
     (add-action-listener button (fn [evt]
-				  (with-swing-error-msg frame "An Error occured."
-				   (let [[r a g i] (get-force-parameters)]
-				     (improve-with-force scn i r a g)))))))
+				  (do-swing
+				   (with-swing-error-msg frame "An Error occured."
+				     (let [[r a g i] (get-force-parameters)]
+				       (improve-with-force scn i r a g)))))))
+  (let [#^JButton shaker (make-button buttons "Shake")]
+    (add-action-listener shaker (fn [evt]
+				  (do-swing
+				   (do-nodes [node scn]
+				     (move-node-by node 0 0)))))))
 
 
 ;; zoom-move
@@ -133,31 +227,90 @@
 (defn- toggle-zoom-move
   "Install zoom-move-toggler."
   [frame scn buttons]
-  (let [#^JButton zoom-move (make-button buttons "Move"),
-	#^JLabel  zoom-info   (make-label buttons "1.0")]
+  (let [zoom-factors (fn []
+		       (let [[zoom-x zoom-y] (get-zoom-factors scn)]
+			 (with-out-str
+			   (printf "%1.2f" zoom-x)
+			   (print " x ")
+			   (printf "%1.2f" zoom-y)))),
+	#^JButton zoom-move (make-button buttons "Move"),
+	#^JLabel  zoom-info (make-label buttons " -- ")]
     (add-action-listener zoom-move
 			 (fn [evt]
 			   (do-swing
 			    (if (= "Move" (.getText zoom-move))
 			      (do
-				(.. scn getWindow (startInteraction (zoom-interaction scn)))
+				(start-interaction scn zoom-interaction)
 				(.setText zoom-move "Zoom"))
 			      (do
-				(.. scn getWindow (startInteraction (move-interaction scn)))
+				(start-interaction scn move-interaction)
 				(.setText zoom-move "Move"))))))
-    (add-callback-for-hook scn :zoom-event
+    (add-callback-for-hook scn :image-changed
 			   (fn []
 			     (do-swing
-			      ;; TODO: Show current zoom factor
-			      (.setText zoom-info "??"))))))
-
+			      (.setText zoom-info (zoom-factors))))))
+  nil)
 
 ;; export images to files
+
+(defn- get-file-extension
+  "Returns file extension of given file."
+  [#^File file]
+  (let [name (.getName file),
+	idx  (.lastIndexOf name ".")]
+    (if-not (= -1 idx)
+      (.toLowerCase (.substring name (+ 1 idx)))
+      nil)))
 
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
+  (let [#^JButton save-button (make-button buttons "Save"),
+	#^JFileChooser fc (JFileChooser.),
+	jpg-filter (FileNameExtensionFilter. "JPEG Files" (into-array ["jpg" "jpeg"])),
+	gif-filter (FileNameExtensionFilter. "GIF Files"  (into-array ["gif"])),
+	png-filter (FileNameExtensionFilter. "PNG Files"  (into-array ["png"]))]
+    (doto fc
+      (.addChoosableFileFilter jpg-filter)
+      (.addChoosableFileFilter gif-filter)
+      (.addChoosableFileFilter png-filter))
+    (add-action-listener save-button
+			 (fn [evt]
+			   (let [retVal (.showSaveDialog fc frame)]
+			     (when (= retVal JFileChooser/APPROVE_OPTION)
+			       (let [#^File file (.getSelectedFile fc)]
+				 (try
+				  (save-image scn file (get-file-extension file))
+				  (catch Exception e
+				    (JOptionPane/showMessageDialog
+				     frame
+				     (get-root-cause e)
+				     "Error while saving"
+				     JOptionPane/ERROR_MESSAGE)))))))))
   nil)
+
+;; save changes
+
+(defn- snapshot-saver
+  "Installs a snapshot saver, which, whenever a node has been moved,
+  saves the image."
+  [frame scn buttons]
+  (let [saved-layouts (atom {}),
+	#^JComboBox combo (make-combo-box buttons @saved-layouts),
+	save-layout   (fn [_]
+			(do-swing
+			 (let [layout (get-layout-from-scene scn),
+			       key    (now)]
+			   (swap! saved-layouts conj [key, layout])
+			   (.addItem combo key))))]
+    (add-callback-for-hook scn :move-stop save-layout)
+    (add-action-listener combo
+			 (fn [evt]
+			   (do-swing
+			    (let [selected (.. evt getSource getSelectedItem),
+				  layout (@saved-layouts selected)]
+			      (update-layout-of-scene scn layout)))))
+    (save-layout nil)))
 
 
 ;;; Buttons, Labels and the like
@@ -168,7 +321,7 @@
 (defvar- *item-height* 25
   "Heights of items on toolbar.")
 
-(defvar- *toolbar-width* (+ 10 *item-width*)
+(defvar- *toolbar-width* (+ 20 *item-width*)
   "Width of toolbar containing buttons, labels and so on.")
 
 (defn- make-padding
@@ -253,7 +406,7 @@
   (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
 	scn (draw-on-scene (layout-function lattice)),
-	canvas (.. scn getWindow getCanvas),
+	canvas (get-canvas-from-scene scn),
 
 	#^JPanel canvas-panel (JPanel. (BorderLayout.)),
 	hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
@@ -262,11 +415,12 @@
 	#^JPanel buttons (JPanel.),
 	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
     (.setLayout buttons box-layout)
-    (.setPreferredSize buttons (Dimension. *toolbar-width* 0))
+    (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
     (install-changers frame scn buttons
       toggle-zoom-move
       change-parameters
       improve-layout-by-force
+      snapshot-saver
       export-as-file)
     (doto canvas-panel
       (.add canvas BorderLayout/CENTER)
@@ -275,7 +429,9 @@
     (.installScrollHandler scn hscrollbar vscrollbar)
     (doto main-panel
       (.add canvas-panel BorderLayout/CENTER)
-      (.add buttons BorderLayout/WEST))
+      (.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
+			          JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
+	    BorderLayout/WEST))
     main-panel))
 
 
