@@ -26,6 +26,7 @@
 				   (make-dl-definition 'Self (dl-expression FamilyDL
 									    (and (exists HasChild Child)
 										 (exists MarriedTo Partner))))}))
+
 (deftest test-subsumed-by?
   (are [dl exp] (subsumed-by? (dl-expression dl exp) (dl-expression dl exp))
        FamilyDL (exists HasChild (and Mother Female (exists HasChild (and))))
@@ -36,7 +37,8 @@
        FamilyDL [parent* Self] (exists MarriedTo [parent* Self])
        FamilyDL (exists Child Female) (exists Child (and)))
   (are [dl exp-1 exp-2] (not (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2)))
-       FamilyDL (exists Child (and)) (exists Child Female)))
+       FamilyDL (exists Child (and)) (exists Child Female)
+       FamilyDL (exists Child (and)) (exists MarriedTo (and))))
 
 ;;;
 

@@ -12,7 +12,7 @@
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes)
   (:use clojure.contrib.pprint)
-  (:import java.util.HashMap))
+  (:import [java.util HashMap]))
 
 ;;;
 
@@ -286,25 +286,29 @@
 	label-2 (vertex-labels G-2),
 	neighbours-1 (neighbours G-1),
 	neighbours-2 (neighbours G-2),
-	edge-1? (fn [v r w]
-		  (contains? (neighbours-1 v) [r w])),
 	edge-2? (fn [v r w]
 		  (contains? (neighbours-2 v) [r w])),
 
-	initial-sim-sets (hashmap-by-function (fn [v]
-						(set-of w [w (vertices G-2)
-							   :when (subset? (label-1 v) (label-2 w))]))
-					      (vertices G-1))]
-    (loop [sim-sets initial-sim-sets]
-      (let [u-w (first (for [u (vertices G-1),
-			     [r v] (neighbours-1 u)
-			     w (sim-sets u),
-			     :when (forall [x (sim-sets v)]
-				     (not (edge-2? w r x)))]
-			 [u w]))]
-	(if (nil? u-w)
-	  sim-sets
-	  (recur (update-in sim-sets [(first u-w)] disj (second u-w))))))))
+	#^HashMap sim-sets (HashMap.)]
+    (doseq [v (vertices G-1)]
+      (.put sim-sets v (set-of w [w (vertices G-2)
+				  :when (subset? (label-1 v) (label-2 w))])))
+    (loop []
+      (let [[u w] (first (for [u (vertices G-1),
+			       [r v] (neighbours-1 u),
+			       w (.get sim-sets u)
+			       :when (forall [x (.get sim-sets v)]
+				       (not (edge-2? w r x)))]
+			   [u w]))]
+	(when u
+	  (.put sim-sets u
+		(disj (.get sim-sets u) w))
+	  (recur))))
+    (into {} (for [k (.keySet sim-sets)]
+	       [k (.get sim-sets k)]))))
+
+
+;;;
 
 (defn- post
   "Returns all neighbours of v in G."
@@ -374,7 +378,7 @@
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
-  (let [sim-sets (efficient-simulator-sets G-1 G-2)]
+  (let [sim-sets (simulator-sets G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
 ;;;
