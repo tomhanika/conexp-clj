@@ -312,20 +312,6 @@
 
 ;;; simulations
 
-(defn- post
-  "Returns all neighbours of v in G, where the edges are labeled with
-  r."
-  [G r v]
-  (set-of x [[s x] ((neighbours G) v)
-	     :when (= r s)]))
-
-(defn- pre
-  "Returns all vertices in G which have v as its neighbour and whose
-  connecting edge is labeled with r."
-  [G r v]
-  (set-of w [w (vertices G)
-	     :when (contains? (post G r w) v)]))
-
 (defn- HashMap->hash-map
   "Converts a Java HashMap to a Clojure hash-map."
   [#^HashMap map]
@@ -362,93 +348,6 @@
 		(disj (.get sim-sets u) w))
 	  (recur))))
     (HashMap->hash-map sim-sets)))
-
-
-;; refined (unfinished)
-
-(defn- refined-simulator-sets
-  "Implements RefinedSimliarity as presented by Henzinger, Henzinger
-  and Kopke, adapted for computing the maximal simulation between the
-  two description graphs G-1 and G-2."
-  [G-1 G-2]
-  (unsupported-operation "refined-simulator-sets not implemented.")
-  (let [neighbours-1 (neighbours G-1),
-	neighbours-2 (neighbours G-2),
-
-	label-1 (vertex-labels G-1),
-	label-2 (vertex-labels G-2),
-
-	#^HashMap prevsim  (HashMap.),
-	#^HashMap sim-sets (HashMap.)]
-    (doseq [v (vertices G-1)]
-      (.put prevsim v (vertices G-2))
-      (.put sim-sets v
-	    (if (empty? (neighbours-1 v))
-	      (set-of u [u (vertices G-2)
-			 :when (subset? (label-1 v) (label-2 u))])
-	      (set-of u [u (vertices G-2)
-			 :when (and (subset? (label-1 v) (label-2 u))
-				    (not (empty? (neighbours-2 u))))]))))
-    (loop []
-      (when-let [v (first (filter #(not= (.get sim-sets %)
-					 (.get prevsim %))
-				  (vertices G-1)))]
-	))))
-
-;; efficient (wrong)
-
-(defn- efficient-initialize
-  "Returns initialization for sim-sets and remove-sets for
-  EfficientSimliarity. Returns pair of sim-sets and remove-sets, both
-  as transient data structures."
-  [G-1 G-2]
-  (let [label-1      (vertex-labels G-1),
-	label-2      (vertex-labels G-2),
-
-	#^HashMap sim-sets    (HashMap.),
-	#^HashMap remove-sets (HashMap.)]
-    (doseq [v (vertices G-1)]
-      (.put sim-sets v
-	    (if (empty? (post G-1 v))
-	      (set-of u [u (vertices G-2),
-			 :when (subset? (label-1 v) (label-2 u))])
-	      (set-of u [u (vertices G-2),
-			 :when (and (subset? (label-1 v) (label-2 u))
-				    (not (empty? (post G-2 u))))])))
-      (.put remove-sets v
-	    (difference (set-of u [[u _ _] (edges G-2)])
-			(set-of u [[u _ w] (edges G-2)
-				   :when (contains? (.get sim-sets v) w)]))))
-    [sim-sets remove-sets]))
-
-(defn- efficient-simulator-sets
-  "Implements (as far as I can see) the EfficientSimilarity Algorithm
-  from \"Computing Simulations on Finite and Infinite Graphs\" by
-  Henzinger, Henzinger and Kopke, adapted for computing the maximal
-  simulation from G-1 to G-2."
-  [G-1 G-2]
-  (unsupported-operation "efficient-simulator-sets not implemented.")
-  (let [[#^HashMap sim-sets, #^HashMap remove-sets] (efficient-initialize G-1 G-2)]
-    (loop []
-      (let [v (first (filter (fn [v]
-			       (not (empty? (.get remove-sets v))))
-			     (vertices G-1)))]
-	(if-not v
-	  (HashMap->hash-map sim-sets)
-	  (do
-	    ;; u and v are vertices of G-1
-	    ;; w and x are vertices of G-2
-	    (doseq [u (pre G-1 v)]
-	      (doseq [w (.get remove-sets v)]
-		(when (contains? (.get sim-sets u) w)
-		  (.put sim-sets u
-			(disj (.get sim-sets u) w))
-		  (doseq [x (pre G-2 w)]
-		    (when (empty? (intersection (post G-2 x) (.get sim-sets u)))
-		      (.put remove-sets u
-			    (conj (.get remove-sets u) x)))))))
-	    (.put remove-sets v #{})
-	    (recur)))))))
 
 ;; simulation invocation point
 
