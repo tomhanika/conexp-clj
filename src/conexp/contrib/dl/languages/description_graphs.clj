@@ -97,7 +97,11 @@
 		      (make-dl-definition language A (cons 'and def-A)))]
     (make-tbox language (set definitions))))
 
-(defn- normalize-for-goal [term goal]
+(defn- normalize-for-goal
+  "If term satisfies goal, regards it as being normalized. Otherwise
+  handles term as tbox and finally introduces a new symbol defining
+  term."
+  [term goal]
   (cond
    (goal term) [term {}]
    (tbox-target-pair? term) (let [[tbox target] (expression term),
@@ -122,7 +126,7 @@
 			   [(make-dl-expression (expression-language term)
 						(list 'exists r norm))
 			    new-defs])
-			 (normalize-for-goal term atomic?))),
+			 (normalize-for-goal term primitive?))),
 	  normalized-terms (map (fn [[A def-A]]
 				  [A (set (map normalizer def-A))])
 				tbox-map)]
