@@ -127,8 +127,10 @@
 
 ;;;
 
-(defn- usage-graph
-  "Returns usage graph of a given tbox."
+(defn usage-graph
+  "Returns usage graph of a given tbox, i.e. a graph on the defined
+  concepts of tbox where a concept C is connected to a concept D via
+  an edge when D is contained in the definition of C."
   [tbox]
   (struct directed-graph
 	  (defined-concepts tbox)

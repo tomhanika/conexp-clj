@@ -30,41 +30,10 @@
 				  g (interpret model m)])]
     (make-context objects attributes incidence)))
 
-(defn- arguments*
-  "Returns the arguments of the given DL expression as set, if it is
-  not atomic. If it is, returns the singleton set of the dl-expression
-  itself."
-  [dl-expression]
-  (if (atomic? dl-expression)
-    (set [dl-expression])
-    (set (arguments dl-expression))))
-
-(defn- abbreviate-subsumption
-  "Takes a subsumption whose subsumee and subsumer are in normal form
-  and returns a subsumption where from the subsumer every term already
-  present in the subsumee is removed."
-  [subsumption]
-  (if (or (atomic? (subsumee subsumption))
-	  (atomic? (subsumer subsumption)))
-    subsumption
-    (let [language (expression-language (subsumee subsumption)),
-	  premise-args (arguments* (subsumee subsumption)),
-	  conclusion-args (arguments* (subsumer subsumption))]
-      (make-subsumption (make-dl-expression language (cons 'and premise-args))
-			(make-dl-expression language (cons 'and (difference conclusion-args premise-args)))))))
-
 (defn- obviously-true?
   "Returns true iff the given subsumption is obviously true."
   [subsumption]
   (subsumed-by? (subsumee subsumption) (subsumer subsumption)))
-
-(defn- clarify-subsumption-seq
-  "Removes all sumsumptions with equal subsumee and subsumer from the
-  seq of given subsumptions."
-  [subs]
-  (for [susu (map abbreviate-subsumption subs),
-	:when (not (obviously-true? susu))]
-    susu))
 
 (defn- extend-attributes
   "Takes a sequence of concepts and a sequence of new concepts to be
@@ -80,6 +49,55 @@
 		 concepts
 		 (conj concepts next)))
 	     (rest new-concepts)))))
+
+;;; rewriting
+
+(defn- arguments*
+  "Returns the arguments of the given DL expression as set, if it is
+  not atomic. If it is, returns the singleton set of the dl-expression
+  itself."
+  [dl-expression]
+  (if (atomic? dl-expression)
+    (set [dl-expression])
+    (set (arguments dl-expression))))
+
+(defn- implication-kernel
+  "Given a set of concepts returns a minimal subset of concepts which,
+  when closed under the given implications, yields a superset of the
+  original set given."
+  [set-of-concepts set-of-implications]
+  (let [implication-closure (clop-by-implications set-of-implications)]
+    (loop [to-consider (seq set-of-concepts),
+	   concepts set-of-concepts]
+      (if (empty? to-consider)
+	concepts
+	(let [next-concept (first to-consider)]
+	  (recur (rest to-consider)
+		 (if (contains? (implication-closure (disj concepts next-concept))
+				next-concept)
+		   (disj concepts next-concept)
+		   concepts)))))))
+
+(defn- abbreviate-subsumption
+  "Takes a subsumption whose subsumee and subsumer are in normal form
+  and returns a subsumption where from the subsumer every term already
+  present in the subsumee is removed."
+  [subsumption background-knowledge]
+  (let [language (expression-language (subsumee subsumption)),
+	premise-args (implication-kernel (arguments* (subsumee subsumption)) background-knowledge),
+	conclusion-args (implication-kernel (arguments* (subsumer subsumption)) background-knowledge)]
+    (make-subsumption (make-dl-expression language (cons 'and premise-args))
+		      (make-dl-expression language (cons 'and (difference conclusion-args premise-args))))))
+
+(defn- clarify-subsumption-seq
+  "Removes all sumsumptions with equal subsumee and subsumer from the
+  seq of given subsumptions, abbreviating subsumptions with given
+  backround knowledge (a set of implications between sets of
+  concepts)."
+  [subs background-knowledge]
+  (for [susu (map #(abbreviate-subsumption % background-knowledge) subs),
+	:when (not (obviously-true? susu))]
+    susu))
 
 ;;;
 
@@ -110,7 +128,8 @@
 		    :let [all-P    (make-dl-expression language (cons 'and P)),
 			  mc-all-P (make-dl-expression language (model-closure model all-P))]
 		    :when (not= all-P mc-all-P)]
-		(make-subsumption all-P mc-all-P)))
+		(make-subsumption all-P mc-all-P))
+	      background-knowledge)
 
 	     ;; else search for next implication
 	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),

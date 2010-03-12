@@ -39,6 +39,11 @@
   B (and Female (exists Child T)),
   T (and))
 
+(def all-tbox (make-tbox FamilyDL
+			 #{(make-dl-definition 'All
+					       (dl-expression FamilyDL (and Male Female Mother Father (exists Child All))))}))
+(def all-cpt (dl-expression FamilyDL [all-tbox All]))
+
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
 

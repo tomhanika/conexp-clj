@@ -30,7 +30,8 @@
        FamilyDL (exists HasChild Female) (exists HasChild (and)),
        FamilyDL (and Female Mother) (and Female)
        FamilyDL [parent* Self] (exists MarriedTo [parent* Self])
-       FamilyDL (exists Child Female) (exists Child (and)))
+       FamilyDL (exists Child Female) (exists Child (and))
+       FamilyDL all-cpt (and all-cpt))
   (are [dl exp-1 exp-2] (not (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2)))
        FamilyDL (exists Child (and)) (exists Child Female)
        FamilyDL (exists Child (and)) (exists MarriedTo (and))))
