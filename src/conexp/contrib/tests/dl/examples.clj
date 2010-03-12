@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.examples
+(ns conexp.contrib.tests.dl.examples
   (:use conexp
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models

@@ -8,16 +8,11 @@
 
 (ns conexp.contrib.tests.dl.framework.reasoning
   (:use conexp
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.framework.reasoning
-	conexp.contrib.dl.languages.EL-gfp)
+	conexp.contrib.tests.dl.examples)
   (:use clojure.test))
 
 ;;;
-
-(define-dl FamilyDL [Mother, Female, Father, Male] [MarriedTo, HasChild] []
-  :extends EL-gfp)
 
 (def parent* (make-tbox FamilyDL #{(make-dl-definition 'Child (dl-expression FamilyDL (and))),
 				   (make-dl-definition 'Partner (dl-expression FamilyDL

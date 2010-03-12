@@ -277,6 +277,28 @@
 
 ;;; simulations
 
+(defn- post
+  "Returns all neighbours of v in G, where the edges are labeled with
+  r."
+  [G r v]
+  (set-of x [[s x] ((neighbours G) v)
+	     :when (= r s)]))
+
+(defn- pre
+  "Returns all vertices in G which have v as its neighbour and whose
+  connecting edge is labeled with r."
+  [G r v]
+  (set-of w [w (vertices G)
+	     :when (contains? (post G r w) v)]))
+
+(defn- HashMap->hash-map
+  "Converts a Java HashMap to a Clojure hash-map."
+  [#^HashMap map]
+  (into {} (for [k (.keySet map)]
+	     [k (.get map k)])))
+
+;; schematic
+
 (defn- simulator-sets
   "Returns for all vertices v in the description graph G-1 the sets of
   vertices (sim v) in G-2 such that there exists a simulation from v to
@@ -304,22 +326,41 @@
 	  (.put sim-sets u
 		(disj (.get sim-sets u) w))
 	  (recur))))
-    (into {} (for [k (.keySet sim-sets)]
-	       [k (.get sim-sets k)]))))
+    (HashMap->hash-map sim-sets)))
 
 
-;;;
+;; refined (unfinished)
 
-(defn- post
-  "Returns all neighbours of v in G."
-  [G v]
-  (set-of x [[_ x] ((neighbours G) v)]))
+(defn- refined-simulator-sets
+  "Implements RefinedSimliarity as presented by Henzinger, Henzinger
+  and Kopke, adapted for computing the maximal simulation between the
+  two description graphs G-1 and G-2."
+  [G-1 G-2]
+  (unsupported-operation "refined-simulator-sets not implemented.")
+  (let [neighbours-1 (neighbours G-1),
+	neighbours-2 (neighbours G-2),
 
-(defn- pre
-  "Returns all vertices in G which have v as its neighbour."
-  [G v]
-  (set-of w [w (vertices G)
-	     :when (contains? (post G w) v)]))
+	label-1 (vertex-labels G-1),
+	label-2 (vertex-labels G-2),
+
+	#^HashMap prevsim  (HashMap.),
+	#^HashMap sim-sets (HashMap.)]
+    (doseq [v (vertices G-1)]
+      (.put prevsim v (vertices G-2))
+      (.put sim-sets v
+	    (if (empty? (neighbours-1 v))
+	      (set-of u [u (vertices G-2)
+			 :when (subset? (label-1 v) (label-2 u))])
+	      (set-of u [u (vertices G-2)
+			 :when (and (subset? (label-1 v) (label-2 u))
+				    (not (empty? (neighbours-2 u))))]))))
+    (loop []
+      (when-let [v (first (filter #(not= (.get sim-sets %)
+					 (.get prevsim %))
+				  (vertices G-1)))]
+	))))
+
+;; efficient (wrong)
 
 (defn- efficient-initialize
   "Returns initialization for sim-sets and remove-sets for
@@ -351,14 +392,14 @@
   Henzinger, Henzinger and Kopke, adapted for computing the maximal
   simulation from G-1 to G-2."
   [G-1 G-2]
+  (unsupported-operation "efficient-simulator-sets not implemented.")
   (let [[#^HashMap sim-sets, #^HashMap remove-sets] (efficient-initialize G-1 G-2)]
     (loop []
       (let [v (first (filter (fn [v]
 			       (not (empty? (.get remove-sets v))))
 			     (vertices G-1)))]
 	(if-not v
-	  (into {} (for [k (.keySet sim-sets)]
-		     [k (.get sim-sets k)]))
+	  (HashMap->hash-map sim-sets)
 	  (do
 	    ;; u and v are vertices of G-1
 	    ;; w and x are vertices of G-2
@@ -373,6 +414,8 @@
 			    (conj (.get remove-sets u) x)))))))
 	    (.put remove-sets v #{})
 	    (recur)))))))
+
+;;
 
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where
