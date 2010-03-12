@@ -62,6 +62,18 @@
 
 ;;; Normalizing
 
+(defn- conjunctors
+  "Returns the elements of the dl-expression connected by
+  conjunction. If the dl-expression is not a conjunction the singelton
+  set containing the expression is returned."
+  [dl-expr]
+  (if (and (compound? dl-expr)
+	   (= 'and (operator dl-expr)))
+    (set (arguments dl-expr))
+    (set [dl-expr])))
+
+;; tboxes as hash-maps
+
 (defn- uniquify-tbox-map
   "Renames all defined concepts in the given tbox-map to be globally
   unique symbols. Returns a pair of the result and the transformation
@@ -72,16 +84,6 @@
     [(into {} (for [[A def-A] tbox-map]
 		[(old->new A) (set (map #(substitute % old->new) def-A))]))
      old->new]))
-
-(defn- conjunctors
-  "Returns the elements of the dl-expression connected by
-  conjunction. If the dl-expression is not a conjunction the singelton
-  set containing the expression is returned."
-  [dl-expr]
-  (if (and (compound? dl-expr)
-	   (= 'and (operator dl-expr)))
-    (set (arguments dl-expr))
-    (set [dl-expr])))
 
 (defn- tbox->hash-map
   "Transforms given TBox to a hash-map of defined concepts to the sets
@@ -97,18 +99,60 @@
 		      (make-dl-definition language A (cons 'and def-A)))]
     (make-tbox language (set definitions))))
 
+;; storing names
+
+(defn- new-names
+  "Returns a fresh data structure for storing new names."
+  []
+  (atom {}))
+
+(defn- add-name
+  "Adds to names the set-of-concepts under name."
+  [names name set-of-concepts]
+  (swap! names conj [name set-of-concepts]))
+
+(defn- add-names
+  "Adds the tbox-map to names."
+  [names tbox-map]
+  (swap! names into tbox-map))
+
+(defn- get-names
+  "Returns all names and their definitions (i.e. their set of
+  concepts) stored in names."
+  [names]
+  @names)
+
+;; normalizing algorithm - preparing the tbox and introducing new definitions
+
 (defn- normalize-for-goal
   "If term satisfies goal, regards it as being normalized. Otherwise
   handles term as tbox and finally introduces a new symbol defining
-  term."
-  [term goal]
+  term. New definitions go into the atom new-names."
+  [term goal new-names]
   (cond
-   (goal term) [term {}]
+   (goal term) term
    (tbox-target-pair? term) (let [[tbox target] (expression term),
 				  [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
-			      [(trans target) tbox-map])
+			      (add-names new-names tbox-map)
+			      (trans target))
    :else (let [new-sym (gensym)]
-	   [new-sym {new-sym (conjunctors term)}])))
+	   (add-name new-names new-sym (conjunctors term))
+	   new-sym)))
+
+(defn- normalize-term
+  "Normalizes conjunctor term. New definitions go into the atom new-names."
+  [term new-names]
+  (if (and (compound? term)
+	   (= 'exists (operator term)))
+    (let [[r B] (arguments term),
+	  norm (normalize-for-goal B
+				   #(and (atomic? %)
+					 (not (tbox-target-pair? %))
+					 (not (primitive? %)))
+				   new-names)]
+      (make-dl-expression (expression-language term)
+			  (list 'exists r norm)))
+    (normalize-for-goal term primitive? new-names)))
 
 (defn- introduce-auxiliary-definitions
   "Introduces auxiliary definitions into the given tbox-map (as
@@ -118,23 +162,17 @@
   [tbox-map]
   (if (empty? tbox-map)
     tbox-map
-    (let [normalizer (fn [term]
-		       (if (and (compound? term)
-				(= 'exists (operator term)))
-			 (let [[r B] (arguments term),
-			       [norm new-defs] (normalize-for-goal B #(and (atomic? %) (not (primitive? %))))]
-			   [(make-dl-expression (expression-language term)
-						(list 'exists r norm))
-			    new-defs])
-			 (normalize-for-goal term primitive?))),
-	  normalized-terms (map (fn [[A def-A]]
-				  [A (set (map normalizer def-A))])
-				tbox-map)]
-      (reduce (fn [tbox-map [target set-of-pairs]]
-		(apply merge tbox-map [target (set (map first set-of-pairs))]
-		                      (introduce-auxiliary-definitions (apply merge (map second set-of-pairs)))))
-	      {}
-	      normalized-terms))))
+    (let [new-names (new-names),
+	  ;; doall needed to store new names in new-names!
+	  normalized-map (doall (map (fn [[A def-A]]
+				       [A (set (map #(normalize-term % new-names) def-A))])
+				     tbox-map)),
+	  new-names-map (introduce-auxiliary-definitions (get-names new-names))]
+      (into normalized-map new-names-map))))
+
+;; normalizing algorithm -- squeezing the concept graph
+
+;; normalizing algorithm -- invokaction point
 
 (defn- normalize-gfp
   "Normalizes given TBox with gfp-semantics."
