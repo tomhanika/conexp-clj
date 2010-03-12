@@ -172,6 +172,19 @@
 
 ;; normalizing algorithm -- squeezing the concept graph
 
+(defn- concept-graph
+  "Returns the concept graph of a TBox. The graph has the defined
+  conecpts of tbox as vertices and connects every two vertices C to D
+  if D appears in the top-level conjunction of C."
+  [tbox]
+  (let [defined-concepts (set (defined-concepts tbox))]
+    (struct directed-graph
+	    defined-concepts
+	    (fn [C]
+	      (let [def (find-definition tbox C)]
+		(filter #(contains? defined-concepts (expression %))
+			(conjunctors (definition-expression def))))))))
+
 ;; normalizing algorithm -- invokaction point
 
 (defn- normalize-gfp
@@ -437,7 +450,7 @@
 	    (.put remove-sets v #{})
 	    (recur)))))))
 
-;;
+;; simulation invocation point
 
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where
