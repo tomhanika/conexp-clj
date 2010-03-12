@@ -173,19 +173,40 @@
 ;; normalizing algorithm -- squeezing the concept graph
 
 (defn- concept-graph
-  "Returns the concept graph of a TBox. The graph has the defined
+  "Returns the concept graph of a tbox-map. The graph has the defined
   conecpts of tbox as vertices and connects every two vertices C to D
   if D appears in the top-level conjunction of C."
-  [tbox]
-  (let [defined-concepts (set (defined-concepts tbox))]
+  [tbox-map]
+  (let [defined-concepts (set (keys tbox-map))]
     (struct directed-graph
 	    defined-concepts
 	    (fn [C]
-	      (let [def (find-definition tbox C)]
-		(filter #(contains? defined-concepts (expression %))
-			(conjunctors (definition-expression def))))))))
+	      (filter #(contains? defined-concepts %)
+		      (map expression (tbox-map C)))))))
 
-;; normalizing algorithm -- invokaction point
+(defn- squeeze-equivalent-concepts
+  "Returns a tbox-map where all equivalent, defined concepts of
+  tbox-map are squeezed into one. If A is such a concept, every
+  equivalent defined concept used in other definitions is substituted
+  by A."
+  [language tbox-map]
+  (let [equivalent-concepts (scc (concept-graph tbox-map)),
+	rename-map (into {} (for [concepts equivalent-concepts
+				  concept concepts]
+			      [concept (first concepts)])),
+	used-map (into {} (for [concepts equivalent-concepts]
+			    [(first concepts) concepts])),
+	new-tbox-map (into {} (map (fn [target]
+				     [target
+				      (disj (set (map #(substitute % rename-map)
+						      (apply union
+							     (map tbox-map (used-map target)))))
+					    (make-dl-expression language target))])
+				   (vals rename-map)))]
+    new-tbox-map))
+
+
+;; normalizing algorithm -- invokation point
 
 (defn- normalize-gfp
   "Normalizes given TBox with gfp-semantics."

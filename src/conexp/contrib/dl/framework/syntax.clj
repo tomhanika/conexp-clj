@@ -66,7 +66,7 @@
 
 (defmethod print-method ::DL-expression [dl-exp out]
   (let [#^String output (with-out-str
-			  (pprint (expression dl-exp)))]
+			  (pprint (list 'DL-expr (expression dl-exp))))]
     (.write out (.trim output))))
 
 ;;;
