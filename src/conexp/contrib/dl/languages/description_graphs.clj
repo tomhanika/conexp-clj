@@ -203,7 +203,8 @@
 							     (map tbox-map (used-map target)))))
 					    (make-dl-expression language target))])
 				   (vals rename-map)))]
-    new-tbox-map))
+    (into {} (for [target (keys tbox-map)]
+	       [target (-> target rename-map new-tbox-map)]))))
 
 
 ;; normalizing algorithm -- invokation point
