@@ -16,36 +16,12 @@
 	[clojure.contrib.string :only (split)])
   (:import [java.io PushbackReader]))
 
-;;; Method Declaration
 
-(defmulti write-context (fn [format ctx file] format))
+;;; Input format dispatch
 
-(let [known-context-input-formats (ref {})]
-  (defn- add-context-input-format [name predicate]
-    (dosync
-     (alter known-context-input-formats assoc name predicate)))
+(define-format-dispatch "context")
 
-  (defn- get-known-context-input-formats []
-    (keys @known-context-input-formats))
-
-  (defn- find-context-input-format [file]
-    (first
-     (for [[name predicate] @known-context-input-formats
-	   :when (with-open [in-rdr (reader file)]
-		   (predicate in-rdr))]
-       name))))
-
-(defmulti read-context find-context-input-format)
-
-(defmethod write-context :default [format _ _]
-  (illegal-argument "Format " format " for context output is not known."))
-
-(defmethod read-context :default [file]
-  (illegal-argument "Cannot determine format of context in " file))
-
-;;;
 ;;; Formats
-;;;
 
 ;; Simple conexp-clj Format
 
@@ -113,7 +89,7 @@
 				  [idx-m (range number-of-attributes)
 				   :when (#{\X,\x} (nth line idx-m))])))))))))
 
-;;;
+;;; XML helpers
 
 (defn- find-tags [seq-of-hashes tag]
   (for [hash seq-of-hashes :when (= tag (:tag hash))] hash))
@@ -129,7 +105,7 @@
 
 ;;;
 
-;; Conexp
+;; ConExp
 
 (add-context-input-format :conexp
 			  (fn [rdr]
