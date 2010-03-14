@@ -1,0 +1,21 @@
+This is conexp-clj, an attempt to rewrite the famous ConExp[1] to
+extend it with new ideas.
+
+The project has been started by Daniel Borchmann under supervision of
+Christian Meschke as part of the DFG project ???/???/???.
+
+Currently conexp-clj is maintained by
+
+  Daniel Borchmann
+
+Additional Contributors are
+
+  Immanuel Albrecht        (Context Editor Plugin for the GUI)
+
+
+
+
+Have fun with conexp-clj!
+
+----
+[1] http://conexp.sf.net
