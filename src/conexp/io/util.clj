@@ -12,13 +12,19 @@
 
 ;;;
 
-(defn get-line []
+(defn get-line
+  "Reads one line from *in*."
+  []
   (read-line))
 
-(defn get-lines [n]
+(defn get-lines
+  "Reads n line from *in*."
+  [n]
   (doall (take n (repeatedly #(get-line)))))
 
-(defmacro with-in-reader [file & body]
+(defmacro with-in-reader
+  "Opens file with reader and binds it to *in*."
+  [file & body]
   `(with-open [input# (reader ~file)]
      (binding [*in* input#]
        ~@body)))
@@ -55,11 +61,16 @@
 
        nil)
 
-     (defmulti ~write (fn [format# ctx# file#] format#))
+     (defmulti ~write
+       ~(str "Arguments: [format " name " file]. Writes " name " to file using format.")
+       (fn [format# ctx# file#] format#))
      (defmethod ~write :default [format# _# _#]
        (illegal-argument "Format " format# " for " ~name " output is not known."))
 
-     (defmulti ~read ~find)
+     (defmulti ~read
+       ~(str "Arguments: [file]. Reads "name " from file, "
+             "automatically determining the format used.")
+       ~find)
      (defmethod ~read :default [file#]
        (illegal-argument "Cannot determine format of " ~name " in " file#))
 

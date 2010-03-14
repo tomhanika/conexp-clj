@@ -7,41 +7,16 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.lattices
-  (:use conexp
+  (:use conexp.base
+	conexp.fca.lattices
 	conexp.io.util)
-  (:use clojure.contrib.io))
+  (:use [clojure.contrib.io :exclude (with-in-reader)]))
 
-;;; Method Declaration
+;;; Input format dispatch
 
-(defmulti write-lattice (fn [format ctx file] format))
+(define-format-dispatch "lattice")
 
-(let [known-lattice-input-formats (ref {})]
-  (defn- add-lattice-input-format [name predicate]
-    (dosync
-     (alter known-lattice-input-formats assoc name predicate)))
-
-  (defn- get-known-lattice-input-formats []
-    (keys @known-lattice-input-formats))
-
-  (defn- find-lattice-input-format [file]
-    (first
-     (for [[name predicate] @known-lattice-input-formats
-	   :when (with-open [in-rdr (reader file)]
-		   (predicate in-rdr))]
-       name))))
-
-(defmulti read-lattice find-lattice-input-format)
-
-(defmethod write-lattice :default [format _ _]
-  (illegal-argument "Format " format " for lattice output is not known."))
-
-(defmethod read-lattice :default [file]
-  (illegal-argument "Cannot determine format of lattice in " file))
-
-;;;
 ;;; Formats
-;;;
-
 
 ;;;
 
