@@ -16,7 +16,8 @@
 
 (let [known-context-input-formats (ref {})]
   (defn add-context-input-format [name predicate]
-    (dosync (alter known-context-input-formats assoc name predicate)))
+    (dosync
+     (alter known-context-input-formats assoc name predicate)))
 
   (defn get-known-context-input-formats []
     (keys @known-context-input-formats))

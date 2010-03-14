@@ -7,14 +7,14 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.gui
-  (:import [javax.swing UIManager])
+  (:import [javax.swing UIManager JFrame])
   (:use conexp.gui.base))
 
 (defn gui
   "Starts the standard gui for conexp-clj."
   []
   (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-  (let [frame (conexp-main-frame)]
+  (let [#^JFrame frame (conexp-main-frame)]
     (.setVisible frame true)
     frame))
 
