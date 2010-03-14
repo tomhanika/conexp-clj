@@ -30,7 +30,7 @@
   "Returns the version of conexp as a string."
   []
   (let [{:keys [major minor patch qualifier]} *conexp-version*]
-    (str major "." minor "." patch qualifier)))
+    (str major "." minor "." patch "-" qualifier)))
 
 (defn has-version?
   "Compares given version of conexp and returns true if and only if

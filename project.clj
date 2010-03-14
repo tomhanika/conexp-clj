@@ -8,12 +8,15 @@
 
 ;;;
 
-(defproject conexp-clj "0.0.1pre-alpha"
+(defproject conexp-clj "0.0.1-pre-alpha"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj"
   :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
                  [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
-		 [org.apache.commons/commons-math "2.0"]]  
+		 [clj-iter "0.1.0-SNAPSHOT"]
+		 [org.apache.commons/commons-math "2.0"]
+		 [jline "0.9.94"]]
+;;  :dev-dependencies [[leiningen/lein-swank "1.1.0"]]
   :namespaces [conexp.fca.contexts
 	       conexp.fca.implications
 	       conexp.fca.association-rules
