@@ -324,7 +324,7 @@
 ;;; least common subsumers in EL-gfp
 
 (defn EL-gfp-lcs
-  "Returns the least common subsumer of A and B in tbox (in EL-gfp)."
+  "Returns the least common subsumer (in EL-gfp) of A and B in tbox."
   ([tbox A]
      [tbox A])
   ([tbox A B]

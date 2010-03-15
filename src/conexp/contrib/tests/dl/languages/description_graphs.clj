@@ -63,6 +63,44 @@
        family-model paper-tbox 'A-2
        family-model paper-tbox 'A-3))
 
+(deftest test-lcs
+  (are [model tbox targets] (let [lcs (apply EL-gfp-lcs tbox 'targets),
+				  lcs-int (interpret model lcs)]
+			      (forall [target 'targets]
+				(subset? (interpret model [tbox target])
+					 lcs-int)))
+       some-model some-tbox [Grandfather]
+       some-model some-tbox [Grandmother]
+       some-model some-tbox [Grandmother Grandfather]
+       paper-model some-tbox [Grandfather Grandmother]
+       small-model some-tbox [Grandfather Grandmother]
+       family-model parent [Partner Self]
+       family-model parent [Partner Self Child]
+       family-model parent [Self Self Self Self])
+  (are [model tbox target] (= (interpret model (EL-gfp-lcs tbox 'target))
+			      (interpret model [tbox 'target]))
+       some-model some-tbox Grandfather
+       some-model some-tbox Grandmother
+       some-model all-tbox All
+       family-model parent Self))
+
+(deftest test-msc
+  (are [testing-model objects] (subset? 'objects
+					(interpret testing-model (apply EL-gfp-msc testing-model 'objects)))
+       some-model #{John}
+       some-model #{John Marry}
+       some-model #{John Marry Jana}
+       some-model #{John Peter}
+       some-model #{Jana Marry}
+       family-model #{Paul Linda Mackenzie}
+       family-model #{Linda}
+       family-model #{Michelle}
+       family-model #{Paul Linda James John Michelle Mackenzie}
+       riding-model #{RechtesVorderrad LinkesHinterrad}
+       riding-model #{MeinFahrrad}))
+
+(deftest test-simulator-sets)
+
 ;;;
 
 nil
