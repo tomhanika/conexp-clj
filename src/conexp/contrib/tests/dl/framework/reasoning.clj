@@ -8,6 +8,7 @@
 
 (ns conexp.contrib.tests.dl.framework.reasoning
   (:use conexp
+	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test))
@@ -16,17 +17,17 @@
 
 (deftest test-subsumed-by?
   (are [dl exp] (subsumed-by? (dl-expression dl exp) (dl-expression dl exp))
-       FamilyDL (exists HasChild (and Mother Female (exists HasChild (and))))
-       FamilyDL Mother)
+       SimpleDL (exists HasChild (and Mother Female (exists HasChild (and))))
+       SimpleDL Mother)
   (are [dl exp-1 exp-2] (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2))
-       FamilyDL (exists HasChild Female) (exists HasChild (and)),
-       FamilyDL (and Female Mother) (and Female)
-       FamilyDL [parent* Self] (exists MarriedTo [parent* Self])
-       FamilyDL (exists Child Female) (exists Child (and))
-       FamilyDL all-cpt (and all-cpt))
+       SimpleDL (exists HasChild Female) (exists HasChild (and)),
+       SimpleDL (and Female Mother) (and Female)
+       FamilyDL [parent Self] (exists MarriedTo [parent Self])
+       SimpleDL (exists HasChild Female) (exists HasChild (and))
+       SimpleDL all-cpt (and all-cpt))
   (are [dl exp-1 exp-2] (not (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2)))
-       FamilyDL (exists Child (and)) (exists Child Female)
-       FamilyDL (exists Child (and)) (exists MarriedTo (and))))
+       SimpleDL (exists HasChild (and)) (exists HasChild Female)
+       FamilyDL (exists HasChild (and)) (exists MarriedTo (and))))
 
 ;;;
 
