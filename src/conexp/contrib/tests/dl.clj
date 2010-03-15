@@ -11,7 +11,8 @@
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.dl.languages.description-graphs
+(tests-to-run conexp.contrib.tests.dl.framework.models
+	      conexp.contrib.tests.dl.languages.description-graphs
 	      conexp.contrib.tests.dl.framework.reasoning)
 
 ;;;
