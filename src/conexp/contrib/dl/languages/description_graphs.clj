@@ -80,23 +80,27 @@
   map used."
   [tbox-map]
   (let [old->new (into {} (for [A (keys tbox-map)]
-			    [A (gensym)]))]
+			    [A (make-dl-expression (expression-language A) (gensym))])),
+	old->new* (into {} (for [[A B] old->new]
+			     [(expression A) B]))]
     [(into {} (for [[A def-A] tbox-map]
-		[(old->new A) (set (map #(substitute % old->new) def-A))]))
+		[(old->new A) (set (map #(substitute % old->new*) def-A))]))
      old->new]))
 
 (defn- tbox->hash-map
   "Transforms given TBox to a hash-map of defined concepts to the sets
   of concepts in the top-level conjunction."
   [tbox]
-  (into {} (for [def (tbox-definitions tbox)]
-	     [(definition-target def) (conjunctors (definition-expression def))])))
+  (let [language (tbox-language tbox)]
+    (into {} (for [def (tbox-definitions tbox)]
+	       [(make-dl-expression language (definition-target def))
+		(conjunctors (definition-expression def))]))))
 
 (defn- hash-map->tbox
   "Transforms given hash-map to a TBox for the given language."
   [language tbox-map]
   (let [definitions (for [[A def-A] tbox-map]
-		      (make-dl-definition language A (cons 'and def-A)))]
+		      (make-dl-definition language (expression A) (cons 'and def-A)))]
     (make-tbox language (set definitions))))
 
 ;; storing names
@@ -134,8 +138,8 @@
    (tbox-target-pair? term) (let [[tbox target] (expression term),
 				  [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
 			      (add-names new-names tbox-map)
-			      (trans target))
-   :else (let [new-sym (gensym)]
+			      (trans (make-dl-expression (expression-language term) target)))
+   :else (let [new-sym (make-dl-expression (expression-language term) (gensym))]
 	   (add-name new-names new-sym (conjunctors term))
 	   new-sym)))
 
@@ -152,7 +156,10 @@
 				   new-names)]
       (make-dl-expression (expression-language term)
 			  (list 'exists r norm)))
-    (normalize-for-goal term primitive? new-names)))
+    (normalize-for-goal term
+			#(and (atomic? %)
+			      (not (tbox-target-pair? %)))
+			new-names)))
 
 (defn- introduce-auxiliary-definitions
   "Introduces auxiliary definitions into the given tbox-map (as
@@ -164,9 +171,10 @@
     tbox-map
     (let [new-names (new-names),
 	  ;; doall needed to store new names in new-names!
-	  normalized-map (doall (map (fn [[A def-A]]
-				       [A (set (map #(normalize-term % new-names) def-A))])
-				     tbox-map)),
+	  normalized-map (doall
+			  (into {} (map (fn [[A def-A]]
+					  [A (set (map #(normalize-term % new-names) def-A))])
+					tbox-map))),
 	  new-names-map (introduce-auxiliary-definitions (get-names new-names))]
       (into normalized-map new-names-map))))
 
@@ -230,11 +238,13 @@
 (defn- normalize-gfp
   "Normalizes given TBox with gfp-semantics."
   [tbox]
-  (let [language (tbox-language tbox)
-	tbox-map (tbox->hash-map tbox)
-	extended-hash-map (introduce-auxiliary-definitions tbox-map)
-	result-box (hash-map->tbox language extended-hash-map)]
-    result-box))
+  (let [language   (tbox-language tbox)
+	result-map (-> tbox
+		       tbox->hash-map
+		       introduce-auxiliary-definitions
+		       squeeze-equivalent-concepts
+		       replace-toplevel-concepts)]
+    (hash-map->tbox language result-map)))
 
 
 ;;; Conversion to and from description graphs
