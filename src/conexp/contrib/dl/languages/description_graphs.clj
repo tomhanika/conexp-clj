@@ -180,16 +180,17 @@
   (let [defined-concepts (set (keys tbox-map))]
     (struct directed-graph
 	    defined-concepts
-	    (fn [C]
-	      (filter #(contains? defined-concepts %)
-		      (map expression (tbox-map C)))))))
+	    (hashmap-by-function (fn [C]
+				   (filter #(contains? defined-concepts %)
+					   (tbox-map C)))
+				 defined-concepts))))
 
 (defn- squeeze-equivalent-concepts
   "Returns a tbox-map where all equivalent, defined concepts of
   tbox-map are squeezed into one. If A is such a concept, every
   equivalent defined concept used in other definitions is substituted
   by A."
-  [language tbox-map]
+  [tbox-map]
   (let [equivalent-concepts (scc (concept-graph tbox-map)),
 	rename-map (into {} (for [concepts equivalent-concepts
 				  concept concepts]
@@ -198,14 +199,31 @@
 			    [(first concepts) concepts])),
 	new-tbox-map (into {} (map (fn [target]
 				     [target
-				      (disj (set (map #(substitute % rename-map)
-						      (apply union
-							     (map tbox-map (used-map target)))))
-					    (make-dl-expression language target))])
+				      (disj (set (replace rename-map
+							  (mapcat tbox-map (used-map target))))
+					    target)])
 				   (vals rename-map)))]
     (into {} (for [target (keys tbox-map)]
 	       [target (-> target rename-map new-tbox-map)]))))
 
+(defn- replace-toplevel-concepts
+  "Replaces any top-level defined concept in tbox-map by its definition."
+  [tbox-map]
+  (loop [deps (dependency-list (concept-graph tbox-map)),
+	 new-tbox-map {}]
+    (if (empty? deps)
+      new-tbox-map
+      (let [next-concepts (first deps),
+	    new-defs (into {} (for [target next-concepts]
+				[target (reduce (fn [result next-thing]
+						  (if (set? next-thing)
+						    (into result next-thing)
+						    (conj result next-thing)))
+						#{}
+						(replace new-tbox-map (tbox-map target)))]))]
+	(recur (rest deps)
+	       (merge new-tbox-map new-defs))))))
+	
 
 ;; normalizing algorithm -- invokation point
 
