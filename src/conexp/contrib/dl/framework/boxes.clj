@@ -76,14 +76,20 @@
 
 ;;;
 
+(defmacro tbox
+  "Returns tbox defined for language containing given
+  definitions."
+  [language & definitions]
+  (let [definitions (partition 2 definitions)]
+    `(make-tbox ~language
+		~(vec (for [pair definitions]
+			`(make-dl-definition '~(first pair)
+					     (dl-expression ~language ~(second pair))))))))
+
 (defmacro define-tbox
   "Defines a TBox. Definitions are names interleaved with dl-sexps."
   [name language & definitions]
-  (let [definitions (partition 2 definitions)]
-  `(def ~name (make-tbox ~language
-			 (for [pair# '~definitions]
-			   (make-dl-definition (first pair#)
-					       (make-dl-expression ~language (second pair#))))))))
+  `(def ~name (tbox ~language ~@definitions)))
 
 ;;;
 

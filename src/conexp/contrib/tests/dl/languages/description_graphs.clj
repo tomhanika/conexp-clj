@@ -6,13 +6,16 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests.dl
-  (:use conexp))
+(ns conexp.contrib.tests.dl.languages.description-graphs
+  (:use conexp
+	conexp.contrib.dl.languages.description-graphs
+	conexp.contrib.tests.dl.examples)
+  (:use clojure.test))
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.dl.languages.description-graphs
-	      conexp.contrib.tests.dl.framework.reasoning)
+(deftest test-normalize-gfp
+  )
 
 ;;;
 

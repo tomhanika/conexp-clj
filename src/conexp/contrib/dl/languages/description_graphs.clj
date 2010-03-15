@@ -235,7 +235,7 @@
 
 ;; normalizing algorithm -- invokation point
 
-(defn- normalize-gfp
+(defn normalize-gfp
   "Normalizes given TBox with gfp-semantics."
   [tbox]
   (let [language   (tbox-language tbox)

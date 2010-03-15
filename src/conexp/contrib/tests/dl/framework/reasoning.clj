@@ -14,14 +14,6 @@
 
 ;;;
 
-(def parent* (make-tbox FamilyDL #{(make-dl-definition 'Child (dl-expression FamilyDL (and))),
-				   (make-dl-definition 'Partner (dl-expression FamilyDL
-									       (and (exists HasChild Child)
-										    (exists MarriedTo Self))))
-				   (make-dl-definition 'Self (dl-expression FamilyDL
-									    (and (exists HasChild Child)
-										 (exists MarriedTo Partner))))}))
-
 (deftest test-subsumed-by?
   (are [dl exp] (subsumed-by? (dl-expression dl exp) (dl-expression dl exp))
        FamilyDL (exists HasChild (and Mother Female (exists HasChild (and))))

@@ -44,6 +44,14 @@
 					       (dl-expression FamilyDL (and Male Female Mother Father (exists Child All))))}))
 (def all-cpt (dl-expression FamilyDL [all-tbox All]))
 
+(def parent* (make-tbox FamilyDL #{(make-dl-definition 'Child (dl-expression FamilyDL (and))),
+				   (make-dl-definition 'Partner (dl-expression FamilyDL
+									       (and (exists HasChild Child)
+										    (exists MarriedTo Self))))
+				   (make-dl-definition 'Self (dl-expression FamilyDL
+									    (and (exists HasChild Child)
+										 (exists MarriedTo Partner))))}))
+
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
 
