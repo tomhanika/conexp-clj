@@ -22,13 +22,13 @@
 
 (def dl-exp (dl-expression SimpleDL (exists HasChild Male)))
 
-(define-model some-model SimpleDL
-  #{John Marry Peter Jana}
-  Mother #{Marry},
-  Father #{John, Peter},
-  Male   #{John, Peter},
-  Female #{Marry, Jana},
-  HasChild #{[John Peter], [Marry Peter], [Peter Jana]})
+(def some-model (model SimpleDL
+		       #{John Marry Peter Jana}
+		       Mother #{Marry},
+		       Father #{John, Peter},
+		       Male   #{John, Peter},
+		       Female #{Marry, Jana},
+		       HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
 
 (def some-tbox (tbox SimpleDL
 		     Grandfather (and Male (exists HasChild (exists HasChild (and))))
@@ -47,37 +47,37 @@
 (def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
 (def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
 
-(define-model paper-model SimpleDL
-  [John Michelle Mackenzie Paul Linda James]
-  Male   #{John Paul James}
-  Female #{Michelle Mackenzie Linda}
-  Father #{John Paul}
-  Mother #{Michelle Linda}
-  HasChild #{[John Mackenzie] [Michelle Mackenzie]
-	     [Paul James] [Linda James]})
+(def paper-model (model SimpleDL
+			[John Michelle Mackenzie Paul Linda James]
+			Male   #{John Paul James}
+			Female #{Michelle Mackenzie Linda}
+			Father #{John Paul}
+			Mother #{Michelle Linda}
+			HasChild #{[John Mackenzie] [Michelle Mackenzie]
+				   [Paul James] [Linda James]}))
 
-(define-model small-model SimpleDL
-  [John Michelle Mackenzie]
-  Male   #{John}
-  Female #{Michelle Mackenzie}
-  Mother #{Michelle}
-  Father #{John}
-  HasChild #{[John Mackenzie] [Michelle Mackenzie]})
+(def small-model (model SimpleDL
+			[John Michelle Mackenzie]
+			Male   #{John}
+			Female #{Michelle Mackenzie}
+			Mother #{Michelle}
+			Father #{John}
+			HasChild #{[John Mackenzie] [Michelle Mackenzie]}))
 
 ;;; Fahrräder
 
 (define-dl RidingDL [Fahrzeug, Fahrrad, Rad, Auto] [HatKomponente] []
   :extends EL-gfp)
 
-(define-model riding-model RidingDL
-  [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto, LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
-  Fahrzeug #{MeinFahrrad, FranzSeinAuto},
-  Fahrrad  #{MeinFahrrad},
-  Auto     #{FranzSeinAuto},
-  Rad      #{Hinterrad, Vorderrad, LinkesHinterrad, LinkesVorderrad, RechtesHinterrad, RechtesVorderrad},
-  HatKomponente #{[MeinFahrrad Hinterrad] [MeinFahrrad Vorderrad]
-		  [FranzSeinAuto LinkesVorderrad] [FranzSeinAuto LinkesHinterrad]
-		  [FranzSeinAuto RechtesVorderrad] [FranzSeinAuto RechtesHinterrad]})
+(def riding-model (model RidingDL
+			 [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto, LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
+			 Fahrzeug #{MeinFahrrad, FranzSeinAuto},
+			 Fahrrad  #{MeinFahrrad},
+			 Auto     #{FranzSeinAuto},
+			 Rad      #{Hinterrad, Vorderrad, LinkesHinterrad, LinkesVorderrad, RechtesHinterrad, RechtesVorderrad},
+			 HatKomponente #{[MeinFahrrad Hinterrad] [MeinFahrrad Vorderrad]
+					 [FranzSeinAuto LinkesVorderrad] [FranzSeinAuto LinkesHinterrad]
+					 [FranzSeinAuto RechtesVorderrad] [FranzSeinAuto RechtesHinterrad]}))
 
 ;;; Cyclic Example
 
@@ -89,16 +89,16 @@
 		  Partner (and (exists HasChild Child) (exists MarriedTo Self)),
 		  Self (and (exists HasChild Child) (exists MarriedTo Partner))))
 
-(define-model family-model FamilyDL
-  [John Michelle Mackenzie Paul Linda James]
-  Male   #{John Paul James}
-  Female #{Michelle Mackenzie Linda}
-  Father #{John Paul}
-  Mother #{Michelle Linda}
-  HasChild  #{[John Mackenzie] [Michelle Mackenzie]
-	      [Paul James] [Linda James]}
-  MarriedTo #{[Paul Linda] [Linda Paul]
-	      [John Michelle] [Michelle John]})
+(def family-model (model FamilyDL
+			 [John Michelle Mackenzie Paul Linda James]
+			 Male   #{John Paul James}
+			 Female #{Michelle Mackenzie Linda}
+			 Father #{John Paul}
+			 Mother #{Michelle Linda}
+			 HasChild  #{[John Mackenzie] [Michelle Mackenzie]
+				     [Paul James] [Linda James]}
+			 MarriedTo #{[Paul Linda] [Linda Paul]
+				     [John Michelle] [Michelle John]}))
 
 ;;;
 
