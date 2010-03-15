@@ -33,7 +33,10 @@
        #{Marry} some-model Mother,
        #{John Peter} some-model Father,
        #{Jana Marry} some-model Female,
-       #{John Linda Michelle Paul} family-model [a-tbox A]))
+       #{John Linda Michelle Paul} family-model [a-tbox A]
+       #{John Marry} some-model dl-exp
+       #{John} some-model ext-dl-exp
+       #{John} some-model ext-dl-exp-2))
 
 ;;;
 

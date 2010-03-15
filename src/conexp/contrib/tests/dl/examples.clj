@@ -70,7 +70,8 @@
   :extends EL-gfp)
 
 (def riding-model (model RidingDL
-			 [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto, LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
+			 [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto,
+			  LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
 			 Fahrzeug #{MeinFahrrad, FranzSeinAuto},
 			 Fahrrad  #{MeinFahrrad},
 			 Auto     #{FranzSeinAuto},
