@@ -37,7 +37,7 @@
 
 	new-objects (loop []
 		      (println "Please enter your new objects:")
-		      (let [new-objects (read-string (str "#{" (read-line) "}"))]
+		      (let [new-objects (read-string (str "#{" (first (drop-while empty? (repeatedly read-line))) "}"))]
 			(if-not (empty? (intersection old-objects new-objects))
 			  (do
 			    (println "The objects " (difference new-objects old-objects)

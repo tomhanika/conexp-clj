@@ -85,7 +85,7 @@
   [subsumption background-knowledge]
   (let [language (expression-language (subsumee subsumption)),
 	premise-args (implication-kernel (arguments* (subsumee subsumption)) background-knowledge),
-	conclusion-args (implication-kernel (arguments* (subsumer subsumption)) background-knowledge)]
+	conclusion-args (arguments* (subsumer subsumption))]
     (make-subsumption (make-dl-expression language (cons 'and premise-args))
 		      (make-dl-expression language (cons 'and (difference conclusion-args premise-args))))))
 
