@@ -294,17 +294,19 @@
     (cond
       (isa? (type x) ::button) ::button)))
 
+(defmethod set-handler nil [& args] (message-box "set-handler not implemented!"))
+
 (defmethod-swing-threads* 
   set-handler ::button
   [obutton handler]
-  (let [ button (:widget obutton)
+  (let [ button (get-widget obutton)
          current-handlers (.getActionListeners button)
          listeners (extract-array current-handlers) ]
-    (doseq [l listeners] (.removeActionListener button l)))
-  (let [action (proxy [ActionListener] []
-                 (actionPerformed [event] 
-                   (handler)))]
-    (.addActionListener button action)))
+    (doseq [l listeners] (.removeActionListener button l))
+    (let [action (proxy [ActionListener] []
+                   (actionPerformed [event] 
+                     (handler)))]
+      (.addActionListener button action))))
 
 
 (defn-swing make-button
@@ -318,7 +320,7 @@
   [name icon & setup]
   (let [ jbutton (JButton. name icon)
          widget (button jbutton)]
-      ;;(apply-exprs widget setup) 
+      (apply-exprs widget setup)
       widget ))
 
    
@@ -330,6 +332,9 @@
 ;;
 ;;
 ;;
+
+(deftype split-pane [widget])
+(derive ::split-pane ::widget)
 
 (defn-swing do-mk-split-pane
   "Creates a managed split pane object.

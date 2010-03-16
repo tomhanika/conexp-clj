@@ -318,6 +318,30 @@
 						 ~title
 						 javax.swing.JOptionPane/ERROR_MESSAGE))))
 
+;;; multimethod helpers
+
+(defmacro inherit-multimethod
+  "Creates a new multimethod that dispatches by type hierarchy
+   on the first parameter and sets the dispatcher to recognize
+   all inherited types, then appends the given documentation."
+  [name type-name doc-str]
+  (let [name-str (str name)]
+  `(let [ old-meta# (meta ((ns-map *ns*) (quote ~name)))
+          old-doc# (when-not (nil? old-meta#) (:doc old-meta#))]
+    (defonce ~name (fn [& args#] 
+                      (illegal-argument 
+                        (str ~name-str 
+                          " called, but there is no method defined for type "
+                          (when-not (empty? args#) (type (first args#))) 
+                          "!"  ))))
+     (let [new-doc# (str ~type-name "\n******\n" ~doc-str "\n\n"
+                      old-doc#)
+            other-branch# ~name]
+       (defmulti ~name 
+         (fn [x# & args#] (when (isa? (type x#) ~type-name) ~type-name)))
+       (defmethod ~name nil [& args#] (apply other-branch# args#))
+       (.setMeta (var ~name) (conj (meta (var ~name)) {:doc new-doc#}))))))
+
 ;;;
 
 nil

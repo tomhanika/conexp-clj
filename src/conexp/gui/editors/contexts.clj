@@ -119,17 +119,18 @@
          table (do-mk-table-control
                  [:set-row-count 10]
                  [:set-column-count 10])
+
          toolbar (do-mk-toolbar-control :vert
-                 ;;  [:add-button 
-                 ;;    (make-button "Copy" 
-                 ;;      (get-ui-icon "OptionPane.informationIcon")
-                 ;;      [set-handler (fn [] (table-to-clipboard! table))])]
-                 ;;  [:add-button 
-                 ;;    (make-button "Paste" 
-                 ;;      (get-ui-icon "OptionPane.informationIcon")
-                 ;;      [set-handler (fn [] (clipboard-to-table! table))])]
-                   ;[:add-button (JButton. "copy")])
-                   )
+                   [:add-button 
+                     (make-button "Copy" 
+                       (get-ui-icon "OptionPane.informationIcon")
+                       [set-handler (fn [] (table-to-clipboard! table))] )]
+                   [:add-button
+                     (make-button "Paste" 
+                       (get-ui-icon "OptionPane.informationIcon")
+                       [set-handler (fn [] (clipboard-to-table! table))] ) ])
+
+                   
          widget {:managed-by-conexp-gui-editors-util "context-editor"
 
          :widget root
@@ -164,6 +165,11 @@
         (add (get-widget toolbar) BorderLayout/LINE_START))
       (.. root getContentPane
         (add (get-widget table)))
+      ;(set-handler paste-button (fn [] (clipboard-to-table! table)))
+      ;(!! toolbar :add-button 
+      ;               (make-button "Copy" 
+      ;                 (get-ui-icon "OptionPane.informationIcon")
+      ;                 [set-handler (fn [] (table-to-clipboard! table))]))
       (doseq [x defaults] (unroll-parameters-fn-map widget x))
       (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
