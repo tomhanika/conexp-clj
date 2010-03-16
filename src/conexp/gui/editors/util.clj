@@ -20,6 +20,7 @@
     [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
     conexp.gui.util
+    conexp.util
     [clojure.contrib.string :only (join split-lines split)]))
 
 ;;;
@@ -283,18 +284,11 @@
 (deftype button [widget])
 (derive ::button ::widget)
 
-(defmulti set-handler
-  "is a multi method dispatched by the first parameters type.
-   
-  Sets the action handler for the button object.
+(inherit-multimethod set-handler ::button
+  "Sets the action handler for the button object.
   Parameters:
     obutton    _button object
-    handler    _0-ary function that will be called on button press"
-  (fn [x & rest] 
-    (cond
-      (isa? (type x) ::button) ::button)))
-
-(defmethod set-handler nil [& args] (message-box "set-handler not implemented!"))
+    handler    _0-ary function that will be called on button press")
 
 (defmethod-swing-threads* 
   set-handler ::button
