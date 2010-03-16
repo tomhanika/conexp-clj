@@ -247,8 +247,8 @@
   [thing]
   (or
     (and (map? thing)
-    (contains? thing :managed-by-conexp-gui-editors-util)))
-    (isa? (type thing) ::widget))
+    (contains? thing :managed-by-conexp-gui-editors-util))
+    (isa? (type thing) ::widget)))
 
 (defn get-widget
   "Returns the appropriate java root widget for managed java code or
@@ -360,8 +360,7 @@
          }
          ]
     (do
-      (message-box "did")
-      ;(doseq [x setup] (unroll-parameters-fn-map widget x))
+      (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
 
 ;;

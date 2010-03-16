@@ -572,7 +572,7 @@
 (defn +debug-hook+ []
   (do
     (doseq [x @+debug+] (!! x :associate-context ectx))
-          (message-box "TEST")))
+          ))
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
@@ -621,32 +621,31 @@
     (dosync (ref-set context-workspace {}))
 
     (with-swing-threads
-      (let [ workspace-tree (JRootPane.);(do-mk-tree-control "context workspace"
-                            ;  [:set-selection-mode :single]
-                            ;  [:set-selection-handler 
-                            ;    (fn [x] (with-swing-threads
-                            ;              (message-box (vec (first x)))))])
+      (let [ workspace-tree (do-mk-tree-control "context workspace"
+                              [:set-selection-mode :single]
+                              [:set-selection-handler 
+                                (fn [x] (with-swing-threads
+                                          (message-box (vec (first x)))))])
              left  workspace-tree
 ;;             right (do-mk-table-control [:set-column-count 12]
 ;;                                    [:set-row-count 5])
-             right (JRootPane. );(do-mk-context-editor)
-             right2 (JRootPane.);(do-mk-context-editor)
-             rpane (JRootPane.);(do-mk-split-pane :vert right right2
-                   ;  [:set-divider-location 300])
+             right (do-mk-context-editor)
+             right2 (do-mk-context-editor)
+             rpane (do-mk-split-pane :vert right right2
+                     [:set-divider-location 300])
              
              pane (do-mk-split-pane :horiz left rpane
                     [:set-divider-location 200]) 
              ]
         (do
-          (message-box "did let.")
           (add-tab-with-name-icon-tooltip frame (get-widget pane)
             "Contexts" nil "View and edit contexts")
-          (message-box "added tab.")
           (dosync-wait 
             (ref-set context-workspace-tree workspace-tree)
             (ref-set context-pane pane)
             (ref-set +debug+ [right right2])) 
-          (+debug-hook+)))) ) )
+          (+debug-hook+)
+          ))) ) )
 
 (defn plug-unload-hook
   "Unloads the context-editor plugin.
