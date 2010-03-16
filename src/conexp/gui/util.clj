@@ -101,6 +101,13 @@
   `(defn ~name ~doc ~params
      (do-swing-return ~@body))))        ; TODO: allow adic overloading
 
+(defmacro defmethod-swing
+"Defines a multi function method that is surrounded by do-swing-return"
+[name dispatch-val params & body]
+`(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body))) ;TODO:
+                                        ; allow adic overloading
+
+
 (defmacro fn-swing
 "Returns a function that is surrounded by do-swing-return"
 [name params & body]
@@ -115,6 +122,13 @@
   `(defn ~name ~doc (with-swing-threads* ~params ~@body))
   `(defn ~name ~doc ~params
      (with-swing-threads* ~@body))))        ; TODO: allow adic overloading
+
+(defmacro defmethod-swing-threads*
+"Defines a multi function method that is surrounded by do-swing-return"
+[name dispatch-val params & body]
+`(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body))) ;TODO:
+                                        ; allow adic overloading
+
 
 (defmacro fn-swing-threads*
 "Returns a function that is surrounded by with-swing-threads*"

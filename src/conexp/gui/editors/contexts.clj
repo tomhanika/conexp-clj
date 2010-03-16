@@ -120,14 +120,14 @@
                  [:set-row-count 10]
                  [:set-column-count 10])
          toolbar (do-mk-toolbar-control :vert
-                   [:add-button 
-                     (do-mk-button "Copy" 
-                       (get-ui-icon "OptionPane.informationIcon")
-                       [:set-handler (fn [] (table-to-clipboard! table))])]
-                   [:add-button 
-                     (do-mk-button "Paste" 
-                       (get-ui-icon "OptionPane.informationIcon")
-                       [:set-handler (fn [] (clipboard-to-table! table))])]
+                 ;;  [:add-button 
+                 ;;    (make-button "Copy" 
+                 ;;      (get-ui-icon "OptionPane.informationIcon")
+                 ;;      [set-handler (fn [] (table-to-clipboard! table))])]
+                 ;;  [:add-button 
+                 ;;    (make-button "Paste" 
+                 ;;      (get-ui-icon "OptionPane.informationIcon")
+                 ;;      [set-handler (fn [] (clipboard-to-table! table))])]
                    ;[:add-button (JButton. "copy")])
                    )
          widget {:managed-by-conexp-gui-editors-util "context-editor"
@@ -570,7 +570,9 @@
 (def context-workspace-tree (ref nil))
 (def +debug+ (ref nil))
 (defn +debug-hook+ []
-  (doseq [x @+debug+] (!! x :associate-context ectx)))
+  (do
+    (doseq [x @+debug+] (!! x :associate-context ectx))
+          (message-box "TEST")))
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
@@ -619,25 +621,27 @@
     (dosync (ref-set context-workspace {}))
 
     (with-swing-threads
-      
-      (let [ workspace-tree (do-mk-tree-control "context workspace"
-                              [:set-selection-mode :single]
-                              [:set-selection-handler 
-                                (fn [x] (with-swing-threads
-                                          (message-box (vec (first x)))))])
+      (let [ workspace-tree (JRootPane.);(do-mk-tree-control "context workspace"
+                            ;  [:set-selection-mode :single]
+                            ;  [:set-selection-handler 
+                            ;    (fn [x] (with-swing-threads
+                            ;              (message-box (vec (first x)))))])
              left  workspace-tree
 ;;             right (do-mk-table-control [:set-column-count 12]
 ;;                                    [:set-row-count 5])
-             right (do-mk-context-editor)
-             right2 (do-mk-context-editor)
-             rpane (do-mk-split-pane :vert right right2
-                     [:set-divider-location 300])
+             right (JRootPane. );(do-mk-context-editor)
+             right2 (JRootPane.);(do-mk-context-editor)
+             rpane (JRootPane.);(do-mk-split-pane :vert right right2
+                   ;  [:set-divider-location 300])
              
              pane (do-mk-split-pane :horiz left rpane
-                    [:set-divider-location 200]) ]
+                    [:set-divider-location 200]) 
+             ]
         (do
+          (message-box "did let.")
           (add-tab-with-name-icon-tooltip frame (get-widget pane)
             "Contexts" nil "View and edit contexts")
+          (message-box "added tab.")
           (dosync-wait 
             (ref-set context-workspace-tree workspace-tree)
             (ref-set context-pane pane)

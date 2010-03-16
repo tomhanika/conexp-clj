@@ -96,9 +96,15 @@
    call giving all other vector elements as parameters, looking up the function
    in the function map"
   [fn_map call_seq]
-  (let [ call_vec (vec call_seq)
-         length   (count call_vec)]
-    (when (< 0 length) (apply (fn_map (call_vec 0)) (rest call_vec)))))
+  (let [ length   (count call_seq)]
+    (when (< 0 length) (apply (fn_map (first call_seq)) (rest call_seq)))))
+
+(defmacro apply-exprs
+  "Takes an object and a seq of vectors, such that each vectors first element
+   is a function that will be called with the object as first parameter and
+   the rest of the vector as subsequent parameters."
+  [object vectors]
+  `(doseq [call# ~vectors] (apply (first call#) ~object (rest call#))))
 
 (defn print-doc* [v]
   (println "-------------------------")
@@ -227,6 +233,10 @@
 ;; managed/unmanaged interop
 ;;
 
+(deftype widget [widget])
+(deftype control [widget control])
+
+
 
 (defn managed-by-conexp-gui-editors-util? 
   "Returns true if the object given as parameter is managed by the
@@ -235,8 +245,10 @@
    Parameters:
      thing       _object to check whether it is managed."
   [thing]
-  (and (map? thing)
+  (or
+    (and (map? thing)
     (contains? thing :managed-by-conexp-gui-editors-util)))
+    (isa? (type thing) ::widget))
 
 (defn get-widget
   "Returns the appropriate java root widget for managed java code or
@@ -254,7 +266,10 @@
    Parameters:
      obj         _object representing some java object"
   [obj]
-  (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))
+  (let [t (type obj)]
+    (if (isa? t ::control) (:control obj)
+      (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))))
+
 
 
 ;;
@@ -264,7 +279,35 @@
 ;;
 ;;
 ;;
-(defn-swing do-mk-button
+
+(deftype button [widget])
+(derive ::button ::widget)
+
+(defmulti set-handler
+  "is a multi method dispatched by the first parameters type.
+   
+  Sets the action handler for the button object.
+  Parameters:
+    obutton    _button object
+    handler    _0-ary function that will be called on button press"
+  (fn [x & rest] 
+    (cond
+      (isa? (type x) ::button) ::button)))
+
+(defmethod-swing-threads* 
+  set-handler ::button
+  [obutton handler]
+  (let [ button (:widget obutton)
+         current-handlers (.getActionListeners button)
+         listeners (extract-array current-handlers) ]
+    (doseq [l listeners] (.removeActionListener button l)))
+  (let [action (proxy [ActionListener] []
+                 (actionPerformed [event] 
+                   (handler)))]
+    (.addActionListener button action)))
+
+
+(defn-swing make-button
   "Creates a managed button object.
 
   Parameters:
@@ -273,26 +316,9 @@
     & setup  _an optional number of vectors that may contain additional
                   tweaks that are called after widget creation"
   [name icon & setup]
-  (let [ button (JButton. name icon)
-         widget { :managed-by-conexp-gui-editors-util "button"
-         :widget button
-         
-         :set-handler
-         (fn-swing-threads*-doc "Sets the action handler for the button object.
-  Parameters:
-    handler    _0-ary function that will be called on button press"
-           [handler]
-           (let [current-handlers (.getActionListeners button)
-                  listeners (extract-array current-handlers) ]
-             (doseq [l listeners] (.removeActionListener button l)))
-           (let [action (proxy [ActionListener] []
-                           (actionPerformed [event] 
-                             (handler)))]
-             (.addActionListener button action)))
-
-
-         }]
-      (doseq [x setup] (unroll-parameters-fn-map widget x)) 
+  (let [ jbutton (JButton. name icon)
+         widget (button jbutton)]
+      ;;(apply-exprs widget setup) 
       widget ))
 
    
@@ -334,7 +360,8 @@
          }
          ]
     (do
-      (doseq [x setup] (unroll-parameters-fn-map widget x))
+      (message-box "did")
+      ;(doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
 
 ;;
