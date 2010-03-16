@@ -26,16 +26,6 @@
 ;;; General purpose & macros
 ;;;
 
-(defmacro one-by-one
-  "Calls a function on each element of a collection.
-   Parameters:
-   coll    _collection of arguments
-   f       _function body that takes one parameter
-   " 
-  [coll & f]
-  `(loop [args# ~coll]
-     (if (empty? args#) nil (do (~@f (first args#))
-                              (recur (rest args#))))))
 
 (defmacro lambda
   "Takes the free argument as first parameter and the function value as
@@ -89,7 +79,7 @@
      (let [root# (~mk (first tree#))
             childs# (rest tree#)]
        (do
-         (one-by-one childs# (lambda (x#) (~do-add root# (mapper# x#))))
+         (doseq [x# childs#] (~do-add root# (mapper# x#)))
          root#))))
 
 (defmacro do-map-tree*
@@ -330,7 +320,7 @@
            [handler]
            (let [current-handlers (.getActionListeners button)
                   listeners (extract-array current-handlers) ]
-             (one-by-one listeners .removeActionListener button))
+             (doseq [l listeners] (.removeActionListener button l)))
            (let [action (proxy [ActionListener] []
                            (actionPerformed [event] 
                              (handler)))]
@@ -339,7 +329,7 @@
 
          }]
   (do
-      (one-by-one setup unroll-parameters-fn-map widget) 
+      (doseq [x setup] (unroll-parameters-fn-map widget x)) 
       widget )))
 
    
@@ -381,7 +371,7 @@
          }
          ]
     (do
-      (one-by-one setup unroll-parameters-fn-map widget) 
+      (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
 
 ;;
@@ -456,7 +446,7 @@
            
            (let [current-handlers (.getTreeSelectionListeners treecontrol)
                   listeners (extract-array current-handlers) ]
-             (one-by-one listeners .removeTreeSelectionListener treecontrol))
+             (doseq [l listeners] (.removeTreeSelectionListener treecontrol l)))
            (let [listener (proxy [TreeSelectionListener] []
                             (valueChanged [event] 
                               (with-swing-threads*
@@ -472,7 +462,7 @@
                                   (handler treepaths) ))))]
              (.addTreeSelectionListener treecontrol listener) ) ) }]
     (do
-      (one-by-one setup unroll-parameters-fn-map widget) 
+      (doseq [x setup] (unroll-parameters-fn-map widget x)) 
       widget )))
 
 ;;
@@ -503,13 +493,11 @@
              cells (vec (map (*comp (rho split #"\t") (rho vec))
                           (split-lines data)))
              lns (range (count cells))]
-        (one-by-one lns (fn [r] 
-                          (one-by-one (range (count (cells r)))
-                            (fn [c]
-                              (!! obj :set-index-at
-                                (row-index (+ starty r))
-                                (col-index (+ startx c))
-                                ((cells r) c))))))))))
+        (doseq [r lns]  (doseq [c (range (count (cells r)))]
+                          (!! obj :set-index-at
+                            (row-index (+ starty r))
+                            (col-index (+ startx c))
+                            ((cells r) c))))))))
 
 (defn-swing-threads* table-to-clipboard!
   "Takes a table widget as parameter and copies the current
@@ -881,8 +869,8 @@
                                     (!!!! widget :table-changed-hook 
                                       column first last type)))))]
         (.addTableModelListener model change-listener))
-      (one-by-one defaults unroll-parameters-fn-map widget)
-      (one-by-one setup unroll-parameters-fn-map widget)
+      (doseq [x defaults] (unroll-parameters-fn-map widget x))
+      (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
 
 ;;
@@ -937,8 +925,8 @@
          defaults []]
     (do
       (deliver self widget)
-      (one-by-one defaults unroll-parameters-fn-map widget)
-      (one-by-one setup unroll-parameters-fn-map widget)
+      (doseq [x defaults] (unroll-parameters-fn-map widget x))
+      (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
 
 nil

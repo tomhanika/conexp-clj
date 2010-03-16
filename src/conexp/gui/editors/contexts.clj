@@ -164,8 +164,8 @@
         (add (get-widget toolbar) BorderLayout/LINE_START))
       (.. root getContentPane
         (add (get-widget table)))
-      (one-by-one defaults unroll-parameters-fn-map widget)
-      (one-by-one setup unroll-parameters-fn-map widget)
+      (doseq [x defaults] (unroll-parameters-fn-map widget x))
+      (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
 
 
@@ -235,10 +235,11 @@
                                     (fn [w] (not= (w :table) table))
                                     @assoc-widgets)]
                (do
-                 (one-by-one other-widgets
-                   (fn [w] (!!!! (w :table) :extend-rows-to new-rows)))
-                 (one-by-one (range old-rows new-rows)
-                   (fn [x] (!! table :set-index-at x 0 "new object"))))))
+                 (doseq [w other-widgets] (!!!! (w :table) 
+                                            :extend-rows-to new-rows))
+                 (doseq [x (range old-rows new-rows)] (!! table 
+                                                        :set-index-at x 0 
+                                                        "new object")))))
 
            extend-columns-hook
            (fn-doc "This hook is called when the number of columns is extended
@@ -253,10 +254,10 @@
                                     (fn [w] (not= (w :table) table))
                                     @assoc-widgets)]
                (do
-                 (one-by-one other-widgets
-                   (fn [w] (!!!! (w :table) :extend-columns-to new-columns)))
-                 (one-by-one (range old-columns new-columns)
-                   (fn [x] (!! table :set-index-at 0 x "new attribute"))))))
+                 (doseq [w other-widgets]
+                   (!!!! (w :table) :extend-columns-to new-columns))
+                 (doseq [x (range old-columns new-columns)]
+                   (!! table :set-index-at 0 x "new attribute")))))
 
            update-incidence
            (fn-doc "This function updates the incidence relation.
@@ -388,9 +389,9 @@
                                     (fn [w] (not= (w :table) table))
                                     @assoc-widgets)]
                (do
-                 (one-by-one other-widgets 
-                   (fn [w] (!! (w :table) :update-index-at 
-                             row column good-value)))
+                 (doseq [w other-widgets]
+                   (!! (w :table) :update-index-at 
+                             row column good-value))
                  good-value)))
             
 
@@ -436,19 +437,18 @@
                    (!! table :set-column-count (+ 1 attr-count))
                    (!! table :set-row-count (+ 1 obj-count))
                    (!! table :set-index-at 0 0 "")
-                   (one-by-one attrs
-                     (fn [x] (let [column (attrib-cols x)]
-                               (!! table :set-index-at 0 column x))))
-                   (one-by-one objs
-                     (fn [x] (let [row (object-rows x)]
-                               (!! table :set-index-at row 0 x))))
-                   (one-by-one attrs
-                     (fn [a] (one-by-one objs
-                               (fn [o] 
+                   (doseq [x attrs]
+                     (let [column (attrib-cols x)]
+                               (!! table :set-index-at 0 column x)))
+                   (doseq [x objs]
+                     (let [row (object-rows x)]
+                               (!! table :set-index-at row 0 x)))
+                   (doseq [a attrs]
+                    (doseq [o objs]
                                  (let [ row (object-rows o)
                                         column (attrib-cols a)]
                                    (!! table :set-index-at row column 
-                                     (get-cross o a)))))))))))
+                                     (get-cross o a)))))))))
 
            
 
@@ -507,8 +507,8 @@
              (let [ widgets @assoc-widgets
                     tables  (map :table widgets)]
                (dosync
-                 (one-by-one tables set-table-extents)
-                 (one-by-one tables fill-table-widget))))
+                 (doseq [t tables] (set-table-extents t))
+                 (doseq [t tables] (fill-table-widget t)))))
 
            :remove-widget-
            (fn-doc "Removes a widget from associated widgets.
@@ -570,7 +570,7 @@
 (def context-workspace-tree (ref nil))
 (def +debug+ (ref nil))
 (defn +debug-hook+ []
-  (one-by-one @+debug+ (fn [x] (!! x :associate-context ectx))))
+  (doseq [x @+debug+] (!! x :associate-context ectx)))
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
