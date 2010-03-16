@@ -27,18 +27,6 @@
 ;;;
 
 
-(defmacro lambda
-  "Takes the free argument as first parameter and the function value as
-    following parameters as function body, i.e.
-
-
-     ( lambda (x y) (do (print x) (* x y)) ) 
-
-    will produce a function that takes 2 parameters, prints the first one
-    and returns the product of them.
-   " 
-  [parameter & body]
-  `(fn [~@parameter] ~@body ))
 
 (defmacro rho
   "Takes an block that defines a function by omitting its last parameter
@@ -46,11 +34,11 @@
   [ & body ]
   `(fn [x#] (~@body x#)))
 
-(defmacro *comp
+(defn *comp
   "Takes some functions and returns the covariant function composition
     of them"
   [& fns]
-  `(comp ~@(reverse fns)))
+  (apply comp (reverse fns)))
 
 (defmacro dosync-wait
   "Returns a dosync block that will block until the operation
@@ -58,9 +46,8 @@
    be returned."
   [ & body]
   `(let [waiting# (promise)]
-     (do
-       (dosync (deliver waiting# (do ~@body)))
-       (deref waiting#))))
+     (dosync (deliver waiting# (do ~@body)))
+     (deref waiting#)))
 
 (defmacro do-map-tree
   "Returns a function that maps a named list tree using the given functions
@@ -78,9 +65,8 @@
   `(fn mapper# [tree#]
      (let [root# (~mk (first tree#))
             childs# (rest tree#)]
-       (do
-         (doseq [x# childs#] (~do-add root# (mapper# x#)))
-         root#))))
+       (doseq [x# childs#] (~do-add root# (mapper# x#)))
+       root#)))
 
 (defmacro do-map-tree*
   "Maps a named list tree using the given functions to a new tree structure,
@@ -97,39 +83,22 @@
   [mk do-add tree]
   `((do-map-tree ~mk ~do-add) ~tree))
 
-(defmacro unroll-parameters
+(defn unroll-parameters
   "Takes a vector that has a function as first argument and does a function
    call giving all other vector elements as parameters."
-  [call_vec]
-  `(let [ vec# ~call_vec
-          count# (count vec#)
-          ]
-     (cond 
-       (= count# 0) nil
-       (= count# 1) ((vec# 0))
-       (= count# 2) ((vec# 0) (vec# 1))
-       (= count# 3) ((vec# 0) (vec# 1) (vec# 2))
-       (= count# 4) ((vec# 0) (vec# 1) (vec# 2) (vec# 3))
-       (= count# 5) ((vec# 0) (vec# 1) (vec# 2) (vec# 3) (vec# 4))
-       (= count# 6) ((vec# 0) (vec# 1) (vec# 2) (vec# 3) (vec# 4) (vec# 5)))))
+  [call_seq]
+  (let [ call_vec (vec call_seq)
+         length   (count call_vec)]
+    (when (< 0 length) (apply (call_vec 0) (rest call_vec)))))
 
-(defmacro unroll-parameters-fn-map
+(defn unroll-parameters-fn-map
   "Takes a vector that has a function as first argument and does a function
    call giving all other vector elements as parameters, looking up the function
    in the function map"
-  [fn_map call_vec]
-  `(let [ vec# ~call_vec
-          count# (count vec#)
-          ]
-     (cond 
-       (= count# 0) nil
-       (= count# 1) ((~fn_map (vec# 0)))
-       (= count# 2) ((~fn_map (vec# 0)) (vec# 1))
-       (= count# 3) ((~fn_map (vec# 0)) (vec# 1) (vec# 2))
-       (= count# 4) ((~fn_map (vec# 0)) (vec# 1) (vec# 2) (vec# 3))
-       (= count# 5) ((~fn_map (vec# 0)) (vec# 1) (vec# 2) (vec# 3) (vec# 4))
-       (= count# 6) ((~fn_map (vec# 0)) (vec# 1) (vec# 2) (vec# 3) (vec# 4)
-                      (vec# 5)))))
+  [fn_map call_seq]
+  (let [ call_vec (vec call_seq)
+         length   (count call_vec)]
+    (when (< 0 length) (apply (fn_map (call_vec 0)) (rest call_vec)))))
 
 (defn print-doc* [v]
   (println "-------------------------")
@@ -190,11 +159,6 @@
    with the widget as first parameter and the given additional parameters"
   [map key & parameters]
   `(((~map :handler) ~key) ~map ~@parameters))
-
-(defmacro map!
-  "Just like map, but not lazy."
-  [f & colls]
-   `(seq (map ~f ~@colls)))
 
 
 ;;;
@@ -328,9 +292,8 @@
 
 
          }]
-  (do
       (doseq [x setup] (unroll-parameters-fn-map widget x)) 
-      widget )))
+      widget ))
 
    
 
