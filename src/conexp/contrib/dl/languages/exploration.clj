@@ -20,7 +20,7 @@
 
 ;;;
 
-(defn induced-context
+(defn- induced-context
   "Returns context induced by the set of concept descriptions and the
   given model."
   [descriptions model]
@@ -95,11 +95,11 @@
   backround knowledge (a set of implications between sets of
   concepts)."
   [subs background-knowledge]
-  (for [susu (map #(abbreviate-subsumption % background-knowledge) subs),
-	:when (not (obviously-true? susu))]
-    susu))
+  (map #(abbreviate-subsumption % background-knowledge)
+       (filter #(not (obviously-true? %))
+	       subs)))
 
-;;;
+;;; exploration
 
 (defn explore-model
   "Model exploration algorithm."
@@ -120,6 +120,7 @@
 		Pi_k  [],
 		P_k   #{},
 		model initial-model,
+		implications #{},
 		background-knowledge #{}]
 	   (if (nil? P_k)
 	     ;; then return set of implications
@@ -129,7 +130,7 @@
 			  mc-all-P (make-dl-expression language (model-closure model all-P))]
 		    :when (not= all-P mc-all-P)]
 		(make-subsumption all-P mc-all-P))
-	      background-knowledge)
+	      (union implications background-knowledge))
 
 	     ;; else search for next implication
 	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
@@ -158,9 +159,9 @@
 		   next-P_k   (next-closed-set next-M_k
 					       (clop-by-implications (union implications background-knowledge))
 					       P_k)]
-	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model background-knowledge))))))))
+	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model implications background-knowledge))))))))
 
-;;;
+;;; gcis
 
 (defn model-gcis
   "Returns a complete and sound set of gcis holding in model."

@@ -99,7 +99,7 @@
        riding-model #{RechtesVorderrad LinkesHinterrad}
        riding-model #{MeinFahrrad}))
 
-(deftest test-simulator-sets)
+(deftest test-simulator-sets)		;needed?
 
 ;;;
 
