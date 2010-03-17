@@ -89,16 +89,6 @@
     (make-subsumption (make-dl-expression language (cons 'and premise-args))
 		      (make-dl-expression language (cons 'and (difference conclusion-args premise-args))))))
 
-(defn- clarify-subsumption-seq
-  "Removes all sumsumptions with equal subsumee and subsumer from the
-  seq of given subsumptions, abbreviating subsumptions with given
-  backround knowledge (a set of implications between sets of
-  concepts)."
-  [subs background-knowledge]
-  (map #(abbreviate-subsumption % background-knowledge)
-       (filter #(not (obviously-true? %))
-	       subs)))
-
 ;;; exploration
 
 (defn explore-model
@@ -124,13 +114,15 @@
 		background-knowledge #{}]
 	   (if (nil? P_k)
 	     ;; then return set of implications
-	     (clarify-subsumption-seq
-	      (for [P Pi_k
-		    :let [all-P    (make-dl-expression language (cons 'and P)),
-			  mc-all-P (make-dl-expression language (model-closure model all-P))]
-		    :when (not= all-P mc-all-P)]
-		(make-subsumption all-P mc-all-P))
-	      (union implications background-knowledge))
+	     (let [implicational-knowledge (union implications background-knowledge)]
+	       (for [P Pi_k
+		     :let [all-P    (make-dl-expression language (cons 'and P)),
+			   mc-all-P (make-dl-expression language (model-closure model all-P))]
+		     :when (not (subsumed-by? all-P mc-all-P))
+		     :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
+							implicational-knowledge)]
+		     :when (not (empty? (arguments (subsumer susu))))]
+		 susu))
 
 	     ;; else search for next implication
 	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
@@ -139,7 +131,9 @@
 							     (make-dl-expression language
 										 (model-closure model all-P_k)))]
 				  (if (or (obviously-true? susu)
-					  (not (expert-refuses? susu)))
+					  (not (expert-refuses?
+						(abbreviate-subsumption susu
+									(union implications background-knowledge)))))
 				    model
 				    (recur (extend-model-by-contradiction model susu))))),
 		   next-M_k   (extend-attributes M_k (set-of (dl-expression language
@@ -148,10 +142,9 @@
 		   next-K     (induced-context next-M_k next-model),
 		   next-Pi_k  (conj Pi_k P_k),
 
-		   implications (set-of impl
-					[P_l next-Pi_k
-					 :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
-					 :when (not (empty? (conclusion impl)))])
+		   implications (set-of impl [P_l next-Pi_k
+					      :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
+					      :when (not (empty? (conclusion impl)))])
 		   background-knowledge (set-of (make-implication #{C} #{D})
 						[C next-M_k, D next-M_k
 						 :when (and (not= C D) (subsumed-by? C D))])
