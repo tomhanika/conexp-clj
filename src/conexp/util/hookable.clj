@@ -19,12 +19,13 @@
   Parameters:
     ohookable   _hookable object
     name        _key for the hook
-    function    _a function that will be assigned to the hook")
+    function    _a function that will be assigned to the hook
+    doc-str     _a documentation string for the hook")
 
 (defmethod add-hook ::hookable
-  [ohookable name function]
+  [ohookable name function doc-str]
   (let [ hooks (:hooks ohookable) ]
-    (dosync-wait (commute hooks conj {name function}))))
+    (dosync-wait (commute hooks conj {name (list function doc-str)}))))
 
 (inherit-multimethod set-hook ::hookable
   "Sets a hook in the hooksmap, throws if this hook doesn't exist.
@@ -38,7 +39,11 @@
   [ohookable name function]
   (let [ hooks (:hooks ohookable) ]
     (if (contains? @hooks name)
-      (dosync-wait (commute hooks conj {name function}))
+      (dosync-wait (commute hooks 
+                     (fn [h]
+                       (let [ doc-str (second (h name))
+                              fun-str (list function doc-str)]
+                         conj h {name fun-str}))))
       (illegal-argument (str "set-hook " name " to " function " for "
                           ohookable " failed: hook undefined")))))
 
@@ -55,9 +60,26 @@
   (let [ hooks (:hooks ohookable)
          hookmap @hooks]
     (if (contains? hookmap name)
-      (apply (hookmap name) args)
+      (apply (first (hookmap name)) args)
       (illegal-argument (str "call-hook " name " for "
                           ohookable " failed: hook undefined")))))
+
+(inherit-multimethod doc-hook ::hookable
+  "Looks up a hook in the hooksmap and returns its doc-str,
+   returns :not-found if this hook doesn't exist.
+
+  Parameters:
+    ohookable   _hookable object
+    name        _key for the hook")
+
+(defmethod doc-hook ::hookable
+  [ohookable name]
+  (let [ hooks (:hooks ohookable)
+         hookmap @hooks]
+    (if (contains? hookmap name)
+      (second (hookmap name))
+      :not-found)))
+
 
 (defn make-hookable
   "Creates an empty hookable object."

@@ -17,6 +17,7 @@
   (:use conexp.gui.plugins.base
     conexp.gui.util
     conexp.util
+    conexp.util.hookable
     clojure.contrib.swing-utils
     conexp.gui.editors.util
     conexp.fca
@@ -576,10 +577,7 @@
 (def context-workspace (ref nil))
 (def context-workspace-tree (ref nil))
 (def +debug+ (ref nil))
-(defn +debug-hook+ []
-  (do
-    (doseq [x @+debug+] (!! x :associate-context ectx))
-          ))
+(defn +debug-hook+ [] nil)
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
@@ -638,7 +636,8 @@
 ;;                                    [:set-row-count 5])
              right (do-mk-context-editor)
              right2 (do-mk-context-editor)
-             rpane (make-split-pane :vert right right2
+             right3 (make-table-control)
+             rpane (make-split-pane :vert right right3
                      [set-divider-location 300])
              
              pane (make-split-pane :horiz left rpane
@@ -650,7 +649,7 @@
           (dosync-wait 
             (ref-set context-workspace-tree workspace-tree)
             (ref-set context-pane pane)
-            (ref-set +debug+ [right right2])) 
+            (ref-set +debug+ right3)) 
           (+debug-hook+)
           ))) ) )
 

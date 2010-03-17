@@ -21,6 +21,7 @@
   (:use clojure.contrib.swing-utils
     conexp.gui.util
     conexp.util
+    conexp.util.hookable
     [clojure.contrib.string :only (join split-lines split)]))
 
 ;;;
@@ -471,7 +472,574 @@
 
 (deftype table-control [widget control hooks model])
 (derive ::table-control ::control)
-(derive ::table-control ::hookable)
+(derive ::table-control :conexp.util.hookable/hookable)
+
+;; (defn-swing do-mk-table-control
+;;   "Creates a table control in Java.
+
+;;   Parameters:
+;;      & setup     _an optional number of vectors that may contain additional
+;;                   tweaks that are called after widget creation"
+;;   [& setup]
+;;   (let [ self  (promise)
+;;          model (DefaultTableModel.)
+;;          table (JTable. model)
+;;          keystroke-copy (KeyStroke/getKeyStroke KeyEvent/VK_C
+;;                           ActionEvent/CTRL_MASK false)
+;;          keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
+;;                            ActionEvent/CTRL_MASK false)
+;;          pane  (JScrollPane. table 
+;;                  JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
+;;                  JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED)
+;;          widget {:managed-by-conexp-gui-editors-util "table-control"
+
+;;          :widget   pane
+;;          :control  table
+;;          :model    model
+;;          :handler  (ref {})
+
+(inherit-multimethod get-row-count ::table-control
+  "Returns the number of rows of the table control.
+
+  Parameters:
+    otable-control    _table-control object")
+
+(defmethod-swing 
+  get-row-count ::table-control
+  [otable-control]
+  (.getRowCount (get-control otable-control)))
+
+
+(inherit-multimethod get-column-count ::table-control
+  "Returns the number of columns of the table control.
+
+  Parameters:
+    otable-control    _table-control object")
+
+(defmethod-swing 
+  get-column-count ::table-control
+  [otable-control]
+  (.getColumnCount (get-control otable-control)))
+
+
+(inherit-multimethod set-column-count ::table-control
+  "Sets the number of columns of the table control.
+
+  Parameters:
+    otable-control    _table-control object
+    count             _number of columns")
+
+(defmethod-swing 
+  set-column-count ::table-control
+  [otable-control count]
+  (.setColumnCount (:model otable-control) count))
+
+
+(inherit-multimethod set-row-count ::table-control
+  "Sets the number of rows of the table control.
+
+  Parameters:
+    otable-control    _table-control object
+    count             _number of rows")
+
+(defmethod-swing 
+  set-row-count ::table-control
+  [otable-control count]
+  (.setRowCount (:model otable-control) count))
+
+
+
+(inherit-multimethod register-keyboard-action ::table-control
+  "Registers a keyboard action on the table.
+  Parameters:
+    otable     _table-control object
+    handler    _function that will be called when the keystroke is hit,
+                it will be given the table-control object as single parameter
+    name       _name of the handler (implicit str)
+    keystroke  _a corresponding keystroke object
+    condition  _can be either :focus, :widget, or :ancestor
+                (determines which widget has to be focused to trigger the
+                 action)")
+
+(defmethod-swing-threads*
+  register-keyboard-action ::table-control
+  [otable handler name keystroke condition]
+  (let [ java-condition ({:focus JComponent/WHEN_FOCUSED
+                          :widget JComponent/WHEN_IN_FOCUSED_WINDOW
+                          :ancestor JComponent/WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+                          } condition)
+         widget otable
+         table (get-control otable)
+         action (proxy [AbstractAction ActionListener] []
+                  (actionPerformed [event] 
+                    (handler widget)))
+         input-map (.getInputMap table java-condition)
+         action-map (.getActionMap table)
+         cmd-name (str name)]             
+    (.put input-map keystroke cmd-name)
+    (.put action-map cmd-name action)))
+
+(inherit-multimethod get-column-index ::table-control
+  "Returns the tables model index of the specified column in the view.
+
+  Parameters:
+    otable    _table-control object
+    column    _viewport column")
+
+(defmethod-swing
+  get-column-index ::table-control
+  [otable column]
+  (let [ table (get-control otable)
+         col-count (.getColumnCount table) ]
+    (if (>= column col-count) column
+      (let [ col-model (.getColumnModel table)
+             table-col (.getColumn col-model column) ]
+        (.getModelIndex table-col)))))
+
+(inherit-multimethod get-index-column ::table-control
+ "Returns the column in the view that corresponds to the specified
+  table model index.
+
+  Parameters:
+    otable    _table-control object
+    index     _table model index")
+
+(defmethod-swing
+  get-index-column ::table-control
+  [otable index]
+  (let [ table (get-control otable)
+         col-model (.getColumnModel table)
+         cols (range (.getColumnCount col-model))
+         matching (filter (fn [x] (= index (.getModelIndex 
+                                             (.getColumn col-model x))))
+                    cols)
+         found  (first matching)]
+    (if found found index)))
+
+
+(inherit-multimethod get-row-index ::table-control
+  "Returns the tables model index of the specified row in view.
+  Parameters:
+    row      _viewport row")
+
+(defmethod 
+  get-row-index ::table-control
+  [otable row]
+  row)
+
+
+(inherit-multimethod get-index-row ::table-control
+  "Returns the row in the view that corresponds
+  to the specified table model index.
+
+  Parameters:
+    otable    _table-control object
+    index     _table model index")
+
+(defmethod 
+  get-index-row ::table-control
+  [otable index]
+  index)
+
+
+(inherit-multimethod get-row-index-permutator ::table-control
+  "Returns a function that will map the current view rows to
+   the according index values.
+  
+  Parameters:
+    otable    _table-control object")
+
+(defmethod
+  get-row-index-permutator ::table-control
+  [otable] identity)
+
+
+(inherit-multimethod get-column-index-permutator ::table-control
+  "Returns a function that will map the current view
+    columns to the according index values.
+  
+  Parameters:
+    otable    _table-control object")
+
+(defmethod-swing
+  get-column-index-permutator ::table-control
+  [otable]
+  (let [ table (get-control otable)
+         col-count (.getColumnCount table)
+         col-range (range col-count)
+         col-model (.getColumnModel table)
+         col-map  (zipmap col-range (map (*comp
+                                           (rho .getColumn col-model)
+                                           (rho .getModelIndex))
+                                      col-range)) ]
+    (fn [i] (if (>= i col-count) i (col-map i)))))
+
+
+(inherit-multimethod get-value-at-view ::table-control
+  "Returns the value of the cell at specified position in view.
+
+   Parameters:
+     otable     _table-control object
+     row        _row of the cell
+     column     _column of the cell")
+
+(defmethod-swing
+  get-value-at-view ::table-control
+  [otable row column]
+  (let [ table (get-control otable) ]
+    (.getValueAt table row column)))
+
+
+(inherit-multimethod get-value-at-index ::table-control
+  "Returns the value of the cell at specified position in the table model.
+
+   Parameters:
+     otable     _table-control object
+     row        _row of the cell
+     column     _column of the cell")
+
+(defmethod
+  get-value-at-index ::table-control
+  [otable row column]
+  (let [ irow (get-index-row otable row)
+         icolumn (get-index-column otable column)]
+    (get-value-at-view otable irow icolumn)))
+
+
+
+ (inherit-multimethod set-resize-mode ::table-control
+   "Sets the behaviour of the table on resize.
+    Parameters:
+      otable    _table-control object
+      mode      _either :all, :last, :next, :off, or :subseq")
+
+(defmethod-swing-threads*
+  set-resize-mode ::table-control
+  [otable mode]
+  (.setAutoResizeMode (get-control otable)
+    ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
+      :last JTable/AUTO_RESIZE_LAST_COLUMN
+      :next JTable/AUTO_RESIZE_NEXT_COLUMN
+      :off JTable/AUTO_RESIZE_OFF
+      :subseq JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS} mode)))
+
+
+(inherit-multimethod set-cell-selection-mode ::table-control
+  "Sets the cell selection mode.
+   Parameters:
+     otable    _table-control object
+     mode      _either :none, :rows, :columns or :cells")
+
+(defmethod-swing-threads*
+  set-cell-selection-mode ::table-control
+  [otable mode]
+  (let [table (get-control otable)]
+    (cond (= mode :none) (.setCellSelectionEnabled table false)
+      (= mode :rows) (doto table (.setColumnSelectionAllowed false)
+                       (.setRowSelectionAllowed true))
+      (= mode :columns) (doto table (.setRowSelectionAllowed false)
+                          (.setColumnSelectionAllowed true))
+      (= mode :cells) (.setCellSelectionEnabled table true))))
+  
+(inherit-multimethod set-value-at-view ::table-control
+  "Sets the value of a cell in the table according to a view position.
+   Parameters:
+     otable     _table-control object
+     row        _integer identifying a row
+     column     _integer identifying a column
+     contents   _the new contents")
+
+(defmethod-swing
+  set-value-at-view ::table-control
+  [otable row column contents]
+  (let [ columns (get-column-count otable)
+         rows  (get-row-count otable) ]
+    (if (>= column columns)
+      (call-hook otable "extend-columns-to" (+ 1 column)))
+    (if (>= row rows)
+      (call-hook otable "extend-rows-to" (+ 1 row)))
+    (.setValueAt (get-control otable) (str contents) row column)))
+
+
+(inherit-multimethod set-value-at-index ::table-control
+  "Sets the value of a cell in the table according to the model index.
+   Parameters:
+     otable     _table-control object
+     row        _integer identifying a row
+     column     _integer identifying a column
+     contents   _the new contents")
+
+(defmethod
+  set-value-at-index ::table-control
+  [otable row column contents]
+  (set-value-at-view otable (get-index-row otable row)
+    (get-index-column otable column) contents))
+
+
+(inherit-multimethod update-value-at-index ::table-control
+  "Sets the value of a cell in the table according to the model index,
+   if it is different from the current cells value.
+   Parameters:
+     otable     _table-control object
+     row        _integer identifying a row
+     column     _integer identifying a column
+     contents   _the new contents")
+
+(defmethod
+  update-value-at-index ::table-control
+  [otable row column contents]
+  (let [ current (get-value-at-index otable row column) ]
+    (if (not= current contents)
+      (set-value-at-index otable row column contents))))
+
+
+(inherit-multimethod paste-from-clipboard ::table-control
+  "Pastes the current system clipboard contents into the table.
+
+   Parameters:
+     otable    _table-control object")
+
+(defmethod-swing-threads*
+  paste-from-clipboard ::table-control
+  [obj] 
+  (let [control (get-control obj)
+         sel-columns ((*comp (rho .getSelectedColumns)  extract-array)
+                       control)
+         sel-rows ((*comp (rho .getSelectedRows) extract-array)
+                    control)
+         col-index (get-column-index-permutator obj)
+         row-index (get-row-index-permutator obj)]
+    (if (or (empty? sel-columns) (empty? sel-rows)) nil
+      (let [data (str (get-clipboard-contents))
+             startx (first sel-columns)
+             starty (first sel-rows)
+             cells (vec (map (*comp (rho split #"\t") (rho vec))
+                          (split-lines data)))
+             lns (range (count cells))]
+        (doseq [r lns]  (doseq [c (range (count (cells r)))]
+                          (set-value-at-index obj
+                            (row-index (+ starty r))
+                            (col-index (+ startx c))
+                            ((cells r) c))))))))
+
+(inherit-multimethod copy-to-clipboard ::table-control
+  "Copies the selected cells from the table widget to the system
+   clipboard.
+  
+   Parameters:
+     otable    _table-control object")
+
+(defmethod-swing-threads* 
+  copy-to-clipboard ::table-control
+  [obj] 
+  (let [control (get-control obj)
+         sel-columns ((*comp (rho .getSelectedColumns) extract-array)
+                       control)
+         sel-rows ((*comp (rho .getSelectedRows) extract-array)
+                    control)
+         sel-pairs (map (fn [y] (map (fn [x] (list y x)) sel-columns))
+                     sel-rows)
+         sel-values (map (fn [l] (map (fn [p] (str (get-value-at-view obj
+                                                     (first p) 
+                                                     (second p)))) l))
+                      sel-pairs)
+         sel-lines (map (rho join "\t") sel-values)
+         selection (join "\n" sel-lines)]
+    (set-clipboard-contents selection)))
+
+;;          }
+;;          defaults [ [:set-resize-mode :off] 
+;;                     [:set-cell-selection-mode :cells]
+;;                     [:register-keyboard-action 
+;;                       table-to-clipboard!
+;;                       "Copy" keystroke-copy :focus] 
+;;                     [:register-keyboard-action 
+;;                       clipboard-to-table!
+;;                       "Paste" keystroke-paste :focus]
+;;                     [:set-handler :set-cell-value
+;;                       (fn-swing-threads*-doc "Sets the value of a cell in the table.
+;;   Parameters:
+;;     widget     _the widget object
+;;     row        _integer identifying a row
+;;     column     _integer identifying a column
+;;     contents   _the new contents"
+;;                         [widget row column contents]
+;;                         (let [ columns (!! widget :get-column-count)
+;;                                rows    (!! widget :get-row-count)]
+;;                           (do
+;;                             (if (>= column columns)
+;;                               (!!!! widget :extend-columns-to (+ 1 column)))
+;;                             (if (>= row rows)
+;;                               (!!!! widget :extend-rows-to (+ 1 row)))
+;;                             (.setValueAt (get-control widget) 
+;;                               (str contents) 
+;;                               row column))))]
+;;                     [:set-handler :set-cell-value-hook
+;;                       (fn-doc "This hook takes requested contents and turns them into
+;;   allowed contents.
+
+;;   Parameters:
+;;     widget     _the widget object
+;;     row        _integer identifying a row
+;;     column     _integer identifying a column
+;;     contents   _the desired new contents
+
+;;   Returns the new allowed contents for the cell (as string)."
+;;                         [widget row column contents]
+;;                         contents)]
+;;                     [:set-handler :extend-columns-to
+;;                       (fn-swing-doc "Extends the current table to have (at least) the
+;;   specified number of columns.
+  
+;;   Parameters:
+;;     widget     _the widget object
+;;     columns    _desired number of columns"
+;;                         [widget columns]
+;;                         (let [old-columns (!! widget :get-column-count)]
+;;                           (if (< old-columns columns)
+;;                             (do
+;;                               (!! widget :set-column-count columns)
+;;                               (!!!! widget :extend-columns-hook old-columns columns)))))]
+;;                     [:set-handler :extend-rows-to
+;;                       (fn-swing-doc "Extends the current table to have (at least) the
+;;   specified number of rows.
+  
+;;   Parameters:
+;;     widget     _the widget object
+;;     rows    _desired number of rows"
+;;                         [widget rows]
+;;                         (let [old-rows (!! widget :get-row-count)]
+;;                           (if (< old-rows rows)
+;;                             (do
+;;                               (!! widget :set-row-count rows)
+;;                               (!!!! widget :extend-rows-hook old-rows rows)))))]                    
+;;                     [:set-handler :extend-rows-hook 
+;;                       (fn-doc "Dummy extend hook" [widget old-rows new-rows] nil)]
+;;                     [:set-handler :extend-columns-hook 
+;;                       (fn-doc "Dummy extend hook" [widget old-columns new-columns] nil)]
+;;                     [:set-handler :table-changed-hook
+;;                       (fn-doc "Table changed hook, we only catch single-cell-change-events here.
+;;   Parameters:
+;;     widget    _the tables widget object
+;;     column    _the altered column, -1 means all columns
+;;     first-row _the first altered row, -1 means all rows
+;;     last-row  _the last altered row, -1 means all rows
+;;     type      _0 means update, 1 insert and -1 delete" 
+;;                         [widget column first-row last-row type] 
+;;                         (if (and
+                          
+;;                               (= 0 type)
+;;                               (<= 0 (min column first-row last-row))
+;;                               (= first-row last-row))
+;;                            (let [ current-value (!! widget :get-value-at-index first-row column)
+;;                                    good-value (!!!! widget :set-cell-value-hook 
+;;                                                 first-row column current-value)]
+;;                               (if (not= current-value good-value)
+;;                                 (!! widget :set-value-at-index first-row column good-value)))))]
+
+;;                     ]]
+;;     (do
+;;       (deliver self widget)
+;;       (let [change-listener (proxy [TableModelListener] [] 
+;;                               (tableChanged [event]
+;;                                 (with-swing-threads*
+;;                                   (let [ column (.getColumn event)
+;;                                          first  (.getFirstRow event)
+;;                                          last   (.getLastRow event)
+;;                                          type   (.getType event)]
+;;                                     (!!!! widget :table-changed-hook 
+;;                                       column first last type)))))]
+;;         (.addTableModelListener model change-listener))
+;;       (doseq [x defaults] (unroll-parameters-fn-map widget x))
+;;       (doseq [x setup] (unroll-parameters-fn-map widget x))
+;;       widget )))
+
+(defn- table-change-hook
+  [otable column first-row last-row type] 
+  (if (and
+        (= 0 type)
+        (<= 0 (min column first-row last-row))
+        (= first-row last-row))
+    (let [ current-value (get-value-at-index otable first-row column)
+           good-value (call-hook otable "cell-value" first-row column
+                        current-value)]
+      (if (not= current-value good-value)
+        (set-value-at-index otable first-row column good-value)))))
+
+
+
+(defn-swing make-table-control
+  "Creates a table control in Java.
+
+  Parameters:
+     & setup     _an optional number of vectors that may contain additional
+                  tweaks that are called after widget creation"
+  [ & setup ]
+  (let [ model (DefaultTableModel.)
+         table (JTable. model)
+         pane  (JScrollPane. table 
+                 JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
+                 JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED)
+
+         keystroke-copy (KeyStroke/getKeyStroke KeyEvent/VK_C
+                          ActionEvent/CTRL_MASK false)
+         keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
+                           ActionEvent/CTRL_MASK false)
+
+
+         hooks (:hooks (make-hookable))
+         widget (table-control pane table hooks model) 
+         change-listener (proxy [TableModelListener] [] 
+                           (tableChanged [event]
+                             (with-swing-threads*
+                               (let [ column (.getColumn event)
+                                      first  (.getFirstRow event)
+                                      last   (.getLastRow event)
+                                      type   (.getType event)]
+                                 (call-hook widget "table-changed"
+                                   column first last type)))))
+         defaults [ [set-resize-mode :off] 
+                    [set-cell-selection-mode :cells]
+                    [register-keyboard-action 
+                      copy-to-clipboard "Copy" keystroke-copy :focus] 
+                    [register-keyboard-action 
+                      paste-from-clipboard "Paste" keystroke-paste :focus]]]
+    (add-hook widget "table-changed" 
+      (fn [c f l t] (table-change-hook widget c f l t))
+      "This hook is called whenever a table widget is changed,
+       Parameters:
+             column   _the column index of the changed area
+             first    _the first row index of the changed area 
+             last     _the last row index of the changed area
+             type     _(-1,0, or 1) delete, update, insert")       
+    (add-hook widget "extend-columns-to" (rho set-column-count widget)
+      "This hook is called whenever the table needs to extend its
+       columns in order to write to a cell. The hook is supposed
+       to call set-column-count on the table widget.
+       Parameters:
+             columns  _the requested column count")
+    (add-hook widget "extend-rows-to" (rho set-row-count widget)
+      "This hook is called whenever the table needs to extend its
+       rows in order to write to a cell. The hook is supposed
+       to call set-row-count on the table widget.
+       Parameters:
+             rows  _the requested column count")
+    (add-hook widget "cell-value" (fn [_ _ contents] contents)
+      "This hook is called to validate the cells value. The hook is
+       supposed to return a valid cell value for that cell index.
+       Parameters:
+             row      _the cell's row index
+             column   _the cell's column index
+             contents _the requested (new) contents of the cell")
+    (.addTableModelListener model change-listener)
+    (apply-exprs widget defaults)
+    (apply-exprs widget setup)
+    widget ))
+
+;;
+;; old
+;;
+
 
 (defn-swing-threads* clipboard-to-table!
   "Takes a table widget as parameter and will paste the current
