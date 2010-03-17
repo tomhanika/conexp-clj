@@ -41,15 +41,6 @@
   [& fns]
   (apply comp (reverse fns)))
 
-(defmacro dosync-wait
-  "Returns a dosync block that will block until the operation
-   has been carried out, the last value of the body will
-   be returned."
-  [ & body]
-  `(let [waiting# (promise)]
-     (dosync (deliver waiting# (do ~@body)))
-     (deref waiting#)))
-
 (defmacro do-map-tree
   "Returns a function that maps a named list tree using the given functions
    to a new tree structure, utilizing side effects heavily.
@@ -478,6 +469,10 @@
 ;;
 ;;
 
+(deftype table-control [widget control hooks model])
+(derive ::table-control ::control)
+(derive ::table-control ::hookable)
+
 (defn-swing-threads* clipboard-to-table!
   "Takes a table widget as parameter and will paste the current
    clipboard contents in the cell block marked by the current
@@ -500,7 +495,7 @@
                           (split-lines data)))
              lns (range (count cells))]
         (doseq [r lns]  (doseq [c (range (count (cells r)))]
-                          (!! obj :set-index-at
+                          (!! obj :set-value-at-index
                             (row-index (+ starty r))
                             (col-index (+ startx c))
                             ((cells r) c))))))))
@@ -518,7 +513,7 @@
                     control)
          sel-pairs (map (fn [y] (map (fn [x] (list y x)) sel-columns))
                      sel-rows)
-         sel-values (map (fn [l] (map (fn [p] (str (!! obj :get-value-at 
+         sel-values (map (fn [l] (map (fn [p] (str (!! obj :get-value-at-view 
                                                      (first p) 
                                                      (second p)))) l))
                       sel-pairs)
@@ -625,7 +620,7 @@
            [count]
            (.setRowCount model count))
 
-         :get-index-at
+         :get-value-at-index
          (fn-doc "Gets the value of the cell at specified model index.
 
   Parameters:
@@ -634,11 +629,11 @@
   Returns the cell value"
            [row column]
            (let [widget @self]
-             (!! widget :get-value-at (!! widget :get-index-row row)
+             (!! widget :get-value-at-view (!! widget :get-index-row row)
                (!! widget :get-index-column column))))
 
 
-         :get-value-at
+         :get-value-at-view
          (fn-swing-doc "Gets the value of the cell at specified position.
 
   Parameters:
@@ -737,7 +732,7 @@
                                  (.setColumnSelectionAllowed true))
              (= mode :cells) (.setCellSelectionEnabled table true)))
 
-         :set-index-at
+         :set-value-at-index
          (fn-doc "Sets the value of a model-indexed cell in the table.
   Parameters:
     row        _integer identifying a row
@@ -745,10 +740,10 @@
     contents   _the new contents"
            [row column contents]
            (let [widget @self]
-             (!! widget :set-value-at (!! widget :get-index-row row)
+             (!! widget :set-value-at-view (!! widget :get-index-row row)
                (!! widget :get-index-column column) contents)))
 
-         :update-index-at
+         :update-value-at-index
          (fn-doc "Sets the value of a model-indexed cell in the table, if it is
   different from the current cells value.
   Parameters:
@@ -759,12 +754,12 @@
            (let [widget @self
                  r (!! widget :get-index-row row)
                  c (!! widget :get-index-column column)
-                 current (!! widget :get-value-at r c)]
+                 current (!! widget :get-value-at-view r c)]
              (if (not= current contents)
-               (!! widget :set-value-at r c contents))))
+               (!! widget :set-value-at-view r c contents))))
 
 
-         :set-value-at
+         :set-value-at-view
          (fn-doc "Sets the value of a cell in the table.
   Parameters:
     row        _integer identifying a row
@@ -856,11 +851,11 @@
                               (= 0 type)
                               (<= 0 (min column first-row last-row))
                               (= first-row last-row))
-                           (let [ current-value (!! widget :get-index-at first-row column)
+                           (let [ current-value (!! widget :get-value-at-index first-row column)
                                    good-value (!!!! widget :set-cell-value-hook 
                                                 first-row column current-value)]
                               (if (not= current-value good-value)
-                                (!! widget :set-index-at first-row column good-value)))))]
+                                (!! widget :set-value-at-index first-row column good-value)))))]
 
                     ]]
     (do

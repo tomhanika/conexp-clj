@@ -244,7 +244,7 @@
                  (doseq [w other-widgets] (!!!! (w :table) 
                                             :extend-rows-to new-rows))
                  (doseq [x (range old-rows new-rows)] (!! table 
-                                                        :set-index-at x 0 
+                                                        :set-value-at-index x 0 
                                                         "new object")))))
 
            extend-columns-hook
@@ -263,7 +263,7 @@
                  (doseq [w other-widgets]
                    (!!!! (w :table) :extend-columns-to new-columns))
                  (doseq [x (range old-columns new-columns)]
-                   (!! table :set-index-at 0 x "new attribute")))))
+                   (!! table :set-value-at-index 0 x "new attribute")))))
 
            update-incidence
            (fn-doc "This function updates the incidence relation.
@@ -396,7 +396,7 @@
                                     @assoc-widgets)]
                (do
                  (doseq [w other-widgets]
-                   (!! (w :table) :update-index-at 
+                   (!! (w :table) :update-value-at-index 
                              row column good-value))
                  good-value)))
             
@@ -442,18 +442,18 @@
                  (do
                    (!! table :set-column-count (+ 1 attr-count))
                    (!! table :set-row-count (+ 1 obj-count))
-                   (!! table :set-index-at 0 0 "")
+                   (!! table :set-value-at-index 0 0 "")
                    (doseq [x attrs]
                      (let [column (attrib-cols x)]
-                               (!! table :set-index-at 0 column x)))
+                               (!! table :set-value-at-index 0 column x)))
                    (doseq [x objs]
                      (let [row (object-rows x)]
-                               (!! table :set-index-at row 0 x)))
+                               (!! table :set-value-at-index row 0 x)))
                    (doseq [a attrs]
                     (doseq [o objs]
                                  (let [ row (object-rows o)
                                         column (attrib-cols a)]
-                                   (!! table :set-index-at row column 
+                                   (!! table :set-value-at-index row column 
                                      (get-cross o a)))))))))
 
            
