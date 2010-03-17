@@ -16,6 +16,7 @@
     )
   (:use conexp.gui.plugins.base
     conexp.gui.util
+    conexp.util
     clojure.contrib.swing-utils
     conexp.gui.editors.util
     conexp.fca
