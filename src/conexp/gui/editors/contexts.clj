@@ -593,7 +593,7 @@
                   @context-workspace)
            workspace-tree (conj nodes :root)
            ]
-      ((@context-workspace-tree :set-tree) workspace-tree))))
+      (set-tree @context-workspace-tree workspace-tree))))
 
 (defn add-to-workspace
   "Adds a named context to the current workspace or replaces 
@@ -627,9 +627,9 @@
     (dosync (ref-set context-workspace {}))
 
     (with-swing-threads
-      (let [ workspace-tree (do-mk-tree-control "context workspace"
-                              [:set-selection-mode :single]
-                              [:set-selection-handler 
+      (let [ workspace-tree (make-tree-control "context workspace"
+                              [set-selection-mode :single]
+                              [set-selection-handler 
                                 (fn [x] (with-swing-threads
                                           (message-box (vec (first x)))))])
              left  workspace-tree
@@ -637,11 +637,11 @@
 ;;                                    [:set-row-count 5])
              right (do-mk-context-editor)
              right2 (do-mk-context-editor)
-             rpane (do-mk-split-pane :vert right right2
-                     [:set-divider-location 300])
+             rpane (make-split-pane :vert right right2
+                     [set-divider-location 300])
              
-             pane (do-mk-split-pane :horiz left rpane
-                    [:set-divider-location 200]) 
+             pane (make-split-pane :horiz left rpane
+                    [set-divider-location 200]) 
              ]
         (do
           (add-tab-with-name-icon-tooltip frame (get-widget pane)

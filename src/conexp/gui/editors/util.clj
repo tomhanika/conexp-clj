@@ -236,6 +236,7 @@
 
 (deftype widget [widget])
 (deftype control [widget control])
+(derive ::control ::widget)
 
 
 
@@ -330,7 +331,19 @@
 (deftype split-pane [widget])
 (derive ::split-pane ::widget)
 
-(defn-swing do-mk-split-pane
+(inherit-multimethod set-divider-location ::split-pane
+  "Sets the location of the divider.
+   Parameters:
+     osplit-pane _split-pane object
+     location    _location of the divider (nbr of pixels from left/top)")
+
+(defmethod-swing-threads* 
+  set-divider-location ::split-pane
+  [osplit-pane location]
+  (let [split-pane (get-widget osplit-pane)]
+    (.setDividerLocation split-pane location)))
+
+(defn-swing make-split-pane
   "Creates a managed split pane object.
 
    Parameters:
@@ -343,24 +356,14 @@
                   :set-divider-location map with 150 as single parameter
   "
   [direction topleft bottomright & setup]
-  (let [split-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
-                                  :vert JSplitPane/VERTICAL_SPLIT})
-                     (get-widget topleft)
-                     (get-widget bottomright))
-         widget  {:managed-by-conexp-gui-editors-util "split-pane"
-         :widget split-pane
-         :set-divider-location 
-         (fn-doc "Sets the location of the divider.
-   Parameters:
-     location   _location of the divider (nbr of pixels from left/top)"
-           [location]
-           (with-swing-threads* 
-             (.setDividerLocation split-pane location))) 
-         }
-         ]
-    (do
-      (doseq [x setup] (unroll-parameters-fn-map widget x))
-      widget )))
+  (let [ jsplit-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
+                                    :vert JSplitPane/VERTICAL_SPLIT})
+                       (get-widget topleft)
+                       (get-widget bottomright))
+         widget  (split-pane jsplit-pane)]
+    (apply-exprs widget setup)
+    widget ))
+
 
 ;;
 ;;
@@ -369,7 +372,87 @@
 ;;
 ;;
 
-(defn-swing do-mk-tree-control
+(deftype tree-control [widget control root model])
+(derive ::tree-control ::control)
+
+
+(inherit-multimethod set-tree ::tree-control
+  "Sets the tree that the control displays.
+
+   Parameters:
+     otree-control _tree-control object
+     tree          _a tree represented by the root node and its children,
+                    where each node is represented by a list that has
+                    the node's name as first element and all its child
+                    trees as rest, where each child is again represented by
+                    its respective root node")
+
+(defmethod 
+  set-tree ::tree-control 
+  [otree-control tree]
+  (let [ t (conj (rest tree) :root)
+         treeroot (:root otree-control)
+         treemodel (:model otree-control) ]
+    (with-swing-threads*
+      (.removeAllChildren treeroot)
+      (do-map-tree* (fn [x] (if (= :root x) treeroot 
+                              (DefaultMutableTreeNode. x)))
+        .add t)
+      (.reload treemodel))))
+
+
+(inherit-multimethod set-selection-mode ::tree-control
+  "Sets the tree control's selection mode.
+
+   Parameters:
+     otree-control _tree-control object
+     mode          _either :single, :multi (contiguous multiselection) or
+                    :free (free multiselection)")
+
+(defmethod-swing-threads* 
+  set-selection-mode ::tree-control
+  [otree-control mode]
+  (let [ treecontrol (get-control otree-control)
+         selection-model (.getSelectionModel treecontrol)]
+    (.setSelectionMode selection-model 
+      ({:single TreeSelectionModel/SINGLE_TREE_SELECTION
+        :multi TreeSelectionModel/CONTIGUOUS_TREE_SELECTION
+        :free TreeSelectionModel/DISCONTIGUOUS_TREE_SELECTION} 
+        mode))))
+
+
+(inherit-multimethod set-selection-handler ::tree-control
+  "Sets the selection-handler for the tree-control which is
+   called every time the selection changes to handler.
+
+   Parameters:
+     otree-control _tree-control object
+     handler       _function that will be called with a list of the selected
+                     nodes represented each by a list of labels starting
+                     from the root.")
+
+(defmethod-swing-threads*
+  set-selection-handler ::tree-control
+  [otree-control handler]
+  (let [ treecontrol (get-control otree-control)
+         current-handlers (.getTreeSelectionListeners treecontrol)
+         listeners (extract-array current-handlers) ]
+    (doseq [l listeners] (.removeTreeSelectionListener treecontrol l))
+    (let [listener (proxy [TreeSelectionListener] []
+                     (valueChanged [event] 
+                       (with-swing-threads*
+                         (let [ paths (.getSelectionPaths treecontrol)
+                                treepaths (map (*comp
+                                                 (rho .getPath)
+                                                 extract-array
+                                                 (rho map 
+                                                   (rho .getUserObject)))
+                                            (extract-array paths))]
+                           (handler treepaths) ))))]
+      (.addTreeSelectionListener treecontrol listener))))
+         
+
+(defn-swing make-tree-control
   "Creates a scrollable tree control object.
 
    Parameters:
@@ -383,75 +466,10 @@
          pane         (JScrollPane. treecontrol 
                         JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
                         JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED)
-         widget   {:managed-by-conexp-gui-editors-util "tree-control"
-         :widget  pane
-         :root    treeroot
-         :model   treemodel
-         :control treecontrol
+         widget   (tree-control pane treecontrol treeroot treemodel) ]
+    (apply-exprs widget setup)
+    widget ))
 
-         :set-tree
-         (fn-doc "Sets the tree that the control displays.
-
-   Parameters:
-     tree       _a tree represented by the root node and its children,
-                 where each node is represented by a list that has
-                 the node's name as first element and all its child
-                 trees as rest, where each child is again represented by
-                 its respective root node"
-           [tree]
-           (let [t (conj (rest tree) :root)]
-             (with-swing-threads*
-               (.removeAllChildren treeroot)
-               (do-map-tree* (fn [x] (if (= :root x) treeroot 
-                                       (DefaultMutableTreeNode. x)))
-                 .add t)
-               (.reload treemodel)) ))
-
-         :set-selection-mode
-         (fn-swing-threads*-doc
-           "Sets the tree control's selection mode.
-
-   Parameters:
-     mode       _either :single, :multi (contiguous multiselection) or
-                 :free (free multiselection)"
-           [mode]           
-           (let [selection-model (.getSelectionModel treecontrol)]
-             (.setSelectionMode selection-model 
-               ({:single TreeSelectionModel/SINGLE_TREE_SELECTION
-                 :multi TreeSelectionModel/CONTIGUOUS_TREE_SELECTION
-                 :free TreeSelectionModel/DISCONTIGUOUS_TREE_SELECTION} 
-                 mode))))
-
-         :set-selection-handler
-         (fn-swing-threads*-doc
-           "Sets the selection-handler for the tree-control which is
-   called every time the selection changes to handler.
-
-   Parameters:
-     handler    _function that will be called with a list of the selected nodes
-                 represented each by a list of labels starting from the root."
-           [handler]
-           
-           (let [current-handlers (.getTreeSelectionListeners treecontrol)
-                  listeners (extract-array current-handlers) ]
-             (doseq [l listeners] (.removeTreeSelectionListener treecontrol l)))
-           (let [listener (proxy [TreeSelectionListener] []
-                            (valueChanged [event] 
-                              (with-swing-threads*
-                                (let [ paths (.getSelectionPaths treecontrol)
-                                       treepaths (map (*comp
-                                                        (rho .getPath)
-                                                        extract-array
-                                                        (rho map 
-                                                          (rho .getUserObject))
-                                                        )
-                                                   (extract-array paths))
-                                       ]
-                                  (handler treepaths) ))))]
-             (.addTreeSelectionListener treecontrol listener) ) ) }]
-    (do
-      (doseq [x setup] (unroll-parameters-fn-map widget x)) 
-      widget )))
 
 ;;
 ;;
