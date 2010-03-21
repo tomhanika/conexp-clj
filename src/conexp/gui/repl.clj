@@ -10,26 +10,12 @@
   (:import [javax.swing.text PlainDocument]
 	   [java.io PushbackReader StringReader PipedWriter PipedReader 
 	            PrintWriter CharArrayWriter]
-	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane]
+	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
 	   [java.awt Font Color])
   (:require clojure.main)
   (:use [conexp.base :only (defvar-)]
 	conexp.gui.util
-	[clojure.contrib.pprint :only (write)])
-  (:gen-class
-   :name "conexp.gui.repl.ClojureREPL"
-   :extends javax.swing.text.PlainDocument
-   :init init
-   :post-init post-init
-   :prefix "conexp-repl-"
-   :constructors { [javax.swing.JFrame] [] }
-   :state state
-   :methods [ [ insertResult [ String ] Integer ]
-	      [ lastPosition [ ]        Integer ]
-	      [ outputThread [ ]        Object  ]
-	      [ replThread   [ ]        Object  ] ]
-   :exposes-methods { remove       removeSuper,
-		      insertString insertStringSuper }))
+	[clojure.contrib.pprint :only (write)]))
 
 ;;; REPL Process
 
@@ -45,7 +31,7 @@
        (or (re-matches #".*EOF while reading.*" (.getMessage throwable))
 	   (re-matches #".*Write end dead.*" (.getMessage throwable)))))
 
-(defn- create-clojure-repl
+(defn- create-clojure-repl-process
   "This function creates an instance of clojure repl using piped in and out.
    It returns a map of two functions repl-fn and result-fn - first function
    can be called with a valid clojure expression and the results are read using
@@ -126,58 +112,6 @@
 
 ;;; Display
 
-(defn- conexp-repl-init
-  "Standard initializer for conexp REPL process for the given frame."
-  [frame]
-  [ [] (ref {:last-pos 0,
-	     :output-thread nil,
-	     :repl-thread nil,
-	     :frame frame}) ])
-
-(defn- conexp-repl-post-init
-  "Standard post init functions. Starts actual repl process and a
-  reader thread which constantly reads the repl output."
-  [this frame]
-  (dosync
-   (alter (.state this) 
-	  assoc :output-thread (Thread. 
-				(fn []
-				  (while (repl-alive? (.replThread this))
-				    (let [result (repl-out (.replThread this))]
-				      (invoke-later #(. this insertResult result)))))))
-   (alter (.state this)
-	  assoc :repl-thread (create-clojure-repl (@(.state this) :frame))))
-  (.start (@(.state this) :output-thread)))
-
-(defn- conexp-repl-lastPosition
-  "Returns last position (i.e. end of the last prompt)."
-  [this]
-  (@(.state this) :last-pos))
-
-(defn- conexp-repl-outputThread
-  "Returns output thread of conexp REPL."
-  [this]
-  (@(.state this) :output-thread))
-
-(defn- conexp-repl-replThread
-  "Returns REPL thread of conexp REPL."
-  [this]
-  (@(.state this) :repl-thread))
-
-(defn- conexp-repl-remove
-  "Removes text starting from off with length len."
-  [this off len]
-  (if (>= (- off len -1) (@(.state this) :last-pos))
-    (. this removeSuper off len)))
-
-(defn- conexp-repl-insertResult
-  "Inserts given result as text."
-  [this result]
-  (.insertStringSuper this (.getLength this) result nil)
-  (dosync 
-   (alter (.state this) assoc :last-pos (. this getLength)))
-  (@(.state this) :last-pos))
-
 (defn- balanced?
   "Checks whether given string has balanced (,)-pairs."
   ([string]
@@ -195,41 +129,57 @@
 		(= \) (first string)) (dec paran-count)
 		:else paran-count)))))
 
-(defn- conexp-repl-insertString
-  "Inserts string starting from offset off."
-  [this off string attr-set]
-  (let [last-pos (@(.state this) :last-pos)]
-    (when (>= off last-pos)
-      (.insertStringSuper this off string attr-set)
-      (if (and (= string "\n")
-	       (= off (- (-> this .getEndPosition .getOffset)
-			 2)))
-	(let [input (.getText this
-			      (- last-pos 1)
-			      (- (-> this .getEndPosition .getOffset) last-pos 1))]
-	  (if (balanced? input)
-	    (repl-in (.replThread this) input )))))))
-
-
-;;; Clojure REPL
-
 (defn- make-clojure-repl
-  "Returns a graphical clojure repl for the given frame."
-  ;; all custom key bindings go here
+  "Returns for the given frame a PlainDocument containing a clojure repl."
   [frame]
-  (let [rpl (conexp.gui.repl.ClojureREPL. frame)
-	win-rpl (JTextArea. rpl)]
-    (.. win-rpl getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
-    (.. win-rpl getActionMap (put "interrupt" (proxy [AbstractAction] []
-						(actionPerformed [_]
-					          (println "Interrupt called!")
-						  (repl-interrupt (.replThread rpl))))))
-    win-rpl))
+  (let [last-pos (ref 0),
+	repl-thread (create-clojure-repl-process frame),
+	#^PlainDocument
+	repl-container (proxy [PlainDocument] []
+			 (remove [off len]
+			   (when (>= (- off len -1) @last-pos)
+			     (proxy-super remove off len)))
+			 (insertString [off string attr-set]
+			   (when (>= off @last-pos)
+			     (proxy-super insertString off string attr-set)
+			     (when (and (= string "\n")
+					(= off (- (-> this .getEndPosition .getOffset)
+						  2)))
+			       (let [input (.getText this
+						     (- @last-pos 1)
+						     (- (-> this .getEndPosition .getOffset) @last-pos 1))]
+				 (when (balanced? input)
+				   (repl-in repl-thread input)))))))
+	insert-result (fn [result]
+			(.insertString repl-container
+				       (.getLength repl-container)
+				       result
+				       nil)
+			(dosync (ref-set last-pos
+					 (.getLength repl-container))))
+	output-thread (Thread. (fn []
+				 (while (repl-alive? repl-thread)
+				   (let [result (repl-out repl-thread)]
+				     (invoke-later #(insert-result result))))))]
+    (.start output-thread)
+    [repl-thread repl-container]))
+
+(defn- into-text-area
+  "Puts repl-container (a PlainDocument) into a JTextArea adding some hotkeys."
+  [[repl-thread repl-container]]
+  (let [#^JTextArea repl-window (JTextArea. repl-container)]
+    (.. repl-window getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
+    (.. repl-window getActionMap (put "interrupt" (proxy [AbstractAction] []
+						    (actionPerformed [_]
+						      (repl-interrupt repl-thread)))))
+    repl-window))
+
+;;;
 
 (defn make-repl
   "Creates a default Clojure REPL for frame."
   [frame]
-  (let [rpl (make-clojure-repl frame)]
+  (let [rpl (into-text-area (make-clojure-repl frame))]
     (doto rpl
       (.setFont (Font. "Monospaced" Font/PLAIN 16))
       (.setBackground Color/BLACK)

@@ -15,9 +15,7 @@
                  [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
 		 [clj-iter "0.1.0-SNAPSHOT"]
 		 [org.apache.commons/commons-math "2.0"]
-		 [jline "0.9.94"]]
-;;  :dev-dependencies [[leiningen/lein-swank "1.1.0"]]
-  :namespaces [conexp.gui.repl])
+		 [jline "0.9.94"]])
 
 ;;;
 
