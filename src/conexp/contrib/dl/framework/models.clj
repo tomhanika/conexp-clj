@@ -100,19 +100,25 @@
 
 ;;;
 
-(defmacro define-model
+(defmacro model
   "Defines model for language on base-set: interpretation maps atomic
   expressions to their extents."
-  [name language base-set & interpretation]
+  [language base-set & interpretation]
   `(let [interpretation-map# '~(apply hash-map interpretation),
 	 defined-symbols# (keys interpretation-map#),
 	 undefined-symbols# (difference (union (concept-names ~language)
 					       (role-names ~language))
 					(set defined-symbols#))]
      (when (not (empty? undefined-symbols#))
-       (illegal-argument "Definition of model " '~name " is incomplete. The symbols "
+       (illegal-argument "Definition of model is incomplete. The symbols "
 			 undefined-symbols# " are missing."))
-     (def ~name (make-model ~language (set '~base-set) '~(apply hash-map interpretation)))))
+     (make-model ~language (set '~base-set) '~(apply hash-map interpretation))))
+
+(defmacro define-model
+  "Globally defines model with name for language on base-set:
+  interpretation maps atomic expressions to their extents."
+  [name language base-set & interpretation]
+  `(def ~name (model ~language ~base-set ~@interpretation)))
 
 ;;;
 
@@ -122,7 +128,7 @@
   (fn [model dl-exp] (language-name (model-language model))))
 
 (defmethod most-specific-concept :default [model _]
-  (illegal-argument "Language " (model-language model) " does not provide msc."))
+  (illegal-argument "Language " (print-str (model-language model)) " does not provide msc."))
 
 (defmacro define-msc
   "Defines model based most specific concepts for a language, a model
@@ -150,6 +156,12 @@
 	      (fn [A]
 		(or (i A)
 		    ((model-interpretation model) A)))))
+
+(defn holds-in-model?
+  "Returns true iff subsumption holds in given model."
+  [model subsumption]
+  (subset? (interpret model (subsumee subsumption))
+	   (interpret model (subsumer subsumption))))
 
 ;;;
 

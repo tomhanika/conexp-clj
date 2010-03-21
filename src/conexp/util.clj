@@ -8,7 +8,8 @@
 
 (ns conexp.util
   (:use clojure.contrib.profile
-	[clojure.contrib.math :only (round)])
+	[clojure.contrib.math :only (round)]
+	clojure.test)
   (:import javax.swing.JOptionPane
 	   java.util.Calendar
 	   java.text.SimpleDateFormat))
@@ -25,6 +26,22 @@
 
 (update-ns-meta! conexp.util
   :doc "Loose collection of some useful functions and macros for conexp.")
+
+
+;;; Testing
+
+(defmacro tests-to-run
+  "Defines tests to run when the namespace in which this macro is
+  called is tested by test-ns."
+  [& namespaces]
+  `(defn ~'test-ns-hook []
+     (dosync
+      (ref-set *report-counters*
+	       (merge-with + ~@(map (fn [ns]
+				      `(do
+					 (require '~ns)
+					 (test-ns '~ns)))
+				    namespaces))))))
 
 
 ;;; Types

@@ -6,15 +6,15 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests
+(ns conexp.contrib.tests.dl
   (:use conexp))
 
 ;;;
 
-(tests-to-run conexp.tests.util
-	      conexp.tests.base
-	      conexp.tests.fca.contexts
-	      conexp.tests.fca.implications)
+(tests-to-run conexp.contrib.tests.dl.framework.models
+	      conexp.contrib.tests.dl.languages.description-graphs
+	      conexp.contrib.tests.dl.framework.reasoning
+	      conexp.contrib.tests.dl.languages.exploration)
 
 ;;;
 

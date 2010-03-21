@@ -6,15 +6,19 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests
-  (:use conexp))
+(ns conexp.contrib.tests.dl.languages.exploration
+  (:use conexp
+	conexp.contrib.dl.languages.exploration
+	conexp.contrib.tests.dl.examples)
+  (:use clojure.test))
 
 ;;;
 
-(tests-to-run conexp.tests.util
-	      conexp.tests.base
-	      conexp.tests.fca.contexts
-	      conexp.tests.fca.implications)
+(deftest test-model-gcis
+  (are [gci-count model] (= gci-count (count (model-gcis model)))
+       7 paper-model
+       7 riding-model
+       19 family-model))
 
 ;;;
 

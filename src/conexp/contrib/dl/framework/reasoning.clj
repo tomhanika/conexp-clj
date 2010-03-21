@@ -41,8 +41,8 @@
 (defn equivalent?
   "Returns true iff C and D are equivalent."
   [C D]
-  (and (subsumes? C D)
-       (subsumes? D C)))
+  (and (subsumed-by? C D)
+       (subsumed-by? D C)))
 
 ;;;
 

@@ -55,9 +55,9 @@
   (let [[C-tbox C-target] (uniquify-tbox-target-pair (expression (ensure-EL-gfp-concept C))),
 	[D-tbox D-target] (uniquify-tbox-target-pair (expression (ensure-EL-gfp-concept D))),
 
-	tbox (tbox-union C-tbox D-tbox),
-	G (tbox->description-graph tbox)]
-    (simulates? G G D-target C-target)))
+	G-C (tbox->description-graph C-tbox),
+	G-D (tbox->description-graph D-tbox)]
+    (simulates? G-D G-C D-target C-target)))
 
 ;;;
 

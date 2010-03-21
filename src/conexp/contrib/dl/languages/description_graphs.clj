@@ -11,7 +11,9 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes)
-  (:use clojure.contrib.pprint))
+  (:use clojure.contrib.pprint
+	[clojure.contrib.graph :exclude (transitive-closure)])
+  (:import [java.util HashMap]))
 
 ;;;
 
@@ -58,95 +60,199 @@
 					(vertex-labels dg))))]
     (.write out (.trim output))))
 
-;;;
+;;; Normalizing
 
-(declare normalize)
+(defn- conjunctors
+  "Returns the elements of the dl-expression connected by
+  conjunction. If the dl-expression is not a conjunction the singelton
+  set containing the expression is returned."
+  [dl-expr]
+  (if (and (compound? dl-expr)
+	   (= 'and (operator dl-expr)))
+    (set (arguments dl-expr))
+    (set [dl-expr])))
 
-(defn- normalize-atomic
-  "Normalizes an atomic expression as needed by normalize-definition."
-  [expr term-names]
-  (if (tbox-target-pair? expr)
-    (let [[tbox target] (uniquify-tbox-target-pair (expression expr)),
-	  tbox (normalize tbox term-names)]
-      [target (into term-names (for [def (tbox-definitions tbox)]
-				 (let [name (get term-names (definition-expression def))]
-				   (if (and name (not= name (definition-target def)))
-				     [name (definition-target def)]
-				     [(definition-expression def) (definition-target def)]))))])
-    [expr term-names]))
+;; tboxes as hash-maps
 
-(defn- normalize-definition
-  "Normalizes given definition using term-names (i.e. a map mapping
-  expressions to names), extending term-names if necessary."
-  ;; ugly code, can we do this with monads?
-  [definition term-names]
-  (let [language (expression-language (definition-expression definition)),
-	target   (definition-target definition),
-	expr     (let [expr (definition-expression definition)]
-		   (if (or (not (compound? expr))
-			   (not= 'and (operator expr)))
-		     (make-dl-expression language (list 'and expr))
-		     expr))]
-    (loop [args       (vec (arguments expr)),
-	   normalized [],
-	   names      term-names]
-      (if (empty? args)
-	;; make definition
-	(let [def-expression (make-dl-expression language (cons 'and normalized))]
-	  [(make-dl-definition target def-expression) names])
+(defn- uniquify-tbox-map
+  "Renames all defined concepts in the given tbox-map to be globally
+  unique symbols. Returns a pair of the result and the transformation
+  map used."
+  [tbox-map]
+  (let [old->new (into {} (for [A (keys tbox-map)]
+			    [A (make-dl-expression (expression-language A) (gensym))])),
+	old->new* (into {} (for [[A B] old->new]
+			     [(expression A) B]))]
+    [(into {} (for [[A def-A] tbox-map]
+		[(old->new A) (set (map #(substitute % old->new*) def-A))]))
+     old->new]))
 
-	;; examine arguments
-	(let [next-term (first args)]
-	  (if (atomic? next-term)
-	    ;; atomic term, possibly a tbox-target-pair
-	    (let [[normal-term new-names] (normalize-atomic next-term names)]
-	      (recur (rest args) (conj normalized normal-term) new-names))
+(defn- tbox->hash-map
+  "Transforms given TBox to a hash-map of defined concepts to the sets
+  of concepts in the top-level conjunction."
+  [tbox]
+  (let [language (tbox-language tbox)]
+    (into {} (for [def (tbox-definitions tbox)]
+	       [(make-dl-expression language (definition-target def))
+		(conjunctors (definition-expression def))]))))
 
-	    ;; next-term is an existential quantification
-	    (let [[r B] (vec (arguments next-term))]
-	      (if (atomic? B)
-		;; atomic term, possibly a tbox-target-pair
-		(let [[normal-B new-names] (normalize-atomic B names)]
-		  (recur (rest args) (conj normalized (list 'exists (expression r) normal-B)) new-names))
+(defn- hash-map->tbox
+  "Transforms given hash-map to a TBox for the given language."
+  [language tbox-map]
+  (let [definitions (for [[A def-A] tbox-map]
+		      (make-dl-definition language (expression A) (cons 'and def-A)))]
+    (make-tbox language (set definitions))))
 
-		;; B is compound
-		(let [name (get names B nil)]
-		  (println B)
-		  (println names)
-		  (if-not (nil? name)
-		    (recur (rest args) (conj normalized (list 'exists (expression r) name)) names)
-		    (let [new-name (gensym),
-			  new-names (conj names [B new-name])]
-		      (recur (rest args) (conj normalized (list 'exists (expression r) new-name)) new-names))))))))))))
+;; storing names
 
-(defn- tbox-from-names
-  "Creates and returns a tbox from given names and language."
-  [language names]
-  (make-tbox language (set-of (make-dl-definition A (make-dl-expression language def-A))
-			      [[def-A A] names])))
+(defn- new-names
+  "Returns a fresh data structure for storing new names."
+  []
+  (atom {}))
 
-(defn normalize
-  "Normalizes given tbox."
-  ([tbox]
-     (normalize tbox {}))
-  ([tbox names]
-     (let [language (tbox-language tbox),
-	   [normalized-definitions new-names] (reduce (fn [[n-definitions names] definition]
-							(let [[n-definition new-names] (normalize-definition definition names)]
-							  [(conj n-definitions n-definition) new-names]))
-						      [#{} names]
-						      (tbox-definitions tbox))]
-       (if (= names new-names)
-	 (make-tbox language normalized-definitions)
-	 (let [names-tbox (normalize (tbox-from-names language new-names) new-names)]
-	   (make-tbox language (union normalized-definitions
-				      (tbox-definitions names-tbox))))))))
+(defn- add-name
+  "Adds to names the set-of-concepts under name."
+  [names name set-of-concepts]
+  (swap! names conj [name set-of-concepts]))
+
+(defn- add-names
+  "Adds the tbox-map to names."
+  [names tbox-map]
+  (swap! names into tbox-map))
+
+(defn- get-names
+  "Returns all names and their definitions (i.e. their set of
+  concepts) stored in names."
+  [names]
+  @names)
+
+;; normalizing algorithm - preparing the tbox and introducing new definitions
+
+(defn- normalize-for-goal
+  "If term satisfies goal, regards it as being normalized. Otherwise
+  handles term as tbox and finally introduces a new symbol defining
+  term. New definitions go into the atom new-names."
+  [term goal new-names]
+  (cond
+   (goal term) term
+   (tbox-target-pair? term) (let [[tbox target] (expression term),
+				  [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
+			      (add-names new-names tbox-map)
+			      (trans (make-dl-expression (expression-language term) target)))
+   :else (let [new-sym (make-dl-expression (expression-language term) (gensym))]
+	   (add-name new-names new-sym (conjunctors term))
+	   new-sym)))
+
+(defn- normalize-term
+  "Normalizes conjunctor term. New definitions go into the atom new-names."
+  [term new-names]
+  (if (and (compound? term)
+	   (= 'exists (operator term)))
+    (let [[r B] (arguments term),
+	  norm (normalize-for-goal B
+				   #(and (atomic? %)
+					 (not (tbox-target-pair? %))
+					 (not (primitive? %)))
+				   new-names)]
+      (make-dl-expression (expression-language term)
+			  (list 'exists r norm)))
+    (normalize-for-goal term
+			#(and (atomic? %)
+			      (not (tbox-target-pair? %)))
+			new-names)))
+
+(defn- introduce-auxiliary-definitions
+  "Introduces auxiliary definitions into the given tbox-map (as
+  returned by tbox->hash-map), such that the top-level conjunctions of
+  all defined concepts only consist of defined concepts, primitive
+  concepts or existential restrictions of defined concepts."
+  [tbox-map]
+  (if (empty? tbox-map)
+    tbox-map
+    (let [new-names (new-names),
+	  ;; doall needed to store new names in new-names!
+	  normalized-map (doall
+			  (into {} (map (fn [[A def-A]]
+					  [A (set (map #(normalize-term % new-names) def-A))])
+					tbox-map))),
+	  new-names-map (introduce-auxiliary-definitions (get-names new-names))]
+      (into normalized-map new-names-map))))
+
+;; normalizing algorithm -- squeezing the concept graph
+
+(defn- concept-graph
+  "Returns the concept graph of a tbox-map. The graph has the defined
+  conecpts of tbox as vertices and connects every two vertices C to D
+  if D appears in the top-level conjunction of C."
+  [tbox-map]
+  (let [defined-concepts (set (keys tbox-map))]
+    (struct directed-graph
+	    defined-concepts
+	    (hashmap-by-function (fn [C]
+				   (filter #(contains? defined-concepts %)
+					   (tbox-map C)))
+				 defined-concepts))))
+
+(defn- squeeze-equivalent-concepts
+  "Returns a tbox-map where all equivalent, defined concepts of
+  tbox-map are squeezed into one. If A is such a concept, every
+  equivalent defined concept used in other definitions is substituted
+  by A."
+  [tbox-map]
+  (let [equivalent-concepts (scc (concept-graph tbox-map)),
+	rename-map (into {} (for [concepts equivalent-concepts
+				  concept concepts]
+			      [concept (first concepts)])),
+	used-map (into {} (for [concepts equivalent-concepts]
+			    [(first concepts) concepts])),
+	new-tbox-map (into {} (map (fn [target]
+				     [target
+				      (disj (set (replace rename-map
+							  (mapcat tbox-map (used-map target))))
+					    target)])
+				   (vals rename-map)))]
+    (into {} (for [target (keys tbox-map)]
+	       [target (-> target rename-map new-tbox-map)]))))
+
+(defn- replace-toplevel-concepts
+  "Replaces any top-level defined concept in tbox-map by its definition."
+  [tbox-map]
+  (loop [deps (dependency-list (concept-graph tbox-map)),
+	 new-tbox-map {}]
+    (if (empty? deps)
+      new-tbox-map
+      (let [next-concepts (first deps),
+	    new-defs (into {} (for [target next-concepts]
+				[target (reduce (fn [result next-thing]
+						  (if (set? next-thing)
+						    (into result next-thing)
+						    (conj result next-thing)))
+						#{}
+						(replace new-tbox-map (tbox-map target)))]))]
+	(recur (rest deps)
+	       (merge new-tbox-map new-defs))))))
+	
+
+;; normalizing algorithm -- invokation point
+
+(defn normalize-gfp
+  "Normalizes given TBox with gfp-semantics."
+  [tbox]
+  (let [language   (tbox-language tbox)
+	result-map (-> tbox
+		       tbox->hash-map
+		       introduce-auxiliary-definitions
+		       squeeze-equivalent-concepts
+		       replace-toplevel-concepts)]
+    (hash-map->tbox language result-map)))
+
+
+;;; Conversion to and from description graphs
 
 (defn tbox->description-graph
-  "Converts a tbox to a description graph."
+  "Converts a tbox to a description graph. Normalization is done with gfp semantics."
   [tbox]
-  (let [tbox            (normalize tbox),
-	_ (println "tbox = " tbox),
+  (let [tbox            (normalize-gfp tbox),
 	definitions     (tbox-definitions tbox),
 
 	language        (tbox-language tbox),
@@ -218,7 +324,7 @@
 ;;; least common subsumers in EL-gfp
 
 (defn EL-gfp-lcs
-  "Returns the least common subsumer of A and B in tbox (in EL-gfp)."
+  "Returns the least common subsumer (in EL-gfp) of A and B in tbox."
   ([tbox A]
      [tbox A])
   ([tbox A B]
@@ -256,6 +362,14 @@
 
 ;;; simulations
 
+(defn- HashMap->hash-map
+  "Converts a Java HashMap to a Clojure hash-map."
+  [#^HashMap map]
+  (into {} (for [k (.keySet map)]
+	     [k (.get map k)])))
+
+;; schematic
+
 (defn- simulator-sets
   "Returns for all vertices v in the description graph G-1 the sets of
   vertices (sim v) in G-2 such that there exists a simulation from v to
@@ -265,25 +379,27 @@
 	label-2 (vertex-labels G-2),
 	neighbours-1 (neighbours G-1),
 	neighbours-2 (neighbours G-2),
-	edge-1? (fn [v r w]
-		  (contains? (neighbours-1 v) [r w])),
 	edge-2? (fn [v r w]
 		  (contains? (neighbours-2 v) [r w])),
 
-	initial-sim-sets (hashmap-by-function (fn [v]
-						(set-of w [w (vertices G-2)
-							   :when (subset? (label-1 v) (label-2 w))]))
-					      (vertices G-1))]
-    (loop [sim-sets initial-sim-sets]
-      (let [u-w (first (for [u (vertices G-1),
-			     [r v] (neighbours-1 u)
-			     w (sim-sets u),
-			     :when (forall [x (sim-sets v)]
-				     (not (edge-2? w r x)))]
-			 [u w]))]
-	(if (nil? u-w)
-	  sim-sets
-	  (recur (update-in sim-sets [(first u-w)] disj (second u-w))))))))
+	#^HashMap sim-sets (HashMap.)]
+    (doseq [v (vertices G-1)]
+      (.put sim-sets v (set-of w [w (vertices G-2)
+				  :when (subset? (label-1 v) (label-2 w))])))
+    (loop []
+      (let [[u w] (first (for [u (vertices G-1),
+			       [r v] (neighbours-1 u),
+			       w (.get sim-sets u)
+			       :when (forall [x (.get sim-sets v)]
+				       (not (edge-2? w r x)))]
+			   [u w]))]
+	(when u
+	  (.put sim-sets u
+		(disj (.get sim-sets u) w))
+	  (recur))))
+    (HashMap->hash-map sim-sets)))
+
+;; simulation invocation point
 
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where

@@ -14,6 +14,11 @@
 
 ;;;
 
+(defvar *print-with-dl-type* false
+  "If true, prints DL data structures with type tag.")
+
+;;;
+
 (deftype DL [name concept-names role-names constructors])
 
 (defn language-name
@@ -66,7 +71,9 @@
 
 (defmethod print-method ::DL-expression [dl-exp out]
   (let [#^String output (with-out-str
-			  (pprint (expression dl-exp)))]
+			  (if *print-with-dl-type*
+			    (pprint (list 'DL-expr (expression dl-exp)))
+			    (pprint (expression dl-exp))))]
     (.write out (.trim output))))
 
 ;;;
