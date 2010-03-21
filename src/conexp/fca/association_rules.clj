@@ -7,39 +7,22 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.association-rules
-  (:gen-class
-   :name conexp.fca.AssociationRule
-   :prefix "AssociationRule-"
-   :init init
-   :constructors { [ Object Object Object ] [] }
-   :state state)
   (:use conexp.base
 	conexp.fca.contexts
 	conexp.fca.implications))
 
 ;;;
 
-(defn AssociationRule-init [context premise conclusion]
-  [ [] {:context context
-	:premise premise
-	:conclusion conclusion} ])
+(deftype Association-Rule [context premise conclusion])
 
-(defn AssociationRule-hashCode
-  "Computes hash code for an association rule object."
-  [this]
-  (reduce bit-xor 0
-	  [(hash ((.state this) :premise)),
-	   (hash ((.state this) :conclusion)),
-	   (hash ((.state this) :context))]))
+(defmethod premise ::Association-Rule [ar]
+  (:premise ar))
 
-(defmethod premise conexp.fca.AssociationRule [ar]
-  ((.state ar) :premise))
-
-(defmethod conclusion conexp.fca.AssociationRule [ar]
-  ((.state ar) :conclusion))
+(defmethod conclusion ::Association-Rule [ar]
+  (:conclusion ar))
 
 (defn context [ar]
-  ((.state ar) :context))
+  (:context ar))
 
 (defn support [B ctx]
   (/ (count (attribute-derivation ctx B))
@@ -51,24 +34,22 @@
      (support (premise ar)
 	      (context ar))))
 
-(defn AssociationRule-toString [this]
-  (str "( " (premise this) " ==> " (conclusion this)
-       "; support " (support (union (premise this)
-				    (conclusion this))
-			     (context this))
-       ", confidence " (confidence this) " )"))
-
-(defn AssociationRule-equals [this other]
-  (and (instance? conexp.fca.AssociationRule other)
-       (= (premise this) (premise other))
-       (= (conclusion this) (conclusion other))))
+(defmethod print-method  ::Association-Rule [ar out]
+  (.write out
+	  (str "( " (premise ar) " ==> " (conclusion ar)
+	       "; support " (support (union (premise ar)
+					    (conclusion ar))
+				     (context ar))
+	       ", confidence " (confidence ar) " )")))
 
 ;;;
 
 (defn make-association-rule [context premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]
-    (conexp.fca.AssociationRule. context premise (difference conclusion premise))))
+    (Association-Rule context premise (difference conclusion premise))))
+
+;;;
 
 (defn iceberg-intent-set
   [context minsupp]

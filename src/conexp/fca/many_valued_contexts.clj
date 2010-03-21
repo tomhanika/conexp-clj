@@ -8,45 +8,32 @@
 
 (ns conexp.fca.many-valued-contexts
   (:use conexp.base
-	conexp.fca.contexts)
-  (:gen-class
-   :name conexp.fca.ManyValuedContext
-   :prefix "ManyValuedContext-"
-   :init init
-   :constructors { [ Object Object Object ] [] }
-   :state state))
+	conexp.fca.contexts))
 
-(defn ManyValuedContext-init [objects attributes incidence]
-  [ [] {:objects objects,
-	:attributes attributes,
-	:incidence incidence} ])
+;;;
 
-(defmethod objects conexp.fca.ManyValuedContext [mv-ctx]
-  ((.state mv-ctx) :objects))
+(deftype ManyValuedContext [objects attributes incidence]
+  :as this
+  Object
+  (equals [other]
+    (and (= (type other) ::ManyValuedContext)
+	 (= (objects this) (objects other))
+	 (= (attributes this) (attributes other))
+	 (let [inz-this (incidence this)
+	       inz-other (incidence other)]
+	   (forall [g (objects this)
+		    m (attributes this)]
+		   (= (inz-this [g m])
+		      (inz-other [g m])))))))
 
-(defmethod attributes conexp.fca.ManyValuedContext [mv-ctx]
-  ((.state mv-ctx) :attributes))
+(defmethod objects ::ManyValuedContext [mv-ctx]
+  (:objects mv-ctx))
 
-(defmethod incidence conexp.fca.ManyValuedContext [mv-ctx]
-  ((.state mv-ctx) :incidence))
+(defmethod attributes ::ManyValuedContext [mv-ctx]
+  (:attributes mv-ctx))
 
-(defn ManyValuedContext-equals [this other]
-  (and (instance? other conexp.fca.ManyValuedContext)
-       (= (objects this) (objects other))
-       (= (attributes this) (attributes other))
-       (let [inz-this (incidence this)
-	     inz-other (incidence other)]
-	 (forall [g (objects this)
-		  m (attributes this)]
-	   (= (inz-this [g m])
-	      (inz-other [g m]))))))
-
-(defn ManyValuedContext-hashCode
-  [#^conexp.fca.ManyValuedContext this]
-  (reduce bit-xor 0
-	  [(hash ((.state this) :objects)),
-	   (hash ((.state this) :attributes)),
-	   (hash ((.state this) :incidence))]))
+(defmethod incidence ::ManyValuedContext [mv-ctx]
+  (:incidence mv-ctx))
 
 (defn print-mv-context [mv-ctx]
   (let [objs (objects mv-ctx)
@@ -85,8 +72,8 @@
 	    " "])
 	 "\n"]))))
 
-(defn ManyValuedContext-toString [this]
-  (print-mv-context this))
+(defmethod print-method ::ManyValuedContext [mv-ctx out]
+  (.write out (print-mv-context mv-ctx)))
 
 ;;;
 
@@ -105,7 +92,7 @@
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/fn]
   [objs atts inz-fn]
-  (conexp.fca.ManyValuedContext. objs atts inz-fn))
+  (ManyValuedContext objs atts inz-fn))
 
 (defmethod make-mv-context :default [objs atts inz]
   (illegal-argument "No method defined for types "

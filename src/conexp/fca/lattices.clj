@@ -8,33 +8,43 @@
 
 (ns conexp.fca.lattices
   (:use conexp.base
-	conexp.fca.contexts)
-  (:gen-class
-   :name "conexp.fca.Lattice"
-   :prefix "Lattice-"
-   :init init
-   :constructors { [ Object Object ] []            ; relational lattices (<=)
-		   [ Object Object Object ] [] }   ; functional lattices (inf, sup)
-   :state state))
+	conexp.fca.contexts))
 
 ;;; Datastructure
 
-(defn Lattice-init
-  ([base-set order]
-     [ [] {:base-set base-set, :order order, :inf nil, :sup nil} ])
-  ([base-set inf sup]
-     [ [] {:base-set base-set, :order nil,   :inf inf, :sup sup} ]))
+(deftype Lattice [base-set order inf sup]
+  :as this
+  Object
+  (equals [other]
+    (and (= ::Lattice (type other))
+	 (= (base-set this) (base-set other))
+	 (let [order-this (order this)
+	       order-other (order other)]
+	   (or (= order-this order-other)
+	       (forall [pair (cross-product (base-set this) (base-set this))]
+		       (<=> (order-this pair) (order-other pair)))))))
+  (hashCode []
+    ;; this is not correct
+    (let [base-set (base-set this)
+	  order    (order this)
+	  inf      (inf this)
+	  sup      (sup this)]
+      (bit-xor (hash base-set)
+	       (if order
+		 (hash order)
+		 (bit-xor (hash inf)
+			  (hash sup)))))))
 
-(defn base-set [#^conexp.fca.Lattice lattice]
-  ((.state lattice) :base-set))
+(defn base-set [lattice]
+  (:base-set lattice))
 
-(defn order [#^conexp.fca.Lattice lattice]
-  (or ((.state lattice) :order)
-      (let [sup ((.state lattice) :sup)]
+(defn order [lattice]
+  (or (:order lattice)
+      (let [sup (:sup lattice)]
 	(fn [[x y]] (= y (sup x y))))))
 
-(defn inf [#^conexp.fca.Lattice lattice]
-  (or ((.state lattice) :inf)
+(defn inf [lattice]
+  (or (:inf lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
 	(fn [x y]
@@ -46,8 +56,8 @@
 					      (order [a z]))))]
 		   z))))))
 
-(defn sup [#^conexp.fca.Lattice lattice]
-  (or ((.state lattice) :sup)
+(defn sup [lattice]
+  (or (:sup lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
 	(fn [x y]
@@ -59,30 +69,12 @@
 					      (order [z a]))))]
 		   z))))))
 
-(defn Lattice-toString [this]
-  (str "Lattice on " (count (base-set this)) " elements."))
+(defmethod print-method ::Lattice [lattice out]
+  (.write out
+	  (str "Lattice on " (count (base-set lattice)) " elements.")))
 
-(defn Lattice-equals [this other]
-  (and (instance? conexp.fca.Lattice other)
-       (= (base-set this) (base-set other))
-       (let [order-this (order this)
-	     order-other (order other)]
-	 (or (= order-this order-other)
-	     (forall [pair (cross-product (base-set this) (base-set this))]
-	       (<=> (order-this pair) (order-other pair)))))))
 
-(defn Lattice-hashCode
-  "Implements hashCode for lattices."
-  [#^conexp.fca.Lattice this]
-  (let [base-set (base-set this)
-	order    ((.state this) :order)
-	inf      ((.state this) :inf)
-	sup      ((.state this) :sup)]
-    (bit-xor (hash base-set)
-	     (if order
-	       (hash order)
-	       (bit-xor (hash inf)
-			(hash sup))))))
+;;; Constructors
 
 (defn type-of [thing]
   (cond
@@ -94,13 +86,13 @@
 (defmulti make-lattice (fn [& args] (vec (map type-of args))))
 
 (defmethod make-lattice [::set ::set] [base-set order]
-  (conexp.fca.Lattice. base-set order))
+  (Lattice base-set order nil nil))
 
 (defmethod make-lattice [::set ::fn] [base-set order]
-  (conexp.fca.Lattice. base-set order))
+  (Lattice base-set order nil nil))
 
 (defmethod make-lattice [::set ::fn ::fn] [base-set inf sup]
-  (conexp.fca.Lattice. base-set inf sup))
+  (Lattice base-set nil inf sup))
 
 (defmethod make-lattice :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Lattice."))
@@ -191,5 +183,7 @@
 		(lattice-inf-irreducibles lat)
 		(fn [x y] 
 		  ((order lat) [x y]))))
+
+;;;
 
 nil

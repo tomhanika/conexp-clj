@@ -62,8 +62,8 @@
 	*test-ctx-08*))
 
 (deftest test-Context-toString
-  (is (= (str *test-ctx-01*)
-	 "\n  |1 2 3 4 5 \n--+----------\n1 |x x x . . \n2 |. x x . . \n3 |. . . . x \n4 |. . . . . \n5 |. x x x . \n")))
+  (is (= (print-context *test-ctx-01* sort-by-second sort-by-second)
+	 "  |1 2 3 4 5 \n--+----------\n1 |x x x . . \n2 |. x x . . \n3 |. . . . x \n4 |. . . . . \n5 |. x x x . \n")))
 
 (deftest test-Context-equals
   (are [objs atts inz] (= (make-context objs atts inz)

@@ -7,51 +7,33 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.contexts
-  (:gen-class
-   :name conexp.fca.Context
-   :prefix "Context-"
-   :init init
-   :constructors { [ Object Object Object ] [] }
-   :state state)
   (:use conexp.base)
   (:require [clojure.contrib.graph :as graph]))
 
 ;;;
 
-(defn Context-init
-  "Context initializer, types must be [PersistentHashSet
-  PersistentHashSet PersistentHashSep]."
-  [objects attributes incidence]
-  [ [] {:objects objects :attributes attributes :incidence incidence} ])
+(deftype Context [objects attributes incidence])
 
 (defmulti objects
   "Returns the objects of a formal context."
-  class)
+  type)
 
-(defmethod objects conexp.fca.Context [#^conexp.fca.Context ctx]
-  ((.state ctx) :objects))
+(defmethod objects ::Context [ctx]
+  (:objects ctx))
 
 (defmulti attributes
   "Returns the attributes of a formal context."
-  class)
+  type)
 
-(defmethod attributes conexp.fca.Context [#^conexp.fca.Context ctx]
-  ((.state ctx) :attributes))
+(defmethod attributes ::Context [ctx]
+  (:attributes ctx))
 
 (defmulti incidence
   "Returns the incidence of a formal context."
-  class)
+  type)
 
-(defmethod incidence conexp.fca.Context [#^conexp.fca.Context ctx]
-  ((.state ctx) :incidence))
-
-(defn Context-hashCode
-  "Implements hashCode for contexts."
-  [#^conexp.fca.Context this]
-  (reduce bit-xor 0
-	  [(hash ((.state this) :objects)),
-	   (hash ((.state this) :attributes)),
-	   (hash ((.state this) :incidence))]))
+(defmethod incidence ::Context [ctx]
+  (:incidence ctx))
 
 (defn compare-order
   "Orders things for proper output of formal contexts."
@@ -100,7 +82,6 @@
 	max-att (reduce #(max %1 (count (str %2))) 0 attributes)
 	max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
     (with-str-out
-      "\n" 
       (ensure-length "" max-obj " ") " |" (for [att attributes]
 					    [(print-str att) " "]) "\n"
       (ensure-length "" max-obj "-") "-+" (for [att attributes]
@@ -114,18 +95,8 @@
 	    " "])
 	 "\n"]))))
 
-(defn Context-toString
-  "Represents context as string by means of print-context."
-  [this]
-  (print-context this sort-by-second sort-by-second))
-
-(defn Context-equals
-  "Implements mathematical equality of two contexts."
-  [this other]
-  (and (instance? conexp.fca.Context other)
-       (= (objects this) (objects other))
-       (= (attributes this) (attributes other))
-       (= (incidence this) (incidence other))))
+(defmethod print-method ::Context [ctx out]
+  (.write out (print-context ctx sort-by-second sort-by-second)))
 
 ;;;
 
@@ -154,14 +125,14 @@
 	inz  (set-of [g m] [[g m] incidence
 			    :when (and (contains? objs g)
 				       (contains? atts m))])]
-    (conexp.fca.Context. objs atts inz)))
+    (Context objs atts inz)))
 
 (defmethod make-context [::set ::set ::fn] [objects attributes incidence]
-  (conexp.fca.Context. (set objects)
-		       (set attributes)
-		       (set-of [x y] [x objects
-				      y attributes
-				      :when (incidence x y)])))
+  (Context (set objects)
+	   (set attributes)
+	   (set-of [x y] [x objects
+			  y attributes
+			  :when (incidence x y)])))
 
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
@@ -173,7 +144,7 @@
   (fn [& args] (map type-of args)))
 
 (defmethod make-context-nc [::set ::set ::set] [objects attributes incidence]
-  (conexp.fca.Context. (set objects) (set attributes) (set incidence)))
+  (Context (set objects) (set attributes) (set incidence)))
 
 (defmethod make-context-nc :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))

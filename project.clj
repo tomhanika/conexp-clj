@@ -17,12 +17,8 @@
 		 [org.apache.commons/commons-math "2.0"]
 		 [jline "0.9.94"]]
 ;;  :dev-dependencies [[leiningen/lein-swank "1.1.0"]]
-  :namespaces [conexp.fca.contexts
-	       conexp.fca.implications
-	       conexp.fca.association-rules
-	       conexp.fca.lattices
-	       conexp.fca.many-valued-contexts
-	       conexp.gui.repl])
+  :namespaces [conexp.gui.repl])
+
 ;;;
 
 nil
