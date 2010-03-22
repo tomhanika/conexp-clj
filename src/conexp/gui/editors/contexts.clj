@@ -18,6 +18,7 @@
     conexp.gui.util
     conexp.util
     conexp.util.hookable
+    conexp.util.one-to-many
     clojure.contrib.swing-utils
     conexp.gui.editors.util
     conexp.fca
@@ -118,19 +119,19 @@
   [& setup]
   (let [ self (promise)
          root (JRootPane.)
-         table (do-mk-table-control
-                 [:set-row-count 10]
-                 [:set-column-count 10])
+         table (make-table-control
+                 [set-row-count 10]
+                 [set-column-count 10])
 
          toolbar (make-toolbar-control :vert
                    [add-button 
                      (make-button "Copy" 
                        (get-ui-icon "OptionPane.informationIcon")
-                       [set-handler (fn [] (table-to-clipboard! table))] )]
+                       [set-handler (fn [] (copy-to-clipboard table))] )]
                    [add-button
                      (make-button "Paste" 
                        (get-ui-icon "OptionPane.informationIcon")
-                       [set-handler (fn [] (clipboard-to-table! table))] ) ])
+                       [set-handler (fn [] (paste-from-clipboard table))] ) ])
 
                    
          widget {:managed-by-conexp-gui-editors-util "context-editor"
@@ -167,11 +168,6 @@
         (add (get-widget toolbar) BorderLayout/LINE_START))
       (.. root getContentPane
         (add (get-widget table)))
-      ;(set-handler paste-button (fn [] (clipboard-to-table! table)))
-      ;(!! toolbar :add-button 
-      ;               (make-button "Copy" 
-      ;                 (get-ui-icon "OptionPane.informationIcon")
-      ;                 [set-handler (fn [] (table-to-clipboard! table))]))
       (doseq [x defaults] (unroll-parameters-fn-map widget x))
       (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
@@ -183,6 +179,8 @@
 ;;
 ;;
 ;;
+
+(deftype editable-context [context attr-cols obj-rows widgets])
 
 (defn editable-context?
   "Tests whether the argument is an editable context."
@@ -632,8 +630,7 @@
                                 (fn [x] (with-swing-threads
                                           (message-box (vec (first x)))))])
              left  workspace-tree
-;;             right (do-mk-table-control [:set-column-count 12]
-;;                                    [:set-row-count 5])
+
              right (do-mk-context-editor)
              right2 (do-mk-context-editor)
              right3 (make-table-control)
