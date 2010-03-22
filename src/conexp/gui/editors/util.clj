@@ -1449,7 +1449,51 @@
 ;;
 ;;
 
-(defn-swing do-mk-toolbar-control
+(deftype toolbar-control [widget control])
+(derive ::toolbar-control ::control)
+
+(inherit-multimethod set-orientation ::toolbar-control
+  "Sets the toolbars orientation.
+
+  Parameters:
+    otoolbar      _toolbar-control object
+    orientation   _either :horiz or :vert")
+
+(defmethod-swing-threads*
+  set-orientation ::toolbar-control
+  [otoolbar orientation]
+  (.setOrientation (get-control otoolbar) ({:horiz JToolBar/HORIZONTAL
+                                            :vert JToolBar/VERTICAL} 
+                                            orientation)))
+
+  
+(inherit-multimethod add-button ::toolbar-control
+  "Adds a button to the toolbar
+
+  Parameters:
+    otoolbar  _toolbar-control object
+    button    _the button widget")
+
+(defmethod-swing-threads*
+  add-button ::toolbar-control
+  [otoolbar button]
+  (.add (get-control otoolbar) (get-widget button)))
+
+
+(inherit-multimethod add-separator ::toolbar-control
+  "Adds a separator space to the toolbar
+
+  Parameters:
+    otoolbar  _toolbar-control object")
+
+(defmethod-swing-threads*
+  add-separator ::toolbar-control
+  [otoolbar]
+  (.addSeparator (get-control otoolbar)))
+
+
+
+(defn-swing make-toolbar-control
   "Creates a toolbar control in Java.
 
   Parameters:
@@ -1457,46 +1501,13 @@
      & setup     _an optional number of vectors that may contain additional
                   tweaks that are called after widget creation"
   [orientation & setup]
-  (let [ self (promise)
-         toolbar (JToolBar. ({:horiz JToolBar/HORIZONTAL
+  (let [ toolbar (JToolBar. ({:horiz JToolBar/HORIZONTAL
                                       :vert JToolBar/VERTICAL} 
                                       orientation))
-         widget {:managed-by-conexp-gui-editors-util "toolbar-control"
+         widget (toolbar-control toolbar toolbar) ]
+    (apply-exprs widget setup)
+    widget))
 
-         :widget toolbar
-         :control toolbar
-
-         :set-orientation 
-         (fn-swing-threads*-doc "Sets the toolbars orientation.
-
-  Parameters:
-    orientation   _either :horiz or :vert" 
-           [orientation]
-           (.setOrientation toolbar ({:horiz JToolBar/HORIZONTAL
-                                      :vert JToolBar/VERTICAL} 
-                                      orientation)))
-
-         :add-button
-         (fn-swing-threads*-doc "Adds a button to the toolbar
-
-  Parameters:
-    button    _the button widget"
-           [button]
-           (.add toolbar (get-widget button)))
-
-         :add-separator
-         (fn-swing-threads*-doc "Adds a separator to the toolbar."
-           []
-           (.addSeparator toolbar))
-         
-         }
-
-         defaults []]
-    (do
-      (deliver self widget)
-      (doseq [x defaults] (unroll-parameters-fn-map widget x))
-      (doseq [x setup] (unroll-parameters-fn-map widget x))
-      widget )))
 
 nil
 

@@ -122,12 +122,12 @@
                  [:set-row-count 10]
                  [:set-column-count 10])
 
-         toolbar (do-mk-toolbar-control :vert
-                   [:add-button 
+         toolbar (make-toolbar-control :vert
+                   [add-button 
                      (make-button "Copy" 
                        (get-ui-icon "OptionPane.informationIcon")
                        [set-handler (fn [] (table-to-clipboard! table))] )]
-                   [:add-button
+                   [add-button
                      (make-button "Paste" 
                        (get-ui-icon "OptionPane.informationIcon")
                        [set-handler (fn [] (clipboard-to-table! table))] ) ])
