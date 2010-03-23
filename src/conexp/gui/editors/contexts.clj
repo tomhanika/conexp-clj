@@ -108,13 +108,13 @@
 ;;
 ;;
 
-(deftype context-editor-control [widget control e-ctx])
-(derive ::context-editor-control :conexp.gui.editors.util/control)
+(deftype context-editor [widget table toolbar e-ctx])
+(derive ::context-editor :conexp.gui.editors.util/widget)
 
-(declare editable-context? make-editable-context)
+(declare make-editable-context editable-context?)
 
 
-(defn-swing make-context-editor-control
+(defn-swing make-context-editor
   "Creates a control for editing contexts.
 
   Parameters:
@@ -133,7 +133,7 @@
                        (get-ui-icon "OptionPane.informationIcon")
                        [set-handler (fn [] (paste-from-clipboard table))] ) ])
          e-ctx (make-editable-context)
-         widget (context-editor-control root table e-ctx) ]
+         widget (context-editor root table toolbar e-ctx) ]
     (apply-exprs widget setup)
     (add e-ctx widget)
     widget))
