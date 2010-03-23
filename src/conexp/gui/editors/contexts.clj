@@ -108,7 +108,36 @@
 ;;
 ;;
 
+(deftype context-editor-control [widget control e-ctx])
+(derive ::context-editor-control :conexp.gui.editors.util/control)
+
 (declare editable-context? make-editable-context)
+
+
+(defn-swing make-context-editor-control
+  "Creates a control for editing contexts.
+
+  Parameters:
+     & setup     _an optional number of vectors that may contain additional
+                  tweaks that are called after widget creation"
+  [ & setup]
+  (let [ root (JRootPane.)
+         table (make-table-control [set-row-count 1] [set-column-count 1])
+         toolbar (make-toolbar-control :vert
+                   [add-button 
+                     (make-button "Copy" 
+                       (get-ui-icon "OptionPane.informationIcon")
+                       [set-handler (fn [] (copy-to-clipboard table))] )]
+                   [add-button
+                     (make-button "Paste" 
+                       (get-ui-icon "OptionPane.informationIcon")
+                       [set-handler (fn [] (paste-from-clipboard table))] ) ])
+         e-ctx (make-editable-context)
+         widget (context-editor-control root table e-ctx) ]
+    (apply-exprs widget setup)
+    (add e-ctx widget)
+    widget))
+
 
 (defn-swing do-mk-context-editor
   "Creates a control for editing contexts.
@@ -185,18 +214,80 @@
 (defn editable-context?
   "Tests whether the argument is an editable context."
   [ctx?]
-  (and (map? ctx?)
-    (contains? ctx? :editable-context)))
+  (isa? (type ctx?) ::editable-context))
 
-(defn get-context
-  "Tests whether ctx is an editable context and returns
-  the appropriate context value, or otherwise ctx itself."
+
+(inherit-multimethod get-context ::editable-context
+  "Returns the fca-context object that is currently bound to
+   the editable context.
+
+   Parameters:
+    ctx   _editable-context object")
+
+(defmethod
+  get-context ::editable-context
   [ctx]
-  (if (editable-context? ctx)
-    @(ctx :context)
-    ctx))
+  (deref (:context ctx)))
+
+(inherit-multimethod get-context conexp.fca.Context
+  "Identity on fca-context.")
+
+(defmethod
+  get-context conexp.fca.Context
+  [x] x)
+
+(defn make-context-compatible 
+  "Takes a context object and returns a compatible fca-Context.
+
+  Parameters:
+    ctx   _object for which get-context is defined."
+  [ctx]
+  (let [ ctx (get-context ctx)
+         obj (objects ctx)
+         att (attributes ctx)
+         inc (incidence ctx)
+         obj-map (map-to-unique-strings obj)
+         att-map (map-to-unique-strings att)
+         comp-obj (map obj-map obj)
+         comp-att (map att-map att)
+         comp-inc (map (fn [x] [(obj-map (first x)) (att-map (second x))]) inc)]
+    (make-context comp-obj comp-att comp-inc)))
 
 (defn make-editable-context
+  "Takes an optional context as input and returns an appropriate 
+  editable-context structure that is bound to a compatible version of the 
+  input context.
+
+  Parameters:
+   [context-in]   _input context"
+  ([] (make-editable-context (make-context '() '() [])))
+  ([context-in]
+    (let [ ctx (make-context-compatible context-in)
+           att (attributes ctx)
+           obj (objects ctx)
+           self (promise)
+           e-ctx (editable-context (ref ctx) 
+                   (ref (conj (zipmap att (range 1 (+ 1 (count att))))
+                          (zipmap (range 1 (+ 1 (count att))) att)))
+                   (ref (conj (zipmap obj (range 1 (+ 1 (count obj))))
+                          (zipmap (range 1 (+ 1 (count obj))) obj)))
+                   (ref (make-one-to-many self))) ]
+      (deliver self e-ctx)
+      e-ctx)))
+
+(inherit-multimethod add-widget ::editable-context
+  "Adds a context-table widget to an editable context.
+   Parameters:
+     e-ctx   _editable-context
+     table   _context-table widget")
+
+(defmethod add-widget ::editable-context
+  [e-ctx table]
+  (dosync (commute (:widgets e-ctx) add table)))
+                   
+
+
+(defn make-editable-context2
   "Takes an optional context as input and returns the appropriate
    editable context structure.
 

@@ -18,5 +18,57 @@
   "Creates a one-to-many object.
    Parameters:
      one     _the single point object
-     & many  _optional list of connected objects"
-  [one & many] (one-to-many one many))
+     & many  _optional hash-set of connected objects"
+  [one & many] (one-to-many one (if (nil? many) #{} (hash-set many))))
+
+
+(inherit-multimethod add ::one-to-many
+  "Returns a new one-to-many object that consists of otm
+   and has some more elements.
+  
+  Parameters:
+    otm   _one-to-many object
+    & els _new elements")
+
+(defmethod add ::one-to-many
+  [otm & els]
+  (one-to-many (:one otm) (apply conj (:many otm) els)))
+
+(inherit-multimethod del ::one-to-many
+  "Returns a new one-to-many object that consists of otm
+   and has some less elements.
+  
+  Parameters:
+    otm   _one-to-many object
+    & els _dismissed elements")
+
+(defmethod del ::one-to-many
+  [otm & els]
+  (one-to-many (:one otm) (apply disj (:many otm) els)))
+  
+
+(inherit-multimethod call-one ::one-to-many
+  "Calls the given function with the one-part of the given one-many relation
+  as first parameter.
+  
+  Parameters:
+    otm     _one-to-many object
+    f       _function
+    & parms _function parameters")
+
+(defmethod call-one ::one-to-many
+  [otm f & parms]
+  (apply f  (:one otm) parms))
+
+(inherit-multimethod call-many ::one-to-many
+  "Calls the given function several times with each many-part of the given 
+  one-many relation as first parameter for one.
+  
+  Parameters:
+    otm     _one-to-many object
+    f       _function
+    & parms _function parameters")
+
+(defmethod call-many ::one-to-many
+  [otm f & parms]
+  (doseq [m (:many otm)] (apply f m parms)))
