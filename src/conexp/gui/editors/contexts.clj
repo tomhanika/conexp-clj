@@ -108,13 +108,13 @@
 ;;
 ;;
 
-(deftype context-editor [widget table toolbar e-ctx])
-(derive ::context-editor :conexp.gui.editors.util/widget)
+(deftype context-editor-widget [widget table toolbar e-ctx])
+(derive ::context-editor-widget :conexp.gui.editors.util/widget)
 
 (declare make-editable-context editable-context?)
 
 
-(defn-swing make-context-editor
+(defn-swing make-context-editor-widget
   "Creates a control for editing contexts.
 
   Parameters:
@@ -133,13 +133,13 @@
                        (get-ui-icon "OptionPane.informationIcon")
                        [set-handler (fn [] (paste-from-clipboard table))] ) ])
          e-ctx (make-editable-context)
-         widget (context-editor root table toolbar e-ctx) ]
+         widget (context-editor-widget root table toolbar e-ctx) ]
     (apply-exprs widget setup)
     (add e-ctx widget)
     widget))
 
 
-(defn-swing do-mk-context-editor
+(defn-swing do-mk-context-editor-widget
   "Creates a control for editing contexts.
 
   Parameters:
@@ -163,7 +163,7 @@
                        [set-handler (fn [] (paste-from-clipboard table))] ) ])
 
                    
-         widget {:managed-by-conexp-gui-editors-util "context-editor"
+         widget {:managed-by-conexp-gui-editors-util "context-editor-widget"
 
          :widget root
          :table table
@@ -722,8 +722,8 @@
                                           (message-box (vec (first x)))))])
              left  workspace-tree
 
-             right (do-mk-context-editor)
-             right2 (do-mk-context-editor)
+             right (make-context-editor-widget)
+             right2 (make-context-editor-widget)
              right3 (make-table-control)
              rpane (make-split-pane :vert right right3
                      [set-divider-location 300])
@@ -731,15 +731,14 @@
              pane (make-split-pane :horiz left rpane
                     [set-divider-location 200]) 
              ]
-        (do
-          (add-tab-with-name-icon-tooltip frame (get-widget pane)
-            "Contexts" nil "View and edit contexts")
-          (dosync-wait 
-            (ref-set context-workspace-tree workspace-tree)
-            (ref-set context-pane pane)
-            (ref-set +debug+ right3)) 
-          (+debug-hook+)
-          ))) ) )
+        (add-tab-with-name-icon-tooltip frame (get-widget pane)
+          "Contexts" nil "View and edit contexts")
+        (dosync-wait 
+          (ref-set context-workspace-tree workspace-tree)
+          (ref-set context-pane pane)
+          (ref-set +debug+ right3)) 
+        (+debug-hook+)
+        ))) ) 
 
 (defn plug-unload-hook
   "Unloads the context-editor plugin.
