@@ -50,13 +50,18 @@
 					   #{(make-dl-definition target dl-expression)}),
 				target])))))
 
+(defn EL-expression->rooted-description-graph
+  "Returns for a given EL expression or a tbox-target-pair its
+  description graph together with the root corresponding to the
+  target."
+  [dl-expr]
+  (let [[tbox target] (expression (ensure-EL-gfp-concept dl-expr))]
+    [(tbox->description-graph tbox), target]))
+
 (define-subsumption EL-gfp
   [C D]
-  (let [[C-tbox C-target] (uniquify-tbox-target-pair (expression (ensure-EL-gfp-concept C))),
-	[D-tbox D-target] (uniquify-tbox-target-pair (expression (ensure-EL-gfp-concept D))),
-
-	G-C (tbox->description-graph C-tbox),
-	G-D (tbox->description-graph D-tbox)]
+  (let [[G-C C-target] (EL-expression->rooted-description-graph C)
+	[G-D D-target] (EL-expression->rooted-description-graph D)]
     (simulates? G-D G-C D-target C-target)))
 
 ;;;

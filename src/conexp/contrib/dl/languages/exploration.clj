@@ -11,6 +11,7 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.languages.interaction
+	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.framework.reasoning)
   (:use clojure.contrib.pprint))
 
@@ -97,8 +98,13 @@
   ([initial-model]
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
-     (binding [model-closure (memoize model-closure)
+     (binding [;; This violates our Maximum Generality Assumption
+	       ;; but it makes the program much faster
+	       EL-expression->rooted-description-graph (memoize EL-expression->rooted-description-graph)
+
+	       model-closure (memoize model-closure)
 	       subsumed-by?  (memoize subsumed-by?)]
+
        (let [language (model-language initial-model)]
 	 (when (and (not= (set initial-ordering) (concept-names language))
 		    (not= (count initial-ordering) (count (concept-names language))))
