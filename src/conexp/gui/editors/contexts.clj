@@ -134,10 +134,23 @@
                        [set-handler (fn [] (paste-from-clipboard table))] ) ])
          e-ctx (make-editable-context)
          widget (context-editor-widget root table toolbar e-ctx) ]
+    (.. root getContentPane 
+      (add (get-widget toolbar) BorderLayout/LINE_START))
+    (.. root getContentPane
+      (add (get-widget table)))
     (apply-exprs widget setup)
-    (add e-ctx widget)
+    (add-widget e-ctx widget)
     widget))
 
+(inherit-multimethod get-table ::context-editor-widget
+  "Returns the table-control that is associated with the context-editor-widget.
+
+  Parameters:
+    widget  _context-editor-widget")
+
+(defmethod get-table ::context-editor-widget
+  [widget]
+  (:table widget))
 
 (defn-swing do-mk-context-editor-widget
   "Creates a control for editing contexts.
@@ -276,14 +289,33 @@
       e-ctx)))
 
 (inherit-multimethod add-widget ::editable-context
-  "Adds a context-table widget to an editable context.
+  "Adds a context-editor-widget to an editable context, and sets the
+   editor windows table to represent the new context.
    Parameters:
      e-ctx   _editable-context
-     table   _context-table widget")
+     editor  _context-editor-widget")
 
 (defmethod add-widget ::editable-context
-  [e-ctx table]
-  (dosync (commute (:widgets e-ctx) add table)))
+  [e-ctx editor]
+  (let [ ctx (get-context e-ctx)
+         att-cols (:attr-cols e-ctx)
+         obj-rows (:obj-rows e-ctx) 
+         att (attributes ctx)
+         obj (objects ctx)
+         inc (incidence ctx)
+         get-cross (fn [obj att] (if (contains? inc [obj att]) "X" " "))
+         table (get-table editor)]   
+
+    (set-hook table "cell-value" (fn [_ _ x] x))
+    (set-column-count table (+ 1 (count att)))
+    (set-row-count table (+ 1 (count obj)))
+    (doseq [a att] (set-value-at-index table 0 (att-cols a) a))
+    (doseq [o obj] (set-value-at-index table (obj-rows o) 0 o))
+    (doseq [a att o obj] (set-value-at-index table (obj-rows o) (att-cols a)
+                           (get-cross o a)))
+    (set-value-at-index table 0 0 "⇊objects⇊")
+    
+    (dosync (commute (:widgets e-ctx) add table))))
                    
 
 
@@ -666,7 +698,8 @@
 (def context-workspace (ref nil))
 (def context-workspace-tree (ref nil))
 (def +debug+ (ref nil))
-(defn +debug-hook+ [] nil)
+(defn +debug-hook+ [] (doseq [x @+debug+]
+                        (add-widget ectx x)))
 
 (defn update-workspace-tree
   "Updates the data displayed in the current workspace tree
@@ -724,8 +757,7 @@
 
              right (make-context-editor-widget)
              right2 (make-context-editor-widget)
-             right3 (make-table-control)
-             rpane (make-split-pane :vert right right3
+             rpane (make-split-pane :vert right right2
                      [set-divider-location 300])
              
              pane (make-split-pane :horiz left rpane
@@ -736,7 +768,7 @@
         (dosync-wait 
           (ref-set context-workspace-tree workspace-tree)
           (ref-set context-pane pane)
-          (ref-set +debug+ right3)) 
+          (ref-set +debug+ [right right2])) 
         (+debug-hook+)
         ))) ) 
 

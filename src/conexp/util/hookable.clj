@@ -42,8 +42,9 @@
       (dosync-wait (commute hooks 
                      (fn [h]
                        (let [ doc-str (second (h name))
-                              fun-str (list function doc-str)]
-                         conj h {name fun-str}))))
+                              fun-str (list function doc-str)
+                              new-h (conj h {name fun-str})]
+                         new-h ))))
       (illegal-argument (str "set-hook " name " to " function " for "
                           ohookable " failed: hook undefined")))))
 
@@ -62,7 +63,8 @@
     (if (contains? hookmap name)
       (apply (first (hookmap name)) args)
       (illegal-argument (str "call-hook " name " for "
-                          ohookable " failed: hook undefined")))))
+                          ohookable " failed: hook undefined"
+                          "\n\nmap:\n" hookmap)))))
 
 (inherit-multimethod doc-hook ::hookable
   "Looks up a hook in the hooksmap and returns its doc-str,
