@@ -17,6 +17,7 @@
 (deftest test-model-gcis
   (are [gci-count model] (= gci-count (count (model-gcis model)))
        7 paper-model
+       7 small-model
        7 riding-model
        19 family-model))
 
