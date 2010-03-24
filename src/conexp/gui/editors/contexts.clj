@@ -113,7 +113,6 @@
 
 (declare make-editable-context editable-context?)
 
-
 (defn-swing make-context-editor-widget
   "Creates a control for editing contexts.
 
@@ -132,15 +131,39 @@
                      (make-button "Paste" 
                        (get-ui-icon "OptionPane.informationIcon")
                        [set-handler (fn [] (paste-from-clipboard table))] ) ])
-         e-ctx (make-editable-context)
-         widget (context-editor-widget root table toolbar e-ctx) ]
+         ectx (ref (make-editable-context))
+         e-ctx @ectx
+         widget (context-editor-widget root table toolbar ectx) ]
     (.. root getContentPane 
       (add (get-widget toolbar) BorderLayout/LINE_START))
     (.. root getContentPane
       (add (get-widget table)))
     (apply-exprs widget setup)
+    (dosync-wait (commute (:widgets e-ctx) add widget))
     (add-widget e-ctx widget)
     widget))
+
+(inherit-multimethod get-ectx ::context-editor-widget
+  "Returns the editable-context that is currently associated with the
+   context-editor-widget.
+
+  Parameters:
+    widget  _context-editor-widget")
+
+(defmethod get-ectx ::context-editor-widget
+  [widget] @(:e-ctx widget))
+
+(inherit-multimethod set-ectx ::context-editor-widget
+  "Sets the editable-context that is currently associated with the
+   context-editor-widget to the second parameter.
+
+  Parameters:
+    widget  _context-editor-widget
+    e-ctx   _new editable-context")
+
+(defmethod set-ectx ::context-editor-widget
+  [widget e-ctx] (dosync-wait (ref-set (:e-ctx widget) e-ctx)))
+
 
 (inherit-multimethod get-table ::context-editor-widget
   "Returns the table-control that is associated with the context-editor-widget.
@@ -151,6 +174,13 @@
 (defmethod get-table ::context-editor-widget
   [widget]
   (:table widget))
+
+(inherit-multimethod get-table :conexp.gui.editors.util/table-control
+  "Identity for table controls")
+
+(defmethod get-table :conexp.gui.editors.util/table-control
+  [x] x)
+
 
 (defn-swing do-mk-context-editor-widget
   "Creates a control for editing contexts.
@@ -215,6 +245,46 @@
       widget )))
 
 
+(defn- ectx-cell-value-hook ;;TODO!!! ...
+  [ectx editor row column contents]
+  (let [ good-value
+         (cond (= column row 0) "⇊objects⇊"
+           (= row 0) 
+           (let [attrib-cols @(:attr-cols ectx)
+                  current-name (attrib-cols column)] 
+             (if (= contents current-name) current-name
+               current-name
+                                        ;(change-attribute-name column contents)
+               ))
+           (= column 0)
+           (let [object-rows @(:obj-rows ectx)
+                  current-name (object-rows row)]
+             (if (= contents current-name) current-name
+                                        ;(change-object-name row contents)
+               current-name
+               ))
+           true ;else
+           (let [ cross (string-to-cross contents)
+                  obj-name (@(:obj-rows ectx) row)
+                  attr-name (@(:attr-cols ectx) column)
+                  fca-ctx (get-context ectx)
+                  inc (incidence fca-ctx)
+                  current-state (contains? inc [obj-name attr-name])]
+
+             (if (not= current-state cross)
+                               ;(update-incidence obj-name attr-name cross)
+               nil
+               )
+             (if cross "X" " "))
+           )
+         other-widgets (del @(:widgets ectx) editor)]
+
+    (call-many other-widgets (fn [x] (update-value-at-index (get-table x) 
+                                       row column good-value)))
+    good-value))
+
+
+
 ;;
 ;;
 ;; Editable contexts
@@ -223,6 +293,7 @@
 ;;
 
 (deftype editable-context [context attr-cols obj-rows widgets])
+
 
 (defn editable-context?
   "Tests whether the argument is an editable context."
@@ -304,8 +375,12 @@
          obj (objects ctx)
          inc (incidence ctx)
          get-cross (fn [obj att] (if (contains? inc [obj att]) "X" " "))
-         table (get-table editor)]   
+         table (get-table editor)
+         current-ectx (get-ectx editor) ]   
 
+    (dosync-wait (commute (:widgets current-ectx) del editor)
+      (set-ectx editor e-ctx)
+      (commute (:widgets e-ctx) add editor))
     (set-hook table "cell-value" (fn [_ _ x] x))
     (set-column-count table (+ 1 (count att)))
     (set-row-count table (+ 1 (count obj)))
@@ -314,8 +389,9 @@
     (doseq [a att o obj] (set-value-at-index table (obj-rows o) (att-cols a)
                            (get-cross o a)))
     (set-value-at-index table 0 0 "⇊objects⇊")
-    
-    (dosync (commute (:widgets e-ctx) add table))))
+    (set-hook table "cell-value" 
+      (fn [r c s] (ectx-cell-value-hook e-ctx editor r c s)))))
+
                    
 
 
