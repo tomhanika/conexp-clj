@@ -111,7 +111,7 @@
 (deftype context-editor-widget [widget table toolbar e-ctx])
 (derive ::context-editor-widget :conexp.gui.editors.util/widget)
 
-(declare make-editable-context editable-context?)
+(declare make-editable-context editable-context? add-widget get-context)
 
 (defn-swing make-context-editor-widget
   "Creates a control for editing contexts.
@@ -244,6 +244,7 @@
       (doseq [x setup] (unroll-parameters-fn-map widget x))
       widget )))
 
+(declare change-attribute-name change-object-name change-incidence-cross)
 
 (defn- ectx-cell-value-hook ;;TODO!!! ...
   [ectx editor row column contents]
@@ -253,16 +254,12 @@
            (let [attrib-cols @(:attr-cols ectx)
                   current-name (attrib-cols column)] 
              (if (= contents current-name) current-name
-               current-name
-                                        ;(change-attribute-name column contents)
-               ))
+               (change-attribute-name ectx column contents)))
            (= column 0)
            (let [object-rows @(:obj-rows ectx)
                   current-name (object-rows row)]
              (if (= contents current-name) current-name
-                                        ;(change-object-name row contents)
-               current-name
-               ))
+               (change-object-name ectx row contents)))
            true ;else
            (let [ cross (string-to-cross contents)
                   obj-name (@(:obj-rows ectx) row)
@@ -270,17 +267,14 @@
                   fca-ctx (get-context ectx)
                   inc (incidence fca-ctx)
                   current-state (contains? inc [obj-name attr-name])]
-
              (if (not= current-state cross)
-                               ;(update-incidence obj-name attr-name cross)
-               nil
-               )
+               (change-incidence-cross ectx obj-name attr-name cross))
              (if cross "X" " "))
            )
          other-widgets (del @(:widgets ectx) editor)]
 
-    (call-many other-widgets (fn [x] (update-value-at-index (get-table x) 
-                                       row column good-value)))
+;    (call-many other-widgets (fn [x] (update-value-at-index (get-table x) 
+;                                       row column good-value)))
     good-value))
 
 
@@ -393,6 +387,113 @@
       (fn [r c s] (ectx-cell-value-hook e-ctx editor r c s)))))
 
                    
+(declare change-attribute-name change-object-name change-incidence-cross)
+
+(inherit-multimethod change-incidence-cross ::editable-context
+ "Sets or unsets the cross in the incidence relation of the editable-context.
+
+  Parameters:
+     ectx       _editable-context
+     obj        _object
+     att        _attribute
+     cross      _true or false")
+
+(defmethod change-incidence-cross ::editable-context
+  [ectx obj att cross]
+  (let [ ostr (if (= (type obj) String) obj
+                (@(:obj-rows ectx) obj))
+         astr (if (= (type att) String) att
+                (@(:attr-cols ectx) att)) ]
+    (dosync-wait
+      (commute (:context ectx)
+        (fn [x]
+          (let [ as (attributes x)
+                 os (objects x)
+                 ir (incidence x) ]
+            (if cross (make-context os as (conj ir [ostr astr]))
+              (make-context os as (disj ir [ostr astr])))))))
+    (let [ row (@(:obj-rows ectx) ostr)
+           col (@(:attr-cols ectx) astr) ]
+      (call-many @(:widgets ectx)
+        (fn [w] (update-value-at-index (get-table w)
+                  row col (if cross "X" " ")))))))
+
+
+(inherit-multimethod change-attribute-name ::editable-context
+ "Changes the attributes name of given to requested, if requested is
+  not taken by another attribute. In this case, -# with a unique # is
+  appended to the requested name. Returns the new attribute name
+
+  Parameters:
+     ectx       _editable-context
+     given      _current attribute name or column index
+     requested  _requested new attribute name")
+
+(defmethod change-attribute-name ::editable-context
+  [ectx given requested]
+  (let [ att-cols @(:attr-cols ectx) ]
+    (if (= (type given) String)
+      (change-attribute-name ectx (att-cols given) requested)
+      (dosync-wait
+        (let [ ctx  (get-context ectx)
+               current-name (att-cols given)
+               attribs (attributes ctx)
+               other-attribs (disj attribs current-name)
+               new-name (req-unique-string other-attribs requested) ]
+          (when-not (= current-name new-name)
+            (let [ amap (fn [x] (if (= x current-name) new-name x)) ]
+              (commute (:context ectx)
+                (fn [x] (let [ as (conj (disj (attributes x) current-name)
+                                    new-name)
+                               os (objects x)
+                               ir (map (fn [x] [(first x)(amap (second x))])
+                                    (incidence x))]
+                          (make-context os as ir))))
+              (commute (:attr-cols ectx) switch-bipartit-auto
+                given current-name given new-name)
+              (call-many @(:widgets ectx)
+                (fn [w] (update-value-at-index (get-table w)
+                          0 given new-name)))))
+          new-name)))))
+
+
+(inherit-multimethod change-object-name ::editable-context
+ "Changes the object's name of given to requested, if requested is
+  not taken by another object. In this case, -# with a unique # is
+  appended to the requested name. Returns the new attribute name
+
+  Parameters:
+     ectx       _editable-context
+     given      _current attribute name or column index
+     requested  _requested new attribute name")
+
+(defmethod change-object-name ::editable-context
+  [ectx given requested]
+  (let [ obj-cols @(:obj-rows ectx) ]
+    (if (= (type given) String)
+      (change-object-name ectx (obj-cols given) requested)
+      (dosync-wait
+        (let [ ctx  (get-context ectx)
+               current-name (obj-cols given)
+               objs (objects ctx)
+               other-objs (disj objs current-name)
+               new-name (req-unique-string other-objs requested) ]
+          (when-not (= current-name new-name)
+            (let [ omap (fn [x] (if (= x current-name) new-name x)) ]
+              (commute (:context ectx)
+                (fn [x] (let [ os (conj (disj (objects x) current-name)
+                                    new-name)
+                               as (attributes x)
+                               ir (map (fn [x] [(omap (first x))(second x)])
+                                    (incidence x))]
+                          (make-context os as ir))))
+              (commute (:obj-rows ectx) switch-bipartit-auto
+                given current-name given new-name)
+              (call-many @(:widgets ectx)
+                (fn [w] (update-value-at-index (get-table w)
+                          given 0 new-name)))))
+          new-name)))))
+
 
 
 (defn make-editable-context2
@@ -481,40 +582,6 @@
                                 (make-context objs attrs 
                                   (op inc [object attribute])))))))
 
-           change-attribute-name
-           (fn-doc "This function will change the name of the attribute in
-  the specified column to the new given name, if the new name does not conflict,
-  or otherwise to a conflict free new name; and returns the new name of the
-  attribute.
-
-  Parameters:
-    model-column   _column of the attribute in the model
-    req-name       _requested new attribute name"
-             [model-column req-name]
-             (dosync-wait
-               (let [ attribs (attributes (get-context @context))
-                      current-name (@attr-cols model-column)
-                      other-attribs (disj attribs current-name)
-                      new-name (req-unique-string other-attribs
-                                 req-name) ]
-                 (do
-                   (if (not= current-name new-name)
-                     (let [ amap (fn [x] (if (= x current-name) new-name x))]
-                       (dosync
-                         (commute context
-                           (fn [x] (let [as (conj (disj (attributes x) 
-                                                    current-name)
-                                              new-name)
-                                         os (objects x)
-                                         inc (map 
-                                               (fn [x] [ (first x) 
-                                                         (amap (second x))])
-                                               (incidence x))]
-                                     (make-context os as inc))))
-                         (commute attr-cols switch-bipartit-auto 
-                           model-column current-name
-                           model-column new-name))))                         
-                   new-name))))
 
            change-object-name
            (fn-doc "This function will change the name of the object in
