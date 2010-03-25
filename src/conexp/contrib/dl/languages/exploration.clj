@@ -98,19 +98,15 @@
   ([initial-model]
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
-     (binding [;; This violates our Maximum Generality Assumption
-	       ;; but it makes the program much faster
-	       EL-expression->rooted-description-graph (memoize EL-expression->rooted-description-graph)
-
-	       model-closure (memoize model-closure)
-	       subsumed-by?  (memoize subsumed-by?)]
-
+     (with-memoized-fns [EL-expression->rooted-description-graph ;Dirty, but helps
+			 interpret
+			 model-closure
+			 subsumed-by?]
        (let [language (model-language initial-model)]
 	 (when (and (not= (set initial-ordering) (concept-names language))
 		    (not= (count initial-ordering) (count (concept-names language))))
 	   (illegal-argument "Given initial-ordering for explore-model must consist "
 			     "of all concept names of the language of the given model."))
-
 	 (loop [k     0,
 		M_k   (map #(dl-expression language %) initial-ordering),
 		K     (induced-context M_k initial-model),

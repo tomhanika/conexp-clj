@@ -153,6 +153,13 @@
        (if (not (empty? data#))
 	 (print-summary (summarize data#))))))
 
+(defmacro with-memoized-fns
+  "Runs code in body with all functions in functions memoized."
+  [functions & body]
+  `(binding ~(vec (interleave functions
+			      (map (fn [f] `(memoize ~f)) functions)))
+     ~@body))
+
 (defmacro memo-fn
   "Defines memoized, anonymous function."
   [name args & body]
@@ -164,29 +171,6 @@
 	   (dosync
 	    (alter cache# assoc ~args rslt#))
 	   rslt#)))))
-
-(defmacro recur-sequence
-  "Define a recursive sequence in a math-like notation."
-  [& things]
-  (let [initials (vec (butlast things))
-	recur-fn (last things)]
-    `(let [initials# (lazy-seq ~initials)]
-       (concat initials#
-	       ((fn step# [n# old-vals#]
-		  (lazy-seq
-		    (let [new-val# (apply ~recur-fn n# old-vals#)]
-		      (cons new-val# (step# (inc n#) (concat (rest old-vals#) (list new-val#)))))))
-		~(count initials) initials#)))))
-
-(defmacro with-recur-seqs
-  "Allow simple definitions of recursive sequences."
-  [seq-definitions & body]
-  (let [seq-names (take-nth 2 seq-definitions)
-	seq-defs  (take-nth 2 (rest seq-definitions))]
-    `(let [~@(reduce concat (map (fn [seq-name] `(~seq-name (ref []))) seq-names))]
-       (dosync
-	~@(map (fn [name def] `(ref-set ~name (recur-sequence ~@def))) seq-names seq-defs))
-       ~@body)))
 
 (defn inits
   "Returns a lazy sequence of the beginnings of sqn."

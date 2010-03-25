@@ -57,11 +57,11 @@
 
 (defn interpret
   "Interprets given expression in given model and returns the
-  corresponding extent."
+    corresponding extent."
   [model dl-expression]
   ((compile-expression (if (dl-expression? dl-expression)
-			 dl-expression
-			 (make-dl-expression (model-language model) dl-expression)))
+                        dl-expression
+                        (make-dl-expression (model-language model) dl-expression)))
    model))
 
 (defmethod compile-expression ::base-case [dl-expression]
