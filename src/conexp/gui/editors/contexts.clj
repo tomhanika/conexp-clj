@@ -246,8 +246,8 @@
 
 (declare change-attribute-name change-object-name change-incidence-cross)
 
-(defn- ectx-cell-value-hook ;;TODO!!! ...
-  [ectx editor row column contents]
+(defn- ectx-cell-value-hook 
+  [ectx row column contents]
   (let [ good-value
          (cond (= column row 0) "⇊objects⇊"
            (= row 0) 
@@ -270,14 +270,26 @@
              (if (not= current-state cross)
                (change-incidence-cross ectx obj-name attr-name cross))
              (if cross "X" " "))
-           )
-         other-widgets (del @(:widgets ectx) editor)]
-
-;    (call-many other-widgets (fn [x] (update-value-at-index (get-table x) 
-;                                       row column good-value)))
+           )]
     good-value))
 
+(defn- ectx-extend-rows-hook 
+  [ectx rows]
+  (let [ current-rows  (count (objects (get-context ectx))) ]
+    (call-many @(:widgets ectx)
+      (fn [w] (set-row-count (get-table w) rows)))
+    (doseq [r (range (+ 1 current-rows) rows)]
+      (call-first @(:widgets ectx)
+        (fn [w] (set-value-at-index (get-table w) r 0 "new object"))))))
 
+(defn- ectx-extend-columns-hook 
+  [ectx cols]
+  (let [ current-cols (count (attributes (get-context ectx))) ]
+    (call-many @(:widgets ectx)
+      (fn [w] (set-column-count (get-table w) cols)))
+    (doseq [c (range (+ 1 current-cols) cols)]
+      (call-first @(:widgets ectx)
+        (fn [w] (set-value-at-index (get-table w) 0 c "new attribute"))))))
 
 ;;
 ;;
@@ -383,8 +395,12 @@
     (doseq [a att o obj] (set-value-at-index table (obj-rows o) (att-cols a)
                            (get-cross o a)))
     (set-value-at-index table 0 0 "⇊objects⇊")
+    (set-hook table "extend-rows-to" 
+      (fn [x] (ectx-extend-rows-hook e-ctx x)))
+    (set-hook table "extend-columns-to" 
+      (fn [x] (ectx-extend-columns-hook e-ctx x)))
     (set-hook table "cell-value" 
-      (fn [r c s] (ectx-cell-value-hook e-ctx editor r c s)))))
+      (fn [r c s] (ectx-cell-value-hook e-ctx r c s)))))
 
                    
 (declare change-attribute-name change-object-name change-incidence-cross)

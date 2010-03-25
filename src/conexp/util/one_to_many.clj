@@ -72,3 +72,18 @@
 (defmethod call-many ::one-to-many
   [otm f & parms]
   (doseq [m (:many otm)] (apply f m parms)))
+
+
+(inherit-multimethod call-first ::one-to-many
+  "Calls the given function with the given parameter for the first of the many.
+  
+  Parameters:
+    otm     _one-to-many object
+    f       _function
+    & parms _function parameters")
+
+(defmethod call-first ::one-to-many
+  [otm f & parms]
+  (let [m (:many otm)]
+    (when-not (empty? m)
+      (apply f (first m) parms))))
