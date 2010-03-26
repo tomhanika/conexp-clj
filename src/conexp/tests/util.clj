@@ -11,6 +11,8 @@
 	clojure.test
 	[clojure.contrib.math :only (gcd)]))
 
+;;;
+
 (deftest test-ensure-length
   (is (= 10 (count (ensure-length "" 10))))
   (is (every? #(= \- %) (ensure-length "" 10 "-"))))
@@ -90,3 +92,7 @@
        #{1 2 3 4} identity (seq #{1 2 3 4})
        [1 2 3 4]  #(< % 3) (seq [1 3])
        #{}        identity (list)))
+
+;;;
+
+nil
