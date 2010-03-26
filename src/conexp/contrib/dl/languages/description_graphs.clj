@@ -231,7 +231,7 @@
 						(replace new-tbox-map (tbox-map target)))]))]
 	(recur (rest deps)
 	       (merge new-tbox-map new-defs))))))
-	
+
 
 ;; normalizing algorithm -- invokation point
 

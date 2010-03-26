@@ -9,6 +9,7 @@
 (ns conexp.contrib.dl.languages.exploration
   (:use conexp
 	conexp.contrib.dl.framework.syntax
+	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.languages.EL-gfp
