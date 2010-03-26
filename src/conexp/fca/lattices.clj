@@ -35,15 +35,21 @@
 		 (bit-xor (hash inf)
 			  (hash sup)))))))
 
-(defn base-set [lattice]
+(defn base-set
+  "Returns the base set of lattice."
+  [lattice]
   (:base-set lattice))
 
-(defn order [lattice]
+(defn order
+  "Returns a set of pairs representing the order relation on lattice."
+  [lattice]
   (or (:order lattice)
       (let [sup (:sup lattice)]
 	(fn [[x y]] (= y (sup x y))))))
 
-(defn inf [lattice]
+(defn inf
+  "Returns a function computing the infimum in lattice."
+  [lattice]
   (or (:inf lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
@@ -56,7 +62,9 @@
 					      (order [a z]))))]
 		   z))))))
 
-(defn sup [lattice]
+(defn sup
+  "Returns a function computing the supremum in lattice."
+  [lattice]
   (or (:sup lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
@@ -76,14 +84,24 @@
 
 ;;; Constructors
 
-(defn type-of [thing]
+(defn- type-of
+  "Type dispatch for make-lattice.
+
+  TODO: Change this to use type dispatch from conexp.util."
+  [thing]
   (cond
     (set? thing) ::set
     (fn? thing)  ::fn
     (seq? thing) ::seq
     :else        ::invalid))
 
-(defmulti make-lattice (fn [& args] (vec (map type-of args))))
+(defmulti make-lattice
+  "Standard constructor for makeing lattice. Call with two arguments
+  [base-set order] to construct the lattice by its order
+  relation (given as a set or as a function). Call with three
+  arguments [base-set inf sup] to construct the lattice by its
+  algebraic operations."
+  (fn [& args] (vec (map type-of args))))
 
 (defmethod make-lattice [::set ::set] [base-set order]
   (Lattice base-set order nil nil))
@@ -100,11 +118,15 @@
 
 ;;; Standard Lattice Theory
 
-(defn dual-lattice [lat]
+(defn dual-lattice
+  "Dualizes given lattice lat."
+  [lat]
   (let [order (order lat)]
     (make-lattice (base-set lat) (fn [[x y]] (order [y x])))))
 
-(defn distributive? [lat]
+(defn distributive?
+  "Checks (primitively) whether given lattice lat is distributive or not."
+  [lat]
   (let [inf  (inf lat)
 	sup  (sup lat)
 	base (base-set lat)]
@@ -114,7 +136,9 @@
       (= (sup x (inf y z))
 	 (inf (sup x y) (sup x z))))))
 
-(defn modular? [lat]
+(defn modular?
+  "Checks (primitively) whether given lattice lat is modular or not."
+  [lat]
   (let [inf  (inf lat)
 	sup  (sup lat)
 	base (base-set lat)
@@ -133,12 +157,16 @@
 	base  (base-set lat)]
     (first (set-of x [x base :when (forall [y base] (order [y x]))]))))
 
-(defn lattice-zero [lat]
+(defn lattice-zero
+  "Returns the zero element of lattice lat."
+  [lat]
   (let [order (order lat)
 	base  (base-set lat)]
     (first (set-of x [x base :when (forall [y base] (order [x y]))]))))
 
-(defn directly-neighboured? [lat x y]
+(defn directly-neighboured?
+  "Checks whether x is direct lower neighbour of y in lattice lat."
+  [lat x y]
   (let [order (order lat)
 	base  (base-set lat)]
     (and (not= x y)
@@ -148,37 +176,55 @@
 	       (not (and (order [x z])
 			 (order [z y]))))))))
 
-(defn lattice-upper-neighbours [lat x]
+(defn lattice-upper-neighbours
+  "Returns all direct upper neighbours of x in lattice lat."
+  [lat x]
   (set-of y [y (base-set lat) :when (directly-neighboured? lat x y)]))
 
-(defn lattice-lower-neighbours [lat y]
+(defn lattice-lower-neighbours
+  "Returns all direct lower neighbours of y in lattice lat."
+  [lat y]
   (set-of x [x (base-set lat) :when (directly-neighboured? lat x y)]))
 
-(defn lattice-atoms [lat]
+(defn lattice-atoms
+  "Returns the lattice atoms of lat."
+  [lat]
   (lattice-upper-neighbours lat (lattice-zero lat)))
 
-(defn lattice-coatoms [lat]
+(defn lattice-coatoms
+  "Returns the lattice coatoms of lat."
+  [lat]
   (lattice-lower-neighbours lat (lattice-one lat)))
 
-(defn lattice-sup-irreducibles [lat]
+(defn lattice-sup-irreducibles
+  "Returns the sup-irreducible elements of lattice lat."
+  [lat]
   (set-of y [y (base-set lat) :when (= 1 (count (lattice-lower-neighbours lat y)))]))
 
-(defn lattice-inf-irreducibles [lat]
+(defn lattice-inf-irreducibles
+  "Returns the inf-irreducible elements of lattice lat."
+  [lat]
   (set-of x [x (base-set lat) :when (= 1 (count (lattice-upper-neighbours lat x)))]))
 
-(defn lattice-irreducibles [lat]
+(defn lattice-irreducibles
+  "Returns all (i.e. sup or inf) irreducible elements of lattice lat."
+  [lat]
   (intersection (lattice-sup-irreducibles lat)
 		(lattice-inf-irreducibles lat)))
 
 
 ;;; FCA
 
-(defn concept-lattice [ctx]
+(defn concept-lattice
+  "Returns for a given context ctx its concept lattice."
+  [ctx]
   (make-lattice (set (concepts ctx))
 		(fn [[A B]]
 		  (subset? (first A) (first B)))))
 
-(defn standard-context [lat]
+(defn standard-context
+  "Returns the standard context of lattice lat."
+  [lat]
   (make-context (lattice-sup-irreducibles lat)
 		(lattice-inf-irreducibles lat)
 		(fn [x y] 

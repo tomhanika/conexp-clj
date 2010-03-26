@@ -7,12 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layout
-  (:use [clojure.contrib.ns-utils :only (immigrate)]
+  (:use conexp.base
 	conexp.layout.layered))
 
 ;;;
 
-(def *standard-layout-function* simple-layered-layout)
+(defvar *standard-layout-function* simple-layered-layout
+  "Standard layout function. Call on a lattice to get a layout.")
 
 ;;;
 

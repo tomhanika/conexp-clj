@@ -35,7 +35,9 @@
 (defmethod incidence ::ManyValuedContext [mv-ctx]
   (:incidence mv-ctx))
 
-(defn print-mv-context [mv-ctx]
+(defn print-mv-context
+  "Prints the given many-valued context mv-ctx as a value-table."
+  [mv-ctx]
   (let [objs (objects mv-ctx)
 	atts (attributes mv-ctx)
 	inz (incidence mv-ctx)
@@ -78,6 +80,9 @@
 ;;;
 
 (defmulti make-mv-context
+  "Constructs a many-valued context from a set of objects, a set of
+  attributes and an incidence relation, given as set of triples [g m w]
+  or as a function from pairs [g m] to values w."
   (fn [& args] (map math-type args)))
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/set]
@@ -103,7 +108,11 @@
 
 ;;;
 
-(defn scale-mv-context [mv-ctx scales]
+(defn scale-mv-context
+  "Scales given many-valued context mv-ctx with given scales. scales
+  must be a map from attributes m to contexts K, where all possible
+  values of m in mv-ctx are among the objects in K."
+  [mv-ctx scales]
   (assert (map? scales))
   (let [inz (incidence mv-ctx)
 
@@ -116,16 +125,22 @@
 			       :when ((incidence (scales m)) [w n])])]
     (make-context objs atts inz)))
 
-(defn nominal-scale [base]
+(defn nominal-scale
+  "Returns the nominal scale on the set base."
+  [base]
   (diag-context base))
 
 (defn ordinal-scale
+  "Returns the ordinal scale on the set base, optionally given an
+  order relation <=."
   ([base]
      (ordinal-scale base <=))
   ([base <=]
      (make-context base base <=)))
 
 (defn interordinal-scale
+  "Returns the interordinal scale on the set base, optionally given
+  two order relations <= and >=."
   ([base]
      (interordinal-scale base <= >=))
   ([base <= >=]
@@ -143,7 +158,10 @@
        (make-context base (union atts-<= atts->=) (union inz-<= inz->=)))))
 
 (defn biordinal-scale
-  "base must be ordered (e.g. vector or list). Otherwise the result will be arbitrary."
+  "Returns the biordinal scale on the sequence base, optionally given
+  two order relations <= and >=. Note that base must be
+  ordered (e.g. vector or list), because otherwise the result will be
+  arbitrary."
   ([base n]
      (biordinal-scale base n <= >=))
   ([base n <= >=]
@@ -165,7 +183,11 @@
 		     (union first-atts rest-atts)
 		     (union first-inz rest-inz)))))
 
-(defn dichotomic-scale [base]
+(defn dichotomic-scale
+  "Returns the dichotimic scale on the set base. Note that base must
+  have exactly two arguments."
+  [base]
+  (assert (= 2 (count base)))
   (diag-context base))
 
 ;;;

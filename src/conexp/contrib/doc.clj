@@ -10,20 +10,22 @@
   (:use [conexp :only (*conexp-namespaces*)]
 	[clojure.contrib.io :only (with-out-writer)]))
 
+;;;
 
 (defn public-api
   "Returns a map of public functions of namespaces to their
   corresponding documentation."
   [ns]
   (let [ns (find-ns ns)]
-    (map (fn [[function var]]
-	   [function (str (:arglists (meta var))
-			  "\n\n"
-			  (:doc (meta var)))])
-	 (filter (fn [[f var]]
-		   (and (= (:ns (meta var)) ns)
-			(not (Character/isUpperCase #^Character (first (str f))))))
-		 (ns-map ns)))))
+    (into {}
+	  (map (fn [[function var]]
+		 [function (str (:arglists (meta var))
+				"\n\n"
+				(:doc (meta var)))])
+	       (filter (fn [[f var]]
+			 (and (= (:ns (meta var)) ns)
+			      (not (Character/isUpperCase #^Character (first (str f))))))
+		       (ns-map ns))))))
 
 (defn tex-escape
   "Escapes special characters for \\TeX."
@@ -71,8 +73,10 @@
   "Returns function in public conexp-clj api not having documentation."
   []
   (for [ns *conexp-namespaces*
-	[f var] (public-api ns)
-	:when (not (:doc (meta var)))]
+	[f _] (public-api ns)
+	:when (not (:doc (meta (resolve (symbol (str ns) (str f))))))]
     (symbol (str ns) (str f))))
+
+;;;
 
 nil

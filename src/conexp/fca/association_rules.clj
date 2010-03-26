@@ -21,20 +21,26 @@
 (defmethod conclusion ::Association-Rule [ar]
   (:conclusion ar))
 
-(defn context [ar]
+(defn context
+  "Returns the corresponding context for a given association rule."
+  [ar]
   (:context ar))
 
-(defn support [B ctx]
+(defn support
+  "Computes the support of the set of attributes B in context ctx."
+  [B ctx]
   (/ (count (attribute-derivation ctx B))
      (count (objects ctx))))
 
-(defn confidence [ar]
+(defn confidence
+  "Computes the confidence of the association rule ar."
+  [ar]
   (/ (support (union (premise ar) (conclusion ar))
 	      (context ar))
      (support (premise ar)
 	      (context ar))))
 
-(defmethod print-method  ::Association-Rule [ar out]
+(defmethod print-method ::Association-Rule [ar out]
   (.write out
 	  (str "( " (premise ar) " ==> " (conclusion ar)
 	       "; support " (support (union (premise ar)
@@ -44,7 +50,9 @@
 
 ;;;
 
-(defn make-association-rule [context premise conclusion]
+(defn make-association-rule
+  "Constructs an association rule from context, premise and conclusion."
+  [context premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]
     (Association-Rule context premise (difference conclusion premise))))
@@ -52,6 +60,8 @@
 ;;;
 
 (defn iceberg-intent-set
+  "Computes in context for given minimal support minsupp the
+  corresponding iceberg intent set (i.e. the iceberg-lattice)."
   [context minsupp]
   (let [mincount (round (ceil (* minsupp (count (objects context)))))]
     (all-closed-sets-in-family (fn [intent]
@@ -61,6 +71,8 @@
 			       (partial context-attribute-closure context))))
 
 (defn luxenburger-basis
+  "Computes the luxenburger-basis for context with minimal support
+  minsupp and minimal confidence minconf."
   [context minsupp minconf]
   (let [closed-intents (iceberg-intent-set context minsupp)]
     (for [B_1 closed-intents

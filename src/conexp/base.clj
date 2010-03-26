@@ -14,8 +14,7 @@
 	   'clojure.contrib.math
 	   'clojure.contrib.lazy-seqs
 	   'clojure.contrib.def
-	   'conexp.util
-	   'pl.danieljanus.iter)
+	   'conexp.util)
 
 ;;; Set Theory
 
