@@ -6,7 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns #^{:doc "Provides information on all tasks planned for conexp-clj."}
+(ns
+    #^{:doc "Provides information on all tasks planned for conexp-clj."}
   conexp.contrib.todo
   (:use clojure.contrib.def)
   (:use [clojure.contrib.string :only (split)])
@@ -15,34 +16,25 @@
 ;;;
 
 (defvar- *conexp-todo-list*
-  { "conexp" { "layout" { "util"     [ "Implement function for inf-irr-addivite layout." ],
-			  "force"    [ "Implement force layout as described by C. Zschalig." ],
-			  "zschalig" [ "Implement initial positioning and force distribution layout as described by C. Zschalig."] },
-
+  { "conexp" { "layout" { "force"    [ "Implement force layout with derivations?" ],
+			  "zschalig" [ "Implement initial positioning as described by C. Zschalig."] },
 	       "fca"    { "rules"    [ "Think about and write some code." ],
 			  "association-rules" [ "More?" ],
 			  "exploration" [ "Add background knowledge (implications or clauses)." ],
 			  "contexts" [ "Better implementation for context-for-clop." ] },
-
-	       "graphics" { "draw"   [ "Implement full lattice editor" ],
-			    "base"   [ "Get current lattice layout from a GScene." ] },
-
 	       "gui"    { "plugins"  { "contexteditor" [ "Design and implement." ],
 				       "latticeeditor" [ "Design and implement." ],
 				       "codeeditor"    [ "Design and implement." ],
 				       "browser"       [ "Design and implement graphical plugin browser." ] } },
-
 	       "contrib" { "fuzzy"   [ "Design and implement something for FuzzyFCA (Cynthia)." ],
 			   "rough"   [ "Design and implement something for RoughSets (Christian)." ],
-			   "algorithms" { "bitwise" [ "Add In-Close and fast Calculations for Luxenburger Bases.",
-						      "Add preconditioned NextClosure." ],
-					  "parallel" [ "Implement ParallelNextClosure and Krajca-Outrata-Vychodil." ] } },
-
+			   "algorithms" { "concepts"
+					  [ "Check In-Close and add fast Calculations for Luxenburger Bases.",
+					    "Add preconditioned NextClosure.",
+					    "Implement ParallelNextClosure and Krajca-Outrata-Vychodil." ] } },
 	       "tests"  ["Add tests for everything.",
-			 { "util"     [ "Add more tests." ],
-			   "base"     [ "Check whether everything has been tested." ],
-			   "fca"      { "contexts" [ "Finish tests." ],
-					"implications" [ "Finish tests." ] }, } ] },
+			 { "fca"  { "contexts" [ "Finish tests." ],
+				    "implications" [ "Finish tests." ] } } ] },
     "doc"    [ "Add docstrings for namespaces.",
 	       "Add docstrings for all functions.",
 	       "Extend LaTeX-Documentation." ] })
