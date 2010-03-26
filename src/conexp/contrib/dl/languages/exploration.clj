@@ -167,7 +167,8 @@
 ;;; gcis
 
 (defn model-gcis
-  "Returns a complete and sound set of gcis holding in model."
+  "Returns a complete and sound set of gcis holding in model. See
+  explore-model for valid args."
   [model & args]
   (binding [expert-refuses? (constantly false)]
     (apply explore-model model args)))
