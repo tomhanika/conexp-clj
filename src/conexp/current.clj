@@ -20,7 +20,7 @@
 (defmulti go
   "Main testing function."
   {:arglists '([dispatch & args])}
-  (fn [& args] (first args)))
+  (fn [dispatch & args] dispatch))
 
 (defmethod go :default [& args]
   (conexp/illegal-argument "No tester for " args))

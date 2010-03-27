@@ -12,6 +12,8 @@
 
 ;;; Datastructure
 
+(declare order)
+
 (deftype Lattice [base-set order-relation inf sup]
   :as this
   Object

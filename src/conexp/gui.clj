@@ -8,7 +8,13 @@
 
 (ns conexp.gui
   (:import [javax.swing UIManager JFrame])
-  (:use conexp.gui.base))
+  (:use conexp.base
+	conexp.gui.base))
+
+(update-ns-meta! conexp.gui
+  :doc "Provides standard gui for conexp-clj.")
+
+;;;
 
 (defn gui
   "Starts the standard gui for conexp-clj."
@@ -17,5 +23,7 @@
   (let [#^JFrame frame (conexp-main-frame)]
     (.setVisible frame true)
     frame))
+
+;;;
 
 nil

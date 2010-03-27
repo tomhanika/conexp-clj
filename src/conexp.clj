@@ -9,8 +9,7 @@
 (ns conexp
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
-;; Use immigrate, so that all imports behave as if they were defined in here.
-;; Thus (use 'conexp) makes sense.
+;;;
 
 (def *conexp-namespaces* '[conexp.base
 			   conexp.fca
@@ -20,6 +19,9 @@
 			   conexp.gui])
 
 (dorun (map immigrate *conexp-namespaces*))
+
+(update-ns-meta! conexp
+  :doc "Main namespace for conexp-clj. Immigrates all needed namespaces.")
 
 (def *conexp-version* {:major 0,
 		       :minor 0,
