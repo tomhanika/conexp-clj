@@ -91,6 +91,7 @@
   relation (given as a set or as a function). Call with three
   arguments [base-set inf sup] to construct the lattice by its
   algebraic operations."
+  {:arglists '([base-set order-relation] [base-set inf sup])}
   (fn [& args] (vec (map type-of args))))
 
 (defmethod make-lattice [::set ::set] [base-set order]

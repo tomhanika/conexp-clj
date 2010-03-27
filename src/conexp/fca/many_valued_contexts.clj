@@ -83,6 +83,7 @@
   "Constructs a many-valued context from a set of objects, a set of
   attributes and an incidence relation, given as set of triples [g m w]
   or as a function from pairs [g m] to values w."
+  {:arglists '([objects attributes incidence])}
   (fn [& args] (map math-type args)))
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/set]

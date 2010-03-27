@@ -18,6 +18,7 @@
 
 (defmulti concepts
   "Computes concepts with various algorithms, given as first argument."
+  {:arglists '([algorithm context])}
   (fn [& args] (first args)))
 
 

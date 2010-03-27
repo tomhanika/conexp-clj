@@ -16,6 +16,7 @@
 
 (defmulti premise
   "Returns premise of given object."
+  {:arglists '([thing])}
   type)
 
 (defmethod premise ::Implication [impl]
@@ -23,6 +24,7 @@
 
 (defmulti conclusion
   "Returns conclusion of given object."
+  {:arglists '([thing])}
   type)
 
 (defmethod conclusion ::Implication [impl]

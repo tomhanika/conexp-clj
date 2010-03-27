@@ -19,6 +19,7 @@
 
 (defmulti go
   "Main testing function."
+  {:arglists '([dispatch & args])}
   (fn [& args] (first args)))
 
 (defmethod go :default [& args]

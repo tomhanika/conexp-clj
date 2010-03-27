@@ -16,6 +16,7 @@
 
 (defmulti objects
   "Returns the objects of a formal context."
+  {:arglists '([context])}
   type)
 
 (defmethod objects ::Context [ctx]
@@ -23,6 +24,7 @@
 
 (defmulti attributes
   "Returns the attributes of a formal context."
+  {:arglists '([context])}
   type)
 
 (defmethod attributes ::Context [ctx]
@@ -30,6 +32,7 @@
 
 (defmulti incidence
   "Returns the incidence of a formal context."
+  {:arglists '([context])}
   type)
 
 (defmethod incidence ::Context [ctx]
@@ -117,6 +120,7 @@
   therefore have to not contain any douplicate elements. The incidence
   relation is auzomatically restricted to the cartesian product of the
   object an the attribute set."
+  {:arglists '([objects attributes incidence])}
   (fn [& args] (map type-of args)))
 
 (defmethod make-context [::set ::set ::set] [objects attributes incidence]
@@ -141,6 +145,7 @@
   "Context constructor similar to make-context, but does not restrict
   incidence to the crossproduct of object and attribute set and is
   therefore faster. Use with care."
+  {:arglists '([objects attributes incidence])}
   (fn [& args] (map type-of args)))
 
 (defmethod make-context-nc [::set ::set ::set] [objects attributes incidence]
