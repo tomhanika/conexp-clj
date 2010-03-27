@@ -12,6 +12,9 @@
   (:use clojure.contrib.pprint
 	clojure.contrib.repl-utils))
 
+(conexp/update-ns-meta! conexp.current
+  :doc "Contains code snippets (i.e. repl helpers) for testing and developing conexp-clj.")
+
 ;;;
 
 (defmulti go

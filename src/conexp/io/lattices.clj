@@ -10,13 +10,36 @@
   (:use conexp.base
 	conexp.fca.lattices
 	conexp.io.util)
-  (:use [clojure.contrib.io :exclude (with-in-reader)]))
+  (:use [clojure.contrib.io :exclude (with-in-reader)])
+  (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
 
 (define-format-dispatch "lattice")
 
 ;;; Formats
+
+;; Simple conexp-clj Format
+
+(add-lattice-input-format :simple
+			  (fn [rdr]
+			    (= "conexp-clj simple" (.readLine rdr))))
+
+(defmethod write-lattice :simple [_ lat file]
+  (with-out-writer file
+    (println "conexp-clj simple")
+    (prn {:lattice [(base-set lat)
+		    (set-of [x y]
+			    [x (base-set lat)
+			     y (base-set lat)
+			     :when ((order lat) [x y])])]})))
+
+(defmethod read-lattice :simple [file]
+  (with-in-reader file
+    (let [_        (get-line),
+	  hash-map (binding [*in* (PushbackReader. *in*)]
+		     (read))]
+      (apply make-lattice (:lattice hash-map)))))
 
 ;;;
 

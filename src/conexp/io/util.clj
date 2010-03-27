@@ -62,14 +62,15 @@
        nil)
 
      (defmulti ~write
-       ~(str "Arguments: [format " name " file]. Writes " name " to file using format.")
+       ~(str "Writes " name " to file using format.")
+       {:arglists (list [(symbol "format") (symbol ~name) (symbol "file")])}
        (fn [format# ctx# file#] format#))
      (defmethod ~write :default [format# _# _#]
        (illegal-argument "Format " format# " for " ~name " output is not known."))
 
      (defmulti ~read
-       ~(str "Arguments: [file]. Reads "name " from file, "
-             "automatically determining the format used.")
+       ~(str "Reads "name " from file, automatically determining the format used.")
+       {:arglists (list [(symbol "file")])}
        ~find)
      (defmethod ~read :default [file#]
        (illegal-argument "Cannot determine format of " ~name " in " file#))
