@@ -16,6 +16,7 @@
 ;;; Input format dispatch
 
 (define-format-dispatch "lattice")
+(set-default-lattice-format! :simple)
 
 ;;; Formats
 

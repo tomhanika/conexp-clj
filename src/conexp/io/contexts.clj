@@ -20,6 +20,7 @@
 ;;; Input format dispatch
 
 (define-format-dispatch "context")
+(set-default-context-format! :simple)
 
 ;;; Formats
 
