@@ -6,38 +6,41 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns
-    #^{:doc "Provides information on all tasks planned for conexp-clj."}
-  conexp.contrib.todo
-  (:use clojure.contrib.def)
-  (:use [clojure.contrib.string :only (split)])
-  (:use [clojure.contrib.pprint :only (pprint)]))
+(ns conexp.contrib.todo
+  (:use conexp)
+  (:use [clojure.contrib.string :only (split)]
+	[clojure.contrib.pprint :only (pprint)]))
+
+(update-ns-meta! conexp.contrib.todo
+  :doc "Provides information on all tasks planned for conexp-clj.")
 
 ;;;
 
 (defvar- *conexp-todo-list*
-  { "conexp" { "layout" { "force"    [ "Implement force layout with derivations?" ],
-			  "zschalig" [ "Implement initial positioning as described by C. Zschalig."] },
-	       "fca"    { "rules"    [ "Think about and write some code." ],
-			  "association-rules" [ "More?" ],
-			  "exploration" [ "Add background knowledge (implications or clauses)." ],
-			  "contexts" [ "Better implementation for context-for-clop." ] },
-	       "gui"    { "plugins"  { "contexteditor" [ "Design and implement." ],
-				       "latticeeditor" [ "Design and implement." ],
-				       "codeeditor"    [ "Design and implement." ],
-				       "browser"       [ "Design and implement graphical plugin browser." ] } },
-	       "contrib" { "fuzzy"   [ "Design and implement something for FuzzyFCA (Cynthia)." ],
-			   "rough"   [ "Design and implement something for RoughSets (Christian)." ],
-			   "algorithms" { "concepts"
-					  [ "Check In-Close and add fast Calculations for Luxenburger Bases.",
-					    "Add preconditioned NextClosure.",
-					    "Implement ParallelNextClosure and Krajca-Outrata-Vychodil." ] } },
-	       "tests"  ["Add tests for everything.",
-			 { "fca"  { "contexts" [ "Finish tests." ],
-				    "implications" [ "Finish tests." ] } } ] },
-    "doc"    [ "Add docstrings for namespaces.",
-	       "Add docstrings for all functions.",
-	       "Extend LaTeX-Documentation." ] })
+  {"conexp" ["Add better error reporting and constraint checking.",
+	     "Add docstrings for namespaces.",
+	     "Add docstrings for all functions.",
+	     "Extend LaTeX-Documentation.",
+
+	     {"layout" {"force"    ["Implement force layout with derivations?"],
+			"zschalig" ["Implement initial positioning as described by C. Zschalig."]},
+	      "fca"    {"rules"    ["Think about and write some code."],
+			"association-rules" ["More?"],
+			"exploration" ["Add background knowledge (implications and clauses)."],
+			"contexts" ["Better implementation for context-for-clop."]},
+	      "gui"    {"plugins"  {"contexteditor" ["Design and implement."],
+				    "latticeeditor" ["Design and implement."],
+				    "codeeditor"    ["Design and implement."],
+				    "browser"       ["Design and implement graphical plugin browser."]}},
+	      "contrib" {"fuzzy"   ["Design and implement something for FuzzyFCA (Cynthia)."],
+			 "rough"   ["Design and implement something for RoughSets (Christian)."],
+			 "algorithms" {"concepts"
+				       ["Check In-Close and add fast Calculations for Luxenburger Bases.",
+					"Add preconditioned NextClosure.",
+					"Implement ParallelNextClosure and Krajca-Outrata-Vychodil."]}},
+	      "tests"  ["Add tests for everything.",
+			{"fca"  {"contexts" ["Finish tests."],
+				 "implications" ["Finish tests."]}}]}]})
 
 (defn- access-todo-list
   "Returns all tasks remaining for given ns, given as sequence of strings."
@@ -49,12 +52,15 @@
 		     (or (not todo-list)
 			 (empty? keys))
 		     todo-list,
+
 		     (vector? todo-list)
-		     (assoc todo-list
-		       (dec (count todo-list))
-		       {(first keys) (runner ((last todo-list)
-					      (first keys))
-					     (rest keys))}),
+		     (let [todo-for-key ((last todo-list) (first keys))]
+		       (if todo-for-key
+			 (assoc todo-list
+			   (dec (count todo-list))
+			   {(first keys) todo-for-key})
+			 (subvec todo-list 0 (dec (count todo-list))))),
+
 		     (map? todo-list)
 		     {(first keys) (runner (todo-list (first keys))
 					   (rest keys))}))]
