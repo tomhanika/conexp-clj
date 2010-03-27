@@ -12,28 +12,18 @@
 
 ;;; Datastructure
 
-(deftype Lattice [base-set order inf sup]
+(deftype Lattice [base-set order-relation inf sup]
   :as this
   Object
   (equals [other]
     (and (= ::Lattice (type other))
-	 (= (base-set this) (base-set other))
-	 (let [order-this (order this)
+     	 (= (:base-set this) (:base-set other))
+	 (let [order-this (order this),
 	       order-other (order other)]
-	   (or (= order-this order-other)
-	       (forall [pair (cross-product (base-set this) (base-set this))]
-		       (<=> (order-this pair) (order-other pair)))))))
-  (hashCode []
-    ;; this is not correct
-    (let [base-set (base-set this)
-	  order    (order this)
-	  inf      (inf this)
-	  sup      (sup this)]
-      (bit-xor (hash base-set)
-	       (if order
-		 (hash order)
-		 (bit-xor (hash inf)
-			  (hash sup)))))))
+	   (forall [x (:base-set this)
+		    y (:base-set this)]
+	     (<=> (order-this [x y])
+		  (order-other [x y])))))))
 
 (defn base-set
   "Returns the base set of lattice."
@@ -43,7 +33,7 @@
 (defn order
   "Returns a set of pairs representing the order relation on lattice."
   [lattice]
-  (or (:order lattice)
+  (or (:order-relation lattice)
       (let [sup (:sup lattice)]
 	(fn [[x y]] (= y (sup x y))))))
 
