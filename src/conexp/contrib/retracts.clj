@@ -6,17 +6,21 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns
-    #^{:doc "Package for computing retracts from formal contexts."}
-  conexp.contrib.retracts
-  (:use [conexp :only (concepts,
-		       objects, object-derivation,
-		       attributes, attribute-derivation,
-		       compatible-subcontexts,
-		       restrict-concept,
-		       make-context,
-		       set-of)])
+(ns conexp.contrib.retracts
+  (:use [conexp.main :only (update-ns-meta!
+			    concepts,
+			    objects, object-derivation,
+			    attributes, attribute-derivation,
+			    compatible-subcontexts,
+			    restrict-concept,
+			    make-context,
+			    set-of)])
   (:use [clojure.contrib.pprint :only (cl-format)]))
+
+(update-ns-meta! conexp.contrib.retracts
+  :doc "Package for computing retracts from formal contexts.")
+
+;;;
 
 (defn- homomorphism-by-csc
   "Returns the homomorphisms obtained by resticting every concept to the
@@ -112,5 +116,7 @@
   [context]
   (doseq [r (retracts context)]
     (cl-format true "~&~{~a~^~%~}~%~%" (retract-to-pprint-str r))))
+
+;;;
 
 nil

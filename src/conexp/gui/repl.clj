@@ -61,10 +61,10 @@
 			    (try
 			     (clojure.main/repl
                               :init (fn [] 
-				      (use 'conexp)
-				      (in-ns 'conexp)
-				      (intern (find-ns 'conexp) '*main-frame* frame)
-				      (require '[conexp.gui.repl-utils :as gui]))
+				      (use 'conexp.main)
+				      (in-ns 'user)
+				      (require '[conexp.gui.repl-utils :as gui])
+				      (intern (find-ns 'conexp.gui.repl-utils) '*main-frame* frame))
                               :caught (fn [e]
 					(if *print-stack-trace-on-error*
                                           (.printStackTrace e *out*)

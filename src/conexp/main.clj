@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp
+(ns conexp.main
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
@@ -20,7 +20,7 @@
 
 (dorun (map immigrate *conexp-namespaces*))
 
-(update-ns-meta! conexp
+(update-ns-meta! conexp.main
   :doc "Main namespace for conexp-clj. Immigrates all needed namespaces.")
 
 (def *conexp-version* {:major 0,

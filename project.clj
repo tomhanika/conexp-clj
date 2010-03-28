@@ -15,7 +15,7 @@
                  [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
 		 [org.apache.commons/commons-math "2.0"]
 		 [jline "0.9.94"]]
-  :namespaces [conexp])
+  :namespaces [conexp.main])
 
 ;;;
 

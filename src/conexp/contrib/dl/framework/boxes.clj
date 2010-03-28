@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.boxes
-  (:use [conexp :exclude (transitive-closure)]
+  (:use [conexp.main :exclude (transitive-closure)]
 	conexp.contrib.dl.framework.syntax)
   (:use clojure.contrib.pprint
 	clojure.contrib.graph))

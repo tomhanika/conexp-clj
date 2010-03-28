@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.todo
-  (:use conexp)
+  (:use conexp.main)
   (:use [clojure.contrib.string :only (split)]
 	[clojure.contrib.pprint :only (pprint)]))
 

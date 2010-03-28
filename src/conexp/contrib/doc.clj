@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.doc
-  (:use conexp)
+  (:use conexp.main)
   (:use [clojure.contrib.io :only (with-out-writer)]
 	[clojure.contrib.string :only (split)]))
 

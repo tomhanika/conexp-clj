@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.syntax
-  (:use conexp)
+  (:use conexp.main)
   (:use clojure.contrib.pprint
 	[clojure.walk :only (walk)]))
 
