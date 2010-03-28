@@ -25,7 +25,7 @@
 
 (def *conexp-version* {:major 0,
 		       :minor 0,
-		       :patch 1
+		       :patch 2
 		       :qualifier "pre-alpha"})
 
 (defn conexp-version
