@@ -7,22 +7,33 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.concepts
-  (:use conexp.contrib.algorithms.bitwise)
+  (:use conexp.util
+	conexp.contrib.algorithms.bitwise)
   (:use [conexp.fca.contexts :only (objects attributes incidence)])
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue]))
 
 ;(set! *warn-on-reflection* true)
 
-;;; Concept Calculation
+;;; Concept Calculation Multi-Method
 
 (defmulti concepts
-  "Computes concepts with various algorithms, given as first argument."
-  {:arglists '([algorithm context])}
-  (fn [& args] (first args)))
+  "Computes concepts with various algorithms, given as first
+  argument. Default is :next-closure."
+  {:arglists '([algorithm context] [context])}
+  (fn [& args]
+    (cond
+     (= 1 (count args)) ::default-concepts
+     (= 2 (count args)) (first args)
+     :else (illegal-argument "Wrong number of args passed to c.c.algorithms.concepts."))))
+
+(defmethod concepts ::default-concepts [context]
+  (concepts :next-closure context))
 
 
 ;; NextClosure (:next-closure)
+
+;; TODO: Sort attributes before starting (see naïve implementation of next closure)
 
 (defn- lectic-<_i
   ""
@@ -184,6 +195,8 @@
 
 ;; In-Close (:in-close)
 
+;; TODO: Check this, it's too slow.
+
 (defn- cannonical?
   "Implements the IsCannonical method of In-Close."
   [incidence-matrix, #^BitSet A-new, #^BitSet B, y]
@@ -237,6 +250,6 @@
 	 (persistent! Bs))))
 
 
-;; Close-by-One?, Nourine-Raynaud?, Bordat?, Lindig?, Berry? Some other fancy stuff?
+;;; Close-by-One?, Nourine-Raynaud?, Bordat?, Lindig?, Berry? Some other fancy stuff?
 
 nil
