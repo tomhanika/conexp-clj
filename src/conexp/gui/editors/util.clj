@@ -29,7 +29,6 @@
 ;;;
 
 
-
 (defmacro rho
   "Takes an block that defines a function by omitting its last parameter
     and turns it into a normal function that takes one parameter"
@@ -76,22 +75,6 @@
   [mk do-add tree]
   `((do-map-tree ~mk ~do-add) ~tree))
 
-(defn unroll-parameters
-  "Takes a vector that has a function as first argument and does a function
-   call giving all other vector elements as parameters."
-  [call_seq]
-  (let [ call_vec (vec call_seq)
-         length   (count call_vec)]
-    (when (< 0 length) (apply (call_vec 0) (rest call_vec)))))
-
-(defn unroll-parameters-fn-map
-  "Takes a vector that has a function as first argument and does a function
-   call giving all other vector elements as parameters, looking up the function
-   in the function map"
-  [fn_map call_seq]
-  (let [ length   (count call_seq)]
-    (when (< 0 length) (apply (fn_map (first call_seq)) (rest call_seq)))))
-
 (defmacro apply-exprs
   "Takes an object and a seq of vectors, such that each vectors first element
    is a function that will be called with the object as first parameter and
@@ -99,65 +82,11 @@
   [object vectors]
   `(doseq [call# ~vectors] (apply (first call#) ~object (rest call#))))
 
-(defn print-doc* [v]
-  (println "-------------------------")
-  (println " " (:doc (meta v))))
-
-(defmacro doc*
-  "Own implementation of doc that allows to document 'anonymous' functions
-   which are bound to something via def"
-  [v]
-  `(if (contains? ^~v :alternate-doc) (print-doc* ~v) (doc ~v)))
-
-(defmacro doc!
-  "Own implementation of doc that also can take arguments that are not bound"
-  [v]
-  `(do
-     (def object-to-be-documented# ~v)
-     (doc* object-to-be-documented#)
-     (ns-unmap *ns* 'object-to-be-documented#)))
-
-(defmacro fn-doc
-  "Create a documented anonymous function."
-  [doc & rest]
-  `(with-meta (fn ~@rest) {:doc ~doc :alternate-doc 0}))
-
-(defmacro fn-swing-doc
-  "Create a documented anonymous function."
-  [doc & rest]
-  `(with-meta (fn-swing ~@rest) {:doc ~doc :alternate-doc 0}))
-
-(defmacro fn-swing-threads*-doc
-  "Create a documented anonymous function."
-  [doc & rest]
-  `(with-meta (fn-swing-threads* ~@rest) {:doc ~doc :alternate-doc 0}))
-
 
 (defn extract-array
   "Takes a java-array and turns it into a list"
   [array]
   (map (rho aget array) (range (alength array))))
-
-(defmacro !!
-  "Takes a map, a key and arbitrary additional parameters and calls
-   the function that is the value of the map under the key with
-   the given additional parameters"
-  [map key & parameters]
-  `((~map ~key) ~@parameters))
-
-(defmacro !!!
-  "Takes a map, a key and arbitrary additional parameters and calls
-   the function that is the value of that map, which is the map under
-   the key :handler, under the key with the given additional parameters"
-  [map key & parameters]
-  `(((~map :handler) ~key) ~@parameters))
-
-(defmacro !!!!
-  "Takes a widget, a key and arbitrary additional parameters and calls
-   the handler function of the widget that is associated with the key
-   with the widget as first parameter and the given additional parameters"
-  [map key & parameters]
-  `(((~map :handler) ~key) ~map ~@parameters))
 
 
 ;;;
