@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.models
-  (:use conexp
+  (:use conexp.main
 	conexp.contrib.dl.framework.syntax)
   (:use clojure.contrib.pprint))
 
@@ -57,11 +57,11 @@
 
 (defn interpret
   "Interprets given expression in given model and returns the
-  corresponding extent."
+    corresponding extent."
   [model dl-expression]
   ((compile-expression (if (dl-expression? dl-expression)
-			 dl-expression
-			 (make-dl-expression (model-language model) dl-expression)))
+                        dl-expression
+                        (make-dl-expression (model-language model) dl-expression)))
    model))
 
 (defmethod compile-expression ::base-case [dl-expression]
@@ -69,7 +69,7 @@
     (let [result ((model-interpretation model) (expression dl-expression))]
       (if (nil? result)
 	(let [base-semantics (get-method compile-expression
-					 [(expression-language dl-expression) ::base-semantics]),
+					 [(language-name (expression-language dl-expression)) ::base-semantics]),
 	      default        (get-method compile-expression
 					 :default)]
 	  (when (= base-semantics default)
@@ -94,41 +94,47 @@
   "Define how to interpret an expression which is neither compound nor
   a primitive concept, i.e. TBox-ABox pairs and the like."
   [language [model dl-expression] & body]
-  `(defmethod compile-expression [~language ::base-semantics] [~dl-expression]
+  `(defmethod compile-expression [(language-name ~language) ::base-semantics] [~dl-expression]
      (fn [~model]
        ~@body)))
 
 ;;;
 
-(defmacro define-model
+(defmacro model
   "Defines model for language on base-set: interpretation maps atomic
   expressions to their extents."
-  [name language base-set & interpretation]
+  [language base-set & interpretation]
   `(let [interpretation-map# '~(apply hash-map interpretation),
 	 defined-symbols# (keys interpretation-map#),
 	 undefined-symbols# (difference (union (concept-names ~language)
 					       (role-names ~language))
 					(set defined-symbols#))]
      (when (not (empty? undefined-symbols#))
-       (illegal-argument "Definition of model " '~name " is incomplete. The symbols "
+       (illegal-argument "Definition of model is incomplete. The symbols "
 			 undefined-symbols# " are missing."))
-     (def ~name (make-model ~language (set '~base-set) '~(apply hash-map interpretation)))))
+     (make-model ~language (set '~base-set) '~(apply hash-map interpretation))))
+
+(defmacro define-model
+  "Globally defines model with name for language on base-set:
+  interpretation maps atomic expressions to their extents."
+  [name language base-set & interpretation]
+  `(def ~name (model ~language ~base-set ~@interpretation)))
 
 ;;;
 
 (defmulti most-specific-concept
   "Computes the model based most specific concept of a set of objects
   in a given model."
-  (fn [model dl-exp] (model-language model)))
+  (fn [model dl-exp] (language-name (model-language model))))
 
 (defmethod most-specific-concept :default [model _]
-  (illegal-argument "Language " (model-language model) " does not provide msc."))
+  (illegal-argument "Language " (print-str (model-language model)) " does not provide msc."))
 
 (defmacro define-msc
   "Defines model based most specific concepts for a language, a model
   and a set of objects."
   [language [model objects] & body]
-  `(defmethod most-specific-concept ~language
+  `(defmethod most-specific-concept (language-name ~language)
      [~model ~objects]
      ~@body))
 
@@ -150,6 +156,12 @@
 	      (fn [A]
 		(or (i A)
 		    ((model-interpretation model) A)))))
+
+(defn holds-in-model?
+  "Returns true iff subsumption holds in given model."
+  [model subsumption]
+  (subset? (interpret model (subsumee subsumption))
+	   (interpret model (subsumer subsumption))))
 
 ;;;
 

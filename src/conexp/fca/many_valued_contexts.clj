@@ -8,47 +8,36 @@
 
 (ns conexp.fca.many-valued-contexts
   (:use conexp.base
-	conexp.fca.contexts)
-  (:gen-class
-   :name conexp.fca.ManyValuedContext
-   :prefix "ManyValuedContext-"
-   :init init
-   :constructors { [ Object Object Object ] [] }
-   :state state))
+	conexp.fca.contexts))
 
-(defn ManyValuedContext-init [objects attributes incidence]
-  [ [] {:objects objects,
-	:attributes attributes,
-	:incidence incidence} ])
+;;;
 
-(defmethod objects conexp.fca.ManyValuedContext [mv-ctx]
-  ((.state mv-ctx) :objects))
+(deftype ManyValuedContext [objects attributes incidence]
+  :as this
+  Object
+  (equals [other]
+    (and (= (type other) ::ManyValuedContext)
+	 (= (objects this) (objects other))
+	 (= (attributes this) (attributes other))
+	 (let [inz-this (incidence this)
+	       inz-other (incidence other)]
+	   (forall [g (objects this)
+		    m (attributes this)]
+		   (= (inz-this [g m])
+		      (inz-other [g m])))))))
 
-(defmethod attributes conexp.fca.ManyValuedContext [mv-ctx]
-  ((.state mv-ctx) :attributes))
+(defmethod objects ::ManyValuedContext [mv-ctx]
+  (:objects mv-ctx))
 
-(defmethod incidence conexp.fca.ManyValuedContext [mv-ctx]
-  ((.state mv-ctx) :incidence))
+(defmethod attributes ::ManyValuedContext [mv-ctx]
+  (:attributes mv-ctx))
 
-(defn ManyValuedContext-equals [this other]
-  (and (instance? other conexp.fca.ManyValuedContext)
-       (= (objects this) (objects other))
-       (= (attributes this) (attributes other))
-       (let [inz-this (incidence this)
-	     inz-other (incidence other)]
-	 (forall [g (objects this)
-		  m (attributes this)]
-	   (= (inz-this [g m])
-	      (inz-other [g m]))))))
+(defmethod incidence ::ManyValuedContext [mv-ctx]
+  (:incidence mv-ctx))
 
-(defn ManyValuedContext-hashCode
-  [#^conexp.fca.ManyValuedContext this]
-  (reduce bit-xor 0
-	  [(hash ((.state this) :objects)),
-	   (hash ((.state this) :attributes)),
-	   (hash ((.state this) :incidence))]))
-
-(defn print-mv-context [mv-ctx]
+(defn print-mv-context
+  "Prints the given many-valued context mv-ctx as a value-table."
+  [mv-ctx]
   (let [objs (objects mv-ctx)
 	atts (attributes mv-ctx)
 	inz (incidence mv-ctx)
@@ -85,12 +74,16 @@
 	    " "])
 	 "\n"]))))
 
-(defn ManyValuedContext-toString [this]
-  (print-mv-context this))
+(defmethod print-method ::ManyValuedContext [mv-ctx out]
+  (.write out (print-mv-context mv-ctx)))
 
 ;;;
 
 (defmulti make-mv-context
+  "Constructs a many-valued context from a set of objects, a set of
+  attributes and an incidence relation, given as set of triples [g m w]
+  or as a function from pairs [g m] to values w."
+  {:arglists '([objects attributes incidence])}
   (fn [& args] (map math-type args)))
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/set]
@@ -105,7 +98,7 @@
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/fn]
   [objs atts inz-fn]
-  (conexp.fca.ManyValuedContext. objs atts inz-fn))
+  (ManyValuedContext objs atts inz-fn))
 
 (defmethod make-mv-context :default [objs atts inz]
   (illegal-argument "No method defined for types "
@@ -116,7 +109,11 @@
 
 ;;;
 
-(defn scale-mv-context [mv-ctx scales]
+(defn scale-mv-context
+  "Scales given many-valued context mv-ctx with given scales. scales
+  must be a map from attributes m to contexts K, where all possible
+  values of m in mv-ctx are among the objects in K."
+  [mv-ctx scales]
   (assert (map? scales))
   (let [inz (incidence mv-ctx)
 
@@ -129,16 +126,22 @@
 			       :when ((incidence (scales m)) [w n])])]
     (make-context objs atts inz)))
 
-(defn nominal-scale [base]
+(defn nominal-scale
+  "Returns the nominal scale on the set base."
+  [base]
   (diag-context base))
 
 (defn ordinal-scale
+  "Returns the ordinal scale on the set base, optionally given an
+  order relation <=."
   ([base]
      (ordinal-scale base <=))
   ([base <=]
      (make-context base base <=)))
 
 (defn interordinal-scale
+  "Returns the interordinal scale on the set base, optionally given
+  two order relations <= and >=."
   ([base]
      (interordinal-scale base <= >=))
   ([base <= >=]
@@ -156,7 +159,10 @@
        (make-context base (union atts-<= atts->=) (union inz-<= inz->=)))))
 
 (defn biordinal-scale
-  "base must be ordered (e.g. vector or list). Otherwise the result will be arbitrary."
+  "Returns the biordinal scale on the sequence base, optionally given
+  two order relations <= and >=. Note that base must be
+  ordered (e.g. vector or list), because otherwise the result will be
+  arbitrary."
   ([base n]
      (biordinal-scale base n <= >=))
   ([base n <= >=]
@@ -178,7 +184,11 @@
 		     (union first-atts rest-atts)
 		     (union first-inz rest-inz)))))
 
-(defn dichotomic-scale [base]
+(defn dichotomic-scale
+  "Returns the dichotimic scale on the set base. Note that base must
+  have exactly two arguments."
+  [base]
+  (assert (= 2 (count base)))
   (diag-context base))
 
 ;;;

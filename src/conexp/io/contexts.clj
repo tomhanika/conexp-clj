@@ -7,40 +7,49 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.contexts
-  (:use conexp.io.base
-	[clojure.contrib.string :only (split)]))
+  (:use conexp.base
+	conexp.fca.contexts
+	conexp.io.util)
+  (:use [clojure.contrib.io :exclude (with-in-reader)]
+	[clojure.contrib.lazy-xml :exclude (attributes)]
+	clojure.contrib.prxml
+	[clojure.contrib.string :only (split)])
+  (:import [java.io PushbackReader]))
 
-;;; Method Declaration
 
-(defmulti write-context (fn [format ctx file] format))
+;;; Input format dispatch
 
-(let [known-context-input-formats (ref {})]
-  (defn add-context-input-format [name predicate]
-    (dosync (alter known-context-input-formats assoc name predicate)))
+(define-format-dispatch "context")
+(set-default-context-format! :simple)
 
-  (defn get-known-context-input-formats []
-    (keys @known-context-input-formats))
-
-  (defn find-context-input-format [file]
-    (first
-     (for [[name predicate] @known-context-input-formats
-	   :when (with-open [in-rdr (reader file)]
-		   (predicate in-rdr))]
-       name))))
-
-(defmulti read-context find-context-input-format)
-
-(defmethod write-context :default [format _ _]
-  (illegal-argument "Format " format " for context output is not known."))
-
-(defmethod read-context :default [file]
-  (illegal-argument "Cannot determine format of context in " file))
-
-;;;
 ;;; Formats
-;;;
+
+;; Simple conexp-clj Format
+
+(add-context-input-format :simple
+			  (fn [rdr]
+			    (= "conexp-clj simple" (.readLine rdr))))
+
+(defmethod write-context :simple [_ ctx file]
+  (with-out-writer file
+    (println "conexp-clj simple")
+    (prn {:context [(objects ctx)
+		    (attributes ctx)
+		    (incidence ctx)]})))
+
+(defmethod read-context :simple [file]
+  (with-in-reader file
+    (let [_        (get-line)
+	  hash-map (binding [*in* (PushbackReader. *in*)]
+		     (read))]
+      (apply make-context (:context hash-map)))))
+
 
 ;; Burmeister Format
+
+(add-context-input-format :burmeister
+			  (fn [rdr]
+			    (= "B" (.readLine rdr))))
 
 (defmethod write-context :burmeister [_ ctx file]
   (with-out-writer file
@@ -56,10 +65,6 @@
 	(doseq [m (attributes ctx)]
 	  (print (if (inz [g m]) "X" ".")))
 	(println)))))
-
-(add-context-input-format :burmeister
-			  (fn [rdr]
-			    (= "B" (.readLine rdr))))
 
 (defmethod read-context :burmeister [file]
   (with-in-reader file
@@ -85,7 +90,7 @@
 				  [idx-m (range number-of-attributes)
 				   :when (#{\X,\x} (nth line idx-m))])))))))))
 
-;;;
+;;; XML helpers
 
 (defn- find-tags [seq-of-hashes tag]
   (for [hash seq-of-hashes :when (= tag (:tag hash))] hash))
@@ -101,7 +106,7 @@
 
 ;;;
 
-;; Conexp
+;; ConExp
 
 (add-context-input-format :conexp
 			  (fn [rdr]
@@ -158,7 +163,7 @@
      objects]))
 
 (defmethod write-context :conexp [_ ctx file]
-  (binding [clojure.contrib.prxml/*prxml-indent* 2]
+  (binding [*prxml-indent* 2]
     (with-out-writer file
       (prxml [:decl! {:version "1.0"}])
       (prxml [:ConceptualSystem

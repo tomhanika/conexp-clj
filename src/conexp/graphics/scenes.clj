@@ -12,6 +12,8 @@
   (:import [java.awt Color Canvas]
 	   [java.awt.event ComponentListener]
 	   [java.io File]
+	   [java.awt.image BufferedImage]
+	   [javax.imageio ImageIO]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent]))
 
 (update-ns-meta! conexp.graphics.scenes
@@ -149,12 +151,13 @@
 (defn save-image
   "Saves image on scene scn in given file with given format."
   [#^GScene scn, #^File file, format]
-  (let [#^GWindow wnd (.getWindow scn)]
-    (condp contains? format
-      #{"jpg", "jpeg"} (.saveAsJpg wnd file),
-      #{"png"}         (.saveAsPng wnd file),
-      #{"gif"}         (.saveAsGif wnd file),
-      (illegal-argument "Format " format " not supported for saving images."))))
+  (let [#^Canvas cnv (.. scn getWindow getCanvas)]
+    (let [#^BufferedImage image (BufferedImage. (.getWidth cnv)
+						(.getHeight cnv)
+						BufferedImage/TYPE_INT_RGB)]
+      (.print cnv (.createGraphics image))
+      (when-not (ImageIO/write image format file)
+	(illegal-argument "Format " format " not supported for saving images.")))))
 
 (defn show-labels
   "Turns visibility of labels on scene on and off."

@@ -7,70 +7,61 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.association-rules
-  (:gen-class
-   :name conexp.fca.AssociationRule
-   :prefix "AssociationRule-"
-   :init init
-   :constructors { [ Object Object Object ] [] }
-   :state state)
   (:use conexp.base
 	conexp.fca.contexts
 	conexp.fca.implications))
 
 ;;;
 
-(defn AssociationRule-init [context premise conclusion]
-  [ [] {:context context
-	:premise premise
-	:conclusion conclusion} ])
+(deftype Association-Rule [context premise conclusion])
 
-(defn AssociationRule-hashCode
-  "Computes hash code for an association rule object."
-  [this]
-  (reduce bit-xor 0
-	  [(hash ((.state this) :premise)),
-	   (hash ((.state this) :conclusion)),
-	   (hash ((.state this) :context))]))
+(defmethod premise ::Association-Rule [ar]
+  (:premise ar))
 
-(defmethod premise conexp.fca.AssociationRule [ar]
-  ((.state ar) :premise))
+(defmethod conclusion ::Association-Rule [ar]
+  (:conclusion ar))
 
-(defmethod conclusion conexp.fca.AssociationRule [ar]
-  ((.state ar) :conclusion))
+(defn context
+  "Returns the corresponding context for a given association rule."
+  [ar]
+  (:context ar))
 
-(defn context [ar]
-  ((.state ar) :context))
-
-(defn support [B ctx]
+(defn support
+  "Computes the support of the set of attributes B in context ctx."
+  [B ctx]
   (/ (count (attribute-derivation ctx B))
      (count (objects ctx))))
 
-(defn confidence [ar]
+(defn confidence
+  "Computes the confidence of the association rule ar."
+  [ar]
   (/ (support (union (premise ar) (conclusion ar))
 	      (context ar))
      (support (premise ar)
 	      (context ar))))
 
-(defn AssociationRule-toString [this]
-  (str "( " (premise this) " ==> " (conclusion this)
-       "; support " (support (union (premise this)
-				    (conclusion this))
-			     (context this))
-       ", confidence " (confidence this) " )"))
-
-(defn AssociationRule-equals [this other]
-  (and (instance? conexp.fca.AssociationRule other)
-       (= (premise this) (premise other))
-       (= (conclusion this) (conclusion other))))
+(defmethod print-method ::Association-Rule [ar out]
+  (.write out
+	  (str "( " (premise ar) " ==> " (conclusion ar)
+	       "; support " (support (union (premise ar)
+					    (conclusion ar))
+				     (context ar))
+	       ", confidence " (confidence ar) " )")))
 
 ;;;
 
-(defn make-association-rule [context premise conclusion]
+(defn make-association-rule
+  "Constructs an association rule from context, premise and conclusion."
+  [context premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]
-    (conexp.fca.AssociationRule. context premise (difference conclusion premise))))
+    (Association-Rule context premise (difference conclusion premise))))
+
+;;;
 
 (defn iceberg-intent-set
+  "Computes in context for given minimal support minsupp the
+  corresponding iceberg intent set (i.e. the iceberg-lattice)."
   [context minsupp]
   (let [mincount (round (ceil (* minsupp (count (objects context)))))]
     (all-closed-sets-in-family (fn [intent]
@@ -80,6 +71,8 @@
 			       (partial context-attribute-closure context))))
 
 (defn luxenburger-basis
+  "Computes the luxenburger-basis for context with minimal support
+  minsupp and minimal confidence minconf."
   [context minsupp minconf]
   (let [closed-intents (iceberg-intent-set context minsupp)]
     (for [B_1 closed-intents

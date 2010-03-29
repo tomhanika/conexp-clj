@@ -7,16 +7,20 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.current
-  (:require conexp
+  (:require conexp.main
 	    [conexp.contrib.algorithms.concepts :as concepts])
   (:use clojure.contrib.pprint
 	clojure.contrib.repl-utils))
+
+(conexp/update-ns-meta! conexp.current
+  :doc "Contains code snippets (i.e. repl helpers) for testing and developing conexp-clj.")
 
 ;;;
 
 (defmulti go
   "Main testing function."
-  (fn [& args] (first args)))
+  {:arglists '([dispatch & args])}
+  (fn [dispatch & args] dispatch))
 
 (defmethod go :default [& args]
   (conexp/illegal-argument "No tester for " args))

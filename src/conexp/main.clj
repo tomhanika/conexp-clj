@@ -6,11 +6,10 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp
+(ns conexp.main
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
-;; Use immigrate, so that all imports behave as if they were defined in here.
-;; Thus (use 'conexp) makes sense.
+;;;
 
 (def *conexp-namespaces* '[conexp.base
 			   conexp.fca
@@ -19,31 +18,35 @@
 			   conexp.graphics
 			   conexp.gui])
 
-(dorun
- (map immigrate *conexp-namespaces*))
+(dorun (map immigrate *conexp-namespaces*))
+
+(update-ns-meta! conexp.main
+  :doc "Main namespace for conexp-clj. Immigrates all needed namespaces.")
 
 (def *conexp-version* {:major 0,
-		       :minor 1,
-		       :timestamp 1264974270492,
+		       :minor 0,
+		       :patch 2
 		       :qualifier "pre-alpha"})
 
 (defn conexp-version
   "Returns the version of conexp as a string."
   []
-  (let [{:keys [major minor timestamp qualifier]} *conexp-version*]
-    (str major "." minor "." timestamp "_" qualifier)))
+  (let [{:keys [major minor patch qualifier]} *conexp-version*]
+    (str major "." minor "." patch "-" qualifier)))
 
 (defn has-version?
   "Compares given version of conexp and returns true if and only if
   the current version of conexp is higher or equal than the given one"
-  [{my-major :major, my-minor :minor, my-timestamp :timestamp}]
-  (let [{:keys [major, minor, timestamp]} *conexp-version*]
+  [{my-major :major, my-minor :minor, my-patch :patch}]
+  (let [{:keys [major, minor, patch]} *conexp-version*]
     (or (and (< my-major major))
 	(and (= my-major major)
 	     (< my-minor minor))
 	(and (= my-major major)
 	     (= my-minor minor)
-	     (<= my-timestamp timestamp)))))
+	     (< my-patch patch)))))
+
+;;;
 
 
 nil

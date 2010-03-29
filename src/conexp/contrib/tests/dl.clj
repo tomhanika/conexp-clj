@@ -6,24 +6,15 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui
-  (:import [javax.swing UIManager JFrame])
-  (:use conexp.base
-	conexp.gui.base))
-
-(update-ns-meta! conexp.gui
-  :doc "Provides standard gui for conexp-clj.")
+(ns conexp.contrib.tests.dl
+  (:use conexp.main))
 
 ;;;
 
-
-(defn gui
-  "Starts the standard gui for conexp-clj."
-  []
-  (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-  (let [#^JFrame frame (conexp-main-frame)]
-    (.setVisible frame true)
-    frame))
+(tests-to-run conexp.contrib.tests.dl.framework.models
+	      conexp.contrib.tests.dl.languages.description-graphs
+	      conexp.contrib.tests.dl.framework.reasoning
+	      conexp.contrib.tests.dl.languages.exploration)
 
 ;;;
 

@@ -1,13 +1,13 @@
 (ns conexp.gui.repl-utils
   (:require [conexp.gui.util :as util])
-  (:use conexp))
+  (:use conexp.main))
 
 ;;;
 
 (defn- get-main-frame
   "Returns current main-frame or nil."
   []
-  (eval 'conexp/*main-frame*))
+  (eval 'conexp.gui.repl-utils/*main-frame*))
 
 ;; Tabs
 
@@ -33,7 +33,7 @@
 ;;;
 
 (defn test-tab []
-  (start-lattice-editor (conexp/concept-lattice (conexp/rand-context #{1 2 3 4 5} 0.4))))
+  (start-lattice-editor (conexp.main/concept-lattice (conexp.main/rand-context #{1 2 3 4 5} 0.4))))
 
 ;;;
 

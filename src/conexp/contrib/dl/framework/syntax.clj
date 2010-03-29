@@ -7,14 +7,24 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.syntax
-  (:use conexp)
+  (:use conexp.main)
   (:use clojure.contrib.pprint
 	[clojure.walk :only (walk)]))
 
 
 ;;;
 
-(deftype DL [concept-names role-names constructors])
+(defvar *print-with-dl-type* false
+  "If true, prints DL data structures with type tag.")
+
+;;;
+
+(deftype DL [name concept-names role-names constructors])
+
+(defn language-name
+  "Returns the name of the given language."
+  [language]
+  (:name language))
 
 (defn concept-names
   "Returns the concept names of the given language."
@@ -38,17 +48,12 @@
   (:constructors language))
 
 (defmethod print-method ::DL [dl out]
-  (let [#^String output (with-out-str
-			  (pprint (list 'DL
-					(concept-names dl)
-					(role-names dl)
-					(constructors dl))))]
-    (.write out (.trim output))))
+  (.write out (str "DL " (name (language-name dl)))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
-  [concept-names role-names constructors]
-  (DL (set concept-names) (set role-names) (set constructors)))
+  [name concept-names role-names constructors]
+  (DL (keyword "conexp.contrib.dl.framework" (str name)) (set concept-names) (set role-names) (set constructors)))
 
 ;;;
 
@@ -66,25 +71,12 @@
 
 (defmethod print-method ::DL-expression [dl-exp out]
   (let [#^String output (with-out-str
-			  (pprint (expression dl-exp)))]
+			  (if *print-with-dl-type*
+			    (pprint (list 'DL-expr (expression dl-exp)))
+			    (pprint (expression dl-exp))))]
     (.write out (.trim output))))
 
 ;;;
-
-(defmulti transform-expression
-  "Transforms given DL expression as defined in language."
-  (fn [language expression]
-    (if (list? expression)
-      [language (first expression)]
-      language)))
-
-(defmethod transform-expression :default [language expression]
-  (let [base-transformer (get-method transform-expression language),
-	default-transformer (get-method transform-expression :default)]
-    (when (or (nil? base-transformer)
-	      (= base-transformer default-transformer))
-      (illegal-argument "Language " (print-str language) " not known for transformation."))
-    (base-transformer language expression)))
 
 (defn dl-expression?
   "Returns true iff thing is a DL expression."
@@ -147,21 +139,22 @@
 	    (not (Character/isUpperCase (first (str name)))))
       (illegal-argument "Concept and role names must start with a capital letter."))
     `(do
-       (def ~name (make-language '~concept-names '~role-names '~constructors))
+       (let [concept-names# (into '~concept-names ~(when-let [base-lang (:extends options)]
+						     `(concept-names ~base-lang))),
+	     role-names#    (into '~role-names ~(when-let [base-lang (:extends options)]
+						  `(role-names ~base-lang))),
+	     constructors#  (into '~constructors ~(when-let [base-lang (:extends options)]
+						    `(constructors ~base-lang)))]
 
-       ;; untested
-       (defmethod transform-expression ~name [language# expression#]
-	 expression#)
-       ~@(map (fn [dl-sexp body]
-		(let [cons-name (first dl-sexp),
-		      cons-args (rest dl-sexp)]
-		  `(defmethod transform-expression [~name '~cons-name]
-		     [language# expression#]
-		     (let [~(vec cons-args) (map transform-expression (rest expression#))]
-		       ~@body))))
-	      (:syntax-transformers options))
+	 ;; defining the language
+	 (def ~name (make-language '~name concept-names# role-names# constructors#))
 
-       ~name)))
+	 ;; extending languages
+	 ~(when-let [base-lang (:extends options)]
+	    `(derive (language-name ~name) (language-name ~base-lang)))
+
+	 ;; finished
+	 ~name))))
 
 ;;;
 
@@ -203,6 +196,15 @@
 	  %)
        (rest (expression dl-expression))))
 
+;;;
+
+(defn all
+  "Returns for a set of concepts the conjunction of all those concepts."
+  [language concepts]
+  (make-dl-expression language (cons 'and concepts)))
+
+;;;
+
 (defn symbols-in-expression
   "Returns all symbols used in expressions."
   [dl-expression]
@@ -233,19 +235,22 @@
 		     (concept-names-in-expression dl-expression))))
 
 (defn- substitute-syntax
-  "Substitues in first sexp every occurence of name by the second one."
-  [sexp-1 name sexp-2]
+  "Substitues in sexp-1 every occurence of a key in names by its value."
+  [sexp-1 names]
   (cond
-   (= sexp-1 name) sexp-2,
-   (sequential? sexp-1) (walk #(substitute-syntax % name sexp-2) identity sexp-1),
+   (some #{sexp-1} (keys names)) (let [new (names sexp-1)]
+				   (if (dl-expression? new)
+				     (expression new)
+				     new)),
+   (sequential? sexp-1) (walk #(substitute-syntax % names) identity sexp-1),
    :else sexp-1))
 
 (defn substitute
-  "Substitutes in the first dl-expression all occurences of name by
-  the second dl-expression, returning the resulting expression."
-  [dl-expr name new-dl-expr]
+  "Substitutes in the first dl-expression all occurences of keys in
+  names by their values, returning the resulting expression."
+  [dl-expr names]
   (DL-expression (expression-language dl-expr)
-		 (substitute-syntax (expression dl-expr) name (expression new-dl-expr))))
+		 (substitute-syntax (expression dl-expr) names)))
 
 ;;; Definitions
 
@@ -278,17 +283,17 @@
 
 ;;; Subsumptions
 
-(deftype DL-subsumption [subsumer subsumee])
-
-(defn subsumer
-  "Returns the subsumer of the given subsumption."
-  [subsumption]
-  (:subsumer subsumption))
+(deftype DL-subsumption [subsumee subsumer])
 
 (defn subsumee
   "Returns the subsumee of the given subsumption."
   [subsumption]
   (:subsumee subsumption))
+
+(defn subsumer
+  "Returns the subsumer of the given subsumption."
+  [subsumption]
+  (:subsumer subsumption))
 
 (defn make-subsumption
   "Creates and returns a subsumption."
@@ -299,9 +304,9 @@
 
 (defmethod print-method ::DL-subsumption [susu out]
   (let [#^String output (with-out-str
-			  (pprint (list (subsumer susu)
+			  (pprint (list (subsumee susu)
 					'==>
-					(subsumee susu))))]
+					(subsumer susu))))]
     (.write out (.trim output))))
 
 ;;;

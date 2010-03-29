@@ -9,4 +9,11 @@
 (ns conexp.io
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
-(immigrate 'conexp.io.contexts)
+;;;
+
+(immigrate 'conexp.io.contexts
+	   'conexp.io.lattices)
+
+;;;
+
+nil

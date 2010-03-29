@@ -6,8 +6,17 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(use 'conexp)
-(import 'javax.swing.JFrame)
+;;;
 
-(let [frame (conexp-gui)]
-  (.setDefaultCloseOperation frame JFrame/EXIT_ON_CLOSE))
+(defproject conexp-clj "0.0.2-pre-alpha"
+  :description "A ConExp rewrite in clojure"
+  :url "http://www.math.tu-dresden.de/~borch/conexp-clj"
+  :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
+                 [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
+		 [org.apache.commons/commons-math "2.0"]
+		 [jline "0.9.94"]]
+  :namespaces [conexp.main])
+
+;;;
+
+nil

@@ -7,48 +7,31 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.implications
-  (:gen-class
-   :name conexp.fca.Implication
-   :prefix "Implication-"
-   :init init
-   :constructors { [ Object Object ] [] }
-   :state state)
   (:use conexp.base
 	conexp.fca.contexts))
 
 ;;;
 
-(defn Implication-init [premise conclusion]
-  [ [] {:premise premise,
-	:conclusion conclusion} ])
+(deftype Implication [premise conclusion])
 
 (defmulti premise
   "Returns premise of given object."
-  class)
+  {:arglists '([thing])}
+  type)
 
-(defmethod premise conexp.fca.Implication [#^conexp.fca.Implication impl]
-  (-> impl .state :premise))
+(defmethod premise ::Implication [impl]
+  (:premise impl))
 
 (defmulti conclusion
   "Returns conclusion of given object."
-  class)
+  {:arglists '([thing])}
+  type)
 
-(defmethod conclusion conexp.fca.Implication [#^conexp.fca.Implication impl]
-  (-> impl .state :conclusion))
+(defmethod conclusion ::Implication [impl]
+  (:conclusion impl))
 
-(defn Implication-hashCode
-  "Implements hashCode for implications."
-  [this]
-  (bit-xor (hash (-> this .state :premise))
-	   (hash (-> this .state :conclusion))))
-
-(defn Implication-toString [this]
-  (str "( " (premise this) "  ==>  " (conclusion this) " )"))
-
-(defn Implication-equals [this other]
-  (and (instance? conexp.fca.Implication other)
-       (= (premise this) (premise other))
-       (= (conclusion this) (conclusion other))))
+(defmethod print-method ::Implication [impl out]
+  (.write out (str "( " (premise impl) "  ==>  " (conclusion impl) " )")))
 
 ;;;
 
@@ -57,7 +40,9 @@
   [premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]
-    (conexp.fca.Implication. premise (difference conclusion premise))))
+    (Implication premise (difference conclusion premise))))
+
+;;;
 
 (defn respects?
   "Returns true iff set respects given implication impl."
