@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.models
-  (:use conexp
+  (:use conexp.main
 	conexp.contrib.dl.framework.syntax)
   (:use clojure.contrib.pprint))
 

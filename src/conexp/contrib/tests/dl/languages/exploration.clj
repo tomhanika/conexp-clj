@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.dl.languages.exploration
-  (:use conexp
+  (:use conexp.main
 	conexp.contrib.dl.languages.exploration
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test))

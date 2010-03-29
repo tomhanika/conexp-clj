@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.current
-  (:require conexp
+  (:require conexp.main
 	    [conexp.contrib.algorithms.concepts :as concepts])
   (:use clojure.contrib.pprint
 	clojure.contrib.repl-utils))

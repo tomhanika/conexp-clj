@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.dl.framework.reasoning
-  (:use conexp
+  (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.tests.dl.examples)
