@@ -11,6 +11,7 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.languages.interaction
+	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.framework.reasoning)
   (:use clojure.contrib.pprint))
 
@@ -38,16 +39,17 @@
 (defn- extend-attributes
   "Takes a sequence of concepts and a sequence of new concepts to be
   added to the first sequence. If any element in the new sequence is
-  equivalent to some element in the old one, it is not added."
+  equivalent to some element in the old one, it is not added. The
+  elements of new-concepts must not be pairwise equivalent."
   [concepts new-concepts]
-  (loop [concepts concepts,
+  (loop [ext-concepts concepts,
 	 new-concepts new-concepts]
     (if (empty? new-concepts)
-      concepts
+      ext-concepts
       (recur (let [next (first new-concepts)]
-	       (if (some #(equivalent? next %) concepts)
-		 concepts
-		 (conj concepts next)))
+	       (if (some #(equivalent? next %) concepts) ;this is too expensive!
+		 ext-concepts
+		 (conj ext-concepts next)))
 	     (rest new-concepts)))))
 
 ;;; rewriting
@@ -96,14 +98,15 @@
   ([initial-model]
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
-     (binding [model-closure (memoize model-closure),
-	       subsumed-by?  (memoize subsumed-by?)]
+     (with-memoized-fns [EL-expression->rooted-description-graph ;Dirty, but helps
+			 interpret
+			 model-closure
+			 subsumed-by?]
        (let [language (model-language initial-model)]
 	 (when (and (not= (set initial-ordering) (concept-names language))
 		    (not= (count initial-ordering) (count (concept-names language))))
 	   (illegal-argument "Given initial-ordering for explore-model must consist "
 			     "of all concept names of the language of the given model."))
-
 	 (loop [k     0,
 		M_k   (map #(dl-expression language %) initial-ordering),
 		K     (induced-context M_k initial-model),
@@ -144,11 +147,18 @@
 
 		   implications (set-of impl [P_l next-Pi_k
 					      :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
-					      :when (not (empty? (conclusion impl)))])
-		   background-knowledge (set-of (make-implication #{C} #{D})
-						[C next-M_k, D next-M_k
-						 :when (and (not= C D) (subsumed-by? C D))])
-
+					      :when (not (empty? (conclusion impl)))]),
+		   background-knowledge (let [new-M_k (take (- (count next-M_k) (count M_k)) next-M_k)]
+					  ;; compute new background knowledge using old one;
+					  ;; C,D\in new-M_k \implies C\not\sqsubseteq D and thus this case
+					  ;; need not to be considered
+					  (union background-knowledge
+						 (set-of (make-implication #{C} #{D})
+							 [C M_k, D new-M_k
+							  :when (subsumed-by? C D)])
+						 (set-of (make-implication #{C} #{D})
+							 [C new-M_k, D M_k
+							  :when (subsumed-by? C D)]))),
 		   next-P_k   (next-closed-set next-M_k
 					       (clop-by-implications (union implications background-knowledge))
 					       P_k)]
@@ -157,7 +167,8 @@
 ;;; gcis
 
 (defn model-gcis
-  "Returns a complete and sound set of gcis holding in model."
+  "Returns a complete and sound set of gcis holding in model. See
+  explore-model for valid args."
   [model & args]
   (binding [expert-refuses? (constantly false)]
     (apply explore-model model args)))

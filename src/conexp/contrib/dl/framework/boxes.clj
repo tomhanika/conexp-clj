@@ -148,6 +148,29 @@
   [tbox]
   (zero? (count (self-recursive-sets (usage-graph tbox)))))
 
+(defn tidy-up-tbox
+  "In a given tbox take for a set of syntactically equivalent defined
+  concepts one representative and replace every occurence of an
+  equivalent symbol by this representative."
+  [tbox]
+  (let [reversed-map (reduce (fn [hash-map definition]
+			       (let [name (definition-target definition)]
+				 (update-in hash-map [(expression (definition-expression definition))]
+					    conj (definition-target definition))))
+			     {}
+			     (tbox-definitions tbox)),
+	rename-map (into {} (for [definition (tbox-definitions tbox)]
+			      [(definition-target definition),
+			       (first (reversed-map (expression (definition-expression definition))))])),
+	new-tbox (make-tbox (tbox-language tbox)
+			    (for [definition (tbox-definitions tbox)]
+			      (make-dl-definition (tbox-language tbox)
+						  (definition-target definition)
+						  (substitute (definition-expression definition) rename-map))))]
+    (if (not= tbox new-tbox)
+      (tidy-up-tbox new-tbox)
+      tbox)))
+
 (defn collect-targets
   "Collects all targets reachable in the usage graph of tbox, starting
   from targets."
@@ -165,20 +188,19 @@
   "Clarifies tbox for target, i.e. removes all definitions from tbox
   which are not needed to define target."
   [[tbox target]]
-  (let [needed-targets (collect-targets tbox #{target} #{})]
-    [(make-tbox (tbox-language tbox)
-		(for [def (tbox-definitions tbox)
-		      :when (contains? needed-targets (definition-target def))]
-		    (if (compound? (definition-expression def))
-		      ;; remove duplicate terms
-		      (let [expr (definition-expression def)]
-			(make-dl-definition (definition-target def)
-					    (make-dl-expression (tbox-language tbox)
-								(list* (operator expr)
-								       (distinct (arguments expr))))))
-		      ;;
-		      def)))
-     target]))
+  (let [needed-targets (collect-targets tbox #{target} #{}),
+	new-tbox (make-tbox (tbox-language tbox)
+			    (for [def (tbox-definitions tbox)
+				  :when (contains? needed-targets (definition-target def))]
+			      (if (compound? (definition-expression def))
+				;; remove duplicate terms
+				(let [expr (definition-expression def)]
+				  (make-dl-definition (definition-target def)
+						      (make-dl-expression (tbox-language tbox)
+									  (list* (operator expr)
+										 (distinct (arguments expr))))))
+				def)))]
+    [new-tbox target]))
 
 (defn substitute-definitions
   "Substitutes defined concepts in the definition of target by their

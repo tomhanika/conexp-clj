@@ -12,17 +12,22 @@
 
 ;;;
 
+(defn- expressions-language
+  "Returns the name of the common DL of given dl-expression C and D,
+  if existent. Otherwise raises an error."
+  [C D]
+  (when (or (not (dl-expression? C))
+	    (not (dl-expression? D)))
+    (illegal-argument "Arguments to subsumption must be dl-expressions."))
+  (let [C-language (expression-language C),
+	D-language (expression-language D)]
+    (when (not= C-language D-language)
+      (illegal-argument "For subsumption the expression must be formulated in the same language."))
+    (language-name C-language)))
+
 (defmulti subsumption
   "Defines subsumption algorithms for specific languages."
-  (fn [C D]
-    (when (or (not (dl-expression? C))
-	      (not (dl-expression? D)))
-      (illegal-argument "Arguments to subsumption must be dl-expressions."))
-    (let [C-language (expression-language C),
-	  D-language (expression-language D)]
-      (when (not= C-language D-language)
-	(illegal-argument "For subsumption the expression must be formulated in the same language."))
-      (language-name C-language))))
+  expressions-language)
 
 (defmethod subsumption :default [C D]
   (illegal-argument "There is no algorithm defined for subsumption in language " (expression-language C) "."))
@@ -38,11 +43,22 @@
   [C D]
   (subsumption C D))
 
-(defn equivalent?
+;;;
+
+(defmulti equivalent?
   "Returns true iff C and D are equivalent."
-  [C D]
+  expressions-language)
+
+(defmethod equivalent? :default [C D]
   (and (subsumed-by? C D)
        (subsumed-by? D C)))
+
+(defmacro define-equivalence
+  "Define equivalence algorithm for given language."
+  [language [C D] & body]
+  `(defmethod equivalent? (language-name ~language) [~C ~D]
+     ~@body))
+
 
 ;;;
 

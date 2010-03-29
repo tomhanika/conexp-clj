@@ -11,6 +11,7 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
+	conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.languages.exploration
 	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.languages.EL-gfp))
@@ -100,6 +101,34 @@
 				     [Paul James] [Linda James]}
 			 MarriedTo #{[Paul Linda] [Linda Paul]
 				     [John Michelle] [Michelle John]}))
+
+(def more-family-model (model FamilyDL
+			      [Jana Paul Tom Martin Kathrin Thomas Clarissa Jean Elisabeth Andrea]
+			      Female #{Jana Kathrin Clarissa Elisabeth Andrea}
+			      Male   #{Paul Tom Martin Thomas Jean}
+			      Mother #{Jana Kathrin Elisabeth}
+			      Father #{Paul Martin Jean}
+			      HasChild  #{[Jana Tom]       [Paul Tom]
+					  [Martin Thomas]  [Martin Clarissa]
+					  [Kathrin Thomas] [Kathrin Clarissa]
+					  [Jean Andrea]    [Elisabeth Andrea]}
+			      MarriedTo #{[Jana Paul]      [Paul Jana]
+					  [Martin Kathrin] [Kathrin Martin]
+					  [Jean Elisabeth] [Elisabeth Jean]}))
+
+(def grandparent-model (model FamilyDL
+			      [A B C D E F G H]
+			      Female #{A C E G}
+			      Male   #{B D F H}
+			      Mother #{A C E}
+			      Father #{B D F}
+			      HasChild  #{[A E] [B E]
+					  [C F] [D F]
+					  [E G] [F G]
+					  [E H] [F H]}
+			      MarriedTo #{[A B] [B A]
+					  [C D] [D C]
+					  [E F] [F E]}))
 
 ;;;
 

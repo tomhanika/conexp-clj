@@ -20,7 +20,7 @@
 			 (print-str subsumption)
 			 " ?\n\n")
 		    '#{yes no}
-		    "Please enter yes or no.")]
+		    "Please enter yes or no.\n")]
     (if (= answer 'yes)
       false
       true)))
