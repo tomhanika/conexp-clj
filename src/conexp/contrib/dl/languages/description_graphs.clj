@@ -436,8 +436,6 @@
 				  (forall [r R]
 				    (=> (empty? (post G-2 u r))
 					(empty? (post G-1 v r)))))]))
-      (.put pre* v
-	    (set-of [u r] [r R, u (pre G-1 v r)]))
       (doseq [r R]
 	(.put remove [v r]
 	      (difference (set-of w [[w s _] (edges G-2),
@@ -445,6 +443,9 @@
 			  (set-of w [[w s x] (edges G-2),
 				     :when (and (= s r)
 						(contains? (.get sim v) x))])))))
+    (doseq [w (vertices G-2)]
+      (.put pre* w
+	    (set-of [u r] [r R, u (pre G-2 w r)])))
     [sim remove pre*]))
 
 (defn- efficient-simulator-sets
@@ -467,7 +468,7 @@
 	      (when (empty? (intersection (post G-2 w* r*)
 					  (.get sim u)))
 		(.put remove [u r*]
-		      (disj (.get remove [u r*]) w*))))))
+		      (conj (.get remove [u r*]) w*))))))
 	(.put remove [v r] #{})
 	(recur)))
     (HashMap->hash-map sim)))
@@ -478,7 +479,7 @@
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
-  (let [sim-sets (schematic-simulator-sets G-1 G-2)]
+  (let [sim-sets (efficient-simulator-sets G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
 ;;;

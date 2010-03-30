@@ -16,19 +16,6 @@
 
 ;;;
 
-(def *tbox-1* (tbox FamilyDL
-		    [[[Mackenzie James] Mackenzie] James] (and),
-		    [[[John Linda] Michelle] Paul] (and (exists MarriedTo [[[Michelle Paul] John] Linda])
-							(exists HasChild [[[Mackenzie James] Mackenzie] James])),
-		    [[[Michelle Paul] John] Linda] (and (exists MarriedTo [[[John Linda] Michelle] Paul])
-							(exists HasChild [[[Mackenzie James] Mackenzie] James]))))
-(def *tbox-2* (tbox FamilyDL
-		    [Michelle John] (and (exists MarriedTo [John Michelle])
-					 (exists HasChild [Mackenzie Mackenzie])),
-		    [John Michelle] (and (exists HasChild [Mackenzie Mackenzie])
-					 (exists MarriedTo [Michelle John]))
-		    [Mackenzie Mackenzie] (and Female)))
-
 (deftest test-subsumed-by?
   (are [dl exp] (subsumed-by? (dl-expression dl exp) (dl-expression dl exp))
        SimpleDL (exists HasChild (and Mother Female (exists HasChild (and))))
@@ -44,9 +31,21 @@
        FamilyDL (exists HasChild (and)) (exists MarriedTo (and))
        FamilyDL (and (exists MarriedTo (and))
 		     (exists HasChild (and Female))
-		     (exists MarriedTo [*tbox-1*, [[[John Linda] Michelle] Paul]])
+		     (exists MarriedTo [(tbox FamilyDL
+					      [[[Mackenzie James] Mackenzie] James] (and),
+					      [[[John Linda] Michelle] Paul] (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+										  (exists HasChild [[[Mackenzie James] Mackenzie] James])),
+					      [[[Michelle Paul] John] Linda] (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+										  (exists HasChild [[[Mackenzie James] Mackenzie] James]))),
+					[[[John Linda] Michelle] Paul]])
 		     (exists HasChild (and)))
-                [*tbox-2*, [John Michelle]]))
+                [(tbox FamilyDL
+		    [Michelle John] (and (exists MarriedTo [John Michelle])
+					 (exists HasChild [Mackenzie Mackenzie])),
+		    [John Michelle] (and (exists HasChild [Mackenzie Mackenzie])
+					 (exists MarriedTo [Michelle John]))
+		    [Mackenzie Mackenzie] (and Female)),
+		 [John Michelle]]))
 
 ;;;
 
