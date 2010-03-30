@@ -25,7 +25,10 @@
 	   (forall [x (:base-set this)
 		    y (:base-set this)]
 	     (<=> (order-this [x y])
-		  (order-other [x y])))))))
+		  (order-other [x y]))))))
+  (hashCode []
+    ;; can't think of a better way ...
+    0))
 
 (defn base-set
   "Returns the base set of lattice."
