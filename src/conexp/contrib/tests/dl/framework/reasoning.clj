@@ -9,11 +9,25 @@
 (ns conexp.contrib.tests.dl.framework.reasoning
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
+	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test))
 
 ;;;
+
+(def *tbox-1* (tbox FamilyDL
+		    [[[Mackenzie James] Mackenzie] James] (and),
+		    [[[John Linda] Michelle] Paul] (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James])),
+		    [[[Michelle Paul] John] Linda] (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+							(exists HasChild [[[Mackenzie James] Mackenzie] James]))))
+(def *tbox-2* (tbox FamilyDL
+		    [Michelle John] (and (exists MarriedTo [John Michelle])
+					 (exists HasChild [Mackenzie Mackenzie])),
+		    [John Michelle] (and (exists HasChild [Mackenzie Mackenzie])
+					 (exists MarriedTo [Michelle John]))
+		    [Mackenzie Mackenzie] (and Female)))
 
 (deftest test-subsumed-by?
   (are [dl exp] (subsumed-by? (dl-expression dl exp) (dl-expression dl exp))
@@ -27,7 +41,12 @@
        SimpleDL all-cpt (and all-cpt))
   (are [dl exp-1 exp-2] (not (subsumed-by? (dl-expression dl exp-1) (dl-expression dl exp-2)))
        SimpleDL (exists HasChild (and)) (exists HasChild Female)
-       FamilyDL (exists HasChild (and)) (exists MarriedTo (and))))
+       FamilyDL (exists HasChild (and)) (exists MarriedTo (and))
+       FamilyDL (and (exists MarriedTo (and))
+		     (exists HasChild (and Female))
+		     (exists MarriedTo [*tbox-1*, [[[John Linda] Michelle] Paul]])
+		     (exists HasChild (and)))
+                [*tbox-2*, [John Michelle]]))
 
 ;;;
 

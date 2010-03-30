@@ -15,6 +15,9 @@
 	[clojure.contrib.graph :exclude (transitive-closure)])
   (:import [java.util HashMap]))
 
+(update-ns-meta! conexp.contrib.dl.languages.description-graphs
+  :doc "Implements description graphs and operations like lcs and mcs for EL-gfp.")
+
 ;;;
 
 (deftype Description-Graph [language vertices neighbours vertex-labels])
@@ -370,7 +373,7 @@
 
 ;; schematic
 
-(defn- simulator-sets
+(defn- schematic-simulator-sets
   "Returns for all vertices v in the description graph G-1 the sets of
   vertices (sim v) in G-2 such that there exists a simulation from v to
   every vertex in (sim v)."
@@ -387,17 +390,87 @@
       (.put sim-sets v (set-of w [w (vertices G-2)
 				  :when (subset? (label-1 v) (label-2 w))])))
     (loop []
-      (let [[u w] (first (for [u (vertices G-1),
-			       [r v] (neighbours-1 u),
-			       w (.get sim-sets u)
-			       :when (forall [x (.get sim-sets v)]
-				       (not (edge-2? w r x)))]
-			   [u w]))]
-	(when u
-	  (.put sim-sets u
-		(disj (.get sim-sets u) w))
-	  (recur))))
+      (when-let [[u w] (first (for [u (vertices G-1),
+				    [r v] (neighbours-1 u),
+				    w (.get sim-sets u)
+				    :when (not (exists [x (.get sim-sets v)]
+					         (edge-2? w r x)))]
+				[u w]))]
+	(.put sim-sets u
+	      (disj (.get sim-sets u) w))
+	(recur)))
     (HashMap->hash-map sim-sets)))
+
+;; efficient simulator sets (by meng)
+
+(defn- post
+  "Computes all vertices w in G such that there exists an edge from w
+  to v labeled with r."
+  [G v r]
+  (set-of w [w (vertices G),
+	     :when (contains? ((neighbours G) v) [r w])]))
+
+(defn- pre
+  "Computes all vertices w in G such that there exists an edge from v
+  to w labeled with r."
+  [G v r]
+  (set-of w [w (vertices G),
+	     :when (contains? ((neighbours G) w) [r v])]))
+
+(defn- efficient-initialize
+  "Returns tripel [sim, remove, pre*] as needed by
+  efficient-simulator-sets. sim, remove and pre* are Java HashMaps."
+  [G-1 G-2]
+  (let [#^HashMap sim    (HashMap.),
+	#^HashMap remove (HashMap.),
+	#^HashMap pre*   (HashMap.),
+
+	label-1 (vertex-labels G-1),
+	label-2 (vertex-labels G-2),
+
+	R (role-names (graph-language G-1))]
+    (doseq [v (vertices G-1)]
+      (.put sim v
+	    (set-of u [u (vertices G-2),
+		       :when (and (subset? (label-1 v) (label-2 u))
+				  (forall [r R]
+				    (=> (empty? (post G-2 u r))
+					(empty? (post G-1 v r)))))]))
+      (.put pre* v
+	    (set-of [u r] [r R, u (pre G-1 v r)]))
+      (doseq [r R]
+	(.put remove [v r]
+	      (difference (set-of w [[w s _] (edges G-2),
+				     :when (= s r)])
+			  (set-of w [[w s x] (edges G-2),
+				     :when (and (= s r)
+						(contains? (.get sim v) x))])))))
+    [sim remove pre*]))
+
+(defn- efficient-simulator-sets
+  "Implements ELgfp-EfficientSimilaritiy (for the maximal simulation
+  between two graphs) and returns the corresponding simulator sets."
+  [G-1 G-2]
+  (let [[sim remove pre*] (efficient-initialize G-1 G-2),
+
+	R (role-names (graph-language G-1))]
+    (loop []
+      (when-let [[v r] (first (for [v (vertices G-1),
+				    r R,
+				    :when (not (empty? (.get remove [v r])))]
+				[v r]))]
+	(doseq [u (pre G-1 v r),
+		w (.get remove [v r])]
+	  (when (contains? (.get sim u) w)
+	    (.put sim u (disj (.get sim u) w))
+	    (doseq [[w*, r*] (.get pre* w)]
+	      (when (empty? (intersection (post G-2 w* r*)
+					  (.get sim u)))
+		(.put remove [u r*]
+		      (disj (.get remove [u r*]) w*))))))
+	(.put remove [v r] #{})
+	(recur)))
+    (HashMap->hash-map sim)))
 
 ;; simulation invocation point
 
@@ -405,7 +478,7 @@
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
-  (let [sim-sets (simulator-sets G-1 G-2)]
+  (let [sim-sets (schematic-simulator-sets G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
 ;;;
