@@ -111,9 +111,12 @@
   dl-expression automatically.")
 
 (defmacro dl-expression
-  "Allows input of DL s-expression without quoting. Symbols starting
-  with a capital letter are quoted, symbols in the first position of a
-  sequence are quoted and everything else is left as it is."
+  "Allows input of DL s-expression without quoting. The following quoting rules apply:
+
+    - function calls are not quoted (sequences starting with a symbol
+      not being in *common-constructors*
+    - capital letters are quoted (appearing outside of a function call)
+    - symbols in *common-constructors* being the first element of a sequence are quoted."
   [language expression]
   (let [transform-symbol (fn [symbol]
 			   (if (Character/isUpperCase (first (str symbol)))
@@ -125,7 +128,7 @@
 					 (empty? sexp) sexp,
 					 (contains? *common-constructors* (first sexp))
 					 (list* 'list (list 'quote (first sexp)) (walk transform identity (rest sexp))),
-					 :else (walk transform identity sexp)),
+					 :else sexp),
 		     (sequential? sexp) (walk transform identity sexp),
 		     (symbol? sexp)     (transform-symbol sexp),
 		     :else              sexp))]
