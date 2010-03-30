@@ -479,7 +479,7 @@
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
-  (let [sim-sets (efficient-simulator-sets G-1 G-2)]
+  (let [sim-sets (schematic-simulator-sets G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
 ;;;

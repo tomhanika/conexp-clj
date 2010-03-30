@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.languages.exploration
+(ns conexp.contrib.dl.languages.EL-gfp-exploration
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
@@ -15,7 +15,7 @@
 	conexp.contrib.dl.framework.reasoning)
   (:use clojure.contrib.pprint))
 
-(update-ns-meta! conexp.contrib.dl.languages.exploration
+(update-ns-meta! conexp.contrib.dl.languages.EL-gfp-exploration
   :doc "Implements exploration for description logics EL and EL-gfp.")
 
 
