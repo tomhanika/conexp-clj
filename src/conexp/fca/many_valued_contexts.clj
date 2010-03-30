@@ -12,19 +12,7 @@
 
 ;;;
 
-(deftype ManyValuedContext [objects attributes incidence]
-  :as this
-  Object
-  (equals [other]
-    (and (= (type other) ::ManyValuedContext)
-	 (= (objects this) (objects other))
-	 (= (attributes this) (attributes other))
-	 (let [inz-this (incidence this)
-	       inz-other (incidence other)]
-	   (forall [g (objects this)
-		    m (attributes this)]
-		   (= (inz-this [g m])
-		      (inz-other [g m])))))))
+(deftype ManyValuedContext [objects attributes incidence]) ;incidence is a hash-map
 
 (defmethod objects ::ManyValuedContext [mv-ctx]
   (:objects mv-ctx))
@@ -97,7 +85,10 @@
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/fn]
   [objs atts inz-fn]
-  (ManyValuedContext objs atts (fn [[g m]] (inz-fn g m))))
+  (ManyValuedContext objs atts
+		     (hashmap-by-function (fn [[g m]]
+					    (inz-fn g m))
+					  (cross-product objs atts))))
 
 (defmethod make-mv-context :default [objs atts inz]
   (illegal-argument "No method defined for types "
