@@ -28,7 +28,7 @@
 		  (order-other [x y]))))))
   (hashCode []
     ;; can't think of a better way ...
-    0))
+    (hash base-set)))
 
 (defn base-set
   "Returns the base set of lattice."
