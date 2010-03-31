@@ -22,6 +22,7 @@
     conexp.gui.util
     conexp.util
     conexp.util.hookable
+    conexp.util.multimethods
     [clojure.contrib.string :only (join split-lines split)]))
 
 ;;;

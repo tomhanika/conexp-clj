@@ -19,6 +19,7 @@
     conexp.util
     conexp.util.hookable
     conexp.util.one-to-many
+    conexp.util.multimethods
     clojure.contrib.swing-utils
     conexp.gui.editors.util
     conexp.fca
