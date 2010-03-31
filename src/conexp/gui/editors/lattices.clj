@@ -7,11 +7,38 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.gui.editors.lattices
-  (:use conexp.gui.plugins.base))
+  (:use conexp.base
+	conexp.gui.plugins.base))
+
+(update-ns-meta! conexp.gui.editors.lattices
+  :doc "Provides lattice-editor, a plugin for lattices for the standard GUI of conexp-clj.")
+
+;;; The Plugin
+
+(declare load-lattice-editor unload-lattice-editor)
 
 (define-plugin lattice-editor
   "Lattice editor plugin."
-  :load-hook identity,
-  :unload-hook identity)
+  :load-hook   #(load-lattice-editor %),
+  :unload-hook #(unload-lattice-editor %))
+
+;;; The Hooks
+
+(defn- load-lattice-editor
+  "Loads the lattice-editor plugin in frame."
+  [frame])
+
+(defn- unload-lattice-editor
+  "Unloads the lattice-editor plugin from frame."
+  [frame])
+
+;;; What we want
+
+;; A Menu
+;; Load Lattice from file and edit it
+;; Load Layout from file and show it
+;; Load Context from file and show its concept lattice
+
+;;; The End
 
 nil

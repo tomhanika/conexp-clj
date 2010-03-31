@@ -15,7 +15,6 @@
 
 ;;; Plugin Managers for Frames
 
-;; a hack (do I like this?)
 (let [*plugin-managers* (atom {})]
   (defn- save-pm-for-frame
     "Saves given plugin manager pm for frame for later retrival."
