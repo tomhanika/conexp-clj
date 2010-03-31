@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.util.hookable
-  (:use conexp.util))
+  (:use conexp.util.multimethods conexp.util))
 
 ;; hookable
 

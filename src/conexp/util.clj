@@ -9,7 +9,6 @@
 (ns conexp.util
   (:use clojure.contrib.profile
     [clojure.contrib.math :only (round)]
-    [clojure.contrib.string :only (join)]
     clojure.test)
   (:import javax.swing.JOptionPane
 	   java.util.Calendar
