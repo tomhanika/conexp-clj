@@ -16,7 +16,7 @@
   (:import [java.util HashMap HashSet]))
 
 (update-ns-meta! conexp.contrib.dl.languages.description-graphs
-  :doc "Implements description graphs and operations like lcs and mcs for EL-gfp.")
+  :doc "Implements description graphs and common operations on them.")
 
 ;;;
 
@@ -379,8 +379,8 @@
   "Computes all vertices w in G such that there exists an edge from w
   to v labeled with r."
   [G v r]
-  (set-of w [w (vertices G),
-	     :when (contains? ((neighbours G) v) [r w])]))
+  (set-of w [[s w] ((neighbours G) v)
+	     :when (= s r)]))
 
 (defn- pre
   "Computes all vertices w in G such that there exists an edge from v
@@ -410,11 +410,10 @@
 					(empty? (post G-1 v r)))))]))
       (doseq [r R]
 	(.put remove [v r]
-	      (difference (set-of w [[w s _] (edges G-2),
-				     :when (= s r)])
-			  (set-of w [[w s x] (edges G-2),
-				     :when (and (= s r)
-						(contains? (.get sim v) x))])))))
+	      (set-of w [w (vertices G-2),
+			 :let [post-w (post G-2 w r)]
+			 :when (and (not (empty? post-w))
+				    (empty? (intersection post-w (.get sim v))))]))))
     (doseq [w (vertices G-2)]
       (.put pre* w
 	    (set-of [u r] [r R, u (pre G-2 w r)])))
@@ -424,29 +423,30 @@
   "Implements ELgfp-EfficientSimilaritiy (for the maximal simulation
   between two graphs) and returns the corresponding simulator sets."
   [G-1 G-2]
-  (let [[sim remove pre*] (efficient-initialize G-1 G-2),
+  (with-memoized-fns [post pre]
+    (let [[sim remove pre*] (efficient-initialize G-1 G-2),
 
-	neighbours-2 (neighbours G-2),
-	R (role-names (graph-language G-1)),
+	  neighbours-2 (neighbours G-2),
+	  R (role-names (graph-language G-1)),
 
-	#^HashSet non-empty-removes (HashSet. (for [v (vertices G-1),
-						    r R,
-						    :when (not (empty? (.get remove [v r])))]
-						[v r]))]
-    (while-let [[v r] (first non-empty-removes)]
-      (doseq [u (pre G-1 v r),
-	      w (.get remove [v r])]
-	(when (contains? (.get sim u) w)
-	  (.put sim u (disj (.get sim u) w))
-	  (doseq [[w* r*] (.get pre* w)]
-	    (when (not (exists [x (.get sim u)]
-			 (contains? (neighbours-2 w*) [r* x])))
-	      (.put remove [u r*]
-		    (conj (.get remove [u r*]) w*))
-	      (.add non-empty-removes [u r*])))))
+	  #^HashSet non-empty-removes (HashSet. (for [v (vertices G-1),
+						      r R,
+						      :when (not (empty? (.get remove [v r])))]
+						  [v r]))]
+      (while-let [[v r] (first non-empty-removes)]
+	(doseq [u (pre G-1 v r),
+		w (.get remove [v r])]
+	  (when (contains? (.get sim u) w)
+	    (.put sim u (disj (.get sim u) w))
+	    (doseq [[w* r*] (.get pre* w)]
+	      (when (not (exists [x (.get sim u)]
+			   (contains? (neighbours-2 w*) [r* x])))
+		(.put remove [u r*]
+		      (conj (.get remove [u r*]) w*))
+		(.add non-empty-removes [u r*])))))
 	(.put remove [v r] #{})
 	(.remove non-empty-removes [v r]))
-    (HashMap->hash-map sim)))
+      (HashMap->hash-map sim))))
 
 ;; simulation invocation point
 

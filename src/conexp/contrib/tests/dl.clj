@@ -13,6 +13,7 @@
 
 (tests-to-run conexp.contrib.tests.dl.framework.models
 	      conexp.contrib.tests.dl.languages.description-graphs
+	      conexp.contrib.tests.dl.languages.EL-gfp
 	      conexp.contrib.tests.dl.framework.reasoning
 	      conexp.contrib.tests.dl.languages.EL-gfp-exploration)
 
