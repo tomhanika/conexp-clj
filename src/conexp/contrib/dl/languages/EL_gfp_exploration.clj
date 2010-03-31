@@ -10,16 +10,17 @@
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
+	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.languages.EL-gfp
-	conexp.contrib.dl.framework.reasoning)
+	conexp.contrib.dl.languages.EL-gfp-rewriting)
   (:use clojure.contrib.pprint))
 
 (update-ns-meta! conexp.contrib.dl.languages.EL-gfp-exploration
   :doc "Implements exploration for description logics EL and EL-gfp.")
 
 
-;;;
+;;; technical helpers
 
 (defn- induced-context
   "Returns context induced by the set of concept descriptions and the
@@ -35,6 +36,8 @@
   "Returns true iff the given subsumption is obviously true."
   [subsumption]
   (subsumed-by? (subsumee subsumption) (subsumer subsumption)))
+
+;;; storing the attribute set
 
 (defn- extend-attributes
   "Takes a sequence of concepts and a sequence of new concepts to be
@@ -52,46 +55,7 @@
 		 (conj ext-concepts next)))
 	     (rest new-concepts)))))
 
-;;; rewriting
-
-(defn- arguments*
-  "Returns the arguments of the given DL expression as set, if it is
-  not atomic. If it is, returns the singleton set of the dl-expression
-  itself."
-  [dl-expression]
-  (if (atomic? dl-expression)
-    (set [dl-expression])
-    (set (arguments dl-expression))))
-
-(defn- implication-kernel
-  "Given a set of concepts returns a minimal subset of concepts which,
-  when closed under the given implications, yields a superset of the
-  original set given."
-  [set-of-concepts set-of-implications]
-  (let [implication-closure (clop-by-implications set-of-implications)]
-    (loop [to-consider (seq set-of-concepts),
-	   concepts set-of-concepts]
-      (if (empty? to-consider)
-	concepts
-	(let [next-concept (first to-consider)]
-	  (recur (rest to-consider)
-		 (if (contains? (implication-closure (disj concepts next-concept))
-				next-concept)
-		   (disj concepts next-concept)
-		   concepts)))))))
-
-(defn- abbreviate-subsumption
-  "Takes a subsumption whose subsumee and subsumer are in normal form
-  and returns a subsumption where from the subsumer every term already
-  present in the subsumee is removed."
-  [subsumption background-knowledge]
-  (let [language (expression-language (subsumee subsumption)),
-	premise-args (implication-kernel (arguments* (subsumee subsumption)) background-knowledge),
-	conclusion-args (arguments* (subsumer subsumption))]
-    (make-subsumption (make-dl-expression language (cons 'and premise-args))
-		      (make-dl-expression language (cons 'and (difference conclusion-args premise-args))))))
-
-;;; exploration
+;;; actual exploration algorithm
 
 (defn explore-model
   "Model exploration algorithm."
