@@ -15,7 +15,10 @@
 	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.framework.reasoning))
 
-;;;
+(update-ns-meta! conexp.contrib.dl.languages.EL-gfp
+  :doc "Defines EL-gfp with lcs, msc and subsumption.")
+
+;;; EL-gfp
 
 (define-dl EL-gfp [] [] [exists and])
 
@@ -29,14 +32,7 @@
 	interpretation (gfp-model tbox model)]
     (interpretation target)))
 
-(define-msc EL-gfp
-  [model objects]
-  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects)),
-	tbox (tidy-up-tbox tbox)
-	[tbox target] (clarify-tbox [tbox target])]
-    (if (acyclic? tbox)
-      (definition-expression (first (tbox-definitions tbox)))
-      [tbox target])))
+;;; subsumption
 
 (defn ensure-EL-gfp-concept
   "Ensures dl-expression to be a pair of a tbox and a target."
@@ -66,6 +62,51 @@
 	[G-D D-target] (EL-expression->rooted-description-graph D)]
     (simulates? G-D G-C D-target C-target)))
 
+;;; lcs and msc
+
+(defn EL-gfp-lcs
+  "Returns the least common subsumer (in EL-gfp) of A and B in tbox."
+  ([tbox A]
+     [tbox A])
+  ([tbox A B]
+     (let [G_T_1 (tbox->description-graph tbox)
+	   G-x-G (graph-product G_T_1 G_T_1),
+	   T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
+       (clarify-tbox [T_2, [A,B]])))
+  ([tbox A B & more]
+     (let [[new-tbox new-target] (EL-gfp-lcs tbox A B)]
+       (apply EL-gfp-lcs (tbox-union tbox new-tbox) new-target more))))
+
+(defn EL-gfp-object-msc
+  "Returns the model based most specific concept of x in model."
+  [model x]
+  (clarify-tbox
+   [(description-graph->tbox (model->description-graph model)), x]))
+
+(defn EL-gfp-msc
+  "Returns the model based most specific concept of args in model."
+  [model & args]
+  (if-not (empty? args)
+    (let [tbox (reduce tbox-union
+		       (map (comp first (partial EL-gfp-object-msc model))
+			    args))]
+      (apply EL-gfp-lcs tbox args))
+    (let [language (model-language model),
+	  all (make-dl-expression language
+				  (list* 'and
+					 (concat (concept-names language)
+						 (for [r (role-names language)]
+						   (list 'exists r 'All)))))]
+      [(make-tbox language #{(make-dl-definition 'All all)}), 'All])))
+
+(define-msc EL-gfp
+  [model objects]
+  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects)),
+	tbox (tidy-up-tbox tbox)
+	[tbox target] (clarify-tbox [tbox target])]
+    (if (acyclic? tbox)
+      (definition-expression (first (tbox-definitions tbox)))
+      [tbox target])))
 
 ;;;
 

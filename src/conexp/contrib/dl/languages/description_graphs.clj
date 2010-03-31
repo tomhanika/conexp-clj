@@ -13,7 +13,7 @@
 	conexp.contrib.dl.framework.boxes)
   (:use clojure.contrib.pprint
 	[clojure.contrib.graph :exclude (transitive-closure)])
-  (:import [java.util HashMap]))
+  (:import [java.util HashMap HashSet]))
 
 (update-ns-meta! conexp.contrib.dl.languages.description-graphs
   :doc "Implements description graphs and operations like lcs and mcs for EL-gfp.")
@@ -324,45 +324,6 @@
 					   vertices)]
  (make-description-graph language vertices neighbours vertex-labels)))
 
-;;; least common subsumers in EL-gfp
-
-(defn EL-gfp-lcs
-  "Returns the least common subsumer (in EL-gfp) of A and B in tbox."
-  ([tbox A]
-     [tbox A])
-  ([tbox A B]
-     (let [G_T_1 (tbox->description-graph tbox)
-	   G-x-G (graph-product G_T_1 G_T_1),
-	   T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
-       (clarify-tbox [T_2, [A,B]])))
-  ([tbox A B & more]
-     (let [[new-tbox new-target] (EL-gfp-lcs tbox A B)]
-       (apply EL-gfp-lcs (tbox-union tbox new-tbox) new-target more))))
-
-;;; most specific concepts in EL-gfp for objects
-
-(defn EL-gfp-object-msc
-  "Returns the model based most specific concept of x in model."
-  [model x]
-  (clarify-tbox
-   [(description-graph->tbox (model->description-graph model)), x]))
-
-(defn EL-gfp-msc
-  "Returns the model based most specific concept of args in model."
-  [model & args]
-  (if-not (empty? args)
-    (let [tbox (reduce tbox-union
-		       (map (comp first (partial EL-gfp-object-msc model))
-			    args))]
-      (apply EL-gfp-lcs tbox args))
-    (let [language (model-language model),
-	  all (make-dl-expression language
-				  (list* 'and
-					 (concat (concept-names language)
-						 (for [r (role-names language)]
-						   (list 'exists r 'All)))))]
-      [(make-tbox language #{(make-dl-definition 'All all)}), 'All])))
-
 ;;; simulations
 
 (defn- HashMap->hash-map
@@ -371,9 +332,19 @@
   (into {} (for [k (.keySet map)]
 	     [k (.get map k)])))
 
+(defmacro- while-let
+  "Runs body with binding in effect as long as x is non-nil.
+
+  binding => [x xs]"
+  [binding & body]
+  `(loop []
+     (when-let ~binding
+       ~@body
+       (recur))))
+
 ;; schematic
 
-(defn- schematic-simulator-sets
+(defn schematic-simulator-sets
   "Returns for all vertices v in the description graph G-1 the sets of
   vertices (sim v) in G-2 such that there exists a simulation from v to
   every vertex in (sim v)."
@@ -386,19 +357,20 @@
 		  (contains? (neighbours-2 v) [r w])),
 
 	#^HashMap sim-sets (HashMap.)]
+
     (doseq [v (vertices G-1)]
       (.put sim-sets v (set-of w [w (vertices G-2)
 				  :when (subset? (label-1 v) (label-2 w))])))
-    (loop []
-      (when-let [[u w] (first (for [u (vertices G-1),
-				    [r v] (neighbours-1 u),
-				    w (.get sim-sets u)
-				    :when (not (exists [x (.get sim-sets v)]
-					         (edge-2? w r x)))]
-				[u w]))]
-	(.put sim-sets u
-	      (disj (.get sim-sets u) w))
-	(recur)))
+
+    (while-let [[u w] (first (for [u (vertices G-1),
+				   [r v] (neighbours-1 u),
+				   w (.get sim-sets u)
+				   :when (not (exists [x (.get sim-sets v)]
+						(edge-2? w r x)))]
+			       [u w]))]
+      (.put sim-sets u
+	    (disj (.get sim-sets u) w)))
+
     (HashMap->hash-map sim-sets)))
 
 ;; efficient simulator sets (by meng)
@@ -448,38 +420,44 @@
 	    (set-of [u r] [r R, u (pre G-2 w r)])))
     [sim remove pre*]))
 
-(defn- efficient-simulator-sets
+(defn efficient-simulator-sets
   "Implements ELgfp-EfficientSimilaritiy (for the maximal simulation
   between two graphs) and returns the corresponding simulator sets."
   [G-1 G-2]
   (let [[sim remove pre*] (efficient-initialize G-1 G-2),
 
-	R (role-names (graph-language G-1))]
-    (loop []
-      (when-let [[v r] (first (for [v (vertices G-1),
-				    r R,
-				    :when (not (empty? (.get remove [v r])))]
-				[v r]))]
-	(doseq [u (pre G-1 v r),
-		w (.get remove [v r])]
-	  (when (contains? (.get sim u) w)
-	    (.put sim u (disj (.get sim u) w))
-	    (doseq [[w*, r*] (.get pre* w)]
-	      (when (empty? (intersection (post G-2 w* r*)
-					  (.get sim u)))
-		(.put remove [u r*]
-		      (conj (.get remove [u r*]) w*))))))
+	neighbours-2 (neighbours G-2),
+	R (role-names (graph-language G-1)),
+
+	#^HashSet non-empty-removes (HashSet. (for [v (vertices G-1),
+						    r R,
+						    :when (not (empty? (.get remove [v r])))]
+						[v r]))]
+    (while-let [[v r] (first non-empty-removes)]
+      (doseq [u (pre G-1 v r),
+	      w (.get remove [v r])]
+	(when (contains? (.get sim u) w)
+	  (.put sim u (disj (.get sim u) w))
+	  (doseq [[w* r*] (.get pre* w)]
+	    (when (not (exists [x (.get sim u)]
+			 (contains? (neighbours-2 w*) [r* x])))
+	      (.put remove [u r*]
+		    (conj (.get remove [u r*]) w*))
+	      (.add non-empty-removes [u r*])))))
 	(.put remove [v r] #{})
-	(recur)))
+	(.remove non-empty-removes [v r]))
     (HashMap->hash-map sim)))
 
 ;; simulation invocation point
+
+(defvar *simulator-set-algorithm* schematic-simulator-sets
+  "Algorithm to use when computing simulator sets between two description graphs.")
 
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
-  (let [sim-sets (schematic-simulator-sets G-1 G-2)]
+  (let [sim-sets (*simulator-set-algorithm* G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
 ;;;
