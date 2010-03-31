@@ -257,11 +257,11 @@
   [ctx]
   (deref (:context ctx)))
 
-(inherit-multimethod get-context conexp.fca.Context
+(inherit-multimethod get-context :conexp.fca.contexts/Context
   "Identity on fca-context.")
 
 (defmethod
-  get-context conexp.fca.Context
+  get-context :conexp.fca.contexts/Context
   [x] x)
 
 (defn make-context-compatible 
