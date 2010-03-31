@@ -72,7 +72,7 @@
      (let [G_T_1 (tbox->description-graph tbox)
 	   G-x-G (graph-product G_T_1 G_T_1),
 	   T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
-       (clarify-tbox [T_2, [A,B]])))
+       (clarify-tbox (tidy-up-tbox (clarify-tbox [T_2, [A,B]])))))
   ([tbox A B & more]
      (let [[new-tbox new-target] (EL-gfp-lcs tbox A B)]
        (apply EL-gfp-lcs (tbox-union tbox new-tbox) new-target more))))
@@ -101,8 +101,7 @@
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects)),
-	[tbox target] (clarify-tbox (tidy-up-tbox [tbox target]))]
+  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))
