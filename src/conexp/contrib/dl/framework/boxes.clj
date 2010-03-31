@@ -152,7 +152,7 @@
   "In a given tbox take for a set of syntactically equivalent defined
   concepts one representative and replace every occurence of an
   equivalent symbol by this representative."
-  [tbox]
+  [[tbox target]]
   (let [reversed-map (reduce (fn [hash-map definition]
 			       (let [name (definition-target definition)]
 				 (update-in hash-map [(expression (definition-expression definition))]
@@ -168,8 +168,8 @@
 						  (definition-target definition)
 						  (substitute (definition-expression definition) rename-map))))]
     (if (not= tbox new-tbox)
-      (tidy-up-tbox new-tbox)
-      tbox)))
+      (tidy-up-tbox [new-tbox target])
+      [tbox target])))
 
 (defn collect-targets
   "Collects all targets reachable in the usage graph of tbox, starting

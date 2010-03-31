@@ -102,8 +102,7 @@
 (define-msc EL-gfp
   [model objects]
   (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects)),
-	tbox (tidy-up-tbox tbox)
-	[tbox target] (clarify-tbox [tbox target])]
+	[tbox target] (clarify-tbox (tidy-up-tbox [tbox target]))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))
