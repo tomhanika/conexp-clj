@@ -25,7 +25,7 @@
     conexp.fca
     [clojure.contrib.string :only (join split-lines split)]))
 
-;; (ns conexp.gui.editors.contexts)
+(def- *poly-ns* 'conexp.polymorphisms)
 
 ;;
 ;;

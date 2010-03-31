@@ -9,6 +9,8 @@
 (ns conexp.util.hookable
   (:use conexp.util.multimethods conexp.util))
 
+(def- *poly-ns* 'conexp.polymorphisms)
+
 ;; hookable
 
 (deftype hookable [hooks])

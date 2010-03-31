@@ -9,6 +9,8 @@
 (ns conexp.util.one-to-many
   (:use conexp.util.multimethods))
 
+(def- *poly-ns* 'conexp.polymorphisms)
+
 ;; one-to-many abstraction
 
 (deftype one-to-many [one many])

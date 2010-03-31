@@ -25,6 +25,9 @@
     conexp.util.multimethods
     [clojure.contrib.string :only (join split-lines split)]))
 
+;; set polymorphism-namespace
+(def- *poly-ns* 'conexp.polymorphisms)
+
 ;;;
 ;;; General purpose & macros
 ;;;
