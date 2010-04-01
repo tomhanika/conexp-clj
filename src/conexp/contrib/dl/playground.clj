@@ -65,9 +65,9 @@
   [gss x]
   (find-neighbours gss #((:order-fn gss) (:node %) x) (comp deref :uppers) @(:minimal-elements gss) #{}))
 
-(defn add-to-gss
+(defn add-to-gss!
   "Adds the element elt to the general sorted set gss returning the
-  result."
+  result. Note that this function modifies gss."
   [gss elt]
   (dosync
    (let [order-fn (:order-fn gss),
@@ -106,7 +106,7 @@
 
      gss)))
 
-(defn remove-from-gss
+(defn remove-from-gss!
   "Removes the element elt from the general sorted set gss."
   [gss elt]
   (unsupported-operation "Removing elements from a general sorted set has not been thought of!"))
