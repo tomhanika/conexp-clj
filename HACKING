@@ -4,8 +4,8 @@ Hacking conexp-clj
 Programming for conexp-clj follows some simple rules which could be
 described best as some kind of "Conceptual Programming":
 
-- Functions implement concepts (of the human mind), variables denote
-  concepts.
+- Functions implement concepts (of the human mind, in your particular
+  problem domain), variables denote concepts.
 
 - Functions and variables use other functions and variables if and
   only if the concept implemented by the former is a superconcept of
@@ -23,6 +23,11 @@ Furthermore common sense applies, e.g.
 
 - Rules are for guiding you through difficult situations, not for
   driving you crazy.
+
+- You should have fun while programming, otherwise something is
+  terribly wrong.
+
+- Don't mind parentheses.
 
 Last, but not least:
 
