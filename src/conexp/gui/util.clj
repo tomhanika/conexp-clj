@@ -72,16 +72,14 @@
   [frame]
   (get-component frame #(= (class %) JMenuBar)))
 
-;; convert menus to hash-maps and vice versa
+(declare hash-map->menu)
 
-(declare hash-to-menu)
-
-(defn- hash-to-menu-item
+(defn- hash-map->menu-item
   "Converts a hash to a JMenuItem for the given frame."
   [frame hash]
   (cond
    (empty? hash) (JSeparator.),
-   (contains? hash :content) (hash-to-menu frame hash),
+   (contains? hash :content) (hash-map->menu frame hash),
    :else
    (let [menu-item (JMenuItem. (:name hash))]
      (if (contains? hash :handler)
@@ -90,46 +88,32 @@
      ;; also enable hotkeys and images
      menu-item)))
 
-(defn- hash-to-menu
+(defn- hash-map->menu
   "Converts a hash representing a menu into an actual JMenu for a given frame."
   [frame hash-menu]
-  ;; this function is not thread safe!
-  (cond
-    (instance? java.awt.Component hash-menu)
-    hash-menu,
-    :else
+  (if (instance? java.awt.Component hash-menu)
+    hash-menu
     (let [menu (JMenu. (:name hash-menu))]
       (doseq [entry (:content hash-menu)]
-	(.add menu (hash-to-menu-item frame entry)))
+	(.add menu (hash-map->menu-item frame entry)))
       menu)))
-
-(defn- add-menus-to-menubar
-  "Adds menubar consisting of menus to menu-bar."
-  ;; this function is not thread safe!
-  [frame menus]
-  (let [menu-bar (get-menubar frame)]
-    (doseq [menu menus]
-      (.add menu-bar (hash-to-menu frame menu)))
-    menu-bar))
 
 (defn add-menus
   "Adds the additional menus to the frame in front of the first Box.Filler
   found in the menu-bar of frame."
   [frame menus]
-  (do-swing
+  (do-swing-and-wait
    (let [menu-bar (get-menubar frame)
-	 menu-bar-as-seq (.getComponents menu-bar)
-	 menu-entries-before-filler (take-while #(not (instance? javax.swing.Box$Filler %))
-						menu-bar-as-seq)
-	 menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
-						menu-bar-as-seq)]
+	 [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
+						(seq (.getComponents menu-bar))),
+	 our-menus (map #(hash-map->menu frame %) menus)]
      (.removeAll menu-bar)
-     (add-menus-to-menubar frame menu-entries-before-filler)
-     (add-menus-to-menubar frame menus)
-     (add-menus-to-menubar frame menu-entries-from-filler)
-     (.validate frame))))
+     (doseq [menu (concat menus-before our-menus menus-after)]
+       (.add menu-bar menu))
+     (.validate frame)
+     our-menus)))
 
-;;
+;; shortcut variables for convenience
 
 (defvar --- {}
   "Separator for menu entries used in add-menus.")
