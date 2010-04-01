@@ -102,18 +102,30 @@
   "Adds the additional menus to the frame in front of the first Box.Filler
   found in the menu-bar of frame."
   [frame menus]
+  (let [our-menus (map #(hash-map->menu frame %) menus)]
+    (do-swing-and-wait
+     (let [menu-bar (get-menubar frame)
+	   [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
+						  (seq (.getComponents menu-bar)))]
+       (.removeAll menu-bar)
+       (doseq [menu (concat menus-before our-menus menus-after)]
+	 (.add menu-bar menu))
+       (.validate frame)))
+    our-menus))
+
+(defn remove-menus
+  "Removes given menus from menu-bar of frame."
+  [frame menus]
   (do-swing-and-wait
-   (let [menu-bar (get-menubar frame)
-	 [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
-						(seq (.getComponents menu-bar))),
-	 our-menus (map #(hash-map->menu frame %) menus)]
+   (let [menu-bar (get-menubar frame),
+	 new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
      (.removeAll menu-bar)
-     (doseq [menu (concat menus-before our-menus menus-after)]
+     (doseq [menu new-menus]
        (.add menu-bar menu))
      (.validate frame)
-     our-menus)))
+     new-menus)))
 
-;; shortcut variables for convenience
+;; menu shortcut variables for convenience
 
 (defvar --- {}
   "Separator for menu entries used in add-menus.")
