@@ -10,14 +10,14 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-	                AbstractButton]
+	                AbstractButton SwingConstants]
 	   [javax.imageio ImageIO]
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color
 	             Graphics Graphics2D BasicStroke FlowLayout]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar first-non-nil)]
-	[clojure.contrib.seq :only (indexed)]
+	[clojure.contrib.seq :only (indexed partition-by)]
 	clojure.contrib.swing-utils))
 
 
@@ -99,8 +99,9 @@
       menu)))
 
 (defn add-menus
-  "Adds the additional menus to the frame in front of the first Box.Filler
-  found in the menu-bar of frame."
+  "Adds the menus (specified as hash-maps) to the frame in front of
+  the first Box.Filler found in the menu-bar of frame. Returns the
+  menus added."
   [frame menus]
   (let [our-menus (map #(hash-map->menu frame %) menus)]
     (do-swing-and-wait
@@ -114,7 +115,7 @@
     our-menus))
 
 (defn remove-menus
-  "Removes given menus from menu-bar of frame."
+  "Removes given menus (as Java objects) from menu-bar of frame."
   [frame menus]
   (do-swing-and-wait
    (let [menu-bar (get-menubar frame),
@@ -140,7 +141,7 @@
   [frame]
   (get-component frame #(= (class %) JToolBar)))
 
-(defvar *default-icon* (get-resource "images/default.jpg")
+(defvar *default-icon-image* (get-resource "images/default.jpg")
   "Default icon image used when no other image is found.")
 (defvar *icon-size* 17
   "Default icon size.")
@@ -148,38 +149,62 @@
 (defn- make-icon
   "Converts hash representing an icon to an actual JButton."
   [frame icon-hash]
-  (let [button (JButton.)]
-    (doto button
-      (.setName (:name icon-hash))
-      (add-handler frame (:handler icon-hash))
-      (.setToolTipText (:name icon-hash)))
-    (let [icon (:icon icon-hash)
-	  image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
-				    (File. icon)
-				    *default-icon*))
-		    (.getScaledInstance *icon-size*
-					*icon-size*
-					Image/SCALE_SMOOTH))]
+  (if (empty? icon-hash)
+    (javax.swing.JToolBar$Separator.)
+    (let [button (JButton.)]
+      (doto button
+	(.setName (:name icon-hash))
+	(add-handler frame (:handler icon-hash))
+	(.setToolTipText (:name icon-hash)))
+      (let [icon (:icon icon-hash)
+	    image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
+				      (File. icon)
+				      *default-icon-image*))
+		      (.getScaledInstance *icon-size*
+					  *icon-size*
+					  Image/SCALE_SMOOTH))]
 	(.setIcon button (ImageIcon. image)))
-    button))
+      button)))
 
-(defn- add-to-toolbar
-  "Adds given icons to toolbar of given frame."
-  [frame toolbar icons]
-  (doseq [icon icons]
-    (cond
-      (empty? icon)
-      (.addSeparator toolbar)
-      :else
-      (.add toolbar (make-icon frame icon))))
-  toolbar)
+(defn- collapse-separators
+  "Given a sequence of Java objects returns a sequence of the same
+  objects where adjacent Separators are collapsed into one."
+  [objects]
+  (let [partitioned-objects (partition-by class objects)]
+    (apply concat (map #(if (instance? javax.swing.JSeparator (first %))
+			  (list (first %))
+			  %)
+		       partitioned-objects))))
 
 (defn add-icons
-  "Adds icons to toolbar of frame."
+  "Adds icons (sepcified as hash-maps) to toolbar of frame, returning
+  added icons."
   [frame icons]
-  (do-swing
-   (add-to-toolbar frame (get-toolbar frame) icons)
-   (.validate frame)))
+  (let [our-icons (map #(make-icon frame %) icons)]
+    (do-swing-and-wait
+     (let [toolbar (get-toolbar frame),
+	   new-icons (collapse-separators (concat (.getComponents toolbar)
+						  our-icons))]
+       (.removeAll toolbar)
+       (doseq [icon new-icons]
+	 (.add toolbar icon))
+       (.validate frame)))
+    our-icons))
+
+(defn remove-icons
+  "Removes icons (as Java objects) from toolbar of frame. The
+  resulting toolbar in frame will have no two equal icons side by
+  side."
+  [frame icons]
+  (do-swing-and-wait
+   (let [toolbar (get-toolbar frame),
+	 rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
+     (.removeAll toolbar)
+     (doseq [icon rem-icons]
+       (.add toolbar icon))
+     (.validate frame))))
+
+;; toolbar shortcut variables for convenience
 
 (defvar | {}
   "Separator for icons in toolbars used in add-icons.")
