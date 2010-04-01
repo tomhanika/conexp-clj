@@ -58,11 +58,6 @@
   [fn]
   (SwingUtilities/invokeAndWait fn))
 
-(defmacro with-swing-threads
-  "Executes body with invoke-later to make it thread-safe to Swing."
-  [& body]
-  `(invoke-later #(do ~@body)))
-
 (defn get-resource
   "Returns the resource res if found, nil otherwise."
   [res]
@@ -76,6 +71,8 @@
   "Returns menubar of given frame."
   [frame]
   (get-component frame #(= (class %) JMenuBar)))
+
+;; convert menus to hash-maps and vice versa
 
 (declare hash-to-menu)
 
@@ -119,18 +116,20 @@
   "Adds the additional menus to the frame in front of the first Box.Filler
   found in the menu-bar of frame."
   [frame menus]
-  (with-swing-threads
-    (let [menu-bar (get-menubar frame)
-	  menu-bar-as-seq (.getComponents menu-bar)
-	  menu-entries-before-filler (take-while #(not (instance? javax.swing.Box$Filler %))
-						 menu-bar-as-seq)
-	  menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
-						 menu-bar-as-seq)]
-      (.removeAll menu-bar)
-      (add-menus-to-menubar frame menu-entries-before-filler)
-      (add-menus-to-menubar frame menus)
-      (add-menus-to-menubar frame menu-entries-from-filler)
-      (.validate frame))))
+  (do-swing
+   (let [menu-bar (get-menubar frame)
+	 menu-bar-as-seq (.getComponents menu-bar)
+	 menu-entries-before-filler (take-while #(not (instance? javax.swing.Box$Filler %))
+						menu-bar-as-seq)
+	 menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
+						menu-bar-as-seq)]
+     (.removeAll menu-bar)
+     (add-menus-to-menubar frame menu-entries-before-filler)
+     (add-menus-to-menubar frame menus)
+     (add-menus-to-menubar frame menu-entries-from-filler)
+     (.validate frame))))
+
+;;
 
 (defvar --- {}
   "Separator for menu entries used in add-menus.")
@@ -182,9 +181,9 @@
 (defn add-icons
   "Adds icons to toolbar of frame."
   [frame icons]
-  (with-swing-threads
-    (add-to-toolbar frame (get-toolbar frame) icons)
-    (.validate frame)))
+  (do-swing
+   (add-to-toolbar frame (get-toolbar frame) icons)
+   (.validate frame)))
 
 (defvar | {}
   "Separator for icons in toolbars used in add-icons.")
@@ -257,13 +256,13 @@
 (defn add-tab
   "Addes given panel to the tabpane of frame with given title, if given."
   ([frame pane title]
-     (with-swing-threads
-       (let [#^JTabbedPane tabpane (get-tabpane frame)]
-	 (.add tabpane pane)
-	 (let [index (.indexOfComponent tabpane pane)]
-	   (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
-	   (.setSelectedIndex tabpane index)))
-       (.validate frame)))
+     (do-swing
+      (let [#^JTabbedPane tabpane (get-tabpane frame)]
+	(.add tabpane pane)
+	(let [index (.indexOfComponent tabpane pane)]
+	  (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
+	  (.setSelectedIndex tabpane index)))
+      (.validate frame)))
   ([frame pane]
      (add-tab frame pane "")))
 
