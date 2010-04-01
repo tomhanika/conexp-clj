@@ -20,14 +20,19 @@
 (declare add-to-gss remove-from-gss)
 
 (defn make-general-sorted-set
-  "Constructs a general sorted set for the given order function."
+  "Constructs a general sorted set for the given order
+  function. order-fn must represent a reflexiv and transitive
+  relation. Elements being equal in the sense of this order relation
+  are considered the same."
   [order-fn]
   (General-Sorted-Set order-fn (ref #{}) (ref #{})))
 
 (defmethod print-method ::General-Sorted-Set [gss out]
   (.write out (print-str (seq-on gss))))
 
-(defmethod seq-on ::General-Sorted-Set [gss]
+(defn- sort-gss
+  "Does topological sort on a given gss."
+  [gss]
   (let [runner (fn runner [have]
 		 (let [next-have (distinct (for [x have,
 						 y @(:uppers x),
@@ -38,12 +43,20 @@
 		   (if (empty? next-have)
 		     have
 		     (recur (concat have next-have)))))]
-    (map :node (runner (vec @(:minimal-elements gss))))))
+    (runner (vec @(:minimal-elements gss)))))
+
+
+(defmethod seq-on ::General-Sorted-Set [gss]
+  (map :node (sort-gss gss)))
 
 ;;
 
 (defn- find-neighbours
-  ;; auxilliary algorithm for finding neighbours
+  "Auxilliary algorithm for finding neighbours. test-fn is used to
+  filter nodes for being neighbors of a certain node x, neigh-fn
+  returns for a node y all corresponding neighbours and current is the
+  set of nodes to search from. previous is the set of former visited
+  neighbours which will be refined if possible."
   [gss test-fn neigh-fn current previous]
   (let [next (filter test-fn current)]
     (if (empty? next)
@@ -110,6 +123,27 @@
   "Removes the element elt from the general sorted set gss."
   [gss elt]
   (unsupported-operation "Removing elements from a general sorted set has not been thought of!"))
+
+;;;
+
+(defn contained-in-gss?
+  "Checks whether an element elt in contained in a general sorted set
+  gss, i.e. whether there exists an element in gss which is equal (in
+  the sense of the underlying order relation) to elt."
+  [gss elt]
+  (let [uppers (find-upper-neighbours gss elt),
+	order-fn (:order-fn gss)]
+    (and (= 1 (count uppers))
+	 (exists [x (map :node uppers)]
+	   (and (order-fn elt x)
+		(order-fn x elt))))))
+
+(defn hasse-graph
+  "Returns the Hasse Graph of the general sorted set gss."
+  [gss]
+  (for [x (sort-gss gss),
+	y @(:uppers x)]
+    [(:node x) (:node y)]))
 
 ;;;
 
