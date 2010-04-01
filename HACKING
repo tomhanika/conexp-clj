@@ -1,0 +1,29 @@
+Hacking conexp-clj
+==================
+
+Programming for conexp-clj follows some simple rules which could be
+described best as some kind of "Conceptual Programming":
+
+- Functions implement concepts (of the human mind), variables denote
+  concepts.
+
+- Functions and variables use other functions and variables if and
+  only if the concept implemented by the former is a superconcept of
+  the concept implemented by the latter.
+
+- Function and variable names denote the concept they implement.
+
+- A docstring of a function describes the concept it implements, not
+  the function itself.
+
+Furthermore common sense applies, e.g.
+
+- Comments are used for structring code (headlines) or describing
+  technical difficult situations, not for stating obvious things.
+
+- Rules are for guiding you through difficult situations, not for
+  driving you crazy.
+
+Last, but not least:
+
+- Files end with nil
