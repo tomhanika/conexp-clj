@@ -12,7 +12,7 @@
 			    with-swing-error-msg,
 			    with-printed-result,
 			    now)]
-	[conexp.base :only (defvar-)]
+	[conexp.base :only (defvar- defmacro-)]
 	[conexp.math.util :only (with-doubles)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.base :only (lattice, annotation)]
@@ -378,7 +378,7 @@
 
 ;;; Technical Helpers
 
-(defmacro install-changers
+(defmacro- install-changers
   "Installs given methods to scene with buttons."
   [frame scene buttons & methods]
   `(do
@@ -394,39 +394,60 @@
 
 ;;; Constructor
 
-(defn make-lattice-editor
-  "Creates a lattice editor with initial layout."
-  [frame layout]
-  (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
+(let [scenes (ref {})]
 
-	scn (draw-on-scene layout),
-	canvas (get-canvas-from-scene scn),
+  (defn make-lattice-editor
+    "Creates a lattice editor with initial layout."
+    [frame layout]
+    (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
-	#^JPanel canvas-panel (JPanel. (BorderLayout.)),
-	hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
-	vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+	  scn (draw-on-scene layout),
+	  canvas (get-canvas-from-scene scn),
 
-	#^JPanel buttons (JPanel.),
-	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
-    (.setLayout buttons box-layout)
-    (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
-    (install-changers frame scn buttons
-      toggle-zoom-move
-      change-parameters
-      improve-layout-by-force
-      snapshot-saver
-      export-as-file)
-    (doto canvas-panel
-      (.add canvas BorderLayout/CENTER)
-      (.add hscrollbar BorderLayout/SOUTH)
-      (.add vscrollbar BorderLayout/EAST))
-    (.installScrollHandler scn hscrollbar vscrollbar)
-    (doto main-panel
-      (.add canvas-panel BorderLayout/CENTER)
-      (.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
-			          JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
-	    BorderLayout/WEST))
-    main-panel))
+	  #^JPanel canvas-panel (JPanel. (BorderLayout.)),
+	  hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
+	  vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+
+	  #^JPanel buttons (JPanel.),
+	  box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
+
+      ;; save scene
+      (dosync (alter scenes assoc main-panel scn))
+
+      ;; buttons
+      (.setLayout buttons box-layout)
+      (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
+      (install-changers frame scn buttons
+        toggle-zoom-move
+	change-parameters
+	improve-layout-by-force
+	snapshot-saver
+	export-as-file)
+
+      ;; drawing area
+      (doto canvas-panel
+	(.add canvas BorderLayout/CENTER)
+	(.add hscrollbar BorderLayout/SOUTH)
+	(.add vscrollbar BorderLayout/EAST))
+      (.installScrollHandler scn hscrollbar vscrollbar)
+
+      ;; main panel
+      (doto main-panel
+	(.add canvas-panel BorderLayout/CENTER)
+	(.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
+			    JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
+	      BorderLayout/WEST))
+
+      main-panel))
+
+  (defn get-layout-from-panel
+    "If given panel contains a lattice editor, return the
+    corresponding layout and nil otherwise."
+    [frame]
+    (when-let [scn (get @scenes frame nil)]
+      (get-layout-from-scene scn)))
+
+  nil)
 
 
 ;;; Drawing Routine for the REPL

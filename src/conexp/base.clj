@@ -7,6 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.base
+  (:require clojure.set
+	    clojure.contrib.set
+	    clojure.contrib.math
+	    clojure.contrib.lazy-seqs
+	    clojure.contrib.def
+	    conexp.util)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 (immigrate 'clojure.set

@@ -7,8 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.graphics
+  (:require conexp.graphics.draw)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
+;;;
+
 (immigrate 'conexp.graphics.draw)
+
+;;;
 
 nil

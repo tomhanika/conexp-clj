@@ -21,6 +21,11 @@
   []
   (util/get-tabs (get-main-frame)))
 
+(defn current-tab
+  "Returns the currently selected tab."
+  []
+  (util/current-tab (get-main-frame)))
+
 
 ;; Stuff
 

@@ -8,7 +8,10 @@
 
 (ns conexp.io
   (:use [conexp.util :only (update-ns-meta!)])
-  (:use [clojure.contrib.ns-utils :only (immigrate)]))
+  (:use [clojure.contrib.ns-utils :only (immigrate)])
+  (:require conexp.io.contexts
+	    conexp.io.lattices
+	    conexp.io.layouts))
 
 (update-ns-meta! conexp.io
   :doc "Common namespace for conexp-clj IO functions.")

@@ -7,6 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca
+  (:require conexp.fca.contexts
+	    conexp.fca.many-valued-contexts
+	    conexp.fca.implications
+	    conexp.fca.association-rules
+	    conexp.fca.exploration
+	    conexp.fca.lattices)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
