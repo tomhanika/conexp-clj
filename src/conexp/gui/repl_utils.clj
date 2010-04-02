@@ -1,13 +1,20 @@
 (ns conexp.gui.repl-utils
   (:require [conexp.gui.util :as util])
-  (:use conexp.main))
+  (:use conexp.base
+	conexp.layout
+	conexp.graphics.draw))
 
 ;;;
+
+(defvar *main-frame* nil
+  "Main frame we are operatin in.")
 
 (defn- get-main-frame
   "Returns current main-frame or nil."
   []
-  (eval 'conexp.gui.repl-utils/*main-frame*))
+  (when (nil? *main-frame*)
+    (illegal-state "Function should be called in the GUI REPL only."))
+  *main-frame*)
 
 ;;; Tabs
 
@@ -37,11 +44,6 @@
   (add-tab (make-lattice-editor (get-main-frame)
 				(*standard-layout-function* lattice))
 	   "Lattice"))
-
-;;;
-
-(defn test-tab []
-  (start-lattice-editor (conexp.main/concept-lattice (conexp.main/rand-context #{1 2 3 4 5} 0.4))))
 
 ;;;
 

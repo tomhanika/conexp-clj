@@ -17,7 +17,8 @@
 	conexp.gui.plugins
 	[conexp.gui.plugins.base :only (load-plugin)]
 	[conexp.gui.editors.contexts :only (context-editor)]
-	[conexp.gui.editors.lattices :only (lattice-editor)]))
+	[conexp.gui.editors.lattices :only (lattice-editor)])
+  (:use clojure.contrib.swing-utils))
 
 
 ;;; Menus
@@ -55,8 +56,8 @@
       (add-plugin-manager))
 
     ;; tabbed-pane setup
-    (let [tabbed-pane (JTabbedPane.)
-	  clj-repl    (make-repl main-frame)
+    (let [tabbed-pane (JTabbedPane.),
+	  clj-repl    (make-repl main-frame),
 	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
       (doto split-pane
 	(.setTopComponent tabbed-pane)

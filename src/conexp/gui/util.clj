@@ -50,16 +50,6 @@
     (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
     frame))
 
-(defn invoke-later
-  "Calls fn with SwingUtilities/invokeLater."
-  [fn]
-  (SwingUtilities/invokeLater fn))
-
-(defn invoke-and-wait
-  "Calls fn with SwingUtilities/invokeAndWait."
-  [fn]
-  (SwingUtilities/invokeAndWait fn))
-
 (defn get-resource
   "Returns the resource res if found, nil otherwise."
   [res]

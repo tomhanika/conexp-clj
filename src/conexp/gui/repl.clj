@@ -12,10 +12,12 @@
 	            PrintWriter CharArrayWriter]
 	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
 	   [java.awt Font Color])
-  (:require clojure.main)
   (:use [conexp.base :only (defvar-)]
-	conexp.gui.util
-	[clojure.contrib.pprint :only (write)]))
+	[conexp.gui.util :as util])
+  (:require [conexp.gui.repl-utils :as repl-utils])
+  (:use	[clojure.contrib.pprint :only (write)]
+	clojure.contrib.swing-utils)
+  (:require clojure.main))
 
 ;;; REPL Process
 
@@ -54,17 +56,17 @@
         piped-in (clojure.lang.LineNumberingPushbackReader. (PipedReader. cmd-wtr))
         piped-out (PrintWriter. (PipedWriter. result-rdr))
         repl-thread-fn #(clojure.main/with-bindings
-			  (binding [*print-stack-trace-on-error* *print-stack-trace-on-error*
-				    *in* piped-in
-				    *out* piped-out
-				    *err* (PrintWriter. *out*)]
+			  (binding [*print-stack-trace-on-error* *print-stack-trace-on-error*,
+				    *in* piped-in,
+				    *out* piped-out,
+				    *err* (PrintWriter. *out*),
+				    repl-utils/*main-frame* frame]
 			    (try
 			     (clojure.main/repl
                               :init (fn [] 
 				      (use 'conexp.main)
 				      (in-ns 'user)
-				      (require '[conexp.gui.repl-utils :as gui])
-				      (intern (find-ns 'conexp.gui.repl-utils) '*main-frame* frame))
+				      (require '[conexp.gui.repl-utils :as gui]))
                               :caught (fn [e]
 					(if *print-stack-trace-on-error*
                                           (.printStackTrace e *out*)
@@ -130,7 +132,9 @@
 		:else paran-count)))))
 
 (defn- make-clojure-repl
-  "Returns for the given frame a PlainDocument containing a clojure repl."
+  "Returns for the given frame a PlainDocument containing a clojure
+  repl together with the correspongind repl- and output-thread. The
+  output-thread has to be started manually afterwards."
   [frame]
   (let [last-pos (ref 0),
 	repl-thread (create-clojure-repl-process frame),
@@ -155,18 +159,18 @@
 				       (.getLength repl-container)
 				       result
 				       nil)
-			(dosync (ref-set last-pos
-					 (.getLength repl-container))))
+			(dosync
+			 (ref-set last-pos (.getLength repl-container))))
 	output-thread (Thread. (fn []
 				 (while (repl-alive? repl-thread)
 				   (let [result (repl-out repl-thread)]
-				     (invoke-later #(insert-result result))))))]
-    (.start output-thread)
-    [repl-thread repl-container]))
+				     (do-swing
+				      (insert-result result))))))]
+    [repl-container repl-thread output-thread]))
 
 (defn- into-text-area
   "Puts repl-container (a PlainDocument) into a JTextArea adding some hotkeys."
-  [[repl-thread repl-container]]
+  [repl-container repl-thread]
   (let [#^JTextArea repl-window (JTextArea. repl-container)]
     (.. repl-window getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
     (.. repl-window getActionMap (put "interrupt" (proxy [AbstractAction] []
@@ -177,14 +181,19 @@
 ;;;
 
 (defn make-repl
-  "Creates a default Clojure REPL for frame."
+  "Creates a default Clojure REPL for frame, returning a pair of an
+  embedded REPL (in a JScrollPane) and the corresponding output
+  thread."
   [frame]
-  (let [rpl (into-text-area (make-clojure-repl frame))]
+  (let [[repl-container repl-thread output-thread]
+	  (make-clojure-repl frame),
+	rpl (into-text-area repl-container repl-thread)]
     (doto rpl
       (.setFont (Font. "Monospaced" Font/PLAIN 16))
       (.setBackground Color/BLACK)
       (.setForeground Color/WHITE)
       (.setCaretColor Color/RED))
+    (.start output-thread)
     (JScrollPane. rpl)))
 
 ;;;
