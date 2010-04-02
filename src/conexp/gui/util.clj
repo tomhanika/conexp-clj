@@ -10,7 +10,8 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-	                AbstractButton SwingConstants]
+	                AbstractButton SwingConstants JFileChooser]
+	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [javax.imageio ImageIO]
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color
 	             Graphics Graphics2D BasicStroke FlowLayout]
@@ -295,6 +296,21 @@
 
 ;; remove-tabs
 ;; find-tabs-by
+
+;;; file chooser
+
+(defn choose-file
+  "Opens a file chooser for frame with optional extension filters and
+  returns the file selected. filters are given as a sequence of pairs
+  [name endings], where name names the type of files and endings is a
+  sequence of file sufixes."
+  [frame & filters]
+  (let [#^JFileChooser fc (JFileChooser.)]
+    (doseq [[name endings] filters]
+      (let [filter (FileNameExtensionFilter. name (into-array endings))]
+	(.addChooseableFileFilter fc filter)))
+    (when (= (.showOpenDialog fc frame) JFileChooser/APPROVE_OPTION)
+      (.getSelectedFile fc))))
 
 ;;;
 

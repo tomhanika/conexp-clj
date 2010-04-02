@@ -14,7 +14,7 @@ described best as some kind of "Conceptual Programming":
 - Function and variable names denote the concept they implement.
 
 - A docstring of a function describes the concept it implements, not
-  the function itself.
+  the function itself, likewise for variables.
 
 Furthermore common sense applies, e.g.
 

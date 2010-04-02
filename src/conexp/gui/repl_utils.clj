@@ -27,7 +27,8 @@
 (defn start-lattice-editor
   "Starts lattice editor with given lattice."
   [lattice]
-  (add-tab (make-lattice-editor (get-main-frame) lattice *standard-layout-function*)
+  (add-tab (make-lattice-editor (get-main-frame)
+				(*standard-layout-function* lattice))
 	   "Lattice"))
 
 ;;;
