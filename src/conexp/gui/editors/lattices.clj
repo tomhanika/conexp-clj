@@ -8,6 +8,7 @@
 
 (ns conexp.gui.editors.lattices
   (:use conexp.base
+	conexp.gui.util
 	conexp.gui.plugins.base))
 
 (update-ns-meta! conexp.gui.editors.lattices
@@ -24,20 +25,36 @@
 
 ;;; The Hooks
 
-(defn- load-lattice-editor
-  "Loads the lattice-editor plugin in frame."
-  [frame])
+(defvar- *lattice-menu*
+  {:name "Lattice",
+   :content [{:name "Load Lattice"}
+	     {:name "Load Layout"}
+	     {:name "Load Context"}
+	     {}
+	     {:name "Save Lattice"}
+	     {:name "Save Layout"}
+	     {}
+	     {:name "Edit Standard Context"}]}
+  "Menu for lattice editor.")
 
-(defn- unload-lattice-editor
-  "Unloads the lattice-editor plugin from frame."
-  [frame])
+(let [menu-hash (ref {})]
 
-;;; What we want
+  (defn- load-lattice-editor
+    "Loads the lattice-editor plugin in frame."
+    [frame]
+    (dosync
+     (alter menu-hash
+	    assoc frame (add-menus frame [*lattice-menu*]))))
 
-;; A Menu with
-;; - loading a Lattice from file and editing it
-;; - loading a Layout from file and showing it
-;; - loading a Context from file and showing its concept lattice
+  (defn- unload-lattice-editor
+    "Unloads the lattice-editor plugin from frame."
+    [frame]
+    (dosync
+     (let [menu (get @menu-hash frame)]
+       (remove-menus frame [menu])
+       (alter menu-hash dissoc frame))))
+
+  nil)
 
 ;;; The End
 
