@@ -214,13 +214,7 @@
 				  (do-swing
 				   (with-swing-error-msg frame "An Error occured."
 				     (let [[r a g i] (get-force-parameters)]
-				       (improve-with-force scn i r a g)))))))
-  (let [#^JButton shaker (make-button buttons "Shake")]
-    (add-action-listener shaker (fn [evt]
-				  (do-swing
-				   (do-nodes [node scn]
-				     (move-node-by node 0 0)))))))
-
+				       (improve-with-force scn i r a g))))))))
 
 ;; zoom-move
 
@@ -401,11 +395,11 @@
 ;;; Constructor
 
 (defn make-lattice-editor
-  "Creates a lattice editor for lattice with initial layout."
-  [frame lattice layout-function]
+  "Creates a lattice editor with initial layout."
+  [frame layout]
   (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
-	scn (draw-on-scene (layout-function lattice)),
+	scn (draw-on-scene layout),
 	canvas (get-canvas-from-scene scn),
 
 	#^JPanel canvas-panel (JPanel. (BorderLayout.)),
@@ -445,7 +439,7 @@
   ([lattice layout-function]
      (let [#^JFrame frame (JFrame. "conexp-clj Lattice")]
        (doto frame
-	 (.add (make-lattice-editor frame lattice layout-function))
+	 (.add (make-lattice-editor frame (layout-function lattice)))
 	 (.setSize (Dimension. 600 600))
 	 (.setVisible true)))))
 
