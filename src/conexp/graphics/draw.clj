@@ -44,9 +44,8 @@
 						      set-node-radius!)]
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
-	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box JScrollBar JComboBox JScrollPane
-	                JFileChooser]
+	                JSeparator SwingConstants BoxLayout Box
+	                JScrollBar JComboBox JScrollPane JFileChooser]
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]
@@ -273,14 +272,8 @@
 			   (let [retVal (.showSaveDialog fc frame)]
 			     (when (= retVal JFileChooser/APPROVE_OPTION)
 			       (let [#^File file (.getSelectedFile fc)]
-				 (try
-				  (save-image scn file (get-file-extension file))
-				  (catch Exception e
-				    (JOptionPane/showMessageDialog
-				     frame
-				     (get-root-cause e)
-				     "Error while saving"
-				     JOptionPane/ERROR_MESSAGE)))))))))
+				 (with-swing-error-msg frame "Error while saving"
+				   (save-image scn file (get-file-extension file)))))))))
   nil)
 
 ;; save changes
