@@ -293,6 +293,9 @@
   (let [#^JTabbedPane tabpane (get-tabpane frame)]
     (into {} (indexed (seq (.getComponents tabpane))))))
 
+;; remove-tabs
+;; find-tabs-by
+
 ;;;
 
 nil

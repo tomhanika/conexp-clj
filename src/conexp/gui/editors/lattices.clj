@@ -34,10 +34,10 @@
 
 ;;; What we want
 
-;; A Menu
-;; Load Lattice from file and edit it
-;; Load Layout from file and show it
-;; Load Context from file and show its concept lattice
+;; A Menu with
+;; - loading a Lattice from file and editing it
+;; - loading a Layout from file and showing it
+;; - loading a Context from file and showing its concept lattice
 
 ;;; The End
 

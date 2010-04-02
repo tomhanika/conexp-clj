@@ -39,18 +39,6 @@
   "Standard menus for conexp-clj GUI.")
 
 
-;;; Toolbar
-
-(defvar- *quit-icon* {:name "Quit",
-		      :icon "???",
-		      :handler (fn [#^JFrame frame _]
-				 (.dispose frame))}
-  "Quit icon.")
-
-(defvar- *standard-icons* [*quit-icon* |]
-  "Standard icons for conexp-clj GUI.")
-
-
 ;;; Conexp Main Frame
 
 (defn conexp-main-frame 
@@ -65,12 +53,6 @@
       (.setContentPane (JPanel. (BorderLayout.)))
       (add-menus *standard-menus*)
       (add-plugin-manager))
-
-    ;; toolbar setup
-    (let [toolbar (JToolBar.)]
-      (.setFloatable toolbar false)
-      (.. main-frame getContentPane (add toolbar BorderLayout/PAGE_START))
-      (add-icons main-frame *standard-icons*))
 
     ;; tabbed-pane setup
     (let [tabbed-pane (JTabbedPane.)
