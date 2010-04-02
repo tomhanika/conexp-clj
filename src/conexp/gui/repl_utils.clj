@@ -9,7 +9,7 @@
   []
   (eval 'conexp.gui.repl-utils/*main-frame*))
 
-;; Tabs
+;;; Tabs
 
 (defn add-tab
   "Adds given panel to tabpane of current frame."
@@ -26,8 +26,10 @@
   []
   (util/current-tab (get-main-frame)))
 
+;; remove-tab
 
-;; Stuff
+
+;;; Stuff
 
 (defn start-lattice-editor
   "Starts lattice editor with given lattice."

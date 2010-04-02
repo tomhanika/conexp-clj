@@ -11,11 +11,12 @@
 	conexp.fca.contexts
 	conexp.fca.lattices
 	conexp.io
-	conexp.layout
+	[conexp.layout.base :only (lattice)]
 	conexp.graphics.draw
 	conexp.gui.util
 	conexp.gui.plugins.base)
-  (:use clojure.contrib.swing-utils)
+  (:use clojure.contrib.swing-utils
+	clojure.contrib.io)
   (:import [java.io File]))
 
 (update-ns-meta! conexp.gui.editors.lattices
@@ -32,8 +33,6 @@
 
 ;;; The Actions
 
-;; loading
-
 (defn- load-lattice-and-go
   "Loads lattice with given loader and adds a new tab with with a
   lattice-editor from the result of tranformer."
@@ -46,26 +45,16 @@
 				     (transformer thing))
 		"Lattice")))))
 
-(defn- load-lattice-and-draw
-  "Asks the user for a file to load a lattice from and displays it in
-  the lattice editor."
-  [frame]
-  (load-lattice-and-go frame read-lattice *standard-layout-function*))
-
-(defn- load-layout-and-draw
-  "Asks the user for a file to load a layout from and displays it."
-  [frame]
-  (load-lattice-and-go frame read-layout identity))
-
-(defn- load-context-and-draw
-  "Asks the user for a file to load a context from and displays the
-  corresponding concept lattice."
-  [frame]
-  (load-lattice-and-go frame read-context (comp *standard-layout-function* concept-lattice)))
-
-;; saving
-
-;; editing standard context
+(defn- save-layout
+  "Tries to store the result of applying transformer to the currently
+  selected layout into the file the users selects."
+  [frame transformer write format]
+  (let [layout (get-layout-from-panel (current-tab frame))]
+    (if (nil? layout)
+      (illegal-argument "Current tab does not contain a lattice editor.")
+      (write format
+	     (transformer layout)
+	     (.getPath (choose-save-file frame))))))
 
 (defn- edit-standard-context
   "Opens a context-editor with the standard context of the lattice
@@ -78,16 +67,19 @@
 (defvar- *lattice-menu*
   {:name "Lattice",
    :content [{:name "Load Lattice",
-	      :handler load-lattice-and-draw}
+	      :handler #(load-lattice-and-go % read-lattice *standard-layout-function*)}
 	     {:name "Load Lattice from Context"
-	      :handler load-context-and-draw}
+	      :handler #(load-lattice-and-go % read-context
+					     (comp *standard-layout-function* concept-lattice))}
 	     {:name "Load Layout"
-	      :handler load-layout-and-draw}
+	      :handler #(load-lattice-and-go % read-layout identity)}
 	     {}
 	     {:name "Save Lattice",
-	      :content [{:name "Format conexp-clj simple."}]}
+	      :content [{:name "Format conexp-clj simple",
+			 :handler #(save-layout % lattice write-lattice :simple)}]}
 	     {:name "Save Layout",
-	      :content [{:name "Format conexp-clj simple."}]}
+	      :content [{:name "Format conexp-clj simple",
+			 :handler #(save-layout % identity write-layout :simple)}]}
 	     {}
 	     {:name "Edit Standard Context",
 	      :handler edit-standard-context}]}

@@ -443,8 +443,8 @@
   (defn get-layout-from-panel
     "If given panel contains a lattice editor, return the
     corresponding layout and nil otherwise."
-    [frame]
-    (when-let [scn (get @scenes frame nil)]
+    [panel]
+    (when-let [scn (get @scenes panel nil)]
       (get-layout-from-scene scn)))
 
   nil)
