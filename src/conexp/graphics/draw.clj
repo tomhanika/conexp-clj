@@ -429,7 +429,8 @@
 	(.add canvas-panel BorderLayout/CENTER)
 	(.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
 			    JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
-	      BorderLayout/WEST))
+	      BorderLayout/WEST)
+	(.setMinimumSize (Dimension. 0 0)))
 
       main-panel))
 
