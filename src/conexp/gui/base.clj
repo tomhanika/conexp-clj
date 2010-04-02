@@ -25,7 +25,7 @@
 (defvar- *main-menu* {:name "Main",
 		      :content [---
 				{:name "Quit",
-				 :handler (fn [#^JFrame frame menu-item]
+				 :handler (fn [#^JFrame frame]
 					    (.dispose frame))}]}
   "Main menu for conexp-clj standard GUI.")
 

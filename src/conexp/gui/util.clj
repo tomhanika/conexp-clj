@@ -25,14 +25,14 @@
 ;;; Helper functions
 
 (defn- add-handler
-  "Adds an ActionListener to thing that calls function with frame and
-  thing when activated (i.e. when actionPerformed is called)."
+  "Adds an ActionListener to thing that calls function with frame when
+  activated (i.e. when actionPerformed is called)."
   [thing frame function]
   (.addActionListener thing
     (proxy [ActionListener] []
       (actionPerformed [evt]
 	(with-swing-error-msg frame "Error"
-	  (function frame thing))))))
+	  (function frame))))))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
@@ -340,11 +340,15 @@
   and endings is a sequence of file sufixes."
   [frame & filters]
   (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
-    (when (= (.showSaveDialog fc frame) JFileChooser/APPROVE_OPTION)
-      ;; ask again if answer is no
-      ;; return file if answer is yes
-      ;; return nil if answer is cancel
-      (.getSelectedFile fc))))
+    (loop []
+      (when (= (.showSaveDialog fc frame) JFileChooser/APPROVE_OPTION)
+	(let [#^File file (.getSelectedFile fc)]
+	  (if (not (.exists file))
+	    file
+	    (condp = (confirm frame "File exists, overwrite?")
+	      JOptionPane/YES_OPTION file,
+	      JOptionPane/NO_OPTION (recur),
+	      JOptionPane/CANCEL_OPTION nil)))))))
 
 ;;;
 

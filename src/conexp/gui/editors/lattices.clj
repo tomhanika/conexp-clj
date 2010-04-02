@@ -32,6 +32,8 @@
 
 ;;; The Actions
 
+;; loading
+
 (defn- load-lattice-and-go
   "Loads lattice with given loader and adds a new tab with with a
   lattice-editor from the result of tranformer."
@@ -47,19 +49,29 @@
 (defn- load-lattice-and-draw
   "Asks the user for a file to load a lattice from and displays it in
   the lattice editor."
-  [frame menu-item]
+  [frame]
   (load-lattice-and-go frame read-lattice *standard-layout-function*))
 
 (defn- load-layout-and-draw
   "Asks the user for a file to load a layout from and displays it."
-  [frame menu-item]
+  [frame]
   (load-lattice-and-go frame read-layout identity))
 
 (defn- load-context-and-draw
   "Asks the user for a file to load a context from and displays the
   corresponding concept lattice."
-  [frame menu-item]
+  [frame]
   (load-lattice-and-go frame read-context (comp *standard-layout-function* concept-lattice)))
+
+;; saving
+
+;; editing standard context
+
+(defn- edit-standard-context
+  "Opens a context-editor with the standard context of the lattice
+  displayed in the current tab of frame."
+  [frame]
+  (unsupported-operation "Not yet implemented."))
 
 ;;; The Hooks
 
@@ -67,15 +79,18 @@
   {:name "Lattice",
    :content [{:name "Load Lattice",
 	      :handler load-lattice-and-draw}
+	     {:name "Load Lattice from Context"
+	      :handler load-context-and-draw}
 	     {:name "Load Layout"
 	      :handler load-layout-and-draw}
-	     {:name "Load Context"
-	      :handler load-context-and-draw}
 	     {}
-	     {:name "Save Lattice"}
-	     {:name "Save Layout"}
+	     {:name "Save Lattice",
+	      :content [{:name "Format conexp-clj simple."}]}
+	     {:name "Save Layout",
+	      :content [{:name "Format conexp-clj simple."}]}
 	     {}
-	     {:name "Edit Standard Context"}]}
+	     {:name "Edit Standard Context",
+	      :handler edit-standard-context}]}
   "Menu for lattice editor.")
 
 (let [menu-hash (ref {})]
