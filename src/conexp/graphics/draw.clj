@@ -394,7 +394,7 @@
 
 ;;; Constructor
 
-(let [scenes (ref {})]
+(let [scenes (ref {})]			;memory leaks possible?
 
   (defn make-lattice-editor
     "Creates a lattice editor with initial layout."
