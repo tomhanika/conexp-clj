@@ -11,6 +11,7 @@
 	conexp.fca.contexts
 	conexp.fca.lattices
 	conexp.io
+	conexp.layout
 	[conexp.layout.base :only (lattice)]
 	conexp.graphics.draw
 	conexp.gui.util
