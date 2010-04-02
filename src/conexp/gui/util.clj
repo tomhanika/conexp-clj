@@ -17,8 +17,8 @@
 	             Graphics Graphics2D BasicStroke FlowLayout]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
-  (:use [conexp.base :only (defvar first-non-nil)]
-	[clojure.contrib.seq :only (indexed partition-by)]
+  (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg)])
+  (:use [clojure.contrib.seq :only (indexed partition-by)]
 	clojure.contrib.swing-utils))
 
 
@@ -31,7 +31,8 @@
   (.addActionListener thing
     (proxy [ActionListener] []
       (actionPerformed [evt]
-	(function frame thing)))))
+	(with-swing-error-msg frame "Error"
+	  (function frame thing))))))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
