@@ -63,8 +63,7 @@
 	(.setTopComponent tabbed-pane)
 	(.setBottomComponent clj-repl)
 	(.setOneTouchExpandable true)
-	(.setResizeWeight 0.8)
-	(.setDividerLocation 1000))
+	(.setResizeWeight 1.0))
       (doto (.getContentPane main-frame)
 	(.add split-pane BorderLayout/CENTER)))
 
