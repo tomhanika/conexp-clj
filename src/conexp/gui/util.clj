@@ -10,7 +10,7 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-	                AbstractButton SwingConstants JFileChooser]
+	                AbstractButton SwingConstants JFileChooser JOptionPane]
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [javax.imageio ImageIO]
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color
@@ -65,6 +65,11 @@
   [res]
   (let [cl (.getContextClassLoader (Thread/currentThread))]
     (.getResource cl res)))
+
+(defn confirm
+  "Opens a message dialog asking for confirmation."
+  [frame message]
+  (JOptionPane/showConfirmDialog frame message))
 
 
 ;;; Menus
@@ -336,6 +341,9 @@
   [frame & filters]
   (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
     (when (= (.showSaveDialog fc frame) JFileChooser/APPROVE_OPTION)
+      ;; ask again if answer is no
+      ;; return file if answer is yes
+      ;; return nil if answer is cancel
       (.getSelectedFile fc))))
 
 ;;;
