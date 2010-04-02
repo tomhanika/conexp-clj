@@ -37,7 +37,7 @@
   lattice-editor from the result of tranformer."
   [frame loader transformer]
   (do-swing-and-wait
-   (when-let [#^File file (choose-file frame)]
+   (when-let [#^File file (choose-open-file frame)]
      (let [thing (loader (.getPath file))]
        (add-tab frame
 		(make-lattice-editor frame
