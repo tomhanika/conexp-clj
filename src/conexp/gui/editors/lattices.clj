@@ -38,13 +38,12 @@
   "Loads lattice with given loader and adds a new tab with with a
   lattice-editor from the result of tranformer."
   [frame loader transformer]
-  (do-swing-and-wait
-   (when-let [#^File file (choose-open-file frame)]
-     (let [thing (loader (.getPath file))]
-       (add-tab frame
-		(make-lattice-editor frame
-				     (transformer thing))
-		"Lattice")))))
+  (when-let [#^File file (choose-open-file frame)]
+    (let [thing (loader (.getPath file))]
+      (add-tab frame
+	       (make-lattice-editor frame
+				    (transformer thing))
+	       "Lattice"))))
 
 (defn- save-layout
   "Tries to store the result of applying transformer to the currently

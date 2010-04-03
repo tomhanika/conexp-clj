@@ -97,11 +97,11 @@
 
 (defn add-menus
   "Adds the menus (specified as hash-maps) to the frame in front of
-  the first Box.Filler found in the menu-bar of frame. Returns the
+  the first Box$Filler found in the menu-bar of frame. Returns the
   menus added."
   [frame menus]
   (let [our-menus (map #(hash-map->menu frame %) menus)]
-    (do-swing-and-wait
+    (do-swing
      (let [menu-bar (get-menubar frame)
 	   [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
 						  (seq (.getComponents menu-bar)))]
@@ -114,7 +114,7 @@
 (defn remove-menus
   "Removes given menus (as Java objects) from menu-bar of frame."
   [frame menus]
-  (do-swing-and-wait
+  (do-swing
    (let [menu-bar (get-menubar frame),
 	 new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
      (.removeAll menu-bar)
@@ -178,7 +178,7 @@
   added icons."
   [frame icons]
   (let [our-icons (map #(make-icon frame %) icons)]
-    (do-swing-and-wait
+    (do-swing
      (let [toolbar (get-toolbar frame),
 	   new-icons (collapse-separators (concat (.getComponents toolbar)
 						  our-icons))]
@@ -193,7 +193,7 @@
   resulting toolbar in frame will have no two equal icons side by
   side."
   [frame icons]
-  (do-swing-and-wait
+  (do-swing
    (let [toolbar (get-toolbar frame),
 	 rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
      (.removeAll toolbar)
