@@ -39,8 +39,15 @@
   (with-in-reader file
     (let [_        (get-line),
 	  hash-map (binding [*in* (PushbackReader. *in*)]
-		     (read))]
-      (apply make-layout (:layout hash-map)))))
+		     (read)),
+	  layout   (:layout hash-map)]
+      (when-not layout
+	(illegal-argument "File " file " does not contain a layout."))
+      (apply make-layout layout))))
+
+;;; ConExp Layout format
+
+'TODO
 
 ;;;
 

@@ -39,8 +39,15 @@
   (with-in-reader file
     (let [_        (get-line),
 	  hash-map (binding [*in* (PushbackReader. *in*)]
-		     (read))]
-      (apply make-lattice (:lattice hash-map)))))
+		     (read)),
+	  lattice  (:lattice hash-map)]
+      (when-not lattice
+	(illegal-argument "File " file " does not contain a lattice."))
+      (apply make-lattice lattice))))
+
+;;; ConExp lattice format
+
+'TODO
 
 ;;;
 

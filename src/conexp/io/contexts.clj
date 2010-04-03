@@ -41,8 +41,11 @@
   (with-in-reader file
     (let [_        (get-line)
 	  hash-map (binding [*in* (PushbackReader. *in*)]
-		     (read))]
-      (apply make-context (:context hash-map)))))
+		     (read)),
+	  context  (:context hash-map)]
+      (when-not context
+	(illegal-argument "File " file " does not contain a context."))
+      (apply make-context context))))
 
 
 ;; Burmeister Format
