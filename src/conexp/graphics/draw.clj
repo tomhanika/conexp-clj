@@ -12,7 +12,7 @@
 			    with-swing-error-msg,
 			    with-printed-result,
 			    now)]
-	[conexp.base :only (defvar-)]
+	[conexp.base :only (defvar- defmacro-)]
 	[conexp.math.util :only (with-doubles)]
 	[conexp.layout :only (*standard-layout-function*)]
 	[conexp.layout.base :only (lattice, annotation)]
@@ -44,9 +44,8 @@
 						      set-node-radius!)]
 	clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
-	                JOptionPane JSeparator SwingConstants
-	                BoxLayout Box JScrollBar JComboBox JScrollPane
-	                JFileChooser]
+	                JSeparator SwingConstants BoxLayout Box
+	                JScrollBar JComboBox JScrollPane JFileChooser]
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
 	   [java.awt.event ActionListener]
@@ -214,13 +213,7 @@
 				  (do-swing
 				   (with-swing-error-msg frame "An Error occured."
 				     (let [[r a g i] (get-force-parameters)]
-				       (improve-with-force scn i r a g)))))))
-  (let [#^JButton shaker (make-button buttons "Shake")]
-    (add-action-listener shaker (fn [evt]
-				  (do-swing
-				   (do-nodes [node scn]
-				     (move-node-by node 0 0)))))))
-
+				       (improve-with-force scn i r a g))))))))
 
 ;; zoom-move
 
@@ -279,14 +272,8 @@
 			   (let [retVal (.showSaveDialog fc frame)]
 			     (when (= retVal JFileChooser/APPROVE_OPTION)
 			       (let [#^File file (.getSelectedFile fc)]
-				 (try
-				  (save-image scn file (get-file-extension file))
-				  (catch Exception e
-				    (JOptionPane/showMessageDialog
-				     frame
-				     (get-root-cause e)
-				     "Error while saving"
-				     JOptionPane/ERROR_MESSAGE)))))))))
+				 (with-swing-error-msg frame "Error while saving"
+				   (save-image scn file (get-file-extension file)))))))))
   nil)
 
 ;; save changes
@@ -384,7 +371,7 @@
 
 ;;; Technical Helpers
 
-(defmacro install-changers
+(defmacro- install-changers
   "Installs given methods to scene with buttons."
   [frame scene buttons & methods]
   `(do
@@ -400,39 +387,61 @@
 
 ;;; Constructor
 
-(defn make-lattice-editor
-  "Creates a lattice editor for lattice with initial layout."
-  [frame lattice layout-function]
-  (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
+(let [scenes (ref {})]			;memory leaks possible?
 
-	scn (draw-on-scene (layout-function lattice)),
-	canvas (get-canvas-from-scene scn),
+  (defn make-lattice-editor
+    "Creates a lattice editor with initial layout."
+    [frame layout]
+    (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
 
-	#^JPanel canvas-panel (JPanel. (BorderLayout.)),
-	hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
-	vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+	  scn (draw-on-scene layout),
+	  canvas (get-canvas-from-scene scn),
 
-	#^JPanel buttons (JPanel.),
-	box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
-    (.setLayout buttons box-layout)
-    (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
-    (install-changers frame scn buttons
-      toggle-zoom-move
-      change-parameters
-      improve-layout-by-force
-      snapshot-saver
-      export-as-file)
-    (doto canvas-panel
-      (.add canvas BorderLayout/CENTER)
-      (.add hscrollbar BorderLayout/SOUTH)
-      (.add vscrollbar BorderLayout/EAST))
-    (.installScrollHandler scn hscrollbar vscrollbar)
-    (doto main-panel
-      (.add canvas-panel BorderLayout/CENTER)
-      (.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
-			          JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
-	    BorderLayout/WEST))
-    main-panel))
+	  #^JPanel canvas-panel (JPanel. (BorderLayout.)),
+	  hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
+	  vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+
+	  #^JPanel buttons (JPanel.),
+	  box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
+
+      ;; save scene
+      (dosync (alter scenes assoc main-panel scn))
+
+      ;; buttons
+      (.setLayout buttons box-layout)
+      (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
+      (install-changers frame scn buttons
+        toggle-zoom-move
+	change-parameters
+	improve-layout-by-force
+	snapshot-saver
+	export-as-file)
+
+      ;; drawing area
+      (doto canvas-panel
+	(.add canvas BorderLayout/CENTER)
+	(.add hscrollbar BorderLayout/SOUTH)
+	(.add vscrollbar BorderLayout/EAST))
+      (.installScrollHandler scn hscrollbar vscrollbar)
+
+      ;; main panel
+      (doto main-panel
+	(.add canvas-panel BorderLayout/CENTER)
+	(.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
+			    JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
+	      BorderLayout/WEST)
+	(.setMinimumSize (Dimension. 0 0)))
+
+      main-panel))
+
+  (defn get-layout-from-panel
+    "If given panel contains a lattice editor, return the
+    corresponding layout and nil otherwise."
+    [panel]
+    (when-let [scn (get @scenes panel nil)]
+      (get-layout-from-scene scn)))
+
+  nil)
 
 
 ;;; Drawing Routine for the REPL
@@ -445,7 +454,7 @@
   ([lattice layout-function]
      (let [#^JFrame frame (JFrame. "conexp-clj Lattice")]
        (doto frame
-	 (.add (make-lattice-editor frame lattice layout-function))
+	 (.add (make-lattice-editor frame (layout-function lattice)))
 	 (.setSize (Dimension. 600 600))
 	 (.setVisible true)))))
 

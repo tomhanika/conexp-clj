@@ -9,6 +9,7 @@
 (ns conexp.util
   (:use clojure.contrib.profile
 	[clojure.contrib.math :only (round)]
+	[clojure.contrib.seq :only (flatten)]
 	clojure.test)
   (:import javax.swing.JOptionPane
 	   java.util.Calendar
@@ -71,13 +72,6 @@
 
   ([string length padding]
      (apply str string (repeat (- length (count string)) padding))))
-
-(defn flatten
-  "Flattens in to be a sequence of depth 1 at most."
-  [in]
-  (cond
-    (sequential? in) (apply concat (map flatten in))
-    :else (seq [in])))
 
 (defn with-str-out
   "Returns string of all output being made in (flatten body)."

@@ -10,9 +10,8 @@
   (:use conexp.base
 	conexp.layout.util
 	conexp.layout.base
-	[conexp.fca.lattices :exclude (order)]
-	[clojure.contrib.graph :only (dependency-list)]
-	[clojure.contrib.ns-utils :only (immigrate)]))
+	[conexp.fca.lattices :exclude (order)])
+  (:use [clojure.contrib.graph :only (dependency-list)]))
 
 (update-ns-meta! conexp.layout.layered
   :doc "Basic namespace for lattice layouts.")

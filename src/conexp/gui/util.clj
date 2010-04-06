@@ -10,27 +10,29 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-	                AbstractButton]
+	                AbstractButton SwingConstants JFileChooser JOptionPane]
+	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [javax.imageio ImageIO]
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color
 	             Graphics Graphics2D BasicStroke FlowLayout]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
-  (:use [conexp.base :only (defvar first-non-nil)]
-	[clojure.contrib.seq :only (indexed)]
+  (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg)])
+  (:use [clojure.contrib.seq :only (indexed partition-by)]
 	clojure.contrib.swing-utils))
 
 
 ;;; Helper functions
 
 (defn- add-handler
-  "Adds an ActionListener to thing that calls function with frame and
-  thing when activated (i.e. when actionPerformed is called)."
+  "Adds an ActionListener to thing that calls function with frame when
+  activated (i.e. when actionPerformed is called)."
   [thing frame function]
   (.addActionListener thing
     (proxy [ActionListener] []
       (actionPerformed [evt]
-	(function frame thing)))))
+	(with-swing-error-msg frame "Error"
+	  (function frame))))))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
@@ -48,26 +50,16 @@
     (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
     frame))
 
-(defn invoke-later
-  "Calls fn with SwingUtilities/invokeLater."
-  [fn]
-  (SwingUtilities/invokeLater fn))
-
-(defn invoke-and-wait
-  "Calls fn with SwingUtilities/invokeAndWait."
-  [fn]
-  (SwingUtilities/invokeAndWait fn))
-
-(defmacro with-swing-threads
-  "Executes body with invoke-later to make it thread-safe to Swing."
-  [& body]
-  `(invoke-later #(do ~@body)))
-
 (defn get-resource
   "Returns the resource res if found, nil otherwise."
   [res]
   (let [cl (.getContextClassLoader (Thread/currentThread))]
     (.getResource cl res)))
+
+(defn confirm
+  "Opens a message dialog asking for confirmation."
+  [frame message]
+  (JOptionPane/showConfirmDialog frame message))
 
 
 ;;; Menus
@@ -77,14 +69,14 @@
   [frame]
   (get-component frame #(= (class %) JMenuBar)))
 
-(declare hash-to-menu)
+(declare hash-map->menu)
 
-(defn- hash-to-menu-item
+(defn- hash-map->menu-item
   "Converts a hash to a JMenuItem for the given frame."
   [frame hash]
   (cond
    (empty? hash) (JSeparator.),
-   (contains? hash :content) (hash-to-menu frame hash),
+   (contains? hash :content) (hash-map->menu frame hash),
    :else
    (let [menu-item (JMenuItem. (:name hash))]
      (if (contains? hash :handler)
@@ -93,44 +85,45 @@
      ;; also enable hotkeys and images
      menu-item)))
 
-(defn- hash-to-menu
+(defn- hash-map->menu
   "Converts a hash representing a menu into an actual JMenu for a given frame."
   [frame hash-menu]
-  ;; this function is not thread safe!
-  (cond
-    (instance? java.awt.Component hash-menu)
-    hash-menu,
-    :else
+  (if (instance? java.awt.Component hash-menu)
+    hash-menu
     (let [menu (JMenu. (:name hash-menu))]
       (doseq [entry (:content hash-menu)]
-	(.add menu (hash-to-menu-item frame entry)))
+	(.add menu (hash-map->menu-item frame entry)))
       menu)))
 
-(defn- add-menus-to-menubar
-  "Adds menubar consisting of menus to menu-bar."
-  ;; this function is not thread safe!
-  [frame menus]
-  (let [menu-bar (get-menubar frame)]
-    (doseq [menu menus]
-      (.add menu-bar (hash-to-menu frame menu)))
-    menu-bar))
-
 (defn add-menus
-  "Adds the additional menus to the frame in front of the first Box.Filler
-  found in the menu-bar of frame."
+  "Adds the menus (specified as hash-maps) to the frame in front of
+  the first Box$Filler found in the menu-bar of frame. Returns the
+  menus added."
   [frame menus]
-  (with-swing-threads
-    (let [menu-bar (get-menubar frame)
-	  menu-bar-as-seq (.getComponents menu-bar)
-	  menu-entries-before-filler (take-while #(not (instance? javax.swing.Box$Filler %))
-						 menu-bar-as-seq)
-	  menu-entries-from-filler   (drop-while #(not (instance? javax.swing.Box$Filler %))
-						 menu-bar-as-seq)]
-      (.removeAll menu-bar)
-      (add-menus-to-menubar frame menu-entries-before-filler)
-      (add-menus-to-menubar frame menus)
-      (add-menus-to-menubar frame menu-entries-from-filler)
-      (.validate frame))))
+  (let [our-menus (map #(hash-map->menu frame %) menus)]
+    (do-swing
+     (let [menu-bar (get-menubar frame)
+	   [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
+						  (seq (.getComponents menu-bar)))]
+       (.removeAll menu-bar)
+       (doseq [menu (concat menus-before our-menus menus-after)]
+	 (.add menu-bar menu))
+       (.validate frame)))
+    our-menus))
+
+(defn remove-menus
+  "Removes given menus (as Java objects) from menu-bar of frame."
+  [frame menus]
+  (do-swing
+   (let [menu-bar (get-menubar frame),
+	 new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
+     (.removeAll menu-bar)
+     (doseq [menu new-menus]
+       (.add menu-bar menu))
+     (.validate frame)
+     new-menus)))
+
+;; menu shortcut variables for convenience
 
 (defvar --- {}
   "Separator for menu entries used in add-menus.")
@@ -145,7 +138,7 @@
   [frame]
   (get-component frame #(= (class %) JToolBar)))
 
-(defvar *default-icon* (get-resource "images/default.jpg")
+(defvar *default-icon-image* (get-resource "images/default.jpg")
   "Default icon image used when no other image is found.")
 (defvar *icon-size* 17
   "Default icon size.")
@@ -153,38 +146,62 @@
 (defn- make-icon
   "Converts hash representing an icon to an actual JButton."
   [frame icon-hash]
-  (let [button (JButton.)]
-    (doto button
-      (.setName (:name icon-hash))
-      (add-handler frame (:handler icon-hash))
-      (.setToolTipText (:name icon-hash)))
-    (let [icon (:icon icon-hash)
-	  image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
-				    (File. icon)
-				    *default-icon*))
-		    (.getScaledInstance *icon-size*
-					*icon-size*
-					Image/SCALE_SMOOTH))]
+  (if (empty? icon-hash)
+    (javax.swing.JToolBar$Separator.)
+    (let [button (JButton.)]
+      (doto button
+	(.setName (:name icon-hash))
+	(add-handler frame (:handler icon-hash))
+	(.setToolTipText (:name icon-hash)))
+      (let [icon (:icon icon-hash)
+	    image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
+				      (File. icon)
+				      *default-icon-image*))
+		      (.getScaledInstance *icon-size*
+					  *icon-size*
+					  Image/SCALE_SMOOTH))]
 	(.setIcon button (ImageIcon. image)))
-    button))
+      button)))
 
-(defn- add-to-toolbar
-  "Adds given icons to toolbar of given frame."
-  [frame toolbar icons]
-  (doseq [icon icons]
-    (cond
-      (empty? icon)
-      (.addSeparator toolbar)
-      :else
-      (.add toolbar (make-icon frame icon))))
-  toolbar)
+(defn- collapse-separators
+  "Given a sequence of Java objects returns a sequence of the same
+  objects where adjacent Separators are collapsed into one."
+  [objects]
+  (let [partitioned-objects (partition-by class objects)]
+    (apply concat (map #(if (instance? javax.swing.JSeparator (first %))
+			  (list (first %))
+			  %)
+		       partitioned-objects))))
 
 (defn add-icons
-  "Adds icons to toolbar of frame."
+  "Adds icons (sepcified as hash-maps) to toolbar of frame, returning
+  added icons."
   [frame icons]
-  (with-swing-threads
-    (add-to-toolbar frame (get-toolbar frame) icons)
-    (.validate frame)))
+  (let [our-icons (map #(make-icon frame %) icons)]
+    (do-swing
+     (let [toolbar (get-toolbar frame),
+	   new-icons (collapse-separators (concat (.getComponents toolbar)
+						  our-icons))]
+       (.removeAll toolbar)
+       (doseq [icon new-icons]
+	 (.add toolbar icon))
+       (.validate frame)))
+    our-icons))
+
+(defn remove-icons
+  "Removes icons (as Java objects) from toolbar of frame. The
+  resulting toolbar in frame will have no two equal icons side by
+  side."
+  [frame icons]
+  (do-swing
+   (let [toolbar (get-toolbar frame),
+	 rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
+     (.removeAll toolbar)
+     (doseq [icon rem-icons]
+       (.add toolbar icon))
+     (.validate frame))))
+
+;; toolbar shortcut variables for convenience
 
 (defvar | {}
   "Separator for icons in toolbars used in add-icons.")
@@ -257,13 +274,13 @@
 (defn add-tab
   "Addes given panel to the tabpane of frame with given title, if given."
   ([frame pane title]
-     (with-swing-threads
-       (let [#^JTabbedPane tabpane (get-tabpane frame)]
-	 (.add tabpane pane)
-	 (let [index (.indexOfComponent tabpane pane)]
-	   (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
-	   (.setSelectedIndex tabpane index)))
-       (.validate frame)))
+     (do-swing
+      (let [#^JTabbedPane tabpane (get-tabpane frame)]
+	(.add tabpane pane)
+	(let [index (.indexOfComponent tabpane pane)]
+	  (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
+	  (.setSelectedIndex tabpane index)))
+      (.validate frame)))
   ([frame pane]
      (add-tab frame pane "")))
 
@@ -272,6 +289,56 @@
   [frame]
   (let [#^JTabbedPane tabpane (get-tabpane frame)]
     (into {} (indexed (seq (.getComponents tabpane))))))
+
+(defn current-tab
+  "Returns the currently selected tab and nil if there is none."
+  [frame]
+  (let [#^JTabbedPane tabpane (get-tabpane frame),
+	index (.getSelectedIndex tabpane)]
+    (if (= -1 index)
+      nil
+      (.getComponentAt tabpane index))))
+
+;; remove-tabs
+;; find-tabs-by
+
+;;; file chooser
+
+(defn- make-file-chooser
+  "Creates a JFileChooser with given filters for frame."
+  [frame & filters]
+  (let [#^JFileChooser fc (JFileChooser.)]
+    (doseq [[name endings] filters]
+      (let [filter (FileNameExtensionFilter. name (into-array endings))]
+	(.addChooseableFileFilter fc filter)))
+    fc))
+
+(defn choose-open-file
+  "Opens a file chooser for frame with optional extension filters and
+  returns the file selected for opening. filters are given as a
+  sequence of pairs [name endings], where name names the type of files
+  and endings is a sequence of file sufixes."
+  [frame & filters]
+  (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
+    (when (= (.showOpenDialog fc frame) JFileChooser/APPROVE_OPTION)
+      (.getSelectedFile fc))))
+
+(defn choose-save-file
+  "Opens a file chooser for frame with optional extension filters and
+  returns the file selected for saving. filters are given as a
+  sequence of pairs [name endings], where name names the type of files
+  and endings is a sequence of file sufixes."
+  [frame & filters]
+  (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
+    (loop []
+      (when (= (.showSaveDialog fc frame) JFileChooser/APPROVE_OPTION)
+	(let [#^File file (.getSelectedFile fc)]
+	  (if (not (.exists file))
+	    file
+	    (condp = (confirm frame "File exists, overwrite?")
+	      JOptionPane/YES_OPTION file,
+	      JOptionPane/NO_OPTION (recur),
+	      JOptionPane/CANCEL_OPTION nil)))))))
 
 ;;;
 

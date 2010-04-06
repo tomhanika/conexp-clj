@@ -17,7 +17,8 @@
 	conexp.gui.plugins
 	[conexp.gui.plugins.base :only (load-plugin)]
 	[conexp.gui.editors.contexts :only (context-editor)]
-	[conexp.gui.editors.lattices :only (lattice-editor)]))
+	[conexp.gui.editors.lattices :only (lattice-editor)])
+  (:use clojure.contrib.swing-utils))
 
 
 ;;; Menus
@@ -25,7 +26,7 @@
 (defvar- *main-menu* {:name "Main",
 		      :content [---
 				{:name "Quit",
-				 :handler (fn [#^JFrame frame _]
+				 :handler (fn [#^JFrame frame]
 					    (.dispose frame))}]}
   "Main menu for conexp-clj standard GUI.")
 
@@ -37,18 +38,6 @@
 
 (defvar- *standard-menus* [*main-menu* === *help-menu*]
   "Standard menus for conexp-clj GUI.")
-
-
-;;; Toolbar
-
-(defvar- *quit-icon* {:name "Quit",
-		      :icon "???",
-		      :handler (fn [#^JFrame frame _]
-				 (.dispose frame))}
-  "Quit icon.")
-
-(defvar- *standard-icons* [*quit-icon* |]
-  "Standard icons for conexp-clj GUI.")
 
 
 ;;; Conexp Main Frame
@@ -66,22 +55,15 @@
       (add-menus *standard-menus*)
       (add-plugin-manager))
 
-    ;; toolbar setup
-    (let [toolbar (JToolBar.)]
-      (.setFloatable toolbar false)
-      (.. main-frame getContentPane (add toolbar BorderLayout/PAGE_START))
-      (add-icons main-frame *standard-icons*))
-
     ;; tabbed-pane setup
-    (let [tabbed-pane (JTabbedPane.)
-	  clj-repl    (make-repl main-frame)
+    (let [tabbed-pane (JTabbedPane.),
+	  clj-repl    (make-repl main-frame),
 	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
       (doto split-pane
 	(.setTopComponent tabbed-pane)
 	(.setBottomComponent clj-repl)
 	(.setOneTouchExpandable true)
-	(.setResizeWeight 0.8)
-	(.setDividerLocation 1000))
+	(.setResizeWeight 1.0))
       (doto (.getContentPane main-frame)
 	(.add split-pane BorderLayout/CENTER)))
 

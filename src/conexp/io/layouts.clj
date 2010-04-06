@@ -6,46 +6,46 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.io.lattices
+(ns conexp.io.layouts
   (:use conexp.base
-	conexp.fca.lattices
-	conexp.io.util)
+	conexp.io.util
+	conexp.layout.base)
   (:use [clojure.contrib.io :exclude (with-in-reader)])
   (:import [java.io PushbackReader]))
 
+(update-ns-meta! conexp.io.layouts
+  :doc "Implements IO for layouts.")
+
 ;;; Input format dispatch
 
-(define-format-dispatch "lattice")
-(set-default-lattice-format! :simple)
+(define-format-dispatch "layout")
+(set-default-layout-format! :simple)
 
 ;;; Formats
 
-;; Simple conexp-clj Format
+;; Simple conexp-clj Format for Layout
 
-(add-lattice-input-format :simple
-			  (fn [rdr]
-			    (= "conexp-clj simple" (.readLine rdr))))
+(add-layout-input-format :simple
+			 (fn [rdr]
+			   (= "conexp-clj simple" (.readLine rdr))))
 
-(defmethod write-lattice :simple [_ lat file]
+(defmethod write-layout :simple [_ layout file]
   (with-out-writer file
     (println "conexp-clj simple")
-    (prn {:lattice [(base-set lat)
-		    (set-of [x y]
-			    [x (base-set lat)
-			     y (base-set lat)
-			     :when ((order lat) [x y])])]})))
+    (prn {:layout [(positions layout)
+		   (connections layout)]})))
 
-(defmethod read-lattice :simple [file]
+(defmethod read-layout :simple [file]
   (with-in-reader file
     (let [_        (get-line),
 	  hash-map (binding [*in* (PushbackReader. *in*)]
 		     (read)),
-	  lattice  (:lattice hash-map)]
-      (when-not lattice
-	(illegal-argument "File " file " does not contain a lattice."))
-      (apply make-lattice lattice))))
+	  layout   (:layout hash-map)]
+      (when-not layout
+	(illegal-argument "File " file " does not contain a layout."))
+      (apply make-layout layout))))
 
-;;; ConExp lattice format
+;;; ConExp Layout format
 
 'TODO
 

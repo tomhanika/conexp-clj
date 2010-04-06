@@ -7,6 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.main
+  (:require conexp.base
+	    conexp.fca
+	    conexp.io
+	    conexp.layout
+	    conexp.graphics
+	    conexp.gui)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;

@@ -12,19 +12,7 @@
 
 ;;;
 
-(deftype ManyValuedContext [objects attributes incidence]
-  :as this
-  Object
-  (equals [other]
-    (and (= (type other) ::ManyValuedContext)
-	 (= (objects this) (objects other))
-	 (= (attributes this) (attributes other))
-	 (let [inz-this (incidence this)
-	       inz-other (incidence other)]
-	   (forall [g (objects this)
-		    m (attributes this)]
-		   (= (inz-this [g m])
-		      (inz-other [g m])))))))
+(deftype ManyValuedContext [objects attributes incidence]) ;incidence is a hash-map
 
 (defmethod objects ::ManyValuedContext [mv-ctx]
   (:objects mv-ctx))
@@ -45,9 +33,9 @@
 	str #(if (nil? %) "nil" (str %))
 
 	max-obj-len (reduce #(max %1 (count (str %2))) 0 objs)
-	max-att-lens (loop [lens (apply hash-map (flatten (for [att atts]
-							    [att (count (str att))])))
-			    triples (for [g objs
+	max-att-lens (loop [lens (into {} (for [att atts]
+					    [att (count (str att))]))
+			    triples (for [g objs,
 					  m atts]
 				      [g m (inz [g m])])]
 		       (if (empty? triples)
@@ -58,7 +46,6 @@
 			     (recur (assoc lens m len) (rest triples))
 			     (recur lens (rest triples))))))]
     (with-str-out
-      "\n"
       (ensure-length "" max-obj-len " ") " |" (for [att atts]
 						[(ensure-length (str att) (max-att-lens att) " ") " "])
       "\n"
@@ -82,7 +69,7 @@
 (defmulti make-mv-context
   "Constructs a many-valued context from a set of objects, a set of
   attributes and an incidence relation, given as set of triples [g m w]
-  or as a function from pairs [g m] to values w."
+  or as a function from two arguments [g m] to values w."
   {:arglists '([objects attributes incidence])}
   (fn [& args] (map math-type args)))
 
@@ -98,7 +85,10 @@
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/fn]
   [objs atts inz-fn]
-  (ManyValuedContext objs atts inz-fn))
+  (ManyValuedContext objs atts
+		     (hashmap-by-function (fn [[g m]]
+					    (inz-fn g m))
+					  (cross-product objs atts))))
 
 (defmethod make-mv-context :default [objs atts inz]
   (illegal-argument "No method defined for types "

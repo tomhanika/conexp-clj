@@ -16,7 +16,16 @@
 
 ;;;
 
-(deftype Layout [positions connections information])
+(deftype Layout [positions connections information]
+  :as this
+  Object
+  (equals [other]
+    (and (= (type other) ::Layout)
+	 (= positions (:positions other))
+	 (= connections (:connections other))))
+  (hashCode []
+    (hash-combine (hash positions)
+		  (hash connections))))
 
 (defn make-layout
   "Creates layout datatype from given positions hash-map, mapping node
