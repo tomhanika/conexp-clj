@@ -33,8 +33,8 @@
 	str #(if (nil? %) "nil" (str %))
 
 	max-obj-len (reduce #(max %1 (count (str %2))) 0 objs)
-	max-att-lens (loop [lens (apply hash-map (flatten (for [att atts]
-							    [att (count (str att))])))
+	max-att-lens (loop [lens (into {} (for [att atts]
+					    [att (count (str att))]))
 			    triples (for [g objs,
 					  m atts]
 				      [g m (inz [g m])])]

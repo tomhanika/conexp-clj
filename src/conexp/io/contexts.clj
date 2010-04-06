@@ -105,7 +105,7 @@
   (.trim str))
 
 (defn- hash-from-pairs [pairs]
-  (apply hash-map (flatten pairs)))
+  (into {} pairs))
 
 ;;;
 

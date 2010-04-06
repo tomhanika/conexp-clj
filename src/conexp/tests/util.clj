@@ -17,9 +17,6 @@
   (is (= 10 (count (ensure-length "" 10))))
   (is (every? #(= \- %) (ensure-length "" 10 "-"))))
 
-(deftest test-flatten
-  (is (every? #(not (seq? %)) (flatten [1 2 3 [4 [5 [6 7] [8]] 9 [10]] '(1 2)]))))
-
 (deftest test-with-str-out
   (is (= "Hallo, ich bin ein Test."
 	 (with-str-out
