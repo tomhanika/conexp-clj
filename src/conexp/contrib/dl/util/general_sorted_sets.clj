@@ -6,11 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.playground
+(ns conexp.contrib.dl.util.general-sorted-sets
   (:use conexp.main)
   (:use [clojure.contrib.seq :only (seq-on)]))
 
-(update-ns-meta! conexp.contrib.dl.playground
+(update-ns-meta! conexp.contrib.dl.util.general-sorted-sets
   :doc "Playground for some more or less creative work for DL.")
 
 ;;; sorted-set for non-total orderings
