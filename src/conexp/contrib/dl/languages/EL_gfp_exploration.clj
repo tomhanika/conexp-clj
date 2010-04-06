@@ -13,8 +13,10 @@
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.languages.EL-gfp
-	conexp.contrib.dl.languages.EL-gfp-rewriting)
-  (:use clojure.contrib.pprint))
+	conexp.contrib.dl.languages.EL-gfp-rewriting
+	conexp.contrib.dl.languages.concept-sets)
+  (:use clojure.contrib.pprint
+	clojure.contrib.seq))
 
 (update-ns-meta! conexp.contrib.dl.languages.EL-gfp-exploration
   :doc "Implements exploration for description logics EL and EL-gfp.")
@@ -37,24 +39,6 @@
   [subsumption]
   (subsumed-by? (subsumee subsumption) (subsumer subsumption)))
 
-;;; storing the attribute set
-
-(defn- extend-attributes
-  "Takes a sequence of concepts and a sequence of new concepts to be
-  added to the first sequence. If any element in the new sequence is
-  equivalent to some element in the old one, it is not added. The
-  elements of new-concepts must not be pairwise equivalent."
-  [concepts new-concepts]
-  (loop [ext-concepts concepts,
-	 new-concepts new-concepts]
-    (if (empty? new-concepts)
-      ext-concepts
-      (recur (let [next (first new-concepts)]
-	       (if (some #(equivalent? next %) concepts) ;this is too expensive!
-		 ext-concepts
-		 (conj ext-concepts next)))
-	     (rest new-concepts)))))
-
 ;;; actual exploration algorithm
 
 (defn explore-model
@@ -62,7 +46,7 @@
   ([initial-model]
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
-     (with-memoized-fns [EL-expression->rooted-description-graph ;Dirty, but helps
+     (with-memoized-fns [EL-expression->rooted-description-graph
 			 interpret
 			 model-closure
 			 subsumed-by?]
@@ -72,8 +56,8 @@
 	   (illegal-argument "Given initial-ordering for explore-model must consist "
 			     "of all concept names of the language of the given model."))
 	 (loop [k     0,
-		M_k   (map #(dl-expression language %) initial-ordering),
-		K     (induced-context M_k initial-model),
+		M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
+		K     (induced-context (seq-on M_k) initial-model),
 		Pi_k  [],
 		P_k   #{},
 		model initial-model,
@@ -103,27 +87,19 @@
 									(union implications background-knowledge)))))
 				    model
 				    (recur (extend-model-by-contradiction model susu))))),
-		   next-M_k   (extend-attributes M_k (set-of (dl-expression language
-									    (exists r (model-closure next-model all-P_k)))
-							     [r (role-names language)])),
-		   next-K     (induced-context next-M_k next-model),
+		   next-M_k   (apply add-concepts! M_k (for [r (role-names language)]
+							 (dl-expression language
+									(exists r (model-closure next-model all-P_k))))),
+		   next-K     (induced-context (seq-on next-M_k) next-model),
 		   next-Pi_k  (conj Pi_k P_k),
 
 		   implications (set-of impl [P_l next-Pi_k
 					      :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
 					      :when (not (empty? (conclusion impl)))]),
-		   background-knowledge (let [new-M_k (take (- (count next-M_k) (count M_k)) next-M_k)]
-					  ;; compute new background knowledge using old one;
-					  ;; C,D\in new-M_k \implies C\not\sqsubseteq D and thus this case
-					  ;; need not to be considered
-					  (union background-knowledge
-						 (set-of (make-implication #{C} #{D})
-							 [C M_k, D new-M_k
-							  :when (subsumed-by? C D)])
-						 (set-of (make-implication #{C} #{D})
-							 [C new-M_k, D M_k
-							  :when (subsumed-by? C D)]))),
-		   next-P_k   (next-closed-set next-M_k
+		   background-knowledge (set-of (make-implication #{(subsumee susu)} #{(subsumer susu)})
+						[susu (minimal-subsumption-set next-M_k)]),
+
+		   next-P_k   (next-closed-set (seq-on next-M_k)
 					       (clop-by-implications (union implications background-knowledge))
 					       P_k)]
 	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model implications background-knowledge))))))))

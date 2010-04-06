@@ -8,6 +8,7 @@
 
 (ns conexp.contrib.dl.languages.concept-sets
   (:use conexp.main
+	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.util.general-sorted-sets
 	conexp.contrib.dl.framework.reasoning)
   (:use [clojure.contrib.seq :only (seq-on)]))
@@ -33,13 +34,41 @@
 
 (defn make-concept-set
   "Creats a concept-set from the given sequence of concepts. The
-  elements in coll will be added from right to left."
+  elements in coll will be added from left to right."
   [coll]
   (let [gss (make-general-sorted-set subsumed-by?)]
-    (doseq [x (reverse coll)]
+    (doseq [x coll]
       (add-to-gss! gss x))
     (Concept-Set gss (ref (seq coll)))))
 
+(defmethod seq-on ::Concept-Set [concept-set]
+  @(seq-of-concepts concept-set))
+
+(defmethod print-method ::Concept-Set [concept-set out]
+  (print-method (seq-on concept-set) out))
+
+;;;
+
+(defn add-concept!
+  "Adds given concept to concept-set."
+  [concept-set concept]
+  (when-not (contained-in-gss? (gss-of-concept-set concept-set) concept)
+    (add-to-gss! (gss-of-concept-set concept-set) concept)
+    (dosync (alter (seq-of-concepts concept-set) conj concept)))
+  concept-set)
+
+(defn add-concepts!
+  "Extends concept set by concepts and returns the result."
+  [concept-set & concepts]
+  (doseq [concept concepts]
+    (add-concept! concept-set concept))
+  concept-set)
+
+(defn minimal-subsumption-set
+  "Returns a minimal subsumption set for the given concept-set."
+  [concept-set]
+  (set-of (make-subsumption C D)
+	  [[C D] (hasse-graph (gss-of-concept-set concept-set))]))
 
 ;;;
 
