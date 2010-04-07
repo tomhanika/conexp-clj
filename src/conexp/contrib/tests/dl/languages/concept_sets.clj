@@ -6,5 +6,15 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(use 'conexp.main)
-(gui)
+(ns conexp.contrib.tests.dl.languages.concept-sets
+  (:use conexp.main
+	conexp.contrib.dl.framework.syntax
+	conexp.contrib.dl.languages.concept-sets
+	conexp.contrib.tests.dl.examples))
+;;;
+
+
+
+;;;
+
+nil

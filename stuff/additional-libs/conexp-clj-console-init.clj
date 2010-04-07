@@ -6,5 +6,4 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(use 'conexp)
-(in-ns 'conexp)
+(use 'conexp.main)
