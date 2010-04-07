@@ -14,7 +14,7 @@
 			    now)]
 	[conexp.base :only (defvar- defmacro-)]
 	[conexp.math.util :only (with-doubles)]
-	[conexp.layout :only (*standard-layout-function*)]
+	[conexp.layout :only (*standard-layout-function*, inf-additive-layout)]
 	[conexp.layout.base :only (lattice, annotation)]
 	[conexp.layout.force :only (force-layout,
 				    layout-energy,
@@ -96,7 +96,8 @@
 			    (redraw-scene scn)))))
 
   ;; layouts
-  (let [layouts {"standard" *standard-layout-function*},
+  (let [layouts {"standard" *standard-layout-function*,
+		 "inf-add"  inf-additive-layout},
 	#^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (add-action-listener combo-box
 			 (fn [evt]

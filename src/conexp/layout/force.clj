@@ -9,8 +9,8 @@
 (ns conexp.layout.force
   (:use conexp.base
         [conexp.fca.lattices :exclude (order)]
-	conexp.layout.util
 	conexp.layout.base
+	conexp.layout.common
 	conexp.math.util
 	conexp.math.optimize
 	clojure.contrib.pprint))

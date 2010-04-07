@@ -9,9 +9,9 @@
 (ns conexp.layout.layered
   (:use conexp.base
 	conexp.layout.util
-	conexp.layout.base
-	[conexp.fca.lattices :exclude (order)])
-  (:use [clojure.contrib.graph :only (dependency-list)]))
+	[conexp.layout.base :only (make-layout)]
+	[conexp.fca.lattices :only (base-set order)])
+  (:use [clojure.contrib.graph :only (directed-graph, dependency-list, remove-loops)]))
 
 (update-ns-meta! conexp.layout.layered
   :doc "Basic namespace for lattice layouts.")
@@ -19,7 +19,19 @@
 
 ;;; Simple Layered Layout
 
-(defn- layers
+(defn- lattice->graph
+  "Converts given lattice to it's corresponding graph with loops
+  removed."
+  [lattice]
+  (remove-loops
+   (struct-map directed-graph
+     :nodes (base-set lattice)
+     :neighbors (memoize
+		 (fn [x]
+		   (let [order (order lattice)]
+		     (filter #(order [% x]) (base-set lattice))))))))
+
+(defn layers
   "Returns the layers of the given lattice, that is sequence of points
   with equal heights."
   [lattice]

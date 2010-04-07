@@ -6,15 +6,73 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layout.additive
-  (:use conexp.util))
+(ns conexp.layout.common
+  (:use conexp.util
+	conexp.fca.lattices
+	conexp.layout.util
+	conexp.layout.layered
+	[conexp.layout.base :exclude (order)]))
 
-(update-ns-meta! conexp.layout.additive
-  :doc "Implements layouts for additive diagrams.")
+(update-ns-meta! conexp.layout.common
+  :doc "Implements common layout algorithm.")
+
+
+;;; inf-irreducible additive layout
+
+(defn- vector-plus
+  "Implements pointwise plus for vectors."
+  [vec1 vec2]
+  (vec (map + vec1 vec2)))
+
+(defn placement-by-initials
+  "Computes placement for all elements by of some positions of some
+  initial nodes. Top element will be at [0,0] if not otherwise
+  stated."
+  [lattice placement]
+  (let [pos (fn pos [v]
+	      (get placement v
+		   (reduce (fn [p w]
+			     (if ((order lattice) [v w])
+			       (vector-plus p (placement w))
+			       p))
+			   [0 0]
+			   (keys placement))))]
+    (hashmap-by-function pos (base-set lattice))))
+
+(defn layout-by-placement
+  "Computes additive layout of lattice by given positions of the keys
+  of placement. The values of placement should be the positions of the
+  corresponding keys. Top element will be at [0,0], if not explicitly
+  given."
+  [lattice placement]
+  (make-layout (placement-by-initials lattice placement) (edges lattice)))
 
 ;;;
 
-; recursive additive layout
+(defn to-inf-additive-layout
+  "Returns an infimum additive layout from given layout, taking the
+  positions of the infimum irreducible elements as initial positions for
+  the resulting additive layout."
+  [lattice layout]
+  (let [old-positions (positions layout),
+	inf-irr  (set (inf-irreducibles layout)),
+	elements (filter inf-irr (top-down-elements-in-layout layout))]
+    (loop [positions old-positions,
+	   nodes elements]
+      (if (empty? nodes)
+	(layout-by-placement lattice (select-keys positions inf-irr))
+	(let [next (first nodes),
+	      [x-old y-old] (positions next),
+	      [x-new y-new] (reduce (fn [p w]
+				      (if (and ((order lattice) [next w])
+					       (not= next w))
+					(vector-plus p (positions w))
+					p))
+				    [0 0]
+				    (keys positions))]
+	  (recur (assoc positions next
+			[x-old (min y-old y-new)])
+		 (rest nodes)))))))
 
 ;;;
 

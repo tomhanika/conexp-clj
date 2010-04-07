@@ -7,10 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layout.util
-  (:use conexp.base
+  (:use conexp.util
 	[conexp.layout.base :only (make-layout, positions, connections)]
-	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)]
-	[clojure.contrib.graph :exclude (transitive-closure)]))
+	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
+  (:use [clojure.contrib.graph :only (directed-graph, dependency-list)]))
 
 (update-ns-meta! conexp.layout.util
   :doc "Utilities for computing lattice layouts.")
@@ -41,7 +41,7 @@
 					       (rest points)))))]
     [x_min y_min x_max y_max]))
 
-(defn scale-points-to-rectangle
+(defn- scale-points-to-rectangle
   "Scales the collection of points such that they fit in the
   rectangle given by [x1 y1] and [x2 y2]."
   [[x1 y1] [x2 y2] points]
@@ -65,18 +65,6 @@
 							       (map second points))))
 		 (connections layout))))
 
-(defn lattice->graph
-  "Converts given lattice to it's corresponding graph with loops
-  removed."
-  [lattice]
-  (remove-loops
-   (struct-map directed-graph
-     :nodes (base-set lattice)
-     :neighbors (memoize
-		 (fn [x]
-		   (let [order (order lattice)]
-		     (filter #(order [% x]) (base-set lattice))))))))
-
 (defn edges
   "Returns a sequence of pairs of vertices of lattice which are
   directly neighbored in lattice."
@@ -86,35 +74,15 @@
 	:when (directly-neighboured? lattice x y)]
     [x y]))
 
-
-;;; inf-irreducible additive layout
-
-(defn- vector-plus
-  "Implements pointwise plus for vectors."
-  [vec1 vec2]
-  (vec (map + vec1 vec2)))
-
-(defn placement-by-initials
-  "Computes placement for all elements by of some positions of some
-  initial nodes. Top element will be at [0,0] if not otherwise
-  stated."
-  [lattice placement]
-  (let [pos (fn pos [v]
-	      (get placement v
-		   (reduce (fn [p w]
-			     (if ((order lattice) [v w])
-			       (vector-plus p (placement w))
-			       p))
-			   [0 0]
-			   (keys placement))))]
-    (hashmap-by-function pos (base-set lattice))))
-
-(defn layout-by-placement
-  "Computes additive layout of lattice by given positions of the keys
-  of placement. The values of placement should be the positions of the
-  corresponding keys. Top element will be at [0,0], if not explicitly given."
-  [lattice placement]
-  (make-layout (placement-by-initials lattice placement), (edges lattice)))
+(defn top-down-elements-in-layout
+  "Returns the elements in layout ordered top down."
+  [layout]
+  (let [graph (struct-map directed-graph
+		:nodes (keys (positions layout))
+		:neighbors (memoize (fn [x]
+				      (map second (filter (fn [[a b]] (= a x))
+							  (connections layout))))))]
+    (apply concat (dependency-list graph))))
 
 ;;;
 

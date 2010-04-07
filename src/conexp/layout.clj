@@ -9,12 +9,17 @@
 (ns conexp.layout
   (:use conexp.base
 	conexp.layout.layered
-	conexp.layout.additive))
+	conexp.layout.common))
 
 ;;;
 
 (defvar *standard-layout-function* simple-layered-layout
   "Standard layout function. Call on a lattice to get a layout.")
+
+(defn inf-additive-layout
+  "Returns an infimum additive layout for lattice."
+  [lattice]
+  (to-inf-additive-layout lattice (*standard-layout-function* lattice)))
 
 ;;;
 
