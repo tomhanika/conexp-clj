@@ -11,7 +11,7 @@
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
 	   [java.awt GridLayout BorderLayout Dimension])
-  (:use [conexp.base :only (defvar-, defvar)]
+  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state)]
         conexp.gui.util
 	conexp.gui.repl
 	conexp.gui.plugins
@@ -27,7 +27,12 @@
 		      :content [---
 				{:name "Quit",
 				 :handler (fn [#^JFrame frame]
-					    (.dispose frame))}]}
+					    (condp = (.getDefaultCloseOperation frame)
+					      JFrame/DISPOSE_ON_CLOSE    (.dispose frame),
+					      JFrame/EXIT_ON_CLOSE       (System/exit 0),
+					      JFrame/HIDE_ON_CLOSE       (.hide frame),
+					      JFrame/DO_NOTHING_ON_CLOSE nil,
+					      (illegal-state "Unknown default close operation for given frame.")))}]}
   "Main menu for conexp-clj standard GUI.")
 
 (defvar- *help-menu* {:name "Help",
@@ -42,16 +47,13 @@
 
 ;;; Conexp Main Frame
 
-(defvar *default-close-operation* JFrame/DISPOSE_ON_CLOSE
-  "Default close operation to use when closing window.")
-
-(defn conexp-main-frame 
+(defnk conexp-main-frame
   "Returns main frame for conexp standard gui."
-  []
+  [:default-close-operation JFrame/DISPOSE_ON_CLOSE]
   (let [main-frame (JFrame. "conexp-clj")]
     ;; main setup (including menu)
     (doto main-frame
-      (.setDefaultCloseOperation *default-close-operation*)
+      (.setDefaultCloseOperation default-close-operation)
       (.setSize 1000 800)
       (.setJMenuBar (JMenuBar.))
       (.setContentPane (JPanel. (BorderLayout.)))

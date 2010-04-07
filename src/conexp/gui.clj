@@ -18,11 +18,12 @@
 ;;;
 
 (defn gui
-  "Starts the standard gui for conexp-clj."
-  []
+  "Starts the standard gui for conexp-clj. args may be a sequence of
+  parameters given by keywords and values."
+  [& args]
   (do-swing
    (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-   (let [#^JFrame frame (conexp-main-frame)]
+   (let [#^JFrame frame (apply conexp-main-frame args)]
      (.setVisible frame true))))
 
 ;;;
