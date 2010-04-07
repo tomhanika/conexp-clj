@@ -48,7 +48,7 @@
   (let [main-frame (JFrame. "conexp-clj")]
     ;; main setup (including menu)
     (doto main-frame
-      (.setDefaultCloseOperation JFrame/DISPOSE_ON_CLOSE)
+      (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
       (.setSize 1000 800)
       (.setJMenuBar (JMenuBar.))
       (.setContentPane (JPanel. (BorderLayout.)))
