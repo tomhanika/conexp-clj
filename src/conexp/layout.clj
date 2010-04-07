@@ -8,7 +8,8 @@
 
 (ns conexp.layout
   (:use conexp.base
-	conexp.layout.layered))
+	conexp.layout.layered
+	conexp.layout.additive))
 
 ;;;
 

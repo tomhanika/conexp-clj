@@ -6,11 +6,15 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layout.zschalig
-  (:use conexp.base
-	conexp.layout.util))
+(ns conexp.layout.additive
+  (:use conexp.util))
 
-;; initial positioning as described in paper
+(update-ns-meta! conexp.layout.additive
+  :doc "Implements layouts for additive diagrams.")
+
+;;;
+
+; recursive additive layout
 
 ;;;
 
