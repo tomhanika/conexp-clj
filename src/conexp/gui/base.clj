@@ -11,7 +11,7 @@
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
 	   [java.awt GridLayout BorderLayout Dimension])
-  (:use [conexp.base :only (defvar-)]
+  (:use [conexp.base :only (defvar-, defvar)]
         conexp.gui.util
 	conexp.gui.repl
 	conexp.gui.plugins
@@ -42,13 +42,16 @@
 
 ;;; Conexp Main Frame
 
+(defvar *default-close-operation* JFrame/DISPOSE_ON_CLOSE
+  "Default close operation to use when closing window.")
+
 (defn conexp-main-frame 
   "Returns main frame for conexp standard gui."
   []
   (let [main-frame (JFrame. "conexp-clj")]
     ;; main setup (including menu)
     (doto main-frame
-      (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
+      (.setDefaultCloseOperation *default-close-operation*)
       (.setSize 1000 800)
       (.setJMenuBar (JMenuBar.))
       (.setContentPane (JPanel. (BorderLayout.)))

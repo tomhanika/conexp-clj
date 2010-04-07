@@ -7,4 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (use 'conexp.main)
-(gui)
+(import 'javax.swing.JFrame)
+
+(binding [conexp.gui.base/*default-close-operation* JFrame/EXIT_ON_CLOSE]
+  (gui))
