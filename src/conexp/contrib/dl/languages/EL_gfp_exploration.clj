@@ -96,8 +96,7 @@
 		   implications (set-of impl [P_l next-Pi_k
 					      :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
 					      :when (not (empty? (conclusion impl)))]),
-		   background-knowledge (set-of (make-implication #{(subsumee susu)} #{(subsumer susu)})
-						[susu (minimal-subsumption-set next-M_k)]),
+		   background-knowledge (minimal-implication-set next-M_k),
 
 		   next-P_k   (next-closed-set (seq-on next-M_k)
 					       (clop-by-implications (union implications background-knowledge))

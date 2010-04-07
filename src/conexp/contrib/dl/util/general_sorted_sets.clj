@@ -27,9 +27,6 @@
   [order-fn]
   (General-Sorted-Set order-fn (ref #{}) (ref #{})))
 
-(defmethod print-method ::General-Sorted-Set [gss out]
-  (.write out (print-str (seq-on gss))))
-
 (defn- sort-gss
   "Does topological sort on a given gss."
   [gss]
@@ -45,6 +42,11 @@
 		     (recur (concat have next-have)))))]
     (runner (vec @(:minimal-elements gss)))))
 
+(defmethod print-method ::General-Sorted-Set [gss out]
+  (.write out (with-out-str
+		(println "General Sorted Set")
+		(doseq [x (sort-gss gss)]
+		  (println "Node:" (:node x) ", Lowers:" (map :node @(:lowers x)) ", Uppers:" (map :node @(:uppers x)))))))
 
 (defmethod seq-on ::General-Sorted-Set [gss]
   (map :node (sort-gss gss)))
@@ -52,31 +54,38 @@
 ;;
 
 (defn- find-neighbours
-  "Auxilliary algorithm for finding neighbours. test-fn is used to
-  filter nodes for being neighbors of a certain node x, neigh-fn
-  returns for a node y all corresponding neighbours and current is the
-  set of nodes to search from. previous is the set of former visited
-  neighbours which will be refined if possible."
-  [gss test-fn neigh-fn current previous]
-  (let [next (filter test-fn current)]
-    (if (empty? next)
-      previous
-      (let [next-neighs (map neigh-fn next)]
-	(recur gss test-fn neigh-fn
-	       (if (every? empty? next-neighs)
-		 #{}
-		 (set (apply intersection next-neighs)))
-	       (set next))))))
+  ""
+  [gss test-fn neigh-fn nodes]
+  (let [refine (fn refine [candidates]
+		 ;; Replace a candidate with a neighbour given by
+		 ;; neigh-fn if it passes test-fn
+		 (distinct (mapcat (fn [candidate]
+				     (let [next (filter test-fn (neigh-fn candidate))]
+				       (if-not (empty? next)
+					 next
+					 (list candidate))))
+				   candidates)))]
+    (loop [candidates (filter test-fn nodes)]
+      (let [next-candidates (refine candidates)]
+	(if (= candidates next-candidates)
+	  (set candidates)
+	  (recur next-candidates))))))
 
 (defn- find-upper-neighbours
   "Finds all upper neighbours of x in gss."
   [gss x]
-  (find-neighbours gss #((:order-fn gss) x (:node %)) (comp deref :lowers) @(:maximal-elements gss) #{}))
+  (find-neighbours gss
+		   #((:order-fn gss) x (:node %))
+		   (comp deref :lowers)
+		   @(:maximal-elements gss)))
 
 (defn- find-lower-neighbours
   "Finds all lower neighbours of x in gss."
   [gss x]
-  (find-neighbours gss #((:order-fn gss) (:node %) x) (comp deref :uppers) @(:minimal-elements gss) #{}))
+  (find-neighbours gss
+		   #((:order-fn gss) (:node %) x)
+		   (comp deref :uppers)
+		   @(:minimal-elements gss)))
 
 (defn add-to-gss!
   "Adds the element elt to the general sorted set gss returning the
@@ -131,12 +140,11 @@
   gss, i.e. whether there exists an element in gss which is equal (in
   the sense of the underlying order relation) to elt."
   [gss elt]
-  (let [uppers (find-upper-neighbours gss elt),
-	order-fn (:order-fn gss)]
+  (let [order-fn (:order-fn gss),
+	uppers (find-upper-neighbours gss elt)]
     (and (= 1 (count uppers))
-	 (exists [x (map :node uppers)]
-	   (and (order-fn elt x)
-		(order-fn x elt))))))
+	 (order-fn elt (:node (first uppers)))
+	 (order-fn (:node (first uppers)) elt))))
 
 (defn hasse-graph
   "Returns the Hasse Graph of the general sorted set gss."

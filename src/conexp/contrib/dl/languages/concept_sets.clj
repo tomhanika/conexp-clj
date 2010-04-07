@@ -70,6 +70,13 @@
   (set-of (make-subsumption C D)
 	  [[C D] (hasse-graph (gss-of-concept-set concept-set))]))
 
+(defn minimal-implication-set
+  "Returns a minimal set of implications representing the subsumptions
+  in concept-set."
+  [concept-set]
+  (set-of (make-implication #{C} #{D})
+	  [[C D] (hasse-graph (gss-of-concept-set concept-set))]))
+
 ;;;
 
 nil
