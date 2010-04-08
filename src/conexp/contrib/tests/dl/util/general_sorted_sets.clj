@@ -23,16 +23,16 @@
        4 subset? [#{} #{1} #{2} #{1 2} #{2} #{1 2} #{}]
        6 subset? [#{1} #{2} #{3} #{4} #{1 3} #{3 4} #{1} #{2}]))
 
-(import-private conexp.contrib.dl.util.general-sorted-sets
-		find-upper-neighbours
-		find-lower-neighbours)
-
 (defn- finds-correct-neighbours []
   (are [order elts new-elt lowers uppers] (let [gss (make-general-sorted-set order)]
 					    (doseq [elt elts]
 					      (add-to-gss! gss elt))
-					    (and (= (set lowers) (set (map :node (find-lower-neighbours gss new-elt))))
-						 (= (set uppers) (set (map :node (find-upper-neighbours gss new-elt))))))
+					    (and (= (set lowers)
+						    (set (map :node
+							      (@#'conexp.contrib.dl.util.general-sorted-sets/find-lower-neighbours gss new-elt))))
+						 (= (set uppers)
+						    (set (map :node
+							      (@#'conexp.contrib.dl.util.general-sorted-sets/find-upper-neighbours gss new-elt))))))
        <= [1 2 4 5] 3 [2] [4]
        subset? [#{} #{1} #{2} #{3} #{1 2 3} #{1 2}] #{1 2 3 4} [#{1 2 3}] []))
 
