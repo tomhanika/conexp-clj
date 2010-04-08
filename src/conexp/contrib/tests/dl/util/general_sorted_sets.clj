@@ -14,13 +14,21 @@
 
 ;;;
 
-(defn- no-equivalent-elements []
+(deftest- adds-elements-in-correct-order
+  (are [order elts] (let [gss-seq (seq-on (make-general-sorted-set order elts))]
+		      (forall [x elts, y elts]
+			(=> (order x y)
+			    (some #(= % y) (drop-while #(not= % x) gss-seq)))))
+       <= [1 2 3 4 5 6 7 8 9],
+       subset? [#{} #{1} #{2} #{3} #{1 2 3} #{1 2} #{1 2 3 4}]))
+
+(deftest- no-equivalent-elements
   (are [num order elts] (= num (count (seq-on (make-general-sorted-set order elts))))
        4 <= [1 2 3 4 4 3 2 1],
-       4 subset? [#{} #{1} #{2} #{1 2} #{2} #{1 2} #{}]
+       4 subset? [#{} #{1} #{2} #{1 2} #{2} #{1 2} #{}],
        6 subset? [#{1} #{2} #{3} #{4} #{1 3} #{3 4} #{1} #{2}]))
 
-(defn- finds-correct-neighbours []
+(deftest- finds-correct-neighbours
   (are [order elts new-elt lowers uppers] (let [gss (make-general-sorted-set order elts)]
 					    (and (= (set lowers)
 						    (set (map :node
@@ -28,19 +36,19 @@
 						 (= (set uppers)
 						    (set (map :node
 							      (@#'conexp.contrib.dl.util.general-sorted-sets/find-upper-neighbours gss new-elt))))))
-       <= [1 2 4 5] 3 [2] [4]
+       <= [1 2 4 5] 3 [2] [4],
        subset? [#{} #{1} #{2} #{3} #{1 2 3} #{1 2}] #{1 2 3 4} [#{1 2 3}] []))
 
-(defn- correct-hasse-graph []
+(deftest- correct-hasse-graph
   (are [order elts edges] (let [gss (make-general-sorted-set order elts)]
 			    (= (set edges) (set (hasse-graph gss))))
-       <= [1 2 3 4 5] [[1 2] [2 3] [3 4] [4 5]]
+       <= [1 2 3 4 5] [[1 2] [2 3] [3 4] [4 5]],
        subset? [#{} #{1} #{2} #{3} #{1 2 3} #{1 2} #{1 2 3 4}]
                [[#{} #{1}] [#{} #{2}] [#{} #{3}]
 		[#{1} #{1 2}] [#{2} #{1 2}] [#{1 2} #{1 2 3}]
 		[#{3} #{1 2 3}] [#{1 2 3} #{1 2 3 4}]]))
 
-(defn- containment []
+(deftest- containment
   (are [order elts no-elts] (let [gss (make-general-sorted-set order elts)]
 			      (and (forall [elt elts]
 					   (contained-in-gss? gss elt))
@@ -51,6 +59,7 @@
                [#{4} #{1 3 4} #{5} #{2 3 4}]))
 
 (deftest test-general-sorted-sets
+  (adds-elements-in-correct-order)
   (no-equivalent-elements)
   (finds-correct-neighbours)
   (correct-hasse-graph)
