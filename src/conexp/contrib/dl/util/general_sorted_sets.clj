@@ -20,12 +20,17 @@
 (declare add-to-gss! remove-from-gss!)
 
 (defn make-general-sorted-set
-  "Constructs a general sorted set for the given order
-  function. order-fn must represent a reflexiv and transitive
-  relation. Elements being equal in the sense of this order relation
-  are considered the same."
-  [order-fn]
-  (General-Sorted-Set order-fn (ref #{}) (ref #{})))
+  "Constructs a general sorted set for the given order function and
+  initial elements from coll, if given. order-fn must represent a
+  reflexiv and transitive relation. Elements being equal in the sense
+  of this order relation are considered the same."
+  ([order-fn]
+     (make-general-sorted-set order-fn []))
+  ([order-fn coll]
+     (let [gss (General-Sorted-Set order-fn (ref #{}) (ref #{}))]
+       (doseq [elt coll]
+	 (add-to-gss! gss elt))
+       gss)))
 
 (defn- sort-gss
   "Does topological sort on a given gss."
@@ -96,38 +101,37 @@
   [gss elt]
   (dosync
    (let [order-fn (:order-fn gss),
-
-	 uppers (find-upper-neighbours gss elt),
-	 lowers (find-lower-neighbours gss elt),
-
-	 new-elt {:node elt,
-		  :uppers (ref uppers),
-		  :lowers (ref lowers)}]
+	 uppers (find-upper-neighbours gss elt)]
 
      ;; check if element is already there
-     (when-not (or (some #(order-fn (:node %) elt) uppers)
-		   (some #(order-fn elt (:node %)) lowers))
+     (when-not (and (= 1 (count uppers))
+		    (order-fn (:node (first uppers)) elt))
 
-       ;; update neighbours
-       (doseq [u uppers]
-	 (alter (:lowers u) conj new-elt))
-       (doseq [l lowers]
-	 (alter (:uppers l) conj new-elt))
+       (let [lowers (find-lower-neighbours gss elt),
+	     new-elt {:node elt,
+		      :uppers (ref uppers),
+		      :lowers (ref lowers)}]
 
-       ;; remove redundant edges
-       (doseq [u uppers,
-	       l lowers]
-	 (when (contains? @(:uppers l) u)
-	   (alter (:uppers l) disj u)
-	   (alter (:lowers u) disj l)))
+	 ;; update neighbours
+	 (doseq [u uppers]
+	   (alter (:lowers u) conj new-elt))
+	 (doseq [l lowers]
+	   (alter (:uppers l) conj new-elt))
 
-       ;; update maximal and minimal elements
-       (ref-set (:maximal-elements gss)
-		(set-of x [x (conj @(:maximal-elements gss) new-elt)
-			   :when (empty? @(:uppers x))]))
-       (ref-set (:minimal-elements gss)
-		(set-of x [x (conj @(:minimal-elements gss) new-elt)
-			   :when (empty? @(:lowers x))])))
+	 ;; remove redundant edges
+	 (doseq [u uppers,
+		 l lowers]
+	   (when (contains? @(:uppers l) u)
+	     (alter (:uppers l) disj u)
+	     (alter (:lowers u) disj l)))
+
+	 ;; update maximal and minimal elements
+	 (ref-set (:maximal-elements gss)
+		  (set-of x [x (conj @(:maximal-elements gss) new-elt)
+			     :when (empty? @(:uppers x))]))
+	 (ref-set (:minimal-elements gss)
+		  (set-of x [x (conj @(:minimal-elements gss) new-elt)
+			     :when (empty? @(:lowers x))]))))
 
      gss)))
 
@@ -146,15 +150,16 @@
   (let [order-fn (:order-fn gss),
 	uppers (find-upper-neighbours gss elt)]
     (and (= 1 (count uppers))
-	 (order-fn elt (:node (first uppers)))
 	 (order-fn (:node (first uppers)) elt))))
 
 (defn hasse-graph
   "Returns the Hasse Graph of the general sorted set gss."
   [gss]
-  (for [x (sort-gss gss),
-	y @(:uppers x)]
-    [(:node x) (:node y)]))
+  (let [edges (fn edges [x]
+		(concat (for [y @(:lowers x)]
+			  [(:node y) (:node x)])
+			(mapcat edges @(:lowers x))))]
+    (mapcat edges @(:maximal-elements gss))))
 
 ;;;
 
