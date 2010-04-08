@@ -24,18 +24,22 @@
   [vec1 vec2]
   (vec (map + vec1 vec2)))
 
+(defn- vector-minus
+  "Implements pointwise minus for vectors."
+  [vec1 vec2]
+  (vec (map - vec1 vec2)))
+
 (defn placement-by-initials
   "Computes placement for all elements by of some positions of some
-  initial nodes. Top element will be at [0,0] if not otherwise
-  stated."
-  [lattice placement]
+  initial nodes. Top element will be at top."
+  [lattice top placement]
   (let [pos (fn pos [v]
 	      (get placement v
 		   (reduce (fn [p w]
 			     (if ((order lattice) [v w])
-			       (vector-plus p (placement w))
+			       (vector-plus p (vector-minus (placement w) top))
 			       p))
-			   [0 0]
+			   top
 			   (keys placement))))]
     (hashmap-by-function pos (base-set lattice))))
 
@@ -44,8 +48,8 @@
   of placement. The values of placement should be the positions of the
   corresponding keys. Top element will be at [0,0], if not explicitly
   given."
-  [lattice placement]
-  (make-layout (placement-by-initials lattice placement) (edges lattice)))
+  [lattice top placement]
+  (make-layout (placement-by-initials lattice top placement) (edges lattice)))
 
 ;;;
 
@@ -55,20 +59,21 @@
   the resulting additive layout."
   [lattice layout]
   (let [old-positions (positions layout),
+	top-pos  (old-positions (lattice-one lattice)),
 	inf-irr  (set (inf-irreducibles layout)),
 	elements (filter inf-irr (top-down-elements-in-layout layout))]
     (loop [positions old-positions,
 	   nodes elements]
       (if (empty? nodes)
-	(layout-by-placement lattice (select-keys positions inf-irr))
+	(layout-by-placement lattice top-pos (select-keys positions inf-irr))
 	(let [next (first nodes),
 	      [x-old y-old] (positions next),
 	      [x-new y-new] (reduce (fn [p w]
 				      (if (and ((order lattice) [next w])
 					       (not= next w))
-					(vector-plus p (positions w))
+					(vector-plus p (vector-minus (positions w) top-pos))
 					p))
-				    [0 0]
+				    top-pos
 				    (keys positions))]
 	  (recur (assoc positions next
 			[x-old (min y-old y-new)])
