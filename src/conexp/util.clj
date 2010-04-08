@@ -28,6 +28,13 @@
 (update-ns-meta! conexp.util
   :doc "Loose collection of some useful functions and macros for conexp.")
 
+(defmacro import-private
+  "Imports from a namespace ns all symbols given. Use this VERY RARELY!"
+  [ns & symbols]
+  `(do
+     ~@(map (fn [sym] `(def ~sym (deref (var ~(symbol (str ns) (str sym))))))
+	    symbols)))
+
 
 ;;; Testing
 

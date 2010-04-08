@@ -17,7 +17,7 @@
 
 (deftype General-Sorted-Set [order-fn maximal-elements minimal-elements])
 
-(declare add-to-gss remove-from-gss)
+(declare add-to-gss! remove-from-gss!)
 
 (defn make-general-sorted-set
   "Constructs a general sorted set for the given order
