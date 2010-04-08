@@ -54,22 +54,25 @@
 ;;
 
 (defn- find-neighbours
-  ""
+  "Starting from nodes tries to improve all nodes satisfying test-fn
+  with neigh-fn, i.e. applies neigh-fn to every node that passes
+  test-fn and replaces it with elements from the result which satisfy
+  test-fn if there are some. Expects neigh-fn to be cheap and test-fn
+  to be expensive."
   [gss test-fn neigh-fn nodes]
-  (let [refine (fn refine [candidates]
-		 ;; Replace a candidate with a neighbour given by
-		 ;; neigh-fn if it passes test-fn
-		 (distinct (mapcat (fn [candidate]
-				     (let [next (filter test-fn (neigh-fn candidate))]
-				       (if-not (empty? next)
-					 next
-					 (list candidate))))
-				   candidates)))]
-    (loop [candidates (filter test-fn nodes)]
-      (let [next-candidates (refine candidates)]
-	(if (= candidates next-candidates)
-	  (set candidates)
-	  (recur next-candidates))))))
+  (loop [fluids (filter test-fn nodes),
+	 fixed  #{}]
+    (if (empty? fluids)
+      fixed
+      (let [next (first fluids),
+	    next-neighs (filter (fn [x] (and (not (contains? fixed x))
+					     (test-fn x)))
+				(neigh-fn next))]
+	(if (empty? next-neighs)
+	  (if (some fixed (neigh-fn next))
+	    (recur (rest fluids) fixed)
+	    (recur (rest fluids) (conj fixed next)))
+	  (recur (into (rest fluids) next-neighs) fixed))))))
 
 (defn- find-upper-neighbours
   "Finds all upper neighbours of x in gss."
