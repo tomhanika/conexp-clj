@@ -11,8 +11,7 @@
 	    conexp.fca
 	    conexp.io
 	    conexp.layout
-	    conexp.graphics
-	    conexp.gui)
+	    conexp.graphics)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
@@ -21,8 +20,7 @@
 			   conexp.fca
 			   conexp.io
 			   conexp.layout
-			   conexp.graphics
-			   conexp.gui])
+			   conexp.graphics])
 
 (dorun (map immigrate *conexp-namespaces*))
 

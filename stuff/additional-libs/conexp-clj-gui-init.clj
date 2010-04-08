@@ -6,5 +6,5 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(use 'conexp.main)
-(gui javax.swing.JFrame/EXIT_ON_CLOSE)
+(use 'conexp.contrib.gui)
+(gui :default-close-operation javax.swing.JFrame/EXIT_ON_CLOSE)

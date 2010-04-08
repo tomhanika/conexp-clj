@@ -6,11 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.plugins
+(ns conexp.contrib.gui.plugins
   (:use conexp.util
-	conexp.gui.util
-	conexp.gui.plugins.base
-	conexp.gui.plugins.browse))
+	conexp.contrib.gui.util
+	conexp.contrib.gui.plugins.base
+	conexp.contrib.gui.plugins.browse))
 
 
 ;;; Plugin Managers for Frames

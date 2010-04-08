@@ -6,15 +6,15 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.repl
+(ns conexp.contrib.gui.repl
   (:import [javax.swing.text PlainDocument]
 	   [java.io PushbackReader StringReader PipedWriter PipedReader 
 	            PrintWriter CharArrayWriter]
 	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
 	   [java.awt Font Color])
   (:use [conexp.base :only (defvar-)]
-	[conexp.gui.util :as util])
-  (:require [conexp.gui.repl-utils :as repl-utils])
+	[conexp.contrib.gui.util :as util])
+  (:require [conexp.contrib.gui.repl-utils :as repl-utils])
   (:use	[clojure.contrib.pprint :only (write)]
 	clojure.contrib.swing-utils)
   (:require clojure.main))
@@ -66,7 +66,7 @@
                               :init (fn [] 
 				      (use 'conexp.main)
 				      (in-ns 'user)
-				      (require '[conexp.gui.repl-utils :as gui]))
+				      (require '[conexp.contrib.gui.repl-utils :as gui]))
                               :caught (fn [e]
 					(if *print-stack-trace-on-error*
                                           (.printStackTrace e *out*)

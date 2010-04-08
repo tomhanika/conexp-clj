@@ -6,20 +6,23 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.base
+(ns conexp.contrib.gui.base
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem JToolBar JPanel
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
 	   [java.awt GridLayout BorderLayout Dimension])
-  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state)]
-        conexp.gui.util
-	conexp.gui.repl
-	conexp.gui.plugins
-	[conexp.gui.plugins.base :only (load-plugin)]
-	[conexp.gui.editors.contexts :only (context-editor)]
-	[conexp.gui.editors.lattices :only (lattice-editor)])
+  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, update-ns-meta!)]
+        conexp.contrib.gui.util
+	conexp.contrib.gui.repl
+	conexp.contrib.gui.plugins
+	[conexp.contrib.gui.plugins.base :only (load-plugin)]
+	[conexp.contrib.gui.editors.contexts :only (context-editor)]
+	[conexp.contrib.gui.editors.lattices :only (lattice-editor)])
   (:use clojure.contrib.swing-utils))
 
+
+(update-ns-meta! conexp.contrib.gui.base
+  :doc "Provides basic definitions for the standard conexp-clj GUI.")
 
 ;;; Menus
 

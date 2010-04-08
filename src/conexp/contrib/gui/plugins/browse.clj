@@ -6,12 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.editors.contexts
-  (:use conexp.gui.plugins.base))
+(ns conexp.contrib.gui.plugins.browse
+  (:use conexp.contrib.gui.plugins))
 
-(define-plugin context-editor
-  "Context editor plugin."
-  :load-hook identity,
-  :unload-hook identity)
+;;; Graphical routines for Plugins
+
+;;; Plugin Browser
 
 nil

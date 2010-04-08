@@ -6,13 +6,13 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui
+(ns conexp.contrib.gui
   (:import [javax.swing UIManager JFrame])
   (:use conexp.base
-	conexp.gui.base)
+	conexp.contrib.gui.base)
   (:use clojure.contrib.swing-utils))
 
-(update-ns-meta! conexp.gui
+(update-ns-meta! conexp.contrib.gui
   :doc "Provides standard gui for conexp-clj.")
 
 ;;;
