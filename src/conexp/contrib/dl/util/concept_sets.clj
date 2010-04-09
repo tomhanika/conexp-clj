@@ -6,14 +6,14 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.languages.concept-sets
+(ns conexp.contrib.dl.util.concept-sets
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.util.general-sorted-sets
 	conexp.contrib.dl.framework.reasoning)
   (:use [clojure.contrib.seq :only (seq-on)]))
 
-(update-ns-meta! conexp.contrib.dl.languages.concept-sets
+(update-ns-meta! conexp.contrib.dl.util.concept-sets
   :doc "Implements a orderd set type for concepts with no two elements
   of the set being equivalent.")
 

@@ -14,7 +14,7 @@
 	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.languages.EL-gfp-rewriting
-	conexp.contrib.dl.languages.concept-sets)
+	conexp.contrib.dl.util.concept-sets)
   (:use clojure.contrib.pprint
 	clojure.contrib.seq))
 

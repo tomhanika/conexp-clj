@@ -6,11 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests.dl.languages.concept-sets
+(ns conexp.contrib.tests.dl.util.concept-sets
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.reasoning
-	conexp.contrib.dl.languages.concept-sets
+	conexp.contrib.dl.util.concept-sets
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test
 	[clojure.contrib.seq :only (seq-on)]))

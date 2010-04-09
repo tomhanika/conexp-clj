@@ -21,6 +21,7 @@
        9 some-model
        7 riding-model
        19 family-model
+       21 more-family-model
        32 grandparent-model))
 
 ;;;
