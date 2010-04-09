@@ -16,6 +16,7 @@
 	      conexp.contrib.tests.dl.languages.EL-gfp
 	      conexp.contrib.tests.dl.framework.reasoning
 	      conexp.contrib.tests.dl.util.general-sorted-sets
+	      conexp.contrib.tests.dl.languages.concept-sets
 	      conexp.contrib.tests.dl.languages.EL-gfp-exploration)
 
 ;;;

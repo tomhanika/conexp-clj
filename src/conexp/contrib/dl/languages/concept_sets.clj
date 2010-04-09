@@ -37,9 +37,14 @@
   elements in coll will be added from left to right."
   [coll]
   (let [gss (make-general-sorted-set subsumed-by?)]
-    (doseq [x coll]
-      (add-to-gss! gss x))
-    (Concept-Set gss (ref (seq coll)))))
+    (loop [coll coll,
+	   inserted ()]
+      (cond
+       (empty? coll) (Concept-Set gss (ref inserted)),
+       (contained-in-gss? gss (first coll)) (recur (rest coll) inserted),
+       :else (do
+	       (add-to-gss! gss (first coll))
+	       (recur (rest coll) (conj inserted (first coll))))))))
 
 (defmethod seq-on ::Concept-Set [concept-set]
   @(seq-of-concepts concept-set))
@@ -63,12 +68,6 @@
   (doseq [concept concepts]
     (add-concept! concept-set concept))
   concept-set)
-
-(defn minimal-subsumption-set
-  "Returns a minimal subsumption set for the given concept-set."
-  [concept-set]
-  (set-of (make-subsumption C D)
-	  [[C D] (hasse-graph (gss-of-concept-set concept-set))]))
 
 (defn minimal-implication-set
   "Returns a minimal set of implications representing the subsumptions

@@ -58,7 +58,7 @@
        subset? [#{} #{1} #{2} #{3} #{1 2 3} #{1 2} #{1 2 3 4}]
                [#{4} #{1 3 4} #{5} #{2 3 4}]))
 
-(deftest test-general-sorted-sets
+(defn test-ns-hook []
   (adds-elements-in-correct-order)
   (no-equivalent-elements)
   (finds-correct-neighbours)
