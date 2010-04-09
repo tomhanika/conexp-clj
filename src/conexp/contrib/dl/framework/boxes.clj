@@ -86,6 +86,8 @@
 			`(make-dl-definition '~(first pair)
 					     (dl-expression ~language ~(second pair))))))))
 
+(add-dl-syntax 'tbox)
+
 (defmacro define-tbox
   "Defines a TBox. Definitions are names interleaved with dl-sexps."
   [name language & definitions]

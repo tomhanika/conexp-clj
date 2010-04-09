@@ -19,59 +19,42 @@
 (deftest- model-gcis-returns-correct-result
   (are [model initial-ordering result] (= (model-gcis model 'initial-ordering) result)
        paper-model [Male Female Father Mother]
-       (list (subsumption SimpleDL
-                          (and Male Female)
-                          (and [(tbox SimpleDL
-                                      All (and Father Male Mother Female (exists HasChild All))),
-                                All]))
-             (subsumption SimpleDL
-                          (and Father)
-                          (and Male (exists HasChild (and))))
-             (subsumption SimpleDL
-                          (and Mother)
-                          (and (exists HasChild (and)) Female))
-             (subsumption SimpleDL
-                          (and Male (exists HasChild (and)))
-                          (and Father))
-             (subsumption SimpleDL
-                          (and (exists HasChild (and)) Female)
-                          (and Mother))
-             (subsumption SimpleDL
-                          (and (exists HasChild (and Male)) (exists HasChild (and Female)))
-                          (and [(tbox SimpleDL
-                                      All (and Father Male Mother Female (exists HasChild All))),
-                                All]))
-             (subsumption SimpleDL
-                          (and (exists HasChild (and (exists HasChild (and)))))
-                          (and [(tbox SimpleDL
-                                      All (and Father Male Mother Female (exists HasChild All))),
-                                All]))),
+       (with-dl SimpleDL
+         (list (subsumption (and Male Female)
+                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                                  All]))
+               (subsumption (and Father)
+                            (and Male (exists HasChild (and))))
+               (subsumption (and Mother)
+                            (and (exists HasChild (and)) Female))
+               (subsumption (and Male (exists HasChild (and)))
+                            (and Father))
+               (subsumption (and (exists HasChild (and)) Female)
+                            (and Mother))
+               (subsumption (and (exists HasChild (and Male)) (exists HasChild (and Female)))
+                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                                  All]))
+               (subsumption (and (exists HasChild (and (exists HasChild (and)))))
+                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                                  All])))),
        small-model [Female Mother Male Father]
-       (list (subsumption SimpleDL
-                          (and Mother)
-                          (and (exists HasChild (and Female)) Female))
-             (subsumption SimpleDL
-                          (and Male)
-                          (and Father (exists HasChild (and Female))))
-             (subsumption SimpleDL
-                          (and Father)
-                          (and Male (exists HasChild (and Female))))
-             (subsumption SimpleDL
-                          (and (exists HasChild (and)))
-                          (and (exists HasChild (and Female))))
-             (subsumption SimpleDL
-                          (and (exists HasChild (and)) Female)
-                          (and Mother (exists HasChild (and Female))))
-             (subsumption SimpleDL
-                          (and Father Female)
-                          (and [(tbox SimpleDL
-                                      All (and Father Male Mother Female (exists HasChild All))),
-                                All]))
-             (subsumption SimpleDL
-                          (and (exists HasChild (and (exists HasChild (and Female)))))
-                          (and [(tbox SimpleDL
-                                      All (and Father Male Mother Female (exists HasChild All))),
-                                All])))))
+       (with-dl SimpleDL
+         (list (subsumption (and Mother)
+                            (and (exists HasChild (and Female)) Female))
+               (subsumption (and Male)
+                            (and Father (exists HasChild (and Female))))
+               (subsumption (and Father)
+                            (and Male (exists HasChild (and Female))))
+               (subsumption (and (exists HasChild (and)))
+                            (and (exists HasChild (and Female))))
+               (subsumption (and (exists HasChild (and)) Female)
+                            (and Mother (exists HasChild (and Female))))
+               (subsumption (and Father Female)
+                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                                  All]))
+               (subsumption (and (exists HasChild (and (exists HasChild (and Female)))))
+                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                                  All]))))))
 
 (deftest- model-gcis-returns-correct-number
   (are [model gci-count] (= gci-count (count (model-gcis model)))

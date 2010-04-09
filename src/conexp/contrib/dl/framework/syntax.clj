@@ -9,8 +9,12 @@
 (ns conexp.contrib.dl.framework.syntax
   (:use conexp.main)
   (:use clojure.contrib.pprint
-	[clojure.walk :only (walk)]))
+	[clojure.walk :only (walk)]
+        [clojure.contrib.macro-utils :only (macrolet)]))
 
+(update-ns-meta! conexp.contrib.dl.framework.syntax
+  :doc "Provides basic syntax definitions for DL expressions and the
+  like.")
 
 ;;;
 
@@ -105,6 +109,43 @@
 
 ;;;
 
+(let [dl-creators (atom #{})]
+  (defn add-dl-syntax
+    "Adds a new keyword for with-dl."
+    [symbol]
+    (swap! dl-creators conj symbol))
+
+  (defn- get-dl-syntax
+    "Returns all symbols to be recognized by with-dl."
+    []
+    @dl-creators)
+
+  nil)
+
+(defmacro with-dl
+  "Lets one write dl-expression without repeatedly naming the dl one
+  is working with. Recognized keywords for dl-expression can be added
+  with add-dl-syntax.
+
+  Note: This implementation is very simple. Don't try to shadow
+  symbols which are recognized as syntax with local binding. This will
+  not work."
+  [dl & body]
+  (let [symbols   (get-dl-syntax)]
+    (letfn [(insert-dl [form]
+                       (cond
+                        (and (seq? form)
+                             (not (empty? form))
+                             (contains? symbols (first form)))
+                          (list* (first form) dl (walk insert-dl identity (rest form))),
+                        (sequential? form)
+                          (walk insert-dl identity form),
+                        :else
+                          form))]
+      (apply insert-dl body))))
+
+;;;
+
 (defvar *common-constructors*
   '#{and or exists forall}
   "Common constructors for DL expression. They will be quoted in
@@ -133,6 +174,8 @@
 		     (symbol? sexp)     (transform-symbol sexp),
 		     :else              sexp))]
     `(make-dl-expression ~language ~(transform expression))))
+
+(add-dl-syntax 'dl-expression)
 
 (defmacro define-dl
   "Defines a DL."
@@ -310,6 +353,8 @@
   [DL sexp-for-subsumee sexp-for-subsumer]
   `(make-subsumption (dl-expression ~DL ~sexp-for-subsumee)
 		     (dl-expression ~DL ~sexp-for-subsumer)))
+
+(add-dl-syntax 'subsumption)
 
 ;;;
 
