@@ -201,13 +201,6 @@
 
 ;;;
 
-(defn all
-  "Returns for a set of concepts the conjunction of all those concepts."
-  [language concepts]
-  (make-dl-expression language (cons 'and concepts)))
-
-;;;
-
 (defn symbols-in-expression
   "Returns all symbols used in expressions."
   [dl-expression]
@@ -311,6 +304,12 @@
 					'==>
 					(subsumer susu))))]
     (.write out (.trim output))))
+
+(defmacro subsumption
+  "Defines a subsumption."
+  [DL sexp-for-subsumee sexp-for-subsumer]
+  `(make-subsumption (dl-expression ~DL ~sexp-for-subsumee)
+		     (dl-expression ~DL ~sexp-for-subsumer)))
 
 ;;;
 

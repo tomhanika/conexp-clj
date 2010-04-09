@@ -16,6 +16,11 @@
 	conexp.contrib.dl.languages.EL-gfp-exploration
 	conexp.contrib.dl.languages.interaction))
 
+(update-ns-meta! conexp.contrib.tests.dl.examples
+  :doc "Defines example data for testing and show how to use
+  conexp.contrib.dl. Don't change anything here since the tests rely
+  on this.")
+
 ;;; Initial Example
 
 (define-dl SimpleDL [Father Mother Male Female] [HasChild] []
@@ -85,6 +90,11 @@
 
 (define-dl FamilyDL [Mother, Female, Father, Male] [MarriedTo, HasChild] []
   :extends EL-gfp)
+
+(def family-all-cpt (dl-expression FamilyDL
+				   [(tbox FamilyDL
+					  All (and Father Male Mother Female (exists HasChild All))),
+				    All]))
 
 (def parent (tbox FamilyDL
 		  Child (and),

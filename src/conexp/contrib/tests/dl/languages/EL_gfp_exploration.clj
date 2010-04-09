@@ -8,21 +8,82 @@
 
 (ns conexp.contrib.tests.dl.languages.EL-gfp-exploration
   (:use conexp.main
+	conexp.contrib.dl.framework.syntax
+	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.languages.EL-gfp-exploration
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test))
 
 ;;;
 
-(deftest test-model-gcis
-  (are [gci-count model] (= gci-count (count (model-gcis model)))
-       7 paper-model
-       7 small-model
-       9 some-model
-       7 riding-model
-       19 family-model
-       21 more-family-model
-       32 grandparent-model))
+(deftest- model-gcis-returns-correct-result
+  (are [model initial-ordering result] (= (model-gcis model 'initial-ordering) result)
+       paper-model [Male Female Father Mother]
+       (list (subsumption SimpleDL
+                          (and Male Female)
+                          (and [(tbox SimpleDL
+                                      All (and Father Male Mother Female (exists HasChild All))),
+                                All]))
+             (subsumption SimpleDL
+                          (and Father)
+                          (and Male (exists HasChild (and))))
+             (subsumption SimpleDL
+                          (and Mother)
+                          (and (exists HasChild (and)) Female))
+             (subsumption SimpleDL
+                          (and Male (exists HasChild (and)))
+                          (and Father))
+             (subsumption SimpleDL
+                          (and (exists HasChild (and)) Female)
+                          (and Mother))
+             (subsumption SimpleDL
+                          (and (exists HasChild (and Male)) (exists HasChild (and Female)))
+                          (and [(tbox SimpleDL
+                                      All (and Father Male Mother Female (exists HasChild All))),
+                                All]))
+             (subsumption SimpleDL
+                          (and (exists HasChild (and (exists HasChild (and)))))
+                          (and [(tbox SimpleDL
+                                      All (and Father Male Mother Female (exists HasChild All))),
+                                All]))),
+       small-model [Female Mother Male Father]
+       (list (subsumption SimpleDL
+                          (and Mother)
+                          (and (exists HasChild (and Female)) Female))
+             (subsumption SimpleDL
+                          (and Male)
+                          (and Father (exists HasChild (and Female))))
+             (subsumption SimpleDL
+                          (and Father)
+                          (and Male (exists HasChild (and Female))))
+             (subsumption SimpleDL
+                          (and (exists HasChild (and)))
+                          (and (exists HasChild (and Female))))
+             (subsumption SimpleDL
+                          (and (exists HasChild (and)) Female)
+                          (and Mother (exists HasChild (and Female))))
+             (subsumption SimpleDL
+                          (and Father Female)
+                          (and [(tbox SimpleDL
+                                      All (and Father Male Mother Female (exists HasChild All))),
+                                All]))
+             (subsumption SimpleDL
+                          (and (exists HasChild (and (exists HasChild (and Female)))))
+                          (and [(tbox SimpleDL
+                                      All (and Father Male Mother Female (exists HasChild All))),
+                                All])))))
+
+(deftest- model-gcis-returns-correct-number
+  (are [model gci-count] (= gci-count (count (model-gcis model)))
+       some-model  9
+       riding-model 7
+       family-model 19
+       more-family-model 21
+       grandparent-model 32))
+
+(defn test-ns-hook []
+  (model-gcis-returns-correct-result)
+  (model-gcis-returns-correct-number))
 
 ;;;
 
