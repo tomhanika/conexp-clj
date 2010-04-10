@@ -62,10 +62,10 @@
 	top-pos  (old-positions (lattice-one lattice)),
 	inf-irr  (set (inf-irreducibles layout)),
 	elements (filter inf-irr (top-down-elements-in-layout layout))]
-    (loop [positions old-positions,
+    (loop [positions (select-keys old-positions inf-irr),
 	   nodes elements]
       (if (empty? nodes)
-	(layout-by-placement lattice top-pos (select-keys positions inf-irr))
+	(layout-by-placement lattice top-pos positions)
 	(let [next (first nodes),
 	      [x-old y-old] (positions next),
 	      [x-new y-new] (reduce (fn [p w]
