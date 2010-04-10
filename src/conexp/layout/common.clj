@@ -43,16 +43,6 @@
 			   (keys placement))))]
     (hashmap-by-function pos (base-set lattice))))
 
-(defn layout-by-placement
-  "Computes additive layout of lattice by given positions of the keys
-  of placement. The values of placement should be the positions of the
-  corresponding keys. Top element will be at [0,0], if not explicitly
-  given."
-  [lattice top placement]
-  (make-layout (placement-by-initials lattice top placement) (edges lattice)))
-
-;;;
-
 (defn to-inf-additive-layout
   "Returns an infimum additive layout from given layout, taking the
   positions of the infimum irreducible elements as initial positions for
@@ -65,7 +55,7 @@
     (loop [positions (select-keys old-positions inf-irr),
 	   nodes elements]
       (if (empty? nodes)
-	(layout-by-placement lattice top-pos positions)
+	(update-positions layout (placement-by-initials lattice top-pos positions))
 	(let [next (first nodes),
 	      [x-old y-old] (positions next),
 	      [x-new y-new] (reduce (fn [p w]
@@ -78,6 +68,16 @@
 	  (recur (assoc positions next
 			[x-old (min y-old y-new)])
 		 (rest nodes)))))))
+
+;;;
+
+(defn layout-by-placement
+  "Computes additive layout of lattice by given positions of the keys
+  of placement. The values of placement should be the positions of the
+  corresponding keys. Top element will be at [0,0], if not explicitly
+  given."
+  [lattice top placement]
+  (make-layout (placement-by-initials lattice top placement) (edges lattice)))
 
 ;;;
 

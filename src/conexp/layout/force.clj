@@ -177,8 +177,9 @@
   ([layout]
      (force-layout layout nil))
   ([layout iterations]
-     (let [;; compute lattice from layout
+     (let [;; compute lattice from layout and ensure proper starting layout
 	   lattice             (lattice layout),
+	   layout              (to-inf-additive-layout lattice layout),
 
 	   ;; get positions of inf-irreducibles from layout as starting point
 	   inf-irrs            (inf-irreducibles layout),
