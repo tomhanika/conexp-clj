@@ -142,7 +142,7 @@
                           (walk insert-dl identity form),
                         :else
                           form))]
-      (apply insert-dl body))))
+      (cons 'do (insert-dl body)))))
 
 ;;;
 

@@ -114,6 +114,8 @@
 			 undefined-symbols# " are missing."))
      (make-model ~language (set '~base-set) '~(apply hash-map interpretation))))
 
+(add-dl-syntax 'model)
+
 (defmacro define-model
   "Globally defines model with name for language on base-set:
   interpretation maps atomic expressions to their extents."
