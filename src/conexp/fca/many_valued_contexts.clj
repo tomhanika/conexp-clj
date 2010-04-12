@@ -26,13 +26,13 @@
 (defn print-mv-context
   "Prints the given many-valued context mv-ctx as a value-table."
   [mv-ctx]
-  (let [objs (objects mv-ctx)
-	atts (attributes mv-ctx)
-	inz (incidence mv-ctx)
+  (let [objs         (sort (objects mv-ctx)),
+	atts         (sort (attributes mv-ctx)),
+	inz          (incidence mv-ctx),
 
-	str #(if (nil? %) "nil" (str %))
+	str          #(if (nil? %) "nil" (str %))
 
-	max-obj-len (reduce #(max %1 (count (str %2))) 0 objs)
+	max-obj-len  (reduce #(max %1 (count (str %2))) 0 objs)
 	max-att-lens (loop [lens (into {} (for [att atts]
 					    [att (count (str att))]))
 			    triples (for [g objs,
@@ -85,7 +85,7 @@
 
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/fn]
   [objs atts inz-fn]
-  (ManyValuedContext objs atts
+  (ManyValuedContext (set objs) (set atts)
                      (if (map? inz-fn)
                        inz-fn
                        (hashmap-by-function (fn [[g m]]

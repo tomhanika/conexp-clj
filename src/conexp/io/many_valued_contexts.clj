@@ -49,12 +49,6 @@
 
 ;; Format Data Table
 
-;; Note that all entries must be separated by ,. The MVC must have at
-;; least one object and at least two attributes. The first line is a
-;; comma separated line of all attributes. All subsequent lines comma
-;; separated line starting with the object name followed by the valued
-;; for the corresponding attributes.
-
 (add-mv-context-input-format :data-table
                              (fn [rdr]
                                (try
@@ -87,14 +81,27 @@
           lines           (doall
                            (take-while #(not (empty? %))
                                        (repeatedly read-comma-line))),
-          objects         (map first lines)
-          interpretation  (into {}
-                                (for [line lines
-                                      :let [g (first line),
-                                            values (rest line)],
-                                      [m w] (map vector attributes values)]
-                                  [[g m] w]))]
-      (make-mv-context objects attributes interpretation))))
+          line-lengths    (set-of (count line) [line lines])]
+      (when (< 1 (count line-lengths))
+        (illegal-argument "Many-Valued Context in file " file " has lines of different length."))
+      (when (and (not= (count attributes) (first line-lengths))
+                 (not= (inc (count attributes)) (first line-lengths)))
+        (illegal-argument "Number of values in lines in file " file " does not match given attributes.\n"
+                          "Number of values given should be equal or once more to the number of attributes."))
+      (let [lines           (if (not= (first line-lengths) (count attributes))
+                              lines
+                              (map #(cons %1 %2) (iterate inc 0) lines)),
+            objects         (map first lines),
+            object-set      (set objects)]
+        (when (not= (count objects) (count object-set))
+          (illegal-argument "Given file " file " contains double entries for objects."))
+        (let [interpretation  (into {}
+                                    (for [line lines
+                                          :let [g (first line),
+                                                values (rest line)],
+                                          [m w] (map vector attributes values)]
+                                      [[g m] w]))]
+        (make-mv-context object-set attributes interpretation))))))
 
 ;;;
 
