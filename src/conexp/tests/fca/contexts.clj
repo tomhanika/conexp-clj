@@ -204,8 +204,8 @@
 			    (incidence ctx))
 			 (= base-set (objects ctx) (attributes ctx))))
        #{}
-       #{1 2 3 2 1 282 392 2 1 23}
-       #{nil 4 '4 * -}))
+       #{1 2 3 282 392 23}
+       #{nil 4 * -}))
 
 (deftest test-context-sum
   'to-be-done)

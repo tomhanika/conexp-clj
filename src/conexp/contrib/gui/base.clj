@@ -6,20 +6,23 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.base
+(ns conexp.contrib.gui.base
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem JToolBar JPanel
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
 	   [java.awt GridLayout BorderLayout Dimension])
-  (:use [conexp.base :only (defvar-)]
-        conexp.gui.util
-	conexp.gui.repl
-	conexp.gui.plugins
-	[conexp.gui.plugins.base :only (load-plugin)]
-	[conexp.gui.editors.contexts :only (context-editor)]
-	[conexp.gui.editors.lattices :only (lattice-editor)])
+  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, update-ns-meta!)]
+        conexp.contrib.gui.util
+	conexp.contrib.gui.repl
+	conexp.contrib.gui.plugins
+	[conexp.contrib.gui.plugins.base :only (load-plugin)]
+	[conexp.contrib.gui.editors.contexts :only (context-editor)]
+	[conexp.contrib.gui.editors.lattices :only (lattice-editor)])
   (:use clojure.contrib.swing-utils))
 
+
+(update-ns-meta! conexp.contrib.gui.base
+  :doc "Provides basic definitions for the standard conexp-clj GUI.")
 
 ;;; Menus
 
@@ -27,7 +30,12 @@
 		      :content [---
 				{:name "Quit",
 				 :handler (fn [#^JFrame frame]
-					    (.dispose frame))}]}
+					    (condp = (.getDefaultCloseOperation frame)
+					      JFrame/DISPOSE_ON_CLOSE    (.dispose frame),
+					      JFrame/EXIT_ON_CLOSE       (System/exit 0),
+					      JFrame/HIDE_ON_CLOSE       (.hide frame),
+					      JFrame/DO_NOTHING_ON_CLOSE nil,
+					      (illegal-state "Unknown default close operation for given frame.")))}]}
   "Main menu for conexp-clj standard GUI.")
 
 (defvar- *help-menu* {:name "Help",
@@ -42,13 +50,13 @@
 
 ;;; Conexp Main Frame
 
-(defn conexp-main-frame 
+(defnk conexp-main-frame
   "Returns main frame for conexp standard gui."
-  []
+  [:default-close-operation JFrame/DISPOSE_ON_CLOSE]
   (let [main-frame (JFrame. "conexp-clj")]
     ;; main setup (including menu)
     (doto main-frame
-      (.setDefaultCloseOperation JFrame/DISPOSE_ON_CLOSE)
+      (.setDefaultCloseOperation default-close-operation)
       (.setSize 1000 800)
       (.setJMenuBar (JMenuBar.))
       (.setContentPane (JPanel. (BorderLayout.)))

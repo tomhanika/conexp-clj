@@ -15,9 +15,8 @@
 (declare order)
 
 (deftype Lattice [base-set order-relation inf sup]
-  :as this
   Object
-  (equals [other]
+  (equals [this other]
     (and (= ::Lattice (type other))
      	 (= (:base-set this) (:base-set other))
 	 (let [order-this (order this),
@@ -26,9 +25,9 @@
 		    y (:base-set this)]
 	     (<=> (order-this [x y])
 		  (order-other [x y]))))))
-  (hashCode []
+  (hashCode [this]
     ;; can't think of a better way ...
-    (hash base-set)))
+    (hash (:base-set this))))
 
 (defn base-set
   "Returns the base set of lattice."

@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptualSystem>
+  <Version MajorNumber="1" MinorNumber="0"/>
+  <Contexts>
+    <Context Identifier="0" Type="Binary">
+      <Attributes>
+        <Attribute Identifier="2">
+          <Name>[3 [1 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="1">
+          <Name>[2 [2 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="0">
+          <Name>[1 [3 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="4">
+          <Name>[2 [1 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="3">
+          <Name>[1 [2 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="5">
+          <Name>[1 [1 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="7">
+          <Name>[2 [1 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="6">
+          <Name>[1 [2 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="8">
+          <Name>[1 [1 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="9">
+          <Name>[3 [3 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="10">
+          <Name>[2 [3 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="11">
+          <Name>[3 [2 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="12">
+          <Name>[3 [3 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="13">
+          <Name>[2 [3 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="14">
+          <Name>[3 [2 2]]</Name>
+        </Attribute>
+        <Attribute Identifier="15">
+          <Name>[1 [3 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="16">
+          <Name>[2 [2 1]]</Name>
+        </Attribute>
+        <Attribute Identifier="17">
+          <Name>[3 [1 1]]</Name>
+        </Attribute>
+      </Attributes>
+      <Objects>
+        <Object>
+          <Name>[1 [3 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[2 [2 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[3 [1 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[1 [2 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[2 [1 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[1 [1 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[1 [2 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[2 [1 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[1 [1 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[3 [3 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[2 [3 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[3 [2 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[3 [3 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[2 [3 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[3 [2 2]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+            <HasAttribute AttributeIdentifier="16"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[1 [3 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="15"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[2 [2 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="3"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="10"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="16"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>[3 [1 1]]</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="0"/>
+            <HasAttribute AttributeIdentifier="1"/>
+            <HasAttribute AttributeIdentifier="2"/>
+            <HasAttribute AttributeIdentifier="4"/>
+            <HasAttribute AttributeIdentifier="5"/>
+            <HasAttribute AttributeIdentifier="6"/>
+            <HasAttribute AttributeIdentifier="7"/>
+            <HasAttribute AttributeIdentifier="8"/>
+            <HasAttribute AttributeIdentifier="9"/>
+            <HasAttribute AttributeIdentifier="11"/>
+            <HasAttribute AttributeIdentifier="12"/>
+            <HasAttribute AttributeIdentifier="13"/>
+            <HasAttribute AttributeIdentifier="14"/>
+            <HasAttribute AttributeIdentifier="17"/>
+          </Intent>
+        </Object>
+      </Objects>
+    </Context>
+  </Contexts>
+</ConceptualSystem>

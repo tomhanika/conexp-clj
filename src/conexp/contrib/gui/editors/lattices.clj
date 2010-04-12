@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.editors.lattices
+(ns conexp.contrib.gui.editors.lattices
   (:use conexp.base
 	conexp.fca.contexts
 	conexp.fca.lattices
@@ -14,13 +14,13 @@
 	conexp.layout
 	[conexp.layout.base :only (lattice)]
 	conexp.graphics.draw
-	conexp.gui.util
-	conexp.gui.plugins.base)
+	conexp.contrib.gui.util
+	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
 	clojure.contrib.io)
   (:import [java.io File]))
 
-(update-ns-meta! conexp.gui.editors.lattices
+(update-ns-meta! conexp.contrib.gui.editors.lattices
   :doc "Provides lattice-editor, a plugin for lattices for the standard GUI of conexp-clj.")
 
 ;;; The Plugin

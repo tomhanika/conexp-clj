@@ -6,25 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui
-  (:import [javax.swing UIManager JFrame])
-  (:use conexp.base
-	conexp.gui.base)
-  (:use clojure.contrib.swing-utils))
+(ns conexp.contrib.gui.plugins.browse
+  (:use conexp.contrib.gui.plugins))
 
-(update-ns-meta! conexp.gui
-  :doc "Provides standard gui for conexp-clj.")
+;;; Graphical routines for Plugins
 
-;;;
-
-(defn gui
-  "Starts the standard gui for conexp-clj."
-  []
-  (do-swing
-   (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-   (let [#^JFrame frame (conexp-main-frame)]
-     (.setVisible frame true))))
-
-;;;
+;;; Plugin Browser
 
 nil
