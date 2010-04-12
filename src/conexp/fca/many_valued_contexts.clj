@@ -69,7 +69,7 @@
 (defmulti make-mv-context
   "Constructs a many-valued context from a set of objects, a set of
   attributes and an incidence relation, given as set of triples [g m w]
-  or as a function from two arguments [g m] to values w."
+  or as a function from pairs [g m] to values w."
   {:arglists '([objects attributes incidence])}
   (fn [& args] (map math-type args)))
 
@@ -86,9 +86,11 @@
 (defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/fn]
   [objs atts inz-fn]
   (ManyValuedContext objs atts
-		     (hashmap-by-function (fn [[g m]]
-					    (inz-fn g m))
-					  (cross-product objs atts))))
+                     (if (map? inz-fn)
+                       inz-fn
+                       (hashmap-by-function (fn [[g m]]
+                                              (inz-fn [g m]))
+                                            (cross-product objs atts)))))
 
 (defmethod make-mv-context :default [objs atts inz]
   (illegal-argument "No method defined for types "
