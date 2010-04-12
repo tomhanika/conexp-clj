@@ -27,12 +27,22 @@
 (defn- induced-context
   "Returns context induced by the set of concept descriptions and the
   given model."
-  [descriptions model]
-  (let [objects    (model-base-set model),
-	attributes descriptions,
-	incidence  (set-of [g m] [m attributes,
-				  g (interpret model m)])]
-    (make-context objects attributes incidence)))
+  ([descriptions model]
+     (induced-context descriptions model (make-context #{} #{} #{})))
+  ([descriptions model old-context]
+     (let [new-objects    (difference (model-base-set model)
+                                      (objects old-context)),
+           new-attributes (difference (set descriptions)
+                                      (attributes old-context)),
+           new-incidence  (union (set-of [x y] [y new-attributes,
+                                                x (interpret model y)])
+                                 (if (empty? new-objects)
+                                   (incidence old-context)
+                                   (set-of [x y] [y (attributes old-context),
+                                                  x (interpret model y)])))]
+       (make-context (union (objects old-context) new-objects)
+                     (union (attributes old-context) new-attributes)
+                     new-incidence))))
 
 (defn- obviously-true?
   "Returns true iff the given subsumption is obviously true."
@@ -88,9 +98,9 @@
 				    model
 				    (recur (extend-model-by-contradiction model susu))))),
 		   next-M_k   (apply add-concepts! M_k (for [r (role-names language)]
-							 (dl-expression language
-									(exists r (model-closure next-model all-P_k))))),
-		   next-K     (induced-context (seq-on next-M_k) next-model),
+                                                         (dl-expression language
+                                                                        (exists r (model-closure next-model all-P_k))))),
+		   next-K     (induced-context (seq-on next-M_k) next-model K),
 		   next-Pi_k  (conj Pi_k P_k),
 
 		   implications (set-of impl [P_l next-Pi_k
