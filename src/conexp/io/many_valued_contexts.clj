@@ -47,7 +47,18 @@
         (illegal-argument "File " file " does not contain a many-valued context."))
       (apply make-mv-context mv-ctx))))
 
-;; Format Data Table
+
+;; Data Table Format
+
+;; Note the following restrictions:
+;;   - we need at least one object and at least two attributes (to
+;;     reliably determine the file type)
+;;   - the first line must contain of the attributes in the correct order
+;;   - if the subsequent lines have the same number of entries as the
+;;     first, the resulting mv-context will have the line number as
+;;     objects,
+;;   - if the subsequent lines have one more element as the first, the first
+;;     entry will be the object for that line
 
 (add-mv-context-input-format :data-table
                              (fn [rdr]
