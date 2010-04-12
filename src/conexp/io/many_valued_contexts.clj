@@ -49,6 +49,53 @@
 
 ;; Format Data Table
 
+;; Note that all entries must be separated by ,. The MVC must have at
+;; least one object and at least two attributes. The first line is a
+;; comma separated line of all attributes. All subsequent lines comma
+;; separated line starting with the object name followed by the valued
+;; for the corresponding attributes.
+
+(add-mv-context-input-format :data-table
+                             (fn [rdr]
+                               (try
+                                (re-matches #"^[^,]+,[^,]+.*$" (.readLine rdr))
+                                (catch Exception _))))
+
+(defmethod write-mv-context :data-table [_ mv-context file]
+  (with-out-writer file
+    (when (> 2 (count (attributes mv-context)))
+      (illegal-argument "Cannot store many-valued contexts with less then 2 attributes in format :data-table."))
+    (when (= 0 (count (objects mv-context)))
+      (illegal-argument "Cannot store many-valued context without objects in format :data-table."))
+    (let [write-comma-line (fn [things]
+                             (cond
+                              (empty? things) nil,
+                              (= 1 (count things)) (prn (first things)),
+                              :else (do (pr (first things))
+                                        (print ",")
+                                        (recur (rest things)))))]
+      (write-comma-line (attributes mv-context))
+      (doseq [g (objects mv-context)]
+        (write-comma-line (cons g (map #((incidence mv-context) [g %]) (attributes mv-context))))))))
+
+(defmethod read-mv-context :data-table [file]
+  (with-in-reader file
+    (let [read-comma-line (fn []
+                            (let [line (get-line)]
+                              (read-string (str "(" line ")")))),
+          attributes      (read-comma-line),
+          lines           (doall
+                           (take-while #(not (empty? %))
+                                       (repeatedly read-comma-line))),
+          objects         (map first lines)
+          interpretation  (into {}
+                                (for [line lines
+                                      :let [g (first line),
+                                            values (rest line)],
+                                      [m w] (map vector attributes values)]
+                                  [[g m] w]))]
+      (make-mv-context objects attributes interpretation))))
+
 ;;;
 
 nil
