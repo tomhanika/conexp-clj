@@ -83,9 +83,13 @@
 ;;;
 
 (defn dl-expression?
-  "Returns true iff thing is a DL expression."
-  [thing]
-  (= (type thing) ::DL-expression))
+  "Returns true iff thing is a DL expression. If dl is given, checks
+  for thing to be a dl-expression in dl."
+  ([thing]
+     (= (type thing) ::DL-expression))
+  ([dl thing]
+     (and (dl-expression? thing)
+          (= dl (expression-language thing)))))
 
 (defn- dl-sexp->term
   "Ensures no dl-expression objects in the syntax expression given."

@@ -112,7 +112,7 @@
      (when (not (empty? undefined-symbols#))
        (illegal-argument "Definition of model is incomplete. The symbols "
 			 undefined-symbols# " are missing."))
-     (make-model ~language (set '~base-set) '~(apply hash-map interpretation))))
+     (make-model ~language (set '~base-set) interpretation-map#)))
 
 (add-dl-syntax 'model)
 
@@ -164,6 +164,35 @@
   [model subsumption]
   (subset? (interpret model (subsumee subsumption))
 	   (interpret model (subsumer subsumption))))
+
+(defn context->model
+  "Returns for a given context ctx and a given description logic dl a
+  model given by the incidence relation of ctx. Note that the set of
+  attributes must be the set of primitive concepts of dl together with
+  a set of element of the form (r x), where r is a role name of dl and
+  y incident with (r x) shall mean that (x y) is in the interpretation
+  of r in the resulting model."
+  [dl ctx]
+  (let [base-set       (objects ctx),
+        interpretation (loop [result {},
+                              attributes (attributes ctx)]
+                         (if (empty? attributes)
+                           result
+                           (let [next (first attributes)]
+                             (if (and (seq? next)
+                                      (= 2 (count next))
+                                      (contains? (role-names dl) (first next)))
+                               (let [role (first next),
+                                     x    (second next)]
+                                 (recur (assoc result role
+                                               (into (get result role #{})
+                                                     (for [y (attribute-derivation ctx #{next})]
+                                                       [x y])))
+                                        (rest attributes)))
+                               (recur (assoc result next
+                                             (attribute-derivation ctx #{next}))
+                                      (rest attributes))))))]
+    (make-model dl base-set interpretation)))
 
 ;;;
 
