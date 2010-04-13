@@ -114,7 +114,7 @@
 ;;;
 
 (let [dl-creators (atom #{})]
-  (defn add-dl-syntax
+  (defn add-dl-syntax!
     "Adds a new keyword for with-dl."
     [symbol]
     (swap! dl-creators conj symbol))
@@ -129,7 +129,7 @@
 (defmacro with-dl
   "Lets one write dl-expression without repeatedly naming the dl one
   is working with. Recognized keywords for dl-expression can be added
-  with add-dl-syntax.
+  with add-dl-syntax!.
 
   Note: This implementation is very simple. Don't try to shadow
   symbols which are recognized as syntax with local binding. This will
@@ -150,18 +150,27 @@
 
 ;;;
 
-(defvar *common-constructors*
-  '#{and or exists forall}
-  "Common constructors for DL expression. They will be quoted in
-  dl-expression automatically.")
+(let [common-constructors (atom #{})]
+
+  (defn get-common-constructors
+    "Returns all registered common constructors."
+    []
+    @common-constructors)
+
+  (defn add-common-constructor!
+    "Adds given symbol as a common constructor."
+    [sym]
+    (swap! common-constructors conj sym))
+
+  nil)
 
 (defmacro dl-expression
   "Allows input of DL s-expression without quoting. The following quoting rules apply:
 
     - function calls are not quoted (sequences starting with a symbol
-      not being in *common-constructors*
+      not being in (get-common-constructors).
     - capital letters are quoted (appearing outside of a function call)
-    - symbols in *common-constructors* being the first element of a sequence are quoted."
+    - symbols in (get-common-constructors) being the first element of a sequence are quoted."
   [language expression]
   (let [transform-symbol (fn [symbol]
 			   (if (Character/isUpperCase (first (str symbol)))
@@ -171,7 +180,7 @@
 		    (cond
 		     (seq? sexp)        (cond
 					 (empty? sexp) sexp,
-					 (contains? *common-constructors* (first sexp))
+					 (contains? (get-common-constructors) (first sexp))
 					 (list* 'list (list 'quote (first sexp)) (walk transform identity (rest sexp))),
 					 :else sexp),
 		     (sequential? sexp) (walk transform identity sexp),
@@ -179,7 +188,7 @@
 		     :else              sexp))]
     `(make-dl-expression ~language ~(transform expression))))
 
-(add-dl-syntax 'dl-expression)
+(add-dl-syntax! 'dl-expression)
 
 (defmacro define-dl
   "Defines a DL."
@@ -358,7 +367,7 @@
   `(make-subsumption (dl-expression ~DL ~sexp-for-subsumee)
 		     (dl-expression ~DL ~sexp-for-subsumer)))
 
-(add-dl-syntax 'subsumption)
+(add-dl-syntax! 'subsumption)
 
 ;;;
 

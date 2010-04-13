@@ -82,6 +82,8 @@
     (reduce intersection (model-base-set model)
 	    (map #(interpret model %) (arguments dl-expression)))))
 
+(add-common-constructor! 'and)
+
 (defmethod compile-expression 'exists [dl-expression]
   (fn [model]
     (let [r-I (interpret model (first (arguments dl-expression))),
@@ -89,6 +91,8 @@
       (set-of x [x (model-base-set model),
 		 :when (exists [y C-I]
 			 (contains? r-I [x y]))]))))
+
+(add-common-constructor! 'exists)
 
 (defmacro define-base-semantics
   "Define how to interpret an expression which is neither compound nor
@@ -114,7 +118,7 @@
 			 undefined-symbols# " are missing."))
      (make-model ~language (set '~base-set) interpretation-map#)))
 
-(add-dl-syntax 'model)
+(add-dl-syntax! 'model)
 
 (defmacro define-model
   "Globally defines model with name for language on base-set:
