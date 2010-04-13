@@ -86,13 +86,12 @@
 			att-map
 			(let [[object attributes] (first pairs)]
 			  (recur (rest pairs)
-				 (merge-with conj
-					     att-map
-					     (into {} (map (fn [att]
-							     (if (symbol? att)
-							       [att object]
-							       [(first att) [object (second att)]]))
-							   attributes))))))),
+                                 (reduce (fn [att-map att]
+                                           (if (symbol? att)
+                                             (update-in att-map [att] conj object)
+                                             (update-in att-map [(first att)] conj [object (second att)])))
+                                         att-map
+                                         attributes))))),
 	new-model (make-model language (union old-objects new-objects) new-att-map)]
     (if (holds-in-model? new-model subsumption)
       (do

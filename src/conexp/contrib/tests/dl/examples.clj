@@ -36,6 +36,14 @@
 		       Female #{Marry, Jana},
 		       HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
 
+(def empty-model (model SimpleDL
+                        #{}
+                        Mother #{}
+                        Father #{}
+                        Male   #{}
+                        Female #{}
+                        HasChild #{}))
+
 (def some-tbox (tbox SimpleDL
 		     Grandfather (and Male (exists HasChild (exists HasChild (and))))
 		     Grandmother (and Female (exists HasChild (exists HasChild (and))))))
