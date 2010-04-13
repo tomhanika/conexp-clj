@@ -7,6 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.main
+  (:require conexp.base
+	    conexp.fca
+	    conexp.io
+	    conexp.layout
+	    conexp.graphics)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
@@ -15,8 +20,7 @@
 			   conexp.fca
 			   conexp.io
 			   conexp.layout
-			   conexp.graphics
-			   conexp.gui])
+			   conexp.graphics])
 
 (dorun (map immigrate *conexp-namespaces*))
 
@@ -25,7 +29,7 @@
 
 (def *conexp-version* {:major 0,
 		       :minor 0,
-		       :patch 2
+		       :patch 3,
 		       :qualifier "pre-alpha"})
 
 (defn conexp-version

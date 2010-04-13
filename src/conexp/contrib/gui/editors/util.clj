@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.editors.util
+(ns conexp.contrib.gui.editors.util
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
              JScrollPane JOptionPane KeyStroke JComponent AbstractAction
              JToolBar JButton UIManager]
@@ -19,7 +19,7 @@
     [javax.swing.event TreeSelectionListener TableModelListener]
     [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
-    conexp.gui.util
+    conexp.contrib.gui.util
     conexp.util
     conexp.util.hookable
     conexp.util.multimethods
@@ -167,7 +167,7 @@
 
 (defn managed-by-conexp-gui-editors-util? 
   "Returns true if the object given as parameter is managed by the
-   conexp.gui.editors.util module.
+   conexp.contrib.gui.editors.util module.
    
    Parameters:
      thing       _object to check whether it is managed."

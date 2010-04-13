@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.gui.editors.contexts
+(ns conexp.contrib.gui.editors.contexts
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
              JScrollPane JPanel JButton]
     [java.awt GridLayout BorderLayout Dimension]
@@ -14,14 +14,14 @@
     [java.util Vector]
     [javax.swing.table DefaultTableModel]
     )
-  (:use conexp.gui.plugins.base
-    conexp.gui.util
+  (:use conexp.contrib.gui.plugins.base
+    conexp.contrib.gui.util
     conexp.util
     conexp.util.hookable
     conexp.util.one-to-many
     conexp.util.multimethods
     clojure.contrib.swing-utils
-    conexp.gui.editors.util
+    conexp.contrib.gui.editors.util
     conexp.fca
     [clojure.contrib.string :only (join split-lines split)]))
 
@@ -110,7 +110,7 @@
 ;;
 
 (deftype context-editor-widget [widget table toolbar e-ctx])
-(derive ::context-editor-widget :conexp.gui.editors.util/widget)
+(derive ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
 
 (declare make-editable-context editable-context? add-widget get-context)
 
@@ -176,10 +176,10 @@
   [widget]
   (:table widget))
 
-(inherit-multimethod get-table :conexp.gui.editors.util/table-control
+(inherit-multimethod get-table :conexp.contrib.gui.editors.util/table-control
   "Identity for table controls")
 
-(defmethod get-table :conexp.gui.editors.util/table-control
+(defmethod get-table :conexp.contrib.gui.editors.util/table-control
   [x] x)
 
 
@@ -569,6 +569,7 @@
       (ref-set context-workspace nil)
       (ref-set context-workspace-tree nil))))
    
+contexts.clj
 
 (define-plugin context-editor
   "Context editor plugin."
