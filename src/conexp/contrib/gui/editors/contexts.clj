@@ -569,7 +569,6 @@
       (ref-set context-workspace nil)
       (ref-set context-workspace-tree nil))))
    
-contexts.clj
 
 (define-plugin context-editor
   "Context editor plugin."
