@@ -13,7 +13,7 @@
 
 ;;; Model definition
 
-(deftype Model [language base-set interpretation])
+(defrecord Model [language base-set interpretation])
 
 (defn model-base-set
   "Returns base set of a given model."
@@ -33,9 +33,9 @@
 (defn make-model
   "Returns a model for a given DL language on the given base set."
   [language base-set interpretation]
-  (Model language base-set interpretation))
+  (Model. language base-set interpretation))
 
-(defmethod print-method ::Model [model out]
+(defmethod print-method Model [model out]
   (let [#^String output (with-out-str (pprint (list 'Model
 						    (model-language model)
 						    (model-base-set model)

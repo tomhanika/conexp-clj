@@ -69,7 +69,7 @@
 	    " "])
 	 "\n"]))))
 
-(defmethod print-method ::ManyValuedContext [mv-ctx out]
+(defmethod print-method ManyValuedContext [mv-ctx out]
   (.write out (print-mv-context mv-ctx)))
 
 ;;;
