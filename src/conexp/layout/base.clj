@@ -19,42 +19,41 @@
 (deftype Layout [positions connections information]
   Object
   (equals [this other]
-    (and (= (type other) ::Layout)
-	 (= (:positions this) (:positions other))
-	 (= (:connections this) (:connections other))))
+    (and (= (class this) (class other))
+	 (= (.positions this) (.positions other))
+	 (= (.connections this) (.connections other))))
   (hashCode [this]
-    (hash-combine (hash (:positions this))
-		  (hash (:connections this)))))
+    (hash-combine-hash Layout positions connections)))
 
 (defn make-layout
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout."
   [positions connections]
-  (Layout positions (set connections) (ref {})))
+  (Layout. positions (set connections) (ref {})))
 
 (defn positions
   "Return positions map of layout."
   [layout]
-  (:positions layout))
+  (.positions layout))
 
 (defn connections
   "Returns set of connections of layout."
   [layout]
-  (:connections layout))
+  (.connections layout))
 
 (defn- information
   "Returns stored additional information of layout."
   [layout]
-  (:information layout))
+  (.information layout))
 
 (defn update-positions
   "Updates position map in layout to be new-positions. Keys of both
   hash-maps must be the same, otherwise everything will be a mess."
   [layout new-positions]
-  (Layout new-positions (connections layout) (information layout)))
+  (Layout. new-positions (connections layout) (information layout)))
 
-(defmethod print-method ::Layout [layout out]
+(defmethod print-method Layout [layout out]
   (.write out
 	  (with-out-str
 	    (println "Layout")

@@ -12,25 +12,32 @@
 
 ;;;
 
-(deftype Implication [premise conclusion])
+(deftype Implication [premise conclusion]
+  Object
+  (equals [this other]
+    (and (= (class this) (class other))
+	 (= premise (.premise other))
+	 (= conclusion (.conclusion other))))
+  (hashCode [this]
+    (hash-combine-hash Implication premise conclusion)))
 
 (defmulti premise
   "Returns premise of given object."
   {:arglists '([thing])}
   type)
 
-(defmethod premise ::Implication [impl]
-  (:premise impl))
+(defmethod premise Implication [impl]
+  (.premise impl))
 
 (defmulti conclusion
   "Returns conclusion of given object."
   {:arglists '([thing])}
   type)
 
-(defmethod conclusion ::Implication [impl]
-  (:conclusion impl))
+(defmethod conclusion Implication [impl]
+  (.conclusion impl))
 
-(defmethod print-method ::Implication [impl out]
+(defmethod print-method Implication [impl out]
   (.write out (str "( " (premise impl) "  ==>  " (conclusion impl) " )")))
 
 ;;;
@@ -40,7 +47,7 @@
   [premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]
-    (Implication premise (difference conclusion premise))))
+    (Implication. premise (difference conclusion premise))))
 
 ;;;
 

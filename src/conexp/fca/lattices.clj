@@ -17,34 +17,33 @@
 (deftype Lattice [base-set order-relation inf sup]
   Object
   (equals [this other]
-    (and (= ::Lattice (type other))
-     	 (= (:base-set this) (:base-set other))
+    (and (= (class this) (class other))
+         (= (.base-set this) (.base-set other))
 	 (let [order-this (order this),
 	       order-other (order other)]
-	   (forall [x (:base-set this)
-		    y (:base-set this)]
+	   (forall [x (.base-set this)
+		    y (.base-set this)]
 	     (<=> (order-this [x y])
 		  (order-other [x y]))))))
   (hashCode [this]
-    ;; can't think of a better way ...
-    (hash (:base-set this))))
+    (hash-combine-hash Lattice base-set)))
 
 (defn base-set
   "Returns the base set of lattice."
   [lattice]
-  (:base-set lattice))
+  (.base-set lattice))
 
 (defn order
   "Returns a set of pairs representing the order relation on lattice."
   [lattice]
-  (or (:order-relation lattice)
-      (let [sup (:sup lattice)]
+  (or (.order-relation lattice)
+      (let [sup (.sup lattice)]
 	(fn [[x y]] (= y (sup x y))))))
 
 (defn inf
   "Returns a function computing the infimum in lattice."
   [lattice]
-  (or (:inf lattice)
+  (or (.inf lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
 	(fn [x y]
@@ -59,7 +58,7 @@
 (defn sup
   "Returns a function computing the supremum in lattice."
   [lattice]
-  (or (:sup lattice)
+  (or (.sup lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
 	(fn [x y]
@@ -71,7 +70,7 @@
 					      (order [z a]))))]
 		   z))))))
 
-(defmethod print-method ::Lattice [lattice out]
+(defmethod print-method Lattice [lattice out]
   (.write out
 	  (str "Lattice on " (count (base-set lattice)) " elements.")))
 
@@ -99,13 +98,13 @@
   (fn [& args] (vec (map type-of args))))
 
 (defmethod make-lattice [::set ::set] [base-set order]
-  (Lattice base-set order nil nil))
+  (Lattice. base-set order nil nil))
 
 (defmethod make-lattice [::set ::fn] [base-set order]
-  (Lattice base-set order nil nil))
+  (Lattice. base-set order nil nil))
 
 (defmethod make-lattice [::set ::fn ::fn] [base-set inf sup]
-  (Lattice base-set nil inf sup))
+  (Lattice. base-set nil inf sup))
 
 (defmethod make-lattice :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Lattice."))

@@ -194,6 +194,12 @@
         #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
     (.format sdf (.getTime cal))))
 
+(defn hash-combine-hash
+  "Combines the hashes of all things given."
+  [& args]
+  (reduce hash-combine 0
+	  (map hash args)))
+
 
 ;;; Math
 

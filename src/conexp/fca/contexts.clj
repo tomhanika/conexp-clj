@@ -12,31 +12,39 @@
 
 ;;;
 
-(deftype Context [objects attributes incidence])
+(deftype Context [objects attributes incidence]
+  Object
+  (equals [this other]
+    (and (= (class this) (class other))
+	 (= (.objects this) (.objects other))
+	 (= (.attributes this) (.attributes other))
+	 (= (.incidence this) (.incidence other))))
+  (hashCode [this]
+    (hash-combine-hash Context objects attributes incidence)))
 
 (defmulti objects
-  "Returns the objects of a formal context."
+  "Returns the objects of a formal context.."
   {:arglists '([context])}
   type)
 
-(defmethod objects ::Context [ctx]
-  (:objects ctx))
+(defmethod objects Context [ctx]
+  (.objects ctx))
 
 (defmulti attributes
   "Returns the attributes of a formal context."
   {:arglists '([context])}
   type)
 
-(defmethod attributes ::Context [ctx]
-  (:attributes ctx))
+(defmethod attributes Context [ctx]
+  (.attributes ctx))
 
 (defmulti incidence
   "Returns the incidence of a formal context."
   {:arglists '([context])}
   type)
 
-(defmethod incidence ::Context [ctx]
-  (:incidence ctx))
+(defmethod incidence Context [ctx]
+  (.incidence ctx))
 
 (defn compare-order
   "Orders things for proper output of formal contexts."
@@ -98,7 +106,7 @@
 	    " "])
 	 "\n"]))))
 
-(defmethod print-method ::Context [ctx out]
+(defmethod print-method Context [ctx out]
   (.write out (print-context ctx sort-by-second sort-by-second)))
 
 ;;;
@@ -129,14 +137,14 @@
 	inz  (set-of [g m] [[g m] incidence
 			    :when (and (contains? objs g)
 				       (contains? atts m))])]
-    (Context objs atts inz)))
+    (Context. objs atts inz)))
 
 (defmethod make-context [::set ::set ::fn] [objects attributes incidence]
-  (Context (set objects)
-	   (set attributes)
-	   (set-of [x y] [x objects
-			  y attributes
-			  :when (incidence x y)])))
+  (Context. (set objects)
+	    (set attributes)
+	    (set-of [x y] [x objects
+			   y attributes
+			   :when (incidence x y)])))
 
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
@@ -149,7 +157,7 @@
   (fn [& args] (map type-of args)))
 
 (defmethod make-context-nc [::set ::set ::set] [objects attributes incidence]
-  (Context (set objects) (set attributes) (set incidence)))
+  (Context. (set objects) (set attributes) (set incidence)))
 
 (defmethod make-context-nc :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
