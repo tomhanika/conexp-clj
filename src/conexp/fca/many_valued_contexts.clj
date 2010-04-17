@@ -79,9 +79,9 @@
   attributes and an incidence relation, given as set of triples [g m w]
   or as a function from two arguments [g m] to values w."
   {:arglists '([objects attributes incidence])}
-  (fn [& args] (map math-type args)))
+  (fn [& args] (vec (map clojure-type args))))
 
-(defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/set]
+(defmethod make-mv-context [clojure-set clojure-set clojure-set]
   [objs atts inz]
   (make-mv-context (set objs) (set atts)
 		   (loop [hash {}
@@ -91,7 +91,7 @@
 		       (let [[g m w] (first items)]
 			 (recur (assoc hash [g m] w) (rest items)))))))
 
-(defmethod make-mv-context [:conexp.util/set :conexp.util/set :conexp.util/fn]
+(defmethod make-mv-context [clojure-set clojure-set clojure-fn]
   [objs atts inz-fn]
   (ManyValuedContext. objs atts
 		      (hashmap-by-function (fn [[g m]]

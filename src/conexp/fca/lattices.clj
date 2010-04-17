@@ -77,17 +77,6 @@
 
 ;;; Constructors
 
-(defn- type-of
-  "Type dispatch for make-lattice.
-
-  TODO: Change this to use type dispatch from conexp.util."
-  [thing]
-  (cond
-    (set? thing) ::set
-    (fn? thing)  ::fn
-    (seq? thing) ::seq
-    :else        ::invalid))
-
 (defmulti make-lattice
   "Standard constructor for makeing lattice. Call with two arguments
   [base-set order] to construct the lattice by its order
@@ -95,16 +84,16 @@
   arguments [base-set inf sup] to construct the lattice by its
   algebraic operations."
   {:arglists '([base-set order-relation] [base-set inf sup])}
-  (fn [& args] (vec (map type-of args))))
+  (fn [& args] (vec (map clojure-type args))))
 
-(defmethod make-lattice [::set ::set] [base-set order]
-  (Lattice. base-set order nil nil))
+(defmethod make-lattice [clojure-coll clojure-coll] [base-set order]
+  (Lattice. (set base-set) (set order) nil nil))
 
-(defmethod make-lattice [::set ::fn] [base-set order]
-  (Lattice. base-set order nil nil))
+(defmethod make-lattice [clojure-coll clojure-fn] [base-set order]
+  (Lattice. (set base-set) order nil nil))
 
-(defmethod make-lattice [::set ::fn ::fn] [base-set inf sup]
-  (Lattice. base-set nil inf sup))
+(defmethod make-lattice [clojure-coll clojure-fn clojure-fn] [base-set inf sup]
+  (Lattice. (set base-set) nil inf sup))
 
 (defmethod make-lattice :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Lattice."))

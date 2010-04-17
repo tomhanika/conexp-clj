@@ -111,15 +111,6 @@
 
 ;;;
 
-(defn- type-of
-  "Dispatch function for make-context. Sequences and sets are made to one thing."
-  [thing]
-  (cond
-    (or (set? thing)
-	(sequential? thing)) ::set
-    (fn? thing)              ::fn
-    :else                    ::other))
-
 (defmulti make-context
   "Standard constructor for contexts. Takes a sequence of objects,
   a sequence of attributes and either a set of pairs or function of
@@ -129,9 +120,10 @@
   relation is auzomatically restricted to the cartesian product of the
   object an the attribute set."
   {:arglists '([objects attributes incidence])}
-  (fn [& args] (map type-of args)))
+  (fn [& args] (vec (map clojure-type args))))
 
-(defmethod make-context [::set ::set ::set] [objects attributes incidence]
+(defmethod make-context [clojure-coll clojure-coll clojure-coll]
+  [objects attributes incidence]
   (let [objs (set objects)
 	atts (set attributes)
 	inz  (set-of [g m] [[g m] incidence
@@ -139,7 +131,8 @@
 				       (contains? atts m))])]
     (Context. objs atts inz)))
 
-(defmethod make-context [::set ::set ::fn] [objects attributes incidence]
+(defmethod make-context [clojure-coll clojure-coll clojure-fn]
+  [objects attributes incidence]
   (Context. (set objects)
 	    (set attributes)
 	    (set-of [x y] [x objects
@@ -154,9 +147,10 @@
   incidence to the crossproduct of object and attribute set and is
   therefore faster. Use with care."
   {:arglists '([objects attributes incidence])}
-  (fn [& args] (map type-of args)))
+  (fn [& args] (vec (map clojure-type args))))
 
-(defmethod make-context-nc [::set ::set ::set] [objects attributes incidence]
+(defmethod make-context-nc [clojure-coll clojure-coll clojure-coll]
+  [objects attributes incidence]
   (Context. (set objects) (set attributes) (set incidence)))
 
 (defmethod make-context-nc :default [obj att inz]

@@ -12,6 +12,7 @@
 ;;;
 
 (tests-to-run conexp.tests.fca.contexts
+              conexp.tests.fca.lattices
 	      conexp.tests.fca.implications)
 
 
