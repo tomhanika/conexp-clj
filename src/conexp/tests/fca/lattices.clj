@@ -59,6 +59,11 @@
                                 [2 1] [3 1] [4 1] [0 0]
                                 [1 1] [2 2] [3 3] [4 4]})])
 
+(deftest test-has-lattice-order?
+  (with-testing-data [lattice *testing-data*]
+    (has-lattice-order? lattice))
+  'to-do:add-non-lattice-examples)
+
 (deftest test-Lattice-hashCode
   (with-testing-data [lattice-1 *testing-data*,
                       lattice-2 *testing-data*]
