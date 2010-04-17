@@ -10,7 +10,7 @@
   (:use conexp.base
 	conexp.fca.contexts
 	conexp.io.util)
-  (:use [clojure.contrib.io :exclude (with-in-reader)]
+  (:use [clojure.contrib.io :only (with-out-writer, read-lines, reader)]
 	[clojure.contrib.lazy-xml :exclude (attributes)]
 	clojure.contrib.prxml
 	[clojure.contrib.string :only (split)])
@@ -93,7 +93,7 @@
 				  [idx-m (range number-of-attributes)
 				   :when (#{\X,\x} (nth line idx-m))])))))))))
 
-;;; XML helpers
+;; XML helpers
 
 (defn- find-tags [seq-of-hashes tag]
   (for [hash seq-of-hashes :when (= tag (:tag hash))] hash))
@@ -106,8 +106,6 @@
 
 (defn- hash-from-pairs [pairs]
   (into {} pairs))
-
-;;;
 
 ;; ConExp
 
@@ -212,7 +210,7 @@
 	  nr-objs (Integer/parseInt (-> ctx-xml-tree :attrs :numberObj))
 	  nr-atts (Integer/parseInt (-> ctx-xml-tree :attrs :numberAtt))
 
-	  ; can be done better (one run instead of three)
+          ;; can be done better (one run instead of three)
 	  objs (map (comp first :content) (filter #(= (:tag %) :Object) (-> ctx-xml-tree :content)))
 	  atts (map (comp first :content) (filter #(= (:tag %) :Attribute) (-> ctx-xml-tree :content)))
 	  idxs (map #(vector (Integer/parseInt (:idxO (:attrs %)))
@@ -226,10 +224,10 @@
 
 ;; Colibri (.bri, .con)
 
-; Note: Colibri cannot store empty columns. They get lost when writing
+;; Note: Colibri cannot store empty columns. They get lost when writing
 
 (add-context-input-format :colibri
-			  (fn [rdr] ; too slow
+			  (fn [rdr]
 			    (let [comment #"^\s*#.*$"
 				  blank   #"^\s*$"
 				  row     #"^\s*.+\s*:.*;\s*$"]
@@ -297,17 +295,14 @@
     (doseq [[g m] (incidence ctx)]
       (println (str g "," m)))))
 
-
 ;;; TODO
 
 ;; slf
-
 ;; csc
-
 ;; csx?
-
 ;; tuples
-
 ;; out only: TeX
+
+;;;
 
 nil
