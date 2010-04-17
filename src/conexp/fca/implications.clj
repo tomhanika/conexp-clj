@@ -61,7 +61,7 @@
   "Returns true iff impl holds in given context ctx."
   [impl ctx]
   (forall [intent (context-intents ctx)]
-	  (respects? intent impl)))
+    (respects? intent impl)))
 
 (defn- add-immediate-elements
   "Adds all elements which follow from implications with premises in
