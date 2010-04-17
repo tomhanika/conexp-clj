@@ -44,6 +44,13 @@
 					 (test-ns '~ns)))
 				    namespaces))))))
 
+(defmacro with-testing-data
+  "Expects for all bindings the body to be evaluated to true. bindings
+  must be suitable for forall."
+  [bindings & body]
+  `(forall ~bindings
+     ~@(map (fn [expr] `(is ~expr))
+            body)))
 
 ;;; Types
 

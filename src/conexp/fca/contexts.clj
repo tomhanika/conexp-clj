@@ -39,14 +39,14 @@
   (.attributes ctx))
 
 (defmulti incidence
-  "Returns the incidence of a formal context."
+  "Returns the incidence of a formal context as a set of pairs."
   {:arglists '([context])}
   type)
 
 (defmethod incidence Context [ctx]
   (.incidence ctx))
 
-(defn compare-order
+(defn- compare-order
   "Orders things for proper output of formal contexts."
   [x y]
   (if (and (= (class x) (class y))

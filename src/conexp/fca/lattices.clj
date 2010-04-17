@@ -34,11 +34,18 @@
   (.base-set lattice))
 
 (defn order
-  "Returns a set of pairs representing the order relation on lattice."
+  "Returns a function of one or two arguments representing the order
+  relation. If called with one argument it is assumed that this
+  argument is a pair of elements."
   [lattice]
-  (or (.order-relation lattice)
-      (let [sup (.sup lattice)]
-	(fn [[x y]] (= y (sup x y))))))
+  (if-let [order-relation (.order-relation lattice)]
+    (fn order-fn
+      ([pair] (order-relation pair))
+      ([x y] (order-relation [x y])))
+    (let [sup (.sup lattice)]
+      (fn order-fn
+        ([[x y]] (= y (sup x y)))
+        ([x y] (= y (sup x y)))))))
 
 (defn inf
   "Returns a function computing the infimum in lattice."
@@ -80,9 +87,9 @@
 (defmulti make-lattice
   "Standard constructor for makeing lattice. Call with two arguments
   [base-set order] to construct the lattice by its order
-  relation (given as a set or as a function). Call with three
-  arguments [base-set inf sup] to construct the lattice by its
-  algebraic operations."
+  relation (given as a set of pairs or as a function of two
+  arguments). Call with three arguments [base-set inf sup] to
+  construct the lattice by its algebraic operations."
   {:arglists '([base-set order-relation] [base-set inf sup])}
   (fn [& args] (vec (map clojure-type args))))
 
@@ -90,7 +97,7 @@
   (Lattice. (set base-set) (set order) nil nil))
 
 (defmethod make-lattice [clojure-coll clojure-fn] [base-set order]
-  (Lattice. (set base-set) order nil nil))
+  (Lattice. (set base-set) (fn [[x y]] (order x y)) nil nil))
 
 (defmethod make-lattice [clojure-coll clojure-fn clojure-fn] [base-set inf sup]
   (Lattice. (set base-set) nil inf sup))
@@ -105,16 +112,16 @@
   "Dualizes given lattice lat."
   [lat]
   (let [order (order lat)]
-    (make-lattice (base-set lat) (fn [[x y]] (order [y x])))))
+    (make-lattice (base-set lat) (fn [x y] (order [y x])))))
 
 (defn distributive?
   "Checks (primitively) whether given lattice lat is distributive or not."
   [lat]
-  (let [inf  (inf lat)
-	sup  (sup lat)
+  (let [inf  (inf lat),
+	sup  (sup lat),
 	base (base-set lat)]
-    (forall [x base
-	     y base
+    (forall [x base,
+	     y base,
 	     z base]
       (= (sup x (inf y z))
 	 (inf (sup x y) (sup x z))))))
@@ -202,7 +209,7 @@
   "Returns for a given context ctx its concept lattice."
   [ctx]
   (make-lattice (set (concepts ctx))
-		(fn [[A B]]
+		(fn [A B]
 		  (subset? (first A) (first B)))))
 
 (defn standard-context

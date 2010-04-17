@@ -77,7 +77,7 @@
 (defmulti make-mv-context
   "Constructs a many-valued context from a set of objects, a set of
   attributes and an incidence relation, given as set of triples [g m w]
-  or as a function from two arguments [g m] to values w."
+  or as a function from two arguments g and m to values w."
   {:arglists '([objects attributes incidence])}
   (fn [& args] (vec (map clojure-type args))))
 
