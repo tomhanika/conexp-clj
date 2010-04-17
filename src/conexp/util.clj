@@ -10,7 +10,8 @@
   (:use clojure.contrib.profile
 	[clojure.contrib.math :only (round)]
 	[clojure.contrib.seq :only (flatten)]
-        clojure.contrib.def)
+        clojure.contrib.def
+        clojure.test)
   (:import javax.swing.JOptionPane
 	   java.util.Calendar
 	   java.text.SimpleDateFormat))

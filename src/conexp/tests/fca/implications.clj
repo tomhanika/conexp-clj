@@ -14,6 +14,9 @@
 
 ;;;
 
+
+;;;
+
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5}))))))
 

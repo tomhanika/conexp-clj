@@ -106,10 +106,10 @@
 
 (defmethod make-mv-context :default [objs atts inz]
   (illegal-argument "No method defined for types "
-		    (math-type objs) ", "
-		    (math-type atts) ", "
-		    (math-type vals) ", "
-		    (math-type inz) "."))
+		    (clojure-type objs) ", "
+		    (clojure-type atts) ", "
+		    (clojure-type vals) ", "
+		    (clojure-type inz) "."))
 
 ;;;
 
