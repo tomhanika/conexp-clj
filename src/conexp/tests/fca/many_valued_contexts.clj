@@ -33,4 +33,17 @@
 
 ;;;
 
+(defvar- *testing-data*
+  [(make-mv-context #{} #{} +),
+   (make-mv-context (range 100) (range 100) *),
+   (make-mv-context (range 100) (range 100) (fn [& _] (rand)))])
+
+(deftest test-Many-Valued-Context-hashCode
+  (with-testing-data [mv-ctx-1 *testing-data*,
+                      mv-ctx-2 *testing-data*]
+    (=> (= mv-ctx-1 mv-ctx-2)
+        (= (hash mv-ctx-1) (hash mv-ctx-2)))))
+
+;;;
+
 nil
