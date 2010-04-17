@@ -111,22 +111,35 @@
 (defn has-lattice-order?
   "Given a lattice checks if its order is indeed a lattice order."
   [lat]
-  (forall [x (base-set lat),
-           y (base-set lat)]
-    (and (= 1 (count (set-of z [z (base-set lat)
-                                :when (and ((order lat) x z)
-                                           ((order lat) y z)
-                                           (forall [w (base-set lat)]
-                                             (=> (and ((order lat) x w)
-                                                      ((order lat) y w))
-                                                 ((order lat) w z))))])))
-         (= 1 (count (set-of z [z (base-set lat)
-                                :when (and ((order lat) z x)
-                                           ((order lat) z y)
-                                           (forall [w (base-set lat)]
-                                             (=> (and ((order lat) w x)
-                                                      ((order lat) w y))
-                                                 ((order lat) w z))))]))))))
+  (and (forall [x (base-set lat)]
+         ((order lat) x x))
+       (forall [x (base-set lat),
+                y (base-set lat)]
+         (=> (and ((order lat) x y)
+                  ((order lat) y x))
+             (= x y)))
+       (forall [x (base-set lat),
+                y (base-set lat),
+                z (base-set lat)]
+         (=> (and ((order lat) x y)
+                  ((order lat) y z))
+             ((order lat) x z)))
+       (forall [x (base-set lat),
+                y (base-set lat)]
+         (and (= 1 (count (set-of z [z (base-set lat)
+                                     :when (and ((order lat) x z)
+                                                ((order lat) y z)
+                                                (forall [w (base-set lat)]
+                                                  (=> (and ((order lat) x w)
+                                                           ((order lat) y w))
+                                                      ((order lat) w z))))])))
+              (= 1 (count (set-of z [z (base-set lat)
+                                     :when (and ((order lat) z x)
+                                                ((order lat) z y)
+                                                (forall [w (base-set lat)]
+                                                  (=> (and ((order lat) w x)
+                                                           ((order lat) w y))
+                                                      ((order lat) w z))))])))))))
 
 (defn dual-lattice
   "Dualizes given lattice lat."

@@ -62,7 +62,11 @@
 (deftest test-has-lattice-order?
   (with-testing-data [lattice *testing-data*]
     (has-lattice-order? lattice))
-  'to-do:add-non-lattice-examples)
+  (are [base-set order] (not (has-lattice-order? (make-lattice base-set order)))
+    #{1} #{},
+    [1 2 3 4] [[1 2] [2 3] [3 4]],
+    [1 2 3 4] [[1 1] [2 2] [3 3] [4 4]
+               [1 2] [3 4] [1 4] [2 3]]))
 
 (deftest test-Lattice-hashCode
   (with-testing-data [lattice-1 *testing-data*,
