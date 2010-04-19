@@ -87,7 +87,7 @@
 
 (defn make-hookable
   "Creates an empty hookable object."
-  [] (hookable (ref {})))
+  [] (hookable. (ref {})))
 
 (defn hookable?
   "Tests whether the given object is hookable."

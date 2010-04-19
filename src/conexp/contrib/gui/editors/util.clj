@@ -225,7 +225,7 @@
     (doseq [l listeners] (.removeActionListener button l))
     (let [action (proxy [ActionListener] []
                    (actionPerformed [event] 
-                     (handler)))]
+                     (with-swing-threads* handler)))]
       (.addActionListener button action))))
 
 
@@ -239,7 +239,7 @@
                   tweaks that are called after widget creation"
   [name icon & setup]
   (let [ jbutton (JButton. name icon)
-         widget (button jbutton)]
+         widget (button. jbutton)]
       (apply-exprs widget setup)
       widget ))
 
@@ -285,7 +285,7 @@
                                     :vert JSplitPane/VERTICAL_SPLIT})
                        (get-widget topleft)
                        (get-widget bottomright))
-         widget  (split-pane jsplit-pane)]
+         widget  (split-pane. jsplit-pane)]
     (apply-exprs widget setup)
     widget ))
 
@@ -391,7 +391,7 @@
          pane         (JScrollPane. treecontrol 
                         JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
                         JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED)
-         widget   (tree-control pane treecontrol treeroot treemodel) ]
+         widget   (tree-control. pane treecontrol treeroot treemodel) ]
     (apply-exprs widget setup)
     widget ))
 
@@ -792,7 +792,7 @@
 
 
          hooks (:hooks (make-hookable))
-         widget (table-control pane table hooks model) 
+         widget (table-control. pane table hooks model) 
          change-listener (proxy [TableModelListener] [] 
                            (tableChanged [event]
                              (with-swing-threads*
@@ -903,7 +903,7 @@
   (let [ toolbar (JToolBar. ({:horiz JToolBar/HORIZONTAL
                                       :vert JToolBar/VERTICAL} 
                                       orientation))
-         widget (toolbar-control toolbar toolbar) ]
+         widget (toolbar-control. toolbar toolbar) ]
     (apply-exprs widget setup)
     widget))
 

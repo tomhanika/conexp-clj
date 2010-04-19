@@ -21,7 +21,7 @@
    Parameters:
      one     _the single point object
      & many  _optional hash-set of connected objects"
-  [one & many] (one-to-many one (if (nil? many) #{} (hash-set many))))
+  [one & many] (one-to-many. one (if (nil? many) #{} (hash-set many))))
 
 
 (inherit-multimethod add ::one-to-many

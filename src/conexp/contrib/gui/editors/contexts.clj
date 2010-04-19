@@ -134,7 +134,7 @@
                        [set-handler (fn [] (paste-from-clipboard table))] ) ])
          ectx (ref (make-editable-context))
          e-ctx @ectx
-         widget (context-editor-widget root table toolbar ectx) ]
+         widget (context-editor-widget. root table toolbar ectx) ]
     (.. root getContentPane 
       (add (get-widget toolbar) BorderLayout/LINE_START))
     (.. root getContentPane
@@ -295,7 +295,7 @@
            att (attributes ctx)
            obj (objects ctx)
            self (promise)
-           e-ctx (editable-context (ref ctx) 
+           e-ctx (editable-context. (ref ctx) 
                    (ref (conj (zipmap att (range 1 (+ 1 (count att))))
                           (zipmap (range 1 (+ 1 (count att))) att)))
                    (ref (conj (zipmap obj (range 1 (+ 1 (count obj))))
