@@ -90,7 +90,7 @@
 (defn extract-array
   "Takes a java-array and turns it into a list"
   [array]
-  (map (rho aget array) (range (alength array))))
+  (seq array))
 
 
 ;;;

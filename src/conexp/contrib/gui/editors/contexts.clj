@@ -479,47 +479,10 @@
 
 
 (def context-pane (ref nil))
-(def context-workspace (ref nil))
-(def context-workspace-tree (ref nil))
 (def +debug+ (ref nil))
 (defn +debug-hook+ [] (doseq [x @+debug+]
                         (add-widget ectx x)))
 
-(defn update-workspace-tree
-  "Updates the data displayed in the current workspace tree
-   in order to reflect the current @context-workspace map-var."
-  []
-  (with-swing-threads*
-    (let [nodes ((*comp 
-                   keys                 ; take the keys
-                   (rho map str)        ; turn them into strings
-                   sort                 ; sort them
-                   (rho map list))      ; and make them leaf nodes
-                  @context-workspace)
-           workspace-tree (conj nodes :root)
-           ]
-      (set-tree @context-workspace-tree workspace-tree))))
-
-(defn add-to-workspace
-  "Adds a named context to the current workspace or replaces 
-    it if it exists
-    Parameters:
-       name     _the contexts name (will be converted to string)
-       context  _the context data structure
-   "
-  [name context]
-  (do
-    (let [done (promise)]
-      (dosync 
-        (commute context-workspace conj {(str name) context})
-        (deliver done nil))
-      (deref done)
-      (update-workspace-tree)
-      (update-workspace-tree)           ; updates do not show when called only
-                                        ; once and something in the control
-                                        ; was already selected, WHY?
-      )))
-  
 
 
 (defn plug-load-hook
@@ -528,33 +491,7 @@
      frame    _frame that shall contain the user interface
   "
   [frame]
-  (do
-    (dosync (ref-set context-workspace {}))
-
-    (with-swing-threads
-      (let [ workspace-tree (make-tree-control "context workspace"
-                              [set-selection-mode :single]
-                              [set-selection-handler 
-                                (fn [x] (with-swing-threads
-                                          (message-box (vec (first x)))))])
-             left  workspace-tree
-
-             right (make-context-editor-widget)
-             right2 (make-context-editor-widget)
-             rpane (make-split-pane :vert right right2
-                     [set-divider-location 300])
-             
-             pane (make-split-pane :horiz left rpane
-                    [set-divider-location 200]) 
-             ]
-        (add-tab-with-name-icon-tooltip frame (get-widget pane)
-          "Contexts" nil "View and edit contexts")
-        (dosync-wait 
-          (ref-set context-workspace-tree workspace-tree)
-          (ref-set context-pane pane)
-          (ref-set +debug+ [right right2])) 
-        (+debug-hook+)
-        ))) ) 
+  nil)
 
 (defn plug-unload-hook
   "Unloads the context-editor plugin.
