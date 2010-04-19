@@ -14,7 +14,7 @@
 
 ;;; TBox definitions
 
-(deftype TBox [language definitions])
+(defrecord TBox [language definitions])
 
 (defn tbox-language
   "Returns language for which tbox is a tbox."
@@ -26,7 +26,7 @@
   [tbox]
   (:definitions tbox))
 
-(defmethod print-method ::TBox [tbox out]
+(defmethod print-method TBox [tbox out]
   (let [#^String output (with-out-str (pprint (tbox-definitions tbox)))]
     (.write out (.trim output))))
 
@@ -34,7 +34,7 @@
   "Creates and returns a tbox for language from the given
   definitions."
   [language definitions]
-  (TBox language (set definitions)))
+  (TBox. language (set definitions)))
 
 ;;; accessing used role names, primitive and defined concepts
 
@@ -62,7 +62,7 @@
 (defn tbox?
   "Returns true iff thing is a tbox."
   [thing]
-  (= (type thing) ::TBox))
+  (instance? TBox thing))
 
 (defn tbox-target-pair?
   "Returns true iff dl-expr is a tbox-target-pair."

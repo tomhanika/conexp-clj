@@ -10,7 +10,8 @@
   (:use clojure.contrib.profile
 	[clojure.contrib.math :only (round)]
 	[clojure.contrib.seq :only (flatten)]
-	clojure.test)
+        clojure.contrib.def
+        clojure.test)
   (:import javax.swing.JOptionPane
 	   java.util.Calendar
 	   java.text.SimpleDateFormat))
@@ -44,23 +45,27 @@
 					 (test-ns '~ns)))
 				    namespaces))))))
 
+(defmacro with-testing-data
+  "Expects for all bindings the body to be evaluated to true. bindings
+  must be suitable for forall."
+  [bindings & body]
+  `(forall ~bindings
+     ~@(map (fn [expr] `(is ~expr))
+            body)))
 
 ;;; Types
 
-;; work over this and make it more flexible
-;; we may need our own hierachy?
+(defvar clojure-set clojure.lang.PersistentHashSet)
+(defvar clojure-fn  clojure.lang.Fn)
+(defvar clojure-seq clojure.lang.Sequential)
+(defvar clojure-vec clojure.lang.PersistentVector)
+(defvar clojure-map clojure.lang.Associative)
+(defvar clojure-coll clojure.lang.IPersistentCollection)
 
-(defn math-type
-  "Dispatch function for multimethods. Identifies sets and sequences
-  as :conexp.util/set and functions as :conexp.util/fn, all other as
-  :conexp.util/other."
+(defn clojure-type
+  "Dispatch function for multimethods."
   [thing]
-  (cond
-    (or (map? thing)
-        (fn? thing))         ::fn
-    (or (set? thing)
-	(sequential? thing)) ::set
-    :else                    ::other))
+  (class thing))
 
 
 ;;; Technical Helpers
@@ -193,6 +198,12 @@
   (let [#^Calendar cal (Calendar/getInstance),
         #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
     (.format sdf (.getTime cal))))
+
+(defn hash-combine-hash
+  "Combines the hashes of all things given."
+  [& args]
+  (reduce hash-combine 0
+	  (map hash args)))
 
 
 ;;; Math

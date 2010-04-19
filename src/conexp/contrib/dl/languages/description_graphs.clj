@@ -20,7 +20,7 @@
 
 ;;;
 
-(deftype Description-Graph [language vertices neighbours vertex-labels])
+(defrecord Description-Graph [language vertices neighbours vertex-labels])
 
 (defn vertices
   "Returns vertices of given description graph."
@@ -47,7 +47,7 @@
 (defn make-description-graph
   "Creates and returns a description graph for the given arguments."
   [language vertices neighbours vertex-labels]
-  (Description-Graph language vertices neighbours vertex-labels))
+  (Description-Graph. language vertices neighbours vertex-labels))
 
 (defn edges
   "Returns labeld edges of given description graph."
@@ -55,7 +55,7 @@
   (set-of [A r B] [A (vertices description-graph),
 		   [r B] ((neighbours description-graph) A)]))
 
-(defmethod print-method ::Description-Graph [dg out]
+(defmethod print-method Description-Graph [dg out]
   (let [#^String output (with-out-str
 			  (pprint (list 'Description-Graph
 					(vertices dg)

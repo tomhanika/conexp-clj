@@ -14,6 +14,42 @@
 
 ;;;
 
+(deftest test-make-implication
+  (is (make-implication #{} #{}))
+  (is (make-implication [] []))
+  (is (make-implication () ()))
+  (is (make-implication [1 2 3] '[a b c])))
+
+(deftest test-Implication-equals
+  (is (= (make-implication [] []) (make-implication [] [])))
+  (is (= (make-implication [1] [2]) (make-implication [1] [1 2])))
+  (is (= (make-implication '[a] '[b c d]) (make-implication '#{a} '#{b c d}))))
+
+;;;
+
+(defvar- *testing-data*
+  [(make-implication [] []),
+   (make-implication [1 2 3] '[a b c]),
+   (make-implication [1 2 3] '[3 a b c])
+   (make-implication #{1 2 3 4 5} #{3 4 5 6 7})])
+
+(deftest test-Implication-hashCode
+  (with-testing-data [impl-1 *testing-data*,
+                      impl-2 *testing-data*]
+    (=> (= impl-1 impl-2)
+        (= (hash impl-1) (hash impl-2)))))
+
+;;;
+
+;; holds?
+;; respects?
+;; add-immediate-elements (private)
+;; close-under-implications (private)
+;; clop-by-implications
+;; follows-semantically
+;; add-immediate-elements* (private)
+;; clop-by-implications*
+
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5}))))))
 

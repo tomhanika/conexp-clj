@@ -23,7 +23,7 @@
 
 ;;;
 
-(deftype DL [name concept-names role-names constructors])
+(defrecord DL [name concept-names role-names constructors])
 
 (defn language-name
   "Returns the name of the given language."
@@ -51,17 +51,20 @@
   [language]
   (:constructors language))
 
-(defmethod print-method ::DL [dl out]
+(defmethod print-method DL [dl out]
   (.write out (str "DL " (name (language-name dl)))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
   [name concept-names role-names constructors]
-  (DL (keyword "conexp.contrib.dl.framework" (str name)) (set concept-names) (set role-names) (set constructors)))
+  (DL. (keyword "conexp.contrib.dl.framework" (str name))
+       (set concept-names)
+       (set role-names)
+       (set constructors)))
 
 ;;;
 
-(deftype DL-expression [language sexp])
+(defrecord DL-expression [language sexp])
 
 (defn expression
   "Returns the s-exp describing this expression."
@@ -73,7 +76,7 @@
   [dl-expression]
   (:language dl-expression))
 
-(defmethod print-method ::DL-expression [dl-exp out]
+(defmethod print-method DL-expression [dl-exp out]
   (let [#^String output (with-out-str
 			  (if *print-with-dl-type*
 			    (pprint (list 'DL-expr (expression dl-exp)))
@@ -86,7 +89,7 @@
   "Returns true iff thing is a DL expression. If dl is given, checks
   for thing to be a dl-expression in dl."
   ([thing]
-     (= (type thing) ::DL-expression))
+     (instance? DL-expression thing))
   ([dl thing]
      (and (dl-expression? thing)
           (= dl (expression-language thing)))))
@@ -103,7 +106,7 @@
   "Creates a DL expression without any checks on already present DL
   expression. Use with care."
   [language dl-sexp]
-  (DL-expression language dl-sexp))
+  (DL-expression. language dl-sexp))
 
 (defn make-dl-expression
   "Takes a DL and a s-exp describing a concept description and returns
@@ -251,7 +254,7 @@
   (when-not (compound? dl-expression)
     (illegal-argument "Given expression is atomic and has no arguments."))
   (map #(if-not (dl-expression? %)
-	  (DL-expression (expression-language dl-expression) %)
+	  (DL-expression. (expression-language dl-expression) %)
 	  %)
        (rest (expression dl-expression))))
 
@@ -301,12 +304,12 @@
   "Substitutes in the first dl-expression all occurences of keys in
   names by their values, returning the resulting expression."
   [dl-expr names]
-  (DL-expression (expression-language dl-expr)
+  (DL-expression. (expression-language dl-expr)
 		 (substitute-syntax (expression dl-expr) names)))
 
 ;;; Definitions
 
-(deftype DL-definition [target dl-expression])
+(defrecord DL-definition [target dl-expression])
 
 (defn definition-target
   "Returns target of this definition."
@@ -318,7 +321,7 @@
   [definition]
   (:dl-expression definition))
 
-(defmethod print-method ::DL-definition [definition out]
+(defmethod print-method DL-definition [definition out]
   (.write out (with-out-str
 		(print (definition-target definition))
 		(print " := ")
@@ -329,13 +332,13 @@
   ([target definition-expression]
      (when-not (dl-expression? definition-expression)
        (illegal-argument "make-dl-expression requires a valid dl-expression as second arguments."))
-     (DL-definition target definition-expression))
+     (DL-definition. target definition-expression))
   ([language target definition-sexp]
-     (DL-definition target (make-dl-expression language definition-sexp))))
+     (DL-definition. target (make-dl-expression language definition-sexp))))
 
 ;;; Subsumptions
 
-(deftype DL-subsumption [subsumee subsumer])
+(defrecord DL-subsumption [subsumee subsumer])
 
 (defn subsumee
   "Returns the subsumee of the given subsumption."
@@ -352,9 +355,9 @@
   [C D]
   (when-not (and (dl-expression? C) (dl-expression? D))
     (illegal-argument "Arguments to make-subsumption must be DL-expressions."))
-  (DL-subsumption C D))
+  (DL-subsumption. C D))
 
-(defmethod print-method ::DL-subsumption [susu out]
+(defmethod print-method DL-subsumption [susu out]
   (let [#^String output (with-out-str
 			  (pprint (list (subsumee susu)
 					'==>
