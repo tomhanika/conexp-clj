@@ -34,7 +34,7 @@
 
 (defmethod add ::one-to-many
   [otm & els]
-  (one-to-many (:one otm) (apply conj (:many otm) els)))
+  (one-to-many. (:one otm) (apply conj (:many otm) els)))
 
 (inherit-multimethod del ::one-to-many
   "Returns a new one-to-many object that consists of otm
@@ -46,7 +46,7 @@
 
 (defmethod del ::one-to-many
   [otm & els]
-  (one-to-many (:one otm) (apply disj (:many otm) els)))
+  (one-to-many. (:one otm) (apply disj (:many otm) els)))
   
 
 (inherit-multimethod call-one ::one-to-many

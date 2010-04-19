@@ -258,11 +258,11 @@
   [ctx]
   (deref (:context ctx)))
 
-(inherit-multimethod get-context :conexp.fca.contexts/Context
+(inherit-multimethod get-context conexp.fca.contexts.Context
   "Identity on fca-context.")
 
 (defmethod
-  get-context :conexp.fca.contexts/Context
+  get-context conexp.fca.contexts.Context
   [x] x)
 
 (defn make-context-compatible 
@@ -502,9 +502,7 @@
   (with-swing-threads
     (remove-tab frame @context-pane)
     (dosync 
-      (ref-set context-pane nil)
-      (ref-set context-workspace nil)
-      (ref-set context-workspace-tree nil))))
+      (ref-set context-pane nil))))
    
 
 (define-plugin context-editor
