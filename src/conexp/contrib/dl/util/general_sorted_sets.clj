@@ -27,7 +27,7 @@
   ([order-fn]
      (make-general-sorted-set order-fn []))
   ([order-fn coll]
-     (let [gss (General-Sorted-Set order-fn (ref #{}) (ref #{}))]
+     (let [gss (General-Sorted-Set. order-fn (ref #{}) (ref #{}))]
        (doseq [elt coll]
 	 (add-to-gss! gss elt))
        gss)))
@@ -45,15 +45,15 @@
 		   (if (empty? next-have)
 		     have
 		     (recur (concat have next-have)))))]
-    (runner (vec @(:minimal-elements gss)))))
+    (runner (vec @(.minimal-elements gss)))))
 
-(defmethod print-method ::General-Sorted-Set [gss out]
+(defmethod print-method General-Sorted-Set [gss out]
   (.write out (with-out-str
 		(println "General Sorted Set")
 		(doseq [x (sort-gss gss)]
 		  (println "Node:" (:node x) ", Lowers:" (map :node @(:lowers x)) ", Uppers:" (map :node @(:uppers x)))))))
 
-(defmethod seq-on ::General-Sorted-Set [gss]
+(defmethod seq-on General-Sorted-Set [gss]
   (map :node (sort-gss gss)))
 
 ;;
@@ -83,24 +83,24 @@
   "Finds all upper neighbours of x in gss."
   [gss x]
   (find-neighbours gss
-		   #((:order-fn gss) x (:node %))
+		   #((.order-fn gss) x (:node %))
 		   (comp deref :lowers)
-		   @(:maximal-elements gss)))
+		   @(.maximal-elements gss)))
 
 (defn- find-lower-neighbours
   "Finds all lower neighbours of x in gss."
   [gss x]
   (find-neighbours gss
-		   #((:order-fn gss) (:node %) x)
+		   #((.order-fn gss) (:node %) x)
 		   (comp deref :uppers)
-		   @(:minimal-elements gss)))
+		   @(.minimal-elements gss)))
 
 (defn add-to-gss!
   "Adds the element elt to the general sorted set gss returning the
   result. Note that this function modifies gss."
   [gss elt]
   (dosync
-   (let [order-fn (:order-fn gss),
+   (let [order-fn (.order-fn gss),
 	 uppers (find-upper-neighbours gss elt)]
 
      ;; check if element is already there
@@ -126,11 +126,11 @@
 	     (alter (:lowers u) disj l)))
 
 	 ;; update maximal and minimal elements
-	 (ref-set (:maximal-elements gss)
-		  (set-of x [x (conj @(:maximal-elements gss) new-elt)
+	 (ref-set (.maximal-elements gss)
+		  (set-of x [x (conj @(.maximal-elements gss) new-elt)
 			     :when (empty? @(:uppers x))]))
-	 (ref-set (:minimal-elements gss)
-		  (set-of x [x (conj @(:minimal-elements gss) new-elt)
+	 (ref-set (.minimal-elements gss)
+		  (set-of x [x (conj @(.minimal-elements gss) new-elt)
 			     :when (empty? @(:lowers x))]))))
 
      gss)))
@@ -147,7 +147,7 @@
   gss, i.e. whether there exists an element in gss which is equal (in
   the sense of the underlying order relation) to elt."
   [gss elt]
-  (let [order-fn (:order-fn gss),
+  (let [order-fn (.order-fn gss),
 	uppers (find-upper-neighbours gss elt)]
     (and (= 1 (count uppers))
 	 (order-fn (:node (first uppers)) elt))))
@@ -159,7 +159,7 @@
 		(concat (for [y @(:lowers x)]
 			  [(:node y) (:node x)])
 			(mapcat edges @(:lowers x))))]
-    (mapcat edges @(:maximal-elements gss))))
+    (mapcat edges @(.maximal-elements gss))))
 
 ;;;
 

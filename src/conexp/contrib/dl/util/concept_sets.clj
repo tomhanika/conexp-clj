@@ -24,13 +24,13 @@
 (defn- gss-of-concept-set
   "Returns the general-sorted-set of a concept-set."
   [concept-set]
-  (:gss concept-set))
+  (.gss concept-set))
 
 (defn- seq-of-concepts
   "Returns the sequence of concepts added to concept-set, in the
   ordere they have been added, latest first."
   [concept-set]
-  (:seq-of-concepts concept-set))
+  (.seq-of-concepts concept-set))
 
 (defn make-concept-set
   "Creats a concept-set from the given sequence of concepts. The
@@ -40,16 +40,16 @@
     (loop [coll coll,
 	   inserted ()]
       (cond
-       (empty? coll) (Concept-Set gss (ref inserted)),
+       (empty? coll) (Concept-Set. gss (ref inserted)),
        (contained-in-gss? gss (first coll)) (recur (rest coll) inserted),
        :else (do
 	       (add-to-gss! gss (first coll))
 	       (recur (rest coll) (conj inserted (first coll))))))))
 
-(defmethod seq-on ::Concept-Set [concept-set]
+(defmethod seq-on Concept-Set [concept-set]
   @(seq-of-concepts concept-set))
 
-(defmethod print-method ::Concept-Set [concept-set out]
+(defmethod print-method Concept-Set [concept-set out]
   (print-method (seq-on concept-set) out))
 
 ;;;

@@ -148,6 +148,8 @@
 					  [C D] [D C]
 					  [E F] [F E]}))
 
+;;; DBpedia Person Domain
+
 ;;;
 
 nil
