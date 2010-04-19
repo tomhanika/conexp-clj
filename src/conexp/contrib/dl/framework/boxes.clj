@@ -9,8 +9,7 @@
 (ns conexp.contrib.dl.framework.boxes
   (:use [conexp.main :exclude (transitive-closure)]
 	conexp.contrib.dl.framework.syntax)
-  (:use clojure.contrib.pprint
-	clojure.contrib.graph))
+  (:use clojure.contrib.graph))
 
 ;;; TBox definitions
 
@@ -27,7 +26,7 @@
   (:definitions tbox))
 
 (defmethod print-method TBox [tbox out]
-  (let [#^String output (with-out-str (pprint (tbox-definitions tbox)))]
+  (let [#^String output (with-out-str (print (tbox-definitions tbox)))]
     (.write out (.trim output))))
 
 (defn make-tbox

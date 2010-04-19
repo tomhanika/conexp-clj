@@ -8,8 +8,7 @@
 
 (ns conexp.contrib.dl.framework.syntax
   (:use conexp.main)
-  (:use clojure.contrib.pprint
-	[clojure.walk :only (walk)]
+  (:use	[clojure.walk :only (walk)]
         [clojure.contrib.macro-utils :only (macrolet)]))
 
 (update-ns-meta! conexp.contrib.dl.framework.syntax
@@ -79,8 +78,8 @@
 (defmethod print-method DL-expression [dl-exp out]
   (let [#^String output (with-out-str
 			  (if *print-with-dl-type*
-			    (pprint (list 'DL-expr (expression dl-exp)))
-			    (pprint (expression dl-exp))))]
+			    (print (list 'DL-expr (expression dl-exp)))
+			    (print (expression dl-exp))))]
     (.write out (.trim output))))
 
 ;;;
@@ -359,9 +358,9 @@
 
 (defmethod print-method DL-subsumption [susu out]
   (let [#^String output (with-out-str
-			  (pprint (list (subsumee susu)
-					'==>
-					(subsumer susu))))]
+			  (print (list (subsumee susu)
+                                       '==>
+                                       (subsumer susu))))]
     (.write out (.trim output))))
 
 (defmacro subsumption
