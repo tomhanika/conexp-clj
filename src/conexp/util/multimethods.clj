@@ -7,8 +7,57 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.util.multimethods
-  (:use [clojure.contrib.string :only (join)]
+  (:use [clojure.contrib.string :only (join replace-first-re)]
     conexp.util))
+
+;;; since in the recent version, type doens't work with keywords anymore, but
+;;; returns classes (along with new deftype-constructor-dot) and derive
+;;; does not work with classes (but with clojure.lang.Named), there is a need
+;;; for the following macros (at least for now)
+
+(defn class-to-keyword
+  "Takes a class object and returns a corresponding keyword describing the
+  class name.
+
+  Parameters:
+    c  _class"
+  [c]
+  (let [ rv clojure.contrib.string/reverse
+         classname (str c)
+         keywordname (rv 
+                       (replace-first-re #"\." "/" 
+                         (rv (replace-first-re #"class " "" classname)))) ]
+    (keyword keywordname)))
+
+(defn derive*
+  "Workaround for derive to work with classes as parents also."
+  ([tag parent]
+    (when (= (type tag) java.lang.Class)
+      (derive* (class-to-keyword tag) parent))
+    (if (= (type parent) java.lang.Class)
+      (derive tag (class-to-keyword parent))
+      (derive tag parent)))
+  ([h tag parent]
+    (when (= (type tag) java.lang.Class)
+      (derive* (h class-to-keyword tag) parent))
+    (if (= (type parent) java.lang.Class)
+      (derive h tag (class-to-keyword parent))
+      (derive h tag parent))))
+
+(defn isa?*
+  "Workaround for derive to work with classes as parents also."
+  ([child parent]
+    (boolean (or (isa? child parent) 
+               (when (= (type parent) java.lang.Class)
+                 (isa? child (class-to-keyword parent)))
+               (when (= (type child) java.lang.Class)
+                 (isa?* (class-to-keyword child) parent)))))
+  ([h child parent]
+    (boolean (or (isa? h child parent) 
+               (when (= (type parent) java.lang.Class)
+                 (isa? h child (class-to-keyword parent)))
+               (when (= (type child) java.lang.Class)
+                 (isa?* h (class-to-keyword child) parent))))))
 
 ;;; multimethod helpers
 
@@ -19,9 +68,9 @@
 
   Parameters:
     typelist   _list of types
-    object     _object to test for 'isa?' relation"
+    object     _object to test for 'isa?*' relation"
   [typelist object]
-  (let [ is-child-type? (fn [x] (isa? (type object) x))
+  (let [ is-child-type? (fn [x] (isa?* (type object) x))
          good-types (filter is-child-type? typelist) ]
     (first good-types)))
 
@@ -107,7 +156,7 @@
                              {~type-name (str ~type-name "\n=====\n" ~doc-str)})
               is-new-type# (not (some #{~type-name} old-types#))
               types#  (if is-new-type# 
-                        (insert-before-first-pred (fn [x#] (isa? ~type-name x#))
+                        (insert-before-first-pred (fn [x#] (isa?* ~type-name x#))
                           old-types# ~type-name)
                         old-types#)
               new-doc# (join "\n+++++\n\n" 

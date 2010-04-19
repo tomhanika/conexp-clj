@@ -159,9 +159,9 @@
 ;; managed/unmanaged interop
 ;;
 
-(deftype widget [widget])
-(deftype control [widget control])
-(derive ::control ::widget)
+(defrecord widget [widget])
+(defrecord control [widget control])
+(derive* ::control ::widget)
 
 
 
@@ -175,7 +175,7 @@
   (or
     (and (map? thing)
     (contains? thing :managed-by-conexp-gui-editors-util))
-    (isa? (type thing) ::widget)))
+    (isa?* (type thing) ::widget)))
 
 (defn get-widget
   "Returns the appropriate java root widget for managed java code or
@@ -194,7 +194,7 @@
      obj         _object representing some java object"
   [obj]
   (let [t (type obj)]
-    (if (isa? t ::control) (:control obj)
+    (if (isa?* t ::control) (:control obj)
       (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))))
 
 
@@ -207,8 +207,8 @@
 ;;
 ;;
 
-(deftype button [widget])
-(derive ::button ::widget)
+(defrecord button [widget])
+(derive* ::button ::widget)
 
 (inherit-multimethod set-handler ::button
   "Sets the action handler for the button object.
@@ -253,8 +253,8 @@
 ;;
 ;;
 
-(deftype split-pane [widget])
-(derive ::split-pane ::widget)
+(defrecord split-pane [widget])
+(derive* ::split-pane ::widget)
 
 (inherit-multimethod set-divider-location ::split-pane
   "Sets the location of the divider.
@@ -297,8 +297,8 @@
 ;;
 ;;
 
-(deftype tree-control [widget control root model])
-(derive ::tree-control ::control)
+(defrecord tree-control [widget control root model])
+(derive* ::tree-control ::control)
 
 
 (inherit-multimethod set-tree ::tree-control
@@ -403,9 +403,9 @@
 ;;
 ;;
 
-(deftype table-control [widget control hooks model])
-(derive ::table-control ::control)
-(derive ::table-control :conexp.util.hookable/hookable)
+(defrecord table-control [widget control hooks model])
+(derive* ::table-control ::control)
+(derive* ::table-control :conexp.util.hookable/hookable)
 
 
 (inherit-multimethod get-row-count ::table-control
@@ -848,8 +848,8 @@
 ;;
 ;;
 
-(deftype toolbar-control [widget control])
-(derive ::toolbar-control ::control)
+(defrecord toolbar-control [widget control])
+(derive* ::toolbar-control ::control)
 
 (inherit-multimethod set-orientation ::toolbar-control
   "Sets the toolbars orientation.

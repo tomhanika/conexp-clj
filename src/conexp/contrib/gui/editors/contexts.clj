@@ -109,8 +109,8 @@
 ;;
 ;;
 
-(deftype context-editor-widget [widget table toolbar e-ctx])
-(derive ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
+(defrecord context-editor-widget [widget table toolbar e-ctx])
+(derive* ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
 
 (declare make-editable-context editable-context? add-widget get-context)
 
@@ -237,13 +237,13 @@
 ;;
 ;;
 
-(deftype editable-context [context attr-cols obj-rows widgets])
+(defrecord editable-context [context attr-cols obj-rows widgets])
 
 
 (defn editable-context?
   "Tests whether the argument is an editable context."
   [ctx?]
-  (isa? (type ctx?) ::editable-context))
+  (isa?* (type ctx?) ::editable-context))
 
 
 (inherit-multimethod get-context ::editable-context

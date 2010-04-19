@@ -13,7 +13,7 @@
 
 ;; hookable
 
-(deftype hookable [hooks])
+(defrecord hookable [hooks])
 
 (inherit-multimethod add-hook ::hookable
   "Adds a hook to the hooksmap.
@@ -91,5 +91,5 @@
 
 (defn hookable?
   "Tests whether the given object is hookable."
-  [obj] (isa? (type obj) ::hookable))
+  [obj] (isa?* (type obj) ::hookable))
 

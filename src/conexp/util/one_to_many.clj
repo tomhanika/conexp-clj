@@ -13,7 +13,7 @@
 
 ;; one-to-many abstraction
 
-(deftype one-to-many [one many])
+(defrecord one-to-many [one many])
 
 
 (defn make-one-to-many
