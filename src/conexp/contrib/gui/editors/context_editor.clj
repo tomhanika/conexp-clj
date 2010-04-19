@@ -12,29 +12,31 @@
     conexp.contrib.gui.editors.util
     conexp.util))
 
-(def- panels (ref {}))
+(let panels (ref {})
 
-(defn make-context-editor
-  "Creates a context editor object for a given context and returns its root
+  (defn make-context-editor
+    "Creates a context editor object for a given context and returns its root
    panel.
 
   Parameters:
     ctx  _ context"
-  [ctx]
-  (let [ ectx (make-editable-context ctx)
-         widget (make-context-editor-widget) 
-         panel (get-widget widget)]
-    (add-widget ectx widget)
-    (dosync-wait (commute panels conj {panel [widget ectx]}))
-    panel))
+    [ctx]
+    (let [ ectx (make-editable-context ctx)
+           widget (make-context-editor-widget) 
+           panel (get-widget widget)]
+      (add-widget ectx widget)
+      (dosync-wait (commute panels conj {panel [widget ectx]}))
+      panel))
 
-(defn get-context-from-panel
-  "Returns the context that is currently associated with the context editor
+  (defn get-context-from-panel
+    "Returns the context that is currently associated with the context editor
    widget represented by the given panel.
 
   Parameters:
     panel  _ context editor panel"
-  [panel]
-  (get-context (second (panels panel))))
+    [panel]
+    (get-context (second (panels panel))))
 
-nil
+  nil)
+
+

@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.gui.editors.contexts
+(ns conexp.contrib.gui.editors.context-editor.util
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
              JScrollPane JPanel JButton]
     [java.awt GridLayout BorderLayout Dimension]
@@ -469,22 +469,6 @@
                           given 0 new-name)))))
           new-name)))))
 
-(def ctx (conexp.fca/make-context ["a" "b" "c"] [1 2 3] [["a" 1] ["c" 3]]))
-(def ctx2 (make-context #{"Apfel" "Birne" "Möhre" "Gurke"} 
-            #{"lecker" "geht so" "iieh"} 
-            #{["Apfel" "lecker"] ["Birne" "lecker"] ["Möhre" "iieh"]
-            ["Gurke" "geht so"]}))
-
-(def ectx (make-editable-context ctx))
-
-
-(def context-pane (ref nil))
-(def +debug+ (ref nil))
-(defn +debug-hook+ [] (doseq [x @+debug+]
-                        (add-widget ectx x)))
-
-
-
 (defn plug-load-hook
   "Loads the context-editor plugin.
    Parameters:
@@ -499,15 +483,13 @@
      frame    _frame that contains the user interface
   "
   [frame]
-  (with-swing-threads
-    (remove-tab frame @context-pane)
-    (dosync 
-      (ref-set context-pane nil))))
+  nil)
    
 
 (define-plugin context-editor
   "Context editor plugin."
   :load-hook plug-load-hook,
   :unload-hook plug-unload-hook)
+
 
 nil
