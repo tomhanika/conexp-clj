@@ -469,27 +469,5 @@
                           given 0 new-name)))))
           new-name)))))
 
-(defn plug-load-hook
-  "Loads the context-editor plugin.
-   Parameters:
-     frame    _frame that shall contain the user interface
-  "
-  [frame]
-  nil)
-
-(defn plug-unload-hook
-  "Unloads the context-editor plugin.
-   Parameters:
-     frame    _frame that contains the user interface
-  "
-  [frame]
-  nil)
-   
-
-(define-plugin context-editor
-  "Context editor plugin."
-  :load-hook plug-load-hook,
-  :unload-hook plug-unload-hook)
-
 
 nil

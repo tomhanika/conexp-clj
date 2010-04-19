@@ -6,96 +6,83 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.gui.editors.lattices
+(ns conexp.contrib.gui.editors.contexts
   (:use conexp.base
 	conexp.fca.contexts
 	conexp.fca.lattices
-	conexp.io
+        conexp.io
 	conexp.layout
 	[conexp.layout.base :only (lattice)]
 	conexp.graphics.draw
 	conexp.contrib.gui.util
+        conexp.contrib.gui.editors.util
+        conexp.contrib.gui.editors.context-editor
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
-	clojure.contrib.io)
+	clojure.contrib.io
+    [clojure.contrib.string :only (replace-str title-case)])
   (:import [java.io File]))
 
-(update-ns-meta! conexp.contrib.gui.editors.lattices
-  :doc "Provides lattice-editor, a plugin for lattices for the standard GUI of conexp-clj.")
+(update-ns-meta! conexp.contrib.gui.editors.contexts
+  :doc "Provides context-editor, a plugin for contexts for the standard GUI of conexp-clj.")
 
 ;;; The Plugin
 
-(declare load-lattice-editor unload-lattice-editor)
+(declare load-context-editor unload-context-editor)
 
-(define-plugin lattice-editor
-  "Lattice editor plugin."
-  :load-hook   #(load-lattice-editor %),
-  :unload-hook #(unload-lattice-editor %))
+(define-plugin context-editor
+  "Context editor plugin."
+  :load-hook   #(load-context-editor %),
+  :unload-hook #(unload-context-editor %))
 
 ;;; The Actions
 
-(defn- load-lattice-and-go
-  "Loads lattice with given loader and adds a new tab with with a
-  lattice-editor from the result of tranformer."
-  [frame loader transformer]
+(defn- load-context-and-go
+  "Loads context with given loader and adds a new tab with a context-editor."
+  [frame loader]
   (when-let [#^File file (choose-open-file frame)]
-    (let [thing (loader (.getPath file))]
+    (let [ path (.getPath file)
+           thing (loader path)]
       (add-tab frame
-	       (make-lattice-editor frame
-				    (transformer thing))
-	       "Lattice"))))
+	       (make-context-editor thing)
+	       (str "Context " path)))))
 
-(defn- save-layout
-  "Tries to store the result of applying transformer to the currently
-  selected layout into the file the users selects."
-  [frame transformer write format]
-  (let [layout (get-layout-from-panel (current-tab frame))]
-    (if (nil? layout)
-      (illegal-argument "Current tab does not contain a lattice editor.")
-      (write format
-	     (transformer layout)
-	     (.getPath (choose-save-file frame))))))
+(defn- save-context-and-go
+  "Saves context with given writer."
+  [frame writer]
+  (when-let [ thing (get-context-from-panel (current-tab frame))]
+    (when-let [#^File file (choose-save-file frame)]
+      (let [ path (.getPath file) ]
+        (writer thing path)))))
+  
 
-(defn- edit-standard-context
-  "Opens a context-editor with the standard context of the lattice
-  displayed in the current tab of frame."
-  [frame]
-  (unsupported-operation "Not yet implemented."))
 
 ;;; The Hooks
 
-(defvar- *lattice-menu*
-  {:name "Lattice",
-   :content [{:name "Load Lattice",
-	      :handler #(load-lattice-and-go % read-lattice *standard-layout-function*)}
-	     {:name "Load Lattice from Context"
-	      :handler #(load-lattice-and-go % read-context
-					     (comp *standard-layout-function* concept-lattice))}
-	     {:name "Load Layout"
-	      :handler #(load-lattice-and-go % read-layout identity)}
-	     {}
-	     {:name "Save Lattice",
-	      :content [{:name "Format conexp-clj simple",
-			 :handler #(save-layout % lattice write-lattice :simple)}]}
-	     {:name "Save Layout",
-	      :content [{:name "Format conexp-clj simple",
-			 :handler #(save-layout % identity write-layout :simple)}]}
-	     {}
-	     {:name "Edit Standard Context",
-	      :handler edit-standard-context}]}
-  "Menu for lattice editor.")
+(defvar- *context-menu*
+  {:name "Context",
+  :content [ {:name "Load Context",
+	      :handler (fn [x] (load-context-and-go x read-context)) }
+              {:name "Save Context",
+              :content (vec (map (fn [x] {:name (str 
+                                                  (replace-str ":" "" (str x)) 
+                                                  " format"),
+                                   :handler (fn [f] (save-context-and-go f
+                                           (fn [c p] (write-context x c p))))})
+                              (list-context-input-formats))) }]}
+  "Menu for context editor.")
 
 (let [menu-hash (ref {})]
 
-  (defn- load-lattice-editor
-    "Loads the lattice-editor plugin in frame."
+  (defn- load-context-editor
+    "Loads the context-editor plugin in frame."
     [frame]
     (dosync
      (alter menu-hash
-	    assoc frame (add-menus frame [*lattice-menu*]))))
+	    assoc frame (add-menus frame [*context-menu*]))))
 
-  (defn- unload-lattice-editor
-    "Unloads the lattice-editor plugin from frame."
+  (defn- unload-context-editor
+    "Unloads the context-editor plugin from frame."
     [frame]
     (dosync
      (let [menu (get @menu-hash frame)]

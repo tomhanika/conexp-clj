@@ -8,11 +8,11 @@
 
 (ns conexp.contrib.gui.editors.context-editor
   (:use conexp.util.multimethods
-    conexp.contrib.gui.editors.contexts
+    conexp.contrib.gui.editors.context-editor.util
     conexp.contrib.gui.editors.util
     conexp.util))
 
-(let panels (ref {})
+(let [ panels (ref {}) ]
 
   (defn make-context-editor
     "Creates a context editor object for a given context and returns its root
