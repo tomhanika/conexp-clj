@@ -26,7 +26,8 @@
   "Opens file with reader and binds it to *in*."
   [file & body]
   `(with-open [input# (reader ~file)]
-     (binding [*in* input#]
+     (binding [*in* input#,
+               *read-eval* false]
        ~@body)))
 
 ;;; Format dispatch framework macro
@@ -100,7 +101,6 @@
        (illegal-argument "Cannot determine format of " ~name " in " file#))
 
      nil)))
-
 
 ;;;
 

@@ -13,13 +13,21 @@
 
 ;;;
 
-(deftype Association-Rule [context premise conclusion])
+(deftype Association-Rule [context premise conclusion]
+  Object
+  (equals [this other]
+    (and (= (class this) (class other))
+	 (= context (.context other))
+	 (= premise (.premise other))
+	 (= conclusion (.conclusion other))))
+  (hashCode [this]
+    (hash-combine-hash Association-Rule context premise conclusion)))
 
-(defmethod premise ::Association-Rule [ar]
-  (:premise ar))
+(defmethod premise Association-Rule [ar]
+  (.premise ar))
 
-(defmethod conclusion ::Association-Rule [ar]
-  (:conclusion ar))
+(defmethod conclusion Association-Rule [ar]
+  (.conclusion ar))
 
 (defn context
   "Returns the corresponding context for a given association rule."
@@ -40,7 +48,7 @@
      (support (premise ar)
 	      (context ar))))
 
-(defmethod print-method ::Association-Rule [ar out]
+(defmethod print-method Association-Rule [ar out]
   (.write out
 	  (str "( " (premise ar) " ==> " (conclusion ar)
 	       "; support " (support (union (premise ar)
@@ -55,7 +63,7 @@
   [context premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]
-    (Association-Rule context premise (difference conclusion premise))))
+    (Association-Rule. context premise (difference conclusion premise))))
 
 ;;;
 

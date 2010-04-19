@@ -7,9 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.tests.fca.contexts
-  (:use clojure.test
-	conexp.base
-	conexp.fca.contexts))
+  (:use	conexp.base
+	conexp.fca.contexts)
+  (:use clojure.test))
 
 ;;;
 
@@ -63,7 +63,13 @@
 
 (deftest test-Context-toString
   (is (= (print-context *test-ctx-01* sort-by-second sort-by-second)
-	 "  |1 2 3 4 5 \n--+----------\n1 |x x x . . \n2 |. x x . . \n3 |. . . . x \n4 |. . . . . \n5 |. x x x . \n")))
+	 (str "  |1 2 3 4 5 \n"
+              "--+----------\n"
+              "1 |x x x . . \n"
+              "2 |. x x . . \n"
+              "3 |. . . . x \n"
+              "4 |. . . . . \n"
+              "5 |. x x x . \n"))))
 
 (deftest test-Context-equals
   (are [objs atts inz] (= (make-context objs atts inz)
@@ -87,61 +93,16 @@
        (= (attribute-derivation ctx atts) derived-objects)
        *test-ctx-01* #{2 3} #{1 2 5}))
 
-(deftest test-concept?
-  'to-be-done)
-
-(deftest test-clarify-objects
-  'to-be-done)
-
-(deftest test-clarify-attributes
-  'to-be-done)
-
-(deftest test-clarify-context
-  'to-be-done)
-
-(deftest test-object-clarified?
-  'to-be-done)
-
-(deftest test-attribute-clarified?
-  'to-be-done)
-
 (deftest test-clarified?
   (is (not (clarified? *test-ctx-03*)))
   (is (clarified? *test-ctx-04*))
   (is (not (clarified? *test-ctx-06*))))
-
-(deftest test-down-arrows
-  'to-be-done)
-
-(deftest test-up-arrows
-  'to-be-done)
-
-(deftest test-up-down-arrows
-  'to-be-done)
-
-(deftest test-reduce-clarified-context
-  'to-be-done)
 
 (deftest test-reduced?
   (is (not (reduced? *test-ctx-01*)))
   (is (not (reduced? *test-ctx-03*)))
   (is (reduced? *test-ctx-04*))
   (is (not (reduced? *test-ctx-06*))))
-
-(deftest test-context-object-closure
-  'to-be-done)
-
-(deftest test-context-extents
-  'to-be-done)
-
-(deftest test-context-attribute-closure
-  'to-be-done)
-
-(deftest test-context-intents
-  'to-be-done)
-
-(deftest test-concepts
-  'to-be-done)
 
 (deftest test-dual-context
   (test-for-every-test-ctx
@@ -150,24 +111,6 @@
 (deftest test-invert-context
   (test-for-every-test-ctx
    [ctx] (= ctx (invert-context (invert-context ctx)))))
-
-(deftest test-context-union
-  'to-be-done)
-
-(deftest test-context-intersection
-  'to-be-done)
-
-(deftest test-context-composition
-  'to-be-done)
-
-(deftest test-context-apposition
-  'to-be-done)
-
-(deftest test-context-subposition
-  'to-be-done)
-
-(deftest test-context-transitive-closure
-  'to-be-done)
 
 (deftest test-one-context
   (are [base-set] (let [ctx (one-context base-set)]
@@ -207,18 +150,6 @@
        #{1 2 3 282 392 23}
        #{nil 4 * -}))
 
-(deftest test-context-sum
-  'to-be-done)
-
-(deftest test-context-product
-  'to-be-done)
-
-(deftest test-context-semiproduct
-  'to-be-done)
-
-(deftest test-context-xia-product
-  'to-be-done)
-
 (deftest test-subcontext?
   (test-for-every-test-ctx
    [ctx] (and (subcontext? ctx ctx)
@@ -240,5 +171,7 @@
        *test-ctx-08*)
   (is (let [some-context (make-context #{1 2 3} '#{c d e} '#{[1 c] [2 c] [2 e] [3 e]})]
 	(some #(= some-context %) (compatible-subcontexts *test-ctx-08*)))))
+
+;;;
 
 nil
