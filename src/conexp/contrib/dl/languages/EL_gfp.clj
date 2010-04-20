@@ -66,31 +66,26 @@
 
 (defn EL-gfp-lcs
   "Returns the least common subsumer (in EL-gfp) of A and B in tbox."
-  ([tbox A]
-     [tbox A])
-  ([tbox A B]
-     (let [G_T_1 (tbox->description-graph tbox)
-	   G-x-G (graph-product G_T_1 G_T_1),
-	   T_2   (tbox-union tbox (description-graph->tbox G-x-G))]
-       (clarify-tbox (tidy-up-tbox (clarify-tbox [T_2, [A,B]])))))
-  ([tbox A B & more]
-     (let [[new-tbox new-target] (EL-gfp-lcs tbox A B)]
-       (apply EL-gfp-lcs (tbox-union tbox new-tbox) new-target more))))
-
-(defn EL-gfp-object-msc
-  "Returns the model based most specific concept of x in model."
-  [model x]
-  (clarify-tbox
-   [(description-graph->tbox (model->description-graph model)), x]))
+  [tbox concepts]
+  (when (empty? concepts)
+    (illegal-argument "EL-gfp-lcs called with no concepts."))
+  (loop [tbox tbox,
+         concepts concepts]
+    (if (= 1 (count concepts))
+      [tbox (first concepts)]
+      (let [A     (first concepts),
+            B     (second concepts),
+            G_T_1 (tbox->description-graph tbox),
+            G-x-G (graph-product G_T_1 G_T_1),
+            T_2   (tbox-union tbox (description-graph->tbox G-x-G)),
+            [new-tbox new-target] (clarify-tbox (tidy-up-tbox (clarify-tbox [T_2, [A,B]])))]
+        (recur (tbox-union tbox new-tbox) (conj (drop 2 concepts) new-target))))))
 
 (defn EL-gfp-msc
-  "Returns the model based most specific concept of args in model."
-  [model & args]
-  (if-not (empty? args)
-    (let [tbox (reduce tbox-union
-		       (map (comp first (partial EL-gfp-object-msc model))
-			    args))]
-      (apply EL-gfp-lcs tbox args))
+  "Returns the model based most specific concept of objects in model."
+  [model objects]
+  (if-not (empty? objects)
+    (EL-gfp-lcs (description-graph->tbox (model->description-graph model)) objects)
     (let [language (model-language model),
 	  all (make-dl-expression language
 				  (list* 'and
@@ -101,7 +96,7 @@
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects))]
+  (let [[tbox target] (reduce-tbox (EL-gfp-msc model objects))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))

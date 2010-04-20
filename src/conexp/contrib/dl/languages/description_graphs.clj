@@ -10,9 +10,9 @@
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.models
-	conexp.contrib.dl.framework.boxes)
-  (:use clojure.contrib.pprint
-	[clojure.contrib.graph :exclude (transitive-closure)])
+	conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.util.graphs)
+  (:use clojure.contrib.pprint)
   (:import [java.util HashMap HashSet]))
 
 (update-ns-meta! conexp.contrib.dl.languages.description-graphs
@@ -189,12 +189,10 @@
   if D appears in the top-level conjunction of C."
   [tbox-map]
   (let [defined-concepts (set (keys tbox-map))]
-    (struct directed-graph
-	    defined-concepts
-	    (hashmap-by-function (fn [C]
-				   (filter #(contains? defined-concepts %)
-					   (tbox-map C)))
-				 defined-concepts))))
+    (make-directed-graph defined-concepts
+                         (fn [C]
+                           (filter #(contains? defined-concepts %)
+                                   (tbox-map C))))))
 
 (defn- squeeze-equivalent-concepts
   "Returns a tbox-map where all equivalent, defined concepts of
@@ -295,15 +293,12 @@
 	interpretation      (model-interpretation model),
 
 	vertices            (model-base-set model),
-	neighbours          (hashmap-by-function (fn [x]
-						   (set-of [r y] [r (role-names language),
-								  y (model-base-set model),
-								  :when (contains? (interpretation r) [x y])]))
-						 (model-base-set model)),
-	vertex-labels       (hashmap-by-function (fn [x]
-						   (set-of P [P (concept-names language),
-							      :when (contains? (interpretation P) x)]))
-						 (model-base-set model))]
+	neighbours          (fn [x]
+                              (set-of [r y] [r (role-names language),
+                                             [_ y] (filter #(= (first %) x) (interpretation r))])),                                                  
+	vertex-labels       (fn [x]
+                              (set-of P [P (concept-names language),
+                                         :when (contains? (interpretation P) x)]))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
 ;;;

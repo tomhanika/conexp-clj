@@ -7,9 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.framework.boxes
-  (:use [conexp.main :exclude (transitive-closure)]
-	conexp.contrib.dl.framework.syntax)
-  (:use clojure.contrib.graph))
+  (:use conexp.main
+	conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.util.graphs))
 
 ;;; TBox definitions
 
@@ -80,10 +80,11 @@
   definitions."
   [language & definitions]
   (let [definitions (partition 2 definitions)]
-    `(make-tbox ~language
-		~(vec (for [pair definitions]
-			`(make-dl-definition '~(first pair)
-					     (dl-expression ~language ~(second pair))))))))
+    `(make-tbox
+      ~language
+      ~(vec (for [pair definitions]
+              `(make-dl-definition '~(first pair)
+                                   (dl-expression ~language ~(second pair))))))))
 
 (add-dl-syntax! 'tbox)
 
@@ -111,7 +112,8 @@
 	new-symbols (hashmap-by-function (fn [_] (gensym))
 					 symbols)]
     [(make-tbox (tbox-language tbox)
-		(set-of (make-dl-definition (new-symbols target) (substitute def-exp new-symbols))
+		(set-of (make-dl-definition (new-symbols target)
+                                            (substitute def-exp new-symbols))
 			[def (tbox-definitions tbox),
 			 :let [target (definition-target def),
 			       def-exp (definition-expression def)]]))
@@ -123,7 +125,8 @@
   [tbox]
   (if (empty? (tbox-definitions tbox))
     tbox
-    (first (uniquify-tbox-target-pair [tbox (definition-target (first (tbox-definitions tbox)))]))))
+    (first (uniquify-tbox-target-pair [tbox (definition-target
+                                              (first (tbox-definitions tbox)))]))))
 
 (defn tbox-union
   "Returns the union of tbox-1 and tbox-2."
@@ -139,10 +142,10 @@
   concepts of tbox where a concept C is connected to a concept D via
   an edge when D is contained in the definition of C."
   [tbox]
-  (struct directed-graph
-	  (defined-concepts tbox)
-	  (fn [A]
-	    (free-symbols-in-expression (definition-expression (find-definition tbox A))))))
+  (make-directed-graph (defined-concepts tbox)
+                       (fn [A]
+                         (free-symbols-in-expression
+                          (definition-expression (find-definition tbox A))))))
 
 (defn acyclic?
   "Returns true iff tbox is acyclic."

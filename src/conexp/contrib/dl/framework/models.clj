@@ -8,8 +8,7 @@
 
 (ns conexp.contrib.dl.framework.models
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax)
-  (:use clojure.contrib.pprint))
+	conexp.contrib.dl.framework.syntax))
 
 ;;; Model definition
 
@@ -36,10 +35,10 @@
   (Model. language base-set interpretation))
 
 (defmethod print-method Model [model out]
-  (let [#^String output (with-out-str (pprint (list 'Model
-						    (model-language model)
-						    (model-base-set model)
-						    (model-interpretation model))))]
+  (let [#^String output (with-out-str (print (list 'Model
+                                                   (model-language model)
+                                                   (model-base-set model)
+                                                   (model-interpretation model))))]
     (.write out (.trim output))))
 
 ;;; Interpretation
