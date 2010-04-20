@@ -35,6 +35,50 @@
   [language definitions]
   (TBox. language (into {} (for [def definitions]
                              [(definition-target def) def]))))
+;;;
+
+(defn find-definition
+  "Returns definition of target A in tbox, if it exists."
+  [tbox A]
+  (let [result (get (tbox-definition-hash-map tbox) A nil)]
+    (if (nil? result)
+      (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
+      result)))
+
+(defn uniquify-tbox-target-pair
+  "Substitutes for every defined concept name in tbox a new, globally
+  unique, concept name and finally substitutes traget with its new name."
+  [[tbox target]]
+  (let [symbols     (defined-concepts tbox),
+	new-symbols (hashmap-by-function (fn [_] (gensym))
+					 symbols)]
+    [(make-tbox (tbox-language tbox)
+		(set-of (make-dl-definition (new-symbols target)
+                                            (substitute def-exp new-symbols))
+			[def (tbox-definitions tbox),
+			 :let [target (definition-target def),
+			       def-exp (definition-expression def)]]))
+     (new-symbols target)]))
+
+(defn uniquify-tbox
+  "Substitutes for every defined concept anme in tbox a new, globally
+  unique, concept name."
+  [tbox]
+  (if (empty? (tbox-definitions tbox))
+    tbox
+    (first (uniquify-tbox-target-pair [tbox (definition-target
+                                              (first (tbox-definitions tbox)))]))))
+
+(defn tbox-union
+  "Returns the union of tbox-1 and tbox-2."
+  [tbox-1 tbox-2]
+  (when-not (= (tbox-language tbox-1)
+               (tbox-language tbox-2))
+    (illegal-argument "Cannot unify tboxes of different description logics."))
+  (TBox. (tbox-language tbox-1)
+         (merge (tbox-definition-hash-map tbox-1)
+                (tbox-definition-hash-map tbox-2))))
+
 
 ;;; accessing used role names, primitive and defined concepts
 
@@ -98,47 +142,6 @@
   "Defines a TBox. Definitions are names interleaved with dl-sexps."
   [name language & definitions]
   `(def ~name (tbox ~language ~@definitions)))
-
-;;;
-
-(defn find-definition
-  "Returns definition of target A in tbox, if it exists."
-  [tbox A]
-  (let [result (get (tbox-definition-hash-map tbox) A nil)]
-    (if (nil? result)
-      (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
-      result)))
-
-(defn uniquify-tbox-target-pair
-  "Substitutes for every defined concept name in tbox a new, globally
-  unique, concept name and finally substitutes traget with its new name."
-  [[tbox target]]
-  (let [symbols     (defined-concepts tbox),
-	new-symbols (hashmap-by-function (fn [_] (gensym))
-					 symbols)]
-    [(make-tbox (tbox-language tbox)
-		(set-of (make-dl-definition (new-symbols target)
-                                            (substitute def-exp new-symbols))
-			[def (tbox-definitions tbox),
-			 :let [target (definition-target def),
-			       def-exp (definition-expression def)]]))
-     (new-symbols target)]))
-
-(defn uniquify-tbox
-  "Substitutes for every defined concept anme in tbox a new, globally
-  unique, concept name."
-  [tbox]
-  (if (empty? (tbox-definitions tbox))
-    tbox
-    (first (uniquify-tbox-target-pair [tbox (definition-target
-                                              (first (tbox-definitions tbox)))]))))
-
-(defn tbox-union
-  "Returns the union of tbox-1 and tbox-2."
-  [tbox-1 tbox-2]
-  (make-tbox (tbox-language tbox-1)
-	     (union (tbox-definitions tbox-1)
-		    (tbox-definitions tbox-2))))
 
 ;;;
 

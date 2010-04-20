@@ -80,7 +80,7 @@
             G-x-G (graph-product G_T_A G_T_B),
             T_2   (tbox-union tbox (description-graph->tbox G-x-G)),
             [new-tbox new-target] (clarify-tbox (tidy-up-tbox (clarify-tbox [T_2, [A,B]])))]
-        (recur (tbox-union tbox new-tbox) (conj (drop 2 concepts) new-target))))))
+        (recur (tbox-union tbox new-tbox) (conj (vec (drop 2 concepts)) new-target))))))
 
 (defn EL-gfp-msc
   "Returns the model based most specific concept of objects in model."
