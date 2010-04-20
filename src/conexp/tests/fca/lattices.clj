@@ -58,9 +58,9 @@
    (make-lattice #{0 1 2 3 4} #{[0 1] [0 2] [0 3] [0 4]
                                 [2 1] [3 1] [4 1] [0 0]
                                 [1 1] [2 2] [3 3] [4 4]}),
-   (concept-lattice (rand-context (set-of-range 10) 0.4)),
-   (concept-lattice (rand-context (set-of-range 10) 0.1)),
-   (concept-lattice (rand-context (set-of-range 10) 0.9))])
+   (concept-lattice (rand-context (set-of-range 7) 0.4)),
+   (concept-lattice (rand-context (set-of-range 7) 0.1)),
+   (concept-lattice (rand-context (set-of-range 7) 0.9))])
 
 (deftest test-has-lattice-order?
   (with-testing-data [lattice *testing-data*]
