@@ -13,29 +13,35 @@
 
 ;;; TBox definitions
 
-(defrecord TBox [language definitions])
+(defrecord TBox [language definition-hash-map])
 
 (defn tbox-language
   "Returns language for which tbox is a tbox."
   [#^TBox tbox]
   (.language tbox))
 
-(defn tbox-definitions
-  "Returns the definitions in a tbox."
+(defn tbox-definition-hash-map
+  "Returns a hash-map mapping symbols to their corresponding definition in tbox."
   [#^TBox tbox]
-  (.definitions tbox))
+  (.definition-hash-map tbox))
 
 (defmethod print-method TBox [tbox out]
-  (let [#^String output (with-out-str (print (tbox-definitions tbox)))]
+  (let [#^String output (with-out-str (print (vals (tbox-definition-hash-map tbox))))]
     (.write out (.trim output))))
 
 (defn make-tbox
   "Creates and returns a tbox for language from the given
   definitions."
   [language definitions]
-  (TBox. language (set definitions)))
+  (TBox. language (into {} (for [def definitions]
+                             [(definition-target def) def]))))
 
 ;;; accessing used role names, primitive and defined concepts
+
+(defn tbox-definitions
+  "Returns the definitions in a tbox."
+  [tbox]
+  (set (vals (tbox-definition-hash-map tbox))))
 
 (defn defined-concepts
   "Returns all defined concepts in tbox."
@@ -98,8 +104,7 @@
 (defn find-definition
   "Returns definition of target A in tbox, if it exists."
   [tbox A]
-  (let [result (first (filter #(= A (definition-target %))
-			      (tbox-definitions tbox)))]
+  (let [result (get (tbox-definition-hash-map tbox) A nil)]
     (if (nil? result)
       (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
       result)))
