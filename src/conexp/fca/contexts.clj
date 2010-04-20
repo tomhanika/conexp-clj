@@ -165,7 +165,10 @@
   (let [obj-cnt (count (objects ctx)),
 	att-cnt (count (attributes ctx)),
 	inz-cnt (count (incidence ctx))]
-    [obj-cnt, att-cnt, (double (/ inz-cnt obj-cnt att-cnt))]))
+    [obj-cnt, att-cnt, (if (or (zero? obj-cnt)
+                               (zero? att-cnt))
+                         Double/NaN
+                         (double (/ inz-cnt obj-cnt att-cnt)))]))
 
 (defn rename-objects
   "Rename objects in ctx by given hash old-to-new."

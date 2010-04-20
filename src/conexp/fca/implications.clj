@@ -104,6 +104,14 @@
   (subset? (conclusion implication)
 	   (close-under-implications implications (premise implication))))
 
+(defn minimal-implication-set?
+  "Checks whether given set of implications is minimal, i.e. no
+  implication in this set follows from the others."
+  [impl-set]
+  (let [impl-set (set impl-set)]
+    (forall [impl impl-set]
+      (not (follows-semantically? impl (disj impl-set impl))))))
+
 ;; Stem Base
 
 (defn- add-immediate-elements*

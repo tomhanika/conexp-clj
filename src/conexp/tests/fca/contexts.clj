@@ -21,6 +21,8 @@
   (is (make-context [1 2 3] '(a d g) not=))
   (is (thrown? IllegalArgumentException (make-context 1 2 3))))
 
+;;;
+
 (def *empty-context* (make-context #{} #{} #{}))
 
 (def *test-ctx-01* (make-context #{1 2 3 4 5} #{1 2 3 4 5}
@@ -60,6 +62,8 @@
 	*test-ctx-06*
 	*test-ctx-07*
 	*test-ctx-08*))
+
+;;;
 
 (deftest test-Context-toString
   (is (= (print-context *test-ctx-01* sort-by-second sort-by-second)
