@@ -75,8 +75,9 @@
       [tbox (first concepts)]
       (let [A     (first concepts),
             B     (second concepts),
-            G_T_1 (tbox->description-graph tbox),
-            G-x-G (graph-product G_T_1 G_T_1),
+            G_T_A (tbox->description-graph (first (clarify-tbox [tbox A])))
+            G_T_B (tbox->description-graph (first (clarify-tbox [tbox B])))
+            G-x-G (graph-product G_T_A G_T_B),
             T_2   (tbox-union tbox (description-graph->tbox G-x-G)),
             [new-tbox new-target] (clarify-tbox (tidy-up-tbox (clarify-tbox [T_2, [A,B]])))]
         (recur (tbox-union tbox new-tbox) (conj (drop 2 concepts) new-target))))))

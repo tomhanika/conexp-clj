@@ -24,36 +24,30 @@
 
 (defn vertices
   "Returns vertices of given description graph."
-  [description-graph]
-  (:vertices description-graph))
+  [#^Description-Graph description-graph]
+  (.vertices description-graph))
 
 (defn neighbours
   "Returns a function mapping vertices to sets of pairs of roles and
   names."
-  [description-graph]
-  (:neighbours description-graph))
+  [#^Description-Graph description-graph]
+  (.neighbours description-graph))
 
 (defn vertex-labels
   "Returns vertex labeling function of given description graph."
-  [description-graph]
-  (:vertex-labels description-graph))
+  [#^Description-Graph description-graph]
+  (.vertex-labels description-graph))
 
 (defn graph-language
   "Returns the underlying description language of the given
   description graph."
-  [description-graph]
-  (:language description-graph))
+  [#^Description-Graph description-graph]
+  (.language description-graph))
 
 (defn make-description-graph
   "Creates and returns a description graph for the given arguments."
   [language vertices neighbours vertex-labels]
   (Description-Graph. language vertices neighbours vertex-labels))
-
-(defn edges
-  "Returns labeld edges of given description graph."
-  [description-graph]
-  (set-of [A r B] [A (vertices description-graph),
-		   [r B] ((neighbours description-graph) A)]))
 
 (defmethod print-method Description-Graph [dg out]
   (let [#^String output (with-out-str
@@ -307,16 +301,16 @@
   "Returns the product of the two description graphs given."
   [graph-1 graph-2]
   (let [language      (graph-language graph-1),
-	vertices      (cross-product (vertices graph-1) (vertices graph-2)),
-	neighbours    (hashmap-by-function (fn [[A B]]
-					     (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
-								[s D] ((neighbours graph-2) B),
-								:when (= r s)]))
-					   vertices),
-	vertex-labels (hashmap-by-function (fn [[A B]]
-					     (intersection ((vertex-labels graph-1) A)
-							   ((vertex-labels graph-2) B)))
-					   vertices)]
+	vertices      (for [a (vertices graph-1),
+                            b (vertices graph-2)]
+                        [a b])
+	neighbours    (fn [[A B]]
+                        (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
+                                           [s D] ((neighbours graph-2) B),
+                                           :when (= r s)])),
+	vertex-labels (fn [[A B]]
+                        (intersection ((vertex-labels graph-1) A)
+                                      ((vertex-labels graph-2) B)))]
  (make-description-graph language vertices neighbours vertex-labels)))
 
 ;;; simulations

@@ -17,13 +17,13 @@
 
 (defn tbox-language
   "Returns language for which tbox is a tbox."
-  [tbox]
-  (:language tbox))
+  [#^TBox tbox]
+  (.language tbox))
 
 (defn tbox-definitions
   "Returns the definitions in a tbox."
-  [tbox]
-  (:definitions tbox))
+  [#^TBox tbox]
+  (.definitions tbox))
 
 (defmethod print-method TBox [tbox out]
   (let [#^String output (with-out-str (print (tbox-definitions tbox)))]

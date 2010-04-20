@@ -61,10 +61,12 @@
 			 model-closure
 			 subsumed-by?]
        (let [language (model-language initial-model)]
+
 	 (when (and (not= (set initial-ordering) (concept-names language))
 		    (not= (count initial-ordering) (count (concept-names language))))
 	   (illegal-argument "Given initial-ordering for explore-model must consist "
 			     "of all concept names of the language of the given model."))
+
 	 (loop [k     0,
 		M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
 		K     (induced-context (seq-on M_k) initial-model),
@@ -73,6 +75,7 @@
 		model initial-model,
 		implications #{},
 		background-knowledge #{}]
+
 	   (if (nil? P_k)
 	     ;; then return set of implications
 	     (let [implicational-knowledge (union implications background-knowledge)]
@@ -86,15 +89,16 @@
 		 susu))
 
 	     ;; else search for next implication
-	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
+	     (let [_ (println (count (seq-on M_k)))
+                   all-P_k    (make-dl-expression language (cons 'and P_k)),
 		   next-model (loop [model model]
-				(let [susu (make-subsumption all-P_k
-							     (make-dl-expression language
-										 (model-closure model all-P_k)))]
+				(let [susu (abbreviate-subsumption
+                                            (make-subsumption all-P_k
+                                                              (make-dl-expression language
+                                                                                  (model-closure model all-P_k)))
+                                            (union implications background-knowledge))]
 				  (if (or (obviously-true? susu)
-					  (not (expert-refuses?
-						(abbreviate-subsumption susu
-									(union implications background-knowledge)))))
+					  (not (expert-refuses? susu)))
 				    model
 				    (recur (extend-model-by-contradiction model susu))))),
 		   next-M_k   (apply add-concepts! M_k (for [r (role-names language)]
