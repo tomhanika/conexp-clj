@@ -217,8 +217,14 @@
     `(do 
        (defonce ~name :was-undefined-yet)
        (when (= ~name :was-undefined-yet)
-         (let [dispatcher# (ref (fn [ & x# ] :declared-but-never-inherited)) ]
+         (let [ dispatcher# (ref (fn [ & x# ] (if (= '(:my-meta-data) x#)
+                                               :my-meta-data
+                                               :declared-but-never-inherited)))
+                my-meta# (ref {:dispatcher dispatcher#
+                           :doc-strings {}
+                           :type-list (list)}) ]
            (defmulti ~name (fn [& x#] (apply (deref dispatcher#) x#)))
+           (defmethod ~name :my-meta-data [ x# ] my-meta#)
            (defmethod ~name :declared-but-never-inherited [ & x# ]
              (illegal-argument (str ~name-str   
                                  " is a declared as a dispatched multimethod,"
@@ -226,9 +232,7 @@
            (defmethod ~name nil [& args#] 
              (illegal-argument (str ~name-str 
                                  " called, but there is no method declared for type "
-                                 (when-not (empty? args#) (type (first args#))) "!"  )))
-           (.setMeta (var ~name) (conj (meta (var ~name))
-                                   {:dispatcher dispatcher#})))))))
+                                 (when-not (empty? args#) (type (first args#))) "!"  ))))))))
 
 (defmacro inherit-multimethod-local
   "Creates a new multimethod that dispatches by type hierarchy
@@ -236,12 +240,13 @@
    all inherited types, then appends the given documentation."
   [name type-name doc-str]
   (let [name-str (str name)]
-    `(let [ old-meta# (meta ((ns-map *ns*) (quote ~name)))
-            old-doc-strings-val# (if (nil? old-meta#) {} (:doc-strings old-meta#))
-            old-doc-strings# (if (nil? old-doc-strings-val#) {} old-doc-strings-val#)
-            old-types# (if (nil? old-meta#) (list) (:type-list old-meta#))]
+    `(do
        (declare-multimethod-local ~name)
-       (let [ dispatcher# (:dispatcher (meta (var ~name)))
+       (let [ meta-ref# (~name :my-meta-data)
+              old-meta# (deref meta-ref#)
+              old-doc-strings# (:doc-strings old-meta#)
+              old-types# (:type-list old-meta#)
+              dispatcher# (:dispatcher old-meta#)
               doc-strings# (conj old-doc-strings# 
                              {~type-name (str ~type-name "\n=====\n" ~doc-str)})
               is-new-type# (not (some #{~type-name} old-types#))
@@ -253,22 +258,17 @@
                          (cons (str "is a multimethod dispatched"
                                  " on type of the first argument...")
                            (map doc-strings# types#))) ]
-         (print "Dispatched by" dispatcher#)
          (when is-new-type#
            (dosync
-             (ref-set dispatcher# (fn [x# & args#] (test-list-types-object types# x#))))
+             (ref-set dispatcher# (fn [x# & args#] (if (= x# :my-meta-data)
+                                                     :my-meta-data
+                                                     (test-list-types-object types# x#)))))
            (defmethod ~name ~type-name [& args#] 
              (illegal-argument (str ~name-str 
                                  " called, but there is a method declared but"
                                  " not defined for type "
                                  (when-not (empty? args#) (type (first args#))) "!"  ))))
-         (print "\ndisp: " dispatcher#)
-         (print "\nmeta: " (meta (var ~name)))
-         (.setMeta (var ~name) (merge (meta (var ~name)) 
-                                 {:doc new-doc#
-                                 :doc-strings doc-strings#
-                                 :type-list types#
-                                 :dispatcher dispatcher#}))
-         (print "\nnew-meta: " (meta (var ~name)))
-         (print "\ndisp: " dispatcher#)
-         (print "\nmeta-d:" (:dispatcher (meta (var ~name))))))))
+         (dosync (commute meta-ref# merge {
+                   :doc-strings doc-strings#   :type-list types#}))
+         (.setMeta (var ~name) (conj (meta (var ~name)) {:doc new-doc#}))))))
+         

@@ -185,7 +185,9 @@
   [x] x)
 
 
-(declare change-attribute-name change-object-name change-incidence-cross)
+(declare-multimethod change-attribute-name)
+(declare-multimethod change-object-name)
+(declare-multimethod change-incidence-cross)
 
 (defn- ectx-cell-value-hook 
   [ectx row column contents]
@@ -364,7 +366,9 @@
 
 
                    
-(declare change-attribute-name change-object-name change-incidence-cross)
+(declare-multimethod change-attribute-name)
+(declare-multimethod change-object-name)
+(declare-multimethod change-incidence-cross)
 
 (inherit-multimethod change-incidence-cross ::editable-context
  "Sets or unsets the cross in the incidence relation of the editable-context.
