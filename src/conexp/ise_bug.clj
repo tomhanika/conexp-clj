@@ -15,6 +15,16 @@
     conexp.contrib.gui.editors.util
     conexp.util.multimethods))
 
+(defn mk-btn
+  "make button"
+  []
+  (let [  h (fn [] (message-box "MSG!")) ]
+    (make-button "Klick" nil [ set-handler h ])))
 
+(defn button-test
+  "For debugging/testing buttons"
+  []
+  (let [btn (mk-btn) ]
+    (show-in-frame (get-widget btn)) ))
 
 nil
