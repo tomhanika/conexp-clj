@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.dl.framework.models
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax))
+	conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.boxes))
 
 ;;; Model definition
 
@@ -196,6 +197,53 @@
                                              (attribute-derivation ctx #{next}))
                                       (rest attributes))))))]
     (make-model dl base-set interpretation)))
+
+;;; TBox interpretations
+
+(defn next-interpretation
+  "Defines a new interpretation on the defined concepts of tbox in
+  model through interpretation."
+  [model tbox interpretation]
+  (let [extended-model (extend-model model interpretation)]
+    (loop [defs  (seq (tbox-definitions tbox)),
+	   new-i {}]
+      (if (empty? defs)
+	new-i
+	(recur (rest defs)
+	       (let [def (first defs)]
+		 (conj new-i [(definition-target def)
+			      (interpret extended-model (definition-expression def))])))))))
+
+(defn fixed-point
+  "Apply f to data until (= old-data new-data)."
+  [f data]
+  (let [runner (fn runner [old-data]
+		 (let [new-data (f old-data)]
+		   (if (= new-data old-data)
+		     new-data
+		     (recur new-data))))]
+    (runner data)))
+
+(defn constant-interpretation
+  "Return interpretation on the defined concepts of tbox, constantly
+  returning value."
+  [tbox value]
+  (hashmap-by-function (constantly value)
+		       (defined-concepts tbox)))
+
+(defn gfp-model
+  "Returns the gfp-model of tbox in model."
+  [tbox model]
+  (fixed-point (fn [i]
+		 (next-interpretation model tbox i))
+	       (constant-interpretation tbox (model-base-set model))))
+
+(defn lfp-model
+  "Returns the lfp-model of tbox in model."
+  [tbox model]
+  (fixed-point (fn [i]
+		 (next-interpretation model tbox i))
+	       (constant-interpretation tbox #{})))
 
 ;;;
 

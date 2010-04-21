@@ -12,7 +12,6 @@
 	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
 	conexp.contrib.dl.languages.description-graphs
-	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.framework.reasoning))
 
 (update-ns-meta! conexp.contrib.dl.languages.EL-gfp
