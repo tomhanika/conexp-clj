@@ -13,84 +13,41 @@
 
 ;;; TBox definitions
 
-(defrecord TBox [language definition-hash-map])
+(defrecord TBox [language definition-map])
 
 (defn tbox-language
   "Returns language for which tbox is a tbox."
   [#^TBox tbox]
   (.language tbox))
 
-(defn tbox-definition-hash-map
+(defn tbox-definition-map
   "Returns a hash-map mapping symbols to their corresponding definition in tbox."
   [#^TBox tbox]
-  (.definition-hash-map tbox))
+  (.definition-map tbox))
 
 (defmethod print-method TBox [tbox out]
-  (let [#^String output (with-out-str (print (vals (tbox-definition-hash-map tbox))))]
+  (let [#^String output (with-out-str
+                          (print (list 'TBox
+                                       (vals (tbox-definition-map tbox)))))]
     (.write out (.trim output))))
 
 (defn make-tbox
   "Creates and returns a tbox for language from the given
-  definitions."
-  [language definitions]
-  (TBox. language (into {} (for [def definitions]
-                             [(definition-target def) def]))))
-;;;
-
-(defn find-definition
-  "Returns definition of target A in tbox, if it exists."
-  [tbox A]
-  (let [result (get (tbox-definition-hash-map tbox) A nil)]
-    (if (nil? result)
-      (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
-      result)))
-
-(defn uniquify-tbox-target-pair
-  "Substitutes for every defined concept name in tbox a new, globally
-  unique, concept name and finally substitutes traget with its new name."
-  [[tbox target]]
-  (let [symbols     (defined-concepts tbox),
-	new-symbols (hashmap-by-function (fn [_] (gensym))
-					 symbols)]
-    [(make-tbox (tbox-language tbox)
-		(set-of (make-dl-definition (new-symbols target)
-                                            (substitute def-exp new-symbols))
-			[def (tbox-definitions tbox),
-			 :let [target (definition-target def),
-			       def-exp (definition-expression def)]]))
-     (new-symbols target)]))
-
-(defn uniquify-tbox
-  "Substitutes for every defined concept anme in tbox a new, globally
-  unique, concept name."
-  [tbox]
-  (if (empty? (tbox-definitions tbox))
-    tbox
-    (first (uniquify-tbox-target-pair [tbox (definition-target
-                                              (first (tbox-definitions tbox)))]))))
-
-(defn tbox-union
-  "Returns the union of tbox-1 and tbox-2."
-  [tbox-1 tbox-2]
-  (when-not (= (tbox-language tbox-1)
-               (tbox-language tbox-2))
-    (illegal-argument "Cannot unify tboxes of different description logics."))
-  (TBox. (tbox-language tbox-1)
-         (merge (tbox-definition-hash-map tbox-1)
-                (tbox-definition-hash-map tbox-2))))
-
+  definition-map, which must be a mapping from symbols to definitions."
+  [language definition-map]
+  (TBox. language definition-map))
 
 ;;; accessing used role names, primitive and defined concepts
 
 (defn tbox-definitions
   "Returns the definitions in a tbox."
   [tbox]
-  (set (vals (tbox-definition-hash-map tbox))))
+  (set (vals (tbox-definition-map tbox))))
 
 (defn defined-concepts
   "Returns all defined concepts in tbox."
   [tbox]
-  (set-of (definition-target def) [def (tbox-definitions tbox)]))
+  (set (keys (tbox-definition-map tbox))))
 
 (defn used-role-names
   "Returns all used role names in tbox."
@@ -132,9 +89,9 @@
   (let [definitions (partition 2 definitions)]
     `(make-tbox
       ~language
-      ~(vec (for [pair definitions]
-              `(make-dl-definition '~(first pair)
-                                   (dl-expression ~language ~(second pair))))))))
+      (conj {} ~@(for [pair definitions]
+                   `['~(first pair) (make-dl-definition '~(first pair)
+                                                        (dl-expression ~language ~(second pair)))])))))
 
 (add-dl-syntax! 'tbox)
 
@@ -142,6 +99,53 @@
   "Defines a TBox. Definitions are names interleaved with dl-sexps."
   [name language & definitions]
   `(def ~name (tbox ~language ~@definitions)))
+
+;;;
+
+(defn find-definition
+  "Returns definition of target A in tbox, if it exists."
+  [tbox A]
+  (let [result (get (tbox-definition-map tbox) A nil)]
+    (if (nil? result)
+      (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
+      result)))
+
+(defn uniquify-tbox-target-pair
+  "Substitutes for every defined concept name in tbox a new, globally
+  unique, concept name and finally substitutes traget with its new name."
+  [[tbox target]]
+  (let [symbols     (defined-concepts tbox),
+	new-symbols (hashmap-by-function (fn [_] (gensym))
+					 symbols)]
+    [(make-tbox (tbox-language tbox)
+                (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
+                           [(new-symbols sym)
+                            (make-dl-definition (new-symbols (definition-target sym))
+                                                (substitute (definition-expression sym-def) new-symbols))])))
+     (new-symbols target)]))
+
+(defn uniquify-tbox
+  "Substitutes for every defined concept name in tbox a new, globally
+  unique, concept name."
+  [tbox]
+  (if (empty? (tbox-definitions tbox))
+    tbox
+    (first (uniquify-tbox-target-pair [tbox (definition-target
+                                              (first (tbox-definitions tbox)))]))))
+
+(defn tbox-union
+  "Returns the union of tbox-1 and tbox-2."
+  [tbox-1 tbox-2]
+  (when-not (= (tbox-language tbox-1)
+               (tbox-language tbox-2))
+    (illegal-argument "Cannot unify tboxes of different description logics."))
+  (TBox. (tbox-language tbox-1)
+         (merge-with (fn [old new]
+                       (if-not (= old new)
+                         (illegal-state "Cannot unify tbox with different definitions for the same target.")
+                         new))
+                     (tbox-definition-map tbox-1)
+                     (tbox-definition-map tbox-2))))
 
 ;;;
 
@@ -175,10 +179,11 @@
 			      [(definition-target definition),
 			       (first (reversed-map (expression (definition-expression definition))))])),
 	new-tbox (make-tbox (tbox-language tbox)
-			    (for [definition (tbox-definitions tbox)]
-			      (make-dl-definition (tbox-language tbox)
-						  (definition-target definition)
-						  (substitute (definition-expression definition) rename-map))))]
+			    (into {} (for [definition (tbox-definitions tbox)]
+                                       [(definition-target definition)
+                                        (make-dl-definition (tbox-language tbox)
+                                                            (definition-target definition)
+                                                            (substitute (definition-expression definition) rename-map))])))]
     (if (not= tbox new-tbox)
       (tidy-up-tbox [new-tbox target])
       [tbox target])))
@@ -202,16 +207,7 @@
   [[tbox target]]
   (let [needed-targets (collect-targets tbox #{target} #{}),
 	new-tbox (make-tbox (tbox-language tbox)
-			    (for [def (tbox-definitions tbox)
-				  :when (contains? needed-targets (definition-target def))]
-			      (if (compound? (definition-expression def))
-				;; remove duplicate terms
-				(let [expr (definition-expression def)]
-				  (make-dl-definition (definition-target def)
-						      (make-dl-expression (tbox-language tbox)
-									  (list* (operator expr)
-										 (distinct (arguments expr))))))
-				def)))]
+                            (select-keys (tbox-definition-map tbox) needed-targets))]
     [new-tbox target]))
 
 (defn substitute-definitions
@@ -222,19 +218,20 @@
   (let [symbols (free-symbols-in-expression (definition-expression (find-definition tbox target)))]
     (if (empty? symbols)
       [tbox target]
-      (let [target-definition  (find-definition tbox target),
-	    rest-definitions   (disj (tbox-definitions tbox) target-definition),
-	    needed-definitions (for [def rest-definitions
-				     :when (contains? symbols (definition-target def))]
-				 [(definition-target def) (definition-expression def)]),
+      (let [target-definition     (find-definition tbox target),
+	    rest-definitions      (dissoc (tbox-definition-map tbox) target),
+	    needed-definitions    (for [[sym sym-def] rest-definitions
+                                        :when (contains? symbols sym)]
+                                    [(definition-target sym-def) (definition-expression sym-def)]),
 
 	    new-target-definition (make-dl-definition target
 						      (substitute (definition-expression target-definition)
 								  (into {} needed-definitions)))
 
-	    [new-tbox target]  (clarify-tbox [(make-tbox (tbox-language tbox)
-							 (conj rest-definitions new-target-definition))
-					      target])]
+	    [new-tbox target]     (clarify-tbox [(make-tbox (tbox-language tbox)
+                                                            (assoc rest-definitions
+                                                              target new-target-definition))
+                                                 target])]
 	(recur [new-tbox target])))))
 
 (defn reduce-tbox

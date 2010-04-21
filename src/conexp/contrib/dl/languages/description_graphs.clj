@@ -96,9 +96,9 @@
 (defn- hash-map->tbox
   "Transforms given hash-map to a TBox for the given language."
   [language tbox-map]
-  (let [definitions (for [[A def-A] tbox-map]
-		      (make-dl-definition language (expression A) (cons 'and def-A)))]
-    (make-tbox language (set definitions))))
+  (let [definitions (into {} (for [[A def-A] tbox-map]
+                               [(expression A) (make-dl-definition language (expression A) (cons 'and def-A))]))]
+    (make-tbox language definitions)))
 
 ;; storing names
 
@@ -271,13 +271,13 @@
 	labels      (vertex-labels description-graph),
 	neighbours  (neighbours description-graph),
 
-	definitions (set-of (make-dl-definition A def-exp)
-			    [A (vertices description-graph)
-			     :let [def-exp (make-dl-expression language
-							       (list* 'and
-								      (concat (labels A)
-									      (for [[r B] (neighbours A)]
-										(list 'exists r B)))))]])]
+	definitions (into {} (for [A (vertices description-graph)
+                                   :let [def-exp (make-dl-expression language
+                                                                     (list* 'and
+                                                                            (concat (labels A)
+                                                                                    (for [[r B] (neighbours A)]
+                                                                                      (list 'exists r B)))))]]
+                               [A (make-dl-definition A def-exp)]))]
     (make-tbox language definitions)))
 
 (defn model->description-graph

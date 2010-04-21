@@ -45,7 +45,7 @@
 	    target   (gensym)]
 	(make-dl-expression-nc language
 			       [(make-tbox language
-					   #{(make-dl-definition target dl-expression)}),
+					   {target (make-dl-definition target dl-expression)}),
 				target])))))
 
 (defn EL-expression->rooted-description-graph
@@ -75,10 +75,10 @@
       [tbox (first concepts)]
       (let [A     (first concepts),
             B     (second concepts),
-            G_T_A (tbox->description-graph (first (clarify-tbox [tbox A])))
-            G_T_B (tbox->description-graph (first (clarify-tbox [tbox B])))
+            G_T_A (tbox->description-graph (first (clarify-tbox [tbox, A])))
+            G_T_B (tbox->description-graph (first (clarify-tbox [tbox, B])))
             G-x-G (graph-product G_T_A G_T_B),
-            T_2   (tbox-union tbox (description-graph->tbox G-x-G)),
+            T_2   (description-graph->tbox G-x-G),
             [new-tbox new-target] (clarify-tbox (tidy-up-tbox (clarify-tbox [T_2, [A,B]])))]
         (recur (tbox-union tbox new-tbox) (conj (vec (drop 2 concepts)) new-target))))))
 
@@ -93,7 +93,7 @@
 					 (concat (concept-names language)
 						 (for [r (role-names language)]
 						   (list 'exists r 'All)))))]
-      [(make-tbox language #{(make-dl-definition 'All all)}), 'All])))
+      [(make-tbox language {'All (make-dl-definition 'All all)}), 'All])))
 
 (define-msc EL-gfp
   [model objects]
