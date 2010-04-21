@@ -9,7 +9,7 @@
 (ns conexp.contrib.dl.languages.EL-gfp-exploration
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.models
+	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.languages.interaction
 	conexp.contrib.dl.languages.EL-gfp

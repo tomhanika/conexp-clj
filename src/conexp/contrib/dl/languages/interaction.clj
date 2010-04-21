@@ -9,7 +9,7 @@
 (ns conexp.contrib.dl.languages.interaction
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.models))
+	conexp.contrib.dl.framework.semantics))
 
 ;;;
 

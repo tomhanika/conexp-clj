@@ -10,7 +10,7 @@
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.models
+	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test))

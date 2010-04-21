@@ -9,8 +9,8 @@
 (ns conexp.contrib.dl.languages.description-graphs
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
+	conexp.contrib.dl.framework.semantics
         conexp.contrib.dl.util.graphs)
   (:use clojure.contrib.pprint)
   (:import [java.util HashMap HashSet]))

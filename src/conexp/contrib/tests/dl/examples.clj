@@ -9,8 +9,8 @@
 (ns conexp.contrib.tests.dl.examples
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
+	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.languages.EL-gfp-exploration
