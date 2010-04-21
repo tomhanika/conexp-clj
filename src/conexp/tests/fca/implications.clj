@@ -7,10 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.tests.fca.implications
-  (:use clojure.test
-	conexp.base
+  (:use clojure.test)
+  (:use conexp.base
 	conexp.fca.contexts
-	conexp.fca.implications))
+	conexp.fca.implications)
+  (:require [conexp.tests.fca.contexts :as contexts]))
 
 ;;;
 
@@ -47,11 +48,24 @@
 ;; close-under-implications (private)
 ;; clop-by-implications
 ;; follows-semantically
+;; minimal-implication-set?
 ;; add-immediate-elements* (private)
 ;; clop-by-implications*
 
 (deftest test-stem-base
-  (is (= 1 (count (stem-base (one-context #{1 2 3 4 5}))))))
+  (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
+  (doseq [ctx [contexts/*test-ctx-01*,
+               contexts/*test-ctx-04*
+               contexts/*test-ctx-07*,
+               contexts/*test-ctx-08*]]
+    (let [sb (stem-base ctx)]
+      (is (minimal-implication-set? sb))
+      (is (forall [impl sb] (holds? impl ctx)))
+      (is (forall [A (subsets (attributes ctx)),
+                   B (subsets (difference (attributes ctx) A))]
+            (let [impl (make-implication A B)]
+              (=> (holds? impl ctx)
+                  (follows-semantically? impl sb))))))))
 
 ;;;
 
