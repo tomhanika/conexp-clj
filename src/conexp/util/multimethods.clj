@@ -180,4 +180,41 @@
                                  {:doc new-doc#
                                  :doc-strings doc-strings#
                                  :type-list types#}))))))
+
+(defmacro declare-multimethod
+  "Declares a new multimethod that dispatches by type hierarchy
+   on the first parameter with a dummy dispatcher that rejects
+   by default.
+   Uses the value of *poly-ns* as namespace for the defmulti
+   definitions, if defined, or the current namespace else."
+  [name]
+  (let [ poly-ns (get-value-if-defined '*poly-ns*) ]
+    (if poly-ns
+      `(do 
+         (in-other-ns (quote ~poly-ns)
+           (declare-multimethod-local ~name))
+         (clojure.core/refer (quote ~poly-ns) :only [(quote ~name)]
+           :rename {(quote ~name) (quote temporary#)})
+         (ns-unmap *ns* (quote ~name))
+         (def ~name temporary#)
+         (alter-meta! (var ~name) conj {:doc 
+           (str "Please refer to:\n\t(doc " (quote ~poly-ns) 
+             "/" (quote ~name) ")")})
+         (ns-unmap *ns* (quote temporary#)))
+      `(declare-multimethod-local ~name))))
       
+;(defmacro declare-multimethods
+;  "Shortcut for multiple declare-multimethod calls."
+;  [& names]
+; ) (I dont get it to work right now...)
+
+
+(defmacro declare-multimethod-local
+  "Declares a new multimethod that dispatches by type hierarchy
+   on the first parameter with a dummy dispatcher that rejects
+   by default."
+  [name]
+  (let [ name-str (str name) ]
+    `(defonce ~name (fn [& ignore#] (illegal-argument (str ~name-str 
+                                                        " is a declared multimethod, "
+                                                        "but was never inherited!"))))))

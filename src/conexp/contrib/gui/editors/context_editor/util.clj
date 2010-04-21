@@ -112,7 +112,9 @@
 (defrecord context-editor-widget [widget table toolbar e-ctx])
 (derive* ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
 
-(declare make-editable-context editable-context? add-widget get-context)
+(declare make-editable-context editable-context?)
+(declare-multimethod add-widget)
+(declare-multimethod get-context)
 
 (defn-swing make-context-editor-widget
   "Creates a control for editing contexts.

@@ -12,19 +12,31 @@
 (ns conexp.ise-bug
   (:use conexp.base
     conexp.contrib.gui.util
+    conexp.contrib.gui.editors.context-editor.util
     conexp.contrib.gui.editors.util
-    conexp.util.multimethods))
+    conexp.util.multimethods
+    conexp.util.hookable
+    conexp.fca.contexts))
 
-(defn mk-btn
-  "make button"
-  []
-  (let [  h (fn [] (message-box "MSG!")) ]
-    (make-button "Klick" nil [ set-handler h ])))
+(def ctx (rand-context #{"a" "b" "c" "d" "e" "f" "g"} #{1 2 3 4 5 6} 0.4))
 
-(defn button-test
-  "For debugging/testing buttons"
-  []
-  (let [btn (mk-btn) ]
-    (show-in-frame (get-widget btn)) ))
+(def ectx (make-editable-context ctx))
+
+(let [ widget (make-context-editor-widget) ]
+  (add-widget ectx widget)
+  (def w widget)
+  (def c (get-control widget))
+  (defn fire-test [] (show-in-frame (get-widget widget))))
+
+(let [table (make-table-control)]
+  (set-row-count table 10)
+  (set-column-count table 10)
+  (def tbl table))
+
+(defn tbl-test [] (show-in-frame (get-widget tbl)))
+
+(defn bing [] (message-box "BING!"))
+
+(set-hook tbl "table-changed" (fn [_ _ _ _] (bing)))
 
 nil

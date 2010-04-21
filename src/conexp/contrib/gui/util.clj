@@ -47,6 +47,7 @@
   (let [frame (JFrame.)]
     (.add frame thing)
     (.setVisible frame true)
+    (.setSize frame (Dimension. 500 200))
     (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
     frame))
 
