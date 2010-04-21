@@ -47,6 +47,15 @@
 	       (make-context-editor thing)
 	       (str "Context " path)))))
 
+(defn- random-context-and-go
+  "Creates a random context and adds a new tab with a context-editor."
+  [frame]
+  (let [ thing (rand-context #{"a" "b" "c" "d" "e" "f"} #{1 2 3 4 5 6} 0.4)]
+    (add-tab frame
+      (make-context-editor thing)
+      "Context")))
+
+
 (defn- save-context-and-go
   "Saves context with given writer."
   [frame writer]
@@ -63,13 +72,16 @@
   {:name "Context",
   :content [ {:name "Load Context",
 	      :handler (fn [x] (load-context-and-go x read-context)) }
+             {:name "Random Context",
+              :handler (fn [x] (random-context-and-go x)) }
+             {}
               {:name "Save Context",
               :content (vec (map (fn [x] {:name (str 
                                                   (replace-str ":" "" (str x)) 
                                                   " format"),
                                    :handler (fn [f] (save-context-and-go f
                                            (fn [c p] (write-context x c p))))})
-                              (list-context-input-formats))) }]}
+                              (list-context-formats))) }]}
   "Menu for context editor.")
 
 (let [menu-hash (ref {})]
