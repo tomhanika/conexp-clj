@@ -156,6 +156,16 @@
 (defmethod get-ectx ::context-editor-widget
   [widget] @(:e-ctx widget))
 
+(inherit-multimethod get-context ::context-editor-widget
+  "Returns the conexp.fca.contexts-context that is currently associated with the
+   context-editor-widget.
+
+  Parameters:
+    widget  _context-editor-widget")
+
+(defmethod get-context ::context-editor-widget
+  [widget] (get-context @(:e-ctx widget)))
+
 (inherit-multimethod set-ectx ::context-editor-widget
   "Sets the editable-context that is currently associated with the
    context-editor-widget to the second parameter.
