@@ -8,6 +8,7 @@
 
 (ns conexp.util.multimethods
   (:use [clojure.contrib.string :only (join replace-first-re)]
+    clojure.contrib.def
     conexp.util))
 
 ;;; since in the recent version, type doens't work with keywords anymore, but
@@ -101,10 +102,8 @@
 
 (defmacro def-
   "Private version of def"
-  [name & exprs]
-  `(do
-     (def ~name ~@exprs)
-     (alter-meta! (var ~name) conj {:private true})))
+  [& exprs]
+  `(defvar- ~@exprs))
 
 (defmacro in-other-ns
   "Takes a namespace name and an expression that will be run
@@ -215,6 +214,57 @@
    by default."
   [name]
   (let [ name-str (str name) ]
-    `(defonce ~name (fn [& ignore#] (illegal-argument (str ~name-str 
-                                                        " is a declared multimethod, "
-                                                        "but was never inherited!"))))))
+    `(do 
+       (defonce ~name :was-undefined-yet)
+       (when (= ~name :was-undefined-yet)
+         (defmulti dispatcher# (fn [ & x# ] nil))
+         (defmethod dispatcher# nil [ & x# ] :declared-but-never-inherited)
+         (defmulti ~name dispatcher#)
+         (defmethod ~name :declared-but-never-inherited [ & x# ]
+           (illegal-argument (str ~name-str   
+                               " is a declared as a dispatched multimethod,"
+                               " but has never been inherited.")))
+         (defmethod ~name nil [& args#] 
+           (illegal-argument (str ~name-str 
+                               " called, but there is no method declared for type "
+                               (when-not (empty? args#) (type (first args#))) "!"  )))
+         (.setMeta (var ~name) (conj (meta (var ~name))
+                                 {:dispatcher dispatcher#}))
+         (ns-unmap *ns* (quote dispatcher#))))))
+
+(defmacro inherit-multimethod-local
+  "Creates a new multimethod that dispatches by type hierarchy
+   on the first parameter and sets the dispatcher to recognize
+   all inherited types, then appends the given documentation."
+  [name type-name doc-str]
+  (let [name-str (str name)]
+    `(let [ old-meta# (meta ((ns-map *ns*) (quote ~name)))
+            old-doc-strings-val# (if (nil? old-meta#) {} (:doc-strings old-meta#))
+            old-doc-strings# (if (nil? old-doc-strings-val#) {} old-doc-strings-val#)
+            old-types# (if (nil? old-meta#) (list) (:type-list old-meta#))]
+       (declare-multimethod-local ~name)
+       (def dispatcher# (:dispatcher (meta (var ~name))))
+       (let [ doc-strings# (conj old-doc-strings# 
+                             {~type-name (str ~type-name "\n=====\n" ~doc-str)})
+              is-new-type# (not (some #{~type-name} old-types#))
+              types#  (if is-new-type# 
+                        (insert-before-first-pred (fn [x#] (isa?* ~type-name x#))
+                          old-types# ~type-name)
+                        old-types#)
+              new-doc# (join "\n+++++\n\n" 
+                         (cons (str "is a multimethod dispatched"
+                                 " on type of the first argument...")
+                           (map doc-strings# types#))) ]
+         (print "Dispatched by" dispatcher#)
+         (when is-new-type#
+           (defmethod dispatcher# nil [x# & args#] (test-list-types-object types# x#))
+           (defmethod ~name ~type-name [& args#] 
+             (illegal-argument (str ~name-str 
+                                 " called, but there is a method declared but"
+                                 " not defined for type "
+                                 (when-not (empty? args#) (type (first args#))) "!"  ))))
+         (.setMeta (var ~name) (merge (meta (var ~name)) 
+                                 {:doc new-doc#
+                                 :doc-strings doc-strings#
+                                 :type-list types#
+                                 :dispatcher dispatcher#}))))))
