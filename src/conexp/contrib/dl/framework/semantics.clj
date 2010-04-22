@@ -45,7 +45,7 @@
                                                    (model-interpretation model))))]
     (.write out (.trim output))))
 
-;;; Interpretation
+;;; Interpretations
 
 (defmulti compile-expression
   "Compiles an expression to a function mapping a model to the extent
@@ -105,7 +105,7 @@
      (fn [~model]
        ~@body)))
 
-;;;
+;;; Model Syntax
 
 (defmacro model
   "Defines model for language on base-set: interpretation maps atomic
@@ -129,7 +129,7 @@
   [name language base-set & interpretation]
   `(def ~name (model ~language ~base-set ~@interpretation)))
 
-;;;
+;;; Most Specific Concepts
 
 (defmulti most-specific-concept
   "Computes the model based most specific concept of a set of objects
@@ -151,7 +151,8 @@
   "Return the most specific concept of the interpretation of dl-exp in
   model."
   [model dl-exp]
-  (most-specific-concept model (interpret model dl-exp)))
+  (with-memoized-fns [interpret]        ;?
+    (most-specific-concept model (interpret model dl-exp))))
 
 ;;;
 
