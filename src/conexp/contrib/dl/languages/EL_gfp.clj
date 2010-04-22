@@ -78,7 +78,7 @@
             G_T_B (tbox->description-graph (first (clarify-ttp [tbox, B])))
             G-x-G (graph-product G_T_A G_T_B),
             T_2   (description-graph->tbox G-x-G),
-            [new-tbox new-target] (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]])))]
+            [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]]))))]
         (recur (tbox-union tbox new-tbox) (conj (vec (drop 2 concepts)) new-target))))))
 
 (defn EL-gfp-msc

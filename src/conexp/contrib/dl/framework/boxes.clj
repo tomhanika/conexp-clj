@@ -130,15 +130,16 @@
   "Substitutes for every defined concept name in tbox a new, globally
   unique, concept name and finally substitutes traget with its new name."
   [[tbox target]]
-  (let [symbols     (defined-concepts tbox),
-        new-symbols (hashmap-by-function (fn [_] (gensym))
-                                         symbols)]
-    [(make-tbox (tbox-language tbox)
-                (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
-                           [(new-symbols sym)
-                            (make-dl-definition (new-symbols (definition-target sym))
-                                                (substitute (definition-expression sym-def) new-symbols))])))
-     (new-symbols target)]))
+  (let [symbols     (defined-concepts tbox)]
+    (when-not (some #(= target %) symbols)
+      (illegal-argument "Target given to uniquify-ttp does not occur in the defined concepts of the given tbox."))
+    (let [new-symbols (hashmap-by-function (fn [_] (gensym)) symbols)]
+      [(make-tbox (tbox-language tbox)
+                  (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
+                             [(new-symbols sym)
+                              (make-dl-definition (new-symbols sym)
+                                                  (substitute (definition-expression sym-def) new-symbols))])))
+       (new-symbols target)])))
 
 (defn uniquify-tbox
   "Substitutes for every defined concept name in tbox a new, globally

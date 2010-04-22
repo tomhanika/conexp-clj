@@ -14,7 +14,8 @@
 	conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.languages.EL-gfp-exploration
-	conexp.contrib.dl.languages.interaction))
+	conexp.contrib.dl.languages.interaction)
+  (:use clojure.test))
 
 (update-ns-meta! conexp.contrib.tests.dl.examples
   :doc "Defines example data for testing and show how to use
