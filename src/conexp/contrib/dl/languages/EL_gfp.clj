@@ -74,11 +74,11 @@
       [tbox (first concepts)]
       (let [A     (first concepts),
             B     (second concepts),
-            G_T_A (tbox->description-graph (first (clarify-tbox [tbox, A])))
-            G_T_B (tbox->description-graph (first (clarify-tbox [tbox, B])))
+            G_T_A (tbox->description-graph (first (clarify-ttp [tbox, A])))
+            G_T_B (tbox->description-graph (first (clarify-ttp [tbox, B])))
             G-x-G (graph-product G_T_A G_T_B),
             T_2   (description-graph->tbox G-x-G),
-            [new-tbox new-target] (clarify-tbox (tidy-up-tbox (clarify-tbox [T_2, [A,B]])))]
+            [new-tbox new-target] (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]])))]
         (recur (tbox-union tbox new-tbox) (conj (vec (drop 2 concepts)) new-target))))))
 
 (defn EL-gfp-msc
@@ -96,7 +96,7 @@
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (reduce-tbox (EL-gfp-msc model objects))]
+  (let [[tbox target] (reduce-ttp (EL-gfp-msc model objects))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))

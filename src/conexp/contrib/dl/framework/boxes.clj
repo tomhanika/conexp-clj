@@ -110,29 +110,6 @@
       (illegal-argument "Cannot find definition for " A " in tbox " (print-str tbox) ".")
       result)))
 
-(defn uniquify-tbox-target-pair
-  "Substitutes for every defined concept name in tbox a new, globally
-  unique, concept name and finally substitutes traget with its new name."
-  [[tbox target]]
-  (let [symbols     (defined-concepts tbox),
-	new-symbols (hashmap-by-function (fn [_] (gensym))
-					 symbols)]
-    [(make-tbox (tbox-language tbox)
-                (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
-                           [(new-symbols sym)
-                            (make-dl-definition (new-symbols (definition-target sym))
-                                                (substitute (definition-expression sym-def) new-symbols))])))
-     (new-symbols target)]))
-
-(defn uniquify-tbox
-  "Substitutes for every defined concept name in tbox a new, globally
-  unique, concept name."
-  [tbox]
-  (if (empty? (tbox-definitions tbox))
-    tbox
-    (first (uniquify-tbox-target-pair [tbox (definition-target
-                                              (first (tbox-definitions tbox)))]))))
-
 (defn tbox-union
   "Returns the union of tbox-1 and tbox-2."
   [tbox-1 tbox-2]
@@ -149,6 +126,28 @@
 
 ;;;
 
+(defn uniquify-ttp
+  "Substitutes for every defined concept name in tbox a new, globally
+  unique, concept name and finally substitutes traget with its new name."
+  [[tbox target]]
+  (let [symbols     (defined-concepts tbox),
+        new-symbols (hashmap-by-function (fn [_] (gensym))
+                                         symbols)]
+    [(make-tbox (tbox-language tbox)
+                (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
+                           [(new-symbols sym)
+                            (make-dl-definition (new-symbols (definition-target sym))
+                                                (substitute (definition-expression sym-def) new-symbols))])))
+     (new-symbols target)]))
+
+(defn uniquify-tbox
+  "Substitutes for every defined concept name in tbox a new, globally
+  unique, concept name."
+  [tbox]
+  (if (empty? (tbox-definitions tbox))
+    tbox
+    (first (uniquify-ttp [tbox (first (keys (tbox-definition-map tbox)))]))))
+
 (defn usage-graph
   "Returns usage graph of a given tbox, i.e. a graph on the defined
   concepts of tbox where a concept C is connected to a concept D via
@@ -164,10 +163,10 @@
   [tbox]
   (zero? (count (self-recursive-sets (usage-graph tbox)))))
 
-(defn tidy-up-tbox
-  "In a given tbox take for a set of syntactically equivalent defined
-  concepts one representative and replace every occurence of an
-  equivalent symbol by this representative."
+(defn tidy-up-ttp
+  "In a given tbox-target-pair take for a set of syntactically
+  equivalent defined concepts one representative and replace every
+  occurence of an equivalent symbol by this representative."
   [[tbox target]]
   (let [reversed-map (reduce (fn [hash-map definition]
 			       (let [name (definition-target definition)]
@@ -185,7 +184,7 @@
                                                             (definition-target definition)
                                                             (substitute (definition-expression definition) rename-map))])))]
     (if (not= tbox new-tbox)
-      (tidy-up-tbox [new-tbox target])
+      (tidy-up-ttp [new-tbox target])
       [tbox target])))
 
 (defn collect-targets
@@ -201,16 +200,16 @@
 			      seen)]
       (recur tbox targets seen))))
 
-(defn clarify-tbox
-  "Clarifies tbox for target, i.e. removes all definitions from tbox
-  which are not needed to define target."
+(defn clarify-ttp
+  "Clarifies tbox-target-pair for target, i.e. removes all definitions
+  from tbox which are not needed to define target."
   [[tbox target]]
   (let [needed-targets (collect-targets tbox #{target} #{}),
-	new-tbox (make-tbox (tbox-language tbox)
-                            (select-keys (tbox-definition-map tbox) needed-targets))]
+	new-tbox       (make-tbox (tbox-language tbox)
+                                  (select-keys (tbox-definition-map tbox) needed-targets))]
     [new-tbox target]))
 
-(defn substitute-definitions
+(defn expand-ttp
   "Substitutes defined concepts in the definition of target by their
   definitions. Note that this function does not finish when the tbox is
   recursive in target."
@@ -219,29 +218,27 @@
     (if (empty? symbols)
       [tbox target]
       (let [target-definition     (find-definition tbox target),
-	    rest-definitions      (dissoc (tbox-definition-map tbox) target),
-	    needed-definitions    (for [[sym sym-def] rest-definitions
-                                        :when (contains? symbols sym)]
-                                    [(definition-target sym-def) (definition-expression sym-def)]),
+	    needed-definitions    (into {} (for [[_ sym-def] (select-keys (tbox-definition-map tbox) symbols)]
+                                             [(definition-target sym-def) (definition-expression sym-def)])),
 
 	    new-target-definition (make-dl-definition target
 						      (substitute (definition-expression target-definition)
-								  (into {} needed-definitions)))
+								  needed-definitions)),
 
-	    [new-tbox target]     (clarify-tbox [(make-tbox (tbox-language tbox)
-                                                            (assoc rest-definitions
-                                                              target new-target-definition))
-                                                 target])]
+	    [new-tbox target]     (clarify-ttp [(make-tbox (tbox-language tbox)
+                                                           (assoc (tbox-definition-map tbox)
+                                                             target new-target-definition))
+                                                target])]
 	(recur [new-tbox target])))))
 
-(defn reduce-tbox
-  "Reduces tbox for target as much as possible, returning a pair of
-  the reduced tbox and target."
+(defn reduce-ttp
+  "Reduces tbox-target-pair for target as much as possible, returning
+  a pair of the reduced tbox and target."
   [[tbox target]]
-  (let [c-tbox (clarify-tbox [tbox target])]
-    (if (acyclic? (first c-tbox))
-      (substitute-definitions c-tbox)
-      c-tbox)))
+  (let [ttp (clarify-ttp [tbox target])]
+    (if (acyclic? (first ttp))
+      (expand-ttp ttp)
+      ttp)))
 
 ;;;
 
