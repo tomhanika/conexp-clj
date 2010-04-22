@@ -51,6 +51,9 @@
 
 ;;; actual exploration algorithm
 
+;;; BADBADBAD!!!
+(defvar *collected-gcis* (ref []))
+
 (defn explore-model
   "Model exploration algorithm."
   ([initial-model]
@@ -89,7 +92,7 @@
 		 susu))
 
 	     ;; else search for next implication
-	     (let [_ (println (count (seq-on M_k)))
+	     (let [_ (println (count (seq-on M_k))),
                    all-P_k    (make-dl-expression language (cons 'and P_k)),
 		   next-model (loop [model model]
 				(let [susu (abbreviate-subsumption
@@ -98,6 +101,7 @@
                                                                                   (model-closure model all-P_k)))
                                             (union implications background-knowledge))]
 				  (if (or (obviously-true? susu)
+                                          (or (dosync (alter *collected-gcis* conj susu)) true)
 					  (not (expert-refuses? susu)))
 				    model
 				    (recur (extend-model-by-contradiction model susu))))),
