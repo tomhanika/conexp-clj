@@ -48,10 +48,11 @@
   present in the subsumee is removed."
   [subsumption background-knowledge]
   (let [language (expression-language (subsumee subsumption)),
-	premise-args (implication-kernel (arguments* (subsumee subsumption)) background-knowledge),
-	conclusion-args (arguments* (subsumer subsumption))]
-    (make-subsumption (make-dl-expression language (cons 'and premise-args))
-		      (make-dl-expression language (cons 'and (difference conclusion-args premise-args))))))
+	premise-args (arguments* (subsumee subsumption)),
+	conclusion-args (difference (arguments* (subsumer subsumption))
+                                    premise-args)]
+    (make-subsumption (make-dl-expression language (cons 'and (implication-kernel premise-args background-knowledge)))
+		      (make-dl-expression language (cons 'and (implication-kernel conclusion-args background-knowledge))))))
 
 ;;;
 
