@@ -34,6 +34,20 @@
 
 ;;; subsumption
 
+(defn ensure-EL-gfp-concept
+  "Ensures dl-expression to be a pair of a tbox and a target."
+  [dl-expression]
+  (let [expr (expression dl-expression)]
+    (if (and (vector? expr)
+	     (= 2 (count expr)))
+      dl-expression
+      (let [language (expression-language dl-expression),
+	    target   (gensym)]
+	(make-dl-expression-nc language
+			       [(make-tbox language
+					   {target (make-dl-definition target dl-expression)}),
+				target])))))
+
 (defn EL-expression->rooted-description-graph
   "Returns for a given EL expression or a tbox-target-pair its
   description graph together with the root corresponding to the
@@ -83,11 +97,7 @@
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (expression
-                       (normalize-EL-gfp-term
-                        (make-dl-expression-nc
-                         (model-language model)
-                         (reduce-ttp (EL-gfp-msc model objects)))))]
+  (let [[tbox target] (normalize-EL-gfp-term (reduce-ttp (EL-gfp-msc model objects)))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))

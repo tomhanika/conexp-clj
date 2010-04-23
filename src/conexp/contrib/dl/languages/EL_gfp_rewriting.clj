@@ -116,34 +116,17 @@
                            (rest sexp)),
 
                      :else sexp))]
-    (make-dl-expression-nc (expression-language term) (transform (expression term)))))
-
-(defn ensure-EL-gfp-concept
-  "Ensures dl-expression to be a pair of a tbox and a target."
-  [dl-expression]
-  (let [expr (expression dl-expression)]
-    (if (and (vector? expr)
-	     (= 2 (count expr)))
-      dl-expression
-      (let [language (expression-language dl-expression),
-	    target   (gensym)]
-	(make-dl-expression-nc language
-			       [(make-tbox language
-					   {target (make-dl-definition target dl-expression)}),
-				target])))))
+    (transform term)))
 
 (defn normalize-EL-gfp-term
-  "Normalizes a given EL-gfp term. term must not have embedded TBoxes."
-  [term]
-  (let [[tbox target] (expression (ensure-EL-gfp-concept term))]
-    (make-dl-expression-nc
-     (expression-language term)
-     [(make-tbox (expression-language term)
-                 (into {} (for [[sym def] (tbox-definition-map tbox)]
-                            [sym (make-dl-definition (expression-language term)
-                                                     (definition-target def)
-                                                     (normalize-EL-term (definition-expression def)))]))),
-      target])))
+  "Normalizes a given EL-gfp term. tbox must not contains embedded TBoxes."
+  [[tbox target] ]
+  [(make-tbox (tbox-language tbox)
+              (into {} (for [[sym def] (tbox-definition-map tbox)]
+                         [sym (make-dl-definition (tbox-language tbox)
+                                                  (definition-target def)
+                                                  (normalize-EL-term (definition-expression def)))]))),
+   target])
 
 ;;;
 
