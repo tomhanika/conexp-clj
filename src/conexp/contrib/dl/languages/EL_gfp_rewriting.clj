@@ -9,7 +9,9 @@
 (ns conexp.contrib.dl.languages.EL-gfp-rewriting
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.languages.EL-gfp))
+        conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.languages.description-graphs)
+  (:use [clojure.walk :only (walk)]))
 
 (update-ns-meta! conexp.contrib.dl.languages.EL-gfp-rewriting
   :doc "Provides functions for EL-gfp term rewriting.")
@@ -53,6 +55,95 @@
                                     premise-args)]
     (make-subsumption (make-dl-expression language (cons 'and (implication-kernel premise-args background-knowledge)))
 		      (make-dl-expression language (cons 'and (implication-kernel conclusion-args background-knowledge))))))
+
+;;; EL and EL-gfp normalization
+
+(defn- minimal-elements
+  "For a given sequence sqn of elements and an order relation
+  more-specific?, return all minimal elements of sqn wrt
+  more-specific?."
+  [sqn more-specific?]
+  (loop [collected (),
+         left sqn]
+    (if (empty? left)
+      (reverse collected)
+      (let [next (first left)]
+        (recur (conj collected next)
+               (remove #(more-specific? next %) (rest left)))))))
+
+(defn- more-specific?
+  "Returns true iff exp-1 is more specific than exp-2."
+  [exp-1 exp-2]
+  (let [atom?   #(not (seq? %)),
+        and?    #(and (seq? %) (= 'and (first %))),
+        exists? #(and (seq? %) (= 'exists (first %)))]
+    (cond
+     (= exp-1 exp-2) true,
+
+     (and (atom? exp-1) (atom? exp-2)) false,
+
+     (and (and? exp-1)
+          (not (and? exp-2)))
+     (or (some #(more-specific? % exp-2) (rest exp-1))
+         false),
+
+     (and (not (and? exp-1))
+          (and? exp-2))
+     (more-specific? (list 'and exp-1) exp-2),
+
+     (and (and? exp-1) (and? exp-2))
+     (every? #(more-specific? exp-1 %) (rest exp-2)),
+
+     (and (exists? exp-1) (exists? exp-2))
+     (and (= (second exp-1) (second exp-2))
+          (more-specific? (nth exp-1 2) (nth exp-2 2))),
+
+     :else false)))
+
+(defn normalize-EL-term
+  "Normalizes a given EL term."
+  [term]
+  (let [transform (fn transform [sexp]
+                    (cond
+                     (and (seq? sexp)
+                          (= (first sexp) 'exists))
+                     (list (first sexp) (second sexp) (transform (nth sexp 2))),
+
+                     (and (seq? sexp)
+                          (= (first sexp) 'and))
+                     (walk transform
+                           #(list* (first sexp) (minimal-elements % more-specific?))
+                           (rest sexp)),
+
+                     :else sexp))]
+    (make-dl-expression-nc (expression-language term) (transform (expression term)))))
+
+(defn ensure-EL-gfp-concept
+  "Ensures dl-expression to be a pair of a tbox and a target."
+  [dl-expression]
+  (let [expr (expression dl-expression)]
+    (if (and (vector? expr)
+	     (= 2 (count expr)))
+      dl-expression
+      (let [language (expression-language dl-expression),
+	    target   (gensym)]
+	(make-dl-expression-nc language
+			       [(make-tbox language
+					   {target (make-dl-definition target dl-expression)}),
+				target])))))
+
+(defn normalize-EL-gfp-term
+  "Normalizes a given EL-gfp term. term must not have embedded TBoxes."
+  [term]
+  (let [[tbox target] (expression (ensure-EL-gfp-concept term))]
+    (make-dl-expression-nc
+     (expression-language term)
+     [(make-tbox (expression-language term)
+                 (into {} (for [[sym def] (tbox-definition-map tbox)]
+                            [sym (make-dl-definition (expression-language term)
+                                                     (definition-target def)
+                                                     (normalize-EL-term (definition-expression def)))]))),
+      target])))
 
 ;;;
 

@@ -11,8 +11,9 @@
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.framework.boxes
+	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.languages.description-graphs
-	conexp.contrib.dl.framework.reasoning))
+        conexp.contrib.dl.languages.EL-gfp-rewriting))
 
 (update-ns-meta! conexp.contrib.dl.languages.EL-gfp
   :doc "Defines EL-gfp with lcs, msc and subsumption.")
@@ -32,20 +33,6 @@
     (interpretation target)))
 
 ;;; subsumption
-
-(defn ensure-EL-gfp-concept
-  "Ensures dl-expression to be a pair of a tbox and a target."
-  [dl-expression]
-  (let [expr (expression dl-expression)]
-    (if (and (vector? expr)
-	     (= 2 (count expr)))
-      dl-expression
-      (let [language (expression-language dl-expression),
-	    target   (gensym)]
-	(make-dl-expression-nc language
-			       [(make-tbox language
-					   {target (make-dl-definition target dl-expression)}),
-				target])))))
 
 (defn EL-expression->rooted-description-graph
   "Returns for a given EL expression or a tbox-target-pair its
@@ -96,7 +83,11 @@
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (reduce-ttp (EL-gfp-msc model objects))]
+  (let [[tbox target] (expression
+                       (normalize-EL-gfp-term
+                        (make-dl-expression-nc
+                         (model-language model)
+                         (reduce-ttp (EL-gfp-msc model objects)))))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       [tbox target])))
