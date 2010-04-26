@@ -115,6 +115,19 @@
 (declare make-editable-context editable-context?)
 (declare-multimethod add-widget)
 (declare-multimethod get-context)
+(declare-multimethod set-context)
+(declare-multimethod get-ectx)
+
+(defn- add-ctx-map-btn
+  "Helper that will create the according button vector"
+  [f ref-to-ectx txt icon]
+  (vec (list add-button 
+         (make-button txt icon 
+           [set-handler 
+             (fn [] 
+               (let [ ectx (deref ref-to-ectx)
+                      ctx (get-context ectx) ]
+                 (set-context ectx (f ctx))))]))))
 
 (defn-swing make-context-editor-widget
   "Creates a control for editing contexts.
@@ -125,6 +138,7 @@
   [ & setup]
   (let [ root (JRootPane.)
          table (make-table-control [set-row-count 1] [set-column-count 1])
+         ectx (ref (make-editable-context))
          toolbar (make-toolbar-control :vert
                    [add-button 
                      (make-button "Copy" 
@@ -133,8 +147,21 @@
                    [add-button
                      (make-button "Paste" 
                        (get-ui-icon "OptionPane.informationIcon")
-                       [set-handler (fn [] (paste-from-clipboard table))] ) ])
-         ectx (ref (make-editable-context))
+                       [set-handler (fn [] (paste-from-clipboard table))] ) ]
+                   [add-separator]
+                   (add-ctx-map-btn clarify-attributes ectx "Clarify attributes" nil)
+                   (add-ctx-map-btn clarify-context ectx "Clarify context" nil)
+                   (add-ctx-map-btn clarify-objects ectx "Clarify objects" nil)
+                   [add-separator]
+                   (add-ctx-map-btn reduce-context-attributes ectx "Reduce attributes" nil)
+                   (add-ctx-map-btn reduce-context ectx "Reduce context" nil)
+                   (add-ctx-map-btn reduce-context-objects ectx "Reduce objects" nil)
+                   [add-separator]
+                   (add-ctx-map-btn dual-context ectx "Dual context" nil)
+                   (add-ctx-map-btn invert-context ectx "Inverse context" nil)
+                   [add-separator]
+                   (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)
+                   )
          e-ctx @ectx
          widget (context-editor-widget. root table toolbar ectx) ]
     (.. root getContentPane 
