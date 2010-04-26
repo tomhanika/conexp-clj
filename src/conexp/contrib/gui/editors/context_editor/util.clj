@@ -168,6 +168,7 @@
            table (make-table-control [set-row-count 1] [set-column-count 1])
            ectx (ref (make-editable-context))
            toolbar (make-toolbar-control :vert
+                     [set-floatable false]
                      [add-button 
                        (make-button "Copy" 
                          (get-ui-icon "OptionPane.informationIcon")

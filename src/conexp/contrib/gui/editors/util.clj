@@ -890,6 +890,18 @@
   [otoolbar]
   (.addSeparator (get-control otoolbar)))
 
+(inherit-multimethod set-floatable ::toolbar-control
+  "Sets the floatable mode of the toolbar control.
+
+  Parameters:
+    otoolbar  _toolbar-control object
+    floatable _make floatable or not")
+
+(defmethod-swing-threads*
+  set-floatable ::toolbar-control
+  [otoolbar floatable]
+  (.setFloatable (get-control otoolbar) (boolean floatable)))
+
 
 
 (defn-swing make-toolbar-control
@@ -903,7 +915,10 @@
   (let [ toolbar (JToolBar. ({:horiz JToolBar/HORIZONTAL
                                       :vert JToolBar/VERTICAL} 
                                       orientation))
-         widget (toolbar-control. toolbar toolbar) ]
+         scrollpane (JScrollPane. toolbar
+                      JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
+                      JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
+         widget (toolbar-control. scrollpane toolbar) ]
     (apply-exprs widget setup)
     widget))
 
