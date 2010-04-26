@@ -21,13 +21,14 @@ Now switch in the source directory of conexp-clj and run
 This will download any missing jar files needed for conexp-clj to run,
 except for one (G.jar), which you have to copy manually
 
-  $ cp src/lib/*.jar lib
+  $ cp stuff/additional-libs/*.jar lib
 
 With this you can now run conexp-clj directly from source and hack in
 its internals!
 
 To create a standalone zip just call bundle.sh in the top source
 directory. This will do everything to create a zip archive containing
-a compiled version of conexp-clj.
+a compiled version of conexp-clj. You can also run this compiled version
+directly by invoking ./conexp-clj/bin/conexp-clj.sh.
 
 Happy Hacking!
