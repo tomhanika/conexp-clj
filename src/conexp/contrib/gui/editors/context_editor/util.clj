@@ -128,7 +128,87 @@
 (declare-multimethod add-widget)
 (declare-multimethod get-context)
 (declare-multimethod set-context)
+(declare-multimethod get-table)
 (declare-multimethod get-ectx)
+
+(inherit-multimethod get-selected-objects ::context-editor-widget
+  "Returns the set of selected objects in the context-editor-widget.
+
+  Parameters:
+    widget  _context-editor-widget")
+
+(defmethod get-selected-objects ::context-editor-widget
+  [widget]
+  (let [ table (get-table widget) 
+         view (get-row-index-permutator table)
+         sel  (extract-array (.getSelectedRows (get-control table)))
+         ectx (get-ectx widget) 
+         names (deref (:obj-rows ectx))
+         fltr (rho filter (fn [x] (when-not (nil? x) x))) ]
+    (set (fltr (map (*comp view names) sel)))))
+
+(inherit-multimethod get-selected-attributes ::context-editor-widget
+  "Returns the set of selected attributes in the context-editor-widget.
+
+  Parameters:
+    widget  _context-editor-widget")
+
+(defmethod get-selected-attributes ::context-editor-widget
+  [widget]
+  (let [ table (get-table widget) 
+         view (get-column-index-permutator table)
+         sel  (extract-array (.getSelectedColumns (get-control table)))
+         ectx (get-ectx widget) 
+         names (deref (:attr-cols ectx))
+         fltr (rho filter (fn [x] (when-not (nil? x) x))) ]
+    (set (fltr (map (*comp view names) sel)))))
+
+(defn- cut-attributes
+  "Cut out the given attributes from the context."
+  [ctx atts]
+  (let [ a (filter (comp not (set atts)) (attributes ctx)) ]
+    (make-context (objects ctx) a (incidence ctx))))
+
+(defn- cut-objects
+  "Cut out the given objects from the context."
+  [ctx objs]
+  (let [ o (filter (comp not (set objs)) (objects ctx)) ]
+    (make-context o (attributes ctx) (incidence ctx))))
+
+(defn- cut-objects-attributes
+  "Cut out the given objects and attributes from the context"
+  [ctx objs atts]
+  (cut-attributes (cut-objects ctx objs) atts))
+
+(defn- keep-attributes
+  "Cut out the given attributes from the context."
+  [ctx atts]
+  (let [ a (filter (set atts) (attributes ctx)) ]
+    (make-context (objects ctx) a (incidence ctx))))
+
+(defn- keep-objects
+  "Cut out the given objects from the context."
+  [ctx objs]
+  (let [ o (filter (set objs) (objects ctx)) ]
+    (make-context o (attributes ctx) (incidence ctx))))
+
+(defn- keep-objects-attributes
+  "Cut out the given objects and attributes from the context"
+  [ctx objs atts]
+  (keep-attributes (keep-objects ctx objs) atts))
+
+(defn- add-new-attribute
+  [ctx]
+  (let [ att (attributes ctx)
+         a (req-unique-string att "new attribute") ]
+         (make-context (objects ctx) (conj att a) (incidence ctx))))
+
+(defn- add-new-object
+  [ctx]
+  (let [ obj (objects ctx)
+         o (req-unique-string obj "new object") ]
+         (make-context (conj obj o) (attributes ctx) (incidence ctx))))
+
 
 (defn- add-ctx-map-btn
   "Helper that will create the according button vector"
@@ -140,6 +220,46 @@
                (let [ ectx (deref ref-to-ectx)
                       ctx (get-context ectx) ]
                  (set-context ectx (f ctx))))]))))
+
+(defn- add-ctx-map-btn-att
+  "Helper that will create the according button vector"
+  [f ref-to-widget txt icon]
+  (vec (list add-button 
+         (make-button txt icon 
+           [set-handler 
+             (fn [] 
+               (let [ widget (deref ref-to-widget)
+                      ectx (get-ectx widget)
+                      ctx (get-context ectx) ]
+                 (set-context ectx (f ctx 
+                                     (get-selected-attributes widget)))))]))))
+
+(defn- add-ctx-map-btn-obj
+  "Helper that will create the according button vector"
+  [f ref-to-widget txt icon]
+  (vec (list add-button 
+         (make-button txt icon 
+           [set-handler 
+             (fn [] 
+               (let [ widget (deref ref-to-widget)
+                      ectx (get-ectx widget)
+                      ctx (get-context ectx) ]
+                 (set-context ectx (f ctx 
+                                     (get-selected-objects widget)))))]))))
+
+(defn- add-ctx-map-btn-obj-att
+  "Helper that will create the according button vector"
+  [f ref-to-widget txt icon]
+  (vec (list add-button 
+         (make-button txt icon 
+           [set-handler 
+             (fn [] 
+               (let [ widget (deref ref-to-widget)
+                      ectx (get-ectx widget)
+                      ctx (get-context ectx) ]
+                 (set-context ectx (f ctx 
+                                     (get-selected-objects widget)
+                                     (get-selected-attributes widget)))))]))))
 
 (let [second-operand (ref (make-context #{} #{} []))]
 
@@ -164,7 +284,8 @@
      & setup     _an optional number of vectors that may contain additional
                   tweaks that are called after widget creation"
     [ & setup]
-    (let [ root (JRootPane.)
+    (let [ self (promise)
+           root (JRootPane.)
            table (make-table-control [set-row-count 1] [set-column-count 1])
            ectx (ref (make-editable-context))
            toolbar (make-toolbar-control :vert
@@ -184,6 +305,17 @@
                                                (ref-set second-operand 
                                                  (get-context (deref ectx)) )))] ) ]
                      [add-separator]
+                     (add-ctx-map-btn add-new-attribute ectx "New attribute" nil)
+                     (add-ctx-map-btn add-new-object ectx "New object" nil)
+                     [add-separator]
+                     (add-ctx-map-btn-att keep-attributes self "Keep attributes" nil)
+                     (add-ctx-map-btn-obj-att keep-objects-attributes self "Keep both" nil)
+                     (add-ctx-map-btn-obj keep-objects self "Keep objects" nil)
+                     [add-separator]
+                     (add-ctx-map-btn-att cut-attributes self "Cut attributes" nil)
+                     (add-ctx-map-btn-obj-att cut-objects-attributes self "Cut both" nil)
+                     (add-ctx-map-btn-obj cut-objects self "Cut objects" nil)
+                     [add-separator]
                      (add-ctx-map-btn clarify-attributes ectx "Clarify attributes" nil)
                      (add-ctx-map-btn clarify-context ectx "Clarify context" nil)
                      (add-ctx-map-btn clarify-objects ectx "Clarify objects" nil)
@@ -191,6 +323,8 @@
                      (add-ctx-map-btn reduce-context-attributes ectx "Reduce attributes" nil)
                      (add-ctx-map-btn reduce-context ectx "Reduce context" nil)
                      (add-ctx-map-btn reduce-context-objects ectx "Reduce objects" nil)
+                     [add-separator]
+                     (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)                   
                      [add-separator]
                      (add-ctx-map-btn dual-context ectx "Dual context" nil)
                      (add-ctx-map-btn invert-context ectx "Inverse context" nil)
@@ -204,11 +338,10 @@
                      (add-ctx-map-btn-2nd-op context-composition ectx "Context composition..." nil)
                      (add-ctx-map-btn-2nd-op context-apposition ectx "Context apposition..." nil)
                      (add-ctx-map-btn-2nd-op context-subposition ectx "Context subposition..." nil)
-                     [add-separator]
-                     (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)
                      )
            e-ctx @ectx
            widget (context-editor-widget. root table toolbar ectx) ]
+      (deliver self widget)
       (.. root getContentPane 
         (add (get-widget toolbar) BorderLayout/LINE_START))
       (.. root getContentPane
@@ -217,6 +350,8 @@
       (dosync-wait (commute (:widgets e-ctx) add widget))
       (add-widget e-ctx widget)
       widget)))
+
+
 
 (inherit-multimethod get-ectx ::context-editor-widget
   "Returns the editable-context that is currently associated with the

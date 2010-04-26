@@ -74,6 +74,14 @@
       (let [ path (.getPath file) ]
         (writer thing path)))))
   
+(defn- show-lattice-and-go
+  "Shows concept lattice of current tab."
+  [frame]
+  (let [thing (get-context-from-panel (current-tab frame))]
+    (add-tab frame
+        (make-lattice-editor frame (*standard-layout-function* 
+                                     (concept-lattice thing)))
+        "Concept-Lattice")))
 
 
 ;;; The Hooks
@@ -93,7 +101,10 @@
                                                   " format"),
                                    :handler (fn [f] (save-context-and-go f
                                            (fn [c p] (write-context x c p))))})
-                              (list-context-formats))) }]}
+                              (list-context-formats))) }
+             {}
+             {:name "Show Concept Lattice"
+             :handler show-lattice-and-go} ]}
   "Menu for context editor.")
 
 (let [menu-hash (ref {})]
