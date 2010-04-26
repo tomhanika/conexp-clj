@@ -79,7 +79,7 @@
   (let [old->new (into {} (for [A (keys tbox-map)]
 			    [A (make-dl-expression (expression-language A) (gensym))])),
 	old->new* (into {} (for [[A B] old->new]
-			     [(expression A) B]))]
+			     [(expression-term A) B]))]
     [(into {} (for [[A def-A] tbox-map]
 		[(old->new A) (set (map #(substitute % old->new*) def-A))]))
      old->new]))
@@ -97,7 +97,7 @@
   "Transforms given hash-map to a TBox for the given language."
   [language tbox-map]
   (let [definitions (into {} (for [[A def-A] tbox-map]
-                               [(expression A) (make-dl-definition language (expression A) (cons 'and def-A))]))]
+                               [(expression-term A) (make-dl-definition language (expression-term A) (cons 'and def-A))]))]
     (make-tbox language definitions)))
 
 ;; storing names
@@ -132,7 +132,7 @@
   [term goal new-names]
   (cond
    (goal term) term
-   (tbox-target-pair? term) (let [[tbox target] (expression term),
+   (tbox-target-pair? term) (let [[tbox target] (expression-term term),
 				  [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
 			      (add-names new-names tbox-map)
 			      (trans (make-dl-expression (expression-language term) target)))

@@ -51,9 +51,6 @@
 
 ;;; actual exploration algorithm
 
-;;; BADBADBAD!!!
-(defvar *collected-gcis* (ref []))
-
 (defn explore-model
   "Model exploration algorithm."
   ([initial-model]
@@ -101,7 +98,6 @@
                                                                                   (model-closure model all-P_k)))
                                             (union implications background-knowledge))]
 				  (if (or (obviously-true? susu)
-                                          (or (dosync (alter *collected-gcis* conj susu)) true)
 					  (not (expert-refuses? susu)))
 				    model
 				    (recur (extend-model-by-contradiction model susu))))),

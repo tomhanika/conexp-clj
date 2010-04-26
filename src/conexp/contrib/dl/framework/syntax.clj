@@ -65,7 +65,7 @@
 
 (defrecord DL-expression [language sexp])
 
-(defn expression
+(defn expression-term
   "Returns the s-exp describing this expression."
   [dl-expression]
   (:sexp dl-expression))
@@ -78,8 +78,8 @@
 (defmethod print-method DL-expression [dl-exp out]
   (let [#^String output (with-out-str
 			  (if *print-with-dl-type*
-			    (print (list 'DL-expr (expression dl-exp)))
-			    (print (expression dl-exp))))]
+			    (print (list 'DL-expr (expression-term dl-exp)))
+			    (print (expression-term dl-exp))))]
     (.write out (.trim output))))
 
 ;;;
@@ -97,7 +97,7 @@
   "Ensures no dl-expression objects in the syntax expression given."
   [expr]
   (cond
-   (dl-expression? expr) (expression expr),
+   (dl-expression? expr) (expression-term expr),
    (sequential? expr)    (walk dl-sexp->term identity expr),
    :else                 expr))
 
@@ -222,7 +222,7 @@
 (defn compound?
   "Returns true iff given expression is a compound expression."
   [dl-expression]
-  (let [expr (expression dl-expression)]
+  (let [expr (expression-term dl-expression)]
     (seq? expr)))
 
 (defn atomic?
@@ -236,16 +236,16 @@
   [dl-expression]
   (and (atomic? dl-expression)
        (or (contains? (concept-names (expression-language dl-expression))
-		      (expression dl-expression))
+		      (expression-term dl-expression))
 	   (contains? (role-names (expression-language dl-expression))
-		      (expression dl-expression)))))
+		      (expression-term dl-expression)))))
 
 (defn operator
   "Returns the operator of the expression."
   [dl-expression]
   (when-not (compound? dl-expression)
     (illegal-argument "Given expression is atomic and has no operator."))
-  (first (expression dl-expression)))
+  (first (expression-term dl-expression)))
 
 (defn arguments
   "Returns the operator arguments of the expression."
@@ -255,7 +255,7 @@
   (map #(if-not (dl-expression? %)
 	  (DL-expression. (expression-language dl-expression) %)
 	  %)
-       (rest (expression dl-expression))))
+       (rest (expression-term dl-expression))))
 
 ;;;
 
@@ -265,9 +265,9 @@
   (let [collector (fn collector [expr]
 		    (cond
 		     (seq? expr) (vec (reduce concat (map collector (rest expr)))),
-		     (dl-expression? expr) (collector (expression expr)),
+		     (dl-expression? expr) (collector (expression-term expr)),
 		     :else [expr]))]
-    (set (collector (expression dl-expression)))))
+    (set (collector (expression-term dl-expression)))))
 
 (defn role-names-in-expression
   "Returns all role names used in the given expression."
@@ -294,7 +294,7 @@
   (cond
    (some #{sexp-1} (keys names)) (let [new (names sexp-1)]
 				   (if (dl-expression? new)
-				     (expression new)
+				     (expression-term new)
 				     new)),
    (sequential? sexp-1) (walk #(substitute-syntax % names) identity sexp-1),
    :else sexp-1))
@@ -304,7 +304,7 @@
   names by their values, returning the resulting expression."
   [dl-expr names]
   (DL-expression. (expression-language dl-expr)
-		 (substitute-syntax (expression dl-expr) names)))
+		 (substitute-syntax (expression-term dl-expr) names)))
 
 ;;; Definitions
 

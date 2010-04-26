@@ -28,7 +28,7 @@
   (when (not (tbox-target-pair? dl-expression))
     (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
   ;; compute gfp-model and interpret target
-  (let [[tbox, target] (expression dl-expression),
+  (let [[tbox, target] (expression-term dl-expression),
 	interpretation (gfp-model tbox model)]
     (interpretation target)))
 
@@ -37,7 +37,7 @@
 (defn ensure-EL-gfp-concept
   "Ensures dl-expression to be a pair of a tbox and a target."
   [dl-expression]
-  (let [expr (expression dl-expression)]
+  (let [expr (expression-term dl-expression)]
     (if (and (vector? expr)
 	     (= 2 (count expr)))
       dl-expression
@@ -53,7 +53,7 @@
   description graph together with the root corresponding to the
   target."
   [dl-expr]
-  (let [[tbox target] (expression (ensure-EL-gfp-concept dl-expr))]
+  (let [[tbox target] (expression-term (ensure-EL-gfp-concept dl-expr))]
     [(tbox->description-graph tbox), target]))
 
 (define-subsumption EL-gfp

@@ -103,6 +103,7 @@
 (defn normalize-EL-term
   "Normalizes a given EL term."
   [term]
+  (assert (seq? term))
   (let [transform (fn transform [sexp]
                     (cond
                      (and (seq? sexp)
@@ -121,11 +122,12 @@
 (defn normalize-EL-gfp-term
   "Normalizes a given EL-gfp term. tbox must not contains embedded TBoxes."
   [[tbox target] ]
+  (assert (tbox? tbox))
   [(make-tbox (tbox-language tbox)
               (into {} (for [[sym def] (tbox-definition-map tbox)]
                          [sym (make-dl-definition (tbox-language tbox)
                                                   (definition-target def)
-                                                  (normalize-EL-term (definition-expression def)))]))),
+                                                  (normalize-EL-term (expression-term (definition-expression def))))]))),
    target])
 
 ;;;

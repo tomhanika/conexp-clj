@@ -69,7 +69,7 @@
 
 (defmethod compile-expression ::base-case [dl-expression]
   (fn [model]
-    (let [result ((model-interpretation model) (expression dl-expression))]
+    (let [result ((model-interpretation model) (expression-term dl-expression))]
       (if (nil? result)
 	(let [base-semantics (get-method compile-expression
 					 [(language-name (expression-language dl-expression)) ::base-semantics]),

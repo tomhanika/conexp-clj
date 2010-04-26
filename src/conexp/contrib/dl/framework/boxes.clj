@@ -74,7 +74,7 @@
   "Returns true iff dl-expr is a tbox-target-pair."
   [dl-expr]
   (and (dl-expression? dl-expr)
-       (let [expr (expression dl-expr)]
+       (let [expr (expression-term dl-expr)]
 	 (and (vector? expr)
 	      (= 2 (count expr))
 	      (tbox? (first expr))
@@ -171,13 +171,13 @@
   [[tbox target]]
   (let [reversed-map (reduce (fn [hash-map definition]
 			       (let [name (definition-target definition)]
-				 (update-in hash-map [(expression (definition-expression definition))]
+				 (update-in hash-map [(expression-term (definition-expression definition))]
 					    conj (definition-target definition))))
 			     {}
 			     (tbox-definitions tbox)),
 	rename-map (into {} (for [definition (tbox-definitions tbox)]
 			      [(definition-target definition),
-			       (first (reversed-map (expression (definition-expression definition))))])),
+			       (first (reversed-map (expression-term (definition-expression definition))))])),
 	new-tbox (make-tbox (tbox-language tbox)
 			    (into {} (for [definition (tbox-definitions tbox)]
                                        [(definition-target definition)
