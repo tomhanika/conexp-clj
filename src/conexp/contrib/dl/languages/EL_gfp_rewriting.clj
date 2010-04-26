@@ -44,6 +44,27 @@
 		   (disj concepts next-concept)
 		   concepts)))))))
 
+(defn- abbreviate-expression
+  "Abbreviates expression with given knowledge."
+  [expression knowledge]
+  (cond
+   (atomic? expression) expression,
+
+   (= 'and (operator expression))
+   (let [shorter (implication-kernel (arguments* expression) knowledge)]
+     (make-dl-expression (expression-language expression)
+                         (cons 'and (map #(expression-term (abbreviate-expression % knowledge)) shorter)))),
+
+   (= 'exists (operator expression))
+   (let [args (arguments expression)]
+     (make-dl-expression-nc (expression-language expression)
+                            (list 'exists (nth args 0)
+                                  (expression-term (abbreviate-expression (nth args 1)
+                                                                          knowledge))))),
+
+   :else (illegal-argument "Abbreviate-expression can only handle EL expressions.")))
+
+
 (defn abbreviate-subsumption
   "Takes a subsumption whose subsumee and subsumer are in normal form
   and returns a subsumption where from the subsumer every term already
@@ -53,8 +74,8 @@
 	premise-args (arguments* (subsumee subsumption)),
 	conclusion-args (difference (arguments* (subsumer subsumption))
                                     premise-args)]
-    (make-subsumption (make-dl-expression language (cons 'and (implication-kernel premise-args background-knowledge)))
-		      (make-dl-expression language (cons 'and (implication-kernel conclusion-args background-knowledge))))))
+    (make-subsumption (abbreviate-expression (make-dl-expression language (cons 'and premise-args)) background-knowledge)
+                      (abbreviate-expression (make-dl-expression language (cons 'and conclusion-args)) background-knowledge))))
 
 ;;; EL and EL-gfp normalization
 

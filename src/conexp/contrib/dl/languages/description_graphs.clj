@@ -254,12 +254,12 @@
 	vertices        (defined-concepts tbox),
 	neighbours      (into {} (for [def definitions]
 				   [(definition-target def)
-				    (set (map #(vec (map expression (arguments %)))
+				    (set (map #(vec (map expression-term (arguments %)))
 					      (filter compound?
 						      (arguments (definition-expression def)))))])),
 	vertex-labels   (into {} (for [def definitions]
 				   [(definition-target def),
-				    (set (map expression
+				    (set (map expression-term
 					      (filter atomic?
 						      (arguments (definition-expression def)))))]))]
     (make-description-graph language vertices neighbours vertex-labels)))
