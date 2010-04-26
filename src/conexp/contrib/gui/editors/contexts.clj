@@ -17,6 +17,8 @@
 	conexp.contrib.gui.util
         conexp.contrib.gui.editors.util
         conexp.contrib.gui.editors.context-editor
+        [conexp.contrib.gui.editors.context-editor.util 
+          :only (get-current-second-operand-context)]
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
 	clojure.contrib.io
@@ -55,6 +57,14 @@
       (make-context-editor thing)
       "Context")))
 
+(defn- second-op-context-and-go
+  "Creates a random context and adds a new tab with a context-editor."
+  [frame]
+  (let [ thing (get-current-second-operand-context)]
+    (add-tab frame
+      (make-context-editor thing)
+      "Context")))
+
 
 (defn- save-context-and-go
   "Saves context with given writer."
@@ -73,7 +83,9 @@
   :content [ {:name "Load Context",
 	      :handler (fn [x] (load-context-and-go x read-context)) }
              {:name "Random Context",
-              :handler (fn [x] (random-context-and-go x)) }
+              :handler random-context-and-go }
+             {:name "Second Operand Context"
+              :handler second-op-context-and-go}
              {}
               {:name "Save Context",
               :content (vec (map (fn [x] {:name (str 

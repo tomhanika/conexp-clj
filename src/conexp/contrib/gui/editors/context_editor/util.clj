@@ -45,6 +45,17 @@
   (let [trimmed (.trim s)]
     (if (re-matches #"0*[,.]?0*" trimmed) false true)))
 
+(defn smart-str
+  "Takes a single argument and returns it as a string that is usable
+   for object and attribute names.
+
+  Parameters:
+   x     _argument"
+  [x]
+  (if (or (vector? x) (seq? x))
+    (join " " (map str x))
+    (str x)))
+
 (defn map-to-unique-strings
   "Takes a sequence of (unique) keys and returns a map
    that maps each unique key to a unique string
@@ -58,9 +69,10 @@
           nbr 0]
     (if (empty? k) m
       (let [ k1 (first k)
+             k1-cvrt (smart-str k1)
              k1-as-str (if (< 0 nbr)
-                         (join "-" [(str k1) (str nbr)])
-                         (str k1))]
+                         (join "-" [k1-cvrt (str nbr)])
+                         k1-cvrt)]
         (if (contains? taken k1-as-str)
           (recur k m taken (+ 1 nbr))
           (recur (disj k k1) (conj m {k1 k1-as-str})
@@ -129,49 +141,81 @@
                       ctx (get-context ectx) ]
                  (set-context ectx (f ctx))))]))))
 
-(defn-swing make-context-editor-widget
-  "Creates a control for editing contexts.
+(let [second-operand (ref (make-context #{} #{} []))]
+
+  (defn- add-ctx-map-btn-2nd-op
+    "Helper that will create the according button vector"
+    [f ref-to-ectx txt icon]
+    (vec (list add-button 
+           (make-button txt icon 
+             [set-handler 
+               (fn [] 
+                 (let [ ectx (deref ref-to-ectx)
+                        ctx (get-context ectx) ]
+                   (set-context ectx (f ctx (deref second-operand)))))]))))
+
+  (defn get-current-second-operand-context
+    [] (deref second-operand))
+
+  (defn-swing make-context-editor-widget
+    "Creates a control for editing contexts.
 
   Parameters:
      & setup     _an optional number of vectors that may contain additional
                   tweaks that are called after widget creation"
-  [ & setup]
-  (let [ root (JRootPane.)
-         table (make-table-control [set-row-count 1] [set-column-count 1])
-         ectx (ref (make-editable-context))
-         toolbar (make-toolbar-control :vert
-                   [add-button 
-                     (make-button "Copy" 
-                       (get-ui-icon "OptionPane.informationIcon")
-                       [set-handler (fn [] (copy-to-clipboard table))] )]
-                   [add-button
-                     (make-button "Paste" 
-                       (get-ui-icon "OptionPane.informationIcon")
-                       [set-handler (fn [] (paste-from-clipboard table))] ) ]
-                   [add-separator]
-                   (add-ctx-map-btn clarify-attributes ectx "Clarify attributes" nil)
-                   (add-ctx-map-btn clarify-context ectx "Clarify context" nil)
-                   (add-ctx-map-btn clarify-objects ectx "Clarify objects" nil)
-                   [add-separator]
-                   (add-ctx-map-btn reduce-context-attributes ectx "Reduce attributes" nil)
-                   (add-ctx-map-btn reduce-context ectx "Reduce context" nil)
-                   (add-ctx-map-btn reduce-context-objects ectx "Reduce objects" nil)
-                   [add-separator]
-                   (add-ctx-map-btn dual-context ectx "Dual context" nil)
-                   (add-ctx-map-btn invert-context ectx "Inverse context" nil)
-                   [add-separator]
-                   (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)
-                   )
-         e-ctx @ectx
-         widget (context-editor-widget. root table toolbar ectx) ]
-    (.. root getContentPane 
-      (add (get-widget toolbar) BorderLayout/LINE_START))
-    (.. root getContentPane
-      (add (get-widget table)))
-    (apply-exprs widget setup)
-    (dosync-wait (commute (:widgets e-ctx) add widget))
-    (add-widget e-ctx widget)
-    widget))
+    [ & setup]
+    (let [ root (JRootPane.)
+           table (make-table-control [set-row-count 1] [set-column-count 1])
+           ectx (ref (make-editable-context))
+           toolbar (make-toolbar-control :vert
+                     [add-button 
+                       (make-button "Copy" 
+                         (get-ui-icon "OptionPane.informationIcon")
+                         [set-handler (fn [] (copy-to-clipboard table))] )]
+                     [add-button
+                       (make-button "Paste" 
+                         (get-ui-icon "OptionPane.informationIcon")
+                         [set-handler (fn [] (paste-from-clipboard table))] ) ]
+                     [add-button
+                       (make-button "Second Operand" 
+                         (get-ui-icon "OptionPane.informationIcon")
+                         [set-handler (fn [] (dosync 
+                                               (ref-set second-operand 
+                                                 (get-context (deref ectx)) )))] ) ]
+                     [add-separator]
+                     (add-ctx-map-btn clarify-attributes ectx "Clarify attributes" nil)
+                     (add-ctx-map-btn clarify-context ectx "Clarify context" nil)
+                     (add-ctx-map-btn clarify-objects ectx "Clarify objects" nil)
+                     [add-separator]
+                     (add-ctx-map-btn reduce-context-attributes ectx "Reduce attributes" nil)
+                     (add-ctx-map-btn reduce-context ectx "Reduce context" nil)
+                     (add-ctx-map-btn reduce-context-objects ectx "Reduce objects" nil)
+                     [add-separator]
+                     (add-ctx-map-btn dual-context ectx "Dual context" nil)
+                     (add-ctx-map-btn invert-context ectx "Inverse context" nil)
+                     [add-separator]
+                     (add-ctx-map-btn-2nd-op context-sum ectx "Context sum..." nil)
+                     (add-ctx-map-btn-2nd-op context-product ectx "Context product..." nil)
+                     (add-ctx-map-btn-2nd-op context-semiproduct ectx "Context semiproduct..." nil)
+                     (add-ctx-map-btn-2nd-op context-xia-product ectx "Context Xia's product..." nil)
+                     (add-ctx-map-btn-2nd-op context-union ectx "Context union..." nil)
+                     (add-ctx-map-btn-2nd-op context-intersection ectx "Context intersection..." nil)
+                     (add-ctx-map-btn-2nd-op context-composition ectx "Context composition..." nil)
+                     (add-ctx-map-btn-2nd-op context-apposition ectx "Context apposition..." nil)
+                     (add-ctx-map-btn-2nd-op context-subposition ectx "Context subposition..." nil)
+                     [add-separator]
+                     (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)
+                     )
+           e-ctx @ectx
+           widget (context-editor-widget. root table toolbar ectx) ]
+      (.. root getContentPane 
+        (add (get-widget toolbar) BorderLayout/LINE_START))
+      (.. root getContentPane
+        (add (get-widget table)))
+      (apply-exprs widget setup)
+      (dosync-wait (commute (:widgets e-ctx) add widget))
+      (add-widget e-ctx widget)
+      widget)))
 
 (inherit-multimethod get-ectx ::context-editor-widget
   "Returns the editable-context that is currently associated with the
