@@ -51,7 +51,7 @@
   (:constructors language))
 
 (defmethod print-method DL [dl out]
-  (.write out (str "DL " (name (language-name dl)))))
+  (.write out (print-str (list 'DL (name (language-name dl))))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
@@ -137,7 +137,7 @@
   symbols which are recognized as syntax with local binding. This will
   not work."
   [dl & body]
-  (let [symbols   (get-dl-syntax)]
+  (let [symbols (get-dl-syntax)]
     (letfn [(insert-dl [form]
                        (cond
                         (and (seq? form)
@@ -149,6 +149,10 @@
                         :else
                           form))]
       (cons 'do (insert-dl body)))))
+
+  ;; `(macrolet ~(vec (for [sym (get-dl-syntax)]
+  ;;                    `(~sym [& args#] `(~'~sym ~'~dl ~@args#))))
+  ;;    ~@body))
 
 ;;;
 
@@ -192,30 +196,37 @@
 
 (add-dl-syntax! 'dl-expression)
 
+(defnk make-dl
+  "Constructs a description logic from the given arguments."
+  [name concepts roles constr :extends nil]
+  (when (exists [name (concat concepts roles)]
+          (not (Character/isUpperCase (first (str name)))))
+    (illegal-argument "Concept and role names must start with a capital letter. (sorry for that)"))
+
+  (let [base-lang     extends,
+
+        disjoint-into (fn [sqn other-sqn]
+                        (when-let [x (first (filter (fn [a] (some #(= % a) sqn)) other-sqn))]
+                          (illegal-argument "Item «" x "» already defined in base language."))
+                        (into sqn other-sqn)),
+
+        concepts      (disjoint-into concepts (and base-lang (concept-names base-lang)))
+        roles         (disjoint-into roles    (and base-lang (role-names base-lang)))
+        constr        (disjoint-into constr   (and base-lang (constructors base-lang))),
+
+        language      (make-language name concepts roles constr)]
+
+    (when base-lang
+      (derive (language-name language) (language-name base-lang)))
+
+    language))
+
 (defmacro define-dl
   "Defines a DL."
   [name concept-names role-names constructors & options]
-  (let [options (apply hash-map options)]
-    (when (exists [name (concat concept-names role-names)]
-	    (not (Character/isUpperCase (first (str name)))))
-      (illegal-argument "Concept and role names must start with a capital letter."))
-    `(do
-       (let [concept-names# (into '~concept-names ~(when-let [base-lang (:extends options)]
-						     `(concept-names ~base-lang))),
-	     role-names#    (into '~role-names ~(when-let [base-lang (:extends options)]
-						  `(role-names ~base-lang))),
-	     constructors#  (into '~constructors ~(when-let [base-lang (:extends options)]
-						    `(constructors ~base-lang)))]
-
-	 ;; defining the language
-	 (def ~name (make-language '~name concept-names# role-names# constructors#))
-
-	 ;; extending languages
-	 ~(when-let [base-lang (:extends options)]
-	    `(derive (language-name ~name) (language-name ~base-lang)))
-
-	 ;; finished
-	 ~name))))
+  `(let [dl# (apply make-dl '~name '~concept-names '~role-names '~constructors ~options)]
+     (def ~name dl#)
+     dl#))
 
 ;;;
 

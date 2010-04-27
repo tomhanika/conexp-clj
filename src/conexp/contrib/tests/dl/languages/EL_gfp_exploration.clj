@@ -40,16 +40,16 @@
        small-model [Female Mother Male Father]
        (with-dl SimpleDL
          (list (subsumption (and Mother)
-                            (and (exists HasChild (and Female)) Female))
+                            (and Female (exists HasChild (and Female))))
                (subsumption (and Male)
                             (and Father))
                (subsumption (and Father)
                             (and Male))
                (subsumption (and (exists HasChild (and)))
                             (and (exists HasChild (and Female))))
-               (subsumption (and (exists HasChild (and)) Female)
+               (subsumption (and Female (exists HasChild (and Female)))
                             (and Mother))
-               (subsumption (and Father Female)
+               (subsumption (and Female Father)
                             (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and Female)))))

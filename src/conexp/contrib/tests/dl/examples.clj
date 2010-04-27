@@ -29,55 +29,52 @@
 
 (def dl-exp (dl-expression SimpleDL (exists HasChild Male)))
 
-(def some-model (model SimpleDL
-		       #{John Marry Peter Jana}
-		       Mother #{Marry},
-		       Father #{John, Peter},
-		       Male   #{John, Peter},
-		       Female #{Marry, Jana},
-		       HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
+(with-dl SimpleDL
 
-(def empty-model (model SimpleDL
-                        #{}
-                        Mother #{}
-                        Father #{}
-                        Male   #{}
-                        Female #{}
-                        HasChild #{}))
+  (def some-model (model #{John Marry Peter Jana}
+                         Mother #{Marry},
+                         Father #{John, Peter},
+                         Male   #{John, Peter},
+                         Female #{Marry, Jana},
+                         HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
 
-(def some-tbox (tbox SimpleDL
-		     Grandfather (and Male (exists HasChild (exists HasChild (and))))
-		     Grandmother (and Female (exists HasChild (exists HasChild (and))))))
+  (def empty-model (model #{}
+                          Mother #{}
+                          Father #{}
+                          Male   #{}
+                          Female #{}
+                          HasChild #{}))
 
-(def some-normal-tbox (tbox SimpleDL
-			    A (and Male Father (exists HasChild B)),
-			    B (and Female (exists HasChild T)),
-			    T (and)))
+  (def some-tbox (tbox Grandfather (and Male (exists HasChild (exists HasChild (and))))
+                       Grandmother (and Female (exists HasChild (exists HasChild (and))))))
 
-(def all-tbox (tbox SimpleDL
-		    All (and Male Female Mother Father (exists HasChild All))))
+  (def some-normal-tbox (tbox A (and Male Father (exists HasChild B)),
+                              B (and Female (exists HasChild T)),
+                              T (and)))
 
-(def all-cpt (dl-expression SimpleDL [all-tbox All]))
+  (def all-tbox (tbox All (and Male Female Mother Father (exists HasChild All))))
 
-(def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
-(def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
+  (def all-cpt (dl-expression [all-tbox All]))
 
-(def paper-model (model SimpleDL
-			[John Michelle Mackenzie Paul Linda James]
-			Male   #{John Paul James}
-			Female #{Michelle Mackenzie Linda}
-			Father #{John Paul}
-			Mother #{Michelle Linda}
-			HasChild #{[John Mackenzie] [Michelle Mackenzie]
-				   [Paul James] [Linda James]}))
+  (def ext-dl-exp (dl-expression [some-tbox, Grandfather]))
+  (def ext-dl-exp-2 (dl-expression (and [some-tbox, Grandfather])))
 
-(def small-model (model SimpleDL
-			[John Michelle Mackenzie]
-			Male   #{John}
-			Female #{Michelle Mackenzie}
-			Mother #{Michelle}
-			Father #{John}
-			HasChild #{[John Mackenzie] [Michelle Mackenzie]}))
+  (def paper-model (model [John Michelle Mackenzie Paul Linda James]
+                          Male   #{John Paul James}
+                          Female #{Michelle Mackenzie Linda}
+                          Father #{John Paul}
+                          Mother #{Michelle Linda}
+                          HasChild #{[John Mackenzie] [Michelle Mackenzie]
+                                     [Paul James] [Linda James]}))
+
+  (def small-model (model [John Michelle Mackenzie]
+                          Male   #{John}
+                          Female #{Michelle Mackenzie}
+                          Mother #{Michelle}
+                          Father #{John}
+                          HasChild #{[John Mackenzie] [Michelle Mackenzie]}))
+
+  nil)
 
 ;;; Fahrräder
 
