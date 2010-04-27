@@ -14,7 +14,8 @@
 (tests-to-run conexp.tests.fca.contexts
               conexp.tests.fca.lattices
 	      conexp.tests.fca.implications
-              conexp.tests.fca.many-valued-contexts)
+              conexp.tests.fca.many-valued-contexts
+              conexp.tests.fca.association-rules)
 
 
 ;;;
