@@ -11,7 +11,7 @@
 
 ;;;
 
-(tests-to-run)
+(tests-to-run conexp.tests.math.optimize)
 
 ;;;
 
