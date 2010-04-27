@@ -52,8 +52,12 @@
   Parameters:
    x     _argument"
   [x]
-  (if (or (vector? x) (seq? x))
-    (join " " (map str x))
+  (cond
+    (or (vector? x) (seq? x))
+    (join " " (map smart-str x))
+    (set? x)
+    (str "{" (join ", " (map smart-str (vec x))) "}")
+    :else
     (str x)))
 
 (defn map-to-unique-strings

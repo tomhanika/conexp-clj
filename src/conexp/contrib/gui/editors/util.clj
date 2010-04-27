@@ -13,7 +13,7 @@
     [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
       TreeSelectionModel]
     [java.util Vector]
-    [java.awt Toolkit]
+    [java.awt Toolkit Dimension]
     [java.awt.event KeyEvent ActionEvent ActionListener]
     [java.awt.datatransfer DataFlavor StringSelection]
     [javax.swing.event TreeSelectionListener TableModelListener]
@@ -198,6 +198,51 @@
       (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))))
 
 
+(inherit-multimethod get-size ::widget
+  "Returns the size of the given widget.
+
+   Parameters:
+     obj         _widget")
+
+(defmethod-swing get-size ::widget
+  [obj]
+  (bean (.getSize (get-widget obj))))
+
+(inherit-multimethod set-size ::widget
+  "Sets the size of the given widget.
+
+   Parameters:
+     obj         _widget
+     width       _width
+     height      _height")
+
+(defmethod-swing-threads* set-size ::widget
+  [obj width height]
+  (.setSize (get-widget obj) (Dimension. width height)))
+
+(inherit-multimethod set-width ::widget
+  "Sets the width of the given widget.
+
+   Parameters:
+     obj         _widget
+     width       _width")
+
+(defmethod set-width ::widget
+  [obj width]
+  (let [ height (:height (get-size obj)) ]
+    (set-size obj width height)))
+
+(inherit-multimethod set-height ::widget
+  "Sets the height of the given widget.
+
+   Parameters:
+     obj         _widget
+     height      _height")
+
+(defmethod set-height ::widget
+  [obj height]
+  (let [ width (:width (get-size obj)) ]
+    (set-size obj width height)))
 
 ;;
 ;;

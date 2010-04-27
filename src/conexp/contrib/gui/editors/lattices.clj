@@ -15,6 +15,7 @@
 	[conexp.layout.base :only (lattice)]
 	conexp.graphics.draw
 	conexp.contrib.gui.util
+        conexp.contrib.gui.editors.context-editor
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
 	clojure.contrib.io)
@@ -60,7 +61,12 @@
   "Opens a context-editor with the standard context of the lattice
   displayed in the current tab of frame."
   [frame]
-  (unsupported-operation "Not yet implemented."))
+  (let [layout (get-layout-from-panel (current-tab frame))]
+    (if (nil? layout)
+      (illegal-argument "Current tab does not contain a lattice editor.")
+      (add-tab frame (make-context-editor (standard-context (lattice layout)))
+        "Standard-Context"))))
+
 
 ;;; The Hooks
 
