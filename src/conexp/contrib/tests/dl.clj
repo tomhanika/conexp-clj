@@ -11,10 +11,13 @@
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.dl.framework.models
+(tests-to-run conexp.contrib.tests.dl.framework.semantics
 	      conexp.contrib.tests.dl.languages.description-graphs
+	      conexp.contrib.tests.dl.languages.EL-gfp
 	      conexp.contrib.tests.dl.framework.reasoning
-	      conexp.contrib.tests.dl.languages.exploration)
+	      conexp.contrib.tests.dl.util.general-sorted-sets
+	      conexp.contrib.tests.dl.util.concept-sets
+	      conexp.contrib.tests.dl.languages.EL-gfp-exploration)
 
 ;;;
 

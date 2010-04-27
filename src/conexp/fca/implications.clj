@@ -26,7 +26,7 @@
   {:arglists '([thing])}
   type)
 
-(defmethod premise Implication [impl]
+(defmethod premise Implication [#^Implication impl]
   (.premise impl))
 
 (defmulti conclusion
@@ -34,7 +34,7 @@
   {:arglists '([thing])}
   type)
 
-(defmethod conclusion Implication [impl]
+(defmethod conclusion Implication [#^Implication impl]
   (.conclusion impl))
 
 (defmethod print-method Implication [impl out]

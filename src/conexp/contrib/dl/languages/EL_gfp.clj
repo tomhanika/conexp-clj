@@ -9,13 +9,16 @@
 (ns conexp.contrib.dl.languages.EL-gfp
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.models
-	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.framework.semantics
-	conexp.contrib.dl.framework.reasoning))
+	conexp.contrib.dl.framework.boxes
+	conexp.contrib.dl.framework.reasoning
+	conexp.contrib.dl.languages.description-graphs
+        conexp.contrib.dl.languages.EL-gfp-rewriting))
 
-;;;
+(update-ns-meta! conexp.contrib.dl.languages.EL-gfp
+  :doc "Defines EL-gfp with lcs, msc and subsumption.")
+
+;;; EL-gfp
 
 (define-dl EL-gfp [] [] [exists and])
 
@@ -25,23 +28,16 @@
   (when (not (tbox-target-pair? dl-expression))
     (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
   ;; compute gfp-model and interpret target
-  (let [[tbox, target] (expression dl-expression),
+  (let [[tbox, target] (expression-term dl-expression),
 	interpretation (gfp-model tbox model)]
     (interpretation target)))
 
-(define-msc EL-gfp
-  [model objects]
-  (let [[tbox target] (reduce-tbox (apply EL-gfp-msc model objects)),
-	tbox (tidy-up-tbox tbox)
-	[tbox target] (clarify-tbox [tbox target])]
-    (if (acyclic? tbox)
-      (definition-expression (first (tbox-definitions tbox)))
-      [tbox target])))
+;;; subsumption
 
 (defn ensure-EL-gfp-concept
   "Ensures dl-expression to be a pair of a tbox and a target."
   [dl-expression]
-  (let [expr (expression dl-expression)]
+  (let [expr (expression-term dl-expression)]
     (if (and (vector? expr)
 	     (= 2 (count expr)))
       dl-expression
@@ -49,7 +45,7 @@
 	    target   (gensym)]
 	(make-dl-expression-nc language
 			       [(make-tbox language
-					   #{(make-dl-definition target dl-expression)}),
+					   {target (make-dl-definition target dl-expression)}),
 				target])))))
 
 (defn EL-expression->rooted-description-graph
@@ -57,7 +53,7 @@
   description graph together with the root corresponding to the
   target."
   [dl-expr]
-  (let [[tbox target] (expression (ensure-EL-gfp-concept dl-expr))]
+  (let [[tbox target] (expression-term (ensure-EL-gfp-concept dl-expr))]
     [(tbox->description-graph tbox), target]))
 
 (define-subsumption EL-gfp
@@ -65,6 +61,46 @@
   (let [[G-C C-target] (EL-expression->rooted-description-graph C)
 	[G-D D-target] (EL-expression->rooted-description-graph D)]
     (simulates? G-D G-C D-target C-target)))
+
+;;; lcs and msc
+
+(defn EL-gfp-lcs
+  "Returns the least common subsumer (in EL-gfp) of A and B in tbox."
+  [tbox concepts]
+  (when (empty? concepts)
+    (illegal-argument "EL-gfp-lcs called with no concepts."))
+  (loop [tbox tbox,
+         concepts concepts]
+    (if (= 1 (count concepts))
+      [tbox (first concepts)]
+      (let [A     (first concepts),
+            B     (second concepts),
+            G_T_A (tbox->description-graph (first (clarify-ttp [tbox, A])))
+            G_T_B (tbox->description-graph (first (clarify-ttp [tbox, B])))
+            G-x-G (graph-product G_T_A G_T_B),
+            T_2   (description-graph->tbox G-x-G),
+            [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]]))))]
+        (recur (tbox-union tbox new-tbox) (conj (vec (drop 2 concepts)) new-target))))))
+
+(defn EL-gfp-msc
+  "Returns the model based most specific concept of objects in model."
+  [model objects]
+  (if-not (empty? objects)
+    (EL-gfp-lcs (description-graph->tbox (model->description-graph model)) objects)
+    (let [language (model-language model),
+	  all (make-dl-expression language
+				  (list* 'and
+					 (concat (concept-names language)
+						 (for [r (role-names language)]
+						   (list 'exists r 'All)))))]
+      [(make-tbox language {'All (make-dl-definition 'All all)}), 'All])))
+
+(define-msc EL-gfp
+  [model objects]
+  (let [[tbox target] (normalize-EL-gfp-term (reduce-ttp (EL-gfp-msc model objects)))]
+    (if (acyclic? tbox)
+      (definition-expression (first (tbox-definitions tbox)))
+      [tbox target])))
 
 ;;;
 
