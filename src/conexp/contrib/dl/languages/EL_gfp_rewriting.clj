@@ -48,12 +48,22 @@
   "Abbreviates expression with given knowledge."
   [expression knowledge]
   (cond
+   (tbox-target-pair? expression)
+   (let [[tbox target] (expression-term expression)]
+     (make-dl-expression (expression-language expression)
+                         [(make-tbox (expression-language expression)
+                                     (into {} (for [[sym def] (tbox-definition-map tbox)]
+                                                [sym (make-dl-definition (definition-target def)
+                                                                         (abbreviate-expression (definition-expression def)
+                                                                                                knowledge))])))
+                          target])),
+
    (atomic? expression) expression,
 
    (= 'and (operator expression))
    (let [shorter (implication-kernel (arguments* expression) knowledge)]
-     (make-dl-expression (expression-language expression)
-                         (cons 'and (map #(expression-term (abbreviate-expression % knowledge)) shorter)))),
+     (make-dl-expression-nc (expression-language expression)
+                            (cons 'and (map #(expression-term (abbreviate-expression % knowledge)) shorter)))),
 
    (= 'exists (operator expression))
    (let [args (arguments expression)]
@@ -124,7 +134,6 @@
 (defn normalize-EL-term
   "Normalizes a given EL term."
   [term]
-  (assert (seq? term))
   (let [transform (fn transform [sexp]
                     (cond
                      (and (seq? sexp)
