@@ -68,7 +68,7 @@
    (= 'exists (operator expression))
    (let [args (arguments expression)]
      (make-dl-expression-nc (expression-language expression)
-                            (list 'exists (nth args 0)
+                            (list 'exists (expression-term (nth args 0))
                                   (expression-term (abbreviate-expression (nth args 1)
                                                                           knowledge))))),
 

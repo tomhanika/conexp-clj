@@ -17,11 +17,26 @@
 ;;;
 
 (deftest- model-gcis-returns-correct-result
-  (are [model initial-ordering result] (= (model-gcis model 'initial-ordering) result)
+  (are [model initial-ordering result] (if-let [[a b] ((fn find-first-unequal [seq-1 seq-2]
+                                                         (when-not (and (empty? seq-1)
+                                                                        (empty? seq-2))
+                                                           (let [a (first seq-1),
+                                                                 b (first seq-2)]
+                                                             (if (not= a b)
+                                                               [a b]
+                                                               (find-first-unequal (rest seq-1) (rest seq-2))))))
+                                                       (model-gcis model 'initial-ordering)
+                                                       result)]
+                                         (do
+                                           (println "First unequal:")
+                                           (println a)
+                                           (println b)
+                                           false)
+                                         true)
        paper-model [Male Female Father Mother]
        (with-dl SimpleDL
          (list (subsumption (and Male Female)
-                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                            (and [(tbox All (and Female (exists HasChild All) Father)),
                                   All]))
                (subsumption (and Father)
                             (and Male (exists HasChild (and))))
@@ -32,10 +47,10 @@
                (subsumption (and (exists HasChild (and)) Female)
                             (and Mother))
                (subsumption (and (exists HasChild (and Male)) (exists HasChild (and Female)))
-                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                            (and [(tbox All (and Female (exists HasChild All) Father)),
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and)))))
-                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                            (and [(tbox All (and Female (exists HasChild All) Father)),
                                   All])))),
        small-model [Female Mother Male Father]
        (with-dl SimpleDL
@@ -50,10 +65,10 @@
                (subsumption (and Female (exists HasChild (and Female)))
                             (and Mother))
                (subsumption (and Female Father)
-                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                            (and [(tbox All (and Female (exists HasChild All) Father)),
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and Female)))))
-                            (and [(tbox All (and Father Male Mother Female (exists HasChild All))),
+                            (and [(tbox All (and Female (exists HasChild All) Father)),
                                   All]))))))
 
 (deftest- model-gcis-returns-correct-number
