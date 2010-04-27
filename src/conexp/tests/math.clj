@@ -6,17 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests
+(ns conexp.tests.math
   (:use conexp.util))
 
 ;;;
 
-(tests-to-run conexp.tests.util
-	      conexp.tests.base
-	      conexp.tests.fca
-              conexp.tests.math
-              conexp.tests.io
-              conexp.tests.layout)
+(tests-to-run)
 
 ;;;
 
