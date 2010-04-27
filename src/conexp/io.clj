@@ -24,6 +24,8 @@
 	   'conexp.io.layouts
            'conexp.io.many-valued-contexts)
 
+;;;
+
 (defn available-formats
   "Returns for a given type (as string, i.e. \"context\") all
   available output methods."
@@ -31,7 +33,8 @@
   (let [writer (resolve (symbol "conexp.io" (str "write-" type)))]
     (when (nil? writer)
       (illegal-argument "Unknown type " type " given to available-formats."))
-    (remove #(= :default %)
+    (remove #(or (= :default %)
+                 (= :conexp.io.util/default-write %))
             (keys (methods @writer)))))
 
 ;;;
