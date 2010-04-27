@@ -224,7 +224,7 @@
 (defmacro define-dl
   "Defines a DL."
   [name concept-names role-names constructors & options]
-  `(let [dl# (apply make-dl '~name '~concept-names '~role-names '~constructors ~options)]
+  `(let [dl# (make-dl '~name '~concept-names '~role-names '~constructors ~@options)]
      (def ~name dl#)
      dl#))
 
