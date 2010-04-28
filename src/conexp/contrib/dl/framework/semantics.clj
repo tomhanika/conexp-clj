@@ -80,22 +80,7 @@
 	  ((base-semantics dl-expression) model))
 	result))))
 
-(defmethod compile-expression 'and [dl-expression]
-  (fn [model]
-    (reduce intersection (model-base-set model)
-	    (map #(interpret model %) (arguments dl-expression)))))
-
-(add-common-constructor! 'and)
-
-(defmethod compile-expression 'exists [dl-expression]
-  (fn [model]
-    (let [r-I (interpret model (first (arguments dl-expression))),
-	  C-I (interpret model (second (arguments dl-expression)))]
-      (set-of x [x (model-base-set model),
-		 :when (exists [y C-I]
-			 (contains? r-I [x y]))]))))
-
-(add-common-constructor! 'exists)
+;;; base semantics (i.e. what to do if nothing else applies)
 
 (defmacro define-base-semantics
   "Define how to interpret an expression which is neither compound nor
@@ -104,6 +89,46 @@
   `(defmethod compile-expression [(language-name ~language) ::base-semantics] [~dl-expression]
      (fn [~model]
        ~@body)))
+
+
+;;; defining new constructors
+
+(defmacro define-constructor
+  "Defines a new constructor for description logics. Captures the
+  variables «model» and «dl-exp» for representing the model and the
+  dl-expression used."
+  [name & body]
+  `(do
+     (defmethod compile-expression '~name [~'dl-exp]
+       (fn [~'model]
+         ~@body))
+     (add-common-constructor! '~name)))
+
+(define-constructor and
+  (reduce intersection (model-base-set model)
+          (map #(interpret model %) (arguments dl-exp))))
+
+(define-constructor or
+  (reduce union #{}
+          (map #(interpret model %) (arguments dl-exp))))
+
+(define-constructor exists
+  (let [r-I (interpret model (first (arguments dl-exp))),
+        C-I (interpret model (second (arguments dl-exp)))]
+    (set-of x [x (model-base-set model),
+               :when (exists [y C-I]
+                       (contains? r-I [x y]))])))
+
+(define-constructor forall
+  (let [r-I (interpret model (first (arguments dl-exp))),
+        C-I (interpret model (second (arguments dl-exp)))]
+    (set-of x [x (model-base-set model),
+               :when (forall [y C-I]
+                       (contains? r-I [x y]))])))
+
+(define-constructor inverse
+  (let [r-I (interpret model (first (arguments dl-exp)))]
+    (set-of [y x] [[x y] r-I])))
 
 ;;; Model Syntax
 
