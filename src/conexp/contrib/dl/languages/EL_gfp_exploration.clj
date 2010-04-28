@@ -89,8 +89,7 @@
 		 susu))
 
 	     ;; else search for next implication
-	     (let [_ (println (count (seq-on M_k))),
-                   all-P_k    (make-dl-expression language (cons 'and P_k)),
+	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
 		   next-model (loop [model model]
 				(let [susu (abbreviate-subsumption
                                             (make-subsumption all-P_k
