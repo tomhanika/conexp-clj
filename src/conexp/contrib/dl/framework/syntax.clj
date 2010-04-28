@@ -203,6 +203,9 @@
           (not (Character/isUpperCase (first (str name)))))
     (illegal-argument "Concept and role names must start with a capital letter. (sorry for that)"))
 
+  (when (not (empty? (intersection (set concepts) (set roles))))
+    (illegal-argument "Concept and role names must be disjoint."))
+
   (let [base-lang     extends,
 
         disjoint-into (fn [sqn other-sqn]

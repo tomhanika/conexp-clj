@@ -176,7 +176,7 @@
   "Return the most specific concept of the interpretation of dl-exp in
   model."
   [model dl-exp]
-  (with-memoized-fns [interpret]        ;?
+  (with-memoized-fns [interpret]
     (most-specific-concept model (interpret model dl-exp))))
 
 ;;;
@@ -198,38 +198,31 @@
   (subset? (interpret model (subsumee subsumption))
 	   (interpret model (subsumer subsumption))))
 
-(defn context->model
-  "Returns for a given context ctx and a given description logic dl a
-  model given by the incidence relation of ctx. Note that the set of
-  attributes must be the set of primitive concepts of dl together with
-  a set of element of the form (r x), where r is a role name of dl and
-  y incident with (r x) shall mean that (x y) is in the interpretation
-  of r in the resulting model."
-  [dl ctx]
-  (let [base-set       (objects ctx),
-        interpretation (loop [result {},
-                              attributes (attributes ctx)]
-                         (if (empty? attributes)
-                           result
-                           (let [next (first attributes)]
-                             (if (and (seq? next)
-                                      (= 2 (count next))
-                                      (contains? (role-names dl) (first next)))
-                               (let [role (first next),
-                                     x    (second next)]
-                                 (recur (assoc result role
-                                               (into (get result role #{})
-                                                     (for [y (attribute-derivation ctx #{next})]
-                                                       [x y])))
-                                        (rest attributes)))
-                               (recur (assoc result next
-                                             (attribute-derivation ctx #{next}))
-                                      (rest attributes))))))]
-    (make-model dl base-set interpretation)))
+(defnk interpretation->model
+  "Given concepts as a hash-map from symbols to sets and roles as a
+  hash-map from symbols to sets of pairs returns a model containing
+  the hash-maps as interpretation. If parameter :base-lang is given
+  the description logic used in this model will be an extension of the
+  parameter value."
+  [concepts roles :base-lang nil]
+  (let [concept-names (keys concepts),
+        role-names    (keys roles),
+        language      (make-dl (gensym)
+                               concept-names
+                               role-names
+                               []
+                               :extends base-lang),
+        base-set      (union (set-of x [[conc extension] concepts,
+                                        x extension])
+                             (set-of x [[role extension] roles,
+                                        pair extension,
+                                        x pair]))]
+    (make-model language base-set (merge concepts roles))))
+
 
 ;;; TBox interpretations
 
-(defn next-interpretation
+(defn- next-interpretation
   "Defines a new interpretation on the defined concepts of tbox in
   model through interpretation."
   [model tbox interpretation]
@@ -243,7 +236,7 @@
 		 (conj new-i [(definition-target def)
 			      (interpret extended-model (definition-expression def))])))))))
 
-(defn fixed-point
+(defn- fixed-point
   "Apply f to data until (= old-data new-data)."
   [f data]
   (let [runner (fn runner [old-data]
@@ -253,7 +246,7 @@
 		     (recur new-data))))]
     (runner data)))
 
-(defn constant-interpretation
+(defn- constant-interpretation
   "Return interpretation on the defined concepts of tbox, constantly
   returning value."
   [tbox value]
