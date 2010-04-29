@@ -362,7 +362,7 @@
   (:subsumee subsumption))
 
 (defmethod premise DL-subsumption [susu]
-  (subsumee susu))
+  #{(subsumee susu)})
 
 (defn subsumer
   "Returns the subsumer of the given subsumption."
@@ -370,7 +370,7 @@
   (:subsumer subsumption))
 
 (defmethod conclusion DL-subsumption [susu]
-  (subsumer susu))
+  #{(subsumer susu)})
 
 (defn make-subsumption
   "Creates and returns a subsumption."

@@ -37,7 +37,7 @@
        paper-model [Male Female Father Mother]
        (with-dl SimpleDL
          (list (subsumption (and Male Female)
-                            (and [(tbox All (and Father Female (exists HasChild All))),
+                            (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All]))
                (subsumption (and Father)
                             (and Male (exists HasChild (and))))
@@ -48,10 +48,10 @@
                (subsumption (and (exists HasChild (and)) Female)
                             (and Mother))
                (subsumption (and (exists HasChild (and Male)) (exists HasChild (and Female)))
-                            (and [(tbox All (and Father Female (exists HasChild All))),
+                            (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and)))))
-                            (and [(tbox All (and Father Female (exists HasChild All))),
+                            (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All])))),
 
        small-model [Female Mother Male Father]
@@ -64,13 +64,13 @@
                             (and Male))
                (subsumption (and (exists HasChild (and)))
                             (and (exists HasChild (and Female))))
-               (subsumption (and (exists HasChild (and)) Female)
+               (subsumption (and (exists HasChild (and Female)) Female)
                             (and Mother))
-               (subsumption (and Father Female)
-                            (and [(tbox All (and Father Female (exists HasChild All))),
+               (subsumption (and Male Mother)
+                            (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and Female)))))
-                            (and [(tbox All (and Father Female (exists HasChild All))),
+                            (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All]))))))
 
 (deftest- model-gcis-returns-correct-number

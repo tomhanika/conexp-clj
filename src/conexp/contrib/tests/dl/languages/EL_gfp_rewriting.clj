@@ -16,6 +16,22 @@
 
 ;;;
 
+(deftest test-abbreviate-expression
+  (with-dl SimpleDL
+    (is (= (@#'conexp.contrib.dl.languages.EL-gfp-rewriting/abbreviate-expression
+            (dl-expression (and (exists HasChild A)
+                                (exists HasChild B)))
+            #{(make-implication #{(dl-expression A)}
+                                #{(dl-expression B)})})
+           (dl-expression (and (exists HasChild A)))))))
+
+(deftest test-normalize-EL-gfp-term
+  (are [term norm-term] (= (normalize-EL-gfp-term 'term) 'norm-term)
+       (and A B C D E D C B A)
+       (and A B C D E),
+       (and (exists HasChild (and (exists HasChild A) (exists HasChild B)))
+            (exists HasChild (and (exists HasChild A))))
+       (and (exists HasChild (and (exists HasChild A) (exists HasChild B))))))
 
 ;;;
 
