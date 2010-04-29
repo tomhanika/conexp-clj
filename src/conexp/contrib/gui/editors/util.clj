@@ -14,7 +14,8 @@
       TreeSelectionModel]
     [java.util Vector]
     [java.awt Toolkit Dimension]
-    [java.awt.event KeyEvent ActionEvent ActionListener]
+    [java.awt.event KeyEvent ActionEvent ActionListener MouseEvent 
+      MouseListener InputEvent]
     [java.awt.datatransfer DataFlavor StringSelection]
     [javax.swing.event TreeSelectionListener TableModelListener]
     [javax.swing.table DefaultTableModel])
@@ -23,7 +24,8 @@
     conexp.util
     conexp.util.hookable
     conexp.util.multimethods
-    [clojure.contrib.string :only (join split-lines split)]))
+    [clojure.contrib.string :only (join split-lines split)]
+    [clojure.set :only (union)]))
 
 ;; set polymorphism-namespace
 (def- *poly-ns* 'conexp.polymorphisms)
@@ -92,6 +94,12 @@
   [array]
   (seq array))
 
+(defmacro when-mask
+  "Takes two bitmasks and checks whether their bitwise-and is not 0,
+   if so, calls all other expressions in an implicit do."
+  [bit-mask-1 bit-mask-2 & exprs]
+  `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2) ~@exprs)))
+
 
 ;;;
 ;;; java & swing utils
@@ -153,6 +161,51 @@
     object   _object identifying the resource"
   [object]
   (UIManager/getIcon object))
+
+;;
+;; mouse-click-interface-helpers
+;;
+
+(defn proxy-mouse-listener
+  "Returns a proxy class that will implement the MouseListener
+   interface and call the given 1-ary functions accordingly.
+   The passed parameter will be a map mapping :button, :modifiers and
+   :position according to the event information.
+
+   Parameters:
+     pressed   _mouse button down event
+     released  _mouse button up event
+     entered   _mouse enters widget
+     exited    _mouse exits widget
+     clicked   _mouse button clicked"
+  [pressed released entered exited clicked]
+  (let [ translate-button {MouseEvent/NOBUTTON 0
+                           MouseEvent/BUTTON1  1
+                           MouseEvent/BUTTON2  2
+                           MouseEvent/BUTTON3  3}
+         translate-modifier (fn [m]
+                              (union 
+                                (when-mask m InputEvent/ALT_DOWN_MASK #{:alt})
+                                (when-mask m InputEvent/ALT_GRAPH_DOWN_MASK #{:alt-gr})
+                                (when-mask m InputEvent/CTRL_DOWN_MASK #{:control})
+                                (when-mask m InputEvent/SHIFT_DOWN_MASK #{:shift})
+                                (when-mask m InputEvent/META_DOWN_MASK #{:meta})))
+         translate-event (fn [event] 
+                           {:button (translate-button (.getButton event))
+                            :modifiers (translate-modifier (.getModifiers event))
+                            :position [(.getX event) (.getY event)]})]
+
+    (proxy [MouseListener] []
+      (mousePressed [event] 
+        (with-swing-threads* (pressed (translate-event event))))
+      (mouseReleased [event]
+        (with-swing-threads* (released (translate-event event))))
+      (mouseEntered [event]
+        (with-swing-threads* (entered (translate-event event))))
+      (mouseExited [event]
+        (with-swing-threads* (exited (translate-event event))))
+      (mouseClicked [event]
+        (with-swing-threads* (clicked (translate-event event)))))))
 
 
 ;;
@@ -961,7 +1014,7 @@
                                       :vert JToolBar/VERTICAL} 
                                       orientation))
          scrollpane (JScrollPane. toolbar
-                      JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED 
+                      JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
                       JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
          widget (toolbar-control. scrollpane toolbar) ]
     (apply-exprs widget setup)
