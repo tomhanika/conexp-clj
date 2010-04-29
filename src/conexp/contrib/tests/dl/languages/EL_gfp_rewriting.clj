@@ -16,11 +16,24 @@
 
 ;;;
 
+(deftest test-minimal-elements
+  (let [me @#'conexp.contrib.dl.languages.EL-gfp-rewriting/minimal-elements]
+    (is (= '(1) (me [1 2 3 4 5 6] <)))
+    (is (= '(6) (me [1 2 3 4 5 6] >)))
+    (is (= '(1) (me [6 4 3 1 3 5] <)))
+    (is (= '(1) (me [6 5 4 3 2 1] <)))
+    (is (= #{#{1} #{2}} (set (me #{#{1} #{1 2 3} #{2 3} #{2} #{1 3}} subset?))))))
+
 (deftest test-abbreviate-expression
   (with-dl SimpleDL
     (let [ab @#'conexp.contrib.dl.languages.EL-gfp-rewriting/abbreviate-expression]
     (is (= (ab (dl-expression (and (exists HasChild A)
                                    (exists HasChild B)))
+               #{(make-implication #{(dl-expression A)}
+                                   #{(dl-expression B)})})
+           (dl-expression (and (exists HasChild A)))))
+    (is (= (ab (dl-expression (and (exists HasChild B)
+                                   (exists HasChild A)))
                #{(make-implication #{(dl-expression A)}
                                    #{(dl-expression B)})})
            (dl-expression (and (exists HasChild A)))))

@@ -28,8 +28,9 @@
     (if (empty? left)
       (reverse collected)
       (let [next (first left)]
-        (recur (conj collected next)
-               (remove #(more-specific? next %) (rest left)))))))
+        (if (some #(more-specific? % next) collected)
+          (recur collected (rest left))
+          (recur (conj (remove #(more-specific? next %) collected) next) (rest left)))))))
 
 (defn- more-specific?
   "Returns true iff term-1 is more specific than term-2."
@@ -121,8 +122,8 @@
   and returns a subsumption where from the subsumer every term already
   present in the subsumee is removed."
   [subsumption background-knowledge]
-  (let [language (expression-language (subsumee subsumption)),
-	premise-args (arguments* (subsumee subsumption)),
+  (let [language        (expression-language (subsumee subsumption)),
+	premise-args    (arguments* (subsumee subsumption)),
 	conclusion-args (difference (arguments* (subsumer subsumption))
                                     premise-args)]
     (make-subsumption (abbreviate-expression (make-dl-expression language (cons 'and premise-args))
