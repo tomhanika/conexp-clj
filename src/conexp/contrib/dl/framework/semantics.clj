@@ -166,7 +166,7 @@
 
 (defmacro define-msc
   "Defines model based most specific concepts for a language, a model
-  and a set of objects."
+  and a set of objects. Must return a dl-expression."
   [language [model objects] & body]
   `(defmethod most-specific-concept (language-name ~language)
      [~model ~objects]

@@ -81,7 +81,7 @@
 	     (let [implicational-knowledge (union implications background-knowledge)]
 	       (for [P Pi_k
 		     :let [all-P    (make-dl-expression language (cons 'and P)),
-			   mc-all-P (make-dl-expression language (model-closure model all-P))]
+			   mc-all-P (model-closure model all-P)]
 		     :when (not (subsumed-by? all-P mc-all-P))
 		     :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
 							implicational-knowledge)]
@@ -93,8 +93,7 @@
 		   next-model (loop [model model]
 				(let [susu (abbreviate-subsumption
                                             (make-subsumption all-P_k
-                                                              (make-dl-expression language
-                                                                                  (model-closure model all-P_k)))
+                                                              (model-closure model all-P_k))
                                             (union implications background-knowledge))]
 				  (if (or (obviously-true? susu)
 					  (not (expert-refuses? susu)))

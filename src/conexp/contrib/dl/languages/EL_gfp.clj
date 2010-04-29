@@ -100,7 +100,7 @@
   (let [[tbox target] (normalize-EL-gfp-term (reduce-ttp (EL-gfp-msc model objects)))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
-      [tbox target])))
+      (make-dl-expression (model-language model) [tbox target]))))
 
 ;;;
 
