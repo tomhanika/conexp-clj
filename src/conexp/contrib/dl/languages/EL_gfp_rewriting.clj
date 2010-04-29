@@ -77,7 +77,7 @@
                             [sym (make-dl-definition
                                   (tbox-language tbox)
                                   (definition-target def)
-                                  (normalize-EL-term (expression-term (definition-expression def))))]))),
+                                  (normalize-EL-gfp-term (expression-term (definition-expression def))))]))),
       target]),
 
    (and (seq? term)
