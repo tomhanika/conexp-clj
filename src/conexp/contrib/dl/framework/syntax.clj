@@ -143,11 +143,14 @@
                         (and (seq? form)
                              (not (empty? form))
                              (contains? symbols (first form)))
-                          (list* (first form) dl (walk insert-dl identity (rest form))),
-                        (sequential? form)
-                          (walk insert-dl identity form),
-                        :else
-                          form))]
+                        (list* (first form) dl (walk insert-dl identity (rest form))),
+
+                        (or (sequential? form)
+                            (set? form)
+                            (map? form))
+                        (walk insert-dl identity form),
+
+                        :else form))]
       (cons 'do (insert-dl body)))))
 
   ;; `(macrolet ~(vec (for [sym (get-dl-syntax)]
