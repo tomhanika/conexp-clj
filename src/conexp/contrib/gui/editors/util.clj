@@ -98,7 +98,7 @@
   "Takes two bitmasks and checks whether their bitwise-and is not 0,
    if so, calls all other expressions in an implicit do."
   [bit-mask-1 bit-mask-2 & exprs]
-  `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2) ~@exprs)))
+  `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2)) ~@exprs))
 
 
 ;;;
@@ -169,8 +169,10 @@
 (defn proxy-mouse-listener
   "Returns a proxy class that will implement the MouseListener
    interface and call the given 1-ary functions accordingly.
-   The passed parameter will be a map mapping :button, :modifiers and
-   :position according to the event information.
+   The passed parameter will be a map mapping :button (button 
+   that triggered the event), :buttons-down (buttons that were
+   down before), :modifiers and :position according to the event
+   information.
 
    Parameters:
      pressed   _mouse button down event
@@ -190,10 +192,16 @@
                                 (when-mask m InputEvent/CTRL_DOWN_MASK #{:control})
                                 (when-mask m InputEvent/SHIFT_DOWN_MASK #{:shift})
                                 (when-mask m InputEvent/META_DOWN_MASK #{:meta})))
+         translate-pressed-btns (fn [m]
+                                  (union 
+                                    (when-mask m InputEvent/BUTTON1_DOWN_MASK #{1})
+                                    (when-mask m InputEvent/BUTTON2_DOWN_MASK #{2})
+                                    (when-mask m InputEvent/BUTTON3_DOWN_MASK #{3})))
          translate-event (fn [event] 
                            {:button (translate-button (.getButton event))
-                            :modifiers (translate-modifier (.getModifiers event))
-                            :position [(.getX event) (.getY event)]})]
+                            :modifiers (translate-modifier (.getModifiersEx event))
+                            :position [(.getX event) (.getY event)]
+                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
 
     (proxy [MouseListener] []
       (mousePressed [event] 
@@ -296,6 +304,15 @@
   [obj height]
   (let [ width (:width (get-size obj)) ]
     (set-size obj width height)))
+
+(defn add-control-mouse-listener
+  "Adds a mouse-listener proxy to the given control.
+
+  Parameters:
+   control  _object that will be passed to get-control
+   proxy    _proxy that will be added"
+  [control proxy]
+  (.addMouseListener (get-control control) proxy))
 
 ;;
 ;;
@@ -905,7 +922,11 @@
                     [register-keyboard-action 
                       copy-to-clipboard "Copy" keystroke-copy :focus] 
                     [register-keyboard-action 
-                      paste-from-clipboard "Paste" keystroke-paste :focus]]]
+                      paste-from-clipboard "Paste" keystroke-paste :focus]]
+         ignore-event (fn [x] nil)
+         show-data (fn [x] (message-box (str x)))
+         cell-permutor (proxy-mouse-listener ignore-event ignore-event
+                         ignore-event ignore-event ignore-event)]
     (add-hook widget "table-changed" 
       (fn [c f l t] (table-change-hook widget c f l t))
       "This hook is called whenever a table widget is changed,
@@ -936,6 +957,7 @@
     (.addTableModelListener model change-listener)
     (apply-exprs widget defaults)
     (apply-exprs widget setup)
+    (add-control-mouse-listener widget cell-permutor)
     widget ))
 
 
