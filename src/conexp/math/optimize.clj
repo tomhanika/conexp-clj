@@ -49,7 +49,8 @@
   [(vec (.getPoint pvp)) (.getValue pvp)])
 
 (defn- directly-optimize
-  "Optimizes fn according to goal as given by *direct-optimizer*."
+  "Optimizes fn according to goal as given by
+  *direct-optimizer*. options is a hash-map to control the optimizer."
   [fn starting-point goal options]
   (let [point-value-pair (.optimize (make-direct-optimizer options)
 				    (as-multivariate-real-fn fn)
@@ -61,7 +62,7 @@
   "Optimizes fn according to goal as given by
   *differential-optimizer*. partial-derivatives must be a function
   computing the k-th partial derivation (as clojure function) when
-  given k."
+  given k. options is a hash-map to control the optimizer."
   [fn partial-derivatives starting-point goal options]
   (let [point-value-pair (.optimize (make-differential-optimizer options)
 				    (as-differentiable-multivariate-real-fn
@@ -75,29 +76,16 @@
 (defn minimize
   "Minimizes fn starting at starting-point. When given
   partial-derivatives uses a differential optimizer, otherwise uses a
-  direct one."
+  direct one. options is a hash-map to control the optimizer."
   ([fn starting-point options]
      (directly-optimize fn starting-point GoalType/MINIMIZE options))
   ([fn partial-derivatives starting-point options]
      (differentially-optimize fn partial-derivatives starting-point GoalType/MINIMIZE options)))
 
-(comment
-  Use this way
-
-  (minimize #(Math/sin %)
-	    (fn [k]
-	      (condp = k
-		0 #(Math/cos %)
-		(constantly 0.0)))
-	    [0.0])
-
-  -> [[-1.5707963267948966] -1.0]
-)
-
 (defn maximize
   "Maximizes fn starting at starting-point. When given
   partial-derivatives uses a differential optimizer, otherwise uses a
-  direct one."
+  direct one. options is a hash-map to control the optimizer."
   ([fn starting-point options]
      (directly-optimize fn starting-point GoalType/MAXIMIZE options))
   ([fn partial-derivatives starting-point options]

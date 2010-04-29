@@ -7,11 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io
-  (:use [conexp.util :only (update-ns-meta!)])
+  (:use conexp.util)
   (:use [clojure.contrib.ns-utils :only (immigrate)])
   (:require conexp.io.contexts
 	    conexp.io.lattices
-	    conexp.io.layouts))
+	    conexp.io.layouts
+            conexp.io.many-valued-contexts))
 
 (update-ns-meta! conexp.io
   :doc "Common namespace for conexp-clj IO functions.")
@@ -20,7 +21,21 @@
 
 (immigrate 'conexp.io.contexts
 	   'conexp.io.lattices
-	   'conexp.io.layouts)
+	   'conexp.io.layouts
+           'conexp.io.many-valued-contexts)
+
+;;;
+
+(defn available-formats
+  "Returns for a given type (as string, i.e. \"context\") all
+  available output methods."
+  [type]
+  (let [writer (resolve (symbol "conexp.io" (str "write-" type)))]
+    (when (nil? writer)
+      (illegal-argument "Unknown type " type " given to available-formats."))
+    (remove #(or (= :default %)
+                 (= :conexp.io.util/default-write %))
+            (keys (methods @writer)))))
 
 ;;;
 

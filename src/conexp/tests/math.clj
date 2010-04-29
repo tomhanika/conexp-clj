@@ -6,17 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.fca
+(ns conexp.tests.math
   (:use conexp.util))
 
 ;;;
 
-(tests-to-run conexp.tests.fca.contexts
-              conexp.tests.fca.lattices
-	      conexp.tests.fca.implications
-              conexp.tests.fca.many-valued-contexts
-              conexp.tests.fca.association-rules
-              conexp.tests.fca.exploration)
+(tests-to-run conexp.tests.math.optimize)
 
 ;;;
 

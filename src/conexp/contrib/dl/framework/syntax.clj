@@ -8,9 +8,12 @@
 
 (ns conexp.contrib.dl.framework.syntax
   (:use conexp.main)
-  (:use clojure.contrib.pprint
-	[clojure.walk :only (walk)]))
+  (:use	[clojure.walk :only (walk)]
+        [clojure.contrib.macro-utils :only (macrolet)]))
 
+(update-ns-meta! conexp.contrib.dl.framework.syntax
+  :doc "Provides basic syntax definitions for DL expressions and the
+  like.")
 
 ;;;
 
@@ -48,7 +51,7 @@
   (:constructors language))
 
 (defmethod print-method DL [dl out]
-  (.write out (str "DL " (name (language-name dl)))))
+  (.write out (print-str (list 'DL (name (language-name dl))))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
@@ -62,7 +65,7 @@
 
 (defrecord DL-expression [language sexp])
 
-(defn expression
+(defn expression-term
   "Returns the s-exp describing this expression."
   [dl-expression]
   (:sexp dl-expression))
@@ -75,22 +78,26 @@
 (defmethod print-method DL-expression [dl-exp out]
   (let [#^String output (with-out-str
 			  (if *print-with-dl-type*
-			    (pprint (list 'DL-expr (expression dl-exp)))
-			    (pprint (expression dl-exp))))]
+			    (print (list 'DL-expr (expression-term dl-exp)))
+			    (print (expression-term dl-exp))))]
     (.write out (.trim output))))
 
 ;;;
 
 (defn dl-expression?
-  "Returns true iff thing is a DL expression."
-  [thing]
-  (instance? DL-expression thing))
+  "Returns true iff thing is a DL expression. If dl is given, checks
+  for thing to be a dl-expression in dl."
+  ([thing]
+     (instance? DL-expression thing))
+  ([dl thing]
+     (and (dl-expression? thing)
+          (= dl (expression-language thing)))))
 
 (defn- dl-sexp->term
   "Ensures no dl-expression objects in the syntax expression given."
   [expr]
   (cond
-   (dl-expression? expr) (expression expr),
+   (dl-expression? expr) (expression-term expr),
    (sequential? expr)    (walk dl-sexp->term identity expr),
    :else                 expr))
 
@@ -108,15 +115,68 @@
 
 ;;;
 
-(defvar *common-constructors*
-  '#{and or exists forall}
-  "Common constructors for DL expression. They will be quoted in
-  dl-expression automatically.")
+(let [dl-creators (atom #{})]
+  (defn add-dl-syntax!
+    "Adds a new keyword for with-dl."
+    [symbol]
+    (swap! dl-creators conj symbol))
+
+  (defn- get-dl-syntax
+    "Returns all symbols to be recognized by with-dl."
+    []
+    @dl-creators)
+
+  nil)
+
+(defmacro with-dl
+  "Lets one write dl-expression without repeatedly naming the dl one
+  is working with. Recognized keywords for dl-expression can be added
+  with add-dl-syntax!.
+
+  Note: This implementation is very simple. Don't try to shadow
+  symbols which are recognized as syntax with local binding. This will
+  not work."
+  [dl & body]
+  (let [symbols (get-dl-syntax)]
+    (letfn [(insert-dl [form]
+                       (cond
+                        (and (seq? form)
+                             (not (empty? form))
+                             (contains? symbols (first form)))
+                          (list* (first form) dl (walk insert-dl identity (rest form))),
+                        (sequential? form)
+                          (walk insert-dl identity form),
+                        :else
+                          form))]
+      (cons 'do (insert-dl body)))))
+
+  ;; `(macrolet ~(vec (for [sym (get-dl-syntax)]
+  ;;                    `(~sym [& args#] `(~'~sym ~'~dl ~@args#))))
+  ;;    ~@body))
+
+;;;
+
+(let [common-constructors (atom #{})]
+
+  (defn get-common-constructors
+    "Returns all registered common constructors."
+    []
+    @common-constructors)
+
+  (defn add-common-constructor!
+    "Adds given symbol as a common constructor."
+    [sym]
+    (swap! common-constructors conj sym))
+
+  nil)
 
 (defmacro dl-expression
-  "Allows input of DL s-expression without quoting. Symbols starting
-  with a capital letter are quoted, symbols in the first position of a
-  sequence are quoted and everything else is left as it is."
+  "Allows input of DL s-expression without quoting. The following quoting rules apply:
+
+    - function calls are not quoted (sequences starting with a symbol
+      not being in (get-common-constructors).
+    - capital letters are quoted (appearing outside of a function call)
+    - symbols in (get-common-constructors) being the first element of a sequence are quoted."
   [language expression]
   (let [transform-symbol (fn [symbol]
 			   (if (Character/isUpperCase (first (str symbol)))
@@ -126,45 +186,54 @@
 		    (cond
 		     (seq? sexp)        (cond
 					 (empty? sexp) sexp,
-					 (contains? *common-constructors* (first sexp))
+					 (contains? (get-common-constructors) (first sexp))
 					 (list* 'list (list 'quote (first sexp)) (walk transform identity (rest sexp))),
-					 :else (walk transform identity sexp)),
+					 :else sexp),
 		     (sequential? sexp) (walk transform identity sexp),
 		     (symbol? sexp)     (transform-symbol sexp),
 		     :else              sexp))]
     `(make-dl-expression ~language ~(transform expression))))
 
+(add-dl-syntax! 'dl-expression)
+
+(defnk make-dl
+  "Constructs a description logic from the given arguments."
+  [name concepts roles constr :extends nil]
+  (when (exists [name (concat concepts roles)]
+          (not (Character/isUpperCase (first (str name)))))
+    (illegal-argument "Concept and role names must start with a capital letter. (sorry for that)"))
+
+  (let [base-lang     extends,
+
+        disjoint-into (fn [sqn other-sqn]
+                        (when-let [x (first (filter (fn [a] (some #(= % a) sqn)) other-sqn))]
+                          (illegal-argument "Item «" x "» already defined in base language."))
+                        (into sqn other-sqn)),
+
+        concepts      (disjoint-into concepts (and base-lang (concept-names base-lang)))
+        roles         (disjoint-into roles    (and base-lang (role-names base-lang)))
+        constr        (disjoint-into constr   (and base-lang (constructors base-lang))),
+
+        language      (make-language name concepts roles constr)]
+
+    (when base-lang
+      (derive (language-name language) (language-name base-lang)))
+
+    language))
+
 (defmacro define-dl
   "Defines a DL."
   [name concept-names role-names constructors & options]
-  (let [options (apply hash-map options)]
-    (when (exists [name (concat concept-names role-names)]
-	    (not (Character/isUpperCase (first (str name)))))
-      (illegal-argument "Concept and role names must start with a capital letter."))
-    `(do
-       (let [concept-names# (into '~concept-names ~(when-let [base-lang (:extends options)]
-						     `(concept-names ~base-lang))),
-	     role-names#    (into '~role-names ~(when-let [base-lang (:extends options)]
-						  `(role-names ~base-lang))),
-	     constructors#  (into '~constructors ~(when-let [base-lang (:extends options)]
-						    `(constructors ~base-lang)))]
-
-	 ;; defining the language
-	 (def ~name (make-language '~name concept-names# role-names# constructors#))
-
-	 ;; extending languages
-	 ~(when-let [base-lang (:extends options)]
-	    `(derive (language-name ~name) (language-name ~base-lang)))
-
-	 ;; finished
-	 ~name))))
+  `(let [dl# (apply make-dl '~name '~concept-names '~role-names '~constructors ~options)]
+     (def ~name dl#)
+     dl#))
 
 ;;;
 
 (defn compound?
   "Returns true iff given expression is a compound expression."
   [dl-expression]
-  (let [expr (expression dl-expression)]
+  (let [expr (expression-term dl-expression)]
     (seq? expr)))
 
 (defn atomic?
@@ -178,16 +247,16 @@
   [dl-expression]
   (and (atomic? dl-expression)
        (or (contains? (concept-names (expression-language dl-expression))
-		      (expression dl-expression))
+		      (expression-term dl-expression))
 	   (contains? (role-names (expression-language dl-expression))
-		      (expression dl-expression)))))
+		      (expression-term dl-expression)))))
 
 (defn operator
   "Returns the operator of the expression."
   [dl-expression]
   (when-not (compound? dl-expression)
     (illegal-argument "Given expression is atomic and has no operator."))
-  (first (expression dl-expression)))
+  (first (expression-term dl-expression)))
 
 (defn arguments
   "Returns the operator arguments of the expression."
@@ -197,14 +266,7 @@
   (map #(if-not (dl-expression? %)
 	  (DL-expression. (expression-language dl-expression) %)
 	  %)
-       (rest (expression dl-expression))))
-
-;;;
-
-(defn all
-  "Returns for a set of concepts the conjunction of all those concepts."
-  [language concepts]
-  (make-dl-expression language (cons 'and concepts)))
+       (rest (expression-term dl-expression))))
 
 ;;;
 
@@ -214,9 +276,9 @@
   (let [collector (fn collector [expr]
 		    (cond
 		     (seq? expr) (vec (reduce concat (map collector (rest expr)))),
-		     (dl-expression? expr) (collector (expression expr)),
+		     (dl-expression? expr) (collector (expression-term expr)),
 		     :else [expr]))]
-    (set (collector (expression dl-expression)))))
+    (set (collector (expression-term dl-expression)))))
 
 (defn role-names-in-expression
   "Returns all role names used in the given expression."
@@ -243,7 +305,7 @@
   (cond
    (some #{sexp-1} (keys names)) (let [new (names sexp-1)]
 				   (if (dl-expression? new)
-				     (expression new)
+				     (expression-term new)
 				     new)),
    (sequential? sexp-1) (walk #(substitute-syntax % names) identity sexp-1),
    :else sexp-1))
@@ -253,7 +315,7 @@
   names by their values, returning the resulting expression."
   [dl-expr names]
   (DL-expression. (expression-language dl-expr)
-		 (substitute-syntax (expression dl-expr) names)))
+		 (substitute-syntax (expression-term dl-expr) names)))
 
 ;;; Definitions
 
@@ -307,10 +369,18 @@
 
 (defmethod print-method DL-subsumption [susu out]
   (let [#^String output (with-out-str
-			  (pprint (list (subsumee susu)
-					'==>
-					(subsumer susu))))]
+			  (print (list (subsumee susu)
+                                       '==>
+                                       (subsumer susu))))]
     (.write out (.trim output))))
+
+(defmacro subsumption
+  "Defines a subsumption."
+  [DL sexp-for-subsumee sexp-for-subsumer]
+  `(make-subsumption (dl-expression ~DL ~sexp-for-subsumee)
+		     (dl-expression ~DL ~sexp-for-subsumer)))
+
+(add-dl-syntax! 'subsumption)
 
 ;;;
 

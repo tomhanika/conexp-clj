@@ -6,11 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests.dl.framework.models
+(ns conexp.contrib.tests.dl.framework.semantics
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.models
+	conexp.contrib.dl.framework.semantics
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test))
 

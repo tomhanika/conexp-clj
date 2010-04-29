@@ -9,12 +9,18 @@
 (ns conexp.contrib.tests.dl.examples
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.models
 	conexp.contrib.dl.framework.boxes
+	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.languages.description-graphs
-	conexp.contrib.dl.languages.exploration
-	conexp.contrib.dl.languages.interaction
-	conexp.contrib.dl.languages.EL-gfp))
+	conexp.contrib.dl.languages.EL-gfp
+	conexp.contrib.dl.languages.EL-gfp-exploration
+	conexp.contrib.dl.languages.interaction)
+  (:use clojure.test))
+
+(update-ns-meta! conexp.contrib.tests.dl.examples
+  :doc "Defines example data for testing and show how to use
+  conexp.contrib.dl. Don't change anything here since the tests rely
+  on this.")
 
 ;;; Initial Example
 
@@ -23,47 +29,52 @@
 
 (def dl-exp (dl-expression SimpleDL (exists HasChild Male)))
 
-(def some-model (model SimpleDL
-		       #{John Marry Peter Jana}
-		       Mother #{Marry},
-		       Father #{John, Peter},
-		       Male   #{John, Peter},
-		       Female #{Marry, Jana},
-		       HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
+(with-dl SimpleDL
 
-(def some-tbox (tbox SimpleDL
-		     Grandfather (and Male (exists HasChild (exists HasChild (and))))
-		     Grandmother (and Female (exists HasChild (exists HasChild (and))))))
+  (def some-model (model #{John Marry Peter Jana}
+                         Mother #{Marry},
+                         Father #{John, Peter},
+                         Male   #{John, Peter},
+                         Female #{Marry, Jana},
+                         HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
 
-(def some-normal-tbox (tbox SimpleDL
-			    A (and Male Father (exists HasChild B)),
-			    B (and Female (exists HasChild T)),
-			    T (and)))
+  (def empty-model (model #{}
+                          Mother #{}
+                          Father #{}
+                          Male   #{}
+                          Female #{}
+                          HasChild #{}))
 
-(def all-tbox (tbox SimpleDL
-		    All (and Male Female Mother Father (exists HasChild All))))
+  (def some-tbox (tbox Grandfather (and Male (exists HasChild (exists HasChild (and))))
+                       Grandmother (and Female (exists HasChild (exists HasChild (and))))))
 
-(def all-cpt (dl-expression SimpleDL [all-tbox All]))
+  (def some-normal-tbox (tbox A (and Male Father (exists HasChild B)),
+                              B (and Female (exists HasChild T)),
+                              T (and)))
 
-(def ext-dl-exp (dl-expression SimpleDL [some-tbox, Grandfather]))
-(def ext-dl-exp-2 (dl-expression SimpleDL (and [some-tbox, Grandfather])))
+  (def all-tbox (tbox All (and Male Female Mother Father (exists HasChild All))))
 
-(def paper-model (model SimpleDL
-			[John Michelle Mackenzie Paul Linda James]
-			Male   #{John Paul James}
-			Female #{Michelle Mackenzie Linda}
-			Father #{John Paul}
-			Mother #{Michelle Linda}
-			HasChild #{[John Mackenzie] [Michelle Mackenzie]
-				   [Paul James] [Linda James]}))
+  (def all-cpt (dl-expression [all-tbox All]))
 
-(def small-model (model SimpleDL
-			[John Michelle Mackenzie]
-			Male   #{John}
-			Female #{Michelle Mackenzie}
-			Mother #{Michelle}
-			Father #{John}
-			HasChild #{[John Mackenzie] [Michelle Mackenzie]}))
+  (def ext-dl-exp (dl-expression [some-tbox, Grandfather]))
+  (def ext-dl-exp-2 (dl-expression (and [some-tbox, Grandfather])))
+
+  (def paper-model (model [John Michelle Mackenzie Paul Linda James]
+                          Male   #{John Paul James}
+                          Female #{Michelle Mackenzie Linda}
+                          Father #{John Paul}
+                          Mother #{Michelle Linda}
+                          HasChild #{[John Mackenzie] [Michelle Mackenzie]
+                                     [Paul James] [Linda James]}))
+
+  (def small-model (model [John Michelle Mackenzie]
+                          Male   #{John}
+                          Female #{Michelle Mackenzie}
+                          Mother #{Michelle}
+                          Father #{John}
+                          HasChild #{[John Mackenzie] [Michelle Mackenzie]}))
+
+  nil)
 
 ;;; Fahrräder
 
@@ -85,6 +96,11 @@
 
 (define-dl FamilyDL [Mother, Female, Father, Male] [MarriedTo, HasChild] []
   :extends EL-gfp)
+
+(def family-all-cpt (dl-expression FamilyDL
+				   [(tbox FamilyDL
+					  All (and Father Male Mother Female (exists HasChild All))),
+				    All]))
 
 (def parent (tbox FamilyDL
 		  Child (and),
