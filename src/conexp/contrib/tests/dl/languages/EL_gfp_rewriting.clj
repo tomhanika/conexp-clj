@@ -25,26 +25,26 @@
     (is (= #{#{1} #{2}} (set (me #{#{1} #{1 2 3} #{2 3} #{2} #{1 3}} subset?))))))
 
 (deftest test-abbreviate-expression
-  (with-dl SimpleDL
-    (let [ab @#'conexp.contrib.dl.languages.EL-gfp-rewriting/abbreviate-expression]
-    (is (= (ab (dl-expression (and (exists HasChild A)
-                                   (exists HasChild B)))
-               #{(make-implication #{(dl-expression A)}
-                                   #{(dl-expression B)})})
-           (dl-expression (and (exists HasChild A)))))
-    (is (= (ab (dl-expression (and (exists HasChild B)
-                                   (exists HasChild A)))
-               #{(make-implication #{(dl-expression A)}
-                                   #{(dl-expression B)})})
-           (dl-expression (and (exists HasChild A)))))
-    (is (= (ab (dl-expression (and (exists HasChild A)
-                                   (exists HasChild B)
-                                   (exists HasChild C)))
-               #{(make-implication #{(dl-expression A)}
-                                   #{(dl-expression B)}),
-                 (make-implication #{(dl-expression (exists HasChild A))}
-                                   #{(dl-expression (exists HasChild C))})})
-           (dl-expression (and (exists HasChild A))))))))
+  (let [ab @#'conexp.contrib.dl.languages.EL-gfp-rewriting/abbreviate-expression]
+    (with-dl SimpleDL
+      (is (= (ab (dl-expression (and (exists HasChild A)
+                                     (exists HasChild B)))
+                 #{(make-implication #{(dl-expression A)}
+                                     #{(dl-expression B)})})
+             (dl-expression (and (exists HasChild A)))))
+      (is (= (ab (dl-expression (and (exists HasChild B)
+                                     (exists HasChild A)))
+                 #{(make-implication #{(dl-expression A)}
+                                     #{(dl-expression B)})})
+             (dl-expression (and (exists HasChild A)))))
+      (is (= (ab (dl-expression (and (exists HasChild A)
+                                     (exists HasChild B)
+                                     (exists HasChild C)))
+                 #{(make-implication #{(dl-expression A)}
+                                     #{(dl-expression B)}),
+                   (make-implication #{(dl-expression (exists HasChild A))}
+                                     #{(dl-expression (exists HasChild C))})})
+             (dl-expression (and (exists HasChild A))))))))
 
 (deftest test-normalize-EL-gfp-term
   (are [term norm-term] (= (normalize-EL-gfp-term 'term) 'norm-term)

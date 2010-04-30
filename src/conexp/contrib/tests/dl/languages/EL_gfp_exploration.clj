@@ -10,6 +10,7 @@
   (:use conexp.main
 	conexp.contrib.dl.framework.syntax
 	conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.languages.EL-gfp-exploration
 	conexp.contrib.tests.dl.examples)
   (:use clojure.test))
@@ -71,10 +72,11 @@
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and Female)))))
                             (and [(tbox All (and Father Mother (exists HasChild All))),
-                                  All]))))))
-
-(deftest- model-gcis-returns-correct-number
-  (are [model gci-count] (= gci-count (count (model-gcis model)))
+                                  All])))))
+  (are [model gci-count] (let [gcis (model-gcis model)]
+                           (and (= gci-count (count (model-gcis model)))
+                                (forall [gci gcis]
+                                  (holds-in-model? model gci))))
        some-model  9
        riding-model 7
        family-model 19
@@ -82,8 +84,7 @@
        grandparent-model 32))
 
 (defn test-ns-hook []
-  (model-gcis-returns-correct-result)
-  (model-gcis-returns-correct-number))
+  (model-gcis-returns-correct-result))
 
 ;;;
 
