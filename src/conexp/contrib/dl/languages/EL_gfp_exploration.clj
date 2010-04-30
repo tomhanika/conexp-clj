@@ -12,6 +12,7 @@
 	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.languages.interaction
+        conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.languages.EL-gfp-rewriting
 	conexp.contrib.dl.util.concept-sets)
@@ -56,10 +57,11 @@
   ([initial-model]
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
-     (with-memoized-fns [EL-expression->rooted-description-graph
-			 interpret
-			 model-closure
-			 subsumed-by?]
+     (with-memoized-fns [EL-expression->rooted-description-graph,
+			 interpret,
+			 model-closure,
+			 subsumed-by?,
+                         model->tbox]
        (let [language (model-language initial-model)]
 
 	 (when (and (not= (set initial-ordering) (concept-names language))

@@ -86,7 +86,7 @@
   "Returns the model based most specific concept of objects in model."
   [model objects]
   (if-not (empty? objects)
-    (EL-gfp-lcs (description-graph->tbox (model->description-graph model)) objects)
+    (EL-gfp-lcs (model->tbox model) objects)
     (let [language (model-language model),
 	  all (make-dl-expression language
 				  (list* 'and
