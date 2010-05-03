@@ -107,9 +107,11 @@
 		   next-K     (induced-context (seq-on next-M_k) next-model K),
 		   next-Pi_k  (conj Pi_k P_k),
 
-		   implications (set-of impl [P_l next-Pi_k
-					      :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
-					      :when (not (empty? (conclusion impl)))]),
+		   implications (if (= K next-K)
+                                  implications
+                                  (set-of impl [P_l next-Pi_k
+                                                :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
+                                                :when (not (empty? (conclusion impl)))])),
 		   background-knowledge (minimal-implication-set next-M_k),
 
 		   next-P_k   (next-closed-set (seq-on next-M_k)

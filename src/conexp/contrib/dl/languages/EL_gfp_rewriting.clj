@@ -33,37 +33,38 @@
           (recur (conj (remove #(more-specific? next %) collected) next) (rest left)))))))
 
 (defn- more-specific?
-  "Returns true iff term-1 is more specific than term-2."
+  "Returns true iff term-1 is more specific than term-2. When no tests succeeds
+  (fallback term-1 term-2) is called and its return value is then
+  returned."
   ([term-1 term-2]
      (more-specific? term-1 term-2 (constantly false)))
-  ([term-1 term-2 shortcut]
-     (let [atom?   #(not (seq? %)),
-           and?    #(and (seq? %) (= 'and (first %))),
-           exists? #(and (seq? %) (= 'exists (first %)))]
-       (cond
-        (shortcut term-1 term-2) true,
+  ([term-1 term-2 fallback]
+     (or (let [atom?   #(not (seq? %)),
+               and?    #(and (seq? %) (= 'and (first %))),
+               exists? #(and (seq? %) (= 'exists (first %)))]
+           (cond
+            (= term-1 term-2) true,
 
-        (= term-1 term-2) true,
+            (and (atom? term-1) (atom? term-2)) false,
 
-        (and (atom? term-1) (atom? term-2)) false,
+            (and (and? term-1)
+                 (not (and? term-2)))
+            (or (some #(more-specific? % term-2 fallback) (rest term-1))
+                false),
 
-        (and (and? term-1)
-             (not (and? term-2)))
-        (or (some #(more-specific? % term-2 shortcut) (rest term-1))
-            false),
+            (and (not (and? term-1))
+                 (and? term-2))
+            (more-specific? (list 'and term-1) term-2),
 
-        (and (not (and? term-1))
-             (and? term-2))
-        (more-specific? (list 'and term-1) term-2),
+            (and (and? term-1) (and? term-2))
+            (every? #(more-specific? term-1 % fallback) (rest term-2)),
 
-        (and (and? term-1) (and? term-2))
-        (every? #(more-specific? term-1 % shortcut) (rest term-2)),
+            (and (exists? term-1) (exists? term-2))
+            (and (= (second term-1) (second term-2))
+                 (more-specific? (nth term-1 2) (nth term-2 2) fallback)),
 
-        (and (exists? term-1) (exists? term-2))
-        (and (= (second term-1) (second term-2))
-             (more-specific? (nth term-1 2) (nth term-2 2) shortcut)),
-
-        :else false))))
+            :else false))
+         (fallback term-1 term-2))))
 
 (defn normalize-EL-gfp-term
   "Normalizes a given EL-gfp term."
@@ -104,17 +105,27 @@
     (set [dl-expression])
     (set (arguments dl-expression))))
 
+(defn- conclusion-implies?
+  "Tests whether expr21 is entailed by expr-2 by virtue of the
+  conclusion operator cn."
+  [cn expr-1 expr-2]
+  (or (contains? (cn #{expr-1}) expr-2)
+      (and (compound? expr-1)
+           (or (and (= 'and (operator expr-1))
+                    (some #(conclusion-implies? cn % expr-2) (arguments expr-1)))
+               (and (= 'exists (operator expr-1))
+                    (recur cn (nth (arguments expr-1) 1) expr-2))))))
+
 (defn- abbreviate-expression
   "Abbreviates expression with given knowledge."
   [expression knowledge]
-  (let [language            (expression-language expression),
-        implication-closure (memoize (clop-by-implications knowledge)),
-        more-specific?      more-specific?] ;hehe...
-    (binding [more-specific? #(more-specific?
-                                %1 %2
-                                (fn [term-1 term-2]
-                                  (contains? (implication-closure #{(make-dl-expression-nc language term-1)})
-                                             (make-dl-expression-nc language term-2))))]
+  (let [language       (expression-language expression),
+        implies?       (memoize (partial conclusion-implies? (clop-by-implications knowledge))),
+        more-specific? more-specific?] ;hehe...
+    (binding [more-specific? #(more-specific? %1 %2
+                                              (fn [term-1 term-2]
+                                                (implies? (make-dl-expression-nc language term-1)
+                                                          (make-dl-expression-nc language term-2))))]
       (make-dl-expression-nc language (normalize-EL-gfp-term (expression-term expression))))))
 
 (defn abbreviate-subsumption

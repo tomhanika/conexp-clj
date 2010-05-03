@@ -44,7 +44,15 @@
                                      #{(dl-expression B)}),
                    (make-implication #{(dl-expression (exists HasChild A))}
                                      #{(dl-expression (exists HasChild C))})})
-             (dl-expression (and (exists HasChild A))))))))
+             (dl-expression (and (exists HasChild A)))))
+      (is (= (ab (dl-expression (and A (exists HasChild A)))
+                 #{(make-implication #{(dl-expression (exists HasChild A))}
+                                     #{(dl-expression A)})})
+             (dl-expression (and (exists HasChild A)))))
+      (is (= (ab (dl-expression (and A (exists HasChild (and A (exists HasChild (and A (exists HasChild A)))))))
+                 #{(make-implication #{(dl-expression (exists HasChild A))}
+                                     #{(dl-expression A)})})
+             (dl-expression (and (exists HasChild (and (exists HasChild (and (exists HasChild A))))))))))))
 
 (deftest test-normalize-EL-gfp-term
   (are [term norm-term] (= (normalize-EL-gfp-term 'term) 'norm-term)
