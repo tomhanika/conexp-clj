@@ -108,7 +108,10 @@
 		   next-Pi_k  (conj Pi_k P_k),
 
 		   implications (if (= K next-K)
-                                  implications
+                                  (let [new-impl (make-implication P_k (context-attribute-closure next-K P_k))]
+                                    (if (not (empty? (conclusion new-impl)))
+                                      (conj implications new-impl)
+                                      implications))
                                   (set-of impl [P_l next-Pi_k
                                                 :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
                                                 :when (not (empty? (conclusion impl)))])),
