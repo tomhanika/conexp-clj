@@ -81,14 +81,15 @@
 	   (if (nil? P_k)
 	     ;; then return set of implications
 	     (let [implicational-knowledge (union implications background-knowledge)]
-	       (for [P Pi_k
-		     :let [all-P    (make-dl-expression language (cons 'and P)),
-			   mc-all-P (model-closure model all-P)]
-		     :when (not (subsumed-by? all-P mc-all-P))
-		     :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
-							implicational-knowledge)]
-		     :when (not (empty? (arguments (subsumer susu))))]
-		 susu))
+               (doall                   ;ensure that this sequence is evaluated with our bindings in effect
+                (for [P Pi_k
+                      :let [all-P    (make-dl-expression language (cons 'and P)),
+                            mc-all-P (model-closure model all-P)]
+                      :when (not (subsumed-by? all-P mc-all-P))
+                      :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
+                                                         implicational-knowledge)]
+                      :when (not (empty? (arguments (subsumer susu))))]
+                  susu)))
 
 	     ;; else search for next implication
 	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
