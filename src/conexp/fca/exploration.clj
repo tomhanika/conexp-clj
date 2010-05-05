@@ -13,6 +13,8 @@
 
 ;;;
 
+(declare default-handler)
+
 (defn explore-attributes
   "Performs attribute exploration in given context. Interaction is
   accomplished via the given handler, which is called with the current
@@ -21,36 +23,38 @@
   implication is to be accepted or not, and a new-row, which, in the
   case of not accepting an implication, has to be a valid
   counterexample."
-  [ctx handler]
-  (loop [implications #{},
-	 last         #{},
-	 ctx          ctx]
-    (if (not last)
-      implications
-      (let [conclusion-from-last (context-attribute-closure ctx last)]
-	(if (= last conclusion-from-last)
-	  (recur implications
-		 (next-closed-set (attributes ctx)
-				  (clop-by-implications* implications)
-				  last)
-		 ctx)
-	  (let [new-impl (make-implication last conclusion-from-last),
-		[ok new-row] (handler ctx new-impl)]
-	    (if ok
-	      (let [new-implications (conj implications new-impl)]
-		(recur new-implications
-		       (next-closed-set (attributes ctx)
-					(clop-by-implications* new-implications)
-					last)
-		       ctx))
-	      (let [new-ctx (make-context (conj (objects ctx) (new-row 0))
-					  (attributes ctx)
-					  (union (incidence ctx) (new-row 1)))]
-		(recur implications
-		       (next-closed-set (attributes new-ctx)
-					(clop-by-implications* implications)
-					last)
-		       new-ctx)))))))))
+  ([ctx]
+     (explore-attributes ctx default-handler))
+  ([ctx handler]
+     (loop [implications #{},
+            last         #{},
+            ctx          ctx]
+       (if (not last)
+         implications
+         (let [conclusion-from-last (context-attribute-closure ctx last)]
+           (if (= last conclusion-from-last)
+             (recur implications
+                    (next-closed-set (attributes ctx)
+                                     (clop-by-implications* implications)
+                                     last)
+                    ctx)
+             (let [new-impl (make-implication last conclusion-from-last),
+                   [ok new-row] (handler ctx new-impl)]
+               (if ok
+                 (let [new-implications (conj implications new-impl)]
+                   (recur new-implications
+                          (next-closed-set (attributes ctx)
+                                           (clop-by-implications* new-implications)
+                                           last)
+                          ctx))
+                 (let [new-ctx (make-context (conj (objects ctx) (new-row 0))
+                                             (attributes ctx)
+                                             (union (incidence ctx) (new-row 1)))]
+                   (recur implications
+                          (next-closed-set (attributes new-ctx)
+                                           (clop-by-implications* implications)
+                                           last)
+                          new-ctx))))))))))
 
 (defn falsifies-implication?
   "Returns true iff set of new attributes does not respect implication impl."
@@ -71,32 +75,33 @@
     (flush)
     (loop [answer (read)]
       (if (pred answer)
-	answer
-	(do
-	  (print fail-message)
-	  (flush)
-	  (recur (read)))))))
+        answer
+        (do
+          (print fail-message)
+          (flush)
+          (recur (read)))))))
 
 (defn default-handler
   "Default handler for attribute exploration. Does it's interaction on the console."
   [ctx impl]
   (do
-    (prn ctx)
-    (let [answer (ask (str "Does the implication " impl " hold? ") 
-		      #{'yes 'no} 
+    (let [answer (ask (str "Does the implication " (print-str impl) " hold? ")
+                      #{'yes 'no}
 		      "Please answer 'yes' or 'no': ")]
       (if (= answer 'yes)
 	[true []]
-	(let [new-obj (ask (str "Please enter new object: ")
-			   (fn [new-obj] (not ((objects ctx) new-obj)))
-			   "This object is already present, please enter a new one: "),
-	      new-att (ask (str "Please enter the attributes the new object should have: ")
-			   (fn [new-atts]
-			     (and (subset? new-atts (attributes ctx))
-				  (falsifies-implication? new-atts impl)))
-			   (str "These attributes are not valid or do not falsify the implication.\n"
-				"Please enter a new set (in the form #{... atts ...}): "))]
-	  [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]])))))
+        (do
+          (println ctx)
+          (let [new-obj (ask (str "Please enter new object: ")
+                             (fn [new-obj] (not ((objects ctx) new-obj)))
+                             "This object is already present, please enter a new one: "),
+                new-att (ask (str "Please enter the attributes the new object should have: ")
+                             (fn [new-atts]
+                               (and (subset? new-atts (attributes ctx))
+                                    (falsifies-implication? new-atts impl)))
+                             (str "These attributes are not valid or do not falsify the implication.\n"
+                                  "Please enter a new set (in the form #{... atts ...}): "))]
+            [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]]))))))
 
 ;;;
 
