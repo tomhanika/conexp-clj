@@ -18,7 +18,7 @@
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg)])
-  (:use [clojure.contrib.seq :only (indexed partition-by)]
+  (:use [clojure.contrib.seq :only (indexed)]
 	clojure.contrib.swing-utils))
 
 
