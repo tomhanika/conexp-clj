@@ -144,12 +144,12 @@
 (defn- ideal-move-mode
   "Moves all nodes below the current node."
   []
-  (neighbor-move-mode (memoize all-nodes-above)))
+  (neighbor-move-mode (memoize all-nodes-below)))
 
 (defn- filter-move-mode
   "Moves all nodes above the current node."
   []
-  (neighbor-move-mode (memoize all-nodes-below)))
+  (neighbor-move-mode (memoize all-nodes-above)))
 
 (defn- chain-move-mode
   "Combined ideal and filter move mode."
