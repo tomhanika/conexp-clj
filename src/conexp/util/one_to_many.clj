@@ -7,9 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.util.one-to-many
-  (:use conexp.util.multimethods))
-
-(def- *poly-ns* 'conexp.polymorphisms)
+  (:use conexp.util.typecheck))
 
 ;; one-to-many abstraction
 
@@ -24,67 +22,57 @@
   [one & many] (one-to-many. one (if (nil? many) #{} (hash-set many))))
 
 
-(inherit-multimethod add ::one-to-many
+(defn-typecheck add ::one-to-many
   "Returns a new one-to-many object that consists of otm
    and has some more elements.
   
   Parameters:
     otm   _one-to-many object
-    & els _new elements")
-
-(defmethod add ::one-to-many
+    & els _new elements"
   [otm & els]
   (one-to-many. (:one otm) (apply conj (:many otm) els)))
 
-(inherit-multimethod del ::one-to-many
+(defn-typecheck del ::one-to-many
   "Returns a new one-to-many object that consists of otm
    and has some less elements.
   
   Parameters:
     otm   _one-to-many object
-    & els _dismissed elements")
-
-(defmethod del ::one-to-many
+    & els _dismissed elements"
   [otm & els]
   (one-to-many. (:one otm) (apply disj (:many otm) els)))
   
 
-(inherit-multimethod call-one ::one-to-many
+(defn-typecheck call-one ::one-to-many
   "Calls the given function with the one-part of the given one-many relation
   as first parameter.
   
   Parameters:
     otm     _one-to-many object
     f       _function
-    & parms _function parameters")
-
-(defmethod call-one ::one-to-many
+    & parms _function parameters"
   [otm f & parms]
   (apply f  (:one otm) parms))
 
-(inherit-multimethod call-many ::one-to-many
+(defn-typecheck call-many ::one-to-many
   "Calls the given function several times with each many-part of the given 
   one-many relation as first parameter for one.
   
   Parameters:
     otm     _one-to-many object
     f       _function
-    & parms _function parameters")
-
-(defmethod call-many ::one-to-many
+    & parms _function parameters"
   [otm f & parms]
   (doseq [m (:many otm)] (apply f m parms)))
 
 
-(inherit-multimethod call-first ::one-to-many
+(defn-typecheck call-first ::one-to-many
   "Calls the given function with the given parameter for the first of the many.
   
   Parameters:
     otm     _one-to-many object
     f       _function
-    & parms _function parameters")
-
-(defmethod call-first ::one-to-many
+    & parms _function parameters"
   [otm f & parms]
   (let [m (:many otm)]
     (when-not (empty? m)

@@ -17,36 +17,6 @@
 ;;; does not work with classes (but with clojure.lang.Named), there is a need
 ;;; for the following macros (at least for now)
 
-(defn derive*
-  "Workaround for derive to work with classes as parents also."
-  ([tag parent]
-    (when (= (type tag) java.lang.Class)
-      (derive* (class-to-keyword tag) parent))
-    (if (= (type parent) java.lang.Class)
-      (derive tag (class-to-keyword parent))
-      (derive tag parent)))
-  ([h tag parent]
-    (when (= (type tag) java.lang.Class)
-      (derive* (h class-to-keyword tag) parent))
-    (if (= (type parent) java.lang.Class)
-      (derive h tag (class-to-keyword parent))
-      (derive h tag parent))))
-
-(defn isa?*
-  "Workaround for derive to work with classes as parents also."
-  ([child parent]
-    (boolean (or (isa? child parent) 
-               (when (= (type parent) java.lang.Class)
-                 (isa? child (class-to-keyword parent)))
-               (when (= (type child) java.lang.Class)
-                 (isa?* (class-to-keyword child) parent)))))
-  ([h child parent]
-    (boolean (or (isa? h child parent) 
-               (when (= (type parent) java.lang.Class)
-                 (isa? h child (class-to-keyword parent)))
-               (when (= (type child) java.lang.Class)
-                 (isa?* h (class-to-keyword child) parent))))))
-
 ;;; multimethod helpers
 
 (defn test-list-types-object

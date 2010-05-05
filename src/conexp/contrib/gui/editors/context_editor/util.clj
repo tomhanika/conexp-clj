@@ -445,7 +445,7 @@
 (defn editable-context?
   "Tests whether the argument is an editable context."
   [ctx?]
-  (isa?* (type ctx?) ::editable-context))
+  (isa? (class-to-keyword (type ctx?)) ::editable-context))
 
 
 (defmethod  get-context ::editable-context

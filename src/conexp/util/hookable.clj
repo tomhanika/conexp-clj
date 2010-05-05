@@ -7,37 +7,31 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.util.hookable
-  (:use conexp.util.multimethods conexp.util))
-
-(def- *poly-ns* 'conexp.polymorphisms)
+  (:use conexp.util.typecheck conexp.util))
 
 ;; hookable
 
 (defrecord hookable [hooks])
 
-(inherit-multimethod add-hook ::hookable
+(defn-typecheck add-hook ::hookable
   "Adds a hook to the hooksmap.
 
   Parameters:
     ohookable   _hookable object
     name        _key for the hook
     function    _a function that will be assigned to the hook
-    doc-str     _a documentation string for the hook")
-
-(defmethod add-hook ::hookable
+    doc-str     _a documentation string for the hook"
   [ohookable name function doc-str]
   (let [ hooks (:hooks ohookable) ]
     (dosync-wait (commute hooks conj {name (list function doc-str)}))))
 
-(inherit-multimethod set-hook ::hookable
+(defn-typecheck set-hook ::hookable
   "Sets a hook in the hooksmap, throws if this hook doesn't exist.
 
   Parameters:
     ohookable   _hookable object
     name        _key for the hook
-    function    _a function that will be assigned to the hook")
-
-(defmethod set-hook ::hookable
+    function    _a function that will be assigned to the hook"
   [ohookable name function]
   (let [ hooks (:hooks ohookable) ]
     (if (contains? @hooks name)
@@ -50,15 +44,13 @@
       (illegal-argument (str "set-hook " name " to " function " for "
                           ohookable " failed: hook undefined")))))
 
-(inherit-multimethod call-hook ::hookable
+(defn-typecheck call-hook ::hookable
   "Calls a hook in the hooksmap, throws if this hook doesn't exist.
 
   Parameters:
     ohookable   _hookable object
     name        _key for the hook
-    & args      _arguments passed to the hook function")
-
-(defmethod call-hook ::hookable
+    & args      _arguments passed to the hook function"
   [ohookable name & args]
   (let [ hooks (:hooks ohookable)
          hookmap @hooks]
@@ -68,15 +60,13 @@
                           ohookable " failed: hook undefined"
                           "\n\nmap:\n" hookmap)))))
 
-(inherit-multimethod doc-hook ::hookable
+(defn-typecheck doc-hook ::hookable
   "Looks up a hook in the hooksmap and returns its doc-str,
    returns :not-found if this hook doesn't exist.
 
   Parameters:
     ohookable   _hookable object
-    name        _key for the hook")
-
-(defmethod doc-hook ::hookable
+    name        _key for the hook"
   [ohookable name]
   (let [ hooks (:hooks ohookable)
          hookmap @hooks]
@@ -84,12 +74,11 @@
       (second (hookmap name))
       :not-found)))
 
-
 (defn make-hookable
   "Creates an empty hookable object."
   [] (hookable. (ref {})))
 
 (defn hookable?
   "Tests whether the given object is hookable."
-  [obj] (isa?* (type obj) ::hookable))
+  [obj] (isa? (class-to-keyword (type obj)) ::hookable))
 

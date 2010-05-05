@@ -24,12 +24,9 @@
     conexp.util
     conexp.util.hookable
     conexp.util.typecheck
-    conexp.util.multimethods
     [clojure.contrib.string :only (join split-lines split)]
     [clojure.set :only (union)]))
 
-;; set polymorphism-namespace
-(def- *poly-ns* 'conexp.polymorphisms)
 
 ;;;
 ;;; General purpose & macros
@@ -223,7 +220,7 @@
 
 (defrecord widget [widget])
 (defrecord control [widget control])
-(derive* ::control ::widget)
+(derive ::control ::widget)
 
 
 
@@ -237,7 +234,7 @@
   (or
     (and (map? thing)
     (contains? thing :managed-by-conexp-gui-editors-util))
-    (isa?* (type thing) ::widget)))
+    (isa? (class-to-keyword (type thing)) ::widget)))
 
 (defn get-widget
   "Returns the appropriate java root widget for managed java code or
@@ -255,8 +252,8 @@
    Parameters:
      obj         _object representing some java object"
   [obj]
-  (let [t (type obj)]
-    (if (isa?* t ::control) (:control obj)
+  (let [t (class-to-keyword (type obj))]
+    (if (isa? t ::control) (:control obj)
       (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))))
 
 
@@ -316,7 +313,7 @@
 ;;
 
 (defrecord button [widget])
-(derive* ::button ::widget)
+(derive ::button ::widget)
 
 (defn-typecheck-swing-threads* set-handler ::button
   "Sets the action handler for the button object.
@@ -359,7 +356,7 @@
 ;;
 
 (defrecord split-pane [widget])
-(derive* ::split-pane ::widget)
+(derive ::split-pane ::widget)
 
 (defn-typecheck-swing-threads* set-divider-location ::split-pane
   "Sets the location of the divider.
@@ -400,7 +397,7 @@
 ;;
 
 (defrecord tree-control [widget control root model])
-(derive* ::tree-control ::control)
+(derive ::tree-control ::control)
 
 
 (defn-typecheck set-tree ::tree-control
@@ -497,8 +494,8 @@
 ;;
 
 (defrecord table-control [widget control hooks model])
-(derive* ::table-control ::control)
-(derive* ::table-control :conexp.util.hookable/hookable)
+(derive ::table-control ::control)
+(derive ::table-control :conexp.util.hookable/hookable)
 
 
 (defn-typecheck-swing get-row-count ::table-control
@@ -626,15 +623,12 @@
   [otable] identity)
 
 
-(inherit-multimethod get-column-index-permutator ::table-control
+(defn-typecheck-swing get-column-index-permutator ::table-control
   "Returns a function that will map the current view
     columns to the according index values.
   
   Parameters:
-    otable    _table-control object")
-
-(defmethod-swing
-  get-column-index-permutator ::table-control
+    otable    _table-control object"
   [otable]
   (let [ table (get-control otable)
          col-count (.getColumnCount table)
@@ -647,31 +641,25 @@
     (fn [i] (if (>= i col-count) i (col-map i)))))
 
 
-(inherit-multimethod get-value-at-view ::table-control
+(defn-typecheck-swing get-value-at-view ::table-control
   "Returns the value of the cell at specified position in view.
 
    Parameters:
      otable     _table-control object
      row        _row of the cell
-     column     _column of the cell")
-
-(defmethod-swing
-  get-value-at-view ::table-control
+     column     _column of the cell"
   [otable row column]
   (let [ table (get-control otable) ]
     (.getValueAt table row column)))
 
 
-(inherit-multimethod get-value-at-index ::table-control
+(defn-typecheck-swing get-value-at-index ::table-control
   "Returns the value of the cell at specified position in the table model.
 
    Parameters:
      otable     _table-control object
      row        _row of the cell
-     column     _column of the cell")
-
-(defmethod
-  get-value-at-index ::table-control
+     column     _column of the cell"
   [otable row column]
   (let [ irow (get-index-row otable row)
          icolumn (get-index-column otable column)]
@@ -679,14 +667,11 @@
 
 
 
- (inherit-multimethod set-resize-mode ::table-control
+(defn-typecheck-swing-threads* set-resize-mode ::table-control
    "Sets the behaviour of the table on resize.
     Parameters:
       otable    _table-control object
-      mode      _either :all, :last, :next, :off, or :subseq")
-
-(defmethod-swing-threads*
-  set-resize-mode ::table-control
+      mode      _either :all, :last, :next, :off, or :subseq"
   [otable mode]
   (.setAutoResizeMode (get-control otable)
     ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
@@ -696,14 +681,11 @@
       :subseq JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS} mode)))
 
 
-(inherit-multimethod set-cell-selection-mode ::table-control
+(defn-typecheck-swing-threads* set-cell-selection-mode ::table-control
   "Sets the cell selection mode.
    Parameters:
      otable    _table-control object
-     mode      _either :none, :rows, :columns or :cells")
-
-(defmethod-swing-threads*
-  set-cell-selection-mode ::table-control
+     mode      _either :none, :rows, :columns or :cells"
   [otable mode]
   (let [table (get-control otable)]
     (cond (= mode :none) (.setCellSelectionEnabled table false)
@@ -713,16 +695,13 @@
                           (.setColumnSelectionAllowed true))
       (= mode :cells) (.setCellSelectionEnabled table true))))
   
-(inherit-multimethod set-value-at-view ::table-control
+(defn-typecheck-swing set-value-at-view ::table-control
   "Sets the value of a cell in the table according to a view position.
    Parameters:
      otable     _table-control object
      row        _integer identifying a row
      column     _integer identifying a column
-     contents   _the new contents")
-
-(defmethod-swing
-  set-value-at-view ::table-control
+     contents   _the new contents"
   [otable row column contents]
   (let [ columns (get-column-count otable)
          rows  (get-row-count otable) ]
@@ -733,46 +712,37 @@
     (.setValueAt (get-control otable) (str contents) row column)))
 
 
-(inherit-multimethod set-value-at-index ::table-control
+(defn-typecheck set-value-at-index ::table-control
   "Sets the value of a cell in the table according to the model index.
    Parameters:
      otable     _table-control object
      row        _integer identifying a row
      column     _integer identifying a column
-     contents   _the new contents")
-
-(defmethod
-  set-value-at-index ::table-control
+     contents   _the new contents"
   [otable row column contents]
   (set-value-at-view otable (get-index-row otable row)
     (get-index-column otable column) contents))
 
 
-(inherit-multimethod update-value-at-index ::table-control
+(defn-typecheck update-value-at-index ::table-control
   "Sets the value of a cell in the table according to the model index,
    if it is different from the current cells value.
    Parameters:
      otable     _table-control object
      row        _integer identifying a row
      column     _integer identifying a column
-     contents   _the new contents")
-
-(defmethod
-  update-value-at-index ::table-control
+     contents   _the new contents"
   [otable row column contents]
   (let [ current (get-value-at-index otable row column) ]
     (if (not= current contents)
       (set-value-at-index otable row column contents))))
 
 
-(inherit-multimethod paste-from-clipboard ::table-control
+(defn-typecheck-swing-threads* paste-from-clipboard ::table-control
   "Pastes the current system clipboard contents into the table.
 
    Parameters:
-     otable    _table-control object")
-
-(defmethod-swing-threads*
-  paste-from-clipboard ::table-control
+     obj        _table-control object"
   [obj] 
   (let [control (get-control obj)
          sel-columns ((*comp (rho .getSelectedColumns)  extract-array)
@@ -794,15 +764,12 @@
                             (col-index (+ startx c))
                             ((cells r) c))))))))
 
-(inherit-multimethod copy-to-clipboard ::table-control
+(defn-typecheck-swing-threads* copy-to-clipboard ::table-control
   "Copies the selected cells from the table widget to the system
    clipboard.
   
    Parameters:
-     otable    _table-control object")
-
-(defmethod-swing-threads* 
-  copy-to-clipboard ::table-control
+     obj       _table-control object"
   [obj] 
   (let [control (get-control obj)
          sel-columns ((*comp (rho .getSelectedColumns) extract-array)
@@ -916,56 +883,44 @@
 ;;
 
 (defrecord toolbar-control [widget control])
-(derive* ::toolbar-control ::control)
+(derive ::toolbar-control ::control)
 
-(inherit-multimethod set-orientation ::toolbar-control
+(defn-typecheck-swing-threads* set-orientation ::toolbar-control
   "Sets the toolbars orientation.
 
   Parameters:
     otoolbar      _toolbar-control object
-    orientation   _either :horiz or :vert")
-
-(defmethod-swing-threads*
-  set-orientation ::toolbar-control
+    orientation   _either :horiz or :vert"
   [otoolbar orientation]
   (.setOrientation (get-control otoolbar) ({:horiz JToolBar/HORIZONTAL
                                             :vert JToolBar/VERTICAL} 
                                             orientation)))
 
   
-(inherit-multimethod add-button ::toolbar-control
+(defn-typecheck-swing-threads* add-button ::toolbar-control
   "Adds a button to the toolbar
 
   Parameters:
     otoolbar  _toolbar-control object
-    button    _the button widget")
-
-(defmethod-swing-threads*
-  add-button ::toolbar-control
+    button    _the button widget"
   [otoolbar button]
   (.add (get-control otoolbar) (get-widget button)))
 
 
-(inherit-multimethod add-separator ::toolbar-control
+(defn-typecheck-swing-threads* add-separator ::toolbar-control
   "Adds a separator space to the toolbar
 
   Parameters:
-    otoolbar  _toolbar-control object")
-
-(defmethod-swing-threads*
-  add-separator ::toolbar-control
+    otoolbar  _toolbar-control object"
   [otoolbar]
   (.addSeparator (get-control otoolbar)))
 
-(inherit-multimethod set-floatable ::toolbar-control
+(defn-typecheck-swing-threads* set-floatable ::toolbar-control
   "Sets the floatable mode of the toolbar control.
 
   Parameters:
     otoolbar  _toolbar-control object
-    floatable _make floatable or not")
-
-(defmethod-swing-threads*
-  set-floatable ::toolbar-control
+    floatable _make floatable or not"
   [otoolbar floatable]
   (.setFloatable (get-control otoolbar) (boolean floatable)))
 

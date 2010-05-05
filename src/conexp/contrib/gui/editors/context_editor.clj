@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.editors.context-editor
-  (:use conexp.util.multimethods
+  (:use 
     conexp.contrib.gui.editors.context-editor.util
     conexp.contrib.gui.editors.util
     conexp.util))
