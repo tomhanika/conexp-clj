@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.gui.repl
   (:import [javax.swing.text PlainDocument]
-	   [java.io PushbackReader StringReader PipedWriter PipedReader 
+	   [java.io PushbackReader StringReader PipedWriter PipedReader
 	            PrintWriter CharArrayWriter]
 	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
 	   [java.awt Font Color])
@@ -25,7 +25,7 @@
   "Controls whether the REPL prints a full stack strace or not.")
 
 (defn- eof-ex?
-  "Returns true iff given throwable is an \"EOF while reading\" or \"Write 
+  "Returns true iff given throwable is an \"EOF while reading\" or \"Write
   end dead\" exception not thrown from the repl." ; hopefully
   [throwable]
   (and (not (instance? clojure.lang.Compiler$CompilerException throwable))
@@ -40,7 +40,7 @@
    the result-fn. In the new repl frame is bound to *main-frame*.
 
    Based on org.enclojure.repl.main/create-clojure-repl
- 
+
    Copyright (c) ThorTech, L.L.C.. All rights reserved.
    The use and distribution terms for this software are covered by the
    Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
@@ -51,10 +51,10 @@
 
    Author: Eric Thorsen, Narayan Singhal"
   [frame]
-  (let [cmd-wtr (PipedWriter.)
+  (let [cmd-wtr    (PipedWriter.)
         result-rdr (PipedReader.)
-        piped-in (clojure.lang.LineNumberingPushbackReader. (PipedReader. cmd-wtr))
-        piped-out (PrintWriter. (PipedWriter. result-rdr))
+        piped-in   (clojure.lang.LineNumberingPushbackReader. (PipedReader. cmd-wtr))
+        piped-out  (PrintWriter. (PipedWriter. result-rdr))
         repl-thread-fn #(clojure.main/with-bindings
 			  (binding [*print-stack-trace-on-error* *print-stack-trace-on-error*,
 				    *in* piped-in,
@@ -63,7 +63,7 @@
 				    repl-utils/*main-frame* frame]
 			    (try
 			     (clojure.main/repl
-                              :init (fn [] 
+                              :init (fn []
 				      (use 'conexp.main)
 				      (in-ns 'user)
 				      (require '[conexp.contrib.gui.repl-utils :as gui]))
@@ -84,29 +84,29 @@
 		(.write cmd-wtr cmd)
 		(.flush cmd-wtr))
      :result-fn (fn []
-		  (loop [wtr (CharArrayWriter.)]
+		  (loop [#^CharArrayWriter wtr (CharArrayWriter.)]
 		    (.write wtr (.read result-rdr))
 		    (if (.ready result-rdr)
 		      (recur wtr)
 		      (.toString wtr))))}))
 
-(defn- repl-in
+(defn repl-in
   "Sends string to given repl with a newline appended."
   [rpl string]
   ((:repl-fn rpl) (str string "\n")))
 
-(defn- repl-out
+(defn repl-out
   "Reads result from given repl."
   [rpl]
   (let [result ((:result-fn rpl))]
     result))
 
-(defn- repl-interrupt
+(defn repl-interrupt
   "Interrupts (stops) given repl process."
   [rpl]
   (.stop (:repl-thread rpl)))
 
-(defn- repl-alive?
+(defn repl-alive?
   "Tests whether given repl process is still alive or not."
   [rpl]
   (.isAlive (:repl-thread rpl)))
@@ -131,6 +131,9 @@
 		(= \) (first string)) (dec paran-count)
 		:else paran-count)))))
 
+(defprotocol ReplProcess
+  (getReplThread [frame] "Returns the repl thread of the given frame."))
+
 (defn- make-clojure-repl
   "Returns for the given frame a PlainDocument containing a clojure
   repl together with the correspongind repl- and output-thread. The
@@ -139,7 +142,9 @@
   (let [last-pos (ref 0),
 	repl-thread (create-clojure-repl-process frame),
 	#^PlainDocument
-	repl-container (proxy [PlainDocument] []
+	repl-container (proxy [PlainDocument conexp.contrib.gui.repl.ReplProcess] []
+                         (getReplThread []
+                           repl-thread)
 			 (remove [off len]
 			   (when (>= (- off len -1) @last-pos)
 			     (proxy-super remove off len)))
@@ -185,8 +190,7 @@
   embedded REPL (in a JScrollPane) and the corresponding output
   thread."
   [frame]
-  (let [[repl-container repl-thread output-thread]
-	  (make-clojure-repl frame),
+  (let [[repl-container repl-thread output-thread] (make-clojure-repl frame),
 	rpl (into-text-area repl-container repl-thread)]
     (doto rpl
       (.setFont (Font. "Monospaced" Font/PLAIN 16))
@@ -195,6 +199,17 @@
       (.setCaretColor Color/RED))
     (.start output-thread)
     (JScrollPane. rpl)))
+
+(defn get-repl-thread
+  "Returns for a given frame its corresponding repl-thread, if existent."
+  [frame]
+  (let [repl-container (get-component frame
+                                      (fn [thing]
+                                        (and (= (class thing) JTextArea)
+                                             (util/implements-interface? (class (.getDocument thing))
+                                                                         conexp.contrib.gui.repl.ReplProcess))))]
+    (when repl-container
+      (.. repl-container getDocument getReplThread))))
 
 ;;;
 
