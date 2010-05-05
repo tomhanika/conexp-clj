@@ -223,6 +223,17 @@
                       ctx (get-context ectx) ]
                  (set-context ectx (f ctx))))]))))
 
+(defn- add-ctx-map-btn-dual
+  "Helper that will create the according button vector"
+  [f ref-to-ectx txt icon]
+  (vec (list add-button 
+         (make-button txt icon 
+           [set-handler 
+             (fn [] 
+               (let [ ectx (deref ref-to-ectx)
+                      ctx (get-context ectx) ]
+                 (set-context ectx (f ctx) (get-dual-order ectx))))]))))
+
 (defn- add-ctx-map-btn-att
   "Helper that will create the according button vector"
   [f ref-to-widget txt icon]
@@ -328,7 +339,7 @@
                      [add-separator]
                      (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)                   
                      [add-separator]
-                     (add-ctx-map-btn dual-context ectx "Dual context" nil)
+                     (add-ctx-map-btn-dual dual-context ectx "Dual context" nil)
                      (add-ctx-map-btn invert-context ectx "Inverse context" nil)
                      [add-separator]
                      (add-ctx-map-btn-2nd-op context-sum ectx "Context sum..." nil)
@@ -477,24 +488,18 @@
    that shall take their respective position if available."
   [old-obj-rows old-objs new-obj-rows obj-nbrs]
   (let [new-obj-keys (set (filter string? (keys new-obj-rows)))]
-    (print "old-keys" old-objs "\n")
-    (print "new-keys" new-obj-keys "\n")
-    (print "filtered" (filter (fn [x] (contains? new-obj-keys x)) old-objs) "\n")
-    (print "nbrs" obj-nbrs "\n")
     (loop [ obj-rows new-obj-rows
             old-objs (filter (fn [x] (contains? new-obj-keys x)) old-objs) ]
       (if (empty? old-objs) obj-rows
         (let [ obj (first old-objs)
                target (old-obj-rows obj) 
                source (obj-rows obj) ]
-          (print obj "->" target "\n")
           (if (and (contains? obj-nbrs target)
                 (not (= source target)))
             (let [ obj2 (obj-rows target)
                    other-obj-rows (dissoc obj-rows obj target obj2 source)
                    switched-rows (conj other-obj-rows {obj target target obj
                                    obj2 source source obj2}) ]
-              (print "switched-rows" switched-rows "\n")
               (recur switched-rows (rest old-objs)))
             (recur obj-rows (rest old-objs))))))))
 
@@ -538,8 +543,6 @@
                           other-obj-rows obj-nbrs)
            new-attr-cols (restore-order old-attr-cols old-atts
                            other-attr-cols att-nbrs) ] 
-      (print "old" old-attr-cols "\n")
-      (print "new" new-attr-cols "\n")
       (dosync (ref-set (:obj-rows e-ctx) new-obj-rows)
         (ref-set (:attr-cols e-ctx) new-attr-cols))
       e-ctx)))
@@ -598,15 +601,15 @@
     (set-hook table "cell-value" 
       (fn [r c s] (ectx-cell-value-hook e-ctx r c s)))))
 
-(defn-typecheck set-context ::editable-context
+(defn-typecheck set-context-keep-order ::editable-context
   "Sets the bound fca-context of an editable context object to ctx.
 
    Parameters:
     ectx   _editable-context object
-    ctx    _new context"
-  [ectx ctx]
-  (let [ keep-order (get-order ectx)
-         new (make-editable-context ctx )
+    ctx    _new context
+    order  _ordering of attributes and objects"
+  [ectx ctx keep-order]
+  (let [ new (make-editable-context ctx keep-order)
          widgets @(:widgets ectx) ]
     (dosync-wait
       (ref-set (:widgets ectx) @(:widgets new))
@@ -614,6 +617,15 @@
       (ref-set (:attr-cols ectx) @(:attr-cols new))
       (ref-set (:obj-rows ectx) @(:obj-rows new)))
     (call-many widgets (rho add-widget ectx))))
+
+(defn-typecheck set-context ::editable-context
+  "Sets the bound fca-context of an editable context object to ctx.
+
+   Parameters:
+    ectx   _editable-context object
+    ctx    _new context"
+  [ectx ctx]
+  (set-context-keep-order ectx ctx (get-order ectx)))
 
 
 (defn-typecheck change-incidence-cross ::editable-context

@@ -13,7 +13,7 @@
     [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
       TreeSelectionModel]
     [java.util Vector]
-    [java.awt Toolkit Dimension]
+    [java.awt Toolkit Dimension Point]
     [java.awt.event KeyEvent ActionEvent ActionListener MouseEvent 
       MouseListener InputEvent]
     [java.awt.datatransfer DataFlavor StringSelection]
@@ -25,7 +25,7 @@
     conexp.util.hookable
     conexp.util.typecheck
     [clojure.contrib.string :only (join split-lines split)]
-    [clojure.set :only (union)]))
+    [clojure.set :only (union intersection)]))
 
 
 ;;;
@@ -786,6 +786,20 @@
          selection (join "\n" sel-lines)]
     (set-clipboard-contents selection)))
 
+(defn-typecheck-swing get-view-coordinates-at-point ::table-control
+  "Returns the current view coordinates as [row column] for the given
+   point.
+ 
+   Parameters:
+     otable    _table control object
+     position  _a vector that contains [x y]"
+  [otable position]
+  (let [ x (first position)
+         y (second position) ]
+    [(.rowAtPoint (get-control otable) (Point. x y)) 
+      (.columnAtPoint (get-control otable) (Point. x y))]))
+  
+
 
 (defn- table-change-hook
   [otable column first-row last-row type] 
@@ -839,7 +853,13 @@
                       paste-from-clipboard "Paste" keystroke-paste :focus]]
          ignore-event (fn [x] nil)
          show-data (fn [x] (message-box (str x)))
-         cell-permutor (proxy-mouse-listener ignore-event ignore-event
+         drag-start (ref [0 0])
+         button-down-event (fn [x] (if (= (:button x) 3)
+                                     (dosync (ref-set drag-start 
+                                               (get-view-coordinates-at-point
+                                                 table-control (:position x))))
+                                           (message-box (str x))))
+         cell-permutor (proxy-mouse-listener button-down-event ignore-event
                          ignore-event ignore-event ignore-event)]
     (add-hook widget "table-changed" 
       (fn [c f l t] (table-change-hook widget c f l t))
