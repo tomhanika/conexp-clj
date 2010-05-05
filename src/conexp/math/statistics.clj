@@ -11,6 +11,8 @@
 	conexp.math.util)
   (:import [org.apache.commons.math.stat.regression SimpleRegression]))
 
+;;;
+
 (defn linear-regression
   "Computes the linear regression of the given sequence of points
   (at least 2). Returns the pair of intercept and slope of the linear
@@ -18,9 +20,11 @@
   [points]
   (if (> 2 (count points))
     (illegal-argument "linear-regression needs at least 2 points."))
-  (let [regression (SimpleRegression.)]
+  (let [#^SimpleRegression regression (SimpleRegression.)]
     (doseq [[x y] points]
       (.addData regression (double x) (double y)))
     [(.getIntercept regression) (.getSlope regression)]))
+
+;;;
 
 nil

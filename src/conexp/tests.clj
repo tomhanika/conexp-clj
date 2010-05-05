@@ -13,7 +13,10 @@
 
 (tests-to-run conexp.tests.util
 	      conexp.tests.base
-	      conexp.tests.fca)
+	      conexp.tests.fca
+              conexp.tests.math
+              conexp.tests.io
+              conexp.tests.layout)
 
 ;;;
 

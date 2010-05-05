@@ -1,5 +1,6 @@
 #!/bin/bash
 
+lein clean && rm -rfv conexp-clj/ conexp-clj.zip && \
 mkdir -p lib && \
 cp stuff/additional-libs/*.jar lib/ && cp stuff/additional-libs/*.clj lib && \
 lein deps && lein jar && \

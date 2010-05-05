@@ -23,16 +23,16 @@
   (hashCode [this]
     (hash-combine-hash Association-Rule context premise conclusion)))
 
-(defmethod premise Association-Rule [ar]
+(defmethod premise Association-Rule [#^Association-Rule ar]
   (.premise ar))
 
-(defmethod conclusion Association-Rule [ar]
+(defmethod conclusion Association-Rule [#^Association-Rule ar]
   (.conclusion ar))
 
 (defn context
   "Returns the corresponding context for a given association rule."
-  [ar]
-  (:context ar))
+  [#^Association-Rule ar]
+  (.context ar))
 
 (defn support
   "Computes the support of the set of attributes B in context ctx."
@@ -59,10 +59,15 @@
 ;;;
 
 (defn make-association-rule
-  "Constructs an association rule from context, premise and conclusion."
+  "Constructs an association rule for context form premise and conclusion."
   [context premise conclusion]
   (let [premise (set premise)
 	conclusion (set conclusion)]
+    (when-not (and (subset? premise (attributes context))
+                   (subset? conclusion (attributes context)))
+      (illegal-argument "Premise and conclusion sets must be subsets "
+                        "of the attributes of the given context when constructing an "
+                        "association rule."))
     (Association-Rule. context premise (difference conclusion premise))))
 
 ;;;
@@ -83,10 +88,10 @@
   minsupp and minimal confidence minconf."
   [context minsupp minconf]
   (let [closed-intents (iceberg-intent-set context minsupp)]
-    (for [B_1 closed-intents
-	  B_2 closed-intents
-	  :when (and (proper-subset? B_1 B_2)
-		     ; directly neighbored in iceberg concept set
+    (for [B_1 closed-intents,
+          B_2 closed-intents,
+          :when (and (proper-subset? B_1 B_2)
+                     ;; directly neighbored in iceberg concept set
 		     (forall [x (difference B_2 B_1)]
 		       (= B_2 (context-attribute-closure context (conj B_1 x)))))
 	  :let [ar (make-association-rule context B_1 B_2)]
