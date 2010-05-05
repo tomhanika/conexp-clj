@@ -20,6 +20,7 @@
     conexp.util.hookable
     conexp.util.one-to-many
     conexp.util.multimethods
+    conexp.util.typecheck
     clojure.contrib.swing-utils
     conexp.contrib.gui.editors.util
     conexp.fca
@@ -135,13 +136,11 @@
 (declare-multimethod get-table)
 (declare-multimethod get-ectx)
 
-(inherit-multimethod get-selected-objects ::context-editor-widget
+(defn-typecheck get-selected-objects ::context-editor-widget
   "Returns the set of selected objects in the context-editor-widget.
 
   Parameters:
-    widget  _context-editor-widget")
-
-(defmethod get-selected-objects ::context-editor-widget
+    widget  _context-editor-widget"
   [widget]
   (let [ table (get-table widget) 
          view (get-row-index-permutator table)

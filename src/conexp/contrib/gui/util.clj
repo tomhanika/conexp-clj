@@ -17,7 +17,8 @@
 	             Graphics Graphics2D BasicStroke FlowLayout]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
-  (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg)])
+  (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg)]
+    conexp.util.typecheck)
   (:use [clojure.contrib.seq :only (indexed partition-by)]
 	clojure.contrib.swing-utils))
 
@@ -110,6 +111,10 @@
 `(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body))) ;TODO:
                                         ; allow adic overloading
 
+(defmacro defn-typecheck-swing
+"defn-typecheck such that the body is surrounded by do-swing-return"
+[name parent doc-str parms & body]
+`(defn-typecheck ~name ~parent ~doc-str ~parms (do-swing-return ~@body)))
 
 (defmacro fn-swing
 "Returns a function that is surrounded by do-swing-return"
@@ -132,6 +137,10 @@
 `(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body))) ;TODO:
                                         ; allow adic overloading
 
+(defmacro defn-typecheck-swing-threads*
+"defn-typecheck such that the body is surrounded by do-swing-return"
+[name parent doc-str parms & body]
+`(defn-typecheck ~name ~parent ~doc-str ~parms (with-swing-threads* ~@body)))
 
 (defmacro fn-swing-threads*
 "Returns a function that is surrounded by with-swing-threads*"
