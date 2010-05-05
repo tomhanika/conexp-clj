@@ -9,26 +9,13 @@
 (ns conexp.util.multimethods
   (:use [clojure.contrib.string :only (join replace-first-re)]
     clojure.contrib.def
-    conexp.util))
+    conexp.util
+    conexp.util.typecheck))
 
 ;;; since in the recent version, type doens't work with keywords anymore, but
 ;;; returns classes (along with new deftype-constructor-dot) and derive
 ;;; does not work with classes (but with clojure.lang.Named), there is a need
 ;;; for the following macros (at least for now)
-
-(defn class-to-keyword
-  "Takes a class object and returns a corresponding keyword describing the
-  class name.
-
-  Parameters:
-    c  _class"
-  [c]
-  (let [ rv clojure.contrib.string/reverse
-         classname (str c)
-         keywordname (rv 
-                       (replace-first-re #"\." "/" 
-                         (rv (replace-first-re #"class " "" classname)))) ]
-    (keyword keywordname)))
 
 (defn derive*
   "Workaround for derive to work with classes as parents also."
