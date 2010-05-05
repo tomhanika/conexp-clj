@@ -132,7 +132,7 @@
 		:else paran-count)))))
 
 (defprotocol ReplProcess
-  (getReplThread [frame] "Returns the repl thread of the given frame."))
+  (getReplThreadMap [frame] "Returns the repl thread map of the given frame."))
 
 (defn- make-clojure-repl
   "Returns for the given frame a PlainDocument containing a clojure
@@ -143,7 +143,7 @@
 	repl-thread (create-clojure-repl-process frame),
 	#^PlainDocument
 	repl-container (proxy [PlainDocument conexp.contrib.gui.repl.ReplProcess] []
-                         (getReplThread []
+                         (getReplThreadMap []
                            repl-thread)
 			 (remove [off len]
 			   (when (>= (- off len -1) @last-pos)
@@ -225,7 +225,7 @@
                                              (util/implements-interface? (class (.getDocument thing))
                                                                          conexp.contrib.gui.repl.ReplProcess))))]
     (when repl-container
-      (.. repl-container getDocument getReplThread))))
+      (.. repl-container getDocument getReplThreadMap))))
 
 ;;;
 
