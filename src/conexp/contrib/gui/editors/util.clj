@@ -23,6 +23,7 @@
     conexp.contrib.gui.util
     conexp.util
     conexp.util.hookable
+    conexp.util.typecheck
     conexp.util.multimethods
     [clojure.contrib.string :only (join split-lines split)]
     [clojure.set :only (union)]))
@@ -259,48 +260,40 @@
       (if (managed-by-conexp-gui-editors-util? obj) (:control obj) obj))))
 
 
-(inherit-multimethod get-size ::widget
+(defn-typecheck-swing get-size ::widget
   "Returns the size of the given widget.
 
    Parameters:
-     obj         _widget")
-
-(defmethod-swing get-size ::widget
+     obj         _widget"
   [obj]
   (bean (.getSize (get-widget obj))))
 
-(inherit-multimethod set-size ::widget
+(defn-typecheck-swing-threads* set-size ::widget
   "Sets the size of the given widget.
 
    Parameters:
      obj         _widget
      width       _width
-     height      _height")
-
-(defmethod-swing-threads* set-size ::widget
+     height      _height"
   [obj width height]
   (.setSize (get-widget obj) (Dimension. width height)))
 
-(inherit-multimethod set-width ::widget
+(defn-typecheck set-width ::widget
   "Sets the width of the given widget.
 
    Parameters:
      obj         _widget
-     width       _width")
-
-(defmethod set-width ::widget
+     width       _width"
   [obj width]
   (let [ height (:height (get-size obj)) ]
     (set-size obj width height)))
 
-(inherit-multimethod set-height ::widget
+(defn-typecheck set-height ::widget
   "Sets the height of the given widget.
 
    Parameters:
      obj         _widget
-     height      _height")
-
-(defmethod set-height ::widget
+     height      _height"
   [obj height]
   (let [ width (:width (get-size obj)) ]
     (set-size obj width height)))
@@ -325,14 +318,11 @@
 (defrecord button [widget])
 (derive* ::button ::widget)
 
-(inherit-multimethod set-handler ::button
+(defn-typecheck-swing-threads* set-handler ::button
   "Sets the action handler for the button object.
   Parameters:
     obutton    _button object
-    handler    _0-ary function that will be called on button press")
-
-(defmethod-swing-threads* 
-  set-handler ::button
+    handler    _0-ary function that will be called on button press"
   [obutton handler]
   (let [ button (get-widget obutton)
          current-handlers (.getActionListeners button)
@@ -371,14 +361,11 @@
 (defrecord split-pane [widget])
 (derive* ::split-pane ::widget)
 
-(inherit-multimethod set-divider-location ::split-pane
+(defn-typecheck-swing-threads* set-divider-location ::split-pane
   "Sets the location of the divider.
    Parameters:
      osplit-pane _split-pane object
-     location    _location of the divider (nbr of pixels from left/top)")
-
-(defmethod-swing-threads* 
-  set-divider-location ::split-pane
+     location    _location of the divider (nbr of pixels from left/top)"
   [osplit-pane location]
   (let [split-pane (get-widget osplit-pane)]
     (.setDividerLocation split-pane location)))
@@ -416,7 +403,7 @@
 (derive* ::tree-control ::control)
 
 
-(inherit-multimethod set-tree ::tree-control
+(defn-typecheck set-tree ::tree-control
   "Sets the tree that the control displays.
 
    Parameters:
@@ -425,10 +412,7 @@
                     where each node is represented by a list that has
                     the node's name as first element and all its child
                     trees as rest, where each child is again represented by
-                    its respective root node")
-
-(defmethod 
-  set-tree ::tree-control 
+                    its respective root node"
   [otree-control tree]
   (let [ t (conj (rest tree) :root)
          treeroot (:root otree-control)
@@ -441,16 +425,13 @@
       (.reload treemodel))))
 
 
-(inherit-multimethod set-selection-mode ::tree-control
+(defn-typecheck-swing-threads* set-selection-mode ::tree-control
   "Sets the tree control's selection mode.
 
    Parameters:
      otree-control _tree-control object
      mode          _either :single, :multi (contiguous multiselection) or
-                    :free (free multiselection)")
-
-(defmethod-swing-threads* 
-  set-selection-mode ::tree-control
+                    :free (free multiselection)"
   [otree-control mode]
   (let [ treecontrol (get-control otree-control)
          selection-model (.getSelectionModel treecontrol)]
@@ -461,7 +442,7 @@
         mode))))
 
 
-(inherit-multimethod set-selection-handler ::tree-control
+(defn-typecheck-swing-threads* set-selection-handler ::tree-control
   "Sets the selection-handler for the tree-control which is
    called every time the selection changes to handler.
 
@@ -469,10 +450,7 @@
      otree-control _tree-control object
      handler       _function that will be called with a list of the selected
                      nodes represented each by a list of labels starting
-                     from the root.")
-
-(defmethod-swing-threads*
-  set-selection-handler ::tree-control
+                     from the root."
   [otree-control handler]
   (let [ treecontrol (get-control otree-control)
          current-handlers (.getTreeSelectionListeners treecontrol)
@@ -523,58 +501,46 @@
 (derive* ::table-control :conexp.util.hookable/hookable)
 
 
-(inherit-multimethod get-row-count ::table-control
+(defn-typecheck-swing get-row-count ::table-control
   "Returns the number of rows of the table control.
 
   Parameters:
-    otable-control    _table-control object")
-
-(defmethod-swing 
-  get-row-count ::table-control
+    otable-control    _table-control object"
   [otable-control]
   (.getRowCount (get-control otable-control)))
 
 
-(inherit-multimethod get-column-count ::table-control
+(defn-typecheck-swing get-column-count ::table-control
   "Returns the number of columns of the table control.
 
   Parameters:
-    otable-control    _table-control object")
-
-(defmethod-swing 
-  get-column-count ::table-control
+    otable-control    _table-control object"
   [otable-control]
   (.getColumnCount (get-control otable-control)))
 
 
-(inherit-multimethod set-column-count ::table-control
+(defn-typecheck-swing set-column-count ::table-control
   "Sets the number of columns of the table control.
 
   Parameters:
     otable-control    _table-control object
-    count             _number of columns")
-
-(defmethod-swing 
-  set-column-count ::table-control
+    count             _number of columns"
   [otable-control count]
   (.setColumnCount (:model otable-control) count))
 
 
-(inherit-multimethod set-row-count ::table-control
+(defn-typecheck-swing set-row-count ::table-control
   "Sets the number of rows of the table control.
 
   Parameters:
     otable-control    _table-control object
-    count             _number of rows")
-
-(defmethod-swing 
-  set-row-count ::table-control
+    count             _number of rows"
   [otable-control count]
   (.setRowCount (:model otable-control) count))
 
 
 
-(inherit-multimethod register-keyboard-action ::table-control
+(defn-typecheck-swing-threads* register-keyboard-action ::table-control
   "Registers a keyboard action on the table.
   Parameters:
     otable     _table-control object
@@ -584,10 +550,7 @@
     keystroke  _a corresponding keystroke object
     condition  _can be either :focus, :widget, or :ancestor
                 (determines which widget has to be focused to trigger the
-                 action)")
-
-(defmethod-swing-threads*
-  register-keyboard-action ::table-control
+                 action)"
   [otable handler name keystroke condition]
   (let [ java-condition ({:focus JComponent/WHEN_FOCUSED
                           :widget JComponent/WHEN_IN_FOCUSED_WINDOW
@@ -604,15 +567,12 @@
     (.put input-map keystroke cmd-name)
     (.put action-map cmd-name action)))
 
-(inherit-multimethod get-column-index ::table-control
+(defn-typecheck-swing get-column-index ::table-control
   "Returns the tables model index of the specified column in the view.
 
   Parameters:
     otable    _table-control object
-    column    _viewport column")
-
-(defmethod-swing
-  get-column-index ::table-control
+    column    _viewport column"
   [otable column]
   (let [ table (get-control otable)
          col-count (.getColumnCount table) ]
@@ -621,16 +581,13 @@
              table-col (.getColumn col-model column) ]
         (.getModelIndex table-col)))))
 
-(inherit-multimethod get-index-column ::table-control
+(defn-typecheck-swing get-index-column ::table-control
  "Returns the column in the view that corresponds to the specified
   table model index.
 
   Parameters:
     otable    _table-control object
-    index     _table model index")
-
-(defmethod-swing
-  get-index-column ::table-control
+    index     _table model index"
   [otable index]
   (let [ table (get-control otable)
          col-model (.getColumnModel table)
@@ -642,40 +599,30 @@
     (if found found index)))
 
 
-(inherit-multimethod get-row-index ::table-control
+(defn-typecheck get-row-index ::table-control
   "Returns the tables model index of the specified row in view.
   Parameters:
-    row      _viewport row")
-
-(defmethod 
-  get-row-index ::table-control
+    row      _viewport row"
   [otable row]
   row)
 
 
-(inherit-multimethod get-index-row ::table-control
+(defn-typecheck get-index-row ::table-control
   "Returns the row in the view that corresponds
   to the specified table model index.
 
   Parameters:
     otable    _table-control object
-    index     _table model index")
-
-(defmethod 
-  get-index-row ::table-control
+    index     _table model index"
   [otable index]
   index)
 
-
-(inherit-multimethod get-row-index-permutator ::table-control
+(defn-typecheck get-row-index-permutator ::table-control
   "Returns a function that will map the current view rows to
    the according index values.
   
   Parameters:
-    otable    _table-control object")
-
-(defmethod
-  get-row-index-permutator ::table-control
+    otable    _table-control object"
   [otable] identity)
 
 
