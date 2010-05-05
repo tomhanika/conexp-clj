@@ -310,7 +310,7 @@
 	       (recur neighbors (into (rest to-process) neighs) (conj visited next))
 	       (recur neighbors (into (rest to-process) neighs) visited))))))))
 
-(defn- group-by
+(defn- group-by-function
   "Categorizes elements in coll by their value under f."
   [f coll]
   (loop [elements coll,
@@ -328,7 +328,7 @@
   representing the influence by node."
   [node uppers lowers]
   (let [irrs (all-irreducible-neighbored-nodes node uppers),
-	others (group-by identity
+	others (group-by-function identity
 			 (apply concat (map #(all-neighbored-nodes % lowers) irrs))),
 
 	irr-count (count irrs)]
