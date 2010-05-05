@@ -30,3 +30,31 @@
                          (rv (replace-first-re #"class " "" classname)))) ]
     (keyword keywordname)))
 
+
+;;;
+;;;
+;;; defn-typecheck
+;;;
+
+(defmacro defn-typecheck
+  "This macro is a helper for typechecking the first parameter via
+   class-to-keyword and derive/isa? and throws illegal-argument if
+   the first parameter is not a child of the given keyword.
+
+  Parameters:
+    name    _name of the function
+    parent  _parent-keyword
+    doc-str _doc-string of the function
+    params  _parameter vector
+    & body  _function body"
+  [name parent doc-str params & body]
+  (let [ check-parm (first params)
+         name-str (str name)
+         type-name (str parent)]
+    `(defn ~name ~doc-str ~params
+       (if (isa? (class-to-keyword (type ~check-parm)) ~parent)
+         (do ~@body)
+         (illegal-argument (str ~name-str 
+                             " called with the first parameter of type "
+                             (class-to-keyword (type ~check-parm))
+                             " which is not a child-type of " ~type-name " ."))))))
