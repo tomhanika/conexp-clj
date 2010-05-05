@@ -19,14 +19,11 @@
     conexp.util
     conexp.util.hookable
     conexp.util.one-to-many
-    conexp.util.multimethods
     conexp.util.typecheck
     clojure.contrib.swing-utils
     conexp.contrib.gui.editors.util
     conexp.fca
     [clojure.contrib.string :only (join split-lines split)]))
-
-(def- *poly-ns* 'conexp.polymorphisms)
 
 ;;
 ;;
@@ -127,14 +124,18 @@
 ;;
 
 (defrecord context-editor-widget [widget table toolbar e-ctx])
-(derive* ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
+(derive ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
 
-(declare make-editable-context editable-context?)
-(declare-multimethod add-widget)
-(declare-multimethod get-context)
-(declare-multimethod set-context)
-(declare-multimethod get-table)
-(declare-multimethod get-ectx)
+(declare make-editable-context editable-context? add-widget set-context 
+  get-ectx)
+
+(defmulti get-context 
+  "Returns the fca-context that belongs to the first parameter."
+  (fn [& x] (class-to-keyword (type (first x)))) :default nil)
+
+(defmulti get-table
+  "Returns the table-control that belongs to the first parameter."
+  (fn [& x] (class-to-keyword (type (first x)))) :default nil)
 
 (defn-typecheck get-selected-objects ::context-editor-widget
   "Returns the set of selected objects in the context-editor-widget.
@@ -363,13 +364,6 @@
 
   [widget] @(:e-ctx widget))
 
-(inherit-multimethod get-context ::context-editor-widget
-  "Returns the conexp.fca.contexts-context that is currently associated with the
-   context-editor-widget.
-
-  Parameters:
-    widget  _context-editor-widget")
-
 (defmethod get-context ::context-editor-widget
   [widget] (get-context @(:e-ctx widget)))
 
@@ -383,26 +377,15 @@
   [widget e-ctx] (dosync-wait (ref-set (:e-ctx widget) e-ctx)))
 
 
-(inherit-multimethod get-table ::context-editor-widget
-  "Returns the table-control that is associated with the context-editor-widget.
-
-  Parameters:
-    widget  _context-editor-widget")
-
 (defmethod get-table ::context-editor-widget
   [widget]
   (:table widget))
-
-(inherit-multimethod get-table :conexp.contrib.gui.editors.util/table-control
-  "Identity for table controls")
 
 (defmethod get-table :conexp.contrib.gui.editors.util/table-control
   [x] x)
 
 
-(declare-multimethod change-attribute-name)
-(declare-multimethod change-object-name)
-(declare-multimethod change-incidence-cross)
+(declare change-attribute-name change-object-name change-incidence-cross)
 
 (defn- ectx-cell-value-hook 
   [ectx row column contents]
@@ -465,23 +448,11 @@
   (isa?* (type ctx?) ::editable-context))
 
 
-(inherit-multimethod get-context ::editable-context
-  "Returns the fca-context object that is currently bound to
-   the editable context.
-
-   Parameters:
-    ctx   _editable-context object")
-
-(defmethod
-  get-context ::editable-context
+(defmethod  get-context ::editable-context
   [ctx]
   (deref (:context ctx)))
 
-(inherit-multimethod get-context conexp.fca.contexts.Context
-  "Identity on fca-context.")
-
-(defmethod
-  get-context conexp.fca.contexts.Context
+(defmethod  get-context :conexp.fca.contexts/Context
   [x] x)
 
 (defn make-context-compatible 
@@ -577,11 +548,6 @@
       (ref-set (:obj-rows ectx) @(:obj-rows new)))
     (call-many widgets (rho add-widget ectx))))
 
-
-                   
-(declare-multimethod change-attribute-name)
-(declare-multimethod change-object-name)
-(declare-multimethod change-incidence-cross)
 
 (defn-typecheck change-incidence-cross ::editable-context
  "Sets or unsets the cross in the incidence relation of the editable-context.
