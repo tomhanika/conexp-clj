@@ -17,7 +17,8 @@
 	conexp.contrib.gui.plugins
 	[conexp.contrib.gui.plugins.base :only (load-plugin)]
 	[conexp.contrib.gui.editors.contexts :only (context-editor)]
-	[conexp.contrib.gui.editors.lattices :only (lattice-editor)])
+	[conexp.contrib.gui.editors.lattices :only (lattice-editor)]
+        [conexp.contrib.gui.editors.code :only (code-editor)])
   (:use clojure.contrib.swing-utils))
 
 
@@ -78,7 +79,8 @@
     ;; standard plugins
     (let [pm (get-plugin-manager main-frame)]
       (load-plugin pm context-editor)
-      (load-plugin pm lattice-editor))
+      (load-plugin pm lattice-editor)
+      (load-plugin pm code-editor))
 
     main-frame))
 
