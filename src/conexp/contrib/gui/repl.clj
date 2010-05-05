@@ -173,15 +173,31 @@
 				      (insert-result result))))))]
     [repl-container repl-thread output-thread]))
 
+;;;
+
+(defn- add-input-event
+  "Adds a given input-event for the given key-sequence to
+  component. key-sequence must be a string describing a valid key
+  sequence and input-event must be a string."
+  [component key-sequence input-event]
+  (.. component getInputMap (put (KeyStroke/getKeyStroke key-sequence) input-event)))
+
+(defn- add-action-event
+  "Adds to component for a given input-event the callback to be called
+  when input-event is triggered. input must be a string describing an
+  input event and callback must be a function of no arguments."
+  [component input-event callback]
+  (.. component getActionMap (put input-event (proxy [AbstractAction] []
+                                                (actionPerformed [_]
+                                                  (callback))))))
+
 (defn- into-text-area
   "Puts repl-container (a PlainDocument) into a JTextArea adding some hotkeys."
   [repl-container repl-thread]
   (let [#^JTextArea repl-window (JTextArea. repl-container)]
-    (.. repl-window getInputMap (put (KeyStroke/getKeyStroke "control C") "interrupt"))
-    (.. repl-window getActionMap (put "interrupt" (proxy [AbstractAction] []
-						    (actionPerformed [_]
-						      (repl-interrupt repl-thread)))))
-    repl-window))
+    (doto repl-window
+      (add-input-event "control C" "interrupt")
+      (add-action-event "interrupt" #(repl-interrupt repl-thread)))))
 
 ;;;
 
