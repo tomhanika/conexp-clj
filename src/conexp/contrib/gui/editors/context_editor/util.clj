@@ -150,13 +150,11 @@
          fltr (rho filter (fn [x] (when-not (nil? x) x))) ]
     (set (fltr (map (*comp view names) sel)))))
 
-(inherit-multimethod get-selected-attributes ::context-editor-widget
+(defn-typecheck get-selected-attributes ::context-editor-widget
   "Returns the set of selected attributes in the context-editor-widget.
 
   Parameters:
-    widget  _context-editor-widget")
-
-(defmethod get-selected-attributes ::context-editor-widget
+    widget  _context-editor-widget"
   [widget]
   (let [ table (get-table widget) 
          view (get-column-index-permutator table)
@@ -356,14 +354,13 @@
 
 
 
-(inherit-multimethod get-ectx ::context-editor-widget
+(defn-typecheck get-ectx ::context-editor-widget
   "Returns the editable-context that is currently associated with the
    context-editor-widget.
 
   Parameters:
-    widget  _context-editor-widget")
+    widget  _context-editor-widget"
 
-(defmethod get-ectx ::context-editor-widget
   [widget] @(:e-ctx widget))
 
 (inherit-multimethod get-context ::context-editor-widget
@@ -376,15 +373,13 @@
 (defmethod get-context ::context-editor-widget
   [widget] (get-context @(:e-ctx widget)))
 
-(inherit-multimethod set-ectx ::context-editor-widget
+(defn-typecheck set-ectx ::context-editor-widget
   "Sets the editable-context that is currently associated with the
    context-editor-widget to the second parameter.
 
   Parameters:
     widget  _context-editor-widget
-    e-ctx   _new editable-context")
-
-(defmethod set-ectx ::context-editor-widget
+    e-ctx   _new editable-context"
   [widget e-ctx] (dosync-wait (ref-set (:e-ctx widget) e-ctx)))
 
 
@@ -530,14 +525,13 @@
       (deliver self e-ctx)
       e-ctx)))
 
-(inherit-multimethod add-widget ::editable-context
+(defn-typecheck add-widget ::editable-context
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context.
    Parameters:
      e-ctx   _editable-context
-     editor  _context-editor-widget")
+     editor  _context-editor-widget"
 
-(defmethod add-widget ::editable-context
   [e-ctx editor]
   (let [ ctx (get-context e-ctx)
          att-cols (:attr-cols e-ctx)
@@ -567,15 +561,12 @@
     (set-hook table "cell-value" 
       (fn [r c s] (ectx-cell-value-hook e-ctx r c s)))))
 
-(inherit-multimethod set-context ::editable-context
+(defn-typecheck set-context ::editable-context
   "Sets the bound fca-context of an editable context object to ctx.
 
    Parameters:
     ectx   _editable-context object
-    ctx    _new context")
-
-(defmethod
-  set-context ::editable-context
+    ctx    _new context"
   [ectx ctx]
   (let [ new (make-editable-context ctx)
          widgets @(:widgets ectx) ]
@@ -592,16 +583,14 @@
 (declare-multimethod change-object-name)
 (declare-multimethod change-incidence-cross)
 
-(inherit-multimethod change-incidence-cross ::editable-context
+(defn-typecheck change-incidence-cross ::editable-context
  "Sets or unsets the cross in the incidence relation of the editable-context.
 
   Parameters:
      ectx       _editable-context
      obj        _object
      att        _attribute
-     cross      _true or false")
-
-(defmethod change-incidence-cross ::editable-context
+     cross      _true or false"
   [ectx obj att cross]
   (let [ ostr (if (= (type obj) String) obj
                 (@(:obj-rows ectx) obj))
@@ -622,7 +611,7 @@
                   row col (if cross "X" " ")))))))
 
 
-(inherit-multimethod change-attribute-name ::editable-context
+(defn-typecheck change-attribute-name ::editable-context
  "Changes the attributes name of given to requested, if requested is
   not taken by another attribute. In this case, -# with a unique # is
   appended to the requested name. Returns the new attribute name
@@ -630,9 +619,7 @@
   Parameters:
      ectx       _editable-context
      given      _current attribute name or column index
-     requested  _requested new attribute name")
-
-(defmethod change-attribute-name ::editable-context
+     requested  _requested new attribute name"
   [ectx given requested]
   (let [ att-cols @(:attr-cols ectx) ]
     (if (= (type given) String)
@@ -660,7 +647,7 @@
           new-name)))))
 
 
-(inherit-multimethod change-object-name ::editable-context
+(defn-typecheck change-object-name ::editable-context
  "Changes the object's name of given to requested, if requested is
   not taken by another object. In this case, -# with a unique # is
   appended to the requested name. Returns the new attribute name
@@ -668,9 +655,7 @@
   Parameters:
      ectx       _editable-context
      given      _current attribute name or column index
-     requested  _requested new attribute name")
-
-(defmethod change-object-name ::editable-context
+     requested  _requested new attribute name"
   [ectx given requested]
   (let [ obj-cols @(:obj-rows ectx) ]
     (if (= (type given) String)
