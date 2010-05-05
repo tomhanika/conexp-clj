@@ -472,6 +472,24 @@
          comp-inc (map (fn [x] [(obj-map (first x)) (att-map (second x))]) inc)]
     (make-context comp-obj comp-att comp-inc)))
 
+(defn- restore-order
+  "Takes obj-rows as a parameter and a corresponding list of object names
+   that shall take their respective position if available."
+  [old-obj-rows old-objs new-obj-rows obj-nbrs]
+  (let [new-obj-keys (set (filter string? (keys new-obj-rows)))]
+    (loop [ obj-rows new-obj-rows
+            old-objs (filter (fn [x] (contains? new-obj-keys x)) old-objs) ]
+      (if (empty? old-objs) obj-rows
+        (let [ obj (first old-objs)
+               target (old-obj-rows obj) ]
+          (if (contains? obj-nbrs target)
+            (let [ obj2 (obj-rows target)
+                   source (obj-rows obj) 
+                   switched-rows (conj obj-rows {obj target target obj
+                                   obj2 source source obj2}) ]
+              (recur switched-rows (rest old-objs)))
+            (recur obj-rows (rest old-objs))))))))
+
 (defn make-editable-context
   "Takes an optional context as input and returns an appropriate 
   editable-context structure that is bound to a compatible version of the 
@@ -495,13 +513,25 @@
                           (zipmap (range 1 (+ 1 (count obj-sort))) obj-sort)))
                    (ref (make-one-to-many self))) ]
       (deliver self e-ctx)
-      e-ctx)))
+      e-ctx))
   ([context-in keep-order]
-    (let [ e-ctx (make-editable-contect context-in) 
-           old-objs (filter string? (:obj-rows keep-order))
-           old-atts (filter string? (:attr-cols keep-order))
-           obj-nbrs (set (filter (comp not string?) (deref (:obj-rows e-ctx))))
-           att-nbrs (set (filter (comp not string?) (deref (:att-nbrs e-ctx))))]
+    (let [ e-ctx (make-editable-context context-in) 
+           old-obj-rows (:obj-rows keep-order)
+           old-objs (filter string? (keys old-obj-rows))
+           old-attr-cols (:attr-cols keep-order)
+           old-atts (filter string? (keys old-attr-cols))
+           other-obj-rows (keys (deref (:obj-rows e-ctx)))
+           obj-nbrs (set (filter (comp not string?)
+                           other-obj-rows))
+           other-attr-cols (keys (deref (:att-nbrs e-ctx)))
+           att-nbrs (set (filter (comp not string?)
+                           other-attr-cols))
+           new-obj-rows (restore-order old-obj-rows old-objs 
+                          other-obj-rows obj-nbrs)
+           new-attr-cols (restore-order old-attr-cols old-atts
+                           other-attr-cols att-nbrs) ]  
+      (dosync (ref-set (:obj-rows e-ctx) new-obj-rows)
+        (ref-set (:attr-cols e-ctx) new-attr-cols))
       e-ctx)))
 
 
