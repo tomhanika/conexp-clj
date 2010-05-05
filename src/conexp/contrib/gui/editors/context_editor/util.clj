@@ -477,16 +477,24 @@
    that shall take their respective position if available."
   [old-obj-rows old-objs new-obj-rows obj-nbrs]
   (let [new-obj-keys (set (filter string? (keys new-obj-rows)))]
+    (print "old-keys" old-objs "\n")
+    (print "new-keys" new-obj-keys "\n")
+    (print "filtered" (filter (fn [x] (contains? new-obj-keys x)) old-objs) "\n")
+    (print "nbrs" obj-nbrs "\n")
     (loop [ obj-rows new-obj-rows
             old-objs (filter (fn [x] (contains? new-obj-keys x)) old-objs) ]
       (if (empty? old-objs) obj-rows
         (let [ obj (first old-objs)
-               target (old-obj-rows obj) ]
-          (if (contains? obj-nbrs target)
+               target (old-obj-rows obj) 
+               source (obj-rows obj) ]
+          (print obj "->" target "\n")
+          (if (and (contains? obj-nbrs target)
+                (not (= source target)))
             (let [ obj2 (obj-rows target)
-                   source (obj-rows obj) 
-                   switched-rows (conj obj-rows {obj target target obj
+                   other-obj-rows (dissoc obj-rows obj target obj2 source)
+                   switched-rows (conj other-obj-rows {obj target target obj
                                    obj2 source source obj2}) ]
+              (print "switched-rows" switched-rows "\n")
               (recur switched-rows (rest old-objs)))
             (recur obj-rows (rest old-objs))))))))
 
@@ -520,16 +528,18 @@
            old-objs (filter string? (keys old-obj-rows))
            old-attr-cols (:attr-cols keep-order)
            old-atts (filter string? (keys old-attr-cols))
-           other-obj-rows (keys (deref (:obj-rows e-ctx)))
+           other-obj-rows (deref (:obj-rows e-ctx))
            obj-nbrs (set (filter (comp not string?)
-                           other-obj-rows))
-           other-attr-cols (keys (deref (:att-nbrs e-ctx)))
+                           (keys other-obj-rows)))
+           other-attr-cols (deref (:attr-cols e-ctx))
            att-nbrs (set (filter (comp not string?)
-                           other-attr-cols))
+                           (keys other-attr-cols)))
            new-obj-rows (restore-order old-obj-rows old-objs 
                           other-obj-rows obj-nbrs)
            new-attr-cols (restore-order old-attr-cols old-atts
-                           other-attr-cols att-nbrs) ]  
+                           other-attr-cols att-nbrs) ] 
+      (print "old" old-attr-cols "\n")
+      (print "new" new-attr-cols "\n")
       (dosync (ref-set (:obj-rows e-ctx) new-obj-rows)
         (ref-set (:attr-cols e-ctx) new-attr-cols))
       e-ctx)))
@@ -595,7 +605,8 @@
     ectx   _editable-context object
     ctx    _new context"
   [ectx ctx]
-  (let [ new (make-editable-context ctx)
+  (let [ keep-order (get-order ectx)
+         new (make-editable-context ctx )
          widgets @(:widgets ectx) ]
     (dosync-wait
       (ref-set (:widgets ectx) @(:widgets new))
