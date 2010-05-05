@@ -31,7 +31,7 @@
     (when-not (and repl-process (repl-alive? repl-process))
       (illegal-state "There is no REPL running, cannot load file."))
     (when-let [file (choose-open-file frame ["clojure files" "clj"])]
-      (repl-in repl-process (str "(load-file \"" (.getAbsolutePath file) "\")")))))
+      (repl-in repl-process (str "(do (load-file \"" (.getAbsolutePath file) "\") nil)")))))
 
 (defvar- *code-menu*
   {:name "Code",
