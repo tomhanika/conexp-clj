@@ -478,7 +478,8 @@
   input context.
 
   Parameters:
-   [context-in]   _input context"
+   [context-in]    _input context
+   [keep-order]    _information for preserving ordering"
   ([] (make-editable-context (make-context '() '() [])))
   ([context-in]
     (let [ ctx (make-context-compatible context-in)
@@ -495,6 +496,31 @@
                    (ref (make-one-to-many self))) ]
       (deliver self e-ctx)
       e-ctx)))
+  ([context-in keep-order]
+    (let [ e-ctx (make-editable-contect context-in) 
+           old-objs (filter string? (:obj-rows keep-order))
+           old-atts (filter string? (:attr-cols keep-order))
+           obj-nbrs (set (filter (comp not string?) (deref (:obj-rows e-ctx))))
+           att-nbrs (set (filter (comp not string?) (deref (:att-nbrs e-ctx))))]
+      e-ctx)))
+
+
+(defn-typecheck get-order ::editable-context
+  "Returns the current order of the objects and attributes of the context.
+
+  Parameters:
+   [ectx]    _editable context"
+  [ectx]
+  {:attr-cols (deref (:attr-cols ectx)) :obj-rows (deref (:obj-rows ectx))})
+
+(defn-typecheck get-dual-order ::editable-context
+  "Returns the current order of the objects and attributes of the dual of the
+   context.
+
+  Parameters:
+   [ectx]    _editable context"
+  [ectx]
+  {:obj-rows (deref (:attr-cols ectx)) :attr-cols (deref (:obj-rows ectx))})
 
 (defn-typecheck add-widget ::editable-context
   "Adds a context-editor-widget to an editable context, and sets the
