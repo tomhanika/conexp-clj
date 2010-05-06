@@ -61,7 +61,8 @@
 			 interpret,
 			 model-closure,
 			 subsumed-by?,
-                         model->tbox]
+                         model->tbox,
+                         model->description-graph]
        (let [language (model-language initial-model)]
 
 	 (when (and (not= (set initial-ordering) (concept-names language))

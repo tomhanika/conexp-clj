@@ -454,6 +454,16 @@
   (let [sim-sets (*simulator-set-algorithm* G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
+;;; gfp models
+
+(defn EL-gfp-model
+  "For a given tbox-target-pair returns the interpretation of the
+  target in the gfp-model of tbox in model."
+  [model [tbox target]]
+  (let [tbox-graph (tbox->description-graph tbox),
+        model-graph (model->description-graph model)]
+    ((*simulator-set-algorithm* tbox-graph model-graph) target)))
+
 ;;;
 
 nil
