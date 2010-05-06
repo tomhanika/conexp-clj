@@ -80,22 +80,7 @@
 	  ((base-semantics dl-expression) model))
 	result))))
 
-(defmethod compile-expression 'and [dl-expression]
-  (fn [model]
-    (reduce intersection (model-base-set model)
-	    (map #(interpret model %) (arguments dl-expression)))))
-
-(add-common-constructor! 'and)
-
-(defmethod compile-expression 'exists [dl-expression]
-  (fn [model]
-    (let [r-I (interpret model (first (arguments dl-expression))),
-	  C-I (interpret model (second (arguments dl-expression)))]
-      (set-of x [x (model-base-set model),
-		 :when (exists [y C-I]
-			 (contains? r-I [x y]))]))))
-
-(add-common-constructor! 'exists)
+;;; base semantics (i.e. what to do if nothing else applies)
 
 (defmacro define-base-semantics
   "Define how to interpret an expression which is neither compound nor
@@ -104,6 +89,46 @@
   `(defmethod compile-expression [(language-name ~language) ::base-semantics] [~dl-expression]
      (fn [~model]
        ~@body)))
+
+
+;;; defining new constructors
+
+(defmacro define-constructor
+  "Defines a new constructor for description logics. Captures the
+  variables «model» and «dl-exp» for representing the model and the
+  dl-expression used."
+  [name & body]
+  `(do
+     (defmethod compile-expression '~name [~'dl-exp]
+       (fn [~'model]
+         ~@body))
+     (add-common-constructor! '~name)))
+
+(define-constructor and
+  (reduce intersection (model-base-set model)
+          (map #(interpret model %) (arguments dl-exp))))
+
+(define-constructor or
+  (reduce union #{}
+          (map #(interpret model %) (arguments dl-exp))))
+
+(define-constructor exists
+  (let [r-I (interpret model (first (arguments dl-exp))),
+        C-I (interpret model (second (arguments dl-exp)))]
+    (set-of x [x (model-base-set model),
+               :when (exists [y C-I]
+                       (contains? r-I [x y]))])))
+
+(define-constructor forall
+  (let [r-I (interpret model (first (arguments dl-exp))),
+        C-I (interpret model (second (arguments dl-exp)))]
+    (set-of x [x (model-base-set model),
+               :when (forall [y C-I]
+                       (contains? r-I [x y]))])))
+
+(define-constructor inverse
+  (let [r-I (interpret model (first (arguments dl-exp)))]
+    (set-of [y x] [[x y] r-I])))
 
 ;;; Model Syntax
 
@@ -141,7 +166,7 @@
 
 (defmacro define-msc
   "Defines model based most specific concepts for a language, a model
-  and a set of objects."
+  and a set of objects. Must return a dl-expression."
   [language [model objects] & body]
   `(defmethod most-specific-concept (language-name ~language)
      [~model ~objects]
@@ -151,7 +176,7 @@
   "Return the most specific concept of the interpretation of dl-exp in
   model."
   [model dl-exp]
-  (with-memoized-fns [interpret]        ;?
+  (with-memoized-fns [interpret]
     (most-specific-concept model (interpret model dl-exp))))
 
 ;;;
@@ -159,7 +184,7 @@
 (defn extend-model
   "Extends model by given interpretation function i. i should return
   nil if it doesn't change a value of model's original interpretion,
-  where this original interpretation is used."
+  where then the original interpretation is used."
   [model i]
   (make-model (model-language model)
 	      (model-base-set model)
@@ -173,52 +198,31 @@
   (subset? (interpret model (subsumee subsumption))
 	   (interpret model (subsumer subsumption))))
 
-(defn context->model
-  "Returns for a given context ctx and a given description logic dl a
-  model given by the incidence relation of ctx. Note that the set of
-  attributes must be the set of primitive concepts of dl together with
-  a set of element of the form (r x), where r is a role name of dl and
-  y incident with (r x) shall mean that (x y) is in the interpretation
-  of r in the resulting model."
-  [dl ctx]
-  (let [base-set       (objects ctx),
-        interpretation (loop [result {},
-                              attributes (attributes ctx)]
-                         (if (empty? attributes)
-                           result
-                           (let [next (first attributes)]
-                             (if (and (seq? next)
-                                      (= 2 (count next))
-                                      (contains? (role-names dl) (first next)))
-                               (let [role (first next),
-                                     x    (second next)]
-                                 (recur (assoc result role
-                                               (into (get result role #{})
-                                                     (for [y (attribute-derivation ctx #{next})]
-                                                       [x y])))
-                                        (rest attributes)))
-                               (recur (assoc result next
-                                             (attribute-derivation ctx #{next}))
-                                      (rest attributes))))))]
-    (make-model dl base-set interpretation)))
+(defnk interpretation->model
+  "Given concepts as a hash-map from symbols to sets and roles as a
+  hash-map from symbols to sets of pairs returns a model containing
+  the hash-maps as interpretation. If parameter :base-lang is given
+  the description logic used in this model will be an extension of the
+  parameter value."
+  [concepts roles :base-lang nil]
+  (let [concept-names (keys concepts),
+        role-names    (keys roles),
+        language      (make-dl (gensym)
+                               concept-names
+                               role-names
+                               []
+                               :extends base-lang),
+        base-set      (union (set-of x [[conc extension] concepts,
+                                        x extension])
+                             (set-of x [[role extension] roles,
+                                        pair extension,
+                                        x pair]))]
+    (make-model language base-set (merge concepts roles))))
+
 
 ;;; TBox interpretations
 
-(defn next-interpretation
-  "Defines a new interpretation on the defined concepts of tbox in
-  model through interpretation."
-  [model tbox interpretation]
-  (let [extended-model (extend-model model interpretation)]
-    (loop [defs  (seq (tbox-definitions tbox)),
-	   new-i {}]
-      (if (empty? defs)
-	new-i
-	(recur (rest defs)
-	       (let [def (first defs)]
-		 (conj new-i [(definition-target def)
-			      (interpret extended-model (definition-expression def))])))))))
-
-(defn fixed-point
+(defn- fixed-point
   "Apply f to data until (= old-data new-data)."
   [f data]
   (let [runner (fn runner [old-data]
@@ -228,26 +232,34 @@
 		     (recur new-data))))]
     (runner data)))
 
-(defn constant-interpretation
-  "Return interpretation on the defined concepts of tbox, constantly
-  returning value."
+(defn- next-tbox-interpretation
+  "Defines a new interpretation on the defined concepts of tbox in
+  model through an interpretation i of the defined concepts of tbox."
+  [model tbox i]
+  (let [new-model (extend-model model i)]
+    (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
+               [sym (interpret new-model (definition-expression sym-def))]))))
+
+(defn- constant-tbox-interpretation
+  "Returns an interpretation on the defined concepts of tbox,
+  constantly returning value."
   [tbox value]
-  (hashmap-by-function (constantly value)
-		       (defined-concepts tbox)))
+  (into {} (for [concept (defined-concepts tbox)]
+             [concept value])))
 
 (defn gfp-model
   "Returns the gfp-model of tbox in model."
   [tbox model]
-  (fixed-point (fn [i]
-		 (next-interpretation model tbox i))
-	       (constant-interpretation tbox (model-base-set model))))
+  (extend-model model
+                (fixed-point (fn [i] (next-tbox-interpretation model tbox i))
+                             (constant-tbox-interpretation tbox (model-base-set model)))))
 
 (defn lfp-model
   "Returns the lfp-model of tbox in model."
   [tbox model]
-  (fixed-point (fn [i]
-		 (next-interpretation model tbox i))
-	       (constant-interpretation tbox #{})))
+  (extend-model model
+                (fixed-point (fn [i] (next-tbox-interpretation model tbox i))
+                             (constant-tbox-interpretation tbox #{}))))
 
 ;;;
 

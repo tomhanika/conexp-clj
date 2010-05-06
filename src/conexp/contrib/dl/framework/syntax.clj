@@ -143,11 +143,14 @@
                         (and (seq? form)
                              (not (empty? form))
                              (contains? symbols (first form)))
-                          (list* (first form) dl (walk insert-dl identity (rest form))),
-                        (sequential? form)
-                          (walk insert-dl identity form),
-                        :else
-                          form))]
+                        (list* (first form) dl (walk insert-dl identity (rest form))),
+
+                        (or (sequential? form)
+                            (set? form)
+                            (map? form))
+                        (walk insert-dl identity form),
+
+                        :else form))]
       (cons 'do (insert-dl body)))))
 
   ;; `(macrolet ~(vec (for [sym (get-dl-syntax)]
@@ -203,6 +206,9 @@
           (not (Character/isUpperCase (first (str name)))))
     (illegal-argument "Concept and role names must start with a capital letter. (sorry for that)"))
 
+  (when (not (empty? (intersection (set concepts) (set roles))))
+    (illegal-argument "Concept and role names must be disjoint."))
+
   (let [base-lang     extends,
 
         disjoint-into (fn [sqn other-sqn]
@@ -224,7 +230,7 @@
 (defmacro define-dl
   "Defines a DL."
   [name concept-names role-names constructors & options]
-  `(let [dl# (apply make-dl '~name '~concept-names '~role-names '~constructors ~options)]
+  `(let [dl# (make-dl '~name '~concept-names '~role-names '~constructors ~@options)]
      (def ~name dl#)
      dl#))
 
@@ -355,10 +361,16 @@
   [subsumption]
   (:subsumee subsumption))
 
+(defmethod premise DL-subsumption [susu]
+  #{(subsumee susu)})
+
 (defn subsumer
   "Returns the subsumer of the given subsumption."
   [subsumption]
   (:subsumer subsumption))
+
+(defmethod conclusion DL-subsumption [susu]
+  #{(subsumer susu)})
 
 (defn make-subsumption
   "Creates and returns a subsumption."

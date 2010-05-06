@@ -16,10 +16,8 @@
 
 ;;;
 
-(defvar- b-tbox (tbox FamilyDL
-		      B [parent Self]))
-(defvar- a-tbox (tbox FamilyDL
-		      A [b-tbox B]))
+(defvar- b-tbox (tbox FamilyDL, B [parent Self]))
+(defvar- a-tbox (tbox FamilyDL, A [b-tbox B]))
 
 (deftest test-interpret
   (are [expected testing-model expr] (= 'expected
@@ -36,7 +34,26 @@
        #{John Linda Michelle Paul} family-model [a-tbox A]
        #{John Marry} some-model dl-exp
        #{John} some-model ext-dl-exp
-       #{John} some-model ext-dl-exp-2))
+       #{John} some-model ext-dl-exp-2
+       #{John Mackenzie Michelle} small-model [(tbox (model-language small-model)
+                                                     A A),
+                                               A]
+       #{John Mackenzie Michelle} small-model [(tbox (model-language small-model)
+                                                     A B,
+                                                     B C,
+                                                     C D,
+                                                     D E,
+                                                     E A),
+                                               A]))
+
+(deftest test-gfp-lfp-model
+  (are [mymodel mytbox] (let [gfp (gfp-model mytbox mymodel)]
+                          (forall [def (tbox-definitions mytbox)]
+                            (= (interpret gfp (definition-target def))
+                            (interpret gfp (definition-expression def)))))
+     small-model (tbox SimpleDL A A),
+     small-model (tbox SimpleDL A A, B B, C C)
+     small-model (tbox SimpleDL A B, B C, C D, D E, E A)))
 
 ;;;
 

@@ -12,6 +12,7 @@
 	conexp.contrib.dl.framework.semantics
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.languages.interaction
+        conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.languages.EL-gfp-rewriting
 	conexp.contrib.dl.util.concept-sets)
@@ -56,10 +57,11 @@
   ([initial-model]
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
-     (with-memoized-fns [EL-expression->rooted-description-graph
-			 interpret
-			 model-closure
-			 subsumed-by?]
+     (with-memoized-fns [EL-expression->rooted-description-graph,
+			 interpret,
+			 model-closure,
+			 subsumed-by?,
+                         model->tbox]
        (let [language (model-language initial-model)]
 
 	 (when (and (not= (set initial-ordering) (concept-names language))
@@ -79,23 +81,22 @@
 	   (if (nil? P_k)
 	     ;; then return set of implications
 	     (let [implicational-knowledge (union implications background-knowledge)]
-	       (for [P Pi_k
-		     :let [all-P    (make-dl-expression language (cons 'and P)),
-			   mc-all-P (make-dl-expression language (model-closure model all-P))]
-		     :when (not (subsumed-by? all-P mc-all-P))
-		     :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
-							implicational-knowledge)]
-		     :when (not (empty? (arguments (subsumer susu))))]
-		 susu))
+               (doall                   ;ensure that this sequence is evaluated with our bindings in effect
+                (for [P Pi_k
+                      :let [all-P    (make-dl-expression language (cons 'and P)),
+                            mc-all-P (model-closure model all-P)]
+                      :when (not (subsumed-by? all-P mc-all-P))
+                      :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
+                                                         implicational-knowledge)]
+                      :when (not (empty? (arguments (subsumer susu))))]
+                  susu)))
 
 	     ;; else search for next implication
-	     (let [_ (println (count (seq-on M_k))),
-                   all-P_k    (make-dl-expression language (cons 'and P_k)),
+	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
 		   next-model (loop [model model]
 				(let [susu (abbreviate-subsumption
                                             (make-subsumption all-P_k
-                                                              (make-dl-expression language
-                                                                                  (model-closure model all-P_k)))
+                                                              (model-closure model all-P_k))
                                             (union implications background-knowledge))]
 				  (if (or (obviously-true? susu)
 					  (not (expert-refuses? susu)))
@@ -107,9 +108,14 @@
 		   next-K     (induced-context (seq-on next-M_k) next-model K),
 		   next-Pi_k  (conj Pi_k P_k),
 
-		   implications (set-of impl [P_l next-Pi_k
-					      :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
-					      :when (not (empty? (conclusion impl)))]),
+		   implications (if (= K next-K)
+                                  (let [new-impl (make-implication P_k (context-attribute-closure next-K P_k))]
+                                    (if (not (empty? (conclusion new-impl)))
+                                      (conj implications new-impl)
+                                      implications))
+                                  (set-of impl [P_l next-Pi_k
+                                                :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
+                                                :when (not (empty? (conclusion impl)))])),
 		   background-knowledge (minimal-implication-set next-M_k),
 
 		   next-P_k   (next-closed-set (seq-on next-M_k)
