@@ -184,7 +184,7 @@
 (defn extend-model
   "Extends model by given interpretation function i. i should return
   nil if it doesn't change a value of model's original interpretion,
-  where this original interpretation is used."
+  where then the original interpretation is used."
   [model i]
   (make-model (model-language model)
 	      (model-base-set model)
@@ -222,23 +222,10 @@
 
 ;;; TBox interpretations
 
-(defn- next-interpretation
-  "Defines a new interpretation on the defined concepts of tbox in
-  model through interpretation."
-  [model tbox interpretation]
-  (let [extended-model (extend-model model interpretation)]
-    (loop [defs  (seq (tbox-definitions tbox)),
-	   new-i {}]
-      (if (empty? defs)
-	new-i
-	(recur (rest defs)
-	       (let [def (first defs)]
-		 (conj new-i [(definition-target def)
-			      (interpret extended-model (definition-expression def))])))))))
-
 (defn- fixed-point
   "Apply f to data until (= old-data new-data)."
   [f data]
+  (println data)
   (let [runner (fn runner [old-data]
 		 (let [new-data (f old-data)]
 		   (if (= new-data old-data)
@@ -246,26 +233,34 @@
 		     (recur new-data))))]
     (runner data)))
 
-(defn- constant-interpretation
-  "Return interpretation on the defined concepts of tbox, constantly
-  returning value."
+(defn- next-tbox-interpretation
+  "Defines a new interpretation on the defined concepts of tbox in
+  model through an interpretation i of the defined concepts of tbox."
+  [model tbox i]
+  (let [new-model (extend-model model i)]
+    (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
+               [sym (interpret new-model (definition-expression sym-def))]))))
+
+(defn- constant-tbox-interpretation
+  "Returns an interpretation on the defined concepts of tbox,
+  constantly returning value."
   [tbox value]
-  (hashmap-by-function (constantly value)
-		       (defined-concepts tbox)))
+  (into {} (for [concept (defined-concepts tbox)]
+             [concept value])))
 
 (defn gfp-model
   "Returns the gfp-model of tbox in model."
   [tbox model]
-  (fixed-point (fn [i]
-		 (next-interpretation model tbox i))
-	       (constant-interpretation tbox (model-base-set model))))
+  (extend-model model
+                (fixed-point (fn [i] (next-tbox-interpretation model tbox i))
+                             (constant-tbox-interpretation tbox (model-base-set model)))))
 
 (defn lfp-model
   "Returns the lfp-model of tbox in model."
   [tbox model]
-  (fixed-point (fn [i]
-		 (next-interpretation model tbox i))
-	       (constant-interpretation tbox #{})))
+  (extend-model model
+                (fixed-point (fn [i] (next-tbox-interpretation model tbox i))
+                             (constant-tbox-interpretation tbox #{}))))
 
 ;;;
 

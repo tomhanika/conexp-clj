@@ -16,10 +16,8 @@
 
 ;;;
 
-(defvar- b-tbox (tbox FamilyDL
-		      B [parent Self]))
-(defvar- a-tbox (tbox FamilyDL
-		      A [b-tbox B]))
+(defvar- b-tbox (tbox FamilyDL, B [parent Self]))
+(defvar- a-tbox (tbox FamilyDL, A [b-tbox B]))
 
 (deftest test-interpret
   (are [expected testing-model expr] (= 'expected
