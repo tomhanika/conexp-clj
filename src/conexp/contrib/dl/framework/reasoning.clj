@@ -30,7 +30,7 @@
   expressions-language)
 
 (defmethod compute-subsumption :default [C D]
-  (illegal-argument "There is no algorithm defined for subsumption in language " (expression-language C) "."))
+  (illegal-argument "There is no algorithm defined for subsumption in language " (print-str (expression-language C)) "."))
 
 (defmacro define-subsumption
   "Define subsumption algorithm for given language."

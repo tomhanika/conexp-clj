@@ -225,7 +225,6 @@
 (defn- fixed-point
   "Apply f to data until (= old-data new-data)."
   [f data]
-  (println data)
   (let [runner (fn runner [old-data]
 		 (let [new-data (f old-data)]
 		   (if (= new-data old-data)
