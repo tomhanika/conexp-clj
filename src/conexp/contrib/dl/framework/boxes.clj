@@ -167,7 +167,9 @@
 (defn tidy-up-ttp
   "In a given tbox-target-pair take for a set of syntactically
   equivalent defined concepts one representative and replace every
-  occurence of an equivalent symbol by this representative."
+  occurence of an equivalent symbol by this representative. Use
+  clarify-ttp (or reduce-ttp) afterwards to remove all unused
+  definitions."
   [[tbox target]]
   (let [reversed-map (reduce (fn [hash-map definition]
 			       (let [name (definition-target definition)]
@@ -177,7 +179,7 @@
 			     (tbox-definitions tbox)),
 	rename-map (into {} (for [definition (tbox-definitions tbox)]
 			      [(definition-target definition),
-			       (first (reversed-map (expression-term (definition-expression definition))))])),
+			       (first (sort (reversed-map (expression-term (definition-expression definition)))))])),
 	new-tbox (make-tbox (tbox-language tbox)
 			    (into {} (for [definition (tbox-definitions tbox)]
                                        [(definition-target definition)

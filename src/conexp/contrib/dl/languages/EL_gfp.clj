@@ -29,7 +29,7 @@
     (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
   ;; compute gfp-model and interpret target
   (let [[tbox, target] (expression-term dl-expression)]
-    (EL-gfp-model model [tbox target])))
+    (interpret (gfp-model tbox model) target)))
 
 ;;; subsumption
 
@@ -96,7 +96,8 @@
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (normalize-EL-gfp-term (tidy-up-ttp (reduce-ttp (EL-gfp-msc model objects))))]
+  (let [[tbox target] (normalize-EL-gfp-term
+                       (reduce-ttp (tidy-up-ttp (clarify-ttp (EL-gfp-msc model objects)))))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       (make-dl-expression (model-language model) [tbox target]))))

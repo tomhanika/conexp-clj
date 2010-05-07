@@ -112,6 +112,10 @@
   (reduce union #{}
           (map #(interpret model %) (arguments dl-exp))))
 
+(define-constructor not
+  (difference (model-base-set model)
+              (interpret model (first (arguments dl-exp)))))
+
 (define-constructor exists
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
