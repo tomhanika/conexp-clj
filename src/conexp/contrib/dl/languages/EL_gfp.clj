@@ -29,7 +29,6 @@
     (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
   ;; compute gfp-model and interpret target
   (let [[tbox, target] (expression-term dl-expression)]
-    (println "gfp-model called with tbox of size" (count (tbox-definition-map tbox)))
     (interpret (gfp-model tbox model) target)))
 
 
