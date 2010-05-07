@@ -106,11 +106,11 @@
 
 (define-constructor and
   (reduce intersection (model-base-set model)
-          (map #(interpret model %) (arguments dl-exp))))
+          (pmap #(interpret model %) (arguments dl-exp))))
 
 (define-constructor or
   (reduce union #{}
-          (map #(interpret model %) (arguments dl-exp))))
+          (pmap #(interpret model %) (arguments dl-exp))))
 
 (define-constructor not
   (difference (model-base-set model)
@@ -126,9 +126,9 @@
 (define-constructor forall
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
-    (set-of x [x (model-base-set model),
-               :when (forall [y C-I]
-                       (contains? r-I [x y]))])))
+    (set-of x [[x in?] (pmap #(vector % (forall [y C-I] (contains? r-I [% y])))
+                             (model-base-set model))
+               :when in?])))
 
 (define-constructor inverse
   (let [r-I (interpret model (first (arguments dl-exp)))]
