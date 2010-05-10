@@ -369,9 +369,11 @@
 
 ;; efficient simulator sets (by meng)
 
-(defn- single-edge->double-edge-graph
-  "Given a single-edged graph G (i.e. a graph with a neighbours function
-  on it) returns a structure with a :pre and a :post function on it."
+(defn single-edge->double-edge-graph
+  "Given a single-edged graph G (i.e. a graph with a neighbours
+  function on it) returns a structure with a :pre and a :post function
+  on it. This function is part of the implementation for
+  efficient-simulator-sets."
   [G]
   (loop [pre-map {},
          vertex-set (vertices G)]
@@ -389,7 +391,7 @@
        :pre      (fn [v r]
                    (set (get pre-map [r v] nil)))})))
 
-(defn- efficient-initialize
+(defn efficient-initialize
   "Returns tripel [sim, remove, pre*] as needed by
   efficient-simulator-sets. sim, remove and pre* are Java HashMaps."
   [language G-1 G-2]

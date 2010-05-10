@@ -61,6 +61,7 @@
 			 interpret,
 			 model-closure,
 			 subsumed-by?,
+                         single-edge->double-edge-graph,
                          model->tbox,
                          model->description-graph]
        (let [language (model-language initial-model)]
