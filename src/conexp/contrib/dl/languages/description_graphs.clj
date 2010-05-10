@@ -255,7 +255,7 @@
         neighbours      (into {} (for [def definitions]
                                    [(definition-target def)
                                     (set (map #(vec (map expression-term (arguments %)))
-                                              (filter compound?
+                                              (filter compound? ;i.e. existential restriction
                                                       (arguments (definition-expression def)))))])),
         vertex-labels   (into {} (for [def definitions]
                                    [(definition-target def),
@@ -455,7 +455,18 @@
 
 ;; simulation invocation point
 
-(defvar *simulator-set-algorithm* efficient-simulator-sets
+(defn standard-simulator-sets
+  "Implements a standard simulator set algorithm by using
+  schematic-simulator-sets for small graphs (i.e. base-set smaller
+  than 1000 elements) and efficient-simulator-sets for larger ones."
+  [G-1 G-2]
+  (if (< (max (count (vertices G-1))
+              (count (vertices G-2)))
+         1000)
+    (efficient-simulator-sets G-1 G-2)
+    (schematic-simulator-sets G-1 G-2)))
+
+(defvar *simulator-set-algorithm* standard-simulator-sets
   "Algorithm to use when computing simulator sets between two description graphs.")
 
 (defn simulates?
@@ -474,7 +485,7 @@
   [model [tbox target]]
   (let [tbox-graph (tbox->description-graph tbox),
         model-graph (model->description-graph model)]
-    ((efficient-simulator-sets tbox-graph model-graph) target)))
+    ((*simulator-set-algorithm* tbox-graph model-graph) target)))
 
 ;;;
 

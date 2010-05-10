@@ -106,11 +106,11 @@
 
 (define-constructor and
   (reduce intersection (model-base-set model)
-          (pmap #(interpret model %) (arguments dl-exp))))
+          (map #(interpret model %) (arguments dl-exp))))
 
 (define-constructor or
   (reduce union #{}
-          (pmap #(interpret model %) (arguments dl-exp))))
+          (map #(interpret model %) (arguments dl-exp))))
 
 (define-constructor not
   (difference (model-base-set model)
