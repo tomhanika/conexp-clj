@@ -289,7 +289,7 @@
         vertices            (model-base-set model),
         neighbours          (fn [x]
                               (set-of [r y] [r (role-names language),
-                                             [_ y] (filter #(= (first %) x) (interpretation r))])),                                                  
+                                             [_ y] (filter #(= (first %) x) (interpretation r))])),
         vertex-labels       (fn [x]
                               (set-of P [P (concept-names language),
                                          :when (contains? (interpretation P) x)]))]
@@ -366,21 +366,28 @@
 
     (HashMap->hash-map sim-sets)))
 
+
 ;; efficient simulator sets (by meng)
 
 (defn- single-edge->double-edge-graph
   "Given a single-edged graph G (i.e. a graph with a neighbours function
   on it) returns a structure with a :pre and a :post function on it."
   [G]
-  ;; trivial implementation for transition
-  {:base-set (vertices G),
-   :labels   (vertex-labels G),
-   :post     (fn [v r]
-               (set-of w [[s w] ((neighbours G) v)
-                          :when (= s r)])),
-   :pre      (fn [v r]
-               (set-of w [w (vertices G),
-                          :when (contains? ((neighbours G) w) [r v])]))})
+  (loop [pre-map {},
+         vertex-set (vertices G)]
+    (if-not (empty? vertex-set)
+      (let [v (first vertex-set)]
+        (recur (reduce #(update-in %1 [%2] conj v)
+                       pre-map
+                       ((neighbours G) v))
+               (rest vertex-set)))
+      {:base-set (vertices G),
+       :labels   (vertex-labels G),
+       :post     (fn [v r]
+                   (set-of w [[s w] ((neighbours G) v)
+                              :when (= s r)])),
+       :pre      (fn [v r]
+                   (set (get pre-map [r v] nil)))})))
 
 (defn- efficient-initialize
   "Returns tripel [sim, remove, pre*] as needed by
@@ -445,9 +452,10 @@
       (.remove non-empty-removes [v r]))
     (HashMap->hash-map sim)))
 
+
 ;; simulation invocation point
 
-(defvar *simulator-set-algorithm* schematic-simulator-sets
+(defvar *simulator-set-algorithm* efficient-simulator-sets
   "Algorithm to use when computing simulator sets between two description graphs.")
 
 (defn simulates?
@@ -457,6 +465,7 @@
   (let [sim-sets (*simulator-set-algorithm* G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
+
 ;;; gfp models
 
 (defn EL-gfp-model
@@ -465,7 +474,7 @@
   [model [tbox target]]
   (let [tbox-graph (tbox->description-graph tbox),
         model-graph (model->description-graph model)]
-    ((*simulator-set-algorithm* tbox-graph model-graph) target)))
+    ((efficient-simulator-sets tbox-graph model-graph) target)))
 
 ;;;
 
