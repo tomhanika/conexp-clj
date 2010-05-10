@@ -248,20 +248,18 @@
   "Converts a tbox to a description graph. Normalization is done with gfp semantics."
   [tbox]
   (let [tbox            (normalize-gfp tbox),
-        definitions     (tbox-definitions tbox),
-
         language        (tbox-language tbox),
         vertices        (defined-concepts tbox),
-        neighbours      (into {} (for [def definitions]
-                                   [(definition-target def)
-                                    (set (map #(vec (map expression-term (arguments %)))
-                                              (filter compound? ;i.e. existential restriction
-                                                      (arguments (definition-expression def)))))])),
-        vertex-labels   (into {} (for [def definitions]
-                                   [(definition-target def),
-                                    (set (map expression-term
-                                              (filter atomic?
-                                                      (arguments (definition-expression def)))))]))]
+        neighbours      (fn [target]
+                          (let [def (find-definition tbox target)]
+                            (set (map #(vec (map expression-term (arguments %)))
+                                      (filter compound? ;i.e. existential restriction
+                                              (arguments (definition-expression def))))))),
+        vertex-labels   (fn [target]
+                          (let [def (find-definition tbox target)]
+                            (set (map expression-term
+                                      (filter atomic?
+                                              (arguments (definition-expression def)))))))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
 (defn description-graph->tbox
@@ -481,13 +479,13 @@
 
 ;;; gfp models
 
-(defn EL-gfp-model
+(defn EL-gfp-model-interpretation
   "For a given tbox-target-pair returns the interpretation of the
   target in the gfp-model of tbox in model."
   [model [tbox target]]
   (let [tbox-graph (tbox->description-graph tbox),
         model-graph (model->description-graph model)]
-    ((*simulator-set-algorithm* tbox-graph model-graph) target)))
+    ((efficient-simulator-sets tbox-graph model-graph) target)))
 
 ;;;
 
