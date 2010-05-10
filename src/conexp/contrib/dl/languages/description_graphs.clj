@@ -485,7 +485,7 @@
   [model [tbox target]]
   (let [tbox-graph (tbox->description-graph tbox),
         model-graph (model->description-graph model)]
-    ((efficient-simulator-sets tbox-graph model-graph) target)))
+    ((*simulator-set-algorithm* tbox-graph model-graph) target)))
 
 ;;;
 
