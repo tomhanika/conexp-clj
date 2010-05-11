@@ -24,7 +24,8 @@
 (deftest test-Implication-equals
   (is (= (make-implication [] []) (make-implication [] [])))
   (is (= (make-implication [1] [2]) (make-implication [1] [1 2])))
-  (is (= (make-implication '[a] '[b c d]) (make-implication '#{a} '#{b c d}))))
+  (is (= (make-implication '[a] '[b c d]) (make-implication '#{a} '#{b c d})))
+  (is (not= (make-implication '[a] '[b c d]) (make-implication '[b] '[a c d]))))
 
 ;;;
 
