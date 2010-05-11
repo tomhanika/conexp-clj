@@ -11,7 +11,10 @@
 	conexp.fca.contexts
 	conexp.fca.implications))
 
-;;;
+(update-ns-meta! conexp.fca.exploration
+  :doc "Provides function for exploration and computing proper premises.")
+
+;;; Attribute Exploration
 
 (declare default-handler)
 
@@ -22,15 +25,19 @@
   new-row], where status is a boolean, indicating whether this
   implication is to be accepted or not, and a new-row, which, in the
   case of not accepting an implication, has to be a valid
-  counterexample."
+  counterexample. background-implications denotes a set of
+  implications used as background knowledge, which will be subtracted
+  from the computed result."
   ([ctx]
-     (explore-attributes ctx default-handler))
-  ([ctx handler]
-     (loop [implications #{},
+     (explore-attributes ctx #{}))
+  ([ctx background-implications]
+     (explore-attributes ctx background-implications default-handler))
+  ([ctx background-implications handler]
+     (loop [implications background-implications,
             last         #{},
             ctx          ctx]
        (if (not last)
-         implications
+         (difference implications background-implications)
          (let [conclusion-from-last (context-attribute-closure ctx last)]
            (if (= last conclusion-from-last)
              (recur implications
@@ -103,9 +110,32 @@
                                   "Please enter a new set (in the form #{... atts ...}): "))]
             [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]]))))))
 
-;;;
+;;; Proper Premises
 
-;; Background Knowledge!
+(defn- A-dot
+  "Returns A-dot as in the definition of proper premises."
+  [ctx A]
+  (difference (context-attribute-closure ctx A)
+              (reduce union
+                      A
+                      (map #(context-attribute-closure ctx (disj A %))
+                           A))))
+
+(defn proper-premises
+  "Returns the proper premises of the given context ctx as a lazy
+  sequence."
+  ;; this is dead slow
+  [ctx]
+  (for [A (subsets (attributes ctx)),
+        :when (not (empty? (A-dot ctx A)))]
+    A))
+
+(defn proper-premise-implications
+  "Returns all implications based on the proper premises of the
+  context ctx."
+  [ctx]
+  (set-of (make-implication A (A-dot ctx A))
+          [A (proper-premises ctx)]))
 
 ;;;
 

@@ -29,7 +29,7 @@
 (deftest test-explore-attributes-is-stem-base
   (with-testing-data [ctx *testing-data*]
     (= (stem-base ctx)
-       (explore-attributes ctx (constantly [true []])))))
+       (explore-attributes ctx #{} (constantly [true []])))))
 
 ;;;
 
