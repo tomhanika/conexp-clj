@@ -142,22 +142,26 @@
     (partial close-under-implications implications)))
 
 (defn stem-base
-  "Returns stem base of given context."
-  [ctx]
-  (let [double-prime (partial context-attribute-closure ctx)
-	attributes   (attributes ctx)]
-    (loop [implications #{}
-	   last         #{}]
-      (let [conclusion-from-last (double-prime last)
-	    implications (if (not= last conclusion-from-last)
-			   (conj implications
-				 (make-implication last conclusion-from-last))
-			   implications)
-	    clop (clop-by-implications* implications)
-	    next (next-closed-set attributes clop last)]
-	(if next
-	  (recur implications next)
-	  implications)))))
+  "Returns stem base of given context. Uses background-knowledge as
+  starting set of implications, which will also be subtracted from the
+  final result."
+  ([ctx]
+     (stem-base ctx #{}))
+  ([ctx background-knowledge]
+     (let [double-prime (partial context-attribute-closure ctx),
+           attributes   (attributes ctx)]
+       (loop [implications background-knowledge,
+              last         #{}]
+         (let [conclusion-from-last (double-prime last),
+               implications (if (not= last conclusion-from-last)
+                              (conj implications
+                                    (make-implication last conclusion-from-last))
+                              implications),
+               clop (clop-by-implications* implications),
+               next (next-closed-set attributes clop last)]
+           (if next
+             (recur implications next)
+             (difference implications background-knowledge)))))))
 
 ;;;
 
