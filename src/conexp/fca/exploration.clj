@@ -110,33 +110,6 @@
                                   "Please enter a new set (in the form #{... atts ...}): "))]
             [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]]))))))
 
-;;; Proper Premises
-
-(defn- A-dot
-  "Returns A-dot as in the definition of proper premises."
-  [ctx A]
-  (difference (context-attribute-closure ctx A)
-              (reduce union
-                      A
-                      (map #(context-attribute-closure ctx (disj A %))
-                           A))))
-
-(defn proper-premises
-  "Returns the proper premises of the given context ctx as a lazy
-  sequence."
-  ;; this is dead slow
-  [ctx]
-  (for [A (subsets (attributes ctx)),
-        :when (not (empty? (A-dot ctx A)))]
-    A))
-
-(defn proper-premise-implications
-  "Returns all implications based on the proper premises of the
-  context ctx."
-  [ctx]
-  (set-of (make-implication A (A-dot ctx A))
-          [A (proper-premises ctx)]))
-
 ;;;
 
 nil

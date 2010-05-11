@@ -64,8 +64,23 @@
       (is (forall [A (subsets (attributes ctx)),
                    B (subsets (difference (attributes ctx) A))]
             (let [impl (make-implication A B)]
-              (=> (holds? impl ctx)
-                  (follows-semantically? impl sb))))))))
+              (<=> (holds? impl ctx)
+                   (follows-semantically? impl sb))))))))
+
+(deftest test-proper-premises
+  (let [A-dot @#'conexp.fca.implications/A-dot]
+    (doseq [ctx [contexts/*test-ctx-01*,
+                 contexts/*test-ctx-04*,
+                 contexts/*test-ctx-07*,
+                 contexts/*test-ctx-08*]]
+      (is (forall [A (proper-premises ctx)]
+            (not= A (A-dot ctx A))))
+      (let [pp-impls (proper-premise-implications ctx)]
+        (is (forall [A (subsets (attributes ctx)),
+                     B (subsets (difference (attributes ctx) A))]
+              (let [impl (make-implication A B)]
+                (<=> (holds? impl ctx)
+                     (follows-semantically? impl pp-impls)))))))))
 
 ;;;
 
