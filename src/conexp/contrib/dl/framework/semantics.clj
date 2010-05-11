@@ -119,16 +119,14 @@
 (define-constructor exists
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
-    (set-of x [[x in?] (pmap #(vector % (exists [y C-I] (contains? r-I [% y])))
-                             (model-base-set model))
-               :when in?])))
+    (set-of x [x (model-base-set model)
+               :when (exists [y C-I] (contains? r-I [x y]))])))
 
 (define-constructor forall
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
-    (set-of x [[x in?] (pmap #(vector % (forall [y C-I] (contains? r-I [% y])))
-                             (model-base-set model))
-               :when in?])))
+    (set-of x [x (model-base-set model)
+               :when (forall [y C-I] (contains? r-I [x y]))])))
 
 (define-constructor inverse
   (let [r-I (interpret model (first (arguments dl-exp)))]

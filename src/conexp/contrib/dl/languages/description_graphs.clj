@@ -247,19 +247,19 @@
 (defn tbox->description-graph
   "Converts a tbox to a description graph. Normalization is done with gfp semantics."
   [tbox]
-  (let [tbox            (normalize-gfp tbox),
-        language        (tbox-language tbox),
-        vertices        (defined-concepts tbox),
-        neighbours      (fn [target]
-                          (let [def (find-definition tbox target)]
-                            (set (map #(vec (map expression-term (arguments %)))
-                                      (filter compound? ;i.e. existential restriction
-                                              (arguments (definition-expression def))))))),
-        vertex-labels   (fn [target]
-                          (let [def (find-definition tbox target)]
-                            (set (map expression-term
-                                      (filter atomic?
-                                              (arguments (definition-expression def)))))))]
+  (let [tbox          (normalize-gfp tbox),
+        language      (tbox-language tbox),
+        vertices      (defined-concepts tbox),
+        neighbours    (memo-fn _ [target]
+                        (let [def (find-definition tbox target)]
+                          (set (map #(vec (map expression-term (arguments %)))
+                                    (filter compound? ;i.e. existential restriction
+                                            (arguments (definition-expression def))))))),
+        vertex-labels (memo-fn _ [target]
+                        (let [def (find-definition tbox target)]
+                          (set (map expression-term
+                                    (filter atomic?
+                                            (arguments (definition-expression def)))))))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
 (defn description-graph->tbox
@@ -285,10 +285,10 @@
         interpretation      (model-interpretation model),
 
         vertices            (model-base-set model),
-        neighbours          (fn [x]
+        neighbours          (memo-fn _ [x]
                               (set-of [r y] [r (role-names language),
                                              [_ y] (filter #(= (first %) x) (interpretation r))])),
-        vertex-labels       (fn [x]
+        vertex-labels       (memo-fn _ [x]
                               (set-of P [P (concept-names language),
                                          :when (contains? (interpretation P) x)]))]
     (make-description-graph language vertices neighbours vertex-labels)))
