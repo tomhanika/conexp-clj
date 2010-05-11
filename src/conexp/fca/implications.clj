@@ -38,7 +38,7 @@
   (.conclusion impl))
 
 (defmethod print-method Implication [impl out]
-  (.write out (str "( " (premise impl) "  ==>  " (conclusion impl) " )")))
+  (.write out (str "(" (premise impl) "  ==>  " (conclusion impl) ")")))
 
 ;;;
 
