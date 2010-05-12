@@ -29,7 +29,7 @@
     (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
   ;; compute gfp-model and interpret target
   (let [[tbox, target] (expression-term dl-expression)]
-    (interpret (gfp-model tbox model) target)))
+    (EL-gfp-model-interpretation model [tbox target])))
 
 
 ;;; subsumption
