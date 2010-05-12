@@ -112,6 +112,21 @@
     (forall [impl impl-set]
       (not (follows-semantically? impl (disj impl-set impl))))))
 
+(defn sound-implication-set?
+  "Checks whether given set of implications is sound, i.e. every
+  implication holds in the given context."
+  [ctx impl-set]
+  (forall [impl impl-set]
+    (holds? impl ctx)))
+
+(defn complete-implication-set?
+  "Checks wheter given set of implications is complete in context
+  ctx."
+  [ctx impl-set]
+  (forall [A (subsets (attributes ctx))]
+    (=> (forall [impl impl-set] (respects? A impl))
+        (= A (context-attribute-closure ctx A)))))
+
 ;; Stem Base
 
 (defn- add-immediate-elements*
@@ -176,32 +191,34 @@
 
 (defn- subset-minimal
   "Returns from a sequence of sets all sets which are minimal wrt
-  subset?."
+  subset?. May reorder the sets in set-sqn."
   ([set-sqn]
      (subset-minimal set-sqn []))
   ([set-sqn minimals]
      (if (empty? set-sqn)
        minimals
-       (let [next (first set-sqn)]
-         (if (some #(subset? % next) (concat minimals (rest set-sqn)))
-           (recur (rest set-sqn) minimals)
-           (recur (rest set-sqn) (conj minimals next)))))))
+       (let [next (first set-sqn),
+             new-minimals (remove #(subset? next %) minimals)]
+         (if (not= (count minimals) (count new-minimals)) ;next is smaller than some minimals
+           (recur (rest set-sqn) (conj new-minimals next))
+           (if (some #(subset? % next) minimals) ;next is larger than some minimals
+             (recur (rest set-sqn) minimals)
+             (recur (rest set-sqn) (conj minimals next))))))))
 
-(defn- minimal-sets
+(defn- minimal-intersection-sets
   "Returns for a sequence set-sqn of sets all sets which have
   non-empty intersection with all sets in set-sqn and are minimal with
   that."
   [set-sqn]
   (cond
-   (or (empty? set-sqn)
-       (empty? (first set-sqn))) (),
-   (= 1 (count set-sqn)) (map (fn [x] #{x}) (first set-sqn)),
+   (empty? set-sqn) (list #{}),
+   (empty? (first set-sqn)) (),
    :else (let [next-set (first set-sqn)]
            (subset-minimal (mapcat (fn [set]
                                      (if-not (empty? (intersection set next-set))
                                        (list set)
                                        (map #(conj set %) next-set)))
-                                   (minimal-sets (rest set-sqn)))))))
+                                   (minimal-intersection-sets (rest set-sqn)))))))
 
 (defn- proper-premises-for-attribute
   "Returns in context ctx for the attribute m and the objects in objs,
@@ -211,8 +228,8 @@
   (let [M (attributes ctx),
         I (incidence ctx)]
     (remove #(contains? % m)
-            (minimal-sets (for [g objs]
-                            (set-of n [n M :when (not (contains? I [g n]))]))))))
+            (minimal-intersection-sets
+             (for [g objs] (set-of n [n M :when (not (contains? I [g n]))]))))))
 
 (defn proper-premises
   "Returns the proper premises of the given context ctx as a lazy
