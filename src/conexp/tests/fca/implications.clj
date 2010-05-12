@@ -55,14 +55,14 @@
 
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
-  (doseq [ctx [contexts/*test-ctx-01*,
-               contexts/*test-ctx-04*
-               contexts/*test-ctx-07*,
-               contexts/*test-ctx-08*]]
-    (let [sb (stem-base ctx)]
-      (is (minimal-implication-set? sb))
-      (is (sound-implication-set? ctx sb))
-      (is (complete-implication-set? ctx sb)))))
+  (are [ctx] (let [sb (stem-base ctx)]
+               (is (minimal-implication-set? sb))
+               (is (sound-implication-set? ctx sb))
+               (is (complete-implication-set? ctx sb)))
+    contexts/*test-ctx-01*,
+    contexts/*test-ctx-04*
+    contexts/*test-ctx-07*,
+    contexts/*test-ctx-08*))
 
 (deftest test-minimal-intersection-sets
   (let [minimal-intersection-sets @#'conexp.fca.implications/minimal-intersection-sets]
@@ -72,7 +72,7 @@
 (deftest test-proper-premises
   (let [A-dot @#'conexp.fca.implications/A-dot]
     (are [ctx] (and (is (forall [A (proper-premises ctx)]
-                          (not (empty? (A-dot ctx A)))))
+                          (proper-premise? ctx A)))
                     (let [pp-impls (proper-premise-implications ctx)]
                       (is (sound-implication-set? ctx pp-impls))
                       (is (complete-implication-set? ctx pp-impls))))
