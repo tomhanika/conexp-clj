@@ -383,7 +383,7 @@
                (rest vertex-set)))
       {:base-set (vertices G),
        :labels   (vertex-labels G),
-       :post     (fn [v r]
+       :post     (memo-fn _ [v r]
                    (set-of w [[s w] ((neighbours G) v)
                               :when (= s r)])),
        :pre      (fn [v r]
@@ -413,8 +413,7 @@
               (set-of w [w (:base-set G-2),
                          :let [post-w ((:post G-2) w r)]
                          :when (and (not (empty? post-w))
-                                    (not (exists [x (.get sim v)]
-                                           (contains? post-w x))))]))))
+                                    (empty? (intersection (.get sim v) post-w)))]))))
     (doseq [w (:base-set G-2)]
       (.put pre* w
             (set-of [u r] [r R, u ((:pre G-2) w r)])))
@@ -443,8 +442,7 @@
           (.put sim u
                 (disj (.get sim u) w))
           (doseq [[w* r*] (.get pre* w)]
-            (when-not (exists [x (.get sim u)]
-                        (contains? ((:post G-2) w* r*) x))
+            (when (empty? (intersection (.get sim u) ((:post G-2) w* r*)))
               (.put remove [u r*]
                     (conj (.get remove [u r*]) w*))
               (.add non-empty-removes [u r*])))))
@@ -455,18 +453,7 @@
 
 ;; simulation invocation point
 
-(defn standard-simulator-sets
-  "Implements a standard simulator set algorithm by using
-  schematic-simulator-sets for small graphs (i.e. base-set smaller
-  than 1000 elements) and efficient-simulator-sets for larger ones."
-  [G-1 G-2]
-  (if (< (max (count (vertices G-1))
-              (count (vertices G-2)))
-         1000)
-    (efficient-simulator-sets G-1 G-2)
-    (schematic-simulator-sets G-1 G-2)))
-
-(defvar *simulator-set-algorithm* standard-simulator-sets
+(defvar *simulator-set-algorithm* efficient-simulator-sets
   "Algorithm to use when computing simulator sets between two description graphs.")
 
 (defn simulates?
