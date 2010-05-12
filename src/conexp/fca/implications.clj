@@ -174,6 +174,19 @@
                       (map #(context-attribute-closure ctx (disj A %))
                            A))))
 
+(defn- subset-minimal
+  "Returns from a sequence of sets all sets which are minimal wrt
+  subset?."
+  ([set-sqn]
+     (subset-minimal set-sqn []))
+  ([set-sqn minimals]
+     (if (empty? set-sqn)
+       minimals
+       (let [next (first set-sqn)]
+         (if (some #(subset? % next) (concat minimals (rest set-sqn)))
+           (recur (rest set-sqn) minimals)
+           (recur (rest set-sqn) (conj minimals next)))))))
+
 (defn- minimal-sets
   "Returns for a sequence set-sqn of sets all sets which have
   non-empty intersection with all sets in set-sqn and are minimal with
@@ -184,11 +197,11 @@
        (empty? (first set-sqn))) (),
    (= 1 (count set-sqn)) (map (fn [x] #{x}) (first set-sqn)),
    :else (let [next-set (first set-sqn)]
-           (distinct (mapcat (fn [set]
-                               (if-not (empty? (intersection set next-set))
-                                 (list set)
-                                 (map #(conj set %) next-set)))
-                             (minimal-sets (rest set-sqn)))))))
+           (subset-minimal (mapcat (fn [set]
+                                     (if-not (empty? (intersection set next-set))
+                                       (list set)
+                                       (map #(conj set %) next-set)))
+                                   (minimal-sets (rest set-sqn)))))))
 
 (defn- proper-premises-for-attribute
   "Returns in context ctx for the attribute m and the objects in objs,

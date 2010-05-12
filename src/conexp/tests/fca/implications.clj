@@ -68,14 +68,23 @@
               (<=> (holds? impl ctx)
                    (follows-semantically? impl sb))))))))
 
+(deftest test-minimal-sets
+  (let [minimal-sets @#'conexp.fca.implications/minimal-sets]
+    (is (= (minimal-sets [#{2} #{2 4}]) (list #{2})))))
+
 (deftest test-proper-premises
   (let [A-dot @#'conexp.fca.implications/A-dot]
     (doseq [ctx [contexts/*test-ctx-01*,
                  contexts/*test-ctx-04*,
                  contexts/*test-ctx-07*,
-                 contexts/*test-ctx-08*]]
+                 contexts/*test-ctx-08*
+                 (make-context #{1 2 3 4 5} #{1 2 3 4 5 6 7 8}
+                               #{[1 1] [1 3] [1 6] [1 7] [2 1]
+                                 [2 4] [2 6] [2 8] [3 1] [3 4]
+                                 [3 5] [3 8] [4 1] [4 3] [4 5]
+                                 [4 8] [5 2] [5 3] [5 5] [5 7]})]]
       (is (forall [A (proper-premises ctx)]
-            (not= A (A-dot ctx A))))
+            (not (empty? (A-dot ctx A)))))
       (let [pp-impls (proper-premise-implications ctx)]
         (is (forall [A (subsets (attributes ctx)),
                      B (subsets (difference (attributes ctx) A))]
