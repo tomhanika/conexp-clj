@@ -193,7 +193,8 @@
   "Returns true iff set A is a subset of the attributes of context ctx
   and is a proper premise in ctx."
   [ctx A]
-  (not (empty? (A-dot ctx A))))
+  (and (subset? A (attributes ctx))
+       (not (empty? (A-dot ctx A)))))
 
 (defn- subset-minimal
   "Returns from a sequence of sets all sets which are minimal wrt
