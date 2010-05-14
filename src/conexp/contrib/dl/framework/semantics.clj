@@ -119,8 +119,8 @@
 (define-constructor exists
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
-    (set-of x [x (model-base-set model)
-               :when (exists [y C-I] (contains? r-I [x y]))])))
+    (set-of x [[x y] r-I
+               :when (contains? C-I y)])))
 
 (define-constructor forall
   (let [r-I (interpret model (first (arguments dl-exp))),

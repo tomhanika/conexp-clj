@@ -66,16 +66,14 @@
 (deftest test-simulator-sets
   (are [model] (let [graph (model->description-graph model)]
                  (= (schematic-simulator-sets graph graph)
-                    (efficient-simulator-sets graph graph)
-                    (standard-simulator-sets graph graph)))
+                    (efficient-simulator-sets graph graph)))
     some-model
     small-model
     family-model
     grandparent-model)
   (are [tbox] (let [graph (tbox->description-graph tbox)]
                 (= (schematic-simulator-sets graph graph)
-                   (efficient-simulator-sets graph graph)
-                   (standard-simulator-sets graph graph)))
+                   (efficient-simulator-sets graph graph)))
     some-tbox
     paper-tbox
     all-tbox

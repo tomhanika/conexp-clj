@@ -187,8 +187,7 @@
 (defn hash-combine-hash
   "Combines the hashes of all things given."
   [& args]
-  (reduce hash-combine 0
-	  (map hash args)))
+  (reduce #(hash-combine %1 (hash %2)) 0 args))
 
 
 ;;; Math

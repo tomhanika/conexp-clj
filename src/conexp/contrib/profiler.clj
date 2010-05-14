@@ -130,11 +130,10 @@
                                                     0
                                                     data))))]
         (cl-format true "~&Profiling data~@
-                       ~&  for thread ~a~@
                        ~&  with period ~ams~@
                        ~&  with total ticks ~a~@
                        ~%"
-                   thread period overall-count)
+                   period overall-count)
         (cl-format true "~&~v@a ~8@a  ~a~%" max-hit-length "Hits" "Amount" "Function")
         (doseq [[name hit-count] data]
           (cl-format true
@@ -207,6 +206,19 @@
     (start-profiling :thread thread)
     (.start thread)
     thread))
+
+(defmacro with-profiler
+  "Runs given body under the supervision of the profiler and prints
+  the result. starting-options will be given to start-profiling,
+  output-options will be given to show-profiling."
+  [starting-options output-options & body]
+  `(let [^Thread thread# (Thread. #(do ~@body))]
+     (start-profiling :thread thread# ~@starting-options)
+     (time (do
+             (.start thread#)
+             (.join thread#)))
+     (show-profiling :thread thread# ~@output-options)
+     (stop-profiling :thread thread#)))
 
 ;;;
 
