@@ -130,9 +130,9 @@
                                                     0
                                                     data))))]
         (cl-format true "~&Profiling data~@
-                       ~&  with period ~ams~@
-                       ~&  with total ticks ~a~@
-                       ~%"
+                         ~&  with period ~ams~@
+                         ~&  with a total of ~a ticks~@
+                         ~%"
                    period overall-count)
         (cl-format true "~&~v@a ~8@a  ~a~%" max-hit-length "Hits" "Amount" "Function")
         (doseq [[name hit-count] data]
