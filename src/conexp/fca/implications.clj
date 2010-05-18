@@ -15,9 +15,7 @@
 (deftype Implication [premise conclusion]
   Object
   (equals [this other]
-    (and (= (class this) (class other))
-	 (= premise (.premise other))
-	 (= conclusion (.conclusion other))))
+    (generic-equals [this other] Implication [premise conclusion]))
   (hashCode [this]
     (hash-combine-hash Implication premise conclusion)))
 
