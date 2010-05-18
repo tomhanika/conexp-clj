@@ -18,7 +18,7 @@
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg)])
-  (:use [clojure.contrib.seq :only (indexed partition-by)]
+  (:use [clojure.contrib.seq :only (indexed)]
 	clojure.contrib.swing-utils))
 
 
@@ -33,6 +33,11 @@
       (actionPerformed [evt]
 	(with-swing-error-msg frame "Error"
 	  (function frame))))))
+
+(defn implements-interface?
+  "Returns true iff given class implements given interface."
+  [class interface]
+  (some #(= interface %) (.getInterfaces class)))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
@@ -308,16 +313,16 @@
   "Creates a JFileChooser with given filters for frame."
   [frame & filters]
   (let [#^JFileChooser fc (JFileChooser.)]
-    (doseq [[name endings] filters]
-      (let [filter (FileNameExtensionFilter. name (into-array endings))]
-	(.addChooseableFileFilter fc filter)))
+    (doseq [[name & endings] filters]
+      (let [#^FileFilter filter (FileNameExtensionFilter. name (into-array endings))]
+	(.addChoosableFileFilter fc filter)))
     fc))
 
 (defn choose-open-file
   "Opens a file chooser for frame with optional extension filters and
   returns the file selected for opening. filters are given as a
-  sequence of pairs [name endings], where name names the type of files
-  and endings is a sequence of file sufixes."
+  sequence of pairs [name & endings], where name names the type of files
+  and endings are file suffixes."
   [frame & filters]
   (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
     (when (= (.showOpenDialog fc frame) JFileChooser/APPROVE_OPTION)
@@ -326,8 +331,8 @@
 (defn choose-save-file
   "Opens a file chooser for frame with optional extension filters and
   returns the file selected for saving. filters are given as a
-  sequence of pairs [name endings], where name names the type of files
-  and endings is a sequence of file sufixes."
+  sequence of pairs [name & endings], where name names the type of files
+  and endings are file suffixes."
   [frame & filters]
   (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
     (loop []

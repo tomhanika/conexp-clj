@@ -184,6 +184,17 @@
         #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
     (.format sdf (.getTime cal))))
 
+;;; deftype utilities
+
+(defmacro generic-equals
+  "Implements a generic equals for class on fields."
+  [[this other] class fields]
+  `(or (identical? ~this ~other)
+       (when (= (class ~this) (class ~other))
+         (and ~@(map (fn [field]
+                       `(= ~field (. ~(vary-meta other assoc :tag class) ~field)))
+                     fields)))))
+
 (defn hash-combine-hash
   "Combines the hashes of all things given."
   [& args]

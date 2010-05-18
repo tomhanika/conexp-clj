@@ -16,10 +16,7 @@
 (deftype Association-Rule [context premise conclusion]
   Object
   (equals [this other]
-    (and (= (class this) (class other))
-	 (= context (.context other))
-	 (= premise (.premise other))
-	 (= conclusion (.conclusion other))))
+    (generic-equals [this other] Association-Rule [context premise conclusion]))
   (hashCode [this]
     (hash-combine-hash Association-Rule context premise conclusion)))
 

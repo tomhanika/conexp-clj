@@ -24,7 +24,8 @@
 (deftest test-Implication-equals
   (is (= (make-implication [] []) (make-implication [] [])))
   (is (= (make-implication [1] [2]) (make-implication [1] [1 2])))
-  (is (= (make-implication '[a] '[b c d]) (make-implication '#{a} '#{b c d}))))
+  (is (= (make-implication '[a] '[b c d]) (make-implication '#{a} '#{b c d})))
+  (is (not= (make-implication '[a] '[b c d]) (make-implication '[b] '[a c d]))))
 
 ;;;
 
@@ -48,24 +49,42 @@
 ;; close-under-implications (private)
 ;; clop-by-implications
 ;; follows-semantically
-;; minimal-implication-set?
+;; {minimal,sound,complete}-implication-set?
 ;; add-immediate-elements* (private)
 ;; clop-by-implications*
 
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
-  (doseq [ctx [contexts/*test-ctx-01*,
-               contexts/*test-ctx-04*
-               contexts/*test-ctx-07*,
-               contexts/*test-ctx-08*]]
-    (let [sb (stem-base ctx)]
-      (is (minimal-implication-set? sb))
-      (is (forall [impl sb] (holds? impl ctx)))
-      (is (forall [A (subsets (attributes ctx)),
-                   B (subsets (difference (attributes ctx) A))]
-            (let [impl (make-implication A B)]
-              (=> (holds? impl ctx)
-                  (follows-semantically? impl sb))))))))
+  (are [ctx] (let [sb (stem-base ctx)]
+               (is (minimal-implication-set? sb))
+               (is (sound-implication-set? ctx sb))
+               (is (complete-implication-set? ctx sb)))
+    contexts/*test-ctx-01*,
+    contexts/*test-ctx-04*
+    contexts/*test-ctx-07*,
+    contexts/*test-ctx-08*))
+
+(deftest test-minimal-intersection-sets
+  (let [minimal-intersection-sets @#'conexp.fca.implications/minimal-intersection-sets]
+    (are [sets minimal-sets] (= (set minimal-sets) (set (minimal-intersection-sets sets)))
+      [#{2} #{2 4}] [#{2}])))
+
+(deftest test-proper-premises
+  (let [A-dot @#'conexp.fca.implications/A-dot]
+    (are [ctx] (and (is (forall [A (proper-premises ctx)]
+                          (proper-premise? ctx A)))
+                    (let [pp-impls (proper-premise-implications ctx)]
+                      (is (sound-implication-set? ctx pp-impls))
+                      (is (complete-implication-set? ctx pp-impls))))
+      contexts/*test-ctx-01*,
+      contexts/*test-ctx-04*,
+      contexts/*test-ctx-07*,
+      contexts/*test-ctx-08*
+      (make-context #{1 2 3 4 5} #{1 2 3 4 5 6 7 8}
+                    #{[1 1] [1 3] [1 6] [1 7] [2 1]
+                      [2 4] [2 6] [2 8] [3 1] [3 4]
+                      [3 5] [3 8] [4 1] [4 3] [4 5]
+                      [4 8] [5 2] [5 3] [5 5] [5 7]}))))
 
 ;;;
 

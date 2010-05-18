@@ -50,6 +50,13 @@
 	     (= my-minor minor)
 	     (< my-patch patch)))))
 
+(defn test-conexp
+  "Runs tests for conexp."
+  []
+  (require 'conexp.tests :reload-all)
+  (require 'clojure.test)
+  (clojure.test/run-tests 'conexp.tests))
+
 ;;;
 
 nil
