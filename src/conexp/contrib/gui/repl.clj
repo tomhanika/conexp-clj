@@ -64,8 +64,8 @@
 			    (try
 			     (clojure.main/repl
                               :init (fn []
-				      (use 'conexp.main)
 				      (in-ns 'user)
+				      (use 'conexp.main)
 				      (require '[conexp.contrib.gui.repl-utils :as gui]))
                               :caught (fn [e]
 					(if *print-stack-trace-on-error*
