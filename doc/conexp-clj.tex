@@ -6,9 +6,13 @@
 \usepackage{graphicx}
 \usepackage{color}
 \definecolor{lightblue}{rgb}{0.2,0.2,1}
+
 \usepackage{hyperref}
 \usepackage{enumerate}
 \usepackage{array}
+\usepackage{epigraph}
+
+%%%
 
 \newcommand{\conexpclj}{\texttt{conexp-clj}}
 \newcommand{\set}[1]{\{\,#1\,\}}
@@ -90,18 +94,19 @@ Software and Rich Hickey for inventing Clojure.
 
 \subsection{A Sample Session}
 
-\conexpclj\ can be run from a standard console as can be found on every UNIX system. Simply issue
-the command
+\conexpclj\ can be run from a standard console as can be found on
+every UNIX system. Simply issue the command
 \begin{conexp}
   conexp-clj.sh
 \end{conexp}
 and you will see something like
 \begin{conexp}
-  Clojure 1.1.0-alpha-SNAPSHOT
+  Clojure 1.2.0-master-SNAPSHOT
   §\p conexp=>§
 \end{conexp}
-This is a Clojure-\emph{REPL} (Read-Eval-Print-Loop) which gives us access to all functions
-available in \conexpclj. Let's have a look at a sample session.
+This is a Clojure-\emph{REPL} (Read-Eval-Print-Loop) which gives us
+access to all functions available in \conexpclj. Let's have a look at
+a sample session.
 
 \begin{Example}~
   \begin{conexp}
@@ -129,29 +134,17 @@ available in \conexpclj. Let's have a look at a sample session.
     §\p conexp=>§
   \end{conexp}
 
-  It is quite obvious what we are doing here: First we define the context
-  $(\set{1,2,3},\set{1,2,3},\break\set{(1,2),(2,2),(3,3)})$, then compute its stem base, find out that
-  this context is not reduced (which is no surprise) and reduce it. This can all be guessed but the
-  actual syntax looks quite strange and very unfamiliar to those who never have seen some Lisp before
-  (or have and did not like it). But this syntax is very simple and easy to learn, so let us have some
-  closer look at it.
+  It is quite obvious what we are doing here: First we define the
+  context $(\set{1,2,3},\set{1,2,3},\break\set{(1,2),(2,2),(3,3)})$,
+  then compute its stem base, find out that this context is not
+  reduced (which is no surprise) and reduce it. This can all be
+  guessed but the actual syntax looks quite strange and very
+  unfamiliar to those who never have seen some Lisp before (or have
+  and did not like it). But this syntax is very simple and easy to
+  learn, so let us have some closer look at it.
 \end{Example}
 
 \subsection{Some Basic Lisp}
-Parantheses are not bad.
-
-\subsection{Some More Examples}
-
-\subsubsection{Many Valued Contexts}
-
-\subsubsection{Exploring Contexts}
-
-\subsubsection{Reading and Writing Contexts}
-
-\subsubsection{Context Algebra}
-
-\subsubsection{Faster Algorithms for Computing Concepts}
-
 
 \section{Obtaining and Installing \conexpclj}
 
@@ -161,6 +154,17 @@ See \url{http://www.math.tu-dresden.de/~borch/conexp-clj}.
 \section{Design Principles}
 
 \subsection{Use Lisp}
+The choice of a Lisp dialect as implementation language is not by
+coincidence. Lisp is and has always been a language perfectly suitable
+for both rapid development and thorough implementations. As this it is
+both optimal as an implementation for the implementor and an interface
+language for the user.
+
+This decision has impacts on the users as she will need to work with
+an unfamiliar looking programming language (if she has not been
+working with Lisp before).
+
+...
 
 \subsection{Executable Math}
 
@@ -176,35 +180,20 @@ See \url{http://www.math.tu-dresden.de/~borch/conexp-clj}.
 \subsection{What is missing but needed urgently?}
 
 \begin{itemize}
-\item Drawing Lattices
+\item A working GUI
 \end{itemize}
 
+%%%
+\chapter{How Do I ...}
 
-\chapter{Namespace Overview}
+\section{... the concepts of a context?}
+\section{... explore the attributes of a context?}
+\section{... compute the valid implications of a context?}
+\section{... compute and draw a concept lattice?}
+\section{... compute the Luxenburger Basis?}
 
-\section{What are Namespaces?}
-
-\section{conexp}
-
-\section{conexp.util and conexp.base}
-
-\section{conexp.fca}
-
-\section{conexp.io}
-
-\section{conexp.graphics}
-
-\section{conexp.layout}
-
-\section{conexp.gui}
-
-\section{conexp.contrib}
-
-
-\chapter{Function Index}
-
-\input{api}
-
+%%%
+\chapter{Program Overview}
 
 \appendix
 
