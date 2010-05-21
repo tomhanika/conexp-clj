@@ -10,6 +10,8 @@
   (:use clojure.test
 	conexp.base))
 
+;;;
+
 (deftest test-cross-product
   (is (= #{[1 1] [1 2] [2 1] [2 2]} (cross-product #{1 2} #{1 2})))
   (is (and (= #{} (cross-product #{} #{1 2}))
@@ -161,3 +163,7 @@
        #{} #{1} #{}
        #{[1 2] [2 3] [3 4]} #{1 2 3} #{1 2 3}
        #{[1 2] [2 2]} #{1} #{2}))
+
+;;;
+
+nil

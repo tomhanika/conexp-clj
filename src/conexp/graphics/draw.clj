@@ -7,12 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.graphics.draw
-  (:use [conexp.util :only (update-ns-meta!,
+  (:use [conexp.base :only (ns-doc,
 			    get-root-cause,
 			    with-swing-error-msg,
 			    with-printed-result,
-			    now)]
-	[conexp.base :only (defvar- defmacro-)]
+			    now,
+                            defvar-,
+                            defmacro-)]
 	[conexp.math.util :only (with-doubles)]
 	[conexp.layout :only (*standard-layout-function*, inf-additive-layout)]
 	[conexp.layout.base :only (lattice, annotation)]
@@ -51,8 +52,9 @@
 	   [java.awt.event ActionListener]
 	   [java.io File]))
 
-(update-ns-meta! conexp.graphics.draw
-  :doc "This namespace provides a lattice editor and a convenience function to draw lattices.")
+(ns-doc
+ "This namespace provides a lattice editor and a convenience function
+ to draw lattices.")
 
 
 ;;; Lattice Editor

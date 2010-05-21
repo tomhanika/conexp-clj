@@ -7,11 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.dl.util.graphs
-  (:use conexp.util)
+  (:use conexp.base)
   (:require [clojure.contrib.graph :as graph]))
 
-(update-ns-meta! conexp.contrib.dl.util.graphs
-  :doc "A custom implementation of graph algorithms on top of clojure.contrib.graph.")
+(ns-doc
+ "A custom implementation of graph algorithms on top of
+ clojure.contrib.graph.")
 
 ;;;
 

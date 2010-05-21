@@ -7,14 +7,14 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layout.common
-  (:use conexp.util
+  (:use conexp.base
 	conexp.fca.lattices
 	conexp.layout.util
 	conexp.layout.layered
 	[conexp.layout.base :exclude (order)]))
 
-(update-ns-meta! conexp.layout.common
-  :doc "Implements common layout algorithm.")
+(ns-doc
+ "Implements common layout algorithm.")
 
 
 ;;; inf-irreducible additive layout

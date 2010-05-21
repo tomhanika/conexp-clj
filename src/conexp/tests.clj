@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.tests
-  (:use conexp.util))
+  (:use conexp.base))
 
 ;;;
 

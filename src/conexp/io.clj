@@ -7,15 +7,15 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io
-  (:use conexp.util)
+  (:use conexp.base)
   (:use [clojure.contrib.ns-utils :only (immigrate)])
   (:require conexp.io.contexts
 	    conexp.io.lattices
 	    conexp.io.layouts
             conexp.io.many-valued-contexts))
 
-(update-ns-meta! conexp.io
-  :doc "Common namespace for conexp-clj IO functions.")
+(ns-doc
+ "Common namespace for conexp-clj IO functions.")
 
 ;;;
 

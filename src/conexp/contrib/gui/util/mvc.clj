@@ -7,11 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.util.mvc
-  (:use conexp.util))
+  (:use conexp.base))
 
-(update-ns-meta! conexp.contrib.gui.util.mvc
-  :doc "Provides an implementation of a very simple
-  model-view-controller object.")
+(ns-doc
+ "Provides an implementation of a very simple model-view-controller
+  object.")
 
 ;;;
 

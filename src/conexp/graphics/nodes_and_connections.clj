@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.graphics.nodes-and-connections
-  (:use [conexp.util :only (update-ns-meta!)]
-	[conexp.base :only (defvar-, defvar, round, union, difference)]
+  (:use [conexp.base :only (ns-doc,defvar-, defvar, round, union, difference)]
 	conexp.graphics.util
 	conexp.graphics.scenes
 	[clojure.contrib.core :only (-?>)])
@@ -18,8 +17,9 @@
 	                           GText GPosition]))
 
 
-(update-ns-meta! conexp.graphics.nodes-and-connections
-  :doc "Namespace for representing nodes and their connections for drawing lattice diagrams.")
+(ns-doc
+ "Namespace for representing nodes and their connections for drawing
+ lattice diagrams.")
 
 
 ;;; nodes and connections

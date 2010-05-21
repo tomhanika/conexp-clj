@@ -7,9 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.nonsense
-  (:use conexp.util)
+  (:use conexp.base)
   (:use [clojure.contrib.math :only (floor)]))
 
+(ns-doc
+ "What it says.")
  
 ;;; Doomsday Algorithm
 
