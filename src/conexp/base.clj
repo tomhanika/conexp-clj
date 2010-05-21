@@ -22,6 +22,8 @@
 	   'clojure.contrib.def
 	   'conexp.util)
 
+(ns-doc "Basic definitions for conexp-clj.")
+
 ;;; Set Theory
 
 (defn cross-product

@@ -25,8 +25,14 @@
 		(fn [meta-hash#]
 		  (merge meta-hash# ~(apply hash-map key-value-description)))))
 
-(update-ns-meta! conexp.util
-  :doc "Loose collection of some useful functions and macros for conexp.")
+(defmacro ns-doc
+  "Sets the documentation of the current namespace to be doc."
+  [doc]
+  (let [ns (symbol (str *ns*))]
+    `(update-ns-meta! ~ns
+       :doc ~doc)))
+
+(ns-doc "Loose collection of some useful functions and macros for conexp.")
 
 
 ;;; Testing
