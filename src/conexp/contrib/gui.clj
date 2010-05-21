@@ -12,8 +12,7 @@
 	conexp.contrib.gui.base)
   (:use clojure.contrib.swing-utils))
 
-(update-ns-meta! conexp.contrib.gui
-  :doc "Provides standard gui for conexp-clj.")
+(ns-doc "Provides standard gui for conexp-clj.")
 
 ;;;
 

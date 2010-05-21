@@ -11,8 +11,8 @@
 	conexp.fca.contexts
 	conexp.fca.implications))
 
-(update-ns-meta! conexp.fca.exploration
-  :doc "Provides function for exploration and computing proper premises.")
+(ns-doc
+ "Provides function for exploration and computing proper premises.")
 
 ;;; Attribute Exploration
 

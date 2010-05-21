@@ -10,8 +10,8 @@
   (:use conexp.main)
   (:use [clojure.contrib.seq :only (seq-on)]))
 
-(update-ns-meta! conexp.contrib.dl.util.general-sorted-sets
-  :doc "Playground for some more or less creative work for DL.")
+(ns-doc
+ "Implementation of a generalization of tree sets to partial orders.")
 
 ;;; sorted-set for non-total orderings
 

@@ -11,7 +11,7 @@
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
 	   [java.awt GridLayout BorderLayout Dimension])
-  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, update-ns-meta!)]
+  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc)]
         conexp.contrib.gui.util
 	conexp.contrib.gui.repl
 	conexp.contrib.gui.plugins
@@ -22,8 +22,7 @@
   (:use clojure.contrib.swing-utils))
 
 
-(update-ns-meta! conexp.contrib.gui.base
-  :doc "Provides basic definitions for the standard conexp-clj GUI.")
+(ns-doc "Provides basic definitions for the standard conexp-clj GUI.")
 
 ;;; Menus
 

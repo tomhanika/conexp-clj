@@ -13,8 +13,7 @@
 	[conexp.fca.lattices :only (base-set order)])
   (:use [clojure.contrib.graph :only (directed-graph, dependency-list, remove-loops)]))
 
-(update-ns-meta! conexp.layout.layered
-  :doc "Basic namespace for lattice layouts.")
+(ns-doc "Basic namespace for lattice layouts.")
 
 
 ;;; Simple Layered Layout

@@ -15,8 +15,7 @@
 	conexp.contrib.dl.languages.description-graphs
         conexp.contrib.dl.languages.EL-gfp-rewriting))
 
-(update-ns-meta! conexp.contrib.dl.languages.EL-gfp
-  :doc "Defines EL-gfp with lcs, msc and subsumption.")
+(ns-doc "Defines EL-gfp with lcs, msc and subsumption.")
 
 ;;; EL-gfp
 

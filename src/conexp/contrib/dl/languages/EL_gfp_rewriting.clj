@@ -13,8 +13,7 @@
         conexp.contrib.dl.languages.description-graphs)
   (:use [clojure.walk :only (walk)]))
 
-(update-ns-meta! conexp.contrib.dl.languages.EL-gfp-rewriting
-  :doc "Provides functions for EL-gfp term rewriting.")
+(ns-doc "Provides functions for EL-gfp term rewriting.")
 
 ;;; EL and EL-gfp normalization
 

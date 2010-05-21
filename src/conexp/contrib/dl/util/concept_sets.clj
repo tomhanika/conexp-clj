@@ -13,9 +13,9 @@
 	conexp.contrib.dl.framework.reasoning)
   (:use [clojure.contrib.seq :only (seq-on)]))
 
-(update-ns-meta! conexp.contrib.dl.util.concept-sets
-  :doc "Implements a orderd set type for concepts with no two elements
-  of the set being equivalent.")
+(ns-doc
+ "Implements a orderd set type for concepts with no two elements of
+  the set being equivalent.")
 
 ;;;
 

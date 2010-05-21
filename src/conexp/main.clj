@@ -14,6 +14,9 @@
 	    conexp.graphics)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
+(conexp.base/ns-doc
+ "Main namespace for conexp-clj. Immigrates all needed namespaces.")
+
 ;;;
 
 (def *conexp-namespaces* '[conexp.base
@@ -24,8 +27,7 @@
 
 (dorun (map immigrate *conexp-namespaces*))
 
-(update-ns-meta! conexp.main
-  :doc "Main namespace for conexp-clj. Immigrates all needed namespaces.")
+;;;
 
 (def *conexp-version* {:major 0,
 		       :minor 0,

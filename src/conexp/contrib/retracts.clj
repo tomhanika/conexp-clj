@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.retracts
-  (:use [conexp.main :only (update-ns-meta!
+  (:use [conexp.main :only (ns-doc,
 			    concepts,
 			    objects, object-derivation,
 			    attributes, attribute-derivation,
@@ -17,8 +17,7 @@
 			    set-of)])
   (:use [clojure.contrib.pprint :only (cl-format)]))
 
-(update-ns-meta! conexp.contrib.retracts
-  :doc "Package for computing retracts from formal contexts.")
+(ns-doc "Package for computing retracts from formal contexts.")
 
 ;;;
 

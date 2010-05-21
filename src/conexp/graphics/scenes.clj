@@ -16,8 +16,7 @@
 	   [javax.imageio ImageIO]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent]))
 
-(update-ns-meta! conexp.graphics.scenes
- :doc "Namespace for scene abstraction.")
+(ns-doc "Namespace for scene abstraction.")
 
 
 ;;; scenes

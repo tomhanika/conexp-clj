@@ -15,8 +15,8 @@
   (:use clojure.contrib.pprint)
   (:import [java.util HashMap HashSet]))
 
-(update-ns-meta! conexp.contrib.dl.languages.description-graphs
-  :doc "Implements description graphs and common operations on them.")
+(ns-doc
+ "Implements description graphs and common operations on them.")
 
 ;;;
 

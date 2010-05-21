@@ -11,8 +11,7 @@
 	[conexp.fca.lattices :only (make-lattice, standard-context)]
 	clojure.contrib.pprint))
 
-(update-ns-meta! conexp.layout.base
-  :doc "Basic definition of layout datatype")
+(ns-doc "Basic definition of layout datatype")
 
 ;;;
 

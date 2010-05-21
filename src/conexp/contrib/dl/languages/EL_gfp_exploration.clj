@@ -19,8 +19,8 @@
   (:use clojure.contrib.pprint
 	clojure.contrib.seq))
 
-(update-ns-meta! conexp.contrib.dl.languages.EL-gfp-exploration
-  :doc "Implements exploration for description logics EL and EL-gfp.")
+(ns-doc
+ "Implements exploration for description logics EL and EL-gfp.")
 
 
 ;;; technical helpers

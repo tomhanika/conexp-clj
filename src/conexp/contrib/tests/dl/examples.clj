@@ -17,8 +17,8 @@
 	conexp.contrib.dl.languages.interaction)
   (:use clojure.test))
 
-(update-ns-meta! conexp.contrib.tests.dl.examples
-  :doc "Defines example data for testing and show how to use
+(ns-doc
+ "Defines example data for testing and show how to use
   conexp.contrib.dl. Don't change anything here since the tests rely
   on this.")
 

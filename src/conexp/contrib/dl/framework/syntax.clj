@@ -11,9 +11,8 @@
   (:use	[clojure.walk :only (walk)]
         [clojure.contrib.macro-utils :only (macrolet)]))
 
-(update-ns-meta! conexp.contrib.dl.framework.syntax
-  :doc "Provides basic syntax definitions for DL expressions and the
-  like.")
+(ns-doc
+ "Provides basic syntax definitions for DL expressions and the like.")
 
 ;;;
 

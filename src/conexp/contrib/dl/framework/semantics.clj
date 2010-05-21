@@ -11,8 +11,7 @@
 	conexp.contrib.dl.framework.syntax
         conexp.contrib.dl.framework.boxes))
 
-(update-ns-meta! conexp.contrib.dl.framework.semantics
-  :doc "Defines basic notions for semantics of description logics.")
+(ns-doc "Defines basic notions for semantics of description logics.")
 
 ;;; Model definition
 
