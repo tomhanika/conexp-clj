@@ -111,19 +111,21 @@
   (reduce union #{}
           (map #(interpret model %) (arguments dl-exp))))
 
+(define-constructor not
+  (difference (model-base-set model)
+              (interpret model (first (arguments dl-exp)))))
+
 (define-constructor exists
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
-    (set-of x [x (model-base-set model),
-               :when (exists [y C-I]
-                       (contains? r-I [x y]))])))
+    (set-of x [[x y] r-I
+               :when (contains? C-I y)])))
 
 (define-constructor forall
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
-    (set-of x [x (model-base-set model),
-               :when (forall [y C-I]
-                       (contains? r-I [x y]))])))
+    (set-of x [x (model-base-set model)
+               :when (forall [y C-I] (contains? r-I [x y]))])))
 
 (define-constructor inverse
   (let [r-I (interpret model (first (arguments dl-exp)))]

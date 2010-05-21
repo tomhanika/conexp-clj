@@ -108,16 +108,17 @@
      \\mathrm{clop}(A \\cap \\set{1, \\ldots, i-1}) \\in \\mathcal{F}.
   \\]"
   [predicate G clop A]
-  (let [oplus-A (memoize (partial oplus G clop A))]
-    (loop [i-s (reverse G)]
-      (if (empty? i-s)
-	nil
-	(let [i (first i-s)]
-	  (if (and (not (contains? A i))
-		   (lectic-<_i G i A (oplus-A i))
-		   (predicate (oplus-A i)))
-	    (oplus-A i)
-	    (recur (rest i-s))))))))
+  (loop [i-s (reverse G)]
+    (if (empty? i-s)
+      nil
+      (let [i (first i-s)]
+        (if (contains? A i)
+          (recur (rest i-s))
+          (let [oplus-A (oplus G clop A i)]
+            (if (and (lectic-<_i G i A oplus-A)
+                     (predicate oplus-A))
+              oplus-A
+              (recur (rest i-s)))))))))
 
 (defn improve-basic-order
   "Improves basic order on the sequence base, where the closure operator

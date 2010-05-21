@@ -8,9 +8,9 @@
 
 (ns conexp.contrib.dl.languages.description-graphs
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.semantics
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.semantics
         conexp.contrib.dl.util.graphs)
   (:use clojure.contrib.pprint)
   (:import [java.util HashMap HashSet]))
@@ -51,10 +51,10 @@
 
 (defmethod print-method Description-Graph [dg out]
   (let [#^String output (with-out-str
-			  (pprint (list 'Description-Graph
-					(vertices dg)
-					(neighbours dg)
-					(vertex-labels dg))))]
+                          (pprint (list 'Description-Graph
+                                        (vertices dg)
+                                        (neighbours dg)
+                                        (vertex-labels dg))))]
     (.write out (.trim output))))
 
 ;;; Normalizing
@@ -65,7 +65,7 @@
   set containing the expression is returned."
   [dl-expr]
   (if (and (compound? dl-expr)
-	   (= 'and (operator dl-expr)))
+           (= 'and (operator dl-expr)))
     (set (arguments dl-expr))
     (set [dl-expr])))
 
@@ -77,11 +77,11 @@
   map used."
   [tbox-map]
   (let [old->new (into {} (for [A (keys tbox-map)]
-			    [A (make-dl-expression (expression-language A) (gensym))])),
-	old->new* (into {} (for [[A B] old->new]
-			     [(expression-term A) B]))]
+                            [A (make-dl-expression (expression-language A) (gensym))])),
+        old->new* (into {} (for [[A B] old->new]
+                             [(expression-term A) B]))]
     [(into {} (for [[A def-A] tbox-map]
-		[(old->new A) (set (map #(substitute % old->new*) def-A))]))
+                [(old->new A) (set (map #(substitute % old->new*) def-A))]))
      old->new]))
 
 (defn- tbox->hash-map
@@ -90,8 +90,8 @@
   [tbox]
   (let [language (tbox-language tbox)]
     (into {} (for [def (tbox-definitions tbox)]
-	       [(make-dl-expression language (definition-target def))
-		(conjunctors (definition-expression def))]))))
+               [(make-dl-expression language (definition-target def))
+                (conjunctors (definition-expression def))]))))
 
 (defn- hash-map->tbox
   "Transforms given hash-map to a TBox for the given language."
@@ -133,30 +133,30 @@
   (cond
    (goal term) term
    (tbox-target-pair? term) (let [[tbox target] (expression-term term),
-				  [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
-			      (add-names new-names tbox-map)
-			      (trans (make-dl-expression (expression-language term) target)))
+                                  [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
+                              (add-names new-names tbox-map)
+                              (trans (make-dl-expression (expression-language term) target)))
    :else (let [new-sym (make-dl-expression (expression-language term) (gensym))]
-	   (add-name new-names new-sym (conjunctors term))
-	   new-sym)))
+           (add-name new-names new-sym (conjunctors term))
+           new-sym)))
 
 (defn- normalize-term
   "Normalizes conjunctor term. New definitions go into the atom new-names."
   [term new-names]
   (if (and (compound? term)
-	   (= 'exists (operator term)))
+           (= 'exists (operator term)))
     (let [[r B] (arguments term),
-	  norm (normalize-for-goal B
-				   #(and (atomic? %)
-					 (not (tbox-target-pair? %))
-					 (not (primitive? %)))
-				   new-names)]
+          norm (normalize-for-goal B
+                                   #(and (atomic? %)
+                                         (not (tbox-target-pair? %))
+                                         (not (primitive? %)))
+                                   new-names)]
       (make-dl-expression (expression-language term)
-			  (list 'exists r norm)))
+                          (list 'exists r norm)))
     (normalize-for-goal term
-			#(and (atomic? %)
-			      (not (tbox-target-pair? %)))
-			new-names)))
+                        #(and (atomic? %)
+                              (not (tbox-target-pair? %)))
+                        new-names)))
 
 (defn- introduce-auxiliary-definitions
   "Introduces auxiliary definitions into the given tbox-map (as
@@ -167,12 +167,12 @@
   (if (empty? tbox-map)
     tbox-map
     (let [new-names (new-names),
-	  ;; doall needed to store new names in new-names!
-	  normalized-map (doall
-			  (into {} (map (fn [[A def-A]]
-					  [A (set (map #(normalize-term % new-names) def-A))])
-					tbox-map))),
-	  new-names-map (introduce-auxiliary-definitions (get-names new-names))]
+          ;; doall needed to store new names in new-names!
+          normalized-map (doall
+                          (into {} (map (fn [[A def-A]]
+                                          [A (set (map #(normalize-term % new-names) def-A))])
+                                        tbox-map))),
+          new-names-map (introduce-auxiliary-definitions (get-names new-names))]
       (into normalized-map new-names-map))))
 
 ;; normalizing algorithm -- squeezing the concept graph
@@ -195,37 +195,37 @@
   by A."
   [tbox-map]
   (let [equivalent-concepts (scc (concept-graph tbox-map)),
-	rename-map (into {} (for [concepts equivalent-concepts
-				  concept concepts]
-			      [concept (first concepts)])),
-	used-map (into {} (for [concepts equivalent-concepts]
-			    [(first concepts) concepts])),
-	new-tbox-map (into {} (map (fn [target]
-				     [target
-				      (disj (set (replace rename-map
-							  (mapcat tbox-map (used-map target))))
-					    target)])
-				   (vals rename-map)))]
+        rename-map (into {} (for [concepts equivalent-concepts
+                                  concept concepts]
+                              [concept (first concepts)])),
+        used-map (into {} (for [concepts equivalent-concepts]
+                            [(first concepts) concepts])),
+        new-tbox-map (into {} (map (fn [target]
+                                     [target
+                                      (disj (set (replace rename-map
+                                                          (mapcat tbox-map (used-map target))))
+                                            target)])
+                                   (vals rename-map)))]
     (into {} (for [target (keys tbox-map)]
-	       [target (-> target rename-map new-tbox-map)]))))
+               [target (-> target rename-map new-tbox-map)]))))
 
 (defn- replace-toplevel-concepts
   "Replaces any top-level defined concept in tbox-map by its definition."
   [tbox-map]
   (loop [deps (dependency-list (concept-graph tbox-map)),
-	 new-tbox-map {}]
+         new-tbox-map {}]
     (if (empty? deps)
       new-tbox-map
       (let [next-concepts (first deps),
-	    new-defs (into {} (for [target next-concepts]
-				[target (reduce (fn [result next-thing]
-						  (if (set? next-thing)
-						    (into result next-thing)
-						    (conj result next-thing)))
-						#{}
-						(replace new-tbox-map (tbox-map target)))]))]
-	(recur (rest deps)
-	       (merge new-tbox-map new-defs))))))
+            new-defs (into {} (for [target next-concepts]
+                                [target (reduce (fn [result next-thing]
+                                                  (if (set? next-thing)
+                                                    (into result next-thing)
+                                                    (conj result next-thing)))
+                                                #{}
+                                                (replace new-tbox-map (tbox-map target)))]))]
+        (recur (rest deps)
+               (merge new-tbox-map new-defs))))))
 
 
 ;; normalizing algorithm -- invokation point
@@ -234,11 +234,11 @@
   "Normalizes given TBox with gfp-semantics."
   [tbox]
   (let [language   (tbox-language tbox)
-	result-map (-> tbox
-		       tbox->hash-map
-		       introduce-auxiliary-definitions
-		       squeeze-equivalent-concepts
-		       replace-toplevel-concepts)]
+        result-map (-> tbox
+                       tbox->hash-map
+                       introduce-auxiliary-definitions
+                       squeeze-equivalent-concepts
+                       replace-toplevel-concepts)]
     (hash-map->tbox language result-map)))
 
 
@@ -247,31 +247,29 @@
 (defn tbox->description-graph
   "Converts a tbox to a description graph. Normalization is done with gfp semantics."
   [tbox]
-  (let [tbox            (normalize-gfp tbox),
-	definitions     (tbox-definitions tbox),
-
-	language        (tbox-language tbox),
-	vertices        (defined-concepts tbox),
-	neighbours      (into {} (for [def definitions]
-				   [(definition-target def)
-				    (set (map #(vec (map expression-term (arguments %)))
-					      (filter compound?
-						      (arguments (definition-expression def)))))])),
-	vertex-labels   (into {} (for [def definitions]
-				   [(definition-target def),
-				    (set (map expression-term
-					      (filter atomic?
-						      (arguments (definition-expression def)))))]))]
+  (let [tbox          (normalize-gfp tbox),
+        language      (tbox-language tbox),
+        vertices      (defined-concepts tbox),
+        neighbours    (memo-fn _ [target]
+                        (let [def (find-definition tbox target)]
+                          (set (map #(vec (map expression-term (arguments %)))
+                                    (filter compound? ;i.e. existential restriction
+                                            (arguments (definition-expression def))))))),
+        vertex-labels (memo-fn _ [target]
+                        (let [def (find-definition tbox target)]
+                          (set (map expression-term
+                                    (filter atomic?
+                                            (arguments (definition-expression def)))))))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
 (defn description-graph->tbox
   "Converts a description graph to a tbox."
   [description-graph]
   (let [language    (graph-language description-graph),
-	labels      (vertex-labels description-graph),
-	neighbours  (neighbours description-graph),
+        labels      (vertex-labels description-graph),
+        neighbours  (neighbours description-graph),
 
-	definitions (into {} (for [A (vertices description-graph)
+        definitions (into {} (for [A (vertices description-graph)
                                    :let [def-exp (make-dl-expression language
                                                                      (list* 'and
                                                                             (concat (labels A)
@@ -284,13 +282,13 @@
   "Converts given model to a description graph."
   [model]
   (let [language            (model-language model),
-	interpretation      (model-interpretation model),
+        interpretation      (model-interpretation model),
 
-	vertices            (model-base-set model),
-	neighbours          (fn [x]
+        vertices            (model-base-set model),
+        neighbours          (memo-fn _ [x]
                               (set-of [r y] [r (role-names language),
-                                             [_ y] (filter #(= (first %) x) (interpretation r))])),                                                  
-	vertex-labels       (fn [x]
+                                             [_ y] (filter #(= (first %) x) (interpretation r))])),
+        vertex-labels       (memo-fn _ [x]
                               (set-of P [P (concept-names language),
                                          :when (contains? (interpretation P) x)]))]
     (make-description-graph language vertices neighbours vertex-labels)))
@@ -306,14 +304,14 @@
   "Returns the product of the two description graphs given."
   [graph-1 graph-2]
   (let [language      (graph-language graph-1),
-	vertices      (for [a (vertices graph-1),
+        vertices      (for [a (vertices graph-1),
                             b (vertices graph-2)]
                         [a b])
-	neighbours    (fn [[A B]]
+        neighbours    (fn [[A B]]
                         (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
                                            [s D] ((neighbours graph-2) B),
                                            :when (= r s)])),
-	vertex-labels (fn [[A B]]
+        vertex-labels (fn [[A B]]
                         (intersection ((vertex-labels graph-1) A)
                                       ((vertex-labels graph-2) B)))]
  (make-description-graph language vertices neighbours vertex-labels)))
@@ -324,7 +322,7 @@
   "Converts a Java HashMap to a Clojure hash-map."
   [#^HashMap map]
   (into {} (for [k (.keySet map)]
-	     [k (.get map k)])))
+             [k (.get map k)])))
 
 (defmacro- while-let
   "Runs body with binding in effect as long as x is non-nil.
@@ -344,107 +342,118 @@
   every vertex in (sim v)."
   [G-1 G-2]
   (let [label-1 (vertex-labels G-1),
-	label-2 (vertex-labels G-2),
-	neighbours-1 (neighbours G-1),
-	neighbours-2 (neighbours G-2),
-	edge-2? (fn [v r w]
-		  (contains? (neighbours-2 v) [r w])),
+        label-2 (vertex-labels G-2),
+        neighbours-1 (neighbours G-1),
+        neighbours-2 (neighbours G-2),
+        edge-2? (fn [v r w] (contains? (neighbours-2 v) [r w])),
 
-	#^HashMap sim-sets (HashMap.)]
+        #^HashMap sim-sets (HashMap.)]
 
     (doseq [v (vertices G-1)]
       (.put sim-sets v (set-of w [w (vertices G-2)
-				  :when (subset? (label-1 v) (label-2 w))])))
+                                  :when (subset? (label-1 v) (label-2 w))])))
 
-    (while-let [[u w] (first (for [u (vertices G-1),
-				   [r v] (neighbours-1 u),
-				   w (.get sim-sets u)
-				   :when (not (exists [x (.get sim-sets v)]
-						(edge-2? w r x)))]
-			       [u w]))]
+    (while-let [[u w] (first (for [u     (vertices G-1),
+                                   [r v] (neighbours-1 u),
+                                   w     (.get sim-sets u)
+                                   :when (not (exists [x (.get sim-sets v)]
+                                                (edge-2? w r x)))]
+                               [u w]))]
       (.put sim-sets u
-	    (disj (.get sim-sets u) w)))
+            (disj (.get sim-sets u) w)))
 
     (HashMap->hash-map sim-sets)))
 
+
 ;; efficient simulator sets (by meng)
 
-(defn- post
-  "Computes all vertices w in G such that there exists an edge from w
-  to v labeled with r."
-  [G v r]
-  (set-of w [[s w] ((neighbours G) v)
-	     :when (= s r)]))
+(defn single-edge->double-edge-graph
+  "Given a single-edged graph G (i.e. a graph with a neighbours
+  function on it) returns a structure with a :pre and a :post function
+  on it. This function is part of the implementation for
+  efficient-simulator-sets."
+  [G]
+  (loop [pre-map {},
+         vertex-set (vertices G)]
+    (if-not (empty? vertex-set)
+      (let [v (first vertex-set)]
+        (recur (reduce #(update-in %1 [%2] conj v)
+                       pre-map
+                       ((neighbours G) v))
+               (rest vertex-set)))
+      {:base-set (vertices G),
+       :labels   (vertex-labels G),
+       :post     (memo-fn _ [v r]
+                   (set-of w [[s w] ((neighbours G) v)
+                              :when (= s r)])),
+       :pre      (fn [v r]
+                   (set (get pre-map [r v] nil)))})))
 
-(defn- pre
-  "Computes all vertices w in G such that there exists an edge from v
-  to w labeled with r."
-  [G v r]
-  (set-of w [w (vertices G),
-	     :when (contains? ((neighbours G) w) [r v])]))
-
-(defn- efficient-initialize
+(defn efficient-initialize
   "Returns tripel [sim, remove, pre*] as needed by
   efficient-simulator-sets. sim, remove and pre* are Java HashMaps."
-  [G-1 G-2]
+  [language G-1 G-2]
   (let [#^HashMap sim    (HashMap.),
-	#^HashMap remove (HashMap.),
-	#^HashMap pre*   (HashMap.),
+        #^HashMap remove (HashMap.),
+        #^HashMap pre*   (HashMap.),
 
-	label-1 (vertex-labels G-1),
-	label-2 (vertex-labels G-2),
+        label-1 (:labels G-1),
+        label-2 (:labels G-2),
 
-	R (role-names (graph-language G-1))]
-    (doseq [v (vertices G-1)]
+        R (role-names language)]
+    (doseq [v (:base-set G-1)]
       (.put sim v
-	    (set-of u [u (vertices G-2),
-		       :when (and (subset? (label-1 v) (label-2 u))
-				  (forall [r R]
-				    (=> (empty? (post G-2 u r))
-					(empty? (post G-1 v r)))))]))
+            (set-of u [u (:base-set G-2),
+                       :when (and (subset? (label-1 v) (label-2 u))
+                                  (forall [r R]
+                                    (=> (empty? ((:post G-2) u r))
+                                        (empty? ((:post G-1) v r)))))]))
       (doseq [r R]
-	(.put remove [v r]
-	      (set-of w [w (vertices G-2),
-			 :let [post-w (post G-2 w r)]
-			 :when (and (not (empty? post-w))
-				    (empty? (intersection post-w (.get sim v))))]))))
-    (doseq [w (vertices G-2)]
+        (.put remove [v r]
+              (set-of w [w (:base-set G-2),
+                         :let [post-w ((:post G-2) w r)]
+                         :when (and (not (empty? post-w))
+                                    (empty? (intersection (.get sim v) post-w)))]))))
+    (doseq [w (:base-set G-2)]
       (.put pre* w
-	    (set-of [u r] [r R, u (pre G-2 w r)])))
+            (set-of [u r] [r R, u ((:pre G-2) w r)])))
     [sim remove pre*]))
 
 (defn efficient-simulator-sets
-  "Implements ELgfp-EfficientSimilaritiy (for the maximal simulation
+  "Implements EL-gfp-EfficientSimilaritiy (for the maximal simulation
   between two graphs) and returns the corresponding simulator sets."
   [G-1 G-2]
-  (with-memoized-fns [post pre]
-    (let [[sim remove pre*] (efficient-initialize G-1 G-2),
+  (let [L (graph-language G-1),
+        R (role-names L),
 
-	  neighbours-2 (neighbours G-2),
-	  R (role-names (graph-language G-1)),
+        G-1 (single-edge->double-edge-graph G-1),
+        G-2 (single-edge->double-edge-graph G-2),
 
-	  #^HashSet non-empty-removes (HashSet. (for [v (vertices G-1),
-						      r R,
-						      :when (not (empty? (.get remove [v r])))]
-						  [v r]))]
-      (while-let [[v r] (first non-empty-removes)]
-	(doseq [u (pre G-1 v r),
-		w (.get remove [v r])]
-	  (when (contains? (.get sim u) w)
-	    (.put sim u (disj (.get sim u) w))
-	    (doseq [[w* r*] (.get pre* w)]
-	      (when (not (exists [x (.get sim u)]
-			   (contains? (neighbours-2 w*) [r* x])))
-		(.put remove [u r*]
-		      (conj (.get remove [u r*]) w*))
-		(.add non-empty-removes [u r*])))))
-	(.put remove [v r] #{})
-	(.remove non-empty-removes [v r]))
-      (HashMap->hash-map sim))))
+        [sim remove pre*] (efficient-initialize L G-1 G-2),
+
+        #^HashSet non-empty-removes (HashSet. (for [v (:base-set G-1),
+                                                    r R,
+                                                    :when (not (empty? (.get remove [v r])))]
+                                                [v r]))]
+    (while-let [[v r] (first non-empty-removes)]
+      (doseq [u ((:pre G-1) v r),
+              w (.get remove [v r])]
+        (when (contains? (.get sim u) w)
+          (.put sim u
+                (disj (.get sim u) w))
+          (doseq [[w* r*] (.get pre* w)]
+            (when (empty? (intersection (.get sim u) ((:post G-2) w* r*)))
+              (.put remove [u r*]
+                    (conj (.get remove [u r*]) w*))
+              (.add non-empty-removes [u r*])))))
+      (.put remove [v r] #{})
+      (.remove non-empty-removes [v r]))
+    (HashMap->hash-map sim)))
+
 
 ;; simulation invocation point
 
-(defvar *simulator-set-algorithm* schematic-simulator-sets
+(defvar *simulator-set-algorithm* efficient-simulator-sets
   "Algorithm to use when computing simulator sets between two description graphs.")
 
 (defn simulates?
@@ -453,6 +462,17 @@
   [G-1 G-2 v w]
   (let [sim-sets (*simulator-set-algorithm* G-1 G-2)]
     (contains? (get sim-sets v) w)))
+
+
+;;; gfp models
+
+(defn EL-gfp-model-interpretation
+  "For a given tbox-target-pair returns the interpretation of the
+  target in the gfp-model of tbox in model."
+  [model [tbox target]]
+  (let [tbox-graph (tbox->description-graph tbox),
+        model-graph (model->description-graph model)]
+    ((*simulator-set-algorithm* tbox-graph model-graph) target)))
 
 ;;;
 

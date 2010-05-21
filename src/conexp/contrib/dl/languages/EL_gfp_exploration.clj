@@ -16,8 +16,7 @@
 	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.languages.EL-gfp-rewriting
 	conexp.contrib.dl.util.concept-sets)
-  (:use clojure.contrib.pprint
-	clojure.contrib.seq))
+  (:use [clojure.contrib.seq :only (seq-on)]))
 
 (ns-doc
  "Implements exploration for description logics EL and EL-gfp.")
@@ -58,29 +57,29 @@
      (explore-model initial-model (concept-names (model-language initial-model))))
   ([initial-model initial-ordering]
      (with-memoized-fns [EL-expression->rooted-description-graph,
-			 interpret,
-			 model-closure,
-			 subsumed-by?,
+                         interpret,
+                         model-closure,
+                         subsumed-by?,
                          model->tbox]
        (let [language (model-language initial-model)]
 
-	 (when (and (not= (set initial-ordering) (concept-names language))
-		    (not= (count initial-ordering) (count (concept-names language))))
-	   (illegal-argument "Given initial-ordering for explore-model must consist "
-			     "of all concept names of the language of the given model."))
+         (when (and (not= (set initial-ordering) (concept-names language))
+                    (not= (count initial-ordering) (count (concept-names language))))
+           (illegal-argument "Given initial-ordering for explore-model must consist "
+                             "of all concept names of the language of the given model."))
 
-	 (loop [k     0,
-		M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
-		K     (induced-context (seq-on M_k) initial-model),
-		Pi_k  [],
-		P_k   #{},
-		model initial-model,
-		implications #{},
-		background-knowledge #{}]
+         (loop [k     0,
+                M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
+                K     (induced-context (seq-on M_k) initial-model),
+                Pi_k  [],
+                P_k   #{},
+                model initial-model,
+                implications #{},
+                background-knowledge #{}]
 
-	   (if (nil? P_k)
-	     ;; then return set of implications
-	     (let [implicational-knowledge (union implications background-knowledge)]
+           (if (nil? P_k)
+             ;; then return set of implications
+             (let [implicational-knowledge (union implications background-knowledge)]
                (doall                   ;ensure that this sequence is evaluated with our bindings in effect
                 (for [P Pi_k
                       :let [all-P    (make-dl-expression language (cons 'and P)),
@@ -91,17 +90,17 @@
                       :when (not (empty? (arguments (subsumer susu))))]
                   susu)))
 
-	     ;; else search for next implication
-	     (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
-		   next-model (loop [model model]
-				(let [susu (abbreviate-subsumption
+             ;; else search for next implication
+             (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
+                   next-model (loop [model model]
+                                (let [susu (abbreviate-subsumption
                                             (make-subsumption all-P_k
                                                               (model-closure model all-P_k))
                                             (union implications background-knowledge))]
-				  (if (or (obviously-true? susu)
-					  (not (expert-refuses? susu)))
-				    model
-				    (recur (extend-model-by-contradiction model susu))))),
+                                  (if (or (obviously-true? susu)
+                                          (not (expert-refuses? susu)))
+                                    model
+                                    (recur (extend-model-by-contradiction model susu))))),
 		   next-M_k   (apply add-concepts! M_k (for [r (role-names language)]
                                                          (dl-expression language
                                                                         (exists r (model-closure next-model all-P_k))))),

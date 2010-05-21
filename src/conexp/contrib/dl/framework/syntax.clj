@@ -25,18 +25,18 @@
 
 (defn language-name
   "Returns the name of the given language."
-  [language]
-  (:name language))
+  [^DL language]
+  (.name language))
 
 (defn concept-names
   "Returns the concept names of the given language."
-  [language]
-  (:concept-names language))
+  [^DL language]
+  (.concept-names language))
 
 (defn role-names
   "Returns the role names of the given language."
-  [language]
-  (:role-names language))
+  [^DL language]
+  (.role-names language))
 
 (defn signature
   "Returns the signature of the given language, i.e. the pair of role
@@ -46,8 +46,8 @@
 
 (defn constructors
   "Returns all allowed constructors of the given language."
-  [language]
-  (:constructors language))
+  [^DL language]
+  (.constructors language))
 
 (defmethod print-method DL [dl out]
   (.write out (print-str (list 'DL (name (language-name dl))))))
@@ -66,13 +66,13 @@
 
 (defn expression-term
   "Returns the s-exp describing this expression."
-  [dl-expression]
-  (:sexp dl-expression))
+  [^DL-expression dl-expression]
+  (.sexp dl-expression))
 
 (defn expression-language
   "Returns the language of this expression."
-  [dl-expression]
-  (:language dl-expression))
+  [^DL-expression dl-expression]
+  (.language dl-expression))
 
 (defmethod print-method DL-expression [dl-exp out]
   (let [#^String output (with-out-str
@@ -320,7 +320,7 @@
   names by their values, returning the resulting expression."
   [dl-expr names]
   (DL-expression. (expression-language dl-expr)
-		 (substitute-syntax (expression-term dl-expr) names)))
+                  (substitute-syntax (expression-term dl-expr) names)))
 
 ;;; Definitions
 
@@ -328,13 +328,13 @@
 
 (defn definition-target
   "Returns target of this definition."
-  [definition]
-  (:target definition))
+  [^DL-definition definition]
+  (.target definition))
 
 (defn definition-expression
   "Returns expression of this definition."
-  [definition]
-  (:dl-expression definition))
+  [^DL-definition definition]
+  (.dl-expression definition))
 
 (defmethod print-method DL-definition [definition out]
   (.write out (with-out-str
@@ -357,16 +357,16 @@
 
 (defn subsumee
   "Returns the subsumee of the given subsumption."
-  [subsumption]
-  (:subsumee subsumption))
+  [^DL-subsumption subsumption]
+  (.subsumee subsumption))
 
 (defmethod premise DL-subsumption [susu]
   #{(subsumee susu)})
 
 (defn subsumer
   "Returns the subsumer of the given subsumption."
-  [subsumption]
-  (:subsumer subsumption))
+  [^DL-subsumption subsumption]
+  (.subsumer subsumption))
 
 (defmethod conclusion DL-subsumption [susu]
   #{(subsumer susu)})

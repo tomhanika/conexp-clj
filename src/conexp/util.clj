@@ -140,19 +140,6 @@
   [& strings]
   (die-with-error IllegalStateException strings))
 
-(defmacro with-profiled-fns
-  "Runs code in body with all given functions being profiled."
-  [fns & body]
-  `(binding ~(vec (apply concat
-			 (for [fn (distinct fns)]
-			   `[~fn (let [orig-fn# ~fn]
-				   (fn [& args#]
-				     (prof ~(keyword fn)
-				       (apply orig-fn# args#))))])))
-     (let [data# (with-profile-data ~@body)]
-       (if (not (empty? data#))
-	 (print-summary (summarize data#))))))
-
 (defmacro with-memoized-fns
   "Runs code in body with all functions in functions memoized."
   [functions & body]
@@ -214,8 +201,7 @@
 (defn hash-combine-hash
   "Combines the hashes of all things given."
   [& args]
-  (reduce hash-combine 0
-	  (map hash args)))
+  (reduce #(hash-combine %1 (hash %2)) 0 args))
 
 
 ;;; Math
