@@ -10,6 +10,10 @@
   (:use conexp.base)
   (:require [clojure.contrib.graph :as graph]))
 
+(ns-doc
+ "Provides the implementation of formal contexts and functions on
+  them.")
+
 ;;;
 
 (deftype Context [objects attributes incidence]
@@ -341,47 +345,6 @@
   [ctx set-of-attributes]
   (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
 
-(defn- context-attribute-closure-operator
-  [ctx]
-  (let [obj-derv-cards (loop [result {}
-			      objs (seq (objects ctx))]
-			 (if objs
-			   (let [g (first objs)]
-			     (recur (assoc result g (count (object-derivation ctx #{g})))
-				    (next objs)))
-			   result))
-	ordered-objects (sort (fn [g_1 g_2]
-				(<= (obj-derv-cards g_1)
-				    (obj-derv-cards g_2)))
-			      (objects ctx))
-	att-derv-cards (loop [result {}
-			      atts (seq (attributes ctx))]
-			 (if atts
-			   (let [m (first atts)]
-			     (recur (assoc result m (count (attribute-derivation ctx #{m})))
-				    (next atts)))
-			   result))
-	ordered-attributes (sort (fn [m_1 m_2]
-				   (<= (att-derv-cards m_1)
-				       (att-derv-cards m_2)))
-				 (attributes ctx))
-	incident? (memoize (fn [g m]
-			     ((incidence ctx) [g m])))
-	filter-objects (memoize (fn [card]
-				  (drop-while #(< (obj-derv-cards %) card)
-					      ordered-objects)))
-	filter-attributes (memoize (fn [card]
-				     (drop-while #(< (att-derv-cards %) card)
-						 ordered-attributes)))]
-    (fn [set-of-attributes]
-      (let [propable-objects (filter-objects (count set-of-attributes))
-	    derived-objects (filter (fn [g] (every? #(incident? g %) set-of-attributes))
-				    propable-objects)
-	    propable-attributes (filter-attributes (count derived-objects))
-	    derived-attributes (filter (fn [m] (every? #(incident? % m) derived-objects))
-				       propable-attributes)]
-	(set derived-attributes)))))
-
 (defn context-intents
   "Computes a sequence of all intents of ctx."
   [ctx]
@@ -394,8 +357,7 @@
   with their corresponding intents."
   [ctx]
   (for [objs (context-extents ctx)]
-    [ objs (object-derivation ctx objs) ]))
-
+    [objs, (object-derivation ctx objs)]))
 
 ;; Common Operations with Contexts
 
@@ -667,12 +629,15 @@
 ;;;
 
 (defn context-for-clop
-  "Returns a minimal context describing the closure operator clop on base-set."
-  ; unfinished
+  "Returns a minimal context describing the closure operator clop on base-set.
+
+  BAD IMPLEMENTATION."
   [base-set clop]
   (let [objects (all-closed-sets base-set clop), ; we actually only need the inf-irr closures
 	attributes base-set
 	incidence contains?]
     (reduce-context-objects (make-context objects attributes incidence))))
+
+;;;
 
 nil

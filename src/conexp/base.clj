@@ -135,7 +135,6 @@
   "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
   interpreted as increasing, is taken to be the basic order of the elements."
   [G clop A]
-  ;; is this fast enough?
   (next-closed-set-in-family (constantly true) G clop A))
 
 (defn all-closed-sets
@@ -203,7 +202,26 @@
   [relation source target]
   (and (= (set-of x [[x y] relation]) source)
        (subset? (set-of y [[x y] relation]) target)
-       (= (count source) (count relation)))) ; this works because everything is finite
+       (= (count source) (count relation))))
+
+(defn minimal-generating-subsets
+  "Given a set A and a closure operator clop returns all subsets B of
+  A such that (= (clop A) (clop B))."
+  [clop A]
+  (let [clop-A (clop A)]
+    (loop [left     [A],                ;yet to consider
+           minimals []]                 ;minimals elements already found
+      (if (empty? left)
+        (distinct minimals)
+        (let [next (first left)]
+          (if (empty? next)
+            (recur (rest left) (conj minimals next))
+            (let [generating-subsets (set-of X [x next,
+                                                :let [X (disj next x)]
+                                                :when (= clop-A (clop X))])]
+              (if (empty? generating-subsets)
+                (recur (rest left) (conj minimals next))
+                (recur (into (rest left) generating-subsets) minimals)))))))))
 
 ;;;
 
