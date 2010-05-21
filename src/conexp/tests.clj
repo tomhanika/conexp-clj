@@ -11,8 +11,7 @@
 
 ;;;
 
-(tests-to-run conexp.tests.util
-	      conexp.tests.base
+(tests-to-run conexp.tests.base
 	      conexp.tests.fca
               conexp.tests.math
               conexp.tests.io

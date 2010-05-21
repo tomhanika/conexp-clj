@@ -6,14 +6,14 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.util
-  (:use clojure.contrib.profile
-	[clojure.contrib.math :only (round)]
-        clojure.contrib.def
-        clojure.test)
-  (:import javax.swing.JOptionPane
-	   java.util.Calendar
-	   java.text.SimpleDateFormat))
+(in-ns 'conexp.base)
+
+(use 'clojure.contrib.profile,
+     'clojure.test)
+
+(import 'javax.swing.JOptionPane
+        'java.util.Calendar
+        'java.text.SimpleDateFormat)
 
 
 ;;; Namespace documentation
@@ -31,9 +31,6 @@
   (let [ns (symbol (str *ns*))]
     `(update-ns-meta! ~ns
        :doc ~doc)))
-
-(ns-doc "Loose collection of some useful functions and macros for conexp.")
-
 
 ;;; Testing
 
@@ -79,7 +76,6 @@
   "Fills given string with padding to have at least the given length."
   ([string length]
      (ensure-length string length " "))
-
   ([string length padding]
      (apply str string (repeat (- length (count string)) padding))))
 

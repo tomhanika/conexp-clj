@@ -10,11 +10,10 @@
   (:use conexp.base
 	conexp.io.util
 	conexp.layout.base)
-  (:use [clojure.contrib.io :exclude (with-in-reader)])
+  (:use [clojure.contrib.io :only (with-out-writer)])
   (:import [java.io PushbackReader]))
 
-(update-ns-meta! conexp.io.layouts
-  :doc "Implements IO for layouts.")
+(ns-doc "Implements IO for layouts.")
 
 ;;; Input format dispatch
 

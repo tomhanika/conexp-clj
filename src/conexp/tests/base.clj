@@ -10,6 +10,8 @@
   (:use clojure.test
 	conexp.base))
 
+(load "util")
+
 ;;;
 
 (deftest test-cross-product

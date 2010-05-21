@@ -11,16 +11,16 @@
 	    clojure.contrib.set
 	    clojure.contrib.math
 	    clojure.contrib.lazy-seqs
-	    clojure.contrib.def
-	    conexp.util)
+	    clojure.contrib.def)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 (immigrate 'clojure.set
 	   'clojure.contrib.set
 	   'clojure.contrib.math
 	   'clojure.contrib.lazy-seqs
-	   'clojure.contrib.def
-	   'conexp.util)
+	   'clojure.contrib.def)
+
+(load "util")
 
 (ns-doc "Basic definitions for conexp-clj.")
 
