@@ -166,6 +166,28 @@
        #{[1 2] [2 3] [3 4]} #{1 2 3} #{1 2 3}
        #{[1 2] [2 2]} #{1} #{2}))
 
+(deftest test-minimal-generating-sets
+  (are [set clop minimal-generators] (= (set minimal-generators)
+                                        (set (minimal-generating-subsets clop set)))
+    #{1} identity [#{1}],
+    #{} #(conj % 1) [#{}],
+    #{1 2 3 4 5}
+    #(if (< (count %) 3)
+       %
+       #{1 2 3 4 5})
+    [#{3 4 5} #{2 4 5} #{2 3 5} #{2 3 4} #{1 4 5} #{1 3 5} #{1 3 4} #{1 2 5} #{1 2 4} #{1 2 3}]))
+
+(deftest test-partial-min
+  (are [order seq minimals] (= (set minimals) (set (apply partial-min order seq)))
+    <= [1 2 3 4] [1],
+    subset? [#{1 2 3} #{1 2} #{1 3}] [#{1 2} #{1 3}]))
+
+(deftest test-partial-max
+  (are [order seq minimals] (= (set minimals) (set (apply partial-max order seq)))
+    <= [1 2 3 4] [4],
+    subset? [#{1 2 3} #{1 2} #{1 3}] [#{1 2 3}],
+    subset? [#{2 3 4} #{1 2 3} #{1 2} #{1}] [#{2 3 4} #{1 2 3}]))
+
 ;;;
 
 nil
