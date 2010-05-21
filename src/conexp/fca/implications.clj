@@ -8,7 +8,6 @@
 
 (ns conexp.fca.implications
   (:use conexp.base
-        [conexp.math.posets :only (partial-min)]
 	conexp.fca.contexts))
 
 ;;;

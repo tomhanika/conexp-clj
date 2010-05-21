@@ -24,7 +24,7 @@
 
 (ns-doc "Basic definitions for conexp-clj.")
 
-;;; Set Theory
+;;; Very Basic Set Theory
 
 (defn cross-product
   "Returns cross product of set-1 and set-2."
@@ -222,6 +222,28 @@
               (if (empty? generating-subsets)
                 (recur (rest left) (conj minimals next))
                 (recur (into (rest left) generating-subsets) minimals)))))))))
+
+(defn partial-min
+  "For a given partial order <= and given elements returns the minimal
+  among them."
+  [<= & xs]
+  (let [runner (fn runner [left minimals]
+                 (if (empty? left)
+                   minimals
+                   (let [next (first left),
+                         new-minimals (remove #(<= next %) minimals)]
+                     (if (not= (count minimals) (count new-minimals))
+                       (recur (rest left) (conj new-minimals next))
+                       (if (some #(<= % next) minimals)
+                         (recur (rest left) minimals)
+                         (recur (rest left) (conj minimals next)))))))]
+    (runner xs ())))
+
+(defn partial-max
+  "For a given partial order <= and given elements returns the maximal
+  among them."
+  [<= & xs]
+  (apply partial-min #(<= %2 %1) xs))
 
 ;;;
 
