@@ -75,7 +75,9 @@
                           (proper-premise? ctx A)))
                     (let [pp-impls (proper-premise-implications ctx)]
                       (is (sound-implication-set? ctx pp-impls))
-                      (is (complete-implication-set? ctx pp-impls))))
+                      (is (complete-implication-set? ctx pp-impls))
+                      (is (forall [impl pp-impls]
+                            (not (empty? (conclusion impl)))))))
       contexts/*test-ctx-01*,
       contexts/*test-ctx-04*,
       contexts/*test-ctx-07*,

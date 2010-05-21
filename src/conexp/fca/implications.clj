@@ -8,6 +8,7 @@
 
 (ns conexp.fca.implications
   (:use conexp.base
+        [conexp.math.posets :only (partial-min)]
 	conexp.fca.contexts))
 
 ;;;
@@ -194,22 +195,6 @@
   (and (subset? A (attributes ctx))
        (not (empty? (A-dot ctx A)))))
 
-(defn- subset-minimal
-  "Returns from a sequence of sets all sets which are minimal wrt
-  subset?. May reorder the sets in set-sqn."
-  ([set-sqn]
-     (subset-minimal set-sqn []))
-  ([set-sqn minimals]
-     (if (empty? set-sqn)
-       minimals
-       (let [next (first set-sqn),
-             new-minimals (remove #(subset? next %) minimals)]
-         (if (not= (count minimals) (count new-minimals)) ;next is smaller than some minimals
-           (recur (rest set-sqn) (conj new-minimals next))
-           (if (some #(subset? % next) minimals) ;next is larger than some minimals
-             (recur (rest set-sqn) minimals)
-             (recur (rest set-sqn) (conj minimals next))))))))
-
 (defn- minimal-intersection-sets
   "Returns for a sequence set-sqn of sets all sets which have
   non-empty intersection with all sets in set-sqn and are minimal with
@@ -219,11 +204,12 @@
    (empty? set-sqn) (list #{}),
    (empty? (first set-sqn)) (),
    :else (let [next-set (first set-sqn)]
-           (subset-minimal (mapcat (fn [set]
-                                     (if-not (empty? (intersection set next-set))
-                                       (list set)
-                                       (map #(conj set %) next-set)))
-                                   (minimal-intersection-sets (rest set-sqn)))))))
+           (apply partial-min subset?
+                  (mapcat (fn [set]
+                            (if-not (empty? (intersection set next-set))
+                              (list set)
+                              (map #(conj set %) next-set)))
+                          (minimal-intersection-sets (rest set-sqn)))))))
 
 (defn- proper-premises-for-attribute
   "Returns in context ctx for the attribute m and the objects in objs,
