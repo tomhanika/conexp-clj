@@ -37,7 +37,7 @@
   "The maximal weight possible. To be rebound.")
 
 (defn- titanic-closure
-  ""
+  "Computes the closure of X by the weights of its subsets."
   [X base-set key-set candidates]
   (let [Y (apply union X (map #(closure (disj X %)) X))]
     (loop [Y Y,
@@ -46,11 +46,11 @@
         (let [m   (first elements),
               X+m (conj X m),
               s   (if (contains? candidates X+m)
-                    (set-weight X+m)
+                    (get set-weight X+m max-weight)
                     (minimum (for [K key-set,
                                    :when (subset? K X+m)]
-                               (set-weight K))))]
-          (recur (if (= s (set-weight X))
+                               (get set-weight K max-weight))))]
+          (recur (if (= s (get set-weight X max-weight))
                    (conj Y m)
                    Y)
                  (rest elements)))
@@ -68,8 +68,8 @@
                                      (contains? key-set (disj both x))))])]
     (doseq [X C]
       (set-val! subset-weight X
-                (minimum (conj max-weight
-                               (map #(set-weight (disj X %)) X)))))
+                (minimum (conj (map #(get set-weight (disj X %) max-weight) X)
+                               max-weight))))
     C))
 
 (defn titanic
@@ -91,19 +91,19 @@
       (let [empty-weight (set-weight #{})]
         (doseq [m base-set]
           (set-val! subset-weight #{m} empty-weight)))
-      (loop [key-set    [#{}],
+      (loop [key-set    #{#{}},
              candidates (set-of #{m} [m base-set]),
              key-sets   [key-set]]
         (set! set-weight (into set-weight (weigh candidates)))
         (doseq [X key-set]
           (set-val! closure X (titanic-closure X base-set key-set candidates)))
         (let [next-key-set (set-of X [X candidates,
-                                      :when (not= (subset-weight X)
-                                            (set-weight X))])]
+                                      :when (not= (get subset-weight X max-weight)
+                                            (get set-weight X max-weight))])]
           (if-not (empty? next-key-set)
             (recur next-key-set
-                   (titanic-generate key-set)
-                   (conj key-sets key-set))
+                   (titanic-generate next-key-set)
+                   (conj key-sets next-key-set))
             (distinct (mapcat #(map closure %) key-sets))))))))
 
 
