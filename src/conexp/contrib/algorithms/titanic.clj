@@ -15,11 +15,6 @@
 
 ;;; Pragmatics
 
-(defn- minimum
-  "Returns a random minimal element wrt <= in seq-of-elements."
-  [<= seq-of-elements]
-  (first (apply partial-min <= seq-of-elements)))
-
 (defmacro- set-val!
   "Sets (via set!) the value for key in map to val."
   [map key val]
@@ -30,6 +25,9 @@
 
 (defvar- closure nil
   "Holds the closures of sets. To be rebound.")
+(defvar- minimum nil
+  "Computes the minimum of weights in a given sequence of weights. To
+  be rebound.")
 (defvar- set-weight nil
   "Holds the weights of sets. To be rebound.")
 
@@ -47,11 +45,12 @@
     (if-not (empty? elements)
       (let [m   (first elements),
             X+m (conj X m),
-            s   (if (contains? candidates X+m)
-                  (set-weight X+m)
-                  (minimum (for [K keys,
-                                 :when (subset? K X+m)]
-                             (set-weight K))))]
+            s   (or (set-weight X+m)
+                    (let [weight (minimum (doall (for [K keys, ;bottleneck!
+                                                       :when (subset? K X+m)]
+                                                   (set-weight K))))]
+                      (set-val! set-weight X+m weight)
+                      weight))]
         (recur (if (= s (set-weight X))
                  (conj Y m)
                  Y)
@@ -72,14 +71,14 @@
 (defn titanic
   "Implements the titanic algorithm. weigh must return for a
   collection of sets a hash-map mapping every set to its weight, with
-  max-weight being the maximal weight possbile. weight-order is the
-  corresponding order of weights and must form an infimum semilattice
-  for titanic to work correctly."
-  [base-set weigh max-weight weight-order]
+  max-weight being the maximal weight possbile. weight-minimum is a
+  function of one argument being a sequence of weights and returning
+  the minimal of those."
+  [base-set weigh max-weight weight-minimum]
   (binding [closure       {},
             set-weight    (weigh [#{}]),
             subset-weight (memoize (partial subset-weight max-weight)),
-            minimum       (partial minimum weight-order)]
+            minimum       weight-minimum]
 
     (loop [key-set    #{#{}},
            candidates (set-of #{m} [m base-set]),
@@ -119,7 +118,7 @@
   (titanic (attributes context)
            (supports context 0)
            1.0
-           <=))
+           #(apply min %)))
 
 (defn titanic-iceberg-intent-set
   "Computes the iceberg intent set for given context and minimal
@@ -128,7 +127,7 @@
   (let [intents (titanic (attributes context)
                          (supports context minsupp)
                          1.0
-                         <=)]
+                         #(apply min %))]
     (if (<= (* (count (objects context)) minsupp)
             (count (attribute-derivation context (attributes context))))
       intents
