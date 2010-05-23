@@ -9,7 +9,9 @@
 (ns conexp.contrib.algorithms.titanic
   (:use conexp.main))
 
-(ns-doc "Implements the TITANIC algorithm and some common weights.")
+(ns-doc
+ "Implements the TITANIC algorithm. Note that this implementation is
+ not tune for speed but for flexibility.")
 
 ;;; Pragmatics
 
@@ -18,7 +20,7 @@
   [<= seq-of-elements]
   (first (apply partial-min <= seq-of-elements)))
 
-(defmacro set-val!
+(defmacro- set-val!
   "Sets (via set!) the value for key in map to val."
   [map key val]
   `(set! ~map (assoc ~map ~key ~val)))
@@ -68,47 +70,69 @@
                              (contains? key-set (disj both x))))]))
 
 (defn titanic
-  "Implements the titanic algorithm."
-  ;; weigh returns a map of sets to weights
-  ;; <=-weight must be an infimum semilattice
-  [base-set weigh [weights <=-weight]]
-  (let [max-weight-values (apply partial-max <=-weight weights)]
-    (when (not= 1 (count max-weight-values))
-      (illegal-argument "Given partial order for weights does not have a greatest element."))
+  "Implements the titanic algorithm. weigh must return for a
+  collection of sets a hash-map mapping every set to its weight, with
+  max-weight being the maximal weight possbile. weight-order is the
+  corresponding order of weights and must form an infimum semilattice
+  for titanic to work correctly."
+  [base-set weigh max-weight weight-order]
+  (binding [closure       {},
+            set-weight    (weigh [#{}]),
+            subset-weight (memoize (partial subset-weight max-weight)),
+            minimum       (partial minimum weight-order)]
 
-    (binding [closure       {},
-              set-weight    (weigh [#{}]),
-              subset-weight (memoize (partial subset-weight (first max-weight-values))),
-              minimum       (partial minimum <=-weight)]
+    (loop [key-set    #{#{}},
+           candidates (set-of #{m} [m base-set]),
+           key-sets   [key-set]]
+      (set! set-weight (into set-weight (weigh candidates)))
+      (doseq [X key-set]
+        (set-val! closure X (titanic-closure X base-set key-set candidates)))
+      (let [next-key-set (set-of X [X candidates,
+                                    :when (not= (subset-weight X)
+                                                (set-weight X))])]
+        (if-not (empty? next-key-set)
+          (recur next-key-set
+                 (titanic-generate next-key-set)
+                 (conj key-sets next-key-set))
+          (distinct (mapcat #(map closure %) key-sets)))))))
 
-      (loop [key-set    #{#{}},
-             candidates (set-of #{m} [m base-set]),
-             key-sets   [key-set]]
-        (set! set-weight (into set-weight (weigh candidates)))
-        (doseq [X key-set]
-          (set-val! closure X (titanic-closure X base-set key-set candidates)))
-        (let [next-key-set (set-of X [X candidates,
-                                      :when (not= (subset-weight X)
-                                                  (set-weight X))])]
-          (if-not (empty? next-key-set)
-            (recur next-key-set
-                   (titanic-generate next-key-set)
-                   (conj key-sets next-key-set))
-            (distinct (mapcat #(map closure %) key-sets))))))))
+;;;
 
-
-;;; Common Weights
-
-(defn supports
+(defn- supports
   "Returns a function of one argument being a collection of sets of attributes,
   returning a hash-map from those sets to their supports in the given
-  context."
-  [context]
-  (fn [coll]
-    (into {} (for [atts coll]
-               [atts (count (context-attribute-closure context atts))]))))
+  context, if they have at least minsupp elements. Otherwise they are
+  associated with -1."
+  [context minsupp]
+  (let [num-of-objects (count (objects context)),
+        minnum (ceil (* minsupp num-of-objects))]
+    (fn [coll]
+      (into {} (for [atts coll]
+                 [atts (let [num (count (attribute-derivation context atts))]
+                         (if (< num minnum)
+                           -1
+                           (/ num num-of-objects)))])))))
 
-;; iceberg intent set
+(defn titanic-context-intents
+  "Computes the intents of the given context via TITANIC."
+  [context]
+  (titanic (attributes context)
+           (supports context 0)
+           1.0
+           <=))
+
+(defn titanic-iceberg-intent-set
+  "Computes the iceberg intent set for given context and minimal
+  support minsupp via TITANIC."
+  [context minsupp]
+  (let [intents (titanic (attributes context)
+                         (supports context minsupp)
+                         1.0
+                         <=)]
+    (if (<= (* (count (objects context)) minsupp)
+            (count (attribute-derivation context (attributes context))))
+      intents
+      (butlast intents))))
 
 ;;;
 

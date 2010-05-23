@@ -8,11 +8,28 @@
 
 (ns conexp.contrib.tests.algorithms.titanic
   (:use conexp.main
-        conexp.contrib.algorithms.titanic))
-
-(defvar- ctx (diag-context #{1 2 3 4 5}))
+        conexp.contrib.algorithms.titanic)
+  (:use clojure.test))
 
 ;;;
+
+(defvar- *testing-data*
+  [(diag-context (set-of-range 10)),
+   (one-context (set-of-range 10)),
+   ])
+
+(deftest test-titanic-context-intents
+  (with-testing-data [ctx *testing-data*]
+    (= (set (context-intents ctx)) (set (titanic-context-intents ctx)))))
+
+(deftest test-titanic-iceberg-intent-set
+  (forall [minsupp [0.0 0.2 0.5 0.7 0.9 1.0]]
+    (with-testing-data [ctx *testing-data*]
+      (= (set (iceberg-intent-set ctx minsupp))
+         (set (titanic-iceberg-intent-set ctx minsupp)))))
+  (with-testing-data [ctx *testing-data*]
+    (= (titanic-context-intents ctx)
+       (titanic-iceberg-intent-set ctx 0.0))))
 
 ;;;
 
