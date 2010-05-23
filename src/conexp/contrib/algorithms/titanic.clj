@@ -41,7 +41,7 @@
 
 (defn- titanic-closure
   "Computes the closure of X by the weights of its subsets."
-  [X base-set key-set candidates]
+  [X base-set keys candidates]
   (loop [Y (apply union X (map #(closure (disj X %)) X)),
          elements (difference base-set Y)]
     (if-not (empty? elements)
@@ -49,7 +49,7 @@
             X+m (conj X m),
             s   (if (contains? candidates X+m)
                   (set-weight X+m)
-                  (minimum (for [K key-set,
+                  (minimum (for [K keys,
                                  :when (subset? K X+m)]
                              (set-weight K))))]
         (recur (if (= s (set-weight X))
@@ -83,18 +83,18 @@
 
     (loop [key-set    #{#{}},
            candidates (set-of #{m} [m base-set]),
-           key-sets   [key-set]]
+           keys       [#{}]]
       (set! set-weight (into set-weight (weigh candidates)))
       (doseq [X key-set]
-        (set-val! closure X (titanic-closure X base-set key-set candidates)))
+        (set-val! closure X (titanic-closure X base-set keys candidates)))
       (let [next-key-set (set-of X [X candidates,
                                     :when (not= (subset-weight X)
                                                 (set-weight X))])]
         (if-not (empty? next-key-set)
           (recur next-key-set
                  (titanic-generate next-key-set)
-                 (conj key-sets next-key-set))
-          (distinct (mapcat #(map closure %) key-sets)))))))
+                 (concat keys next-key-set))
+          (distinct (map closure keys)))))))
 
 ;;;
 
@@ -105,7 +105,7 @@
   associated with -1."
   [context minsupp]
   (let [num-of-objects (count (objects context)),
-        minnum (ceil (* minsupp num-of-objects))]
+        minnum (* minsupp num-of-objects)]
     (fn [coll]
       (into {} (for [atts coll]
                  [atts (let [num (count (attribute-derivation context atts))]
@@ -132,7 +132,7 @@
     (if (<= (* (count (objects context)) minsupp)
             (count (attribute-derivation context (attributes context))))
       intents
-      (butlast intents))))
+      (remove #{(attributes context)} intents))))
 
 ;;;
 

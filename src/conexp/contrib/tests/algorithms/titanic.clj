@@ -16,6 +16,18 @@
 (defvar- *testing-data*
   [(diag-context (set-of-range 10)),
    (one-context (set-of-range 10)),
+   (make-context #{1 2 3 4 5 6 7 8 9 10}
+                 '#{e p c l i}
+                 '#{[1 e] [1 c]
+                    [2 e] [2 c] [2 i]
+                    [3 e] [3 l] [3 i]
+                    [4 e] [4 l] [4 i]
+                    [5 e] [5 c] [5 i]
+                    [6 e] [6 c]
+                    [7 p] [7 l] [7 i]
+                    [8 p] [8 l] [8 i]
+                    [9 p] [9 l] [9 i]
+                    [10 p] [10 l]}),
    ])
 
 (deftest test-titanic-context-intents
