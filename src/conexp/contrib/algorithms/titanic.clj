@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.titanic
-  (:use conexp.base))
+  (:use conexp.main))
 
 (ns-doc "Implements the TITANIC algorithm and some common weights.")
 
@@ -21,7 +21,8 @@
 (defmacro set-val!
   "Sets (via set!) the value for key in map to val."
   [map key val]
-  `(set! map (assoc map key val)))
+  `(set! ~map (assoc ~map ~key ~val)))
+
 
 ;;; TITANIC Implementation
 
@@ -35,15 +36,50 @@
 (defvar- max-weight nil
   "The maximal weight possible. To be rebound.")
 
-(declare titanic-generate titanic-closure)
+(defn- titanic-closure
+  ""
+  [X base-set key-set candidates]
+  (let [Y (apply union X (map #(closure (disj X %)) X))]
+    (loop [Y Y,
+           elements (difference base-set Y)]
+      (if-not (empty? elements)
+        (let [m   (first elements),
+              X+m (conj X m),
+              s   (if (contains? candidates X+m)
+                    (set-weight X+m)
+                    (minimum (for [K key-set,
+                                   :when (subset? K X+m)]
+                               (set-weight K))))]
+          (recur (if (= s (set-weight X))
+                   (conj Y m)
+                   Y)
+                 (rest elements)))
+        Y))))
+
+(defn- titanic-generate
+  "Generates the next candidate set from the given key-set and sets
+  subset-weight accordingly."
+  [key-set]
+  (let [C (set-of both [A key-set,
+                        B key-set,
+                        :let [both (union A B)]
+                        :when (and (= (inc (count A)) (count both)) ;one more
+                                   (forall [x both]                 ;both is candidate
+                                     (contains? key-set (disj both x))))])]
+    (doseq [X C]
+      (set-val! subset-weight X
+                (minimum (conj max-weight
+                               (map #(set-weight (disj X %)) X)))))
+    C))
 
 (defn titanic
   "Implements the titanic algorithm."
   ;; weigh returns a map of sets to weights
+  ;; <=-weight must be an infimum semilattice
   [base-set weigh [weights <=-weight]]
   (let [max-weight-values (apply partial-max <=-weight weights)]
     (when (not= 1 (count max-weight-values))
-      (illegal-argument "Given partial order for weights does not have a greates element."))
+      (illegal-argument "Given partial order for weights does not have a greatest element."))
 
     (binding [closure       {},
               set-weight    {},
@@ -68,52 +104,20 @@
             (recur next-key-set
                    (titanic-generate key-set)
                    (conj key-sets key-set))
-            (set (mapcat #(map closure %) key-sets))))))))
+            (distinct (mapcat #(map closure %) key-sets))))))))
 
-(defn- titanic-generate
-  ""
-  [key-set]
-  (let [C (set-of (union A B)
-                  [A key-set,
-                   B key-set,
-                   :when (and (= (count A) (count B))
-                              (= 1 (count (difference A B)))
-                              (= 1 (count (difference B A))))]),
-        C (set-of X [X C,
-                     :when (forall [x X]
-                             (contains? key-set (disj X x)))])]
-    (doseq [c C]
-      (set-val! subset-weight c max-weight))
-    (doseq [X C]
-      (doseq [s X]
-        (let [S (disj X s)]
-          (set-val! subset-weight S (minimum (set-weight S)
-                                             (subset-weight X))))))
-    C))
-
-(defn- titanic-closure
-  ""
-  [X base-set key-set candidates]
-  (let [Y (apply union X (map #(closure (disj X %)) X))]
-    (loop [Y Y,
-           elements (difference base-set Y)]
-      (if-not (empty? elements)
-        (let [m   (first elements),
-              X+m (conj X m),
-              s   (if (contains? candidates X+m)
-                    (set-weight X+m)
-                    (minimum (for [K key-set,
-                                   :when (subset? K X+m)]
-                               (set-weight K))))]
-          (recur (if (= s (set-weight X))
-                   (conj Y m)
-                   Y)
-                 (rest elements)))
-        Y))))
 
 ;;; Common Weights
 
-;; concept lattice
+(defn supports
+  "Returns a function of one argument being a collection of sets of attributes,
+  returning a hash-map from those sets to their supports in the given
+  context."
+  [context]
+  (fn [coll]
+    (into {} (for [atts coll]
+               [atts (count (context-attribute-closure context atts))]))))
+
 ;; iceberg intent set
 
 ;;;

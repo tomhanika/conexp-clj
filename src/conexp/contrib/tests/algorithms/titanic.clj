@@ -6,13 +6,13 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests
-  (:use conexp.main))
+(ns conexp.contrib.tests.algorithms.titanic
+  (:use conexp.main
+        conexp.contrib.algorithms.titanic))
+
+(defvar- ctx (diag-context #{1 2 3 4 5}))
 
 ;;;
-
-(tests-to-run conexp.contrib.tests.algorithms
-              conexp.contrib.tests.dl)
 
 ;;;
 
