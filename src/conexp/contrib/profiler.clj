@@ -7,14 +7,15 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.profiler
-  (:use [conexp.util :only (update-ns-meta!)])
+  (:use [conexp.base :only (ns-doc)])
   (:use clojure.contrib.profile
         [clojure.contrib.def :only (defnk, defvar-)]
         [clojure.contrib.pprint :only (pprint, cl-format)]
         [clojure.contrib.except :only (throw-if, throw-if-not)]))
 
-(update-ns-meta! conexp.contrib.profiler
-  :doc "Provides simple function for statistical and instrumental profiling.")
+(ns-doc
+ "Provides simple function for statistical and instrumental
+ profiling.")
 
 ;;; Low Level
 
