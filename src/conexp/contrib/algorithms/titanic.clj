@@ -30,47 +30,42 @@
   "Holds the closures of sets. To be rebound.")
 (defvar- set-weight nil
   "Holds the weights of sets. To be rebound.")
-(defvar- subset-weight nil
-  "Holds the minimum of the weights of the proper subsets of a given
-  set. To be rebound.")
-(defvar- max-weight nil
-  "The maximal weight possible. To be rebound.")
+
+(defn- subset-weight
+  "Returns the minimum of the weights of all proper subsets of X."
+  [max-weight X]
+  (minimum (conj (map #(set-weight (disj X %)) X)
+                 max-weight)))
 
 (defn- titanic-closure
   "Computes the closure of X by the weights of its subsets."
   [X base-set key-set candidates]
-  (let [Y (apply union X (map #(closure (disj X %)) X))]
-    (loop [Y Y,
-           elements (difference base-set Y)]
-      (if-not (empty? elements)
-        (let [m   (first elements),
-              X+m (conj X m),
-              s   (if (contains? candidates X+m)
-                    (get set-weight X+m max-weight)
-                    (minimum (for [K key-set,
-                                   :when (subset? K X+m)]
-                               (get set-weight K max-weight))))]
-          (recur (if (= s (get set-weight X max-weight))
-                   (conj Y m)
-                   Y)
-                 (rest elements)))
-        Y))))
+  (loop [Y (apply union X (map #(closure (disj X %)) X)),
+         elements (difference base-set Y)]
+    (if-not (empty? elements)
+      (let [m   (first elements),
+            X+m (conj X m),
+            s   (if (contains? candidates X+m)
+                  (set-weight X+m)
+                  (minimum (for [K key-set,
+                                 :when (subset? K X+m)]
+                             (set-weight K))))]
+        (recur (if (= s (set-weight X))
+                 (conj Y m)
+                 Y)
+               (rest elements)))
+      Y)))
 
 (defn- titanic-generate
   "Generates the next candidate set from the given key-set and sets
   subset-weight accordingly."
   [key-set]
-  (let [C (set-of both [A key-set,
-                        B key-set,
-                        :let [both (union A B)]
-                        :when (and (= (inc (count A)) (count both)) ;one more
-                                   (forall [x both]                 ;both is candidate
-                                     (contains? key-set (disj both x))))])]
-    (doseq [X C]
-      (set-val! subset-weight X
-                (minimum (conj (map #(get set-weight (disj X %) max-weight) X)
-                               max-weight))))
-    C))
+  (set-of both [A key-set,
+                B key-set,
+                :let [both (union A B)]
+                :when (and (= (inc (count A)) (count both)) ;one more
+                           (forall [x both]                 ;both is candidate
+                             (contains? key-set (disj both x))))]))
 
 (defn titanic
   "Implements the titanic algorithm."
@@ -82,15 +77,10 @@
       (illegal-argument "Given partial order for weights does not have a greatest element."))
 
     (binding [closure       {},
-              set-weight    {},
-              subset-weight {},
-              max-weight    (first max-weight-values),
+              set-weight    (weigh [#{}]),
+              subset-weight (memoize (partial subset-weight (first max-weight-values))),
               minimum       (partial minimum <=-weight)]
 
-      (set! set-weight (weigh [#{}]))
-      (let [empty-weight (set-weight #{})]
-        (doseq [m base-set]
-          (set-val! subset-weight #{m} empty-weight)))
       (loop [key-set    #{#{}},
              candidates (set-of #{m} [m base-set]),
              key-sets   [key-set]]
@@ -98,8 +88,8 @@
         (doseq [X key-set]
           (set-val! closure X (titanic-closure X base-set key-set candidates)))
         (let [next-key-set (set-of X [X candidates,
-                                      :when (not= (get subset-weight X max-weight)
-                                            (get set-weight X max-weight))])]
+                                      :when (not= (subset-weight X)
+                                                  (set-weight X))])]
           (if-not (empty? next-key-set)
             (recur next-key-set
                    (titanic-generate next-key-set)
