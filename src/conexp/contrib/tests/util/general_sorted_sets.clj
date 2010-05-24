@@ -6,9 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests.dl.util.general-sorted-sets
+(ns conexp.contrib.tests.util.general-sorted-sets
   (:use conexp.main
-	conexp.contrib.dl.util.general-sorted-sets)
+	conexp.contrib.util.general-sorted-sets)
   (:use [clojure.contrib.seq :only (seq-on)]
 	clojure.test))
 
@@ -32,10 +32,10 @@
   (are [order elts new-elt lowers uppers] (let [gss (make-general-sorted-set order elts)]
 					    (and (= (set lowers)
 						    (set (map :node
-							      (@#'conexp.contrib.dl.util.general-sorted-sets/find-lower-neighbours gss new-elt))))
+							      (@#'conexp.contrib.util.general-sorted-sets/find-lower-neighbours gss new-elt))))
 						 (= (set uppers)
 						    (set (map :node
-							      (@#'conexp.contrib.dl.util.general-sorted-sets/find-upper-neighbours gss new-elt))))))
+							      (@#'conexp.contrib.util.general-sorted-sets/find-upper-neighbours gss new-elt))))))
        <= [1 2 4 5] 3 [2] [4],
        subset? [#{} #{1} #{2} #{3} #{1 2 3} #{1 2}] #{1 2 3 4} [#{1 2 3}] []))
 

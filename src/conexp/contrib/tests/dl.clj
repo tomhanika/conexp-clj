@@ -15,7 +15,6 @@
 	      conexp.contrib.tests.dl.languages.description-graphs
 	      conexp.contrib.tests.dl.languages.EL-gfp
 	      conexp.contrib.tests.dl.framework.reasoning
-	      conexp.contrib.tests.dl.util.general-sorted-sets
 	      conexp.contrib.tests.dl.util.concept-sets
               conexp.contrib.tests.dl.languages.EL-gfp-rewriting
 	      conexp.contrib.tests.dl.languages.EL-gfp-exploration)

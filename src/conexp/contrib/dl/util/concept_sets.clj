@@ -8,8 +8,8 @@
 
 (ns conexp.contrib.dl.util.concept-sets
   (:use conexp.main
+	conexp.contrib.util.general-sorted-sets
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.util.general-sorted-sets
 	conexp.contrib.dl.framework.reasoning)
   (:use [clojure.contrib.seq :only (seq-on)]))
 
