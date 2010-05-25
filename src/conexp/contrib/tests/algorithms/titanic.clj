@@ -40,8 +40,8 @@
       (= (set (iceberg-intent-set ctx minsupp))
          (set (titanic-iceberg-intent-set ctx minsupp)))))
   (with-testing-data [ctx *testing-data*]
-    (= (titanic-context-intents ctx)
-       (titanic-iceberg-intent-set ctx 0.0))))
+    (= (set (titanic-context-intents ctx))
+       (set (titanic-iceberg-intent-set ctx 0.0)))))
 
 ;;;
 

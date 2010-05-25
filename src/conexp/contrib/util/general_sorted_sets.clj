@@ -81,7 +81,7 @@
 	    (recur (rest fluids) (conj fixed next)))
 	  (recur (into (rest fluids) next-neighs) fixed))))))
 
-(defn find-upper-neighbours
+(defn- find-upper-neighbours
   "Finds all upper neighbours of x in gss."
   [#^General-Sorted-Set gss, x]
   (find-neighbours gss
@@ -89,7 +89,7 @@
 		   (comp deref :lowers)
 		   @(.maximal-elements gss)))
 
-(defn find-lower-neighbours
+(defn- find-lower-neighbours
   "Finds all lower neighbours of x in gss."
   [#^General-Sorted-Set gss, x]
   (find-neighbours gss
@@ -162,6 +162,23 @@
 			  [(:node y) (:node x)])
 			(mapcat edges @(:lowers x))))]
     (mapcat edges @(.maximal-elements gss))))
+
+(defn directly-below-in-gss
+  "Returns all elements in the general sorted set gss which would be
+  directly neighboured to elt if it where in gss. If elt is already in
+  gss returns singleton elt."
+  [gss elt]
+  (map :node (find-lower-neighbours gss elt)))
+
+(defn gss-elements
+  "Returns the elements of the general sorted set gss, unordered."
+  [^General-Sorted-Set gss]
+  (loop [collected [],
+         remaining @(.maximal-elements gss)]
+    (if-not (empty? remaining)
+      (recur (into collected (map :node remaining))
+             (mapcat (comp deref :lowers) remaining))
+      collected)))
 
 ;;;
 

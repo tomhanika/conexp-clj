@@ -58,12 +58,19 @@
        subset? [#{} #{1} #{2} #{3} #{1 2 3} #{1 2} #{1 2 3 4}]
                [#{4} #{1 3 4} #{5} #{2 3 4}]))
 
+(deftest- correct-gss-elements
+  (are [order elements] (= (set elements)
+                           (set (gss-elements (make-general-sorted-set order elements))))
+       <= [1 2 3 4 5 6]
+       subset? [#{1} #{2}]))
+
 (defn test-ns-hook []
   (adds-elements-in-correct-order)
   (no-equivalent-elements)
   (finds-correct-neighbours)
   (correct-hasse-graph)
-  (containment))
+  (containment)
+  (correct-gss-elements))
 
 ;;;
 
