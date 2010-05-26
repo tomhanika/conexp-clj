@@ -47,17 +47,17 @@
   "
   [X base-set keys candidates]
   (let [X-weight (set-weight X),
-        keys     (map #(vector % (set-weight %)) keys)]
+        keys     (take-while #(not= (set-weight %) X-weight) keys)]
     (loop [Y        (apply union X (map #(closure (disj X %)) X)),
            elements (difference base-set Y)]
       (if-not (empty? elements)
         (let [m    (first elements),
-              add? (if-let [s (set-weight (conj X m))]
-                     (= s X-weight)
-                     (not (first (for [[K weight] keys,
-                                       :while (not= weight X-weight)
+              X+m  (conj X m),
+              add? (if (contains? candidates X+m)
+                     (= (set-weight X+m) X-weight)
+                     (not (first (for [K keys,
                                        :when (and (contains? K m)
-                                                  (subset? (disj K m) X))]
+                                                  (subset? K X+m))]
                                    K))))]
           (recur (if add? (conj Y m) Y)
                  (rest elements)))
