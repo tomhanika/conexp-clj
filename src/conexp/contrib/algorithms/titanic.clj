@@ -38,36 +38,39 @@
                  max-weight)))
 
 (defn- titanic-closure
-  "Computes the closure of X by the weights of its subsets."
-  ;; keys sorted by their weights (ascending)
-  ;; X is a key set
+  "Computes the closure of X by the weights of its subsets. The
+  following restrictions apply:
+
+    - keys is the sequence of already computed key sets and is orderd
+      by weights ascending,
+    - X is a member of keys.
+  "
   [X base-set keys candidates]
-  (loop [Y (apply union X (map #(closure (disj X %)) X)),
-         elements (difference base-set Y)]
-    (if-not (empty? elements)
-      (let [m        (first elements),
-            X-weight (set-weight X)
-            add?     (if-let [s (set-weight (conj X m))]
-                       (= s X-weight)
-                       (not (first (for [K keys,
-                                         :while (not= (get set-weight K) X-weight)
-                                         :when (and (contains? K m)
-                                                    (subset? (disj K m) X))]
-                                     K))))]
-        (recur (if add? (conj Y m) Y)
-               (rest elements)))
-      Y)))
+  (let [X-weight (set-weight X),
+        keys     (map #(vector % (set-weight %)) keys)]
+    (loop [Y        (apply union X (map #(closure (disj X %)) X)),
+           elements (difference base-set Y)]
+      (if-not (empty? elements)
+        (let [m    (first elements),
+              add? (if-let [s (set-weight (conj X m))]
+                     (= s X-weight)
+                     (not (first (for [[K weight] keys,
+                                       :while (not= weight X-weight)
+                                       :when (and (contains? K m)
+                                                  (subset? (disj K m) X))]
+                                   K))))]
+          (recur (if add? (conj Y m) Y)
+                 (rest elements)))
+        Y))))
 
 (defn- titanic-generate
-  "Generates the next candidate set from the given key-set and sets
-  subset-weight accordingly."
-  [key-set]
-  (set-of both [A key-set,
-                B key-set,
-                :let [both (union A B)]
-                :when (and (= (inc (count A)) (count both)) ;one more
-                           (forall [x both]                 ;both is candidate
-                             (contains? key-set (disj both x))))]))
+  "Computes the next candidate set."
+  [base-set key-set]
+  (set-of next [A key-set,
+                m (difference base-set A),
+                :let [next (conj A m)]
+                :when (forall [x A]
+                        (contains? key-set (disj next x)))]))
 
 (defn titanic
   "Implements the titanic algorithm. weigh must return for a
@@ -78,7 +81,7 @@
   [base-set weigh max-weight weight-minimum]
   (binding [closure       {},
             set-weight    (weigh [#{}]),
-            subset-weight (memoize (partial subset-weight max-weight)),
+            subset-weight (partial subset-weight max-weight),
             minimum       weight-minimum]
 
     (loop [key-set    #{#{}},
@@ -92,7 +95,7 @@
                                                 (get set-weight X))])]
         (if-not (empty? next-key-set)
           (recur next-key-set
-                 (titanic-generate next-key-set)
+                 (titanic-generate base-set next-key-set)
                  (sort (fn [a b]
                          (= (get set-weight a)
                             (weight-minimum [(get set-weight a) (get set-weight b)])))
