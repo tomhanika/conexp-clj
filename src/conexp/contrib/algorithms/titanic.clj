@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.titanic
-  (:use conexp.main
-        conexp.contrib.util.general-sorted-sets))
+  (:use conexp.main))
 
 (ns-doc
  "Implements the TITANIC algorithm. Note that this implementation is
@@ -47,7 +46,9 @@
       (let [m   (first elements),
             X+m (conj X m),
             s   (or (set-weight X+m)
-                    (let [weight (minimum (map set-weight (directly-below-in-gss keys X+m)))]
+                    (let [weight (minimum (doall (for [K keys, ;bottleneck!
+                                                       :when (subset? K X+m)]
+                                                   (set-weight K))))]
                       (set-val! set-weight X+m weight)
                       weight))]
         (recur (if (= s (set-weight X))
@@ -79,22 +80,20 @@
             subset-weight (memoize (partial subset-weight max-weight)),
             minimum       weight-minimum]
 
-    (let [keys (make-general-sorted-set subset? [#{}])]
-      (loop [key-set    #{#{}},
-             candidates (set-of #{m} [m base-set])]
-        (set! set-weight (into set-weight (weigh candidates)))
-        (doseq [X key-set]
-          (set-val! closure X (titanic-closure X base-set keys candidates)))
-        (let [next-key-set (set-of X [X candidates,
-                                      :when (not= (subset-weight X)
-                                                  (set-weight X))])]
-          (if-not (empty? next-key-set)
-            (do
-              (doseq [key next-key-set]
-                (add-to-gss! keys key))
-              (recur next-key-set
-                     (titanic-generate next-key-set)))
-            (distinct (map closure (gss-elements keys)))))))))
+    (loop [key-set    #{#{}},
+           candidates (set-of #{m} [m base-set]),
+           keys       [#{}]]
+      (set! set-weight (into set-weight (weigh candidates)))
+      (doseq [X key-set]
+        (set-val! closure X (titanic-closure X base-set keys candidates)))
+      (let [next-key-set (set-of X [X candidates,
+                                    :when (not= (subset-weight X)
+                                                (set-weight X))])]
+        (if-not (empty? next-key-set)
+          (recur next-key-set
+                 (titanic-generate next-key-set)
+                 (concat keys next-key-set))
+          (distinct (map closure keys)))))))
 
 ;;;
 
