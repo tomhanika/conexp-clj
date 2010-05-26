@@ -13,6 +13,8 @@
  "Implements the TITANIC algorithm. Note that this implementation is
  not tune for speed but for flexibility.")
 
+(set! *warn-on-reflection* true)
+
 ;;; Pragmatics
 
 (defmacro- set-val!
@@ -25,17 +27,27 @@
 
 (defvar- closure nil
   "Holds the closures of sets. To be rebound.")
-(defvar- minimum nil
-  "Computes the minimum of weights in a given sequence of weights. To
-  be rebound.")
 (defvar- set-weight nil
   "Holds the weights of sets. To be rebound.")
 
+(defn- minimum
+  "Computes the minimum of weights in a given sequence of
+  weights. order must be a linear order on elements plus max-val and
+  max-val must be the maximal element to be considered."
+  [order max-val elements]
+  (loop [current-min max-val,
+         elements    elements]
+    (if (empty? elements)
+      current-min
+      (recur (if (order (first elements) current-min)
+               (first elements)
+               current-min)
+             (rest elements)))))
+
 (defn- subset-weight
   "Returns the minimum of the weights of all proper subsets of X."
-  [max-weight X]
-  (minimum (conj (map #(get set-weight (disj X %)) X)
-                 max-weight)))
+  [X]
+  (minimum (map #(get set-weight (disj X %)) X)))
 
 (defn- titanic-closure
   "Computes the closure of X by the weights of its subsets. The
@@ -44,7 +56,9 @@
     - keys is the sequence of already computed key sets and is orderd
       by weights ascending,
     - X is a member of keys.
-  "
+
+  Also note that the variables «closure» and «set-weight» have to be
+  rebound."
   [X base-set keys candidates]
   (let [X-weight (set-weight X),
         keys     (take-while #(not= (set-weight %) X-weight) keys)]
@@ -64,7 +78,8 @@
         Y))))
 
 (defn- titanic-generate
-  "Computes the next candidate set."
+  "Computes the next candidate set. Note that the variables «closure»
+  and «set-weight» have to be rebound."
   [base-set key-set]
   (set-of next [A key-set,
                 m (difference base-set A),
@@ -75,14 +90,13 @@
 (defn titanic
   "Implements the titanic algorithm. weigh must return for a
   collection of sets a hash-map mapping every set to its weight, with
-  max-weight being the maximal weight possbile. weight-minimum is a
-  function of one argument being a sequence of weights and returning
-  the minimal of those."
-  [base-set weigh max-weight weight-minimum]
-  (binding [closure       {},
-            set-weight    (weigh [#{}]),
-            subset-weight (partial subset-weight max-weight),
-            minimum       weight-minimum]
+  max-weight being the maximal weight possible. weight-order denotes
+  the order on the weights. Note that this order has to be linear for
+  this implementation to work."
+  [base-set weigh max-weight weight-order]
+  (binding [closure    {},
+            set-weight (weigh [#{}]),
+            minimum    (partial minimum weight-order max-weight)]
 
     (loop [key-set    #{#{}},
            candidates (set-of #{m} [m base-set]),
@@ -96,10 +110,11 @@
         (if-not (empty? next-key-set)
           (recur next-key-set
                  (titanic-generate base-set next-key-set)
-                 (sort (fn [a b]
-                         (= (get set-weight a)
-                            (weight-minimum [(get set-weight a) (get set-weight b)])))
-                       (concat next-key-set keys)))
+                 (map first
+                      (sort (fn [[_ a] [_ b]]
+                              (weight-order a b))
+                            (map #(vector % (set-weight %))
+                                 (concat next-key-set keys)))))
           (distinct (map closure keys)))))))
 
 ;;;
@@ -125,7 +140,7 @@
   (titanic (attributes context)
            (supports context 0)
            1.0
-           #(apply min %)))
+           <=))
 
 (defn titanic-iceberg-intent-set
   "Computes the iceberg intent set for given context and minimal
@@ -134,7 +149,7 @@
   (let [intents (titanic (attributes context)
                          (supports context minsupp)
                          1.0
-                         #(apply min %))]
+                         <=)]
     (if (<= (* (count (objects context)) minsupp)
             (count (attribute-derivation context (attributes context))))
       intents
