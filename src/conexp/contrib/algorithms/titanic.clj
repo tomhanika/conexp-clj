@@ -34,26 +34,27 @@
 (defn- subset-weight
   "Returns the minimum of the weights of all proper subsets of X."
   [max-weight X]
-  (minimum (conj (map #(set-weight (disj X %)) X)
+  (minimum (conj (map #(get set-weight (disj X %)) X)
                  max-weight)))
 
 (defn- titanic-closure
   "Computes the closure of X by the weights of its subsets."
+  ;; keys sorted by their weights (ascending)
+  ;; X is a key set
   [X base-set keys candidates]
   (loop [Y (apply union X (map #(closure (disj X %)) X)),
          elements (difference base-set Y)]
     (if-not (empty? elements)
-      (let [m   (first elements),
-            X+m (conj X m),
-            s   (or (set-weight X+m)
-                    (let [weight (minimum (doall (for [K keys, ;bottleneck!
-                                                       :when (subset? K X+m)]
-                                                   (set-weight K))))]
-                      (set-val! set-weight X+m weight)
-                      weight))]
-        (recur (if (= s (set-weight X))
-                 (conj Y m)
-                 Y)
+      (let [m        (first elements),
+            X-weight (set-weight X)
+            add?     (if-let [s (set-weight (conj X m))]
+                       (= s X-weight)
+                       (not (first (for [K keys,
+                                         :while (not= (get set-weight K) X-weight)
+                                         :when (and (contains? K m)
+                                                    (subset? (disj K m) X))]
+                                     K))))]
+        (recur (if add? (conj Y m) Y)
                (rest elements)))
       Y)))
 
@@ -88,11 +89,14 @@
         (set-val! closure X (titanic-closure X base-set keys candidates)))
       (let [next-key-set (set-of X [X candidates,
                                     :when (not= (subset-weight X)
-                                                (set-weight X))])]
+                                                (get set-weight X))])]
         (if-not (empty? next-key-set)
           (recur next-key-set
                  (titanic-generate next-key-set)
-                 (concat keys next-key-set))
+                 (sort (fn [a b]
+                         (= (get set-weight a)
+                            (weight-minimum [(get set-weight a) (get set-weight b)])))
+                       (concat next-key-set keys)))
           (distinct (map closure keys)))))))
 
 ;;;
