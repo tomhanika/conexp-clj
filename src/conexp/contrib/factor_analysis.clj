@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.factor-analysis
-  (:use conexp.main))
+  (:use conexp.main)
+  (:import [java.util HashMap]))
 
 (ns-doc "Implements factorization algorithms for contexts.")
 
@@ -20,22 +21,47 @@
 
 ;;; Boolean
 
-(defn clear-factors
+(defn- clear-factors
   "From the given factors remove all which are not needed."
   [factors]
-  ;; WRITE ME!
-  factors)
+  (let [^HashMap marked (HashMap.)]
+    (doseq [factor-tail (tails factors),
+            :let [[A_i B_i] (first factor-tail)]
+            [A_j B_j] (rest factor-tail)]
+      (let [S (intersection (cross-product A_i B_i)
+                            (cross-product A_j B_j))]
+        (when-not (empty? S)
+          (.put marked [A_i B_i]
+                (into (.get marked [A_i B_i])
+                      S))
+          (.put marked [A_j B_j]
+                (into (.get marked [A_j B_j])
+                      S)))))
+    (filter (fn [[A B]]
+              (not= (cross-product A B)
+                    (set (.get marked [A B]))))
+            factors)))
+
+(defn- object-concepts
+  "Returns the object concepts of context."
+  [context]
+  (set-of [g-prime-prime, g-prime]
+          [g (objects context)
+           :let [g-prime (object-derivation context #{g}),
+                 g-prime-prime (attribute-derivation context g-prime)]]))
+
+(defn- attribute-concepts
+  "Returns the attribute concepts of context."
+  [context]
+  (set-of [m-prime, m-prime-prime]
+          [m (attributes context)
+           :let [m-prime (attribute-derivation context #{m}),
+                 m-prime-prime (object-derivation context m-prime)]]))
 
 (defmethod factorize-context :boolean-full
   [_ context]
-  (let [F (intersection (set-of [g-prime-prime, g-prime]
-                                [g (objects context)
-                                 :let [g-prime (object-derivation context #{g}),
-                                       g-prime-prime (attribute-derivation context g-prime)]])
-                        (set-of [m-prime, m-prime-prime]
-                                [m (attributes context)
-                                 :let [m-prime (attribute-derivation context #{m}),
-                                       m-prime-prime (object-derivation context m-prime)]])),
+  (let [F (intersection (object-concepts context)
+                        (attribute-concepts context)),
         S (difference (set (concepts context)) F),
         U (difference (incidence context)
                       (set-of [i j] [[C D] F, i C, j D]))]
