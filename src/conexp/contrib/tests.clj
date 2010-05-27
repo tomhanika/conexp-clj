@@ -11,7 +11,8 @@
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.dl)
+(tests-to-run conexp.contrib.tests.dl
+              conexp.contrib.tests.factor-analysis)
 
 ;;;
 
