@@ -22,14 +22,6 @@
   [map key val]
   `(set! ~map (assoc ~map ~key ~val)))
 
-
-;;; TITANIC Implementation
-
-(defvar- closure nil
-  "Holds the closures of sets. To be rebound.")
-(defvar- set-weight nil
-  "Holds the weights of sets. To be rebound.")
-
 (defn- minimum
   "Computes the minimum of weights in a given sequence of
   weights. order must be a linear order on elements plus max-val and
@@ -44,30 +36,31 @@
                current-min)
              (rest elements)))))
 
-(defn- subset-weight
-  "Returns the minimum of the weights of all proper subsets of X."
-  [X]
-  (minimum (map #(get set-weight (disj X %)) X)))
+;;; TITANIC Implementation
+
+(defvar- closure nil
+  "Holds the closures of sets. To be rebound.")
+(defvar- set-weight nil
+  "Holds the weights of sets. To be rebound.")
 
 (defn- titanic-closure
   "Computes the closure of X by the weights of its subsets. The
   following restrictions apply:
 
-    - keys is the sequence of already computed key sets and is orderd
-      by weights ascending,
+    - keys is the sequence of pairs of already computed key-sets
+      together with their weights, ordered by their weights,
     - X is a member of keys.
 
   Also note that the variables «closure» and «set-weight» have to be
   rebound."
-  [X base-set keys]
-  (let [X-weight (get set-weight X),
-        keys     (take-while #(not= (get set-weight %) X-weight) keys)]
+  [X X-weight base-set keys]
+  (let [keys (map first (take-while #(not= (second %) X-weight) keys))]
     (loop [Y        (apply union X (map #(closure (disj X %)) X)),
            elements (difference base-set Y)]
       (if-not (empty? elements)
         (let [m    (first elements),
               X+m  (conj X m),
-              add? (if-let [s (get set-weight X+m)]
+              add? (if-let [s (set-weight X+m)]
                      (= s X-weight)
                      (not (first (for [K keys,
                                        :when (and (contains? K m)
@@ -95,44 +88,44 @@
   this implementation to work."
   [base-set weigh max-weight weight-order]
   (binding [closure    {},
-            set-weight (weigh [#{}]),
-            minimum    (partial minimum weight-order max-weight)]
-
-    (loop [key-set    #{#{}},
-           keys       [#{}]]
-      (let [candidates (titanic-generate base-set key-set)]
+            set-weight (weigh [#{}])]
+    (loop [key-set #{[#{}, (set-weight #{})]}, ;keys are pairs of sets and weights
+           keys    key-set]
+      (let [candidates (titanic-generate base-set (set (map first key-set)))]
         (set! set-weight (into set-weight (weigh candidates)))
-        (doseq [X key-set]
-          (set-val! closure X (titanic-closure X base-set keys)))
-        (let [next-key-set (set-of X [X candidates,
-                                      :when (not= (subset-weight X)
-                                                  (get set-weight X))])]
+        (doseq [[X, X-weight] key-set]
+          (set-val! closure X (titanic-closure X X-weight base-set keys)))
+        (let [next-key-set (set-of [X w] [X candidates,
+                                          :let [w (set-weight X)]
+                                          :when (not= w
+                                                      ;; (subset-weight X)
+                                                      (minimum weight-order max-weight
+                                                               (map #(set-weight (disj X %)) X)))])]
           (if-not (empty? next-key-set)
             (recur next-key-set
-                   (map first
-                        (sort (fn [[_ a] [_ b]]
-                                (weight-order a b))
-                              (map #(vector % (get set-weight %))
-                                   (concat next-key-set keys)))))
+                   (sort (fn [X Y]
+                           (weight-order (second X) (second Y)))
+                         (concat next-key-set keys)))
             (distinct (vals closure))))))))
 
 (defn titanic-keys
   "Nearly the same as titanic, but returns the key sets only."
   [base-set weigh max-weight weight-order]
-  (binding [set-weight (weigh [#{}]),
-            minimum    (partial minimum weight-order max-weight)]
-
-    (loop [key-set    #{#{}},
-           keys       [#{}]]
-      (let [candidates (titanic-generate base-set key-set)]
-        (set! set-weight (into set-weight (weigh candidates)))
-        (let [next-key-set (set-of X [X candidates,
-                                      :when (not= (subset-weight X)
-                                                  (get set-weight X))])]
-          (if-not (empty? next-key-set)
-            (recur next-key-set
-                   (concat next-key-set keys))
-            keys))))))
+  (loop [set-weight (weigh [#{}]),
+         key-set    #{#{}},
+         keys       [#{}]]
+    (let [candidates   (titanic-generate base-set key-set),
+          set-weight   (into set-weight (weigh candidates)),
+          next-key-set (set-of X [X candidates,
+                                  :when (not= (set-weight X)
+                                              ;; (subset-weight X)
+                                              (minimum weight-order max-weight
+                                                       (map #(set-weight (disj X %)) X)))])]
+      (if-not (empty? next-key-set)
+        (recur set-weight
+               next-key-set
+               (concat next-key-set keys))
+        keys))))
 
 ;;;
 

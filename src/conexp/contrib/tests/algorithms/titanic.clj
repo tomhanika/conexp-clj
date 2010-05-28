@@ -43,6 +43,15 @@
     (= (set (titanic-context-intents ctx))
        (set (titanic-iceberg-intent-set ctx 0.0)))))
 
+(deftest test-titanic-keys
+  (with-testing-data [ctx *testing-data*]
+    (= (set-of (context-attribute-closure ctx key)
+               [key (titanic-keys (attributes ctx)
+                                  (supports ctx 0)
+                                  1.0
+                                  <=)])
+       (set (titanic-context-intents ctx)))))
+
 ;;;
 
 nil
