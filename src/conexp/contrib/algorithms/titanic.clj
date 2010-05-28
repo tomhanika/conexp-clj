@@ -98,7 +98,7 @@
         (let [next-key-set (set-of [X w] [X candidates,
                                           :let [w (set-weight X)]
                                           :when (not= w
-                                                      ;; (subset-weight X)
+                                                      ;;(subset-weight X)
                                                       (minimum weight-order max-weight
                                                                (map #(set-weight (disj X %)) X)))])]
           (if-not (empty? next-key-set)
@@ -118,7 +118,7 @@
           set-weight   (into set-weight (weigh candidates)),
           next-key-set (set-of X [X candidates,
                                   :when (not= (set-weight X)
-                                              ;; (subset-weight X)
+                                              ;;(subset-weight X)
                                               (minimum weight-order max-weight
                                                        (map #(set-weight (disj X %)) X)))])]
       (if-not (empty? next-key-set)

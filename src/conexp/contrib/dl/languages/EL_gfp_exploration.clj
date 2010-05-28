@@ -131,6 +131,30 @@
   (binding [expert-refuses? (constantly false)]
     (apply explore-model model args)))
 
+;;; Experiments with TITANIC
+
+(require '[conexp.contrib.algorithms.titanic :as titanic])
+
+(defn- frequent-concept-sets
+  "For a given model and a given set of concepts returns all subsets
+  of concepts such that their interpretation has support greater or
+  equal minsupp."
+  [model concepts minsupp]
+  (let [model-count (count (model-base-set model)),
+        weight-of   (fn [concept-set]
+                      (let [supp (/ (count (interpret model (cons 'and concept-set)))
+                                    model-count)]
+                        (if (< supp minsupp)
+                          -1
+                          supp)))]
+    (remove #(= -1 (weight-of %))
+            (titanic/titanic-keys (set concepts)
+                                  (fn [set-of-concept-sets]
+                                    (into {} (for [concept-set set-of-concept-sets]
+                                               [concept-set (weight-of concept-set)])))
+                                  1.0
+                                  <=))))
+
 ;;;
 
 nil
