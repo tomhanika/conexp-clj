@@ -50,11 +50,11 @@
   (Description-Graph. language vertices neighbours vertex-labels))
 
 (defmethod print-method Description-Graph [dg out]
-  (let [#^String output (with-out-str
-                          (pprint (list 'Description-Graph
-                                        (vertices dg)
-                                        (neighbours dg)
-                                        (vertex-labels dg))))]
+  (let [^String output (with-out-str
+                         (pprint (list 'Description-Graph
+                                       (vertices dg)
+                                       (neighbours dg)
+                                       (vertex-labels dg))))]
     (.write out (.trim output))))
 
 ;;; Normalizing
@@ -429,12 +429,14 @@
         G-1 (single-edge->double-edge-graph G-1),
         G-2 (single-edge->double-edge-graph G-2),
 
-        [sim remove pre*] (efficient-initialize L G-1 G-2),
+        [^HashMap sim,
+         ^HashMap remove,
+         ^HashMap pre*] (efficient-initialize L G-1 G-2),
 
-        #^HashSet non-empty-removes (HashSet. (for [v (:base-set G-1),
-                                                    r R,
-                                                    :when (not (empty? (.get remove [v r])))]
-                                                [v r]))]
+        ^HashSet non-empty-removes (HashSet. (for [v (:base-set G-1),
+                                                   r R,
+                                                   :when (not (empty? (.get remove [v r])))]
+                                               [v r]))]
     (while-let [[v r] (first non-empty-removes)]
       (doseq [u ((:pre G-1) v r),
               w (.get remove [v r])]
