@@ -13,7 +13,8 @@
 
 (tests-to-run conexp.contrib.tests.util
               conexp.contrib.tests.algorithms
-              conexp.contrib.tests.dl)
+              conexp.contrib.tests.dl
+              conexp.contrib.tests.factor-analysis)
 
 ;;;
 
