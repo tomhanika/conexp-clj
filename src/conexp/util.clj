@@ -233,7 +233,10 @@
 (defmacro set-of
   "Macro for writing sets as mathematicians do (at least similar to it.)"
   [thing condition]
-  `(set (for ~condition ~thing)))
+  `(with-local-vars [set# (transient #{})]
+     (doseq ~condition
+       (var-set set# (conj! (var-get set#) ~thing)))
+     (persistent! (var-get set#))))
 
 (defn div
   "Integer division."
