@@ -155,6 +155,31 @@
                                   1.0
                                   <=))))
 
+(defn- explore-with-support
+  "Returns subsumptions with minimal premises, that have support
+  greater or equal minsupp."
+  [model minsupp]
+  (assert (< 0 minsupp))
+  (let [language (model-language model)]
+    (loop [concepts (concept-names language),
+           known-keys #{}]
+      (let [next-keys (remove (fn [concept]
+                                (some #(equivalent? concept %) known-keys))
+                              (map #(make-dl-expression language (cons 'and %))
+                                   (frequent-concept-sets model concepts minsupp)))]
+        (if (seq next-keys)
+          (recur (union concepts
+                        (set-of (make-dl-expression language (list 'exists r C))
+                                [r (role-names language),
+                                 C next-keys]))
+                 (into known-keys next-keys))
+          (let [subsumptions (set-of (make-subsumption dl-exp dl-msc)
+                                     [dl-exp known-keys
+                                      :let [dl-msc (model-closure model dl-exp)]
+                                      :when (not= dl-exp dl-msc)])]
+            (set-of (abbreviate-subsumption susu subsumptions)
+                    [susu subsumptions])))))))
+
 ;;;
 
 nil
