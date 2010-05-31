@@ -13,8 +13,6 @@
  "Implements the TITANIC algorithm. Note that this implementation is
  not tune for speed but for flexibility.")
 
-(set! *warn-on-reflection* true)
-
 ;;; Pragmatics
 
 (defmacro- set-val!
@@ -84,7 +82,7 @@
          set-weight (weigh [#{}]),
          key-set    #{[#{}, (set-weight #{})]}, ;keys are pairs of sets and weights here
          keys       key-set]
-    (let [candidates   (titanic-generate base-set (set (map first key-set))),
+    (let [candidates   (titanic-generate base-set (set-of (first k) [k key-set])),
           set-weight   (into set-weight (weigh candidates)),
           closure      (into closure (map (fn [[X, X-weight]]
                                             [X (titanic-closure X X-weight base-set keys set-weight closure)])
@@ -95,7 +93,7 @@
                                                   ;;(subset-weight X)
                                                   (minimum weight-order max-weight
                                                            (map #(set-weight (disj X %)) X)))])]
-      (if-not (empty? next-key-set)
+      (if (seq next-key-set)            ;i.e. (not (empty? next-key-set))
         (recur closure,
                set-weight,
                next-key-set
