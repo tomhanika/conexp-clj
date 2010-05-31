@@ -124,8 +124,10 @@
 (define-constructor forall
   (let [r-I (interpret model (first (arguments dl-exp))),
         C-I (interpret model (second (arguments dl-exp)))]
-    (set-of x [x (model-base-set model)
-               :when (forall [y C-I] (contains? r-I [x y]))])))
+    ;; interpreting Delta\(exists r. not C)
+    (difference (model-base-set model)
+                (set-of x [[x y] r-I
+                           :when (not (contains? C-I y))]))))
 
 (define-constructor inverse
   (let [r-I (interpret model (first (arguments dl-exp)))]
