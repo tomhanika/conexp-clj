@@ -217,18 +217,38 @@
   (or (and a b)
       (and (not a) (not b))))
 
+(defn- expand-bindings
+  "Expands bindings used by forall and exists."
+  [bindings body]
+  (if (empty? bindings)
+    body
+    (let [[x xs] (first bindings)]
+      `(loop [ys# ~xs]
+         (if (empty? ys#)
+           true
+           (let [~x (first ys#)]
+             (and ~(expand-bindings (rest bindings) body)
+                  (recur (rest ys#)))))))))
+
 (defmacro forall
-  "Implements logical forall quantor."
+  "Implements logical forall quantor. Bindings is of the form [var-1
+  seq-1 var-2 seq-2 ...]."
   [bindings condition]
-  `(every? identity
-	   (for ~bindings ~condition)))
+  (when-not (let [c (count bindings)]
+              (and (<= 0 c)
+                   (zero? (mod c 2))))
+    (illegal-argument "forall requires even number of bindings."))
+  (expand-bindings (map vec (partition 2 bindings)) condition))
 
 (defmacro exists
-  "Implements logical exists quantor."
+  "Implements logical exists quantor. Bindings is of the form [var-1
+  seq-1 var-2 seq-2 ...]."
   [bindings condition]
-  `(or (some identity
-	     (for ~bindings ~condition))
-       false))
+  (when-not (let [c (count bindings)]
+              (and (<= 0 c)
+                   (zero? (mod c 2))))
+    (illegal-argument "exists requires even number of bindings."))
+  `(not ~(expand-bindings (map vec (partition 2 bindings)) `(not ~condition))))
 
 (defmacro set-of
   "Macro for writing sets as mathematicians do (at least similar to it.)"
