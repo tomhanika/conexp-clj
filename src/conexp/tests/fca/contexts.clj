@@ -76,6 +76,9 @@
               "5 |. x x x . \n"))))
 
 (deftest test-Context-equals
+  (is (not= nil (make-context #{} #{} #{})))
+  (is (not= (make-context #{} #{} #{}) nil))
+  (is (not= (Object.) (make-context #{} #{} #{})))
   (are [objs atts inz] (= (make-context objs atts inz)
 			  (make-context objs atts inz))
        #{1 2 3} #{'a 'b 'c} #{[1 'a] [1 'b] [3 'b] [3 'c]}

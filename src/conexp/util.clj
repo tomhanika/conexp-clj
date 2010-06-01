@@ -192,11 +192,11 @@
 (defmacro generic-equals
   "Implements a generic equals for class on fields."
   [[this other] class fields]
-  `(or (identical? ~this ~other)
-       (when (= (class ~this) (class ~other))
-         (and ~@(map (fn [field]
-                       `(= ~field (. ~(vary-meta other assoc :tag class) ~field)))
-                     fields)))))
+  `(boolean (or (identical? ~this ~other)
+                (when (= (class ~this) (class ~other))
+                  (and ~@(map (fn [field]
+                                `(= ~field (. ~(vary-meta other assoc :tag class) ~field)))
+                              fields))))))
 
 (defn hash-combine-hash
   "Combines the hashes of all things given."
@@ -227,7 +227,7 @@
   "Implements logical exists quantor."
   [bindings condition]
   `(or (some identity
-	     (for ~bindings ~condition))
+             (for ~bindings ~condition))
        false))
 
 (defmacro set-of
