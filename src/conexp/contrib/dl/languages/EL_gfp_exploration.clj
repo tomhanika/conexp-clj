@@ -155,30 +155,42 @@
                                   1.0
                                   <=))))
 
+(defn- filter-next-keys
+  "Determines the next keys for model from the given key candidates."
+  [model key-candidates]
+  (let [key-candidates (set key-candidates),
+        lang           (model-language model),
+        roles          (role-names lang)]
+    (set-of exists-r-X [X key-candidates,
+                        r roles,
+                        :let [exists-r-X   (make-dl-expression lang (list 'exists r X)),
+                              exists-r-X-i (interpret model exists-r-X)]
+                        :when (and (not= (model-base-set model) exists-r-X-i)
+                                   (forall [Y (disj key-candidates X)]
+                                     (=> (subsumed-by? X Y)
+                                         (not= (interpret model (make-dl-expression lang (list 'exists r Y)))
+                                               exists-r-X-i))))])))
+
 (defn- explore-with-support
   "Returns subsumptions with minimal premises, that have support
   greater or equal minsupp."
   [model minsupp]
   (assert (< 0 minsupp))
   (let [language (model-language model)]
-    (loop [concepts (concept-names language),
-           known-keys #{}]
-      (let [next-keys (remove (fn [concept]
-                                (some #(equivalent? concept %) known-keys))
-                              (map #(make-dl-expression language (cons 'and %))
-                                   (frequent-concept-sets model concepts minsupp)))]
+    (loop [concepts (map #(make-dl-expression language %) (concept-names language))]
+      (let [freq      (map #(make-dl-expression language (cons 'and %))
+                           (frequent-concept-sets model concepts minsupp)),
+            next-keys (remove (fn [concept]
+                                (some #(equivalent? concept %) concepts))
+                              freq),
+            next-existential-keys (filter-next-keys model freq)]
         (if (seq next-keys)
-          (recur (union concepts
-                        (set-of (make-dl-expression language (list 'exists r C))
-                                [r (role-names language),
-                                 C next-keys]))
-                 (into known-keys next-keys))
+          (recur (into concepts (concat next-keys next-existential-keys)))
           (let [subsumptions (set-of (make-subsumption dl-exp dl-msc)
-                                     [dl-exp known-keys
+                                     [dl-exp concepts
                                       :let [dl-msc (model-closure model dl-exp)]
-                                      :when (not= dl-exp dl-msc)])]
-            (set-of (abbreviate-subsumption susu subsumptions)
-                    [susu subsumptions])))))))
+                                      :when (not (subsumed-by? dl-exp dl-msc))])]
+            subsumptions))))))
 
 ;;;
 
