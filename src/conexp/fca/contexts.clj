@@ -157,6 +157,13 @@
 (defmethod make-context-nc :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
+(defn make-context-from-matrix
+  "Given two numbers m, n and a sequence of 0s and 1s of length m*n
+  returns a context represented by the corresponding boolean matrix."
+  [m n bits]
+  (assert (= (* m n) (count bits)))
+  (make-context (range m) (range n) (fn [i j]
+                                      (not (zero? (nth bits (+ (* n i) j)))))))
 
 ;;; Common Operations in Contexts
 
