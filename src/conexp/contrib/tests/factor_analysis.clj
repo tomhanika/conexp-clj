@@ -30,20 +30,42 @@
                    [12 4] [13 5] [14 6] [10 3] [8 2] [10 4] [11 5]
                    [12 6] [13 7] [5 0] [7 2] [11 6] [4 0] [11 7]
                    [14 10] [3 0] [4 1] [6 3] [8 5] [10 7] [12 9]
-                   [13 10] [3 1] [4 2] [5 3] [6 4] [10 8] [11 9] [2 0]})
+                   [13 10] [3 1] [4 2] [5 3] [6 4] [10 8] [11 9] [2 0]}),
    (make-context #{1 2 3 4 5 6 7}
                  '#{a b c d e f g}
                  '#{[1 c] [1 g] [2 a] [2 b] [2 c]
                     [2 g] [3 a] [3 d] [3 e] [3 g]
                     [4 a] [4 f] [5 a] [5 c] [5 d]
                     [5 f] [6 a] [6 b] [6 e] [7 a]
-                    [7 b] [7 e] [7 f] [7 g]})])
+                    [7 b] [7 e] [7 f] [7 g]}),
+   (make-context-from-matrix 10 7
+                             [0 1 0 0 0 1 0
+                              0 0 1 1 0 1 1
+                              0 0 0 1 0 1 1
+                              0 1 1 0 0 1 0
+                              0 0 1 1 0 0 1
+                              0 1 0 0 0 0 0
+                              1 0 0 0 1 0 0
+                              0 0 0 1 1 1 0
+                              1 1 0 0 0 1 0
+                              1 1 1 1 1 1 0]),
+   (make-context-from-matrix 10 7
+                             [1 1 0 0 1 1 0
+                              1 1 0 0 1 0 0
+                              0 1 0 1 1 0 1
+                              1 1 0 1 0 1 0
+                              0 0 0 0 0 0 0
+                              0 1 0 0 1 0 0
+                              1 1 1 1 1 0 1
+                              1 1 1 0 0 0 0
+                              1 0 0 0 1 1 1
+                              1 1 0 1 1 1 1]),])
 
 (defn- test-for-formal-context
   [method]
   (with-testing-data [ctx *context-data*]
-    (subset? (incidence ctx) (set-of [i j] [[C D] (factorize-context method ctx),
-                                            i C, j D]))))
+    (= (incidence ctx) (set-of [i j] [[C D] (factorize-context method ctx),
+                                      i C, j D]))))
 
 (deftest test-factorize-context
   (doseq [method [:boolean-full :boolean-adaptive]]
