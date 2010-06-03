@@ -31,14 +31,24 @@
 
 (def *conexp-version* {:major 0,
 		       :minor 0,
-		       :patch 3,
-		       :qualifier "pre-alpha"})
+		       :patch 4,
+		       :qualifier "alpha"})
+
+(defn- conexp-built-version
+  "Returns the date of the conexp build, retrieved from the name of
+  the conexp-clj jar file. Returns \"source\" if there is none in the
+  classpath."
+  []
+  (if-let [[_ date time] (re-find #"conexp-clj-(\d+).(\d+).jar"
+                                  (System/getProperty "java.class.path"))]
+    (str date "." time)
+    "source"))
 
 (defn conexp-version
   "Returns the version of conexp as a string."
   []
   (let [{:keys [major minor patch qualifier]} *conexp-version*]
-    (str major "." minor "." patch "-" qualifier)))
+    (str major "." minor "." patch "-" qualifier "-" (conexp-built-version))))
 
 (defn has-version?
   "Compares given version of conexp and returns true if and only if
