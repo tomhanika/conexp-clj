@@ -8,7 +8,7 @@
 
 ;;;
 
-(defproject conexp-clj "0.0.3-pre-alpha"
+(defproject conexp-clj "0.0.4-alpha"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
   :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]

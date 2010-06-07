@@ -19,6 +19,14 @@
   (is (make-context #{1 2 3} #{1 2 3} <))
   (is (make-context #{1 2 3} #{1 2 3} not=))
   (is (make-context [1 2 3] '(a d g) not=))
+  (is (= (make-context-from-matrix 4 3
+                                   [0 0 0,
+                                    0 1 0
+                                    1 1 0,
+                                    0 0 0])
+         (make-context [0 1 2 3]
+                       [0 1 2]
+                       #{[1 1], [2 0], [2 1]})))
   (is (thrown? IllegalArgumentException (make-context 1 2 3))))
 
 ;;;
@@ -76,6 +84,9 @@
               "5 |. x x x . \n"))))
 
 (deftest test-Context-equals
+  (is (not= nil (make-context #{} #{} #{})))
+  (is (not= (make-context #{} #{} #{}) nil))
+  (is (not= (Object.) (make-context #{} #{} #{})))
   (are [objs atts inz] (= (make-context objs atts inz)
 			  (make-context objs atts inz))
        #{1 2 3} #{'a 'b 'c} #{[1 'a] [1 'b] [3 'b] [3 'c]}
