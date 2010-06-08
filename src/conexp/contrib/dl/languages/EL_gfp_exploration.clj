@@ -131,6 +131,7 @@
   (binding [expert-refuses? (constantly false)]
     (apply explore-model model args)))
 
+
 ;;; Experiments with TITANIC
 
 (require '[conexp.contrib.algorithms.titanic :as titanic])
@@ -140,6 +141,7 @@
   of concepts such that their interpretation has support greater or
   equal minsupp."
   [model concepts minsupp]
+  (assert (every? dl-expression? concepts))
   (let [model-count (count (model-base-set model)),
         weight-of   (fn [concept-set]
                       (let [supp (/ (count (interpret model (cons 'and concept-set)))
@@ -157,8 +159,11 @@
 
 (defn- filter-next-keys
   "Determines the next keys for model from the given key candidates."
-  [model key-candidates]
+  [model key-candidates all-keys]
+  (assert (every? dl-expression? key-candidates))
+  (assert (every? dl-expression? all-keys))
   (let [key-candidates (set key-candidates),
+        all-keys       (set all-keys),
         lang           (model-language model),
         roles          (role-names lang)]
     (set-of exists-r-X [X key-candidates,
@@ -166,7 +171,7 @@
                         :let [exists-r-X   (make-dl-expression lang (list 'exists r X)),
                               exists-r-X-i (interpret model exists-r-X)]
                         :when (and (not= (model-base-set model) exists-r-X-i)
-                                   (forall [Y (disj key-candidates X)]
+                                   (forall [Y (disj all-keys X)]
                                      (=> (subsumed-by? X Y)
                                          (not= (interpret model (make-dl-expression lang (list 'exists r Y)))
                                                exists-r-X-i))))])))
@@ -175,22 +180,64 @@
   "Returns subsumptions with minimal premises, that have support
   greater or equal minsupp."
   [model minsupp]
-  (assert (< 0 minsupp))
-  (let [language (model-language model)]
-    (loop [concepts (map #(make-dl-expression language %) (concept-names language))]
-      (let [freq      (map #(make-dl-expression language (cons 'and %))
-                           (frequent-concept-sets model concepts minsupp)),
-            next-keys (remove (fn [concept]
-                                (some #(equivalent? concept %) concepts))
-                              freq),
-            next-existential-keys (filter-next-keys model freq)]
-        (if (seq next-keys)
-          (recur (into concepts (concat next-keys next-existential-keys)))
-          (let [subsumptions (set-of (make-subsumption dl-exp dl-msc)
-                                     [dl-exp concepts
-                                      :let [dl-msc (model-closure model dl-exp)]
-                                      :when (not (subsumed-by? dl-exp dl-msc))])]
-            subsumptions))))))
+  (let [language (model-language model),
+        oplus    (fn [M_1 M_2]
+                   (set-of (union A B)
+                           [A M_1,
+                            B M_2,
+                            :when (and (= 1 (count (difference A B)))
+                                       (= 1 (count (difference B A))))]))]
+    (loop [K        (into {}
+                          (for [[k v] (group-by count
+                                                (frequent-concept-sets model
+                                                                       (map #(make-dl-expression language %) (concept-names language))
+                                                                       minsupp))]
+                            [k (set v)])),
+           all-keys (set-of (make-dl-expression language (cons 'and k)) [ks (vals K), k ks])]
+      (println "K =" K)
+      (println "all =" all-keys)
+      (let [K-vals (map #(make-dl-expression language (cons 'and %))
+                        (reduce concat [] (vals K))),
+            E      (filter-next-keys model K-vals all-keys)
+
+            A      (set-of (set-of C [C E :when (subsumed-by? D C)])
+                           [D E
+                            :when (<= (* minsupp (count (model-base-set model)))
+                                      (count (interpret model D)))]),
+
+            A      (group-by count A),
+            j_max  (reduce max -1 (keys A)),
+
+            new-K  (loop [new-K {0 #{#{}},
+                                 1 (set (A 1))},
+                          i 2]
+                     (println "i =" i)
+                     (let [C   (union (oplus (new-K (dec i))
+                                             (new-K (dec i)))
+                                      (oplus (new-K (dec i))
+                                             (K (dec i)))),
+                           K-i (union (set (A i))
+                                      (set-of K [K C
+                                                 :let [extent (interpret model (cons 'and K))]
+                                                 :when (and (<= (* minsupp (count (model-base-set model)))
+                                                                (count extent))
+                                                            (forall [x K]
+                                                                    (not= extent (interpret model (cons 'and (disj K x))))))]))]
+                       (if (and (> i j_max) (empty? K-i))
+                         new-K
+                         (recur (assoc new-K i K-i)
+                                (inc i)))))]
+        (if (not= new-K K)
+          (recur new-K
+                 (into all-keys
+                       (for [ks (vals new-K),
+                             k ks]
+                         (make-dl-expression language (cons 'and k)))))
+          (set-of (make-subsumption C D)
+                  [P all-keys,
+                   :let [C (make-dl-expression language P),
+                         D (model-closure model C)]
+                   :when (or true (not (subsumed-by? C D)))]))))))
 
 ;;;
 
