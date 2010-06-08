@@ -157,16 +157,6 @@
 (defmethod make-context-nc :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
-(defn make-context-from-matrix
-  "Given two numbers m, n and a sequence of 0s and 1s of length m*n
-  returns a context represented by the corresponding boolean
-  matrix. Thereby m is the number of objects and n is the number of
-  attributes of the resulting context."
-  [m n bits]
-  (assert (= (* m n) (count bits)))
-  (make-context (range m) (range n) (fn [i j]
-                                      (not (zero? (nth bits (+ (* n i) j)))))))
-
 ;;; Common Operations in Contexts
 
 (defn context-size
@@ -193,6 +183,23 @@
   (let [atts (map old-to-new (attributes ctx))
 	inz (set-of [g (old-to-new m)] [[g m] (incidence ctx)])]
     (make-context-nc (objects ctx) atts inz)))
+
+(defn make-context-from-matrix
+  "Given objects G and attribute M and an incidence matrix contstructs
+  the corresponding context. G and M may also be numbers where they
+  represent (range G) and (range M) respectively."
+  [G M bits]
+  (let [G (if (number? G) (range G) G),
+        M (if (number? M) (range M) M),
+        m (count G),
+        n (count M)]
+    (assert (= (* m n) (count bits)))
+    (make-context G M
+                  (set-of [a b] [i (range (count G)),
+                                 j (range (count M)),
+                                 :when (= 1 (nth bits (+ (* n i) j)))
+                                 :let [a (nth G i),
+                                       b (nth M j)]]))))
 
 (defn object-derivation
   "Computes set of attributes common to all objects in context."
