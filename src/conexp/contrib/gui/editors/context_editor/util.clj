@@ -15,14 +15,14 @@
            [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode]
            [java.util Vector]
            [javax.swing.table DefaultTableModel])
-  (:use conexp.contrib.gui.plugins.base
+  (:use [conexp.base :exclude (join)]
+        conexp.contrib.gui.plugins.base
         conexp.contrib.gui.util
-        [conexp.base :exclude (join)]
-        conexp.util.hookable
-        conexp.util.one-to-many
-        clojure.contrib.swing-utils
+        conexp.contrib.gui.util.hookable
+        conexp.contrib.gui.util.one-to-many
         conexp.contrib.gui.editors.util
-        conexp.fca
+        conexp.fca)
+  (:use clojure.contrib.swing-utils
         [clojure.contrib.string :only (join split-lines split)]))
 
 ;; Helper functions

@@ -8,9 +8,9 @@
 
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
-(ns conexp.util.hookable
-  (:use conexp.util.typecheck
-        conexp.base))
+(ns conexp.contrib.gui.util.hookable
+  (:use conexp.base
+        conexp.contrib.gui.util))
 
 ;; hookable
 
@@ -29,12 +29,7 @@
     (dosync (alter hooks conj {name (list function doc-str)}))))
 
 (defn-typecheck set-hook ::hookable
-  "Sets a hook in the hooksmap, throws if this hook doesn't exist.
-
-  Parameters:
-    ohookable   _hookable object
-    name        _key for the hook
-    function    _a function that will be assigned to the hook"
+  "Sets a hook in the hooksmap, throws if this hook doesn't exist."
   [ohookable name function]
   (let [hooks (:hooks ohookable)]
     (if (contains? @hooks name)
@@ -48,12 +43,7 @@
                           ohookable " failed: hook undefined")))))
 
 (defn-typecheck call-hook ::hookable
-  "Calls a hook in the hooksmap, throws if this hook doesn't exist.
-
-  Parameters:
-    ohookable   _hookable object
-    name        _key for the hook
-    & args      _arguments passed to the hook function"
+  "Calls a hook in the hooksmap, throws if this hook doesn't exist."
   [ohookable name & args]
   (let [hooks (:hooks ohookable),
         hookmap @hooks]
@@ -65,11 +55,7 @@
 
 (defn-typecheck doc-hook ::hookable
   "Looks up a hook in the hooksmap and returns its doc-str,
-   returns :not-found if this hook doesn't exist.
-
-  Parameters:
-    ohookable   _hookable object
-    name        _key for the hook"
+   returns :not-found if this hook doesn't exist."
   [ohookable name]
   (let [hooks (:hooks ohookable),
         hookmap @hooks]

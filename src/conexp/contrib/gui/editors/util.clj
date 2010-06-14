@@ -21,11 +21,11 @@
            [java.awt.datatransfer DataFlavor StringSelection]
            [javax.swing.event TreeSelectionListener TableModelListener]
            [javax.swing.table DefaultTableModel])
-  (:use clojure.contrib.swing-utils)
-  (:use conexp.contrib.gui.util
-        [conexp.base :exclude (join)]
-        conexp.util.hookable
-        [clojure.contrib.string :only (join split-lines split)]))
+  (:use clojure.contrib.swing-utils
+        [clojure.contrib.string :only (join split-lines split)])
+  (:use [conexp.base :exclude (join)]
+        conexp.contrib.gui.util
+        conexp.contrib.gui.util.hookable))
 
 
 ;;; General purpose & macros
@@ -270,7 +270,7 @@
 
 (defrecord table-control [widget control hooks model])
 (derive ::table-control ::control)
-(derive ::table-control :conexp.util.hookable/hookable)
+(derive ::table-control :conexp.contrib.gui.util.hookable/hookable)
 
 (defn-typecheck-swing get-row-count ::table-control
   "Returns the number of rows of the table control."

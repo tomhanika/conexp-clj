@@ -105,37 +105,35 @@
 (defmacro defn-swing
   "Defines a function that is surrounded by do-swing-return"
   [name doc params & body]
-  (if (vector? doc)                       ;in this case, there is no doc
+  (if (vector? doc)
     `(defn ~name ~doc (do-swing-return ~params ~@body))
     `(defn ~name ~doc ~params
-       (do-swing-return ~@body))))        ; TODO: allow adic overloading
+       (do-swing-return ~@body))))
 
 (defmacro defmethod-swing
   "Defines a multi function method that is surrounded by do-swing-return"
   [name dispatch-val params & body]
-  `(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body))) ;TODO:
-                                        ; allow adic overloading
+  `(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body)))
 
 (defmacro fn-swing
   "Returns a function that is surrounded by do-swing-return"
   [name params & body]
-  (if (vector? name)                      ;anonymous function
+  (if (vector? name)
     `(fn ~name (do-swing-return ~params ~@body))
-    `(fn ~name ~params (do-swing-return ~@body)))) ;TODO: adic overloading
+    `(fn ~name ~params (do-swing-return ~@body))))
 
 (defmacro defn-swing-threads*
   "Defines a function that is surrounded by with-swing-threads*"
   [name doc params & body]
-  (if (vector? doc)                       ;in this case, there is no doc
+  (if (vector? doc)
     `(defn ~name ~doc (with-swing-threads* ~params ~@body))
     `(defn ~name ~doc ~params
-       (with-swing-threads* ~@body))))        ; TODO: allow adic overloading
+       (with-swing-threads* ~@body))))
 
 (defmacro defmethod-swing-threads*
   "Defines a multi function method that is surrounded by do-swing-return"
   [name dispatch-val params & body]
-  `(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body))) ;TODO:
-                                        ; allow adic overloading
+  `(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body)))
 
 (defmacro fn-swing-threads*
   "Returns a function that is surrounded by with-swing-threads*"
@@ -428,9 +426,9 @@
 (defn add-tab-with-name-icon-tooltip
   "Addes given panel to the tabpane of frame, giving name icon and tooltip"
   [frame pane name icon tooltip]
-  (with-swing-threads
-    (.addTab (get-tabpane frame) name icon pane tooltip)
-    (.validate frame)))
+  (do-swing
+   (.addTab (get-tabpane frame) name icon pane tooltip)
+   (.validate frame)))
 
 (defn remove-tab
   "Removes a panel from the windows JTabbedPane."
