@@ -134,7 +134,7 @@
   [widget]
   (let [ table (get-table widget) 
          view (get-row-index-permutator table)
-         sel  (extract-array (.getSelectedRows (get-control table)))
+         sel  (seq (.getSelectedRows (get-control table)))
          ectx (get-ectx widget) 
          names (deref (:obj-rows ectx))
          fltr (rho filter (fn [x] (when-not (nil? x) x))) ]
@@ -148,7 +148,7 @@
   [widget]
   (let [ table (get-table widget) 
          view (get-column-index-permutator table)
-         sel  (extract-array (.getSelectedColumns (get-control table)))
+         sel  (seq (.getSelectedColumns (get-control table)))
          ectx (get-ectx widget) 
          names (deref (:attr-cols ectx))
          fltr (rho filter (fn [x] (when-not (nil? x) x))) ]
