@@ -6,32 +6,27 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; This file has been written by Immanuel Albrecht, with modifications by DB
+
 (ns conexp.contrib.gui.editors.context-editor.util
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
              JScrollPane JPanel JButton]
-    [java.awt GridLayout BorderLayout Dimension]
-    [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode]
-    [java.util Vector]
-    [javax.swing.table DefaultTableModel]
-    )
+           [java.awt GridLayout BorderLayout Dimension]
+           [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode]
+           [java.util Vector]
+           [javax.swing.table DefaultTableModel])
   (:use conexp.contrib.gui.plugins.base
-    conexp.contrib.gui.util
-    conexp.util
-    conexp.util.hookable
-    conexp.util.one-to-many
-    conexp.util.typecheck
-    clojure.contrib.swing-utils
-    conexp.contrib.gui.editors.util
-    conexp.fca
-    [clojure.contrib.string :only (join split-lines split)]))
+        conexp.contrib.gui.util
+        [conexp.base :exclude (join)]
+        conexp.util.hookable
+        conexp.util.one-to-many
+        conexp.util.typecheck
+        clojure.contrib.swing-utils
+        conexp.contrib.gui.editors.util
+        conexp.fca
+        [clojure.contrib.string :only (join split-lines split)]))
 
-;;
-;;
 ;; Helper functions
-;;
-;;
-;;
-;;
 
 (defn string-to-cross
   "Takes a string and decides, whether it should be a cross or not
@@ -115,19 +110,13 @@
     m-with-new))
 
 
-;;
-;;
 ;; Context editor control
-;;
-;;
-;;
-;;
 
 (defrecord context-editor-widget [widget table toolbar e-ctx])
 (derive ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
 
 (declare make-editable-context editable-context? add-widget set-context 
-  get-ectx)
+         get-ectx)
 
 (defmulti get-context 
   "Returns the fca-context that belongs to the first parameter."
@@ -222,6 +211,8 @@
                (let [ ectx (deref ref-to-ectx)
                       ctx (get-context ectx) ]
                  (set-context ectx (f ctx))))]))))
+
+(declare get-dual-order)
 
 (defn- add-ctx-map-btn-dual
   "Helper that will create the according button vector"
@@ -727,5 +718,6 @@
                           given 0 new-name)))))
           new-name)))))
 
+;;;
 
 nil

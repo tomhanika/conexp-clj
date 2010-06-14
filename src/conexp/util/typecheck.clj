@@ -6,10 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; This file has been written by Immanuel Albrecht, with modifications by DB
+
 (ns conexp.util.typecheck
-  (:use [clojure.contrib.string :only (join replace-first-re)]
-    clojure.contrib.def
-    conexp.util))
+  (:use conexp.base)
+  (:require [clojure.contrib.string :as string]))
 
 ;;; since in the recent version, type doens't work with keywords anymore, but
 ;;; returns classes (along with new deftype-constructor-dot) and derive
@@ -18,23 +19,14 @@
 
 (defn class-to-keyword
   "Takes a class object and returns a corresponding keyword describing the
-  class name.
-
-  Parameters:
-    c  _class"
+  class name."
   [c]
-  (let [ rv clojure.contrib.string/reverse
-         classname (str c)
-         keywordname (rv 
-                       (replace-first-re #"\." "/" 
-                         (rv (replace-first-re #"class " "" classname)))) ]
+  (let [rv string/reverse,
+        classname (str c),
+        keywordname (rv (string/replace-first-re
+                         #"\." "/" 
+                         (rv (string/replace-first-re #"class " "" classname))))]
     (keyword keywordname)))
-
-
-;;;
-;;;
-;;; defn-typecheck
-;;;
 
 (defmacro defn-typecheck
   "This macro is a helper for typechecking the first parameter via
@@ -48,13 +40,17 @@
     params  _parameter vector
     & body  _function body"
   [name parent doc-str params & body]
-  (let [ check-parm (first params)
-         name-str (str name)
-         type-name (str parent)]
+  (let [check-parm (first params),
+        name-str   (str name),
+        type-name  (str parent)]
     `(defn ~name ~doc-str ~params
        (if (isa? (class-to-keyword (type ~check-parm)) ~parent)
          (do ~@body)
          (illegal-argument (str ~name-str 
-                             " called with the first parameter of type "
-                             (class-to-keyword (type ~check-parm))
-                             " which is not a child-type of " ~type-name " ."))))))
+                                " called with the first parameter of type "
+                                (class-to-keyword (type ~check-parm))
+                                " which is not a child-type of " ~type-name " ."))))))
+
+;;;
+
+nil

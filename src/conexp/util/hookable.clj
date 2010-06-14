@@ -6,8 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; This file has been written by Immanuel Albrecht, with modifications by DB
+
 (ns conexp.util.hookable
-  (:use conexp.util.typecheck conexp.util))
+  (:use conexp.util.typecheck
+        conexp.base))
 
 ;; hookable
 
@@ -22,7 +25,7 @@
     function    _a function that will be assigned to the hook
     doc-str     _a documentation string for the hook"
   [ohookable name function doc-str]
-  (let [ hooks (:hooks ohookable) ]
+  (let [hooks (:hooks ohookable)]
     (dosync-wait (commute hooks conj {name (list function doc-str)}))))
 
 (defn-typecheck set-hook ::hookable
@@ -33,7 +36,7 @@
     name        _key for the hook
     function    _a function that will be assigned to the hook"
   [ohookable name function]
-  (let [ hooks (:hooks ohookable) ]
+  (let [hooks (:hooks ohookable)]
     (if (contains? @hooks name)
       (dosync-wait (commute hooks 
                      (fn [h]
@@ -57,8 +60,8 @@
     (if (contains? hookmap name)
       (apply (first (hookmap name)) args)
       (illegal-argument (str "call-hook " name " for "
-                          ohookable " failed: hook undefined"
-                          "\n\nmap:\n" hookmap)))))
+                             ohookable " failed: hook undefined"
+                             "\n\nmap:\n" hookmap)))))
 
 (defn-typecheck doc-hook ::hookable
   "Looks up a hook in the hooksmap and returns its doc-str,
@@ -68,17 +71,22 @@
     ohookable   _hookable object
     name        _key for the hook"
   [ohookable name]
-  (let [ hooks (:hooks ohookable)
-         hookmap @hooks]
+  (let [hooks (:hooks ohookable),
+        hookmap @hooks]
     (if (contains? hookmap name)
       (second (hookmap name))
       :not-found)))
 
 (defn make-hookable
   "Creates an empty hookable object."
-  [] (hookable. (ref {})))
+  []
+  (hookable. (ref {})))
 
 (defn hookable?
   "Tests whether the given object is hookable."
-  [obj] (isa? (class-to-keyword (type obj)) ::hookable))
+  [obj]
+  (isa? (class-to-keyword (type obj)) ::hookable))
 
+;;;
+
+nil

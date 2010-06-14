@@ -8,25 +8,23 @@
 
 (ns conexp.contrib.gui.editors.util
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
-             JScrollPane JOptionPane KeyStroke JComponent AbstractAction
-             JToolBar JButton UIManager]
-    [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
-      TreeSelectionModel]
-    [java.util Vector]
-    [java.awt Toolkit Dimension Point]
-    [java.awt.event KeyEvent ActionEvent ActionListener MouseEvent 
-      MouseListener InputEvent]
-    [java.awt.datatransfer DataFlavor StringSelection]
-    [javax.swing.event TreeSelectionListener TableModelListener]
-    [javax.swing.table DefaultTableModel])
-  (:use clojure.contrib.swing-utils
-    conexp.contrib.gui.util
-    conexp.util
-    conexp.util.hookable
-    conexp.util.typecheck
-    [clojure.contrib.string :only (join split-lines split)]
-    [clojure.set :only (union intersection)]))
-
+                        JScrollPane JOptionPane KeyStroke JComponent AbstractAction
+                        JToolBar JButton UIManager]
+           [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
+                        TreeSelectionModel]
+           [java.util Vector]
+           [java.awt Toolkit Dimension Point]
+           [java.awt.event KeyEvent ActionEvent ActionListener MouseEvent 
+                        MouseListener InputEvent]
+           [java.awt.datatransfer DataFlavor StringSelection]
+           [javax.swing.event TreeSelectionListener TableModelListener]
+           [javax.swing.table DefaultTableModel])
+  (:use clojure.contrib.swing-utils)
+  (:use conexp.contrib.gui.util
+        [conexp.base :exclude (join)]
+        conexp.util.hookable
+        conexp.util.typecheck
+        [clojure.contrib.string :only (join split-lines split)]))
 
 ;;;
 ;;; General purpose & macros

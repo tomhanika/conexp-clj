@@ -7,36 +7,38 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.editors.context-editor
-  (:use 
-    conexp.contrib.gui.editors.context-editor.util
-    conexp.contrib.gui.editors.util
-    conexp.util))
+  (:use conexp.base
+        conexp.contrib.gui.editors.util
+        conexp.contrib.gui.editors.context-editor.util))
 
-(let [ panels (ref {}) ]
+(ns-doc "Provides basic operations to contstruc context editors.")
+
+;;;
+
+(let [panels (atom {})]
 
   (defn make-context-editor
-    "Creates a context editor object for a given context and returns its root
-   panel.
-
-  Parameters:
-    ctx  _ context"
+    "Creates a context editor object for a given context ctx and
+     returns its root panel."
     [ctx]
-    (let [ ectx (make-editable-context ctx)
-           widget (make-context-editor-widget) 
-           panel (get-widget widget)]
+    (let [ectx   (make-editable-context ctx),
+          widget (make-context-editor-widget),
+          panel  (get-widget widget)]
       (add-widget ectx widget)
-      (dosync-wait (commute panels conj {panel [widget ectx]}))
+      (swap! panels conj {panel [widget ectx]})
       panel))
 
   (defn get-context-from-panel
-    "Returns the context that is currently associated with the context editor
-   widget represented by the given panel.
-
-  Parameters:
-    panel  _ context editor panel"
+    "Returns the context that is currently associated with the context
+     editor widget represented by the given panel."
     [panel]
     (get-context (second (panels panel))))
 
   nil)
+
+;;;
+
+nil
+
 
 

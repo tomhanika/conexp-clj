@@ -17,16 +17,16 @@
 	conexp.contrib.gui.util
         conexp.contrib.gui.editors.util
         conexp.contrib.gui.editors.context-editor
-        [conexp.contrib.gui.editors.context-editor.util 
-          :only (get-current-second-operand-context)]
+        [conexp.contrib.gui.editors.context-editor.util :only (get-current-second-operand-context)]
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
 	clojure.contrib.io
-    [clojure.contrib.string :only (replace-str title-case)])
+        [clojure.contrib.string :only (replace-str title-case)])
   (:import [java.io File]))
 
-(update-ns-meta! conexp.contrib.gui.editors.contexts
-  :doc "Provides context-editor, a plugin for contexts for the standard GUI of conexp-clj.")
+(ns-doc
+ "Provides context-editor, a plugin for contexts for the standard GUI
+  of conexp-clj.")
 
 ;;; The Plugin
 
@@ -43,8 +43,8 @@
   "Loads context with given loader and adds a new tab with a context-editor."
   [frame loader]
   (when-let [#^File file (choose-open-file frame)]
-    (let [ path (.getPath file)
-           thing (loader path)]
+    (let [path (.getPath file),
+          thing (loader path)]
       (add-tab frame
 	       (make-context-editor thing)
 	       (str "Context " path)))))
@@ -52,26 +52,25 @@
 (defn- random-context-and-go
   "Creates a random context and adds a new tab with a context-editor."
   [frame]
-  (let [ thing (rand-context #{"a" "b" "c" "d" "e" "f"} #{1 2 3 4 5 6} 0.4)]
+  (let [thing (rand-context #{"a" "b" "c" "d" "e" "f"} #{1 2 3 4 5 6} 0.4)]
     (add-tab frame
-      (make-context-editor thing)
-      "Context")))
+             (make-context-editor thing)
+             "Context")))
 
 (defn- second-op-context-and-go
   "Creates a random context and adds a new tab with a context-editor."
   [frame]
-  (let [ thing (get-current-second-operand-context)]
+  (let [thing (get-current-second-operand-context)]
     (add-tab frame
-      (make-context-editor thing)
-      "Context")))
-
+             (make-context-editor thing)
+             "Context")))
 
 (defn- save-context-and-go
   "Saves context with given writer."
   [frame writer]
-  (when-let [ thing (get-context-from-panel (current-tab frame))]
+  (when-let [thing (get-context-from-panel (current-tab frame))]
     (when-let [#^File file (choose-save-file frame)]
-      (let [ path (.getPath file) ]
+      (let [path (.getPath file)]
         (writer thing path)))))
   
 (defn- show-lattice-and-go
@@ -79,42 +78,42 @@
   [frame]
   (let [thing (get-context-from-panel (current-tab frame))]
     (add-tab frame
-        (make-lattice-editor frame (*standard-layout-function* 
-                                     (concept-lattice thing)))
-        "Concept-Lattice")))
-
+             (make-lattice-editor frame
+                                  (*standard-layout-function* (concept-lattice thing)))
+             "Concept-Lattice")))
 
 ;;; The Hooks
 
 (defvar- *context-menu*
   {:name "Context",
-  :content [ {:name "Load Context",
-	      :handler (fn [x] (load-context-and-go x read-context)) }
+   :content [{:name "Load Context",
+	      :handler (fn [x] (load-context-and-go x read-context))},
              {:name "Random Context",
-              :handler random-context-and-go }
-             {:name "Second Operand Context"
-              :handler second-op-context-and-go}
+              :handler random-context-and-go},
+             {:name "Second Operand Context",
+              :handler second-op-context-and-go},
              {}
-              {:name "Save Context",
+             {:name "Save Context",
               :content (vec (map (fn [x] {:name (str 
                                                   (replace-str ":" "" (str x)) 
                                                   " format"),
-                                   :handler (fn [f] (save-context-and-go f
-                                           (fn [c p] (write-context x c p))))})
-                              (list-context-formats))) }
+                                          :handler (fn [f]
+                                                     (save-context-and-go f
+                                                                          (fn [c p]
+                                                                            (write-context x c p))))})
+                                 (list-context-formats)))},
              {}
-             {:name "Show Concept Lattice"
-             :handler show-lattice-and-go} ]}
+             {:name "Show Concept Lattice",
+              :handler show-lattice-and-go}]}
   "Menu for context editor.")
 
-(let [menu-hash (ref {})]
+(let [menu-hash (atom {})]
 
   (defn- load-context-editor
     "Loads the context-editor plugin in frame."
     [frame]
-    (dosync
-     (alter menu-hash
-	    assoc frame (add-menus frame [*context-menu*]))))
+    (swap! menu-hash
+           assoc frame (add-menus frame [*context-menu*])))
 
   (defn- unload-context-editor
     "Unloads the context-editor plugin from frame."
@@ -122,7 +121,7 @@
     (dosync
      (let [menu (get @menu-hash frame)]
        (remove-menus frame [menu])
-       (alter menu-hash dissoc frame))))
+       (swap! menu-hash dissoc frame))))
 
   nil)
 
