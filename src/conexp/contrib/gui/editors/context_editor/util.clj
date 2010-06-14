@@ -20,7 +20,6 @@
         [conexp.base :exclude (join)]
         conexp.util.hookable
         conexp.util.one-to-many
-        conexp.util.typecheck
         clojure.contrib.swing-utils
         conexp.contrib.gui.editors.util
         conexp.fca
@@ -126,7 +125,7 @@
                          (when-not (nil? x)
                            x))
                        %)]
-    (set (fltr (map (*comp view names) sel)))))
+    (set (fltr (map #(names (view %)) sel)))))
 
 (defn-typecheck get-selected-attributes ::context-editor-widget
   "Returns the set of selected attributes in the context-editor-widget."
@@ -140,7 +139,7 @@
                          (when-not (nil? x)
                            x))
                        %)]
-    (set (fltr (map (*comp view names) sel)))))
+    (set (fltr (map #(names (view %)) sel)))))
 
 (defn- cut-attributes
   "Cut out the given attributes from the context."

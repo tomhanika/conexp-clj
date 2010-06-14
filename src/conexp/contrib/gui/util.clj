@@ -17,10 +17,10 @@
 	             Graphics Graphics2D BasicStroke FlowLayout]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
-  (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg)]
-        conexp.util.typecheck)
+  (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg illegal-argument)])
   (:use [clojure.contrib.seq :only (indexed)]
-	clojure.contrib.swing-utils))
+	clojure.contrib.swing-utils)
+  (:require [clojure.contrib.string :as string]))
 
 
 ;;; Helper functions
@@ -57,108 +57,139 @@
     (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
     frame))
 
+;;; Swing handmade concurrency
+
 (defn invoke-later
   "Calls fn with SwingUtilities/invokeLater."
   [fn]
   (SwingUtilities/invokeLater fn))
 
 (defn invoke-later-or-now
-"Calls fn with SwingUtilities/invokeLater."
-[fn]
-(if (SwingUtilities/isEventDispatchThread)
-  (fn)
-  (SwingUtilities/invokeLater fn)))
-
+  "Calls fn with SwingUtilities/invokeLater."
+  [fn]
+  (if (SwingUtilities/isEventDispatchThread)
+    (fn)
+    (SwingUtilities/invokeLater fn)))
 
 (defn invoke-and-wait
-"Calls fn with SwingUtilities/invokeAndWait if necessary."
-[fn]
-(if (SwingUtilities/isEventDispatchThread)
-  (fn)
-  (SwingUtilities/invokeAndWait fn)))
+  "Calls fn with SwingUtilities/invokeAndWait if necessary."
+  [fn]
+  (if (SwingUtilities/isEventDispatchThread)
+    (fn)
+    (SwingUtilities/invokeAndWait fn)))
 
 (defmacro with-swing-threads
-"Executes body with invoke-later to make it thread-safe to Swing."
-[& body]
-`(invoke-later #(do ~@body)))
+  "Executes body with invoke-later to make it thread-safe to Swing."
+  [& body]
+  `(invoke-later #(do ~@body)))
 
 (defmacro with-swing-threads*
-"Executes body if in Swing thread or with invoke-later to make it
- thread-safe to Swing otherwise."
-[& body]
-`(invoke-later-or-now #(do ~@body)))
+  "Executes body if in Swing thread or with invoke-later to make it
+  thread-safe to Swing otherwise."
+  [& body]
+  `(invoke-later-or-now #(do ~@body)))
 
 (defmacro do-swing-threads
-"Executes body with invoke-and-wait to make it thread-safe to Swing."
-[& body]
-`(invoke-and-wait #(do ~@body)))
+  "Executes body with invoke-and-wait to make it thread-safe to Swing."
+  [& body]
+  `(invoke-and-wait #(do ~@body)))
 
 (defmacro do-swing-return
-"Executes body with invoke-and-wait to make it thread-safe to Swing,
+  "Executes body with invoke-and-wait to make it thread-safe to Swing,
    returning the value of the last statement using a promise!"
-[& body]
-`(let [ returnvalue# (promise)]
-   (do
+  [& body]
+  `(let [returnvalue# (promise)]
      (invoke-and-wait #(deliver returnvalue# (do ~@body)))
-     @returnvalue#)))
+     @returnvalue#))
 
 (defmacro defn-swing
-"Defines a function that is surrounded by do-swing-return"
-[name doc params & body]
-(if (vector? doc)                       ;in this case, there is no doc
-  `(defn ~name ~doc (do-swing-return ~params ~@body))
-  `(defn ~name ~doc ~params
-     (do-swing-return ~@body))))        ; TODO: allow adic overloading
+  "Defines a function that is surrounded by do-swing-return"
+  [name doc params & body]
+  (if (vector? doc)                       ;in this case, there is no doc
+    `(defn ~name ~doc (do-swing-return ~params ~@body))
+    `(defn ~name ~doc ~params
+       (do-swing-return ~@body))))        ; TODO: allow adic overloading
 
 (defmacro defmethod-swing
-"Defines a multi function method that is surrounded by do-swing-return"
-[name dispatch-val params & body]
-`(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body))) ;TODO:
+  "Defines a multi function method that is surrounded by do-swing-return"
+  [name dispatch-val params & body]
+  `(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body))) ;TODO:
                                         ; allow adic overloading
-
-(defmacro defn-typecheck-swing
-"defn-typecheck such that the body is surrounded by do-swing-return"
-[name parent doc-str parms & body]
-`(defn-typecheck ~name ~parent ~doc-str ~parms (do-swing-return ~@body)))
 
 (defmacro fn-swing
-"Returns a function that is surrounded by do-swing-return"
-[name params & body]
-(if (vector? name)                      ;anonymous function
-  `(fn ~name (do-swing-return ~params ~@body))
-  `(fn ~name ~params (do-swing-return ~@body)))) ;TODO: adic overloading
+  "Returns a function that is surrounded by do-swing-return"
+  [name params & body]
+  (if (vector? name)                      ;anonymous function
+    `(fn ~name (do-swing-return ~params ~@body))
+    `(fn ~name ~params (do-swing-return ~@body)))) ;TODO: adic overloading
 
 (defmacro defn-swing-threads*
-"Defines a function that is surrounded by with-swing-threads*"
-[name doc params & body]
-(if (vector? doc)                       ;in this case, there is no doc
-  `(defn ~name ~doc (with-swing-threads* ~params ~@body))
-  `(defn ~name ~doc ~params
-     (with-swing-threads* ~@body))))        ; TODO: allow adic overloading
+  "Defines a function that is surrounded by with-swing-threads*"
+  [name doc params & body]
+  (if (vector? doc)                       ;in this case, there is no doc
+    `(defn ~name ~doc (with-swing-threads* ~params ~@body))
+    `(defn ~name ~doc ~params
+       (with-swing-threads* ~@body))))        ; TODO: allow adic overloading
 
 (defmacro defmethod-swing-threads*
-"Defines a multi function method that is surrounded by do-swing-return"
-[name dispatch-val params & body]
-`(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body))) ;TODO:
+  "Defines a multi function method that is surrounded by do-swing-return"
+  [name dispatch-val params & body]
+  `(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body))) ;TODO:
                                         ; allow adic overloading
 
-(defmacro defn-typecheck-swing-threads*
-"defn-typecheck such that the body is surrounded by do-swing-return"
-[name parent doc-str parms & body]
-`(defn-typecheck ~name ~parent ~doc-str ~parms (with-swing-threads* ~@body)))
-
 (defmacro fn-swing-threads*
-"Returns a function that is surrounded by with-swing-threads*"
-[name params & body]
-(if (vector? name)                      ;anonymous function
-  `(fn ~name (with-swing-threads* ~params ~@body))
-  `(fn ~name ~params (with-swing-threads* ~@body)))) ;TODO: adic overloading
+  "Returns a function that is surrounded by with-swing-threads*"
+  [name params & body]
+  (if (vector? name)                      ;anonymous function
+    `(fn ~name (with-swing-threads* ~params ~@body))
+    `(fn ~name ~params (with-swing-threads* ~@body)))) ;TODO: adic overloading
+
+;;; type checking
+
+(defn class-to-keyword
+  "Takes a class object and returns a corresponding keyword describing the
+  class name."
+  [c]
+  (let [rv string/reverse,
+        classname (str c),
+        keywordname (rv (string/replace-first-re
+                         #"\." "/" 
+                         (rv (string/replace-first-re #"class " "" classname))))]
+    (keyword keywordname)))
+
+(defmacro defn-typecheck
+  "This macro is a helper for typechecking the first parameter via
+   class-to-keyword and derive/isa? and throws illegal-argument if
+   the first parameter is not a child of the given keyword."
+  [name parent doc-str params & body]
+  (let [check-parm (first params),
+        name-str   (str name),
+        type-name  (str parent)]
+    `(defn ~name ~doc-str ~params
+       (if (isa? (class-to-keyword (type ~check-parm)) ~parent)
+         (do ~@body)
+         (illegal-argument (str ~name-str 
+                                " called with the first parameter of type "
+                                (class-to-keyword (type ~check-parm))
+                                " which is not a child-type of " ~type-name " ."))))))
+
+(defmacro defn-typecheck-swing
+  "defn-typecheck such that the body is surrounded by do-swing-return"
+  [name parent doc-str parms & body]
+  `(defn-typecheck ~name ~parent ~doc-str ~parms (do-swing-return ~@body)))
+
+(defmacro defn-typecheck-swing-threads*
+  "defn-typecheck such that the body is surrounded by do-swing-return"
+  [name parent doc-str parms & body]
+  `(defn-typecheck ~name ~parent ~doc-str ~parms (with-swing-threads* ~@body)))
+
+;;;
 
 (defn get-resource
-"Returns the resource res if found, nil otherwise."
-[res]
-(let [cl (.getContextClassLoader (Thread/currentThread))]
-  (.getResource cl res)))
+  "Returns the resource res if found, nil otherwise."
+  [res]
+  (let [cl (.getContextClassLoader (Thread/currentThread))]
+    (.getResource cl res)))
 
 (defn confirm
   "Opens a message dialog asking for confirmation."
@@ -402,15 +433,11 @@
     (.validate frame)))
 
 (defn remove-tab
-  "Removes a panel from the windows JTabbedPane.
-   Parameters:
-     frame       _frame that contains the JTabbedPane element
-     panel       _panel to remove from tab
-  "
+  "Removes a panel from the windows JTabbedPane."
    [frame pane]
-  (with-swing-threads
-     (.remove (get-tabpane frame) pane)
-     (.validate frame)))
+  (do-swing
+   (.remove (get-tabpane frame) pane)
+   (.validate frame)))
 
 (defn current-tab
   "Returns the currently selected tab and nil if there is none."

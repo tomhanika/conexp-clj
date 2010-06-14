@@ -25,17 +25,10 @@
   (:use conexp.contrib.gui.util
         [conexp.base :exclude (join)]
         conexp.util.hookable
-        conexp.util.typecheck
         [clojure.contrib.string :only (join split-lines split)]))
 
 
 ;;; General purpose & macros
-
-(defn *comp
-  "Takes some functions and returns the covariant function composition
-    of them"
-  [& fns]
-  (apply comp (reverse fns)))
 
 (defmacro apply-exprs
   "Takes an object and a seq of vectors, such that each vectors first element
@@ -70,9 +63,9 @@
 (defn-swing get-clipboard-contents
   "Returns the contents of the system clipboard"
   []
-  (let [toolkit (Toolkit/getDefaultToolkit)
-         clipboard (.getSystemClipboard toolkit)
-         transferable (.getContents clipboard nil)]
+  (let [toolkit (Toolkit/getDefaultToolkit),
+        clipboard (.getSystemClipboard toolkit),
+        transferable (.getContents clipboard nil)]
     (if (.isDataFlavorSupported transferable DataFlavor/stringFlavor)
       (.getTransferData transferable DataFlavor/stringFlavor)
       nil)))
@@ -82,7 +75,7 @@
   contents."
   [contents]
   (let [toolkit (Toolkit/getDefaultToolkit),
-        clipboard (.getSystemClipboard toolkit)
+        clipboard (.getSystemClipboard toolkit),
         data (StringSelection. (str contents))]
     (.setContents clipboard data nil)))
 
