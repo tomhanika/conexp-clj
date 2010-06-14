@@ -12,11 +12,11 @@
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
                         JScrollPane JOptionPane KeyStroke JComponent AbstractAction
                         JToolBar JButton UIManager]
-           [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode 
+           [javax.swing.tree DefaultTreeModel DefaultMutableTreeNode
                         TreeSelectionModel]
            [java.util Vector]
            [java.awt Toolkit Dimension Point]
-           [java.awt.event KeyEvent ActionEvent ActionListener MouseEvent 
+           [java.awt.event KeyEvent ActionEvent ActionListener MouseEvent
                         MouseListener InputEvent]
            [java.awt.datatransfer DataFlavor StringSelection]
            [javax.swing.event TreeSelectionListener TableModelListener]
@@ -30,12 +30,6 @@
 
 
 ;;; General purpose & macros
-
-(defmacro rho
-  "Takes an block that defines a function by omitting its last parameter
-    and turns it into a normal function that takes one parameter"
-  [& body]
-  `(fn [x#] (~@body x#)))
 
 (defn *comp
   "Takes some functions and returns the covariant function composition
@@ -108,7 +102,7 @@
 (defn proxy-mouse-listener
   "Returns a proxy class that will implement the MouseListener
    interface and call the given 1-ary functions accordingly.
-   The passed parameter will be a map mapping :button (button 
+   The passed parameter will be a map mapping :button (button
    that triggered the event), :buttons-down (buttons that were
    down before), :modifiers and :position according to the event
    information.
@@ -134,13 +128,13 @@
                                  (union (when-mask m InputEvent/BUTTON1_DOWN_MASK #{1})
                                         (when-mask m InputEvent/BUTTON2_DOWN_MASK #{2})
                                         (when-mask m InputEvent/BUTTON3_DOWN_MASK #{3})))
-        translate-event (fn [event] 
+        translate-event (fn [event]
                           {:button (translate-button (.getButton event))
                            :modifiers (translate-modifier (.getModifiersEx event))
                            :position [(.getX event) (.getY event)]
                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
     (proxy [MouseListener] []
-      (mousePressed [event] 
+      (mousePressed [event]
         (with-swing-threads* (pressed (translate-event event))))
       (mouseReleased [event]
         (with-swing-threads* (released (translate-event event))))
@@ -158,7 +152,7 @@
 (defrecord control [widget control])
 (derive ::control ::widget)
 
-(defn managed-by-conexp-gui-editors-util? 
+(defn managed-by-conexp-gui-editors-util?
   "Returns true if the object given as parameter is managed by the
    conexp.contrib.gui.editors.util module."
   [thing]
@@ -193,7 +187,8 @@
 (defn-typecheck-swing-threads* set-size ::widget
   "Sets the size of the given widget obj."
   [obj width height]
-  (.setSize (get-widget obj) (Dimension. width height)))
+  (.setSize (get-widget obj)
+            (Dimension. width height)))
 
 (defn-typecheck set-width ::widget
   "Sets the width of the given widget obj."
@@ -228,7 +223,7 @@
     (doseq [l listeners]
       (.removeActionListener button l))
     (let [action (proxy [ActionListener] []
-                   (actionPerformed [event] 
+                   (actionPerformed [event]
                      (with-swing-threads* (handler))))]
       (.addActionListener button action))))
 
@@ -238,7 +233,7 @@
    widget creation"
   [name icon & setup]
   (let [jbutton (JButton. name icon),
-        widget (button. jbutton)]
+        widget  (button. jbutton)]
     (apply-exprs widget setup)
     widget))
 
@@ -330,32 +325,29 @@
     (.put action-map cmd-name action)))
 
 (defn-typecheck-swing get-column-index ::table-control
-  "Returns the tables model index of the specified column in the view.
-
-  Parameters:
-    otable    _table-control object
-    column    _viewport column"
+  "Returns the tables model index of the specified column in the
+  view."
   [otable column]
-  (let [ table (get-control otable)
-         col-count (.getColumnCount table) ]
-    (if (>= column col-count) column
-      (let [ col-model (.getColumnModel table)
-             table-col (.getColumn col-model column) ]
+  (let [table     (get-control otable),
+        col-count (.getColumnCount table)]
+    (if (>= column col-count)
+      column
+      (let [col-model (.getColumnModel table),
+            table-col (.getColumn col-model column) ]
         (.getModelIndex table-col)))))
 
 (defn-typecheck-swing get-index-column ::table-control
  "Returns the column in the view that corresponds to the specified
   table model index."
   [otable index]
-  (let [table (get-control otable),
+  (let [table     (get-control otable),
         col-model (.getColumnModel table),
-        cols (range (.getColumnCount col-model)),
-        matching (filter (fn [x]
-                           (= index (.getModelIndex
-                                     (.getColumn col-model x))))
-                         cols),
-         found (first matching)]
-    (if found found index)))
+        cols      (range (.getColumnCount col-model)),
+        matching  (filter #(= index
+                              (.getModelIndex (.getColumn col-model %)))
+                          cols),
+         found    (first matching)]
+    (or found index)))
 
 (defn-typecheck get-row-index ::table-control
   "Returns the tables model index of the specified row in view."
@@ -378,14 +370,13 @@
   "Returns a function that will map the current view
     columns to the according index values."
   [otable]
-  (let [table (get-control otable),
+  (let [table     (get-control otable),
         col-count (.getColumnCount table),
         col-range (range col-count),
         col-model (.getColumnModel table),
-        col-map  (zipmap col-range (map (*comp
-                                         (rho .getColumn col-model)
-                                         (rho .getModelIndex))
-                                        col-range))]
+        col-map   (zipmap col-range
+                          (map #(.getModelIndex (.getColumn col-model %))
+                               col-range))]
     (fn [i]
       (if (>= i col-count)
         i
@@ -424,10 +415,12 @@
   (let [table (get-control otable)]
     (condp = mode
      :none    (.setCellSelectionEnabled table false)
-     :rows    (doto table (.setColumnSelectionAllowed false)
-                    (.setRowSelectionAllowed true))
-     :columns (doto table (.setRowSelectionAllowed false)
-                    (.setColumnSelectionAllowed true))
+     :rows    (doto table
+                (.setColumnSelectionAllowed false)
+                (.setRowSelectionAllowed true))
+     :columns (doto table
+                (.setRowSelectionAllowed false)
+                (.setColumnSelectionAllowed true))
      :cells   (.setCellSelectionEnabled table true))))
 
 (defn-typecheck-swing set-value-at-view ::table-control
@@ -458,21 +451,19 @@
 (defn-typecheck-swing-threads* paste-from-clipboard ::table-control
   "Pastes the current system clipboard contents into the table."
   [obj]
-  (let [control (get-control obj),
-        sel-columns ((*comp (rho .getSelectedColumns) seq)
-                     control),
-        sel-rows ((*comp (rho .getSelectedRows) seq)
-                  control),
-        col-index (get-column-index-permutator obj),
-        row-index (get-row-index-permutator obj)]
+  (let [control     (get-control obj),
+        sel-columns (-> control .getSelectedColumns seq),
+        sel-rows    (-> control .getSelectedRows seq),
+        col-index   (get-column-index-permutator obj),
+        row-index   (get-row-index-permutator obj)]
     (if (or (empty? sel-columns) (empty? sel-rows))
       nil
-      (let [data (str (get-clipboard-contents)),
+      (let [data   (str (get-clipboard-contents)),
             startx (first sel-columns),
             starty (first sel-rows),
-            cells (vec (map (*comp (rho split #"\t") (rho vec))
-                            (split-lines data))),
-            lns (range (count cells))]
+            cells  (vec (map #(vec (split #"\t" %))
+                             (split-lines data))),
+            lns    (range (count cells))]
         (doseq [r lns]
           (doseq [c (range (count (cells r)))]
             (set-value-at-index obj
@@ -484,23 +475,21 @@
   "Copies the selected cells from the table widget to the system
    clipboard."
   [obj]
-  (let [control (get-control obj),
-        sel-columns ((*comp (rho .getSelectedColumns) seq)
-                     control),
-        sel-rows ((*comp (rho .getSelectedRows) seq)
-                  control),
-        sel-pairs (map (fn [y]
-                         (map (fn [x]
-                                (list y x)) sel-columns))
-                       sel-rows),
-        sel-values (map (fn [l]
-                          (map (fn [p]
-                                 (str (get-value-at-view obj
-                                                         (first p)
-                                                         (second p)))) l))
-                        sel-pairs),
-        sel-lines (map #(join "\t" %) sel-values)
-        selection (join "\n" sel-lines)]
+  (let [control     (get-control obj),
+        sel-columns (-> control .getSelectedColumns seq),
+        sel-rows    (-> control .getSelectedRows seq),
+        sel-pairs   (map (fn [y]
+                           (map (fn [x]
+                                  (list y x)) sel-columns))
+                         sel-rows),
+        sel-values  (map (fn [l]
+                           (map (fn [p]
+                                  (str (get-value-at-view obj
+                                                          (first p)
+                                                          (second p)))) l))
+                         sel-pairs),
+        sel-lines   (map #(join "\t" %) sel-values)
+        selection   (join "\n" sel-lines)]
     (set-clipboard-contents selection)))
 
 (defn-typecheck-swing get-view-coordinates-at-point ::table-control
@@ -533,13 +522,13 @@
         pane  (JScrollPane. table
                             JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED
                             JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
-        keystroke-copy (KeyStroke/getKeyStroke KeyEvent/VK_C
-                                               ActionEvent/CTRL_MASK false),
+        keystroke-copy  (KeyStroke/getKeyStroke KeyEvent/VK_C
+                                                ActionEvent/CTRL_MASK false),
         keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
                                                 ActionEvent/CTRL_MASK false),
 
-        hooks (:hooks (make-hookable)),
-        widget (table-control. pane table hooks model),
+        hooks           (:hooks (make-hookable)),
+        widget          (table-control. pane table hooks model),
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
                             (with-swing-threads*
@@ -548,24 +537,31 @@
                                     last   (.getLastRow event),
                                     type   (.getType event)]
                                 (call-hook widget "table-changed"
-                                           column first last type)))))
+                                           column first last type))))),
+
         defaults [[set-resize-mode :off],
                   [set-cell-selection-mode :cells],
                   [register-keyboard-action
                    copy-to-clipboard "Copy" keystroke-copy :focus],
                   [register-keyboard-action
-                   paste-from-clipboard "Paste" keystroke-paste :focus]]
-        ignore-event (fn [x] nil),
-        show-data (fn [x] (message-box (str x))),
-        drag-start (ref [0 0]),
+                   paste-from-clipboard "Paste" keystroke-paste :focus]],
+
+        ignore-event      (fn [x] nil),
+        show-data         (fn [x] (message-box (str x))),
+        drag-start        (ref [0 0]),
         button-down-event (fn [x]
                             (if (= (:button x) 3)
-                              (dosync (ref-set drag-start
-                                               (get-view-coordinates-at-point
-                                                table-control (:position x))))
-                              (message-box (str x))))
-        cell-permutor (proxy-mouse-listener button-down-event ignore-event
-                                            ignore-event ignore-event ignore-event)]
+                              (dosync
+                               (ref-set drag-start
+                                        (get-view-coordinates-at-point widget
+                                                                       (:position x))))
+                              (message-box (str x)))),
+
+        cell-permutor (proxy-mouse-listener button-down-event
+                                            ignore-event
+                                            ignore-event
+                                            ignore-event
+                                            ignore-event)]
     (add-hook widget "table-changed"
       (fn [c f l t] (table-change-hook widget c f l t))
       "This hook is called whenever a table widget is changed,

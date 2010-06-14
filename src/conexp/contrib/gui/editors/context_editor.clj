@@ -11,7 +11,7 @@
         conexp.contrib.gui.editors.util
         conexp.contrib.gui.editors.context-editor.util))
 
-(ns-doc "Provides basic operations to contstruc context editors.")
+(ns-doc "Provides basic operations to contstruct context editors.")
 
 ;;;
 
@@ -19,7 +19,7 @@
 
   (defn make-context-editor
     "Creates a context editor object for a given context ctx and
-     returns its root panel."
+    returns its root panel."
     [ctx]
     (let [ectx   (make-editable-context ctx),
           widget (make-context-editor-widget),
@@ -30,7 +30,7 @@
 
   (defn get-context-from-panel
     "Returns the context that is currently associated with the context
-     editor widget represented by the given panel."
+    editor widget represented by the given panel."
     [panel]
     (get-context (second (panels panel))))
 

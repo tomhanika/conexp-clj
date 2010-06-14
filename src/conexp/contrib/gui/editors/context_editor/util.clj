@@ -132,12 +132,15 @@
   Parameters:
     widget  _context-editor-widget"
   [widget]
-  (let [ table (get-table widget) 
-         view (get-row-index-permutator table)
-         sel  (seq (.getSelectedRows (get-control table)))
-         ectx (get-ectx widget) 
-         names (deref (:obj-rows ectx))
-         fltr (rho filter (fn [x] (when-not (nil? x) x))) ]
+  (let [table (get-table widget),
+        view  (get-row-index-permutator table),
+        sel   (seq (.getSelectedRows (get-control table))),
+        ectx  (get-ectx widget),
+        names (deref (:obj-rows ectx)),
+        fltr  #(filter (fn [x]
+                         (when-not (nil? x)
+                           x))
+                       %)]
     (set (fltr (map (*comp view names) sel)))))
 
 (defn-typecheck get-selected-attributes ::context-editor-widget
@@ -146,12 +149,15 @@
   Parameters:
     widget  _context-editor-widget"
   [widget]
-  (let [ table (get-table widget) 
-         view (get-column-index-permutator table)
-         sel  (seq (.getSelectedColumns (get-control table)))
-         ectx (get-ectx widget) 
-         names (deref (:attr-cols ectx))
-         fltr (rho filter (fn [x] (when-not (nil? x) x))) ]
+  (let [table (get-table widget),
+        view  (get-column-index-permutator table),
+        sel   (seq (.getSelectedColumns (get-control table))),
+        ectx  (get-ectx widget),
+        names (deref (:attr-cols ectx)),
+        fltr  #(filter (fn [x]
+                         (when-not (nil? x)
+                           x))
+                       %)]
     (set (fltr (map (*comp view names) sel)))))
 
 (defn- cut-attributes
@@ -208,8 +214,8 @@
          (make-button txt icon 
            [set-handler 
              (fn [] 
-               (let [ ectx (deref ref-to-ectx)
-                      ctx (get-context ectx) ]
+               (let [ectx (deref ref-to-ectx),
+                     ctx  (get-context ectx)]
                  (set-context ectx (f ctx))))]))))
 
 (declare get-dual-order)
@@ -607,7 +613,7 @@
       (ref-set (:context ectx) @(:context new))
       (ref-set (:attr-cols ectx) @(:attr-cols new))
       (ref-set (:obj-rows ectx) @(:obj-rows new)))
-    (call-many widgets (rho add-widget ectx))))
+    (call-many widgets #(add-widget ectx %))))
 
 (defn-typecheck set-context ::editable-context
   "Sets the bound fca-context of an editable context object to ctx.
