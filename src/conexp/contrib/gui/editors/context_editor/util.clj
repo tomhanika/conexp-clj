@@ -203,7 +203,7 @@
                                    ctx  (get-context ectx)]
                                (set-context ectx (f ctx))))]))))
 
-(declare get-dual-order)
+(declare get-dual-order set-context-keep-order)
 
 (defn- add-ctx-map-btn-dual
   "Helper that will create the according button vector"
