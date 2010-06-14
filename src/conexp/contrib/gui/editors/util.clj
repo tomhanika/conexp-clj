@@ -42,13 +42,15 @@
    is a function that will be called with the object as first parameter and
    the rest of the vector as subsequent parameters."
   [object vectors]
-  `(doseq [call# ~vectors] (apply (first call#) ~object (rest call#))))
+  `(doseq [call# ~vectors]
+     (apply (first call#) ~object (rest call#))))
 
 (defmacro when-mask
   "Takes two bitmasks and checks whether their bitwise-and is not 0,
    if so, calls all other expressions in an implicit do."
   [bit-mask-1 bit-mask-2 & exprs]
-  `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2)) ~@exprs))
+  `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2))
+     ~@exprs))
 
 
 ;;; java & swing utils

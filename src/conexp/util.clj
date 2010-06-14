@@ -331,18 +331,6 @@
 						 ~title
 						 javax.swing.JOptionPane/ERROR_MESSAGE))))
 
-         
-;; synchronization helpers
-
-(defmacro dosync-wait
-  "Returns a dosync block that will block until the operation
-   has been carried out, the last value of the body will
-   be returned."
-  [ & body]
-  `(let [waiting# (promise)]
-     (dosync (deliver waiting# (do ~@body)))
-     (deref waiting#)))
-
 ;;;
 
 nil

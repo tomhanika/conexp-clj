@@ -26,7 +26,7 @@
     doc-str     _a documentation string for the hook"
   [ohookable name function doc-str]
   (let [hooks (:hooks ohookable)]
-    (dosync-wait (commute hooks conj {name (list function doc-str)}))))
+    (dosync (alter hooks conj {name (list function doc-str)}))))
 
 (defn-typecheck set-hook ::hookable
   "Sets a hook in the hooksmap, throws if this hook doesn't exist.
@@ -38,7 +38,7 @@
   [ohookable name function]
   (let [hooks (:hooks ohookable)]
     (if (contains? @hooks name)
-      (dosync-wait (commute hooks 
+      (dosync (alter hooks 
                      (fn [h]
                        (let [ doc-str (second (h name))
                               fun-str (list function doc-str)
@@ -55,8 +55,8 @@
     name        _key for the hook
     & args      _arguments passed to the hook function"
   [ohookable name & args]
-  (let [ hooks (:hooks ohookable)
-         hookmap @hooks]
+  (let [hooks (:hooks ohookable),
+        hookmap @hooks]
     (if (contains? hookmap name)
       (apply (first (hookmap name)) args)
       (illegal-argument (str "call-hook " name " for "
