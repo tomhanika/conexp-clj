@@ -11,18 +11,20 @@
 	    clojure.contrib.set
 	    clojure.contrib.math
 	    clojure.contrib.lazy-seqs
-	    clojure.contrib.def
-	    conexp.util)
+	    clojure.contrib.def)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 (immigrate 'clojure.set
 	   'clojure.contrib.set
 	   'clojure.contrib.math
 	   'clojure.contrib.lazy-seqs
-	   'clojure.contrib.def
-	   'conexp.util)
+	   'clojure.contrib.def)
 
-;;; Set Theory
+(load "util")
+
+(ns-doc "Basic definitions for conexp-clj.")
+
+;;; Very Basic Set Theory
 
 (defn cross-product
   "Returns cross product of set-1 and set-2."
@@ -106,16 +108,17 @@
      \\mathrm{clop}(A \\cap \\set{1, \\ldots, i-1}) \\in \\mathcal{F}.
   \\]"
   [predicate G clop A]
-  (let [oplus-A (memoize (partial oplus G clop A))]
-    (loop [i-s (reverse G)]
-      (if (empty? i-s)
-	nil
-	(let [i (first i-s)]
-	  (if (and (not (contains? A i))
-		   (lectic-<_i G i A (oplus-A i))
-		   (predicate (oplus-A i)))
-	    (oplus-A i)
-	    (recur (rest i-s))))))))
+  (loop [i-s (reverse G)]
+    (if (empty? i-s)
+      nil
+      (let [i (first i-s)]
+        (if (contains? A i)
+          (recur (rest i-s))
+          (let [oplus-A (oplus G clop A i)]
+            (if (and (lectic-<_i G i A oplus-A)
+                     (predicate oplus-A))
+              oplus-A
+              (recur (rest i-s)))))))))
 
 (defn improve-basic-order
   "Improves basic order on the sequence base, where the closure operator
@@ -133,7 +136,6 @@
   "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
   interpreted as increasing, is taken to be the basic order of the elements."
   [G clop A]
-  ;; is this fast enough?
   (next-closed-set-in-family (constantly true) G clop A))
 
 (defn all-closed-sets
@@ -201,7 +203,48 @@
   [relation source target]
   (and (= (set-of x [[x y] relation]) source)
        (subset? (set-of y [[x y] relation]) target)
-       (= (count source) (count relation)))) ; this works because everything is finite
+       (= (count source) (count relation))))
+
+(defn minimal-generating-subsets
+  "Given a set A and a closure operator clop returns all subsets B of
+  A such that (= (clop A) (clop B))."
+  [clop A]
+  (let [clop-A (clop A)]
+    (loop [left     [A],                ;yet to consider
+           minimals []]                 ;minimals elements already found
+      (if (empty? left)
+        (distinct minimals)
+        (let [next (first left)]
+          (if (empty? next)
+            (recur (rest left) (conj minimals next))
+            (let [generating-subsets (set-of X [x next,
+                                                :let [X (disj next x)]
+                                                :when (= clop-A (clop X))])]
+              (if (empty? generating-subsets)
+                (recur (rest left) (conj minimals next))
+                (recur (into (rest left) generating-subsets) minimals)))))))))
+
+(defn partial-min
+  "For a given partial order <= and given elements returns the minimal
+  among them."
+  [<= & xs]
+  (let [runner (fn runner [left minimals]
+                 (if (empty? left)
+                   minimals
+                   (let [next (first left),
+                         new-minimals (remove #(<= next %) minimals)]
+                     (if (not= (count minimals) (count new-minimals))
+                       (recur (rest left) (conj new-minimals next))
+                       (if (some #(<= % next) minimals)
+                         (recur (rest left) minimals)
+                         (recur (rest left) (conj minimals next)))))))]
+    (runner xs ())))
+
+(defn partial-max
+  "For a given partial order <= and given elements returns the maximal
+  among them."
+  [<= & xs]
+  (apply partial-min #(<= %2 %1) xs))
 
 ;;;
 

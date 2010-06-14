@@ -6,12 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.dl.util.general-sorted-sets
+(ns conexp.contrib.util.general-sorted-sets
   (:use conexp.main)
   (:use [clojure.contrib.seq :only (seq-on)]))
 
-(update-ns-meta! conexp.contrib.dl.util.general-sorted-sets
-  :doc "Playground for some more or less creative work for DL.")
+(ns-doc
+ "Implementation of a generalization of tree sets to partial orders.")
 
 ;;; sorted-set for non-total orderings
 
@@ -51,7 +51,9 @@
   (.write out (with-out-str
                 (println "General Sorted Set")
                 (doseq [x (sort-gss gss)]
-                  (println "Node:" (:node x) ", Lowers:" (map :node @(:lowers x)) ", Uppers:" (map :node @(:uppers x)))))))
+                  (println "Node:" (:node x)
+                           ", Lowers:" (map :node @(:lowers x))
+                           ", Uppers:" (map :node @(:uppers x)))))))
 
 (defmethod seq-on General-Sorted-Set [gss]
   (map :node (sort-gss gss)))
@@ -160,6 +162,23 @@
 			  [(:node y) (:node x)])
 			(mapcat edges @(:lowers x))))]
     (mapcat edges @(.maximal-elements gss))))
+
+(defn directly-below-in-gss
+  "Returns all elements in the general sorted set gss which would be
+  directly neighboured to elt if it where in gss. If elt is already in
+  gss returns singleton elt."
+  [gss elt]
+  (map :node (find-lower-neighbours gss elt)))
+
+(defn gss-elements
+  "Returns the elements of the general sorted set gss, unordered."
+  [^General-Sorted-Set gss]
+  (loop [collected [],
+         remaining @(.maximal-elements gss)]
+    (if-not (empty? remaining)
+      (recur (into collected (map :node remaining))
+             (mapcat (comp deref :lowers) remaining))
+      collected)))
 
 ;;;
 

@@ -13,79 +13,7 @@
         conexp.contrib.dl.languages.description-graphs)
   (:use [clojure.walk :only (walk)]))
 
-(update-ns-meta! conexp.contrib.dl.languages.EL-gfp-rewriting
-  :doc "Provides functions for EL-gfp term rewriting.")
-
-;;;
-
-(defn- arguments*
-  "Returns the arguments of the given DL expression as set, if it is
-  not atomic. If it is, returns the singleton set of the dl-expression
-  itself."
-  [dl-expression]
-  (if (atomic? dl-expression)
-    (set [dl-expression])
-    (set (arguments dl-expression))))
-
-(defn- implication-kernel
-  "Given a set of concepts returns a minimal subset of concepts which,
-  when closed under the given implications, yields a superset of the
-  original set given."
-  [set-of-concepts set-of-implications]
-  (let [implication-closure (clop-by-implications set-of-implications)]
-    (loop [to-consider (seq set-of-concepts),
-	   concepts set-of-concepts]
-      (if (empty? to-consider)
-	concepts
-	(let [next-concept (first to-consider)]
-	  (recur (rest to-consider)
-		 (if (contains? (implication-closure (disj concepts next-concept))
-				next-concept)
-		   (disj concepts next-concept)
-		   concepts)))))))
-
-(defn- abbreviate-expression
-  "Abbreviates expression with given knowledge."
-  [expression knowledge]
-  (cond
-   (tbox-target-pair? expression)
-   (let [[tbox target] (expression-term expression)]
-     (make-dl-expression (expression-language expression)
-                         [(make-tbox (expression-language expression)
-                                     (into {} (for [[sym def] (tbox-definition-map tbox)]
-                                                [sym (make-dl-definition (definition-target def)
-                                                                         (abbreviate-expression (definition-expression def)
-                                                                                                knowledge))])))
-                          target])),
-
-   (atomic? expression) expression,
-
-   (= 'and (operator expression))
-   (let [shorter (implication-kernel (arguments* expression) knowledge)]
-     (make-dl-expression-nc (expression-language expression)
-                            (cons 'and (map #(expression-term (abbreviate-expression % knowledge)) shorter)))),
-
-   (= 'exists (operator expression))
-   (let [args (arguments expression)]
-     (make-dl-expression-nc (expression-language expression)
-                            (list 'exists (expression-term (nth args 0))
-                                  (expression-term (abbreviate-expression (nth args 1)
-                                                                          knowledge))))),
-
-   :else (illegal-argument "Abbreviate-expression can only handle EL expressions.")))
-
-
-(defn abbreviate-subsumption
-  "Takes a subsumption whose subsumee and subsumer are in normal form
-  and returns a subsumption where from the subsumer every term already
-  present in the subsumee is removed."
-  [subsumption background-knowledge]
-  (let [language (expression-language (subsumee subsumption)),
-	premise-args (arguments* (subsumee subsumption)),
-	conclusion-args (difference (arguments* (subsumer subsumption))
-                                    premise-args)]
-    (make-subsumption (abbreviate-expression (make-dl-expression language (cons 'and premise-args)) background-knowledge)
-                      (abbreviate-expression (make-dl-expression language (cons 'and conclusion-args)) background-knowledge))))
+(ns-doc "Provides functions for EL-gfp term rewriting.")
 
 ;;; EL and EL-gfp normalization
 
@@ -99,66 +27,109 @@
     (if (empty? left)
       (reverse collected)
       (let [next (first left)]
-        (recur (conj collected next)
-               (remove #(more-specific? next %) (rest left)))))))
+        (if (some #(more-specific? % next) collected)
+          (recur collected (rest left))
+          (recur (conj (remove #(more-specific? next %) collected) next) (rest left)))))))
 
 (defn- more-specific?
-  "Returns true iff exp-1 is more specific than exp-2."
-  [exp-1 exp-2]
-  (let [atom?   #(not (seq? %)),
-        and?    #(and (seq? %) (= 'and (first %))),
-        exists? #(and (seq? %) (= 'exists (first %)))]
-    (cond
-     (= exp-1 exp-2) true,
+  "Returns true iff term-1 is more specific than term-2. When no tests succeeds
+  (fallback term-1 term-2) is called and its return value is then
+  returned."
+  ([term-1 term-2]
+     (more-specific? term-1 term-2 (constantly false)))
+  ([term-1 term-2 fallback]
+     (or (let [atom?   #(not (seq? %)),
+               and?    #(and (seq? %) (= 'and (first %))),
+               exists? #(and (seq? %) (= 'exists (first %)))]
+           (cond
+            (= term-1 term-2) true,
 
-     (and (atom? exp-1) (atom? exp-2)) false,
+            (and (atom? term-1) (atom? term-2)) false,
 
-     (and (and? exp-1)
-          (not (and? exp-2)))
-     (or (some #(more-specific? % exp-2) (rest exp-1))
-         false),
+            (and (and? term-1)
+                 (not (and? term-2)))
+            (or (some #(more-specific? % term-2 fallback) (rest term-1))
+                false),
 
-     (and (not (and? exp-1))
-          (and? exp-2))
-     (more-specific? (list 'and exp-1) exp-2),
+            (and (not (and? term-1))
+                 (and? term-2))
+            (more-specific? (list 'and term-1) term-2),
 
-     (and (and? exp-1) (and? exp-2))
-     (every? #(more-specific? exp-1 %) (rest exp-2)),
+            (and (and? term-1) (and? term-2))
+            (every? #(more-specific? term-1 % fallback) (rest term-2)),
 
-     (and (exists? exp-1) (exists? exp-2))
-     (and (= (second exp-1) (second exp-2))
-          (more-specific? (nth exp-1 2) (nth exp-2 2))),
+            (and (exists? term-1) (exists? term-2))
+            (and (= (second term-1) (second term-2))
+                 (more-specific? (nth term-1 2) (nth term-2 2) fallback)),
 
-     :else false)))
-
-(defn normalize-EL-term
-  "Normalizes a given EL term."
-  [term]
-  (let [transform (fn transform [sexp]
-                    (cond
-                     (and (seq? sexp)
-                          (= (first sexp) 'exists))
-                     (list (first sexp) (second sexp) (transform (nth sexp 2))),
-
-                     (and (seq? sexp)
-                          (= (first sexp) 'and))
-                     (walk transform
-                           #(list* (first sexp) (minimal-elements % more-specific?))
-                           (rest sexp)),
-
-                     :else sexp))]
-    (transform term)))
+            :else false))
+         (fallback term-1 term-2))))
 
 (defn normalize-EL-gfp-term
-  "Normalizes a given EL-gfp term. tbox must not contains embedded TBoxes."
-  [[tbox target] ]
-  (assert (tbox? tbox))
-  [(make-tbox (tbox-language tbox)
-              (into {} (for [[sym def] (tbox-definition-map tbox)]
-                         [sym (make-dl-definition (tbox-language tbox)
-                                                  (definition-target def)
-                                                  (normalize-EL-term (expression-term (definition-expression def))))]))),
-   target])
+  "Normalizes a given EL-gfp term."
+  [term]
+  (cond
+   (and (vector? term)
+        (= 2 (count term))
+        (tbox? (first term)))
+   (let [[tbox target] term]
+     [(make-tbox (tbox-language tbox)
+                 (into {} (for [[sym def] (tbox-definition-map tbox)]
+                            [sym (make-dl-definition
+                                  (tbox-language tbox)
+                                  (definition-target def)
+                                  (normalize-EL-gfp-term (expression-term (definition-expression def))))]))),
+      target]),
+
+   (and (seq? term)
+        (= (first term) 'exists))
+   (list (first term) (second term) (normalize-EL-gfp-term (nth term 2))),
+
+   (and (seq? term)
+        (= (first term) 'and))
+   (walk normalize-EL-gfp-term
+         #(list* (first term) (minimal-elements % more-specific?))
+         (rest term)),
+
+   :else term))
+
+;;;
+
+(defn- arguments*
+  "Returns the arguments of the given DL expression as set, if it is
+  not atomic. If it is, returns the singleton set of the dl-expression
+  itself."
+  [dl-expression]
+  (if (atomic? dl-expression)
+    (set [dl-expression])
+    (set (arguments dl-expression))))
+
+ (defn- abbreviate-expression
+   "Abbreviates expression with given knowledge."
+   [expression knowledge]
+   (let [language            (expression-language expression),
+         implication-closure (memoize (clop-by-implications knowledge)),
+         more-specific?      more-specific?] ;hehe...
+     (binding [more-specific? #(more-specific?
+                                 %1 %2
+                                 (fn [term-1 term-2]
+                                   (contains? (implication-closure #{(make-dl-expression-nc language term-1)})
+                                              (make-dl-expression-nc language term-2))))]
+       (make-dl-expression-nc language (normalize-EL-gfp-term (expression-term expression))))))
+
+(defn abbreviate-subsumption
+  "Takes a subsumption whose subsumee and subsumer are in normal form
+  and returns a subsumption where from the subsumer every term already
+  present in the subsumee is removed."
+  [subsumption background-knowledge]
+  (let [language        (expression-language (subsumee subsumption)),
+	premise-args    (arguments* (subsumee subsumption)),
+	conclusion-args (difference (arguments* (subsumer subsumption))
+                                    premise-args)]
+    (make-subsumption (abbreviate-expression (make-dl-expression language (cons 'and premise-args))
+                                             background-knowledge)
+                      (abbreviate-expression (make-dl-expression language (cons 'and conclusion-args))
+                                             background-knowledge))))
 
 ;;;
 

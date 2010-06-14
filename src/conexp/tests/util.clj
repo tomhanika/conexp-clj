@@ -6,10 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.util
-  (:use conexp.util
-	clojure.test
-	[clojure.contrib.math :only (gcd)]))
+(in-ns 'conexp.tests.base)
 
 ;;;
 
@@ -70,14 +67,20 @@
 	     (even? x))))
   (is (forall [x (range 100)]
         (< x 100)))
-  (is (forall [x []] false)))
+  (is (forall [x []] false))
+  (is (forall [a [2 3 4 5]
+               b [30 60]]
+        (not= 1 (gcd a b)))))
 
 (deftest test-exists
   (is (exists [x (iterate inc 0)]
 	(even? x)))
   (is (not (exists [x (range 100)]
 	     (>= x 100))))
-  (is (not (exists [x []] true))))
+  (is (not (exists [x []] true)))
+  (is (exists [x [1 2 3 4],
+               y [5 6 7 8]]
+        (= 1 (gcd x y)))))
 
 (deftest test-set-of
   (is (= #{1 2 3 4 5 6} (set-of x [x (range 1 7)])))

@@ -7,13 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layout.util
-  (:use conexp.util
+  (:use conexp.base
 	[conexp.layout.base :only (make-layout, positions, connections)]
 	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
   (:use [clojure.contrib.graph :only (directed-graph, dependency-list)]))
 
-(update-ns-meta! conexp.layout.util
-  :doc "Utilities for computing lattice layouts.")
+(ns-doc
+ "Utilities for computing lattice layouts.")
 
 
 ;;;

@@ -11,8 +11,7 @@
   (:use [clojure.contrib.string :only (split)]
 	[clojure.contrib.pprint :only (pprint)]))
 
-(update-ns-meta! conexp.contrib.todo
-  :doc "Provides information on all tasks planned for conexp-clj.")
+(ns-doc "Provides information on all tasks planned for conexp-clj.")
 
 ;;;
 
@@ -26,7 +25,7 @@
 			"zschalig" ["Implement initial positioning as described by C. Zschalig."]},
 	      "fca"    {"rules"    ["Think about and write some code."],
 			"association-rules" ["More?"],
-			"exploration" ["Add background knowledge (implications and clauses)."],
+			"exploration" ["Add background knowledge (clauses)."],
 			"contexts" ["Better implementation for context-for-clop."]},
 	      "gui"    {"plugins"  {"contexteditor" ["Design and implement."],
 				    "latticeeditor" ["Design and implement."],

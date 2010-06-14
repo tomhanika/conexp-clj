@@ -11,11 +11,10 @@
         conexp.fca.contexts
         conexp.fca.many-valued-contexts
         conexp.io.util)
-  (:use [clojure.contrib.io :exclude (with-in-reader)])
+  (:use [clojure.contrib.io :only (with-out-writer)])
   (:import [java.io PushbackReader]))
 
-(update-ns-meta! conexp.io.many-valued-contexts
-  :doc "Implements IO for Many-Valued Contexts.")
+(ns-doc "Implements IO for Many-Valued Contexts.")
 
 ;;; Input format dispatch
 

@@ -15,8 +15,7 @@
 	conexp.contrib.dl.languages.description-graphs
         conexp.contrib.dl.languages.EL-gfp-rewriting))
 
-(update-ns-meta! conexp.contrib.dl.languages.EL-gfp
-  :doc "Defines EL-gfp with lcs, msc and subsumption.")
+(ns-doc "Defines EL-gfp with lcs, msc and subsumption.")
 
 ;;; EL-gfp
 
@@ -28,9 +27,9 @@
   (when (not (tbox-target-pair? dl-expression))
     (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
   ;; compute gfp-model and interpret target
-  (let [[tbox, target] (expression-term dl-expression),
-	interpretation (gfp-model tbox model)]
-    (interpretation target)))
+  (let [[tbox, target] (expression-term dl-expression)]
+    (EL-gfp-model-interpretation model [tbox target])))
+
 
 ;;; subsumption
 
@@ -86,7 +85,7 @@
   "Returns the model based most specific concept of objects in model."
   [model objects]
   (if-not (empty? objects)
-    (EL-gfp-lcs (description-graph->tbox (model->description-graph model)) objects)
+    (EL-gfp-lcs (model->tbox model) objects)
     (let [language (model-language model),
 	  all (make-dl-expression language
 				  (list* 'and
@@ -97,10 +96,11 @@
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (normalize-EL-gfp-term (reduce-ttp (EL-gfp-msc model objects)))]
+  (let [[tbox target] (normalize-EL-gfp-term
+                       (reduce-ttp (tidy-up-ttp (clarify-ttp (EL-gfp-msc model objects)))))]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
-      [tbox target])))
+      (make-dl-expression (model-language model) [tbox target]))))
 
 ;;;
 

@@ -21,7 +21,7 @@ Now switch in the source directory of conexp-clj and run
 This will download any missing jar files needed for conexp-clj to run,
 except for one (G.jar), which you have to copy manually
 
-  $ cp stuff/additional-libs/*.jar lib
+  $ cp stuff/libs/*.jar lib
 
 With this you can now run conexp-clj directly from source and hack in
 its internals!

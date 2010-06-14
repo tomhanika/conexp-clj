@@ -6,4 +6,14 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(use 'conexp.main)
+(ns conexp.contrib.tests.util
+  (:use conexp.main))
+
+;;;
+
+(tests-to-run conexp.contrib.tests.util.general-sorted-sets)
+
+;;;
+
+nil
+

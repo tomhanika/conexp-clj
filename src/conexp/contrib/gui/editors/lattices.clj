@@ -17,12 +17,12 @@
 	conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor
 	conexp.contrib.gui.plugins.base)
-  (:use clojure.contrib.swing-utils
-	clojure.contrib.io)
+  (:use clojure.contrib.swing-utils)
   (:import [java.io File]))
 
-(update-ns-meta! conexp.contrib.gui.editors.lattices
-  :doc "Provides lattice-editor, a plugin for lattices for the standard GUI of conexp-clj.")
+(ns-doc
+ "Provides lattice-editor, a plugin for lattices for the standard GUI
+ of conexp-clj.")
 
 ;;; The Plugin
 

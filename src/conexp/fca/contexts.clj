@@ -10,15 +10,16 @@
   (:use conexp.base)
   (:require [clojure.contrib.graph :as graph]))
 
+(ns-doc
+ "Provides the implementation of formal contexts and functions on
+  them.")
+
 ;;;
 
 (deftype Context [objects attributes incidence]
   Object
   (equals [this other]
-    (and (= (class this) (class other))
-	 (= (.objects this) (.objects other))
-	 (= (.attributes this) (.attributes other))
-	 (= (.incidence this) (.incidence other))))
+    (generic-equals [this other] Context [objects attributes incidence]))
   (hashCode [this]
     (hash-combine-hash Context objects attributes incidence)))
 
@@ -156,7 +157,6 @@
 (defmethod make-context-nc :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
 
-
 ;;; Common Operations in Contexts
 
 (defn context-size
@@ -183,6 +183,23 @@
   (let [atts (map old-to-new (attributes ctx))
 	inz (set-of [g (old-to-new m)] [[g m] (incidence ctx)])]
     (make-context-nc (objects ctx) atts inz)))
+
+(defn make-context-from-matrix
+  "Given objects G and attribute M and an incidence matrix contstructs
+  the corresponding context. G and M may also be numbers where they
+  represent (range G) and (range M) respectively."
+  [G M bits]
+  (let [G (if (number? G) (range G) G),
+        M (if (number? M) (range M) M),
+        m (count G),
+        n (count M)]
+    (assert (= (* m n) (count bits)))
+    (make-context G M
+                  (set-of [a b] [i (range (count G)),
+                                 j (range (count M)),
+                                 :when (= 1 (nth bits (+ (* n i) j)))
+                                 :let [a (nth G i),
+                                       b (nth M j)]]))))
 
 (defn object-derivation
   "Computes set of attributes common to all objects in context."
@@ -344,47 +361,6 @@
   [ctx set-of-attributes]
   (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
 
-(defn- context-attribute-closure-operator
-  [ctx]
-  (let [obj-derv-cards (loop [result {}
-			      objs (seq (objects ctx))]
-			 (if objs
-			   (let [g (first objs)]
-			     (recur (assoc result g (count (object-derivation ctx #{g})))
-				    (next objs)))
-			   result))
-	ordered-objects (sort (fn [g_1 g_2]
-				(<= (obj-derv-cards g_1)
-				    (obj-derv-cards g_2)))
-			      (objects ctx))
-	att-derv-cards (loop [result {}
-			      atts (seq (attributes ctx))]
-			 (if atts
-			   (let [m (first atts)]
-			     (recur (assoc result m (count (attribute-derivation ctx #{m})))
-				    (next atts)))
-			   result))
-	ordered-attributes (sort (fn [m_1 m_2]
-				   (<= (att-derv-cards m_1)
-				       (att-derv-cards m_2)))
-				 (attributes ctx))
-	incident? (memoize (fn [g m]
-			     ((incidence ctx) [g m])))
-	filter-objects (memoize (fn [card]
-				  (drop-while #(< (obj-derv-cards %) card)
-					      ordered-objects)))
-	filter-attributes (memoize (fn [card]
-				     (drop-while #(< (att-derv-cards %) card)
-						 ordered-attributes)))]
-    (fn [set-of-attributes]
-      (let [propable-objects (filter-objects (count set-of-attributes))
-	    derived-objects (filter (fn [g] (every? #(incident? g %) set-of-attributes))
-				    propable-objects)
-	    propable-attributes (filter-attributes (count derived-objects))
-	    derived-attributes (filter (fn [m] (every? #(incident? % m) derived-objects))
-				       propable-attributes)]
-	(set derived-attributes)))))
-
 (defn context-intents
   "Computes a sequence of all intents of ctx."
   [ctx]
@@ -397,8 +373,7 @@
   with their corresponding intents."
   [ctx]
   (for [objs (context-extents ctx)]
-    [ objs (object-derivation ctx objs) ]))
-
+    [objs, (object-derivation ctx objs)]))
 
 ;; Common Operations with Contexts
 
@@ -670,12 +645,15 @@
 ;;;
 
 (defn context-for-clop
-  "Returns a minimal context describing the closure operator clop on base-set."
-  ; unfinished
+  "Returns a minimal context describing the closure operator clop on base-set.
+
+  BAD IMPLEMENTATION."
   [base-set clop]
   (let [objects (all-closed-sets base-set clop), ; we actually only need the inf-irr closures
 	attributes base-set
 	incidence contains?]
     (reduce-context-objects (make-context objects attributes incidence))))
+
+;;;
 
 nil

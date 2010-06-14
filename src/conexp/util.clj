@@ -6,15 +6,14 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.util
-  (:use clojure.contrib.profile
-	[clojure.contrib.math :only (round)]
-	[clojure.contrib.seq :only (flatten)]
-        clojure.contrib.def
-        clojure.test)
-  (:import javax.swing.JOptionPane
-	   java.util.Calendar
-	   java.text.SimpleDateFormat))
+(in-ns 'conexp.base)
+
+(use 'clojure.contrib.profile,
+     'clojure.test)
+
+(import 'javax.swing.JOptionPane
+        'java.util.Calendar
+        'java.text.SimpleDateFormat)
 
 
 ;;; Namespace documentation
@@ -26,9 +25,12 @@
 		(fn [meta-hash#]
 		  (merge meta-hash# ~(apply hash-map key-value-description)))))
 
-(update-ns-meta! conexp.util
-  :doc "Loose collection of some useful functions and macros for conexp.")
-
+(defmacro ns-doc
+  "Sets the documentation of the current namespace to be doc."
+  [doc]
+  (let [ns (symbol (str *ns*))]
+    `(update-ns-meta! ~ns
+       :doc ~doc)))
 
 ;;; Testing
 
@@ -74,7 +76,6 @@
   "Fills given string with padding to have at least the given length."
   ([string length]
      (ensure-length string length " "))
-
   ([string length padding]
      (apply str string (repeat (- length (count string)) padding))))
 
@@ -139,19 +140,6 @@
   [& strings]
   (die-with-error IllegalStateException strings))
 
-(defmacro with-profiled-fns
-  "Runs code in body with all given functions being profiled."
-  [fns & body]
-  `(binding ~(vec (apply concat
-			 (for [fn (distinct fns)]
-			   `[~fn (let [orig-fn# ~fn]
-				   (fn [& args#]
-				     (prof ~(keyword fn)
-				       (apply orig-fn# args#))))])))
-     (let [data# (with-profile-data ~@body)]
-       (if (not (empty? data#))
-	 (print-summary (summarize data#))))))
-
 (defmacro with-memoized-fns
   "Runs code in body with all functions in functions memoized."
   [functions & body]
@@ -199,11 +187,21 @@
         #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
     (.format sdf (.getTime cal))))
 
+;;; deftype utilities
+
+(defmacro generic-equals
+  "Implements a generic equals for class on fields."
+  [[this other] class fields]
+  `(boolean (or (identical? ~this ~other)
+                (when (= (class ~this) (class ~other))
+                  (and ~@(map (fn [field]
+                                `(= ~field (. ~(vary-meta other assoc :tag class) ~field)))
+                              fields))))))
+
 (defn hash-combine-hash
   "Combines the hashes of all things given."
   [& args]
-  (reduce hash-combine 0
-	  (map hash args)))
+  (reduce #(hash-combine %1 (hash %2)) 0 args))
 
 
 ;;; Math
@@ -219,23 +217,46 @@
   (or (and a b)
       (and (not a) (not b))))
 
+(defn- expand-bindings
+  "Expands bindings used by forall and exists."
+  [bindings body]
+  (if (empty? bindings)
+    body
+    (let [[x xs] (first bindings)]
+      `(loop [ys# ~xs]
+         (if (empty? ys#)
+           true
+           (let [~x (first ys#)]
+             (and ~(expand-bindings (rest bindings) body)
+                  (recur (rest ys#)))))))))
+
 (defmacro forall
-  "Implements logical forall quantor."
+  "Implements logical forall quantor. Bindings is of the form [var-1
+  seq-1 var-2 seq-2 ...]."
   [bindings condition]
-  `(every? identity
-	   (for ~bindings ~condition)))
+  (when-not (let [c (count bindings)]
+              (and (<= 0 c)
+                   (zero? (mod c 2))))
+    (illegal-argument "forall requires even number of bindings."))
+  (expand-bindings (map vec (partition 2 bindings)) condition))
 
 (defmacro exists
-  "Implements logical exists quantor."
+  "Implements logical exists quantor. Bindings is of the form [var-1
+  seq-1 var-2 seq-2 ...]."
   [bindings condition]
-  `(or (some identity
-	     (for ~bindings ~condition))
-       false))
+  (when-not (let [c (count bindings)]
+              (and (<= 0 c)
+                   (zero? (mod c 2))))
+    (illegal-argument "exists requires even number of bindings."))
+  `(not ~(expand-bindings (map vec (partition 2 bindings)) `(not ~condition))))
 
 (defmacro set-of
   "Macro for writing sets as mathematicians do (at least similar to it.)"
   [thing condition]
-  `(set (for ~condition ~thing)))
+  `(with-local-vars [set# (transient #{})]
+     (doseq ~condition
+       (var-set set# (conj! (var-get set#) ~thing)))
+     (persistent! (var-get set#))))
 
 (defn div
   "Integer division."

@@ -15,9 +15,7 @@
 (deftype Implication [premise conclusion]
   Object
   (equals [this other]
-    (and (= (class this) (class other))
-	 (= premise (.premise other))
-	 (= conclusion (.conclusion other))))
+    (generic-equals [this other] Implication [premise conclusion]))
   (hashCode [this]
     (hash-combine-hash Implication premise conclusion)))
 
@@ -38,7 +36,7 @@
   (.conclusion impl))
 
 (defmethod print-method Implication [impl out]
-  (.write out (str "( " (premise impl) "  ==>  " (conclusion impl) " )")))
+  (.write out (str "(" (premise impl) "  ==>  " (conclusion impl) ")")))
 
 ;;;
 
@@ -112,6 +110,21 @@
     (forall [impl impl-set]
       (not (follows-semantically? impl (disj impl-set impl))))))
 
+(defn sound-implication-set?
+  "Checks whether given set of implications is sound, i.e. every
+  implication holds in the given context."
+  [ctx impl-set]
+  (forall [impl impl-set]
+    (holds? impl ctx)))
+
+(defn complete-implication-set?
+  "Checks wheter given set of implications is complete in context
+  ctx."
+  [ctx impl-set]
+  (forall [A (subsets (attributes ctx))]
+    (=> (forall [impl impl-set] (respects? A impl))
+        (= A (context-attribute-closure ctx A)))))
+
 ;; Stem Base
 
 (defn- add-immediate-elements*
@@ -142,22 +155,92 @@
     (partial close-under-implications implications)))
 
 (defn stem-base
-  "Returns stem base of given context."
+  "Returns stem base of given context. Uses background-knowledge as
+  starting set of implications, which will also be subtracted from the
+  final result."
+  ([ctx]
+     (stem-base ctx #{}))
+  ([ctx background-knowledge]
+     (let [double-prime (partial context-attribute-closure ctx),
+           attributes   (attributes ctx)]
+       (loop [implications background-knowledge,
+              last         #{}]
+         (let [conclusion-from-last (double-prime last),
+               implications (if (not= last conclusion-from-last)
+                              (conj implications
+                                    (make-implication last conclusion-from-last))
+                              implications),
+               clop (clop-by-implications* implications),
+               next (next-closed-set attributes clop last)]
+           (if next
+             (recur implications next)
+             (difference implications background-knowledge)))))))
+
+;;; Proper Premises
+
+(defn- A-dot
+  "Returns A-dot as in the definition of proper premises."
+  [ctx A]
+  (difference (context-attribute-closure ctx A)
+              (reduce union
+                      A
+                      (map #(context-attribute-closure ctx (disj A %))
+                           A))))
+
+(defn proper-premise?
+  "Returns true iff set A is a subset of the attributes of context ctx
+  and is a proper premise in ctx."
+  [ctx A]
+  (and (subset? A (attributes ctx))
+       (not (empty? (A-dot ctx A)))))
+
+(defn- minimal-intersection-sets
+  "Returns for a sequence set-sqn of sets all sets which have
+  non-empty intersection with all sets in set-sqn and are minimal with
+  that."
+  [set-sqn]
+  (cond
+   (empty? set-sqn) (list #{}),
+   (empty? (first set-sqn)) (),
+   :else (let [next-set (first set-sqn)]
+           (apply partial-min subset?
+                  (mapcat (fn [set]
+                            (if-not (empty? (intersection set next-set))
+                              (list set)
+                              (map #(conj set %) next-set)))
+                          (minimal-intersection-sets (rest set-sqn)))))))
+
+(defn- proper-premises-for-attribute
+  "Returns in context ctx for the attribute m and the objects in objs,
+  which must contain all objects g in ctx such that [g m] are in the
+  downarrow relation, the proper premises for m."
+  [ctx m objs]
+  (let [M (attributes ctx),
+        I (incidence ctx)]
+    (remove #(contains? % m)
+            (minimal-intersection-sets
+             (for [g objs] (set-of n [n M :when (not (contains? I [g n]))]))))))
+
+(defn proper-premises
+  "Returns the proper premises of the given context ctx as a lazy
+  sequence."
   [ctx]
-  (let [double-prime (partial context-attribute-closure ctx)
-	attributes   (attributes ctx)]
-    (loop [implications #{}
-	   last         #{}]
-      (let [conclusion-from-last (double-prime last)
-	    implications (if (not= last conclusion-from-last)
-			   (conj implications
-				 (make-implication last conclusion-from-last))
-			   implications)
-	    clop (clop-by-implications* implications)
-	    next (next-closed-set attributes clop last)]
-	(if next
-	  (recur implications next)
-	  implications)))))
+  (let [down-arrow-map (loop [arrows (down-arrows ctx),
+                              arrow-map {}]
+                         (if (empty? arrows)
+                           arrow-map
+                           (let [[g m] (first arrows)]
+                             (recur (rest arrows)
+                                    (update-in arrow-map [m] conj g)))))]
+    (distinct (mapcat #(proper-premises-for-attribute ctx % (get down-arrow-map %))
+                      (attributes ctx)))))
+
+(defn proper-premise-implications
+  "Returns all implications based on the proper premises of the
+  context ctx."
+  [ctx]
+  (set-of (make-implication A (A-dot ctx A))
+          [A (proper-premises ctx)]))
 
 ;;;
 

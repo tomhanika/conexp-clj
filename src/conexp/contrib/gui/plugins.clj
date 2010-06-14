@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.plugins
-  (:use conexp.util
+  (:use conexp.base
 	conexp.contrib.gui.util
 	conexp.contrib.gui.plugins.base
 	conexp.contrib.gui.plugins.browse))

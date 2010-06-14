@@ -15,10 +15,7 @@
 (deftype Many-Valued-Context [objects attributes incidence]
   Object
   (equals [this other]
-    (and (= (class this) (class other))
-	 (= (.objects this) (.objects other))
-	 (= (.attributes this) (.attributes other))
-	 (= (.incidence this) (.incidence other))))
+    (generic-equals [this other] Many-Valued-Context [objects attributes incidence]))
   (hashCode [this]
     (hash-combine-hash Many-Valued-Context objects attributes incidence)))
 

@@ -11,18 +11,18 @@
 	                JButton JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane]
 	   [java.awt GridLayout BorderLayout Dimension])
-  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, update-ns-meta!)]
+  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc)]
         conexp.contrib.gui.util
 	conexp.contrib.gui.repl
 	conexp.contrib.gui.plugins
 	[conexp.contrib.gui.plugins.base :only (load-plugin)]
 	[conexp.contrib.gui.editors.contexts :only (context-editor)]
-	[conexp.contrib.gui.editors.lattices :only (lattice-editor)])
+	[conexp.contrib.gui.editors.lattices :only (lattice-editor)]
+        [conexp.contrib.gui.editors.code :only (code-editor)])
   (:use clojure.contrib.swing-utils))
 
 
-(update-ns-meta! conexp.contrib.gui.base
-  :doc "Provides basic definitions for the standard conexp-clj GUI.")
+(ns-doc "Provides basic definitions for the standard conexp-clj GUI.")
 
 ;;; Menus
 
@@ -78,7 +78,8 @@
     ;; standard plugins
     (let [pm (get-plugin-manager main-frame)]
       (load-plugin pm context-editor)
-      (load-plugin pm lattice-editor))
+      (load-plugin pm lattice-editor)
+      (load-plugin pm code-editor))
 
     main-frame))
 

@@ -7,11 +7,15 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.concepts
-  (:use conexp.util
+  (:use conexp.base
 	conexp.contrib.algorithms.bitwise)
   (:use [conexp.fca.contexts :only (objects attributes incidence)])
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue]))
+
+(ns-doc
+ "Implements various algorithms to compute the concepts of a given
+ context efficiently.")
 
 ;(set! *warn-on-reflection* true)
 

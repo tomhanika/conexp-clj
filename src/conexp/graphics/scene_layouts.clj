@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.graphics.scene-layouts
-  (:use [conexp.util :only (update-ns-meta!, illegal-argument)]
-	[conexp.base :only (defvar-)]
+  (:use [conexp.base :only (ns-doc, illegal-argument, defvar-)]
 	[conexp.layout.base :only (make-layout, positions, connections,
 						nodes, update-positions, annotation)]
 	[conexp.layout.util :only (edges-of-points)]
@@ -19,8 +18,8 @@
 	   [java.awt Dimension BorderLayout Color]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle]))
 
-(update-ns-meta! conexp.graphics.scene-layouts
-  :doc "Basic namespace for drawing lattice.")
+(ns-doc
+ "Basic namespace for drawing lattice.")
 
 
 ;;; get diagram from scene
