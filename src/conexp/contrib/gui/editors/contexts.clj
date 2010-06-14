@@ -6,6 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; This file has been written by Immanuel Albrecht, with modifications by DB
+
 (ns conexp.contrib.gui.editors.contexts
   (:use conexp.base
 	conexp.fca.contexts
@@ -20,7 +22,7 @@
         [conexp.contrib.gui.editors.context-editor.util :only (get-current-second-operand-context)]
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
-	clojure.contrib.io
+	[clojure.contrib.io :exclude (spit)]
         [clojure.contrib.string :only (replace-str title-case)])
   (:import [java.io File]))
 
@@ -58,7 +60,7 @@
              "Context")))
 
 (defn- second-op-context-and-go
-  "Creates a random context and adds a new tab with a context-editor."
+  "Show the current second operand context in a new tab."
   [frame]
   (let [thing (get-current-second-operand-context)]
     (add-tab frame
@@ -87,20 +89,20 @@
 (defvar- *context-menu*
   {:name "Context",
    :content [{:name "Load Context",
-	      :handler (fn [x] (load-context-and-go x read-context))},
+	      :handler #(load-context-and-go % read-context)},
              {:name "Random Context",
               :handler random-context-and-go},
              {:name "Second Operand Context",
               :handler second-op-context-and-go},
              {}
              {:name "Save Context",
-              :content (vec (map (fn [x] {:name (str 
-                                                  (replace-str ":" "" (str x)) 
-                                                  " format"),
-                                          :handler (fn [f]
-                                                     (save-context-and-go f
-                                                                          (fn [c p]
-                                                                            (write-context x c p))))})
+              :content (vec (map (fn [format]
+                                   {:name (str (replace-str ":" "" (str format))
+                                               " format"),
+                                    :handler (fn [frame]
+                                               (save-context-and-go frame
+                                                                    (fn [ctx path]
+                                                                      (write-context format ctx path))))})
                                  (list-context-formats)))},
              {}
              {:name "Show Concept Lattice",
