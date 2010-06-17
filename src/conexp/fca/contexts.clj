@@ -645,13 +645,12 @@
 ;;;
 
 (defn context-for-clop
-  "Returns a minimal context describing the closure operator clop on base-set.
-
-  BAD IMPLEMENTATION."
+  "Returns a minimal context describing the closure operator clop on
+  base-set."
   [base-set clop]
-  (let [objects (all-closed-sets base-set clop), ; we actually only need the inf-irr closures
-	attributes base-set
-	incidence contains?]
+  (let [objects    (all-closed-sets base-set clop),
+	attributes base-set,
+	incidence  contains?]
     (reduce-context-objects (make-context objects attributes incidence))))
 
 ;;;
