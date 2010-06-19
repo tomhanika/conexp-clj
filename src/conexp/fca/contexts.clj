@@ -542,7 +542,7 @@
   \\]
   where
   \\[
-    (g_1,g_2)\\nabla(j,m) \\iff g_jI_jm \\qquad\\text{for $j\\in\\set{1,2}}.
+    (g_1,g_2)\\nabla(j,m) \\iff g_jI_jm \\qquad\\text{for $j\\in\\set{1,2}$}.
   \\]"
   [ctx-1 ctx-2]
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
@@ -641,17 +641,6 @@
   [concept subcontext]
   [(intersection (first concept) (objects subcontext)),
    (intersection (second concept) (attributes subcontext))])
-
-;;;
-
-(defn context-for-clop
-  "Returns a minimal context describing the closure operator clop on
-  base-set."
-  [base-set clop]
-  (let [objects    (all-closed-sets base-set clop),
-	attributes base-set,
-	incidence  contains?]
-    (reduce-context-objects (make-context objects attributes incidence))))
 
 ;;;
 
