@@ -587,12 +587,13 @@
           (set-hook otable "table-changed" old-table-change-hook))))))
 
 (defn- table-change-hook
-  [otable column first-row last-row type]
+  [otable column first-row-in-view last-row-in-view type]
   (if (and (= 0 type)
-           (<= 0 (min column first-row last-row))
-           (= first-row last-row))
-    (let [current-value (get-value-at-index otable first-row column),
-          good-value (call-hook otable "cell-value" first-row column
+           (<= 0 (min column first-row-in-view last-row-in-view))
+           (= first-row-in-view last-row-in-view))
+    (let [ first-row (get-row-index otable first-row-in-view)
+           current-value (get-value-at-index otable first-row column),
+           good-value (call-hook otable "cell-value" first-row column
                                 current-value)]
       (if (not= current-value good-value)
         (set-value-at-index otable first-row column good-value)))))
@@ -672,8 +673,8 @@
       "This hook is called whenever a table widget is changed,
        Parameters:
              column   _the column index of the changed area
-             first    _the first row index of the changed area
-             last     _the last row index of the changed area
+             first    _the first row *view* of the changed area
+             last     _the last row *view* of the changed area
              type     _(-1,0, or 1) delete, update, insert")
     (add-hook widget "extend-columns-to" #(set-column-count widget %)
       "This hook is called whenever the table needs to extend its
