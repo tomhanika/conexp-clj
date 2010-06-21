@@ -17,9 +17,10 @@
            [java.util Vector]
            [java.awt Toolkit Dimension Point]
            [java.awt.event KeyEvent ActionEvent ActionListener MouseEvent
-                        MouseListener InputEvent]
+                        InputEvent]
            [java.awt.datatransfer DataFlavor StringSelection]
-           [javax.swing.event TreeSelectionListener TableModelListener]
+           [javax.swing.event TreeSelectionListener TableModelListener 
+             MouseInputListener ]
            [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
         [clojure.contrib.string :only (join split-lines split)])
@@ -107,8 +108,10 @@
      released  _mouse button up event
      entered   _mouse enters widget
      exited    _mouse exits widget
-     clicked   _mouse button clicked"
-  [pressed released entered exited clicked]
+     clicked   _mouse button clicked
+     moved     _mouse has been moved
+     dragged   _mouse has been dragged"
+  [pressed released entered exited clicked moved dragged]
   (let [translate-button {MouseEvent/NOBUTTON 0
                           MouseEvent/BUTTON1  1
                           MouseEvent/BUTTON2  2
@@ -128,7 +131,7 @@
                            :modifiers (translate-modifier (.getModifiersEx event))
                            :position [(.getX event) (.getY event)]
                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
-    (proxy [MouseListener] []
+    (proxy [MouseInputListener] []
       (mousePressed [event]
         (with-swing-threads* (pressed (translate-event event))))
       (mouseReleased [event]
@@ -138,7 +141,13 @@
       (mouseExited [event]
         (with-swing-threads* (exited (translate-event event))))
       (mouseClicked [event]
-        (with-swing-threads* (clicked (translate-event event)))))))
+        (with-swing-threads* (clicked (translate-event event))))
+      (mouseMoved [event]
+        (with-swing-threads* (message-box "MOVED")
+          (moved (translate-event event))))
+      (mouseDragged [event]
+        (with-swing-threads* (dragged (translate-event event)))))))
+
 
 
 ;;; managed/unmanaged interop
@@ -425,6 +434,11 @@
                 (.setColumnSelectionAllowed true))
      :cells   (.setCellSelectionEnabled table true))))
 
+(defn-typecheck-swing-threads* select-single-cell ::table-control
+  "Selects a single cell given as view-coordinates in the given table control"
+  [otable row column]
+  (.changeSelection (get-control otable) row column false false))
+
 (defn-typecheck-swing set-value-at-view ::table-control
   "Sets the value of a cell in the table according to a view position."
   [otable row column contents]
@@ -660,14 +674,29 @@
                                 (if (not= start-col end-col)
                                   (move-column widget start-col end-col))
                                 (if (not= start-row end-row)
-                                  (move-row widget start-row end-row))))),
+                                  (move-row widget start-row end-row)))
+                              (dosync (ref-set drag-start nil)))),
+         drag-motion-event (fn [x]
+                             (message-box "X")
+                             (if (and (= (:button x) 1)
+                                   (= (:modifiers x) #{:alt})
+                                   (not= (deref drag-start) nil))
+                               (let [ cell (get-view-coordinates-at-point 
+                                             widget (:position x))
+                                      row (first cell)
+                                      column (second cell) ]
+                                 (select-single-cell widget row column))
+                               (message-box "DRAG")
+                               )),
 
 
         cell-permutor (proxy-mouse-listener button-down-event
                                             button-up-event
                                             ignore-event
                                             ignore-event
-                                            ignore-event)]
+                                            ignore-event
+                                            drag-motion-event
+                                            drag-motion-event)]
     (add-hook widget "table-changed"
       (fn [c f l t] (table-change-hook widget c f l t))
       "This hook is called whenever a table widget is changed,
