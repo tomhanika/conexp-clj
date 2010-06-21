@@ -80,18 +80,6 @@
     (.setContents clipboard data nil)))
 
 
-;;; resources
-
-(defn-swing get-ui-resource
-  "Returns the resource associated with object."
-  [object]
-  (UIManager/get object))
-
-(defn-swing get-ui-icon
-  "Returns the icon resource associated with object."
-  [object]
-  (UIManager/getIcon object))
-
 ;;; mouse-click-interface-helpers
 
 (defn proxy-mouse-listener
@@ -226,8 +214,8 @@
   "Creates a managed button object. setup is an optional number of
    vectors that may contain additional tweaks that are called after
    widget creation"
-  [name icon & setup]
-  (let [jbutton (JButton. name icon),
+  [name & setup]
+  (let [jbutton (JButton. name),
         widget  (button. jbutton)]
     (apply-exprs widget setup)
     widget))
@@ -627,13 +615,13 @@
   or :vert and setup is an optional number of vectors that may contain
   additional tweaks that are called after widget creation"
   [orientation & setup]
-  (let [toolbar (JToolBar. ({:horiz JToolBar/HORIZONTAL
-                             :vert JToolBar/VERTICAL}
-                            orientation)),
+  (let [toolbar    (JToolBar. ({:horiz JToolBar/HORIZONTAL
+                                :vert JToolBar/VERTICAL}
+                               orientation)),
         scrollpane (JScrollPane. toolbar
                                  JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
                                  JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
-        widget (toolbar-control. scrollpane toolbar)]
+        widget     (toolbar-control. scrollpane toolbar)]
     (apply-exprs widget setup)
     widget))
 

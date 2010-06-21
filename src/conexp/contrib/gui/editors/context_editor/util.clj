@@ -193,10 +193,9 @@
 
 (defn- add-ctx-map-btn
   "Helper that will create the according button vector"
-  [f ref-to-ectx txt icon]
+  [f ref-to-ectx txt]
   (vec (list add-button
              (make-button txt
-                          icon
                           [set-handler
                            (fn []
                              (let [ectx (deref ref-to-ectx),
@@ -207,10 +206,9 @@
 
 (defn- add-ctx-map-btn-dual
   "Helper that will create the according button vector"
-  [f ref-to-ectx txt icon]
+  [f ref-to-ectx txt]
   (vec (list add-button
              (make-button txt
-                          icon
                           [set-handler
                            (fn []
                              (let [ectx (deref ref-to-ectx),
@@ -219,10 +217,9 @@
 
 (defn- add-ctx-map-btn-att
   "Helper that will create the according button vector"
-  [f ref-to-widget txt icon]
+  [f ref-to-widget txt]
   (vec (list add-button
              (make-button txt
-                          icon
                           [set-handler
                            (fn []
                              (let [widget (deref ref-to-widget),
@@ -233,10 +230,9 @@
 
 (defn- add-ctx-map-btn-obj
   "Helper that will create the according button vector"
-  [f ref-to-widget txt icon]
+  [f ref-to-widget txt]
   (vec (list add-button
              (make-button txt
-                          icon
                           [set-handler
                            (fn []
                              (let [widget (deref ref-to-widget),
@@ -247,10 +243,9 @@
 
 (defn- add-ctx-map-btn-obj-att
   "Helper that will create the according button vector"
-  [f ref-to-widget txt icon]
+  [f ref-to-widget txt]
   (vec (list add-button
              (make-button txt
-                          icon
                           [set-handler
                            (fn []
                              (let [widget (deref ref-to-widget),
@@ -264,11 +259,10 @@
 (let [second-operand (ref (make-context #{} #{} []))]
 
   (defn- add-ctx-map-btn-2nd-op
-    "Helper that will create the according button vector"
-    [f ref-to-ectx txt icon]
+    "Helper that will create the according button vector."
+    [f ref-to-ectx txt]
     (vec (list add-button
                (make-button txt
-                            icon
                             [set-handler
                              (fn []
                                (let [ectx (deref ref-to-ectx),
@@ -277,79 +271,77 @@
                                               (f ctx (deref second-operand)))))]))))
 
   (defn get-current-second-operand-context
+    "Returns the current second operand."
     []
-    (deref second-operand))
+    @second-operand)
 
   (defn-swing make-context-editor-widget
-    "Creates a control for editing contexts. Here setup is an optional
-    number of vectors that may contain additional tweaks that are
-    called after widget creation"
-    [& setup]
-    (let [self  (promise),
-          root  (JRootPane.),
-          table (make-table-control [set-row-count 1] [set-column-count 1]),
-          ectx  (ref (make-editable-context)),
-
-          toolbar (make-toolbar-control :vert
-                     [set-floatable false]
-                     [add-button
-                       (make-button "Copy"
-                         (get-ui-icon "OptionPane.informationIcon")
-                         [set-handler #(copy-to-clipboard table)])]
-                     [add-button
-                       (make-button "Paste"
-                         (get-ui-icon "OptionPane.informationIcon")
-                         [set-handler #(paste-from-clipboard table)])]
-                     [add-button
-                       (make-button "Second Operand"
-                         (get-ui-icon "OptionPane.informationIcon")
-                         [set-handler #(dosync
-                                        (ref-set second-operand
-                                                 (get-context (deref ectx))))])]
-                     [add-separator]
-                     (add-ctx-map-btn add-new-attribute ectx "New attribute" nil)
-                     (add-ctx-map-btn add-new-object ectx "New object" nil)
-                     [add-separator]
-                     (add-ctx-map-btn-att keep-attributes self "Keep attributes" nil)
-                     (add-ctx-map-btn-obj-att keep-objects-attributes self "Keep both" nil)
-                     (add-ctx-map-btn-obj keep-objects self "Keep objects" nil)
-                     [add-separator]
-                     (add-ctx-map-btn-att cut-attributes self "Cut attributes" nil)
-                     (add-ctx-map-btn-obj-att cut-objects-attributes self "Cut both" nil)
-                     (add-ctx-map-btn-obj cut-objects self "Cut objects" nil)
-                     [add-separator]
-                     (add-ctx-map-btn clarify-attributes ectx "Clarify attributes" nil)
-                     (add-ctx-map-btn clarify-context ectx "Clarify context" nil)
-                     (add-ctx-map-btn clarify-objects ectx "Clarify objects" nil)
-                     [add-separator]
-                     (add-ctx-map-btn reduce-context-attributes ectx "Reduce attributes" nil)
-                     (add-ctx-map-btn reduce-context ectx "Reduce context" nil)
-                     (add-ctx-map-btn reduce-context-objects ectx "Reduce objects" nil)
-                     [add-separator]
-                     (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)
-                     [add-separator]
-                     (add-ctx-map-btn-dual dual-context ectx "Dual context" nil)
-                     (add-ctx-map-btn invert-context ectx "Inverse context" nil)
-                     [add-separator]
-                     (add-ctx-map-btn-2nd-op context-sum ectx "Context sum..." nil)
-                     (add-ctx-map-btn-2nd-op context-product ectx "Context product..." nil)
-                     (add-ctx-map-btn-2nd-op context-semiproduct ectx "Context semiproduct..." nil)
-                     (add-ctx-map-btn-2nd-op context-xia-product ectx "Context Xia's product..." nil)
-                     (add-ctx-map-btn-2nd-op context-union ectx "Context union..." nil)
-                     (add-ctx-map-btn-2nd-op context-intersection ectx "Context intersection..." nil)
-                     (add-ctx-map-btn-2nd-op context-composition ectx "Context composition..." nil)
-                     (add-ctx-map-btn-2nd-op context-apposition ectx "Context apposition..." nil)
-                     (add-ctx-map-btn-2nd-op context-subposition ectx "Context subposition..." nil)
-                     ),
-
-          e-ctx  @ectx
-          widget (context-editor-widget. root table toolbar ectx)]
-      (deliver self widget)
-      (.. root getContentPane
-          (add (get-widget toolbar) BorderLayout/LINE_START))
-      (.. root getContentPane
+    "Creates a control for editing contexts, starting with the initial
+    context ctx."
+    [ctx]
+    (let [root    (JRootPane.),
+          table   (doto (make-table-control)
+                    (set-row-count 1)
+                    (set-column-count 1)),
+          ectx    (ref (make-editable-context ctx)),
+          toolbar (make-toolbar-control :vert)
+          e-ctx   @ectx,
+          widget  (context-editor-widget. root table toolbar ectx)]
+      (doto toolbar
+        (set-floatable false)
+        (add-button
+         (make-button "Copy"
+                      [set-handler #(copy-to-clipboard table)]))
+        (add-button
+         (make-button "Paste"
+                      [set-handler #(paste-from-clipboard table)]))
+        (add-button
+         (make-button "Second Operand"
+                      [set-handler #(dosync
+                                     (ref-set second-operand
+                                              (get-context (deref ectx))))]))
+        (add-separator)
+        ;; (add-ctx-map-btn add-new-attribute ectx "New attribute" nil)
+        ;; (add-ctx-map-btn add-new-object ectx "New object" nil)
+        ;; [add-separator]
+        ;; (add-ctx-map-btn-att keep-attributes widget "Keep attributes" nil)
+        ;; (add-ctx-map-btn-obj-att keep-objects-attributes widget "Keep both" nil)
+        ;; (add-ctx-map-btn-obj keep-objects widget "Keep objects" nil)
+        ;; [add-separator]
+        ;; (add-ctx-map-btn-att cut-attributes widget "Cut attributes" nil)
+        ;; (add-ctx-map-btn-obj-att cut-objects-attributes widget "Cut both" nil)
+        ;; (add-ctx-map-btn-obj cut-objects widget "Cut objects" nil)
+        ;; [add-separator]
+        ;; (add-ctx-map-btn clarify-attributes ectx "Clarify attributes" nil)
+        ;; (add-ctx-map-btn clarify-context ectx "Clarify context" nil)
+        ;; (add-ctx-map-btn clarify-objects ectx "Clarify objects" nil)
+        ;; [add-separator]
+        ;; (add-ctx-map-btn reduce-context-attributes ectx "Reduce attributes" nil)
+        ;; (add-ctx-map-btn reduce-context ectx "Reduce context" nil)
+        ;; (add-ctx-map-btn reduce-context-objects ectx "Reduce objects" nil)
+        ;; [add-separator]
+        ;; (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)
+        ;; [add-separator]
+        ;; (add-ctx-map-btn-dual dual-context ectx "Dual context" nil)
+        ;; (add-ctx-map-btn invert-context ectx "Inverse context" nil)
+        ;; [add-separator]
+        ;; (add-ctx-map-btn-2nd-op context-sum ectx "Context sum..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-product ectx "Context product..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-semiproduct ectx "Context semiproduct..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-xia-product ectx "Context Xia's product..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-union ectx "Context union..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-intersection ectx "Context intersection..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-composition ectx "Context composition..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-apposition ectx "Context apposition..." nil)
+        ;; (add-ctx-map-btn-2nd-op context-subposition ectx "Context subposition..." nil)
+        )
+      (.. root
+          getContentPane
+          (add (get-widget toolbar)
+               BorderLayout/LINE_START))
+      (.. root
+          getContentPane
           (add (get-widget table)))
-      (apply-exprs widget setup)
       (dosync (alter (:widgets e-ctx) add widget))
       (add-widget e-ctx widget)
       widget))
