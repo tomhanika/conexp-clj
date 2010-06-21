@@ -268,7 +268,10 @@
 
 ;;;  Table
 
-(defrecord table-control [widget control hooks model])
+(defrecord table-control [widget control hooks model row-permutator])
+;; row-permutator is a two-element vector of functions, where the first-row
+;; element transforms view-rows to index-rows and the second element is
+;; the inverse function transforming index-rows to view-rows.
 (derive ::table-control ::control)
 (derive ::table-control :conexp.contrib.gui.util.hookable/hookable)
 
@@ -347,19 +350,22 @@
 (defn-typecheck get-row-index ::table-control
   "Returns the tables model index of the specified row in view."
   [otable row]
-  row)
+  (let [p (:row-permutator otable)]
+    ((first p) row)))
 
 (defn-typecheck get-index-row ::table-control
   "Returns the row in the view that corresponds
   to the specified table model index."
   [otable index]
-  index)
+  (let [p (:row-permutator otable)]
+    ((second p) index)))
 
 (defn-typecheck get-row-index-permutator ::table-control
   "Returns a function that will map the current view rows to
    the according index values."
   [otable]
-  identity)
+  (let [p (:row-permutator otable)]
+    (first p)))
 
 (defn-typecheck-swing get-column-index-permutator ::table-control
   "Returns a function that will map the current view
@@ -504,6 +510,20 @@
          col-model (.getColumnModel control) ]
     (.moveColumn col-model old-view new-view)))
 
+(defn-typecheck-swing-threads* move-row ::table-control
+  "Moves the row at view index old-view to be viewed at view index
+   new-view."
+  [otable old-view new-view]
+  (let [p (:row-permutator otable)
+        row-count (get-row-count otable)]
+    (if (and (>= new-view 0)
+         (< new-view row-count)
+          (not= old-view new-view))
+      (if (< old-view new-view)
+        nil
+        nil
+        ))))
+
 (defn- table-change-hook
   [otable column first-row last-row type]
   (if (and (= 0 type)
@@ -531,7 +551,8 @@
                                                 ActionEvent/CTRL_MASK false),
 
         hooks           (:hooks (make-hookable)),
-        widget          (table-control. pane table hooks model),
+        widget          (table-control. pane table hooks model 
+                          [identity identity]),
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
                             (with-swing-threads*
