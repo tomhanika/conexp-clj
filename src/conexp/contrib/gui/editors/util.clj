@@ -542,7 +542,6 @@
                grab-list (range old-view (+ 1 new-view))
                put-list (apply conj [new-view] (range old-view new-view))
                old-table-change-hook (get-hook-function otable "table-changed")]
-          (message-box (str new-view-to-index-map))
           (set-hook otable "table-changed" (fn [_ _ _ _] nil))
           (dorun (for [put-data 
                         (doall (zip put-list 
@@ -553,11 +552,39 @@
               (set-value-at-view otable (first put-data) 
                 (first put-cell) (second put-cell)))))
           (dosync (ref-set (:row-permutator otable) new-row-permutator))
-          (set-hook otable "table-changed" old-table-change-hook)
-          )                               
-          
-        nil
-        ))))
+          (set-hook otable "table-changed" old-table-change-hook))
+
+        (let [ new-view-to-index-map 
+               (apply conj (for [r (range row-count)]
+                             (cond (< r new-view) {r (view-to-index r)}
+                               (= r old-view) {new-view (view-to-index old-view)}
+                               (< r old-view) {(+ r 1) (view-to-index r)}
+                               :otherwise {r (view-to-index r)})))
+               new-index-to-view-map 
+               (apply conj (for [r (range row-count)]
+                             (cond (< r new-view) {(view-to-index r) r}
+                               (= r old-view) {(view-to-index old-view) new-view}
+                               (< r old-view) {(view-to-index r) (+ r 1)}
+                               :otherwise {(view-to-index r) r})))
+               new-view-to-index (fn [x] (if (and (>= x 0) (< x row-count)) 
+                                           (new-view-to-index-map x) x))
+               new-index-to-view (fn [x] (if (and (>= x 0) (< x row-count)) 
+                                           (new-index-to-view-map x) x))
+               new-row-permutator [new-view-to-index new-index-to-view]
+               grab-list (range new-view (+ 1 old-view))
+               put-list (conj (vec (range (+ 1 new-view) (+ 1 old-view))) new-view)
+               old-table-change-hook (get-hook-function otable "table-changed")]
+          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
+          (dorun (for [put-data 
+                        (doall (zip put-list 
+                           (for [r grab-list] 
+                             (doall (for [c col-indices] 
+                                      (get-value-at-view otable r c))))))]
+            (doseq [put-cell (zip col-indices (second put-data))]
+              (set-value-at-view otable (first put-data) 
+                (first put-cell) (second put-cell)))))
+          (dosync (ref-set (:row-permutator otable) new-row-permutator))
+          (set-hook otable "table-changed" old-table-change-hook))))))
 
 (defn- table-change-hook
   [otable column first-row last-row type]
