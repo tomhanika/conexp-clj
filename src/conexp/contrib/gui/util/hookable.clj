@@ -53,6 +53,18 @@
                              ohookable " failed: hook undefined"
                              "\n\nmap:\n" hookmap)))))
 
+(defn-typecheck get-hook-function ::hookable
+  "Looks up a hook in the hooksmap and returns the associated function,
+ throws if this hook doesn't exist."
+  [ohookable name]
+  (let [hooks (:hooks ohookable),
+        hookmap @hooks]
+    (if (contains? hookmap name)
+      (first (hookmap name))
+      (illegal-argument (str "get-hook-function " name " for "
+                             ohookable " failed: hook undefined"
+                             "\n\nmap:\n" hookmap)))))
+
 (defn-typecheck doc-hook ::hookable
   "Looks up a hook in the hooksmap and returns its doc-str,
    returns :not-found if this hook doesn't exist."

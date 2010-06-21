@@ -269,9 +269,10 @@
 ;;;  Table
 
 (defrecord table-control [widget control hooks model row-permutator])
-;; row-permutator is a two-element vector of functions, where the first-row
-;; element transforms view-rows to index-rows and the second element is
-;; the inverse function transforming index-rows to view-rows.
+;; row-permutator is a ref to an two-element vector of functions, 
+;; where the first-row element transforms view-rows to index-rows 
+;; and the second element is the inverse function transforming
+;; index-rows to view-rows.
 (derive ::table-control ::control)
 (derive ::table-control :conexp.contrib.gui.util.hookable/hookable)
 
@@ -350,21 +351,21 @@
 (defn-typecheck get-row-index ::table-control
   "Returns the tables model index of the specified row in view."
   [otable row]
-  (let [p (:row-permutator otable)]
+  (let [p (deref (:row-permutator otable))]
     ((first p) row)))
 
 (defn-typecheck get-index-row ::table-control
   "Returns the row in the view that corresponds
   to the specified table model index."
   [otable index]
-  (let [p (:row-permutator otable)]
+  (let [p (deref (:row-permutator otable))]
     ((second p) index)))
 
 (defn-typecheck get-row-index-permutator ::table-control
   "Returns a function that will map the current view rows to
    the according index values."
   [otable]
-  (let [p (:row-permutator otable)]
+  (let [p (deref (:row-permutator otable))]
     (first p)))
 
 (defn-typecheck-swing get-column-index-permutator ::table-control
@@ -514,13 +515,47 @@
   "Moves the row at view index old-view to be viewed at view index
    new-view."
   [otable old-view new-view]
-  (let [p (:row-permutator otable)
-        row-count (get-row-count otable)]
+  (let [ view-to-index (get-row-index-permutator otable)
+         row-count (get-row-count otable)
+         col-indices (range (get-column-count otable))]
     (if (and (>= new-view 0)
          (< new-view row-count)
           (not= old-view new-view))
       (if (< old-view new-view)
-        nil
+        (let [ new-view-to-index-map 
+               (apply conj (for [r (range row-count)]
+                             (cond (< r old-view) {r (view-to-index r)}
+                               (= r old-view) {new-view (view-to-index old-view)}
+                               (<= r new-view) {(- r 1) (view-to-index r)}
+                               :otherwise {r (view-to-index r)})))
+               new-index-to-view-map 
+               (apply conj (for [r (range row-count)]
+                             (cond (< r old-view) {(view-to-index r) r}
+                               (= r old-view) {(view-to-index old-view) new-view}
+                               (<= r new-view) {(view-to-index r) (- r 1)}
+                               :otherwise {(view-to-index r) r})))
+               new-view-to-index (fn [x] (if (and (>= x 0) (< x row-count)) 
+                                           (new-view-to-index-map x) x))
+               new-index-to-view (fn [x] (if (and (>= x 0) (< x row-count)) 
+                                           (new-index-to-view-map x) x))
+               new-row-permutator [new-view-to-index new-index-to-view]
+               grab-list (range old-view (+ 1 new-view))
+               put-list (apply conj [new-view] (range old-view new-view))
+               old-table-change-hook (get-hook-function otable "table-changed")]
+          (message-box (str new-view-to-index-map))
+          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
+          (dorun (for [put-data 
+                        (doall (zip put-list 
+                           (for [r grab-list] 
+                             (doall (for [c col-indices] 
+                                      (get-value-at-view otable r c))))))]
+            (doseq [put-cell (zip col-indices (second put-data))]
+              (set-value-at-view otable (first put-data) 
+                (first put-cell) (second put-cell)))))
+          (dosync (ref-set (:row-permutator otable) new-row-permutator))
+          (set-hook otable "table-changed" old-table-change-hook)
+          )                               
+          
         nil
         ))))
 
@@ -552,7 +587,7 @@
 
         hooks           (:hooks (make-hookable)),
         widget          (table-control. pane table hooks model 
-                          [identity identity]),
+                          (ref [identity identity])),
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
                             (with-swing-threads*
@@ -596,7 +631,8 @@
                                   (ref-set drag-start nil))
                                 (if (not= start-col end-col)
                                   (move-column widget start-col end-col))
-                                (show-data [start end])))),
+                                (if (not= start-row end-row)
+                                  (move-row widget start-row end-row))))),
 
 
         cell-permutor (proxy-mouse-listener button-down-event
