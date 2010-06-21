@@ -6,6 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; this file contains contributions by Immanuel Albrecht
+
 (ns conexp.contrib.gui.util
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
