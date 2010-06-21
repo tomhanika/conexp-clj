@@ -533,12 +533,11 @@
         show-data         (fn [x] (message-box (str x))),
         drag-start        (ref [0 0]),
         button-down-event (fn [x]
-                            (if (= (:button x) 3)
+                            (when (= (:button x) 3)
                               (dosync
                                (ref-set drag-start
                                         (get-view-coordinates-at-point widget
-                                                                       (:position x))))
-                              (message-box (str x)))),
+                                                                       (:position x)))))),
 
         cell-permutor (proxy-mouse-listener button-down-event
                                             ignore-event

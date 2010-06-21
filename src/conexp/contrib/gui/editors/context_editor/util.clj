@@ -27,7 +27,7 @@
 
 ;; Helper functions
 
-(defn string-to-cross
+(defn- string-to-cross
   "Takes a string and decides, whether it should be a cross or not."
   [s]
   (let [trimmed (.trim s)]
@@ -35,7 +35,7 @@
       false
       true)))
 
-(defn smart-str
+(defn- smart-str
   "Takes a single argument and returns it as a string that is usable
    for object and attribute names."
   [x]
@@ -48,7 +48,7 @@
    :else
    (str x)))
 
-(defn map-to-unique-strings
+(defn- map-to-unique-strings
   "Takes a sequence of (unique) keys and returns a map
    that maps each unique key to a unique string."
   [keys]
@@ -69,7 +69,7 @@
                  (conj m {k1 k1-as-str})
                  (conj taken k1-as-str) 0))))))
 
-(defn req-unique-string
+(defn- req-unique-string
   "Takes a sequence of keys and a new requested key and
   returns a new key that will not conflict with any of the
   keys in the sequence."
@@ -83,7 +83,7 @@
           (recur (+ 1 nbr))
           new-key)))))
 
-(defn switch-bipartit-auto
+(defn- switch-bipartit-auto
   "Takes a bipartit auto map and removes the old-key and old-value
    associations and associates new-key with new-value and new-value
    with new-key, then returns the new map."
@@ -141,134 +141,95 @@
                        %)]
     (set (fltr (map #(names (view %)) sel)))))
 
-(defn- cut-attributes
-  "Cut out the given attributes from the context."
-  [ctx atts]
-  (let [a (filter (comp not (set atts))
-                  (attributes ctx))]
-    (make-context (objects ctx) a (incidence ctx))))
 
-(defn- cut-objects
-  "Cut out the given objects from the context."
-  [ctx objs]
-  (let [o (filter (comp not (set objs))
-                  (objects ctx))]
-    (make-context o (attributes ctx) (incidence ctx))))
+;;; Functions implementing button actions
 
-(defn- cut-objects-attributes
-  "Cut out the given objects and attributes from the context"
-  [ctx objs atts]
-  (cut-attributes (cut-objects ctx objs) atts))
+(declare get-current-second-operand-context)
 
-(defn- keep-attributes
+(defmacro- fn-context-changer
+  "Constructs an anonymous function of a widget, defining the names
+  widget, ectx, ctx, selected-objs, selected-atts and second-operand."
+  [& body]
+  `(fn [~'widget]
+     (let [~'ectx (get-ectx ~'widget),
+           ~'ctx  (get-context ~'ectx),
+           ~'selected-objs (get-selected-objects ~'widget),
+           ~'selected-atts (get-selected-attributes ~'widget),
+           ~'second-operand (get-current-second-operand-context)]
+       (with-swing-error-msg nil "Error"
+         ~@body))))
+
+(defmacro- defn-context-changer
+  "Defines a function with given name, getting a widget and returning
+  a new context. Defines the same names as fn-context-changer."
+  [name doc & body]
+  `(defn- ~name ~doc [x#]
+     ((fn-context-changer ~@body) x#)))
+
+(defmacro- cc-1 [fn]
+  `(fn-context-changer (~fn ~'ctx)))
+
+(defmacro- cc-2 [fn]
+  `(fn-context-changer (when-not ~'second-operand
+                         (illegal-argument "Operation " '~fn " needs a second operand!"))
+                       (~fn ~'ctx ~'second-operand)))
+
+(defn-context-changer add-new-attribute
+  "Adds a new attribute."
+  (make-context (objects ctx)
+                (conj (attributes ctx)
+                      (req-unique-string (attributes ctx) "new attribute"))
+                (incidence ctx)))
+
+(defn-context-changer add-new-object
+  "Adds a new object."
+  (make-context (conj (objects context)
+                      (req-unique-string (objects ctx) "new object"))
+                (attributes ctx)
+                (incidence ctx)))
+
+(defn-context-changer keep-attributes
   "Cut out all but the given attributes from the context."
-  [ctx atts]
-  (let [a (intersection (set atts)
-                        (attributes ctx))]
-    (make-context (objects ctx) a (incidence ctx))))
+  (make-context (objects ctx)
+                (intersection (set selected-atts) (attributes ctx))
+                (incidence ctx)))
 
-(defn- keep-objects
+(defn-context-changer keep-objects
   "Cut out all but the given objects from the context."
-  [ctx objs]
-  (let [o (intersection (set objs)
-                        (objects ctx))]
-    (make-context o (attributes ctx) (incidence ctx))))
+  (make-context (intersection (set selected-objs) (objects ctx))
+                (attributes ctx)
+                (incidence ctx)))
 
-(defn- keep-objects-attributes
+(defn-context-changer keep-objects-attributes
+  "Cut out the given objects and attributes from the context."
+  (make-context (intersection (set selected-objs) (objects ctx))
+                (intersection (set selected-atts) (attributes ctx))
+                (incidence ctx)))
+
+(defn-context-changer cut-attributes
+  "Cut out the given attributes from the context."
+  (make-context (objects ctx)
+                (remove (set selected-atts)
+                        (attributes ctx))
+                (incidence ctx)))
+
+(defn-context-changer cut-objects
+  "Cut out the given objects from the context."
+  (make-context (remove (set selected-objs)
+                        (objects ctx))
+                (attributes ctx)
+                (incidence ctx)))
+
+(defn-context-changer cut-objects-attributes
   "Cut out the given objects and attributes from the context"
-  [ctx objs atts]
-  (keep-attributes (keep-objects ctx objs) atts))
+  (make-context (remove (set selected-objs) (objects ctx))
+                (remove (set selected-atts) (attributes ctx))
+                (incidence ctx)))
 
-(defn- add-new-attribute
-  [ctx]
-  (let [att (attributes ctx),
-        a   (req-unique-string att "new attribute") ]
-    (make-context (objects ctx) (conj att a) (incidence ctx))))
 
-(defn- add-new-object
-  [ctx]
-  (let [obj (objects ctx),
-        o   (req-unique-string obj "new object")]
-    (make-context (conj obj o) (attributes ctx) (incidence ctx))))
+;;; Creating context editor widgets
 
-(defn- add-ctx-map-btn
-  "Helper that will create the according button vector"
-  [f ref-to-ectx txt]
-  (vec (list add-button
-             (make-button txt
-                          [set-handler
-                           (fn []
-                             (let [ectx (deref ref-to-ectx),
-                                   ctx  (get-context ectx)]
-                               (set-context ectx (f ctx))))]))))
-
-(declare get-dual-order set-context-keep-order)
-
-(defn- add-ctx-map-btn-dual
-  "Helper that will create the according button vector"
-  [f ref-to-ectx txt]
-  (vec (list add-button
-             (make-button txt
-                          [set-handler
-                           (fn []
-                             (let [ectx (deref ref-to-ectx),
-                                   ctx  (get-context ectx)]
-                               (set-context-keep-order ectx (f ctx) (get-dual-order ectx))))]))))
-
-(defn- add-ctx-map-btn-att
-  "Helper that will create the according button vector"
-  [f ref-to-widget txt]
-  (vec (list add-button
-             (make-button txt
-                          [set-handler
-                           (fn []
-                             (let [widget (deref ref-to-widget),
-                                   ectx   (get-ectx widget)
-                                   ctx    (get-context ectx)]
-                               (set-context ectx
-                                            (f ctx (get-selected-attributes widget)))))]))))
-
-(defn- add-ctx-map-btn-obj
-  "Helper that will create the according button vector"
-  [f ref-to-widget txt]
-  (vec (list add-button
-             (make-button txt
-                          [set-handler
-                           (fn []
-                             (let [widget (deref ref-to-widget),
-                                   ectx   (get-ectx widget),
-                                   ctx    (get-context ectx)]
-                               (set-context ectx
-                                            (f ctx (get-selected-objects widget)))))]))))
-
-(defn- add-ctx-map-btn-obj-att
-  "Helper that will create the according button vector"
-  [f ref-to-widget txt]
-  (vec (list add-button
-             (make-button txt
-                          [set-handler
-                           (fn []
-                             (let [widget (deref ref-to-widget),
-                                   ectx   (get-ectx widget),
-                                   ctx    (get-context ectx)]
-                               (set-context ectx
-                                            (f ctx
-                                               (get-selected-objects widget)
-                                               (get-selected-attributes widget)))))]))))
-
-(let [second-operand (ref (make-context #{} #{} []))]
-
-  (defn- add-ctx-map-btn-2nd-op
-    "Helper that will create the according button vector."
-    [f ref-to-ectx txt]
-    (vec (list add-button
-               (make-button txt
-                            [set-handler
-                             (fn []
-                               (let [ectx (deref ref-to-ectx),
-                                     ctx  (get-context ectx)]
-                                 (set-context ectx
-                                              (f ctx (deref second-operand)))))]))))
+(let [second-operand (atom nil)]
 
   (defn get-current-second-operand-context
     "Returns the current second operand."
@@ -286,72 +247,67 @@
           ectx    (ref (make-editable-context ctx)),
           toolbar (make-toolbar-control :vert)
           e-ctx   @ectx,
-          widget  (context-editor-widget. root table toolbar ectx)]
+          widget  (context-editor-widget. root table toolbar ectx),
+
+          add-button- (fn [toolbar text f & args]
+                        (add-button toolbar
+                                    (doto (make-button text)
+                                      (set-handler #(set-context @ectx (f widget))))))]
+      (.. root getContentPane (add (get-widget toolbar) BorderLayout/LINE_START))
+      (.. root getContentPane (add (get-widget table)))
+      (add-widget e-ctx widget)
       (doto toolbar
         (set-floatable false)
-        (add-button
-         (make-button "Copy"
-                      [set-handler #(copy-to-clipboard table)]))
-        (add-button
-         (make-button "Paste"
-                      [set-handler #(paste-from-clipboard table)]))
-        (add-button
-         (make-button "Second Operand"
-                      [set-handler #(dosync
-                                     (ref-set second-operand
-                                              (get-context (deref ectx))))]))
+        (add-button- "Copy"  #(do (copy-to-clipboard (get-table %))
+                                  (get-context (get-ectx %))))
+        (add-button- "Paste" #(do (paste-from-clipboard (get-table %))
+                                  (get-context (get-ectx %))))
+        (add-button- "Second Operand"
+                     #(do (reset! second-operand (get-context (get-ectx %)))
+                          (get-context (get-ectx %))))
         (add-separator)
-        ;; (add-ctx-map-btn add-new-attribute ectx "New attribute" nil)
-        ;; (add-ctx-map-btn add-new-object ectx "New object" nil)
-        ;; [add-separator]
-        ;; (add-ctx-map-btn-att keep-attributes widget "Keep attributes" nil)
-        ;; (add-ctx-map-btn-obj-att keep-objects-attributes widget "Keep both" nil)
-        ;; (add-ctx-map-btn-obj keep-objects widget "Keep objects" nil)
-        ;; [add-separator]
-        ;; (add-ctx-map-btn-att cut-attributes widget "Cut attributes" nil)
-        ;; (add-ctx-map-btn-obj-att cut-objects-attributes widget "Cut both" nil)
-        ;; (add-ctx-map-btn-obj cut-objects widget "Cut objects" nil)
-        ;; [add-separator]
-        ;; (add-ctx-map-btn clarify-attributes ectx "Clarify attributes" nil)
-        ;; (add-ctx-map-btn clarify-context ectx "Clarify context" nil)
-        ;; (add-ctx-map-btn clarify-objects ectx "Clarify objects" nil)
-        ;; [add-separator]
-        ;; (add-ctx-map-btn reduce-context-attributes ectx "Reduce attributes" nil)
-        ;; (add-ctx-map-btn reduce-context ectx "Reduce context" nil)
-        ;; (add-ctx-map-btn reduce-context-objects ectx "Reduce objects" nil)
-        ;; [add-separator]
-        ;; (add-ctx-map-btn context-transitive-closure ectx "Transitive closure" nil)
-        ;; [add-separator]
-        ;; (add-ctx-map-btn-dual dual-context ectx "Dual context" nil)
-        ;; (add-ctx-map-btn invert-context ectx "Inverse context" nil)
-        ;; [add-separator]
-        ;; (add-ctx-map-btn-2nd-op context-sum ectx "Context sum..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-product ectx "Context product..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-semiproduct ectx "Context semiproduct..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-xia-product ectx "Context Xia's product..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-union ectx "Context union..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-intersection ectx "Context intersection..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-composition ectx "Context composition..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-apposition ectx "Context apposition..." nil)
-        ;; (add-ctx-map-btn-2nd-op context-subposition ectx "Context subposition..." nil)
-        )
-      (.. root
-          getContentPane
-          (add (get-widget toolbar)
-               BorderLayout/LINE_START))
-      (.. root
-          getContentPane
-          (add (get-widget table)))
-      (dosync (alter (:widgets e-ctx) add widget))
-      (add-widget e-ctx widget)
+        (add-button- "New attribute" add-new-attribute)
+        (add-button- "New object"    add-new-object)
+        (add-separator)
+        (add-button- "Keep attributes" keep-attributes)
+        (add-button- "Keep objects"    keep-objects)
+        (add-button- "Keep both"       keep-objects-attributes)
+        (add-separator)
+        (add-button- "Cut attributes" cut-attributes)
+        (add-button- "Cut objects"    cut-objects)
+        (add-button- "Cut both"       cut-objects-attributes)
+        (add-separator)
+        (add-button- "Clarify attributes" (cc-1 clarify-attributes))
+        (add-button- "Clarify objects"    (cc-1 clarify-objects))
+        (add-button- "Clarify context"    (cc-1 clarify-context))
+        (add-separator)
+        (add-button- "Reduce attributes"  (cc-1 reduce-context-attributes))
+        (add-button- "Reduce objects"     (cc-1 reduce-context-objects))
+        (add-button- "Reduce context"     (cc-1 reduce-context))
+        (add-separator)
+        (add-button- "Transitive closure" (cc-1 context-transitive-closure))
+        (add-separator)
+        (add-button- "Dual context"    (cc-1 dual-context)) ;todo: keep order!
+        (add-button- "Inverse context" (cc-1 invert-context))
+        (add-separator)
+        (add-button- "Context sum"          (cc-2 context-sum))
+        (add-button- "Context product"      (cc-2 context-product))
+        (add-button- "Context semiproduct"  (cc-2 context-semiproduct))
+        (add-button- "Context Xia product"  (cc-2 context-xia-product))
+        (add-button- "Context union"        (cc-2 context-union))
+        (add-button- "Context intersection" (cc-2 context-intersection))
+        (add-button- "Context composition"  (cc-2 context-composition))
+        (add-button- "Context apposition"   (cc-2 context-apposition))
+        (add-button- "Context-subposition"  (cc-2 context-subposition)))
       widget))
 
   nil)
 
-(defn-typecheck get-ectx ::context-editor-widget
+(defn- get-ectx
   "Returns the editable-context that is currently associated with the
    context-editor-widget."
   [widget]
+  (assert (isa? widget context-editor-widget))
   @(:e-ctx widget))
 
 (defmethod get-context ::context-editor-widget
