@@ -113,9 +113,17 @@
     (class-to-keyword (type (first x))))
   :default nil)
 
-(defn-typecheck get-selected-objects ::context-editor-widget
+(defmethod get-table ::context-editor-widget
+  [widget]
+  (:table widget))
+
+(defmethod get-table :conexp.contrib.gui.editors.util/table-control
+  [x] x)
+
+(defn- get-selected-objects
   "Returns the set of selected objects in the context-editor-widget."
   [widget]
+  (assert (instance? context-editor-widget widget))
   (let [table (get-table widget),
         view  (get-row-index-permutator table),
         sel   (seq (.getSelectedRows (get-control table))),
@@ -127,9 +135,10 @@
                        %)]
     (set (fltr (map #(names (view %)) sel)))))
 
-(defn-typecheck get-selected-attributes ::context-editor-widget
+(defn- get-selected-attributes
   "Returns the set of selected attributes in the context-editor-widget."
   [widget]
+  (assert (instance? context-editor-widget widget))
   (let [table (get-table widget),
         view  (get-column-index-permutator table),
         sel   (seq (.getSelectedColumns (get-control table))),
@@ -303,29 +312,25 @@
 
   nil)
 
-(defn- get-ectx
+;;;
+
+(defn get-ectx
   "Returns the editable-context that is currently associated with the
    context-editor-widget."
   [widget]
-  (assert (isa? widget context-editor-widget))
+  (assert (instance? context-editor-widget widget))
   @(:e-ctx widget))
 
 (defmethod get-context ::context-editor-widget
   [widget]
   (get-context @(:e-ctx widget)))
 
-(defn-typecheck set-ectx ::context-editor-widget
+(defn- set-ectx
   "Sets the editable-context that is currently associated with the
    context-editor-widget to the second parameter."
   [widget e-ctx]
+  (assert (instance? context-editor-widget widget))
   (dosync (ref-set (:e-ctx widget) e-ctx)))
-
-(defmethod get-table ::context-editor-widget
-  [widget]
-  (:table widget))
-
-(defmethod get-table :conexp.contrib.gui.editors.util/table-control
-  [x] x)
 
 (declare change-attribute-name change-object-name change-incidence-cross)
 
@@ -387,7 +392,7 @@
   [ctx]
   (deref (:context ctx)))
 
-(defmethod  get-context :conexp.fca.contexts/Context
+(defmethod get-context :conexp.fca.contexts/Context
   [x] x)
 
 (defn make-context-compatible
@@ -468,23 +473,26 @@
        (ref-set (:attr-cols e-ctx) new-attr-cols))
       e-ctx)))
 
-(defn-typecheck get-order ::editable-context
+(defn- get-order
   "Returns the current order of the objects and attributes of the context."
   [ectx]
+  (assert (instance? editable-context ectx))
   {:attr-cols (deref (:attr-cols ectx)),
    :obj-rows (deref (:obj-rows ectx))})
 
-(defn-typecheck get-dual-order ::editable-context
+(defn- get-dual-order
   "Returns the current order of the objects and attributes of the dual of the
    context."
   [ectx]
+  (assert (instance? editable-context ectx))
   {:obj-rows (deref (:attr-cols ectx)),
    :attr-cols (deref (:obj-rows ectx))})
 
-(defn-typecheck add-widget ::editable-context
+(defn- add-widget
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context."
   [e-ctx editor]
+  (assert (instance? editable-context e-ctx))
   (let [ctx (get-context e-ctx),
         att-cols (:attr-cols e-ctx),
         obj-rows (:obj-rows e-ctx),
@@ -518,9 +526,10 @@
               (fn [r c s]
                 (ectx-cell-value-hook e-ctx r c s)))))
 
-(defn-typecheck set-context-keep-order ::editable-context
+(defn- set-context-keep-order
   "Sets the bound fca-context of an editable context object to ctx."
   [ectx ctx keep-order]
+  (assert (instance? editable-context ectx))
   (let [new     (make-editable-context ctx keep-order),
         widgets @(:widgets ectx)]
     (dosync
@@ -530,15 +539,17 @@
      (ref-set (:obj-rows ectx) @(:obj-rows new)))
     (call-many widgets #(add-widget ectx %))))
 
-(defn-typecheck set-context ::editable-context
+(defn- set-context
   "Sets the bound fca-context of an editable context object to ctx."
   [ectx ctx]
+  (assert (instance? editable-context ectx))
   (set-context-keep-order ectx ctx (get-order ectx)))
 
-(defn-typecheck change-incidence-cross ::editable-context
+(defn- change-incidence-cross
   "Sets or unsets the cross in the incidence relation of the
   editable-context."
   [ectx obj att cross]
+  (assert (instance? editable-context ectx))
   (let [ostr (if (= (type obj) String)
                obj
                (@(:obj-rows ectx) obj)),
@@ -563,11 +574,12 @@
                                           col
                                           (if cross "X" " ")))))))
 
-(defn-typecheck change-attribute-name ::editable-context
- "Changes the attributes name of given to requested, if requested is
-  not taken by another attribute. In this case, -# with a unique # is
-  appended to the requested name. Returns the new attribute name."
+(defn- change-attribute-name
+  "Changes the attributes name of given to requested, if requested is
+   not taken by another attribute. In this case, -# with a unique # is
+   appended to the requested name. Returns the new attribute name."
   [ectx given requested]
+  (assert (instance? editable-context ectx))
   (let [att-cols @(:attr-cols ectx)]
     (if (= (type given) String)
       (change-attribute-name ectx (att-cols given) requested)
@@ -596,11 +608,12 @@
                                                   given new-name)))))
           new-name)))))
 
-(defn-typecheck change-object-name ::editable-context
- "Changes the object's name of given to requested, if requested is
+(defn- change-object-name
+  "Changes the object's name of given to requested, if requested is
   not taken by another object. In this case, -# with a unique # is
   appended to the requested name. Returns the new attribute name."
   [ectx given requested]
+  (assert (instance? editable-context ectx))
   (let [obj-cols @(:obj-rows ectx)]
     (if (= (type given) String)
       (change-object-name ectx (obj-cols given) requested)
