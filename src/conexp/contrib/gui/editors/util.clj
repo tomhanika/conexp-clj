@@ -496,6 +496,14 @@
     [(.rowAtPoint (get-control otable) (Point. x y)),
      (.columnAtPoint (get-control otable) (Point. x y))]))
 
+(defn-typecheck-swing move-column ::table-control
+  "Moves the column at view index old-view to be viewed at view index
+   new-view."
+  [otable old-view new-view]
+  (let [ control (get-control otable) 
+         col-model (.getColumnModel control) ]
+    (.moveColumn col-model old-view new-view)))
+
 (defn- table-change-hook
   [otable column first-row last-row type]
   (if (and (= 0 type)
@@ -558,9 +566,15 @@
                                   (not= (deref drag-start) nil))
                               (let [ start (deref drag-start)
                                      end (get-view-coordinates-at-point
-                                           widget (:position x))]
+                                           widget (:position x))
+                                     start-row (first start)
+                                     start-col (second start)
+                                     end-row (first end)
+                                     end-col (second end)]
                                 (dosync
                                   (ref-set drag-start nil))
+                                (if (not= start-col end-col)
+                                  (move-column widget start-col end-col))
                                 (show-data [start end])))),
 
 
