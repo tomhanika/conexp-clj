@@ -20,7 +20,7 @@
                         InputEvent]
            [java.awt.datatransfer DataFlavor StringSelection]
            [javax.swing.event TreeSelectionListener TableModelListener 
-             MouseInputListener ]
+             MouseInputListener MouseInputAdapter ]
            [javax.swing.table DefaultTableModel])
   (:use clojure.contrib.swing-utils
         [clojure.contrib.string :only (join split-lines split)])
@@ -131,7 +131,7 @@
                            :modifiers (translate-modifier (.getModifiersEx event))
                            :position [(.getX event) (.getY event)]
                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
-    (proxy [MouseInputListener] []
+    (proxy [MouseInputAdapter] []
       (mousePressed [event]
         (with-swing-threads* (pressed (translate-event event))))
       (mouseReleased [event]
@@ -143,8 +143,7 @@
       (mouseClicked [event]
         (with-swing-threads* (clicked (translate-event event))))
       (mouseMoved [event]
-        (with-swing-threads* (message-box "MOVED")
-          (moved (translate-event event))))
+        (with-swing-threads* (moved (translate-event event))))
       (mouseDragged [event]
         (with-swing-threads* (dragged (translate-event event)))))))
 
@@ -209,7 +208,8 @@
 (defn add-control-mouse-listener
   "Adds a mouse-listener proxy to the given control."
   [control proxy]
-  (.addMouseListener (get-control control) proxy))
+  (.addMouseListener (get-control control) proxy)
+  (.addMouseMotionListener (get-control control) proxy))
 
 
 ;;; Button
@@ -674,20 +674,23 @@
                                 (if (not= start-col end-col)
                                   (move-column widget start-col end-col))
                                 (if (not= start-row end-row)
-                                  (move-row widget start-row end-row)))
-                              (dosync (ref-set drag-start nil)))),
+                                  (move-row widget start-row end-row))))),
          drag-motion-event (fn [x]
-                             (message-box "X")
-                             (if (and (= (:button x) 1)
-                                   (= (:modifiers x) #{:alt})
-                                   (not= (deref drag-start) nil))
-                               (let [ cell (get-view-coordinates-at-point 
-                                             widget (:position x))
-                                      row (first cell)
-                                      column (second cell) ]
-                                 (select-single-cell widget row column))
-                               (message-box "DRAG")
-                               )),
+                             (if (not= (deref drag-start) nil)
+                               (let [ start (deref drag-start)
+                                     end (get-view-coordinates-at-point
+                                           widget (:position x))
+                                     start-row (first start)
+                                     start-col (second start)
+                                     end-row (first end)
+                                     end-col (second end)]
+                                 (select-single-cell widget end-row end-col)
+                                 (dosync
+                                   (ref-set drag-start end))
+                                 (if (not= start-col end-col)
+                                   (move-column widget start-col end-col))
+                                 (if (not= start-row end-row)
+                                   (move-row widget start-row end-row))))),
 
 
         cell-permutor (proxy-mouse-listener button-down-event
@@ -695,7 +698,7 @@
                                             ignore-event
                                             ignore-event
                                             ignore-event
-                                            drag-motion-event
+                                            ignore-event
                                             drag-motion-event)]
     (add-hook widget "table-changed"
       (fn [c f l t] (table-change-hook widget c f l t))
