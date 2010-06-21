@@ -543,17 +543,29 @@
 
         ignore-event      (fn [x] nil),
         show-data         (fn [x] (message-box (str x))),
-        drag-start        (ref [0 0]),
+        drag-start        (ref nil),
         button-down-event (fn [x]
-                            (if (= (:button x) 3)
+                            (if (and (= (:button x) 1)
+                                  (= (:modifiers x) #{:alt}))
                               (dosync
                                (ref-set drag-start
-                                        (get-view-coordinates-at-point widget
-                                                                       (:position x))))
-                              (message-box (str x)))),
+                                        (get-view-coordinates-at-point 
+                                          widget (:position x))))
+                              (dosync (ref-set drag-start nil)))),
+        button-up-event (fn [x]
+                            (if (and (= (:button x) 1)
+                                  (= (:modifiers x) #{:alt})
+                                  (not= (deref drag-start) nil))
+                              (let [ start (deref drag-start)
+                                     end (get-view-coordinates-at-point
+                                           widget (:position x))]
+                                (dosync
+                                  (ref-set drag-start nil))
+                                (show-data [start end])))),
+
 
         cell-permutor (proxy-mouse-listener button-down-event
-                                            ignore-event
+                                            button-up-event
                                             ignore-event
                                             ignore-event
                                             ignore-event)]
