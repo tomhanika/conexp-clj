@@ -8,7 +8,7 @@
 
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
-(ns conexp.contrib.gui.editors.util
+(ns conexp.contrib.gui.editors.context-editor.widgets
   (:import [javax.swing JSplitPane JRootPane JTextArea JTable JList JTree
                         JScrollPane JOptionPane KeyStroke JComponent AbstractAction
                         JToolBar JButton UIManager]
@@ -530,8 +530,6 @@
     (doseq [col (range col-count)]
       (let [at-view (get-index-column otable (col-idx col))]
         (move-column otable at-view col)))))
-
-(declare get-hook-function)
 
 (defn-typecheck-swing-threads* move-row ::table-control
   "Moves the row at view index old-view to be viewed at view index

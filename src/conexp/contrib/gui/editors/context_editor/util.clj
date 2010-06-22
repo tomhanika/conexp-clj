@@ -20,7 +20,7 @@
         conexp.contrib.gui.util
         conexp.contrib.gui.util.hookable
         conexp.contrib.gui.util.one-to-many
-        conexp.contrib.gui.editors.util
+        conexp.contrib.gui.editors.context-editor.widgets
         conexp.fca)
   (:use clojure.contrib.swing-utils
         [clojure.contrib.string :only (join split-lines split)]))
@@ -96,7 +96,7 @@
 ;;; Context editor control
 
 (defrecord context-editor-widget [widget table toolbar e-ctx])
-(derive ::context-editor-widget :conexp.contrib.gui.editors.util/widget)
+(derive ::context-editor-widget :conexp.contrib.gui.editors.context-editor.widgets/widget)
 
 (declare make-editable-context editable-context? add-widget set-context
          get-ectx)
@@ -117,7 +117,7 @@
   [widget]
   (:table widget))
 
-(defmethod get-table :conexp.contrib.gui.editors.util/table-control
+(defmethod get-table :conexp.contrib.gui.editors.context-editor.widgets/table-control
   [x] x)
 
 (defn- get-selected-objects

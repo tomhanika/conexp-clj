@@ -8,8 +8,8 @@
 
 (ns conexp.contrib.gui.editors.context-editor
   (:use conexp.base
-        conexp.contrib.gui.editors.util
-        conexp.contrib.gui.editors.context-editor.util))
+        conexp.contrib.gui.editors.context-editor.util
+        conexp.contrib.gui.editors.context-editor.widgets))
 
 (ns-doc "Provides basic operations to contstruct context editors.")
 
