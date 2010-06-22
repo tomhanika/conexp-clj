@@ -199,7 +199,7 @@
     "Returns the context that is currently associated with the context
     editor widget represented by the given panel."
     [panel]
-    (let [widget (panels panel)]
+    (let [widget (@panels panel)]
       (when widget
         (get-context (get-ectx widget)))))
 
