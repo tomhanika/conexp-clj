@@ -17,8 +17,7 @@
 	[conexp.layout.base :only (lattice)]
 	conexp.graphics.draw
 	conexp.contrib.gui.util
-        conexp.contrib.gui.editors.context-editor
-        [conexp.contrib.gui.editors.context-editor.context-editor :only (get-current-second-operand-context)]
+        conexp.contrib.gui.editors.context-editor.context-editor
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
 	[clojure.contrib.io :exclude (spit)]

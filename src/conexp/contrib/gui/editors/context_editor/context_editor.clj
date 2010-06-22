@@ -185,4 +185,27 @@
 
 ;;;
 
+(let [panels (atom {})]
+
+  (defn make-context-editor
+    "Creates a context editor object for a given context ctx and
+    returns its root panel."
+    [ctx]
+    (let [widget (make-context-editor-widget ctx),
+          panel  (get-widget widget)]
+      (swap! panels assoc panel widget)
+      panel))
+
+  (defn get-context-from-panel
+    "Returns the context that is currently associated with the context
+    editor widget represented by the given panel."
+    [panel]
+    (let [widget (panels panel)]
+      (when widget
+        (get-context (get-ectx widget)))))
+
+  nil)
+
+;;;
+
 nil
