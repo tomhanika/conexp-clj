@@ -16,28 +16,17 @@
 
 ;;;
 
-
 (defn gui
   "Starts the standard gui for conexp-clj. args may be a sequence of
   parameters given by keywords and values."
   [& args]
-  (do-swing
-   (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-   (let [#^JFrame frame (apply conexp-main-frame args)]
-     (.setVisible frame true))))
-
-(defn debug-gui
-  "Starts the standard gui for conexp-clj. args may be a sequence of
-  parameters given by keywords and values. Returns frame"
-  [& args]
   (let [frm (promise)]
     (do-swing
-      (. UIManager (setLookAndFeel (. UIManager 
-                                     (getSystemLookAndFeelClassName))))
-      (let [#^JFrame frame (apply conexp-main-frame args)]
-        (.setVisible frame true)
-        (deliver frm frame)))
-    (deref frm)))
+     (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
+     (let [#^JFrame frame (apply conexp-main-frame args)]
+       (.setVisible frame true)
+       (deliver frm frame)))
+    @frm))
 
 ;;;
 
