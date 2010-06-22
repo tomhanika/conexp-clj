@@ -11,9 +11,8 @@
 (ns conexp.contrib.gui.editors.context-editor.widgets
   (:import [javax.swing JSplitPane JScrollPane JOptionPane JToolBar JButton]
            [java.awt Toolkit Dimension]
-           [java.awt.event ActionListener MouseEvent InputEvent]
-           [java.awt.datatransfer DataFlavor StringSelection]
-           [javax.swing.event MouseInputAdapter])
+           [java.awt.event ActionListener]
+           [java.awt.datatransfer DataFlavor StringSelection])
   (:use clojure.contrib.swing-utils
         [clojure.contrib.string :only (join split-lines split)])
   (:use [conexp.base :exclude (join)]
@@ -30,14 +29,6 @@
   [object vectors]
   `(doseq [call# ~vectors]
      (apply (first call#) ~object (rest call#))))
-
-(defmacro when-mask
-  "Takes two bitmasks and checks whether their bitwise-and is not 0,
-   if so, calls all other expressions in an implicit do."
-  [bit-mask-1 bit-mask-2 & exprs]
-  `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2))
-     ~@exprs))
-
 
 ;;; java & swing utils
 
@@ -71,62 +62,6 @@
         clipboard (.getSystemClipboard toolkit),
         data (StringSelection. (str contents))]
     (.setContents clipboard data nil)))
-
-
-;;; mouse-click-interface-helpers
-
-(defn proxy-mouse-listener
-  "Returns a proxy class that will implement the MouseListener
-   interface and call the given 1-ary functions accordingly.
-   The passed parameter will be a map mapping :button (button
-   that triggered the event), :buttons-down (buttons that were
-   down before), :modifiers and :position according to the event
-   information.
-
-   Parameters:
-     pressed   _mouse button down event
-     released  _mouse button up event
-     entered   _mouse enters widget
-     exited    _mouse exits widget
-     clicked   _mouse button clicked
-     moved     _mouse has been moved
-     dragged   _mouse has been dragged"
-  [pressed released entered exited clicked moved dragged]
-  (let [translate-button {MouseEvent/NOBUTTON 0
-                          MouseEvent/BUTTON1  1
-                          MouseEvent/BUTTON2  2
-                          MouseEvent/BUTTON3  3},
-        translate-modifier (fn [m]
-                             (union (when-mask m InputEvent/ALT_DOWN_MASK #{:alt})
-                                    (when-mask m InputEvent/ALT_GRAPH_DOWN_MASK #{:alt-gr})
-                                    (when-mask m InputEvent/CTRL_DOWN_MASK #{:control})
-                                    (when-mask m InputEvent/SHIFT_DOWN_MASK #{:shift})
-                                    (when-mask m InputEvent/META_DOWN_MASK #{:meta}))),
-        translate-pressed-btns (fn [m]
-                                 (union (when-mask m InputEvent/BUTTON1_DOWN_MASK #{1})
-                                        (when-mask m InputEvent/BUTTON2_DOWN_MASK #{2})
-                                        (when-mask m InputEvent/BUTTON3_DOWN_MASK #{3})))
-        translate-event (fn [event]
-                          {:button (translate-button (.getButton event))
-                           :modifiers (translate-modifier (.getModifiersEx event))
-                           :position [(.getX event) (.getY event)]
-                           :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
-    (proxy [MouseInputAdapter] []
-      (mousePressed [event]
-        (with-swing-threads* (pressed (translate-event event))))
-      (mouseReleased [event]
-        (with-swing-threads* (released (translate-event event))))
-      (mouseEntered [event]
-        (with-swing-threads* (entered (translate-event event))))
-      (mouseExited [event]
-        (with-swing-threads* (exited (translate-event event))))
-      (mouseClicked [event]
-        (with-swing-threads* (clicked (translate-event event))))
-      (mouseMoved [event]
-        (with-swing-threads* (moved (translate-event event))))
-      (mouseDragged [event]
-        (with-swing-threads* (dragged (translate-event event)))))))
-
 
 
 ;;; managed/unmanaged interop
