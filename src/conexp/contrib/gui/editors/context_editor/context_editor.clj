@@ -12,7 +12,6 @@
   (:use conexp.base
         conexp.fca
         conexp.contrib.gui.util
-        conexp.contrib.gui.editors.context-editor.util
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts
