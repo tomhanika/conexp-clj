@@ -118,10 +118,9 @@
   (defn- unload-context-editor
     "Unloads the context-editor plugin from frame."
     [frame]
-    (dosync
-     (let [menu (get @menu-hash frame)]
-       (remove-menus frame [menu])
-       (swap! menu-hash dissoc frame))))
+    (let [menu (get @menu-hash frame)]
+      (remove-menus frame [menu])
+      (swap! menu-hash dissoc frame)))
 
   nil)
 
