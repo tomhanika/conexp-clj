@@ -295,15 +295,24 @@
   [otable-control]
   (.getColumnCount (get-control otable-control)))
 
-(defn-typecheck-swing set-column-count ::table-control
+(declare get-column-index-permutator set-column-index-permutator)
+
+(defn-typecheck-swing-threads* set-column-count ::table-control
   "Sets the number of columns of the table control."
   [otable-control column-count]
-  (.setColumnCount (:model otable-control) column-count))
+  (let [p (get-column-index-permutator otable-control)]
+    (.setColumnCount (:model otable-control) column-count)
+    (set-column-index-permutator otable-control p)))
 
-(defn-typecheck-swing set-row-count ::table-control
+(declare get-row-index-permutator set-row-index-permutator)
+
+(defn-typecheck-swing-threads* set-row-count ::table-control
   "Sets the number of rows of the table control."
   [otable-control row-count]
-  (.setRowCount (:model otable-control) row-count))
+  (let [p (get-row-index-permutator otable-control)]
+    (set-row-index-permutator otable-control identity)
+    (.setRowCount (:model otable-control) row-count)
+    (set-row-index-permutator otable-control p)))
 
 (defn-typecheck-swing-threads* register-keyboard-action ::table-control
   "Registers a keyboard action on the table.
@@ -525,6 +534,15 @@
          col-model (.getColumnModel control) ]
     (.moveColumn col-model old-view new-view)))
 
+(defn-typecheck-swing-threads* set-column-index-permutator ::table-control
+  "Takes a table object and a column-index permutator and
+  rearranges the columns accordingly."
+  [otable col-idx]
+  (let [ col-count (get-column-count otable) ]
+    (doseq [col (range col-count)]
+      (let [at-view (get-index-column otable (col-idx col))]
+        (move-column otable at-view col)))))
+
 (defn-typecheck-swing-threads* move-row ::table-control
   "Moves the row at view index old-view to be viewed at view index
    new-view."
@@ -599,6 +617,15 @@
                 (first put-cell) (second put-cell)))))
           (dosync (ref-set (:row-permutator otable) new-row-permutator))
           (set-hook otable "table-changed" old-table-change-hook))))))
+
+(defn-typecheck-swing-threads* set-row-index-permutator ::table-control
+  "Takes a table object and a row-index permutator and
+  rearranges the rows accordingly."
+  [otable row-idx]
+  (let [ row-count (get-row-count otable) ]
+    (doseq [row (range row-count)]
+      (let [at-view (get-index-row otable (row-idx row))]
+        (move-row otable at-view row)))))
 
 (defn- table-change-hook
   [otable column first-row-in-view last-row-in-view type]
