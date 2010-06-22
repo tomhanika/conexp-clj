@@ -32,7 +32,7 @@
     "Returns the context that is currently associated with the context
     editor widget represented by the given panel."
     [panel]
-    (get-context (second (panels panel))))
+    (get-context (second ((deref panels) panel))))
 
   nil)
 
