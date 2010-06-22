@@ -75,6 +75,8 @@
                        %)]
     (set (fltr (map #(names (view %)) sel)))))
 
+(declare ectx-cell-value-hook ectx-extend-rows-hook ectx-extend-columns-hook)
+
 (defn add-widget
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context."
@@ -128,6 +130,58 @@
   "Sets the bound fca-context of an editable context object to ctx."
   [ectx ctx]
   (set-context-keep-order ectx ctx (get-order ectx)))
+
+(defn- string-to-cross
+  "Takes a string and decides, whether it should be a cross or not."
+  [s]
+  (let [trimmed (.trim s)]
+    (if (re-matches #"0*[,.]?0*" trimmed)
+      false
+      true)))
+
+(defn- ectx-cell-value-hook
+  [ectx row column contents]
+  (cond
+   (= column row 0) "⇊objects⇊",
+   (= row 0)        (let [attrib-cols  @(:attr-cols ectx),
+                          current-name (attrib-cols column)]
+                      (if (= contents current-name)
+                        current-name
+                        (change-attribute-name ectx column contents))),
+   (= column 0)     (let [object-rows  @(:obj-rows ectx),
+                          current-name (object-rows row)]
+                      (if (= contents current-name)
+                        current-name
+                        (change-object-name ectx row contents))),
+   :else            (let [cross         (string-to-cross contents),
+                          obj-name      (@(:obj-rows ectx) row),
+                          attr-name     (@(:attr-cols ectx) column),
+                          fca-ctx       (get-context ectx),
+                          inc           (incidence fca-ctx),
+                          current-state (contains? inc [obj-name attr-name])]
+                      (if (not= current-state cross)
+                        (change-incidence-cross ectx obj-name attr-name cross))
+                      (if cross "X" " "))))
+
+(defn- ectx-extend-rows-hook
+  [ectx rows]
+  (let [current-rows (count (objects (get-context ectx)))]
+    (call-many @(:widgets ectx)
+               (fn [w] (set-row-count (get-table w) rows)))
+    (doseq [r (range (+ 1 current-rows) rows)]
+      (call-first @(:widgets ectx)
+                  (fn [w]
+                    (set-value-at-index (get-table w) r 0 "new object"))))))
+
+(defn- ectx-extend-columns-hook
+  [ectx cols]
+  (let [current-cols (count (attributes (get-context ectx)))]
+    (call-many @(:widgets ectx)
+               (fn [w] (set-column-count (get-table w) cols)))
+    (doseq [c (range (+ 1 current-cols) cols)]
+      (call-first @(:widgets ectx)
+                  (fn [w]
+                    (set-value-at-index (get-table w) 0 c "new attribute"))))))
 
 ;;;
 

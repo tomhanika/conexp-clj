@@ -70,7 +70,7 @@
 (defrecord control [widget control])
 (derive ::control ::widget)
 
-(defn managed-by-conexp-gui-editors-util?
+(defn- managed-by-conexp-gui-editors-util?
   "Returns true if the object given as parameter is managed by the
    conexp.contrib.gui.editors.util module."
   [thing]

@@ -18,14 +18,6 @@
 
 ;;; Helpers
 
-(defn- string-to-cross
-  "Takes a string and decides, whether it should be a cross or not."
-  [s]
-  (let [trimmed (.trim s)]
-    (if (re-matches #"0*[,.]?0*" trimmed)
-      false
-      true)))
-
 (defn- smart-str
   "Takes a single argument and returns it as a string that is usable
    for object and attribute names."
@@ -105,7 +97,7 @@
 (defmethod get-context :conexp.fca.contexts/Context
   [x] x)
 
-(defn make-context-compatible
+(defn- make-context-compatible
   "Takes a context object and returns a compatible fca-Context."
   [ctx]
   (let [ctx (get-context ctx),
@@ -119,7 +111,7 @@
         comp-inc (map (fn [x] [(obj-map (first x)) (att-map (second x))]) inc)]
     (make-context comp-obj comp-att comp-inc)))
 
-(defn restore-order
+(defn- restore-order
   "Takes obj-rows as a parameter and a corresponding list of object names
    that shall take their respective position if available."
   [old-obj-rows old-objs new-obj-rows obj-nbrs]
@@ -184,15 +176,16 @@
       e-ctx)))
 
 (defn get-order
-  "Returns the current order of the objects and attributes of the context."
+  "Returns the current order of the objects and attributes of the
+  context."
   [ectx]
   (assert (instance? editable-context ectx))
   {:attr-cols (deref (:attr-cols ectx)),
    :obj-rows (deref (:obj-rows ectx))})
 
 (defn get-dual-order
-  "Returns the current order of the objects and attributes of the dual of the
-   context."
+  "Returns the current order of the objects and attributes of the dual
+   of the context."
   [ectx]
   (assert (instance? editable-context ectx))
   {:obj-rows (deref (:attr-cols ectx)),
@@ -293,50 +286,6 @@
                            (update-value-at-index (get-table w)
                                                   given 0 new-name)))))
           new-name)))))
-
-(defn ectx-cell-value-hook
-  [ectx row column contents]
-  (cond
-   (= column row 0) "⇊objects⇊",
-   (= row 0)        (let [attrib-cols  @(:attr-cols ectx),
-                          current-name (attrib-cols column)]
-                      (if (= contents current-name)
-                        current-name
-                        (change-attribute-name ectx column contents))),
-   (= column 0)     (let [object-rows  @(:obj-rows ectx),
-                          current-name (object-rows row)]
-                      (if (= contents current-name)
-                        current-name
-                        (change-object-name ectx row contents))),
-   :else            (let [cross         (string-to-cross contents),
-                          obj-name      (@(:obj-rows ectx) row),
-                          attr-name     (@(:attr-cols ectx) column),
-                          fca-ctx       (get-context ectx),
-                          inc           (incidence fca-ctx),
-                          current-state (contains? inc [obj-name attr-name])]
-                      (if (not= current-state cross)
-                        (change-incidence-cross ectx obj-name attr-name cross))
-                      (if cross "X" " "))))
-
-(defn ectx-extend-rows-hook
-  [ectx rows]
-  (let [current-rows (count (objects (get-context ectx)))]
-    (call-many @(:widgets ectx)
-               (fn [w] (set-row-count (get-table w) rows)))
-    (doseq [r (range (+ 1 current-rows) rows)]
-      (call-first @(:widgets ectx)
-                  (fn [w]
-                    (set-value-at-index (get-table w) r 0 "new object"))))))
-
-(defn ectx-extend-columns-hook
-  [ectx cols]
-  (let [current-cols (count (attributes (get-context ectx)))]
-    (call-many @(:widgets ectx)
-               (fn [w] (set-column-count (get-table w) cols)))
-    (doseq [c (range (+ 1 current-cols) cols)]
-      (call-first @(:widgets ectx)
-                  (fn [w]
-                    (set-value-at-index (get-table w) 0 c "new attribute"))))))
 
 ;;;
 
