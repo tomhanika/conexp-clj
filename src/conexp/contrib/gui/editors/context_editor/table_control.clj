@@ -97,8 +97,7 @@
 
 (defmulti get-table
   "Returns the table-control that belongs to the first parameter."
-  (fn [& x]
-    (class-to-keyword (type (first x))))
+  (fn [& x] (keyword-class x))
   :default nil)
 
 (defmethod get-table ::table-control
