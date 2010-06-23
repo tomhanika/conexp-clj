@@ -76,7 +76,7 @@
   [thing]
   (or (and (map? thing)
            (contains? thing :managed-by-conexp-gui-editors-util))
-      (isa? (class-to-keyword (type thing)) ::widget)))
+      (keyword-isa? thing ::widget)))
 
 (defn get-widget
   "Returns the appropriate java root widget for managed java code or
@@ -90,12 +90,10 @@
   "Returns the appropriate java control widget for managed java code or
    just the input parameter for other objects."
   [obj]
-  (let [t (class-to-keyword (type obj))]
-    (if (isa? t ::control)
-      (:control obj)
-      (if (managed-by-conexp-gui-editors-util? obj)
-        (:control obj)
-        obj))))
+  (if (or (keyword-isa? obj ::control)
+          (managed-by-conexp-gui-editors-util? obj))
+    (:control obj)
+    obj))
 
 (defn-swing get-size
   "Returns the size of the given widget."

@@ -24,7 +24,7 @@
 (defn hookable?
   "Tests whether the given object is hookable."
   [obj]
-  (isa? (class-to-keyword (type obj)) ::hookable))
+  (keyword-isa? obj ::hookable))
 
 (defn add-hook
   "Adds a hook to the hooksmap.

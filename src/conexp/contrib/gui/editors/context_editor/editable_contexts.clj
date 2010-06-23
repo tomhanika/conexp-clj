@@ -82,7 +82,7 @@
 (defn editable-context?
   "Tests whether the argument is an editable context."
   [ctx]
-  (isa? (class-to-keyword (type ctx)) ::editable-context))
+  (keyword-isa? ctx ::editable-context))
 
 (defmulti get-context
   "Returns the fca-context that belongs to the first parameter."
