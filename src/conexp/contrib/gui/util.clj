@@ -59,6 +59,7 @@
     (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
     frame))
 
+
 ;;; Swing handmade concurrency
 
 (defn invoke-later
@@ -117,13 +118,6 @@
   [name dispatch-val params & body]
   `(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body)))
 
-(defmacro fn-swing
-  "Returns a function that is surrounded by do-swing-return"
-  [name params & body]
-  (if (vector? name)
-    `(fn ~name (do-swing-return ~params ~@body))
-    `(fn ~name ~params (do-swing-return ~@body))))
-
 (defmacro defn-swing-threads*
   "Defines a function that is surrounded by with-swing-threads*"
   [name doc params & body]
@@ -136,13 +130,6 @@
   "Defines a multi function method that is surrounded by do-swing-return"
   [name dispatch-val params & body]
   `(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body)))
-
-(defmacro fn-swing-threads*
-  "Returns a function that is surrounded by with-swing-threads*"
-  [name params & body]
-  (if (vector? name)                      ;anonymous function
-    `(fn ~name (with-swing-threads* ~params ~@body))
-    `(fn ~name ~params (with-swing-threads* ~@body)))) ;TODO: adic overloading
 
 
 ;;; type checking
@@ -242,6 +229,7 @@
 
 (defvar --- {}
   "Separator for menu entries used in add-menus.")
+
 (defvar === (Box/createHorizontalGlue)
   "Separator between menus used in add-menus.")
 
