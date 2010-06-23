@@ -104,36 +104,40 @@
 (defmethod get-table ::table-control
   [x] x)
 
-(defn-typecheck-swing get-row-count ::table-control
+(defn-swing get-row-count
   "Returns the number of rows of the table control."
   [otable-control]
+  (assert (keyword-isa? otable-control ::table-control))
   (.getRowCount (get-control otable-control)))
 
-(defn-typecheck-swing get-column-count ::table-control
+(defn-swing get-column-count
   "Returns the number of columns of the table control."
   [otable-control]
+  (assert (keyword-isa? otable-control ::table-control))
   (.getColumnCount (get-control otable-control)))
 
 (declare get-column-index-permutator set-column-index-permutator)
 
-(defn-typecheck-swing-threads* set-column-count ::table-control
+(defn-swing-threads* set-column-count
   "Sets the number of columns of the table control."
   [otable-control column-count]
+  (assert (keyword-isa? otable-control ::table-control))
   (let [p (get-column-index-permutator otable-control)]
     (.setColumnCount (:model otable-control) column-count)
     (set-column-index-permutator otable-control p)))
 
 (declare get-row-index-permutator set-row-index-permutator)
 
-(defn-typecheck-swing-threads* set-row-count ::table-control
+(defn-swing-threads* set-row-count
   "Sets the number of rows of the table control."
   [otable-control row-count]
+  (assert (keyword-isa? otable-control ::table-control))
   (let [p (get-row-index-permutator otable-control)]
     (set-row-index-permutator otable-control identity)
     (.setRowCount (:model otable-control) row-count)
     (set-row-index-permutator otable-control p)))
 
-(defn-typecheck-swing-threads* register-keyboard-action ::table-control
+(defn-swing-threads* register-keyboard-action
   "Registers a keyboard action on the table.
   Parameters:
     otable     _table-control object
@@ -145,6 +149,7 @@
                 (determines which widget has to be focused to trigger the
                  action)"
   [otable handler name keystroke condition]
+  (assert (keyword-isa? otable ::table-control))
   (let [java-condition ({:focus JComponent/WHEN_FOCUSED
                          :widget JComponent/WHEN_IN_FOCUSED_WINDOW
                          :ancestor JComponent/WHEN_ANCESTOR_OF_FOCUSED_COMPONENT}
@@ -160,10 +165,11 @@
     (.put input-map keystroke cmd-name)
     (.put action-map cmd-name action)))
 
-(defn-typecheck-swing get-column-index ::table-control
+(defn-swing get-column-index
   "Returns the tables model index of the specified column in the
   view."
   [otable column]
+  (assert (keyword-isa? otable ::table-control))
   (let [table     (get-control otable),
         col-count (.getColumnCount table)]
     (if (>= column col-count)
@@ -172,10 +178,11 @@
             table-col (.getColumn col-model column) ]
         (.getModelIndex table-col)))))
 
-(defn-typecheck-swing get-index-column ::table-control
- "Returns the column in the view that corresponds to the specified
+(defn-swing get-index-column
+  "Returns the column in the view that corresponds to the specified
   table model index."
   [otable index]
+  (assert (keyword-isa? otable ::table-control))
   (let [table     (get-control otable),
         col-model (.getColumnModel table),
         cols      (range (.getColumnCount col-model)),
@@ -185,30 +192,34 @@
          found    (first matching)]
     (or found index)))
 
-(defn-typecheck get-row-index ::table-control
+(defn get-row-index
   "Returns the tables model index of the specified row in view."
   [otable row]
+  (assert (keyword-isa? otable ::table-control))
   (let [p (deref (:row-permutator otable))]
     ((first p) row)))
 
-(defn-typecheck get-index-row ::table-control
+(defn get-index-row
   "Returns the row in the view that corresponds
   to the specified table model index."
   [otable index]
+  (assert (keyword-isa? otable ::table-control))
   (let [p (deref (:row-permutator otable))]
     ((second p) index)))
 
-(defn-typecheck get-row-index-permutator ::table-control
+(defn get-row-index-permutator
   "Returns a function that will map the current view rows to
    the according index values."
   [otable]
+  (assert (keyword-isa? otable ::table-control))
   (let [p (deref (:row-permutator otable))]
     (first p)))
 
-(defn-typecheck-swing get-column-index-permutator ::table-control
+(defn-swing get-column-index-permutator
   "Returns a function that will map the current view
     columns to the according index values."
   [otable]
+  (assert (keyword-isa? otable ::table-control))
   (let [table     (get-control otable),
         col-count (.getColumnCount table),
         col-range (range col-count),
@@ -221,24 +232,27 @@
         i
         (col-map i)))))
 
-(defn-typecheck-swing get-value-at-view ::table-control
+(defn-swing get-value-at-view
   "Returns the value of the cell at specified position in view."
   [otable row column]
+  (assert (keyword-isa? otable ::table-control))
   (let [table (get-control otable)]
     (.getValueAt table row column)))
 
-(defn-typecheck-swing get-value-at-index ::table-control
+(defn-swing get-value-at-index
   "Returns the value of the cell at specified position in the table
   model."
   [otable row column]
+  (assert (keyword-isa? otable ::table-control))
   (let [irow (get-index-row otable row),
         icolumn (get-index-column otable column)]
     (get-value-at-view otable irow icolumn)))
 
-(defn-typecheck-swing-threads* set-resize-mode ::table-control
+(defn-swing-threads* set-resize-mode
   "Sets the behaviour of the table on resize. mode is either one
   of :all, :last, :next, :off, or :subseq"
   [otable mode]
+  (assert (keyword-isa? otable ::table-control))
   (.setAutoResizeMode (get-control otable)
                       ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
                         :last JTable/AUTO_RESIZE_LAST_COLUMN
@@ -247,10 +261,11 @@
                         :subseq JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS}
                        mode)))
 
-(defn-typecheck-swing-threads* set-cell-selection-mode ::table-control
+(defn-swing-threads* set-cell-selection-mode
   "Sets the cell selection mode. mode is either one
   of :none, :rows, :columns or :cells"
   [otable mode]
+  (assert (keyword-isa? otable ::table-control))
   (let [table (get-control otable)]
     (condp = mode
      :none    (.setCellSelectionEnabled table false)
@@ -262,14 +277,16 @@
                 (.setColumnSelectionAllowed true))
      :cells   (.setCellSelectionEnabled table true))))
 
-(defn-typecheck-swing-threads* select-single-cell ::table-control
+(defn-swing-threads* select-single-cell
   "Selects a single cell given as view-coordinates in the given table control"
   [otable row column]
+  (assert (keyword-isa? otable ::table-control))
   (.changeSelection (get-control otable) row column false false))
 
-(defn-typecheck-swing set-value-at-view ::table-control
+(defn-swing set-value-at-view
   "Sets the value of a cell in the table according to a view position."
   [otable row column contents]
+  (assert (keyword-isa? otable ::table-control))
   (let [columns (get-column-count otable),
         rows  (get-row-count otable)]
     (if (>= column columns)
@@ -278,23 +295,27 @@
       (call-hook otable "extend-rows-to" (+ 1 row)))
     (.setValueAt (get-control otable) (str contents) row column)))
 
-(defn-typecheck set-value-at-index ::table-control
+(defn set-value-at-index
   "Sets the value of a cell in the table according to the model
-   index." [otable row column contents]
+   index."
+  [otable row column contents]
+  (assert (keyword-isa? otable ::table-control))
   (set-value-at-view otable (get-index-row otable row)
     (get-index-column otable column) contents))
 
-(defn-typecheck update-value-at-index ::table-control
+(defn update-value-at-index
   "Sets the value of a cell in the table according to the model index,
    if it is different from the current cells value."
   [otable row column contents]
+  (assert (keyword-isa? otable ::table-control))
   (let [current (get-value-at-index otable row column)]
     (if (not= current contents)
       (set-value-at-index otable row column contents))))
 
-(defn-typecheck-swing-threads* paste-from-clipboard ::table-control
+(defn-swing-threads* paste-from-clipboard
   "Pastes the current system clipboard contents into the table."
   [obj]
+  (assert (keyword-isa? obj ::table-control))
   (let [control     (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
@@ -315,10 +336,11 @@
                                 (col-index (+ startx c))
                                 ((cells r) c))))))))
 
-(defn-typecheck-swing-threads* copy-to-clipboard ::table-control
+(defn-swing-threads* copy-to-clipboard
   "Copies the selected cells from the table widget to the system
    clipboard."
   [obj]
+  (assert (keyword-isa? obj ::table-control))
   (let [control     (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
@@ -336,36 +358,40 @@
         selection   (join "\n" sel-lines)]
     (set-clipboard-contents selection)))
 
-(defn-typecheck-swing get-view-coordinates-at-point ::table-control
+(defn-swing get-view-coordinates-at-point
   "Returns the current view coordinates as [row column] for the given
    point."
   [otable position]
+  (assert (keyword-isa? otable ::table-control))
   (let [x (first position),
         y (second position)]
     [(.rowAtPoint (get-control otable) (Point. x y)),
      (.columnAtPoint (get-control otable) (Point. x y))]))
 
-(defn-typecheck-swing move-column ::table-control
+(defn-swing move-column
   "Moves the column at view index old-view to be viewed at view index
    new-view."
   [otable old-view new-view]
+  (assert (keyword-isa? otable ::table-control))
   (let [ control (get-control otable) 
          col-model (.getColumnModel control) ]
     (.moveColumn col-model old-view new-view)))
 
-(defn-typecheck-swing-threads* set-column-index-permutator ::table-control
+(defn-swing-threads* set-column-index-permutator
   "Takes a table object and a column-index permutator and
   rearranges the columns accordingly."
   [otable col-idx]
+  (assert (keyword-isa? otable ::table-control))
   (let [ col-count (get-column-count otable) ]
     (doseq [col (range col-count)]
       (let [at-view (get-index-column otable (col-idx col))]
         (move-column otable at-view col)))))
 
-(defn-typecheck-swing-threads* move-row ::table-control
+(defn-swing-threads* move-row
   "Moves the row at view index old-view to be viewed at view index
    new-view."
   [otable old-view new-view]
+  (assert (keyword-isa? otable ::table-control))
   (let [ view-to-index (get-row-index-permutator otable)
          row-count (get-row-count otable)
          col-indices (range (get-column-count otable))]
@@ -437,25 +463,33 @@
           (dosync (ref-set (:row-permutator otable) new-row-permutator))
           (set-hook otable "table-changed" old-table-change-hook))))))
 
-(defn-typecheck-swing-threads* set-row-index-permutator ::table-control
+(defn-swing-threads* set-row-index-permutator
   "Takes a table object and a row-index permutator and
   rearranges the rows accordingly."
   [otable row-idx]
-  (let [ row-count (get-row-count otable) ]
+  (assert (keyword-isa? otable ::table-control))
+  (let [row-count (get-row-count otable)]
     (doseq [row (range row-count)]
       (let [at-view (get-index-row otable (row-idx row))]
         (move-row otable at-view row)))))
 
 (defn- table-change-hook
+  "This hook is called whenever a table widget is changed,
+
+   Parameters:
+    column   _the column index of the changed area
+    first    _the first row *view* of the changed area
+    last     _the last row *view* of the changed area
+    type     _(-1,0, or 1) delete, update, insert"
   [otable column first-row-in-view last-row-in-view type]
   (if (and (= 0 type)
            (<= 0 (min column first-row-in-view last-row-in-view))
            (= first-row-in-view last-row-in-view))
-    (let [ first-row (get-row-index otable first-row-in-view)
-           current-value (get-value-at-index otable first-row column),
-           good-value (call-hook otable "cell-value" first-row column
-                                current-value)]
-      (if (not= current-value good-value)
+    (let [first-row     (get-row-index otable first-row-in-view),
+          current-value (get-value-at-index otable first-row column),
+          good-value    (call-hook otable "cell-value" first-row column
+                                   current-value)]
+      (when (not= current-value good-value)
         (set-value-at-index otable first-row column good-value)))))
 
 (defn-swing make-table-control
@@ -535,6 +569,7 @@
                                    (move-column widget start-col end-col))
                                  (if (not= start-row end-row)
                                    (move-row widget start-row end-row))))),
+
         cell-permutor (proxy-mouse-listener button-down-event
                                             button-up-event
                                             ignore-event
@@ -542,33 +577,11 @@
                                             ignore-event
                                             ignore-event
                                             drag-motion-event)]
-    (add-hook widget "table-changed"
-      (fn [c f l t] (table-change-hook widget c f l t))
-      "This hook is called whenever a table widget is changed,
-       Parameters:
-             column   _the column index of the changed area
-             first    _the first row *view* of the changed area
-             last     _the last row *view* of the changed area
-             type     _(-1,0, or 1) delete, update, insert")
-    (add-hook widget "extend-columns-to" #(set-column-count widget %)
-      "This hook is called whenever the table needs to extend its
-       columns in order to write to a cell. The hook is supposed
-       to call set-column-count on the table widget.
-       Parameters:
-             columns  _the requested column count")
-    (add-hook widget "extend-rows-to" #(set-row-count widget %)
-      "This hook is called whenever the table needs to extend its
-       rows in order to write to a cell. The hook is supposed
-       to call set-row-count on the table widget.
-       Parameters:
-             rows  _the requested column count")
-    (add-hook widget "cell-value" (fn [_ _ contents] contents)
-      "This hook is called to validate the cells value. The hook is
-       supposed to return a valid cell value for that cell index.
-       Parameters:
-             row      _the cell's row index
-             column   _the cell's column index
-             contents _the requested (new) contents of the cell")
+    (add-hook widget "table-changed"     (fn [c f l t]
+                                           (table-change-hook widget c f l t)))
+    (add-hook widget "extend-columns-to" #(set-column-count widget %))
+    (add-hook widget "extend-rows-to"    #(set-row-count widget %))
+    (add-hook widget "cell-value"        (fn [_ _ contents] contents))
     (.addTableModelListener model change-listener)
     (apply-exprs widget defaults)
     (apply-exprs widget setup)

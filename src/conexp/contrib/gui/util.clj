@@ -144,44 +144,25 @@
     `(fn ~name (with-swing-threads* ~params ~@body))
     `(fn ~name ~params (with-swing-threads* ~@body)))) ;TODO: adic overloading
 
+
 ;;; type checking
 
 (defn class-to-keyword
   "Takes a class object and returns a corresponding keyword describing the
   class name."
   [c]
-  (let [rv string/reverse,
-        classname (str c),
+  (let [rv          string/reverse,
+        classname   (str c),
         keywordname (rv (string/replace-first-re
                          #"\." "/" 
                          (rv (string/replace-first-re #"class " "" classname))))]
     (keyword keywordname)))
 
-(defmacro defn-typecheck
-  "This macro is a helper for typechecking the first parameter via
-   class-to-keyword and derive/isa? and throws illegal-argument if
-   the first parameter is not a child of the given keyword."
-  [name parent doc-str params & body]
-  (let [check-parm (first params),
-        name-str   (str name),
-        type-name  (str parent)]
-    `(defn ~name ~doc-str ~params
-       (if (isa? (class-to-keyword (type ~check-parm)) ~parent)
-         (do ~@body)
-         (illegal-argument (str ~name-str 
-                                " called with the first parameter of type "
-                                (class-to-keyword (type ~check-parm))
-                                " which is not a child-type of " ~type-name " ."))))))
-
-(defmacro defn-typecheck-swing
-  "defn-typecheck such that the body is surrounded by do-swing-return"
-  [name parent doc-str parms & body]
-  `(defn-typecheck ~name ~parent ~doc-str ~parms (do-swing-return ~@body)))
-
-(defmacro defn-typecheck-swing-threads*
-  "defn-typecheck such that the body is surrounded by do-swing-return"
-  [name parent doc-str parms & body]
-  `(defn-typecheck ~name ~parent ~doc-str ~parms (with-swing-threads* ~@body)))
+(defn keyword-isa?
+  "Returns true iff class-to-keyword called on the type of obj returns
+  something that isa? parent."
+  [obj parent]
+  (isa? (class-to-keyword (type obj)) parent))
 
 ;;;
 

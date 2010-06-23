@@ -47,8 +47,8 @@
 (defn-swing get-clipboard-contents
   "Returns the contents of the system clipboard"
   []
-  (let [toolkit (Toolkit/getDefaultToolkit),
-        clipboard (.getSystemClipboard toolkit),
+  (let [toolkit      (Toolkit/getDefaultToolkit),
+        clipboard    (.getSystemClipboard toolkit),
         transferable (.getContents clipboard nil)]
     (if (.isDataFlavorSupported transferable DataFlavor/stringFlavor)
       (.getTransferData transferable DataFlavor/stringFlavor)
@@ -58,9 +58,9 @@
   "Set the contents of the system clipboard to the given string
   contents."
   [contents]
-  (let [toolkit (Toolkit/getDefaultToolkit),
+  (let [toolkit   (Toolkit/getDefaultToolkit),
         clipboard (.getSystemClipboard toolkit),
-        data (StringSelection. (str contents))]
+        data      (StringSelection. (str contents))]
     (.setContents clipboard data nil)))
 
 
@@ -97,26 +97,30 @@
         (:control obj)
         obj))))
 
-(defn-typecheck-swing get-size ::widget
+(defn-swing get-size
   "Returns the size of the given widget."
   [obj]
+  (assert (keyword-isa? obj ::widget))
   (bean (.getSize (get-widget obj))))
 
-(defn-typecheck-swing-threads* set-size ::widget
+(defn-swing-threads* set-size
   "Sets the size of the given widget obj."
   [obj width height]
+  (assert (keyword-isa? obj ::widget))
   (.setSize (get-widget obj)
             (Dimension. width height)))
 
-(defn-typecheck set-width ::widget
+(defn set-width
   "Sets the width of the given widget obj."
   [obj width]
+  (assert (keyword-isa? obj ::widget))
   (let [height (:height (get-size obj))]
     (set-size obj width height)))
 
-(defn-typecheck set-height ::widget
+(defn set-height
   "Sets the height of the given widget."
   [obj height]
+  (assert (keyword-isa? obj ::widget))
   (let [width (:width (get-size obj))]
     (set-size obj width height)))
 
@@ -132,10 +136,11 @@
 (defrecord button [widget])
 (derive ::button ::widget)
 
-(defn-typecheck-swing-threads* set-handler ::button
+(defn-swing-threads* set-handler
   "Sets the action handler for the button object. handler must be a
   function of no arguments."
   [obutton handler]
+  (assert (keyword-isa? obutton ::button))
   (let [button (get-widget obutton),
         current-handlers (.getActionListeners button),
         listeners (seq current-handlers)]
@@ -162,9 +167,10 @@
 (defrecord split-pane [widget])
 (derive ::split-pane ::widget)
 
-(defn-typecheck-swing-threads* set-divider-location ::split-pane
+(defn-swing-threads* set-divider-location
   "Sets the location of the divider."
   [osplit-pane location]
+  (assert (keyword-isa? osplit-pane ::split-pane))
   (let [split-pane (get-widget osplit-pane)]
     (.setDividerLocation split-pane location)))
 
@@ -195,36 +201,40 @@
 (defrecord toolbar-control [widget control])
 (derive ::toolbar-control ::control)
 
-(defn-typecheck-swing-threads* set-orientation ::toolbar-control
+(defn-swing-threads* set-orientation
   "Sets the toolbars orientation. orientation is either :horiz
   or :vert."
   [otoolbar orientation]
+  (assert (keyword-isa? otoolbar ::toolbar-control))
   (.setOrientation (get-control otoolbar)
                    ({:horiz JToolBar/HORIZONTAL
                      :vert JToolBar/VERTICAL}
                     orientation)))
 
-(defn-typecheck-swing-threads* add-button ::toolbar-control
+(defn-swing-threads* add-button
   "Adds a button to the toolbar."
   [otoolbar button]
+  (assert (keyword-isa? otoolbar ::toolbar-control))
   (.add (get-control otoolbar)
         (get-widget button)))
 
-(defn-typecheck-swing-threads* add-separator ::toolbar-control
+(defn-swing-threads* add-separator
   "Adds a separator space to the toolbar."
   [otoolbar]
+  (assert (keyword-isa? otoolbar ::toolbar-control))
   (.addSeparator (get-control otoolbar)))
 
-(defn-typecheck-swing-threads* set-floatable ::toolbar-control
+(defn-swing-threads* set-floatable
   "Sets the floatable mode of the toolbar control."
   [otoolbar floatable]
+  (assert (keyword-isa? otoolbar ::toolbar-control))
   (.setFloatable (get-control otoolbar)
                  (boolean floatable)))
 
 (defn-swing make-toolbar-control
   "Creates a toolbar control in Java. orientation is either :horiz
   or :vert and setup is an optional number of vectors that may contain
-  additional tweaks that are called after widget creation"
+  additional tweaks that are called after widget creation."
   [orientation & setup]
   (let [toolbar    (JToolBar. ({:horiz JToolBar/HORIZONTAL
                                 :vert JToolBar/VERTICAL}
