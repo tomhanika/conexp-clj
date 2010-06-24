@@ -134,21 +134,27 @@
 
 ;;; type checking
 
-(defn keyword-class
-  "Takes an object x and returns a corresponding keyword describing
+(defn class-to-keyword
+  "Takes a class c and returns a corresponding keyword describing
   its class name."
-  [x]
+  [c]
   (let [rv          string/reverse,
-        classname   (str (type x)),
+        classname   (str c),
         keywordname (rv (string/replace-first-re
                          #"\." "/" 
                          (rv (string/replace-first-re #"class " "" classname))))]
     (keyword keywordname)))
 
+(defn keyword-class
+  "Takes an object x and returns a corresponding keyword describing
+  its class name."
+  [x]
+  (class-to-keyword (type x)))
+
 (defn keyword-isa?
   "Returns true iff the keyword-class of obj isa? parent."
   [obj parent]
-  (isa? (keyword-class obj) parent))
+  (isa? (keyword-class obj) (class-to-keyword parent)))
 
 ;;;
 

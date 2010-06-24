@@ -27,35 +27,35 @@
   "Returns a new one-to-many object that consists of otm
    and has some more elements."
   [otm & els]
-  (assert (keyword-isa? otm ::one-to-many))
+  (assert (keyword-isa? otm one-to-many))
   (one-to-many. (:one otm) (apply conj (:many otm) els)))
 
 (defn del
   "Returns a new one-to-many object that consists of otm
    and has some less elements."
   [otm & els]
-  (assert (keyword-isa? otm ::one-to-many))
+  (assert (keyword-isa? otm one-to-many))
   (one-to-many. (:one otm) (apply disj (:many otm) els)))
 
 (defn call-one
   "Calls the given function with the one-part of the given one-many relation
   as first parameter."
   [otm f & parms]
-  (assert (keyword-isa? otm ::one-to-many))
+  (assert (keyword-isa? otm one-to-many))
   (apply f (:one otm) parms))
 
 (defn call-many
   "Calls the given function several times with each many-part of the given 
   one-many relation as first parameter for one."
   [otm f & parms]
-  (assert (keyword-isa? otm ::one-to-many))
+  (assert (keyword-isa? otm one-to-many))
   (doseq [m (:many otm)] (apply f m parms)))
 
 (defn call-first
   "Calls the given function with the given parameter for the first of
   the many."
   [otm f & parms]
-  (assert (keyword-isa? otm ::one-to-many))
+  (assert (keyword-isa? otm one-to-many))
   (let [m (:many otm)]
     (when-not (empty? m)
       (apply f (first m) parms))))

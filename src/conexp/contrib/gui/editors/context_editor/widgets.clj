@@ -68,7 +68,7 @@
 
 (defrecord widget [widget])
 (defrecord control [widget control])
-(derive ::control ::widget)
+(derive (class-to-keyword control) (class-to-keyword widget))
 
 (defn- managed-by-conexp-gui-editors-util?
   "Returns true if the object given as parameter is managed by the
@@ -76,7 +76,7 @@
   [thing]
   (or (and (map? thing)
            (contains? thing :managed-by-conexp-gui-editors-util))
-      (keyword-isa? thing ::widget)))
+      (keyword-isa? thing widget)))
 
 (defn get-widget
   "Returns the appropriate java root widget for managed java code or
@@ -90,7 +90,7 @@
   "Returns the appropriate java control widget for managed java code or
    just the input parameter for other objects."
   [obj]
-  (if (or (keyword-isa? obj ::control)
+  (if (or (keyword-isa? obj control)
           (managed-by-conexp-gui-editors-util? obj))
     (:control obj)
     obj))
@@ -98,27 +98,27 @@
 (defn-swing get-size
   "Returns the size of the given widget."
   [obj]
-  (assert (keyword-isa? obj ::widget))
+  (assert (keyword-isa? obj widget))
   (bean (.getSize (get-widget obj))))
 
 (defn-swing-threads* set-size
   "Sets the size of the given widget obj."
   [obj width height]
-  (assert (keyword-isa? obj ::widget))
+  (assert (keyword-isa? obj widget))
   (.setSize (get-widget obj)
             (Dimension. width height)))
 
 (defn set-width
   "Sets the width of the given widget obj."
   [obj width]
-  (assert (keyword-isa? obj ::widget))
+  (assert (keyword-isa? obj widget))
   (let [height (:height (get-size obj))]
     (set-size obj width height)))
 
 (defn set-height
   "Sets the height of the given widget."
   [obj height]
-  (assert (keyword-isa? obj ::widget))
+  (assert (keyword-isa? obj widget))
   (let [width (:width (get-size obj))]
     (set-size obj width height)))
 
@@ -132,13 +132,13 @@
 ;;; Button
 
 (defrecord button [widget])
-(derive ::button ::widget)
+(derive (class-to-keyword button) (class-to-keyword widget))
 
 (defn-swing-threads* set-handler
   "Sets the action handler for the button object. handler must be a
   function of no arguments."
   [obutton handler]
-  (assert (keyword-isa? obutton ::button))
+  (assert (keyword-isa? obutton button))
   (let [button (get-widget obutton),
         current-handlers (.getActionListeners button),
         listeners (seq current-handlers)]
@@ -163,12 +163,12 @@
 ;;;  Split Pane
 
 (defrecord split-pane [widget])
-(derive ::split-pane ::widget)
+(derive (class-to-keyword split-pane) (class-to-keyword widget))
 
 (defn-swing-threads* set-divider-location
   "Sets the location of the divider."
   [osplit-pane location]
-  (assert (keyword-isa? osplit-pane ::split-pane))
+  (assert (keyword-isa? osplit-pane split-pane))
   (let [split-pane (get-widget osplit-pane)]
     (.setDividerLocation split-pane location)))
 
@@ -197,13 +197,13 @@
 ;;;  Toolbar
 
 (defrecord toolbar-control [widget control])
-(derive ::toolbar-control ::control)
+(derive (class-to-keyword toolbar-control) (class-to-keyword control))
 
 (defn-swing-threads* set-orientation
   "Sets the toolbars orientation. orientation is either :horiz
   or :vert."
   [otoolbar orientation]
-  (assert (keyword-isa? otoolbar ::toolbar-control))
+  (assert (keyword-isa? otoolbar toolbar-control))
   (.setOrientation (get-control otoolbar)
                    ({:horiz JToolBar/HORIZONTAL
                      :vert JToolBar/VERTICAL}
@@ -212,20 +212,20 @@
 (defn-swing-threads* add-button
   "Adds a button to the toolbar."
   [otoolbar button]
-  (assert (keyword-isa? otoolbar ::toolbar-control))
+  (assert (keyword-isa? otoolbar toolbar-control))
   (.add (get-control otoolbar)
         (get-widget button)))
 
 (defn-swing-threads* add-separator
   "Adds a separator space to the toolbar."
   [otoolbar]
-  (assert (keyword-isa? otoolbar ::toolbar-control))
+  (assert (keyword-isa? otoolbar toolbar-control))
   (.addSeparator (get-control otoolbar)))
 
 (defn-swing-threads* set-floatable
   "Sets the floatable mode of the toolbar control."
   [otoolbar floatable]
-  (assert (keyword-isa? otoolbar ::toolbar-control))
+  (assert (keyword-isa? otoolbar toolbar-control))
   (.setFloatable (get-control otoolbar)
                  (boolean floatable)))
 

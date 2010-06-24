@@ -92,27 +92,29 @@
 ;; where the first-row element transforms view-rows to index-rows 
 ;; and the second element is the inverse function transforming
 ;; index-rows to view-rows.
-(derive ::table-control :conexp.contrib.gui.editors.context-editor.widgets/control)
-(derive ::table-control :conexp.contrib.gui.util.hookable/hookable)
+(derive (class-to-keyword table-control)
+        (class-to-keyword conexp.contrib.gui.editors.context-editor.widgets.control))
+(derive (class-to-keyword table-control)
+        (class-to-keyword conexp.contrib.gui.util.hookable.hookable))
 
 (defmulti get-table
   "Returns the table-control that belongs to the first parameter."
   (fn [& x] (keyword-class x))
   :default nil)
 
-(defmethod get-table ::table-control
+(defmethod get-table (class-to-keyword table-control)
   [x] x)
 
 (defn-swing get-row-count
   "Returns the number of rows of the table control."
   [otable-control]
-  (assert (keyword-isa? otable-control ::table-control))
+  (assert (keyword-isa? otable-control table-control))
   (.getRowCount (get-control otable-control)))
 
 (defn-swing get-column-count
   "Returns the number of columns of the table control."
   [otable-control]
-  (assert (keyword-isa? otable-control ::table-control))
+  (assert (keyword-isa? otable-control table-control))
   (.getColumnCount (get-control otable-control)))
 
 (declare get-column-index-permutator set-column-index-permutator)
@@ -120,7 +122,7 @@
 (defn-swing-threads* set-column-count
   "Sets the number of columns of the table control."
   [otable-control column-count]
-  (assert (keyword-isa? otable-control ::table-control))
+  (assert (keyword-isa? otable-control table-control))
   (let [p (get-column-index-permutator otable-control)]
     (.setColumnCount (:model otable-control) column-count)
     (set-column-index-permutator otable-control p)))
@@ -130,7 +132,7 @@
 (defn-swing-threads* set-row-count
   "Sets the number of rows of the table control."
   [otable-control row-count]
-  (assert (keyword-isa? otable-control ::table-control))
+  (assert (keyword-isa? otable-control table-control))
   (let [p (get-row-index-permutator otable-control)]
     (set-row-index-permutator otable-control identity)
     (.setRowCount (:model otable-control) row-count)
@@ -148,7 +150,7 @@
                 (determines which widget has to be focused to trigger the
                  action)"
   [otable handler name keystroke condition]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [java-condition ({:focus JComponent/WHEN_FOCUSED
                          :widget JComponent/WHEN_IN_FOCUSED_WINDOW
                          :ancestor JComponent/WHEN_ANCESTOR_OF_FOCUSED_COMPONENT}
@@ -168,7 +170,7 @@
   "Returns the tables model index of the specified column in the
   view."
   [otable column]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [table     (get-control otable),
         col-count (.getColumnCount table)]
     (if (>= column col-count)
@@ -181,7 +183,7 @@
   "Returns the column in the view that corresponds to the specified
   table model index."
   [otable index]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [table     (get-control otable),
         col-model (.getColumnModel table),
         cols      (range (.getColumnCount col-model)),
@@ -194,7 +196,7 @@
 (defn get-row-index
   "Returns the tables model index of the specified row in view."
   [otable row]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [p (deref (:row-permutator otable))]
     ((first p) row)))
 
@@ -202,7 +204,7 @@
   "Returns the row in the view that corresponds
   to the specified table model index."
   [otable index]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [p (deref (:row-permutator otable))]
     ((second p) index)))
 
@@ -210,7 +212,7 @@
   "Returns a function that will map the current view rows to
    the according index values."
   [otable]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [p (deref (:row-permutator otable))]
     (first p)))
 
@@ -218,7 +220,7 @@
   "Returns a function that will map the current view
     columns to the according index values."
   [otable]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [table     (get-control otable),
         col-count (.getColumnCount table),
         col-range (range col-count),
@@ -234,7 +236,7 @@
 (defn-swing get-value-at-view
   "Returns the value of the cell at specified position in view."
   [otable row column]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [table (get-control otable)]
     (.getValueAt table row column)))
 
@@ -242,7 +244,7 @@
   "Returns the value of the cell at specified position in the table
   model."
   [otable row column]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [irow (get-index-row otable row),
         icolumn (get-index-column otable column)]
     (get-value-at-view otable irow icolumn)))
@@ -251,7 +253,7 @@
   "Sets the behaviour of the table on resize. mode is either one
   of :all, :last, :next, :off, or :subseq"
   [otable mode]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (.setAutoResizeMode (get-control otable)
                       ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
                         :last JTable/AUTO_RESIZE_LAST_COLUMN
@@ -264,7 +266,7 @@
   "Sets the cell selection mode. mode is either one
   of :none, :rows, :columns or :cells"
   [otable mode]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [table (get-control otable)]
     (condp = mode
      :none    (.setCellSelectionEnabled table false)
@@ -279,13 +281,13 @@
 (defn-swing-threads* select-single-cell
   "Selects a single cell given as view-coordinates in the given table control"
   [otable row column]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (.changeSelection (get-control otable) row column false false))
 
 (defn-swing set-value-at-view
   "Sets the value of a cell in the table according to a view position."
   [otable row column contents]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [columns (get-column-count otable),
         rows  (get-row-count otable)]
     (if (>= column columns)
@@ -298,7 +300,7 @@
   "Sets the value of a cell in the table according to the model
    index."
   [otable row column contents]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (set-value-at-view otable (get-index-row otable row)
     (get-index-column otable column) contents))
 
@@ -306,7 +308,7 @@
   "Sets the value of a cell in the table according to the model index,
    if it is different from the current cells value."
   [otable row column contents]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [current (get-value-at-index otable row column)]
     (if (not= current contents)
       (set-value-at-index otable row column contents))))
@@ -314,7 +316,7 @@
 (defn-swing-threads* paste-from-clipboard
   "Pastes the current system clipboard contents into the table."
   [obj]
-  (assert (keyword-isa? obj ::table-control))
+  (assert (keyword-isa? obj table-control))
   (let [control     (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
@@ -339,7 +341,7 @@
   "Copies the selected cells from the table widget to the system
    clipboard."
   [obj]
-  (assert (keyword-isa? obj ::table-control))
+  (assert (keyword-isa? obj table-control))
   (let [control     (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
@@ -361,7 +363,7 @@
   "Returns the current view coordinates as [row column] for the given
    point."
   [otable position]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [x (first position),
         y (second position)]
     [(.rowAtPoint (get-control otable) (Point. x y)),
@@ -371,7 +373,7 @@
   "Moves the column at view index old-view to be viewed at view index
    new-view."
   [otable old-view new-view]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [ control (get-control otable) 
          col-model (.getColumnModel control) ]
     (.moveColumn col-model old-view new-view)))
@@ -380,7 +382,7 @@
   "Takes a table object and a column-index permutator and
   rearranges the columns accordingly."
   [otable col-idx]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [ col-count (get-column-count otable) ]
     (doseq [col (range col-count)]
       (let [at-view (get-index-column otable (col-idx col))]
@@ -390,7 +392,7 @@
   "Moves the row at view index old-view to be viewed at view index
    new-view."
   [otable old-view new-view]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [ view-to-index (get-row-index-permutator otable)
          row-count (get-row-count otable)
          col-indices (range (get-column-count otable))]
@@ -466,7 +468,7 @@
   "Takes a table object and a row-index permutator and
   rearranges the rows accordingly."
   [otable row-idx]
-  (assert (keyword-isa? otable ::table-control))
+  (assert (keyword-isa? otable table-control))
   (let [row-count (get-row-count otable)]
     (doseq [row (range row-count)]
       (let [at-view (get-index-row otable (row-idx row))]

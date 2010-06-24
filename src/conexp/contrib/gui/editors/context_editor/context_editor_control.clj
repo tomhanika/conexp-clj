@@ -21,9 +21,10 @@
 ;;; Context editor control
 
 (defrecord context-editor-widget [widget table toolbar e-ctx])
-(derive ::context-editor-widget :conexp.contrib.gui.editors.context-editor.widgets/widget)
+(derive (class-to-keyword context-editor-widget)
+        (class-to-keyword conexp.contrib.gui.editors.context-editor.widgets.widget))
 
-(defmethod get-table ::context-editor-widget
+(defmethod get-table (class-to-keyword context-editor-widget)
   [widget]
   (:table widget))
 
@@ -34,7 +35,7 @@
   (assert (instance? context-editor-widget widget))
   @(:e-ctx widget))
 
-(defmethod get-context ::context-editor-widget
+(defmethod get-context (class-to-keyword context-editor-widget)
   [widget]
   (get-context @(:e-ctx widget)))
 
