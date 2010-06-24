@@ -60,6 +60,16 @@
     (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
     frame))
 
+(defn message-box
+  "Pops up a swing message box."
+  ([text title]
+     (with-swing-threads
+       (JOptionPane/showMessageDialog nil (str text) (str title) 0)))
+  ([text]
+     (with-swing-threads
+       (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
+
+
 
 ;;; Swing handmade concurrency
 

@@ -20,28 +20,6 @@
         conexp.contrib.gui.util.hookable))
 
 
-;;; General purpose & macros
-
-(defmacro apply-exprs
-  "Takes an object and a seq of vectors, such that each vectors first element
-   is a function that will be called with the object as first parameter and
-   the rest of the vector as subsequent parameters."
-  [object vectors]
-  `(doseq [call# ~vectors]
-     (apply (first call#) ~object (rest call#))))
-
-;;; java & swing utils
-
-(defn message-box
-  "Pops up a swing message box."
-  ([text title]
-     (with-swing-threads
-       (JOptionPane/showMessageDialog nil (str text) (str title) 0)))
-  ([text]
-     (with-swing-threads
-       (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
-
-
 ;;; clipboard functions
 
 (defn-swing get-clipboard-contents
@@ -148,13 +126,10 @@
       (.addActionListener button action))))
 
 (defn-swing make-button
-  "Creates a managed button object. setup is an optional number of
-   vectors that may contain additional tweaks that are called after
-   widget creation"
-  [name & setup]
+  "Creates a managed button object."
+  [name]
   (let [jbutton (JButton. name),
         widget  (button. jbutton)]
-    (apply-exprs widget setup)
     widget))
 
 
@@ -170,25 +145,16 @@
     (.setDividerLocation split-pane location)))
 
 (defn-swing make-split-pane
-  "Creates a managed split pane object.
-
-   Parameters:
-     direction   _may be eighter :horiz or :vert
-     topleft     _top or left widget
-     bottomright _bottom or right widget
-     & setup     _an optional number of vectors that may contain additional
-                  tweaks that are called after widget creation, i.e.
-                  [:set-divider-location 150] will call the
-                  :set-divider-location map with 150 as single parameter
-  "
-  [direction topleft bottomright & setup]
-  (let [ jsplit-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
-                                    :vert JSplitPane/VERTICAL_SPLIT})
-                       (get-widget topleft)
-                       (get-widget bottomright))
-         widget  (split-pane. jsplit-pane)]
-    (apply-exprs widget setup)
-    widget ))
+  "Creates a managed split pane object. direction is either :horiz
+  or :vert, topleft is the top (left) widget and bottomright is the
+  bottom (right) widget."
+  [direction topleft bottomright]
+  (let [jsplit-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
+                                             :vert JSplitPane/VERTICAL_SPLIT})
+                                 (get-widget topleft)
+                                 (get-widget bottomright)),
+        widget  (split-pane. jsplit-pane)]
+    widget))
 
 
 ;;;  Toolbar
@@ -226,10 +192,8 @@
                  (boolean floatable)))
 
 (defn-swing make-toolbar-control
-  "Creates a toolbar control in Java. orientation is either :horiz
-  or :vert and setup is an optional number of vectors that may contain
-  additional tweaks that are called after widget creation."
-  [orientation & setup]
+  "Creates a toolbar control in Java."
+  [orientation]
   (let [toolbar    (JToolBar. ({:horiz JToolBar/HORIZONTAL
                                 :vert JToolBar/VERTICAL}
                                orientation)),
@@ -237,7 +201,6 @@
                                  JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
                                  JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
         widget     (toolbar-control. scrollpane toolbar)]
-    (apply-exprs widget setup)
     widget))
 
 ;;;

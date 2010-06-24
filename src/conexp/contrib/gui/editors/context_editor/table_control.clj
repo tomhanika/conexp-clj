@@ -492,10 +492,8 @@
         (set-value-at-index otable first-row column good-value)))))
 
 (defn-swing make-table-control
-  "Creates a table control in Java. Here setup is an optional number
-  of vectors that may contain additional tweaks that are called after
-  widget creation"
-  [& setup]
+  "Creates a table control in Java."
+  []
   (let [model (DefaultTableModel.),
         table (JTable. model),
         pane  (JScrollPane. table
@@ -518,13 +516,6 @@
                                     type   (.getType event)]
                                 (call-hook widget "table-changed"
                                            column first last type))))),
-
-        defaults [[set-resize-mode :off],
-                  [set-cell-selection-mode :cells],
-                  [register-keyboard-action
-                   copy-to-clipboard "Copy" keystroke-copy :focus],
-                  [register-keyboard-action
-                   paste-from-clipboard "Paste" keystroke-paste :focus]],
 
         ignore-event      (fn [x] nil),
         show-data         (fn [x] (message-box (str x))),
@@ -576,15 +567,18 @@
                                             ignore-event
                                             ignore-event
                                             drag-motion-event)]
-    (add-hook widget "table-changed"     (fn [c f l t]
-                                           (table-change-hook widget c f l t)))
-    (add-hook widget "extend-columns-to" #(set-column-count widget %))
-    (add-hook widget "extend-rows-to"    #(set-row-count widget %))
-    (add-hook widget "cell-value"        (fn [_ _ contents] contents))
     (.addTableModelListener model change-listener)
-    (apply-exprs widget defaults)
-    (apply-exprs widget setup)
-    (add-control-mouse-listener widget cell-permutor)
+    (doto widget
+      (add-hook "table-changed"     (fn [c f l t]
+                                      (table-change-hook widget c f l t)))
+      (add-hook "extend-columns-to" #(set-column-count widget %))
+      (add-hook "extend-rows-to"    #(set-row-count widget %))
+      (add-hook "cell-value"        (fn [_ _ contents] contents))
+      (set-resize-mode :off)
+      (set-cell-selection-mode :cells)
+      (register-keyboard-action copy-to-clipboard "Copy" keystroke-copy :focus)
+      (register-keyboard-action paste-from-clipboard "Paste" keystroke-paste :focus)
+      (add-control-mouse-listener cell-permutor))
     widget))
 
 ;;;
