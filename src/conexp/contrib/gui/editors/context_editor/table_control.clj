@@ -9,7 +9,7 @@
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
 (ns conexp.contrib.gui.editors.context-editor.table-control
-  (:use [conexp.base :only (zip union defmacro-)]
+  (:use [conexp.base :only (zip union defmacro- illegal-argument)]
         conexp.contrib.gui.util
         conexp.contrib.gui.util.hookable
         conexp.contrib.gui.editors.context-editor.widgets)
@@ -97,11 +97,14 @@
 
 (defmulti get-table
   "Returns the table-control that belongs to the first parameter."
-  (fn [& x] (keyword-class x))
-  :default nil)
+  (fn [& x] (keyword-class (first x))))
 
 (defmethod get-table (class-to-keyword table-control)
   [x] x)
+
+(defmethod get-table :default
+  [x]
+  (illegal-argument "Don't know how to get table from " x "."))
 
 (defn-swing get-row-count
   "Returns the number of rows of the table control."

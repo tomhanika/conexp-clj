@@ -81,6 +81,8 @@
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context."
   [e-ctx editor]
+  (assert (keyword-isa? e-ctx conexp.contrib.gui.editors.context-editor.editable-contexts.editable-context))
+  (assert (keyword-isa? editor conexp.contrib.gui.editors.context-editor.widgets.widget))
   (let [ctx (get-context e-ctx),
         att-cols (:attr-cols e-ctx),
         obj-rows (:obj-rows e-ctx),
