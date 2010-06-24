@@ -327,7 +327,8 @@
     ~@body
     (catch Exception e#
       (javax.swing.JOptionPane/showMessageDialog ~frame
-						 (get-root-cause e#)
+						 (apply str (get-root-cause e#) "\n"
+                                                        (interpose "\n" (.getStackTrace e#)))
 						 ~title
 						 javax.swing.JOptionPane/ERROR_MESSAGE))))
 
