@@ -31,7 +31,7 @@
 
 (def *conexp-version* {:major 0,
 		       :minor 0,
-		       :patch 4,
+		       :patch 5,
 		       :qualifier "alpha"})
 
 (defn- conexp-built-version
