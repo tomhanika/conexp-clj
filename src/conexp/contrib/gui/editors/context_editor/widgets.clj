@@ -144,7 +144,7 @@
       (.removeActionListener button l))
     (let [action (proxy [ActionListener] []
                    (actionPerformed [event]
-                     (with-swing-threads* (handler))))]
+                     (with-swing-threads (handler))))]
       (.addActionListener button action))))
 
 (defn-swing make-button

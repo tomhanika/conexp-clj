@@ -63,12 +63,7 @@
 
 ;;; Swing handmade concurrency
 
-(defn- invoke-later
-  "Calls fn with SwingUtilities/invokeLater."
-  [fn]
-  (SwingUtilities/invokeLater fn))
-
-(defn- invoke-later-or-now
+(defn invoke-later-or-now
   "Calls fn with SwingUtilities/invokeLater."
   [fn]
   (if (SwingUtilities/isEventDispatchThread)
@@ -76,21 +71,16 @@
     (SwingUtilities/invokeLater fn)))
 
 (defmacro with-swing-threads
-  "Executes body within the Swing Dispatch Thread."
-  [& body]
-  `(invoke-later #(do ~@body)))
-
-(defmacro with-swing-threads*
   "Executes body within the Swing Dispatch Thread or immediately, if
   execution is already in this thread."
   [& body]
   `(invoke-later-or-now #(do ~@body)))
 
-(defmacro- do-swing-return
+(defmacro do-swing-return
   "Executes body in a thread-safe manner for Swing and returns its value."
   [& body]
   `(let [returnvalue# (promise)]
-     (invoke-later-or-now #(deliver returnvalue# (do ~@body)))
+     (with-swing-threads (deliver returnvalue# (do ~@body)))
      @returnvalue#))
 
 (defmacro defn-swing

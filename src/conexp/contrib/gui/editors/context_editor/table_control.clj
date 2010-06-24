@@ -70,19 +70,19 @@
                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
     (proxy [MouseInputAdapter] []
       (mousePressed [event]
-        (with-swing-threads* (pressed (translate-event event))))
+        (with-swing-threads (pressed (translate-event event))))
       (mouseReleased [event]
-        (with-swing-threads* (released (translate-event event))))
+        (with-swing-threads (released (translate-event event))))
       (mouseEntered [event]
-        (with-swing-threads* (entered (translate-event event))))
+        (with-swing-threads (entered (translate-event event))))
       (mouseExited [event]
-        (with-swing-threads* (exited (translate-event event))))
+        (with-swing-threads (exited (translate-event event))))
       (mouseClicked [event]
-        (with-swing-threads* (clicked (translate-event event))))
+        (with-swing-threads (clicked (translate-event event))))
       (mouseMoved [event]
-        (with-swing-threads* (moved (translate-event event))))
+        (with-swing-threads (moved (translate-event event))))
       (mouseDragged [event]
-        (with-swing-threads* (dragged (translate-event event)))))))
+        (with-swing-threads (dragged (translate-event event)))))))
 
 
 ;;;  Table
@@ -511,7 +511,7 @@
                           (ref [identity identity])),
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
-                            (with-swing-threads*
+                            (with-swing-threads
                               (let [column (.getColumn event),
                                     first  (.getFirstRow event),
                                     last   (.getLastRow event),
