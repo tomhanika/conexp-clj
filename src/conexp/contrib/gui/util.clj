@@ -69,6 +69,16 @@
      (with-swing-threads
        (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
 
+(defn get-resource
+  "Returns the resource res if found, nil otherwise."
+  [res]
+  (let [cl (.getContextClassLoader (Thread/currentThread))]
+    (.getResource cl res)))
+
+(defn confirm
+  "Opens a message dialog asking for confirmation."
+  [frame message]
+  (JOptionPane/showConfirmDialog frame message))
 
 
 ;;; Swing handmade concurrency
@@ -134,19 +144,6 @@
      (defrecord ~name ~fields)
      ~@(for [sw super-widgets]
          `(derive (class-to-keyword ~name) (class-to-keyword ~sw)))))
-
-;;;
-
-(defn get-resource
-  "Returns the resource res if found, nil otherwise."
-  [res]
-  (let [cl (.getContextClassLoader (Thread/currentThread))]
-    (.getResource cl res)))
-
-(defn confirm
-  "Opens a message dialog asking for confirmation."
-  [frame message]
-  (JOptionPane/showConfirmDialog frame message))
 
 
 ;;; Menus

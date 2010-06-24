@@ -55,7 +55,7 @@
            (contains? thing :managed-by-conexp-gui-editors-util))
       (keyword-isa? thing widget)))
 
-(defn get-widget
+(defn-swing get-widget
   "Returns the appropriate java root widget for managed java code or
    just the input parameter for other objects."
   [obj]
@@ -63,7 +63,7 @@
     (:widget obj)
     obj))
 
-(defn get-control
+(defn-swing get-control
   "Returns the appropriate java control widget for managed java code or
    just the input parameter for other objects."
   [obj]
@@ -85,21 +85,21 @@
   (.setSize (get-widget obj)
             (Dimension. width height)))
 
-(defn set-width
+(defn-swing set-width
   "Sets the width of the given widget obj."
   [obj width]
   (assert (keyword-isa? obj widget))
   (let [height (:height (get-size obj))]
     (set-size obj width height)))
 
-(defn set-height
+(defn-swing set-height
   "Sets the height of the given widget."
   [obj height]
   (assert (keyword-isa? obj widget))
   (let [width (:width (get-size obj))]
     (set-size obj width height)))
 
-(defn add-control-mouse-listener
+(defn-swing add-control-mouse-listener
   "Adds a mouse-listener proxy to the given control."
   [control proxy]
   (.addMouseListener (get-control control) proxy)
