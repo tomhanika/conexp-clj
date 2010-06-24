@@ -20,9 +20,8 @@
 
 ;;; Context editor control
 
-(defrecord context-editor-widget [widget table toolbar e-ctx])
-(derive (class-to-keyword context-editor-widget)
-        (class-to-keyword conexp.contrib.gui.editors.context-editor.widgets.widget))
+(defwidget context-editor-widget [conexp.contrib.gui.editors.context-editor.widgets.widget]
+  [widget table toolbar e-ctx])
 
 (defmethod get-table (class-to-keyword context-editor-widget)
   [widget]

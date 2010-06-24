@@ -14,7 +14,7 @@
 
 ;; hookable
 
-(defrecord hookable [hooks])
+(defwidget hookable [] [hooks])
 
 (defn make-hookable
   "Creates an empty hookable object."

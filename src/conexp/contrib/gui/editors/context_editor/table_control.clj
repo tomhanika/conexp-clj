@@ -87,15 +87,13 @@
 
 ;;;  Table
 
-(defrecord table-control [widget control hooks model row-permutator])
+(defwidget table-control [conexp.contrib.gui.editors.context-editor.widgets.control,
+                          conexp.contrib.gui.util.hookable.hookable]
+  [widget control hooks model row-permutator])
 ;; row-permutator is a ref to an two-element vector of functions, 
 ;; where the first-row element transforms view-rows to index-rows 
 ;; and the second element is the inverse function transforming
 ;; index-rows to view-rows.
-(derive (class-to-keyword table-control)
-        (class-to-keyword conexp.contrib.gui.editors.context-editor.widgets.control))
-(derive (class-to-keyword table-control)
-        (class-to-keyword conexp.contrib.gui.util.hookable.hookable))
 
 (defmulti get-table
   "Returns the table-control that belongs to the first parameter."

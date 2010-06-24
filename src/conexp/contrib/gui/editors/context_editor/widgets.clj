@@ -66,9 +66,8 @@
 
 ;;; managed/unmanaged interop
 
-(defrecord widget [widget])
-(defrecord control [widget control])
-(derive (class-to-keyword control) (class-to-keyword widget))
+(defwidget widget [] [widget])
+(defwidget control [widget] [widget control])
 
 (defn- managed-by-conexp-gui-editors-util?
   "Returns true if the object given as parameter is managed by the
@@ -131,8 +130,7 @@
 
 ;;; Button
 
-(defrecord button [widget])
-(derive (class-to-keyword button) (class-to-keyword widget))
+(defwidget button [widget] [widget])
 
 (defn-swing-threads* set-handler
   "Sets the action handler for the button object. handler must be a
@@ -162,8 +160,7 @@
 
 ;;;  Split Pane
 
-(defrecord split-pane [widget])
-(derive (class-to-keyword split-pane) (class-to-keyword widget))
+(defwidget split-pane [widget] [widget])
 
 (defn-swing-threads* set-divider-location
   "Sets the location of the divider."
@@ -196,8 +193,7 @@
 
 ;;;  Toolbar
 
-(defrecord toolbar-control [widget control])
-(derive (class-to-keyword toolbar-control) (class-to-keyword control))
+(defwidget toolbar-control [control] [widget control])
 
 (defn-swing-threads* set-orientation
   "Sets the toolbars orientation. orientation is either :horiz

@@ -77,19 +77,20 @@
 
 ;;; Editable contexts
 
-(defrecord editable-context [context attr-cols obj-rows widgets])
+(defwidget editable-context []
+  [context attr-cols obj-rows widgets])
 
 (defn editable-context?
   "Tests whether the argument is an editable context."
   [ctx]
-  (keyword-isa? ctx ::editable-context))
+  (keyword-isa? ctx editable-context))
 
 (defmulti get-context
   "Returns the fca-context that belongs to the first parameter."
   (fn [& x] (keyword-class (first x)))
   :default nil)
 
-(defmethod get-context ::editable-context
+(defmethod get-context (class-to-keyword editable-context)
   [ctx]
   (deref (:context ctx)))
 

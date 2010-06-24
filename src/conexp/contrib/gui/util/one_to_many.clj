@@ -13,7 +13,7 @@
 
 ;; one-to-many abstraction
 
-(defrecord one-to-many [one many])
+(defwidget one-to-many [] [one many])
 
 (defn make-one-to-many
   "Creates a one-to-many object.

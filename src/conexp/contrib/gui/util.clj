@@ -132,7 +132,7 @@
   `(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body)))
 
 
-;;; type checking
+;;; widgets
 
 (defn class-to-keyword
   "Takes a class c and returns a corresponding keyword describing
@@ -155,6 +155,14 @@
   "Returns true iff the keyword-class of obj isa? parent."
   [obj parent]
   (isa? (keyword-class obj) (class-to-keyword parent)))
+
+(defmacro defwidget
+  "Defines a widget."
+  [name super-widgets fields]
+  `(do
+     (defrecord ~name ~fields)
+     ~@(for [sw super-widgets]
+         `(derive (class-to-keyword ~name) (class-to-keyword ~sw)))))
 
 ;;;
 
