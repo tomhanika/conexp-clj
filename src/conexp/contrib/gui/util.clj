@@ -63,11 +63,9 @@
 (defn message-box
   "Pops up a swing message box."
   ([text title]
-     (with-swing-threads
-       (JOptionPane/showMessageDialog nil (str text) (str title) 0)))
+     (JOptionPane/showMessageDialog nil (str text) (str title) 0))
   ([text]
-     (with-swing-threads
-       (JOptionPane/showMessageDialog nil (str text) "Info" 0))))
+     (JOptionPane/showMessageDialog nil (str text) "Info" 0)))
 
 (defn get-resource
   "Returns the resource res if found, nil otherwise."
