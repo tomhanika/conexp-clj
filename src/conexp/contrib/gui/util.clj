@@ -19,7 +19,8 @@
 	             Graphics Graphics2D BasicStroke FlowLayout]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
-  (:use [conexp.base :only (defvar first-non-nil with-swing-error-msg illegal-argument)])
+  (:use [conexp.base :only (defvar, defmacro-, first-non-nil,
+                            with-swing-error-msg, illegal-argument)])
   (:use [clojure.contrib.seq :only (indexed)]
 	clojure.contrib.swing-utils)
   (:require [clojure.contrib.string :as string]))
@@ -62,47 +63,34 @@
 
 ;;; Swing handmade concurrency
 
-(defn invoke-later
+(defn- invoke-later
   "Calls fn with SwingUtilities/invokeLater."
   [fn]
   (SwingUtilities/invokeLater fn))
 
-(defn invoke-later-or-now
+(defn- invoke-later-or-now
   "Calls fn with SwingUtilities/invokeLater."
   [fn]
   (if (SwingUtilities/isEventDispatchThread)
     (fn)
     (SwingUtilities/invokeLater fn)))
 
-(defn invoke-and-wait
-  "Calls fn with SwingUtilities/invokeAndWait if necessary."
-  [fn]
-  (if (SwingUtilities/isEventDispatchThread)
-    (fn)
-    (SwingUtilities/invokeAndWait fn)))
-
 (defmacro with-swing-threads
-  "Executes body with invoke-later to make it thread-safe to Swing."
+  "Executes body within the Swing Dispatch Thread."
   [& body]
   `(invoke-later #(do ~@body)))
 
 (defmacro with-swing-threads*
-  "Executes body if in Swing thread or with invoke-later to make it
-  thread-safe to Swing otherwise."
+  "Executes body within the Swing Dispatch Thread or immediately, if
+  execution is already in this thread."
   [& body]
   `(invoke-later-or-now #(do ~@body)))
 
-(defmacro do-swing-threads
-  "Executes body with invoke-and-wait to make it thread-safe to Swing."
-  [& body]
-  `(invoke-and-wait #(do ~@body)))
-
-(defmacro do-swing-return
-  "Executes body with invoke-and-wait to make it thread-safe to Swing,
-   returning the value of the last statement using a promise!"
+(defmacro- do-swing-return
+  "Executes body in a thread-safe manner for Swing and returns its value."
   [& body]
   `(let [returnvalue# (promise)]
-     (invoke-and-wait #(deliver returnvalue# (do ~@body)))
+     (invoke-later-or-now #(deliver returnvalue# (do ~@body)))
      @returnvalue#))
 
 (defmacro defn-swing
@@ -110,26 +98,7 @@
   [name doc params & body]
   (if (vector? doc)
     `(defn ~name ~doc (do-swing-return ~params ~@body))
-    `(defn ~name ~doc ~params
-       (do-swing-return ~@body))))
-
-(defmacro defmethod-swing
-  "Defines a multi function method that is surrounded by do-swing-return"
-  [name dispatch-val params & body]
-  `(defmethod ~name ~dispatch-val ~params (do-swing-return ~@body)))
-
-(defmacro defn-swing-threads*
-  "Defines a function that is surrounded by with-swing-threads*"
-  [name doc params & body]
-  (if (vector? doc)
-    `(defn ~name ~doc (with-swing-threads* ~params ~@body))
-    `(defn ~name ~doc ~params
-       (with-swing-threads* ~@body))))
-
-(defmacro defmethod-swing-threads*
-  "Defines a multi function method that is surrounded by do-swing-return"
-  [name dispatch-val params & body]
-  `(defmethod ~name ~dispatch-val ~params (with-swing-threads* ~@body)))
+    `(defn ~name ~doc ~params (do-swing-return ~@body))))
 
 
 ;;; widgets
@@ -157,7 +126,9 @@
   (isa? (keyword-class obj) (class-to-keyword parent)))
 
 (defmacro defwidget
-  "Defines a widget."
+  "Defines a widget. The resulting widget will have super-widgets,
+  which must be a vector of valid widgets, as super-widgets and fields
+  and data fields."
   [name super-widgets fields]
   `(do
      (defrecord ~name ~fields)

@@ -117,7 +117,7 @@
 
 (declare get-column-index-permutator set-column-index-permutator)
 
-(defn-swing-threads* set-column-count
+(defn-swing set-column-count
   "Sets the number of columns of the table control."
   [otable-control column-count]
   (assert (keyword-isa? otable-control table-control))
@@ -127,7 +127,7 @@
 
 (declare get-row-index-permutator set-row-index-permutator)
 
-(defn-swing-threads* set-row-count
+(defn-swing set-row-count
   "Sets the number of rows of the table control."
   [otable-control row-count]
   (assert (keyword-isa? otable-control table-control))
@@ -136,7 +136,7 @@
     (.setRowCount (:model otable-control) row-count)
     (set-row-index-permutator otable-control p)))
 
-(defn-swing-threads* register-keyboard-action
+(defn-swing register-keyboard-action
   "Registers a keyboard action on the table.
   Parameters:
     otable     _table-control object
@@ -247,7 +247,7 @@
         icolumn (get-index-column otable column)]
     (get-value-at-view otable irow icolumn)))
 
-(defn-swing-threads* set-resize-mode
+(defn-swing set-resize-mode
   "Sets the behaviour of the table on resize. mode is either one
   of :all, :last, :next, :off, or :subseq"
   [otable mode]
@@ -260,7 +260,7 @@
                         :subseq JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS}
                        mode)))
 
-(defn-swing-threads* set-cell-selection-mode
+(defn-swing set-cell-selection-mode
   "Sets the cell selection mode. mode is either one
   of :none, :rows, :columns or :cells"
   [otable mode]
@@ -276,7 +276,7 @@
                 (.setColumnSelectionAllowed true))
      :cells   (.setCellSelectionEnabled table true))))
 
-(defn-swing-threads* select-single-cell
+(defn-swing select-single-cell
   "Selects a single cell given as view-coordinates in the given table control"
   [otable row column]
   (assert (keyword-isa? otable table-control))
@@ -311,7 +311,7 @@
     (if (not= current contents)
       (set-value-at-index otable row column contents))))
 
-(defn-swing-threads* paste-from-clipboard
+(defn-swing paste-from-clipboard
   "Pastes the current system clipboard contents into the table."
   [obj]
   (assert (keyword-isa? obj table-control))
@@ -335,7 +335,7 @@
                                 (col-index (+ startx c))
                                 ((cells r) c))))))))
 
-(defn-swing-threads* copy-to-clipboard
+(defn-swing copy-to-clipboard
   "Copies the selected cells from the table widget to the system
    clipboard."
   [obj]
@@ -376,7 +376,7 @@
          col-model (.getColumnModel control) ]
     (.moveColumn col-model old-view new-view)))
 
-(defn-swing-threads* set-column-index-permutator
+(defn-swing set-column-index-permutator
   "Takes a table object and a column-index permutator and
   rearranges the columns accordingly."
   [otable col-idx]
@@ -386,7 +386,7 @@
       (let [at-view (get-index-column otable (col-idx col))]
         (move-column otable at-view col)))))
 
-(defn-swing-threads* move-row
+(defn-swing move-row
   "Moves the row at view index old-view to be viewed at view index
    new-view."
   [otable old-view new-view]
@@ -462,7 +462,7 @@
           (dosync (ref-set (:row-permutator otable) new-row-permutator))
           (set-hook otable "table-changed" old-table-change-hook))))))
 
-(defn-swing-threads* set-row-index-permutator
+(defn-swing set-row-index-permutator
   "Takes a table object and a row-index permutator and
   rearranges the rows accordingly."
   [otable row-idx]

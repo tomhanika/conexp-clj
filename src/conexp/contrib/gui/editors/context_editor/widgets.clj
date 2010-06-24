@@ -54,7 +54,7 @@
       (.getTransferData transferable DataFlavor/stringFlavor)
       nil)))
 
-(defn-swing-threads* set-clipboard-contents
+(defn-swing set-clipboard-contents
   "Set the contents of the system clipboard to the given string
   contents."
   [contents]
@@ -100,7 +100,7 @@
   (assert (keyword-isa? obj widget))
   (bean (.getSize (get-widget obj))))
 
-(defn-swing-threads* set-size
+(defn-swing set-size
   "Sets the size of the given widget obj."
   [obj width height]
   (assert (keyword-isa? obj widget))
@@ -132,7 +132,7 @@
 
 (defwidget button [widget] [widget])
 
-(defn-swing-threads* set-handler
+(defn-swing set-handler
   "Sets the action handler for the button object. handler must be a
   function of no arguments."
   [obutton handler]
@@ -162,7 +162,7 @@
 
 (defwidget split-pane [widget] [widget])
 
-(defn-swing-threads* set-divider-location
+(defn-swing set-divider-location
   "Sets the location of the divider."
   [osplit-pane location]
   (assert (keyword-isa? osplit-pane split-pane))
@@ -195,7 +195,7 @@
 
 (defwidget toolbar-control [control] [widget control])
 
-(defn-swing-threads* set-orientation
+(defn-swing set-orientation
   "Sets the toolbars orientation. orientation is either :horiz
   or :vert."
   [otoolbar orientation]
@@ -205,20 +205,20 @@
                      :vert JToolBar/VERTICAL}
                     orientation)))
 
-(defn-swing-threads* add-button
+(defn-swing add-button
   "Adds a button to the toolbar."
   [otoolbar button]
   (assert (keyword-isa? otoolbar toolbar-control))
   (.add (get-control otoolbar)
         (get-widget button)))
 
-(defn-swing-threads* add-separator
+(defn-swing add-separator
   "Adds a separator space to the toolbar."
   [otoolbar]
   (assert (keyword-isa? otoolbar toolbar-control))
   (.addSeparator (get-control otoolbar)))
 
-(defn-swing-threads* set-floatable
+(defn-swing set-floatable
   "Sets the floatable mode of the toolbar control."
   [otoolbar floatable]
   (assert (keyword-isa? otoolbar toolbar-control))
