@@ -120,7 +120,7 @@
 
 (defn- die-with-error
   "Stops program by raising the given error with strings as message."
-  [#^Throwable error strings]
+  [^Throwable error, strings]
   (throw (.. error
 	     (getConstructor (into-array Class [String]))
 	     (newInstance (into-array Object [(apply str strings)])))))

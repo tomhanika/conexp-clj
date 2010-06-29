@@ -19,13 +19,13 @@
   (hashCode [this]
     (hash-combine-hash Many-Valued-Context objects attributes incidence)))
 
-(defmethod objects Many-Valued-Context [mv-ctx]
+(defmethod objects Many-Valued-Context [^Many-Valued-Context mv-ctx]
   (.objects mv-ctx))
 
-(defmethod attributes Many-Valued-Context [mv-ctx]
+(defmethod attributes Many-Valued-Context [^Many-Valued-Context mv-ctx]
   (.attributes mv-ctx))
 
-(defmethod incidence Many-Valued-Context [mv-ctx]
+(defmethod incidence Many-Valued-Context [^Many-Valued-Context mv-ctx]
   (.incidence mv-ctx))
 
 (defn print-mv-context

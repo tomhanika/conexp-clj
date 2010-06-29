@@ -50,13 +50,12 @@
 	                JScrollBar JComboBox JScrollPane JFileChooser]
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
-	   [java.awt.event ActionListener]
+	   [java.awt.event ActionEvent ActionListener]
 	   [java.io File]))
 
 (ns-doc
  "This namespace provides a lattice editor and a convenience function
  to draw lattices.")
-
 
 ;;; Lattice Editor
 
@@ -323,16 +322,16 @@
   (defn make-lattice-editor
     "Creates a lattice editor with initial layout."
     [frame layout]
-    (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
+    (let [^JPanel main-panel (JPanel. (BorderLayout.)),
 
 	  scn (draw-on-scene layout),
-	  canvas (get-canvas-from-scene scn),
+	  ^Canvas canvas (get-canvas-from-scene scn),
 
-	  #^JPanel canvas-panel (JPanel. (BorderLayout.)),
-	  hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
-	  vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+	  ^JPanel canvas-panel (JPanel. (BorderLayout.)),
+	  ^JScrollBar hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
+	  ^JScrollBar vscrollbar (JScrollBar. JScrollBar/VERTICAL),
 
-	  #^JPanel buttons (JPanel.),
+	  ^JPanel buttons (JPanel.),
 	  box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
 
       ;; save scene
@@ -383,9 +382,9 @@
   ([lattice]
      (draw-lattice lattice *standard-layout-function*))
   ([lattice layout-function]
-     (let [#^JFrame frame (JFrame. "conexp-clj Lattice")]
+     (let [^JFrame frame (JFrame. "conexp-clj Lattice")]
        (doto frame
-	 (.add (make-lattice-editor frame (layout-function lattice)))
+	 (.add ^JPanel (make-lattice-editor frame (layout-function lattice)))
 	 (.setSize (Dimension. 600 600))
 	 (.setVisible true)))))
 

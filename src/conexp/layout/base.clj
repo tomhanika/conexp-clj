@@ -50,14 +50,14 @@
   [layout new-positions]
   (Layout. new-positions (connections layout) (information layout)))
 
-(defmethod print-method Layout [layout out]
+(defmethod print-method Layout [layout, ^java.io.Writer out]
   (.write out
-	  (with-out-str
-	    (println "Layout")
-	    (println "Positions")
-	    (pprint (positions layout))
-	    (println "Connections")
-	    (pprint (connections layout)))))
+	  ^String (with-out-str
+                    (println "Layout")
+                    (println "Positions")
+                    (pprint (positions layout))
+                    (println "Connections")
+                    (pprint (connections layout)))))
 
 (defn nodes
   "Returns all nodes of a given layout."
