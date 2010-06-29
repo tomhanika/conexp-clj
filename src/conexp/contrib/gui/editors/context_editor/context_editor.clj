@@ -62,7 +62,7 @@
 
 (defn-context-changer add-new-object
   "Adds a new object."
-  (make-context (conj (objects context)
+  (make-context (conj (objects ctx)
                       (req-unique-string (objects ctx) "new object"))
                 (attributes ctx)
                 (incidence ctx)))
