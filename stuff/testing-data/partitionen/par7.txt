@@ -1,0 +1,63 @@
+Node: 1, 80.0, 0.0
+Node: 2, 80.0, 660.0
+Node: 3, 80.0, 60.0
+Node: 4, 80.0, 120.0
+Node: 5, 40.0, 180.0
+Node: 6, 80.0, 240.0
+Node: 7, 18.034843205574916, 329.79790940766554
+Node: 8, 80.0, 420.0
+Node: 9, 40.0, 480.0
+Node: 10, 80.0, 540.0
+Node: 11, 80.0, 600.0
+Node: 12, 120.0, 480.0
+Node: 13, 120.0, 300.0
+Node: 14, 120.0, 360.0
+Node: 15, 120.0, 180.0
+Edge: 8, 7
+Edge: 8, 14
+Edge: 9, 8
+Edge: 12, 8
+Edge: 11, 10
+Edge: 3, 1
+Edge: 2, 11
+Edge: 13, 6
+Edge: 5, 4
+Edge: 15, 4
+Edge: 4, 3
+Edge: 7, 6
+Edge: 10, 9
+Edge: 10, 12
+Edge: 6, 5
+Edge: 14, 13
+Edge: 6, 15
+Object: 1, 7
+Object: 2, 1111111
+Object: 3, 61
+Object: 4, 52
+Object: 5, 511
+Object: 6, 421
+Object: 7, 4111
+Object: 8, 3211
+Object: 9, 31111
+Object: 10, 22111
+Object: 11, 211111
+Object: 12, 2221
+Object: 13, 331
+Object: 14, 322
+Object: 15, 43
+Attribute: 1, 7
+Attribute: 2, 1111111
+Attribute: 3, 61
+Attribute: 4, 52
+Attribute: 5, 511
+Attribute: 6, 421
+Attribute: 7, 4111
+Attribute: 8, 3211
+Attribute: 9, 31111
+Attribute: 10, 22111
+Attribute: 11, 211111
+Attribute: 12, 2221
+Attribute: 13, 331
+Attribute: 14, 322
+Attribute: 15, 43
+EOF

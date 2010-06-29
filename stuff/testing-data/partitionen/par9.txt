@@ -1,0 +1,132 @@
+Node: 1, 115.3125, 0.0
+Node: 2, 115.3125, 1020.0
+Node: 3, 115.3125, 60.0
+Node: 4, 115.3125, 120.0
+Node: 5, 73.28125, 180.0
+Node: 6, 113.28125, 240.0
+Node: 7, 47.15625, 340.0
+Node: 8, 95.15625, 420.0
+Node: 9, 41.65625, 518.0
+Node: 10, 95.15625, 600.0
+Node: 11, 47.15625, 678.0
+Node: 12, 113.28125, 780.0
+Node: 13, 73.28125, 840.0
+Node: 14, 115.3125, 900.0
+Node: 15, 115.3125, 960.0
+Node: 16, 157.34375, 840.0
+Node: 17, 122.65625, 660.0
+Node: 18, 161.40625, 720.0
+Node: 19, 201.40625, 780.0
+Node: 20, 127.65625, 480.0
+Node: 21, 127.65625, 540.0
+Node: 22, 160.15625, 600.0
+Node: 23, 200.15625, 660.0
+Node: 24, 161.40625, 300.0
+Node: 25, 122.65625, 360.0
+Node: 26, 160.15625, 420.0
+Node: 27, 219.65625, 504.0
+Node: 28, 200.15625, 360.0
+Node: 29, 157.34375, 180.0
+Node: 30, 201.40625, 240.0
+Edge: 20, 8
+Edge: 22, 27
+Edge: 25, 24
+Edge: 30, 29
+Edge: 18, 23
+Edge: 10, 21
+Edge: 8, 25
+Edge: 12, 18
+Edge: 16, 19
+Edge: 11, 10
+Edge: 24, 30
+Edge: 15, 14
+Edge: 4, 3
+Edge: 28, 24
+Edge: 24, 6
+Edge: 21, 20
+Edge: 27, 26
+Edge: 14, 16
+Edge: 12, 11
+Edge: 13, 12
+Edge: 20, 26
+Edge: 26, 25
+Edge: 17, 10
+Edge: 9, 8
+Edge: 10, 9
+Edge: 18, 17
+Edge: 7, 6
+Edge: 3, 1
+Edge: 2, 15
+Edge: 22, 21
+Edge: 26, 28
+Edge: 8, 7
+Edge: 23, 22
+Edge: 5, 4
+Edge: 29, 4
+Edge: 17, 22
+Edge: 6, 29
+Edge: 6, 5
+Edge: 14, 13
+Edge: 16, 12
+Edge: 19, 18
+Object: 1, 9
+Object: 2, 111111111
+Object: 3, 81
+Object: 4, 72
+Object: 5, 711
+Object: 6, 621
+Object: 7, 6111
+Object: 8, 5211
+Object: 9, 51111
+Object: 10, 42111
+Object: 11, 411111
+Object: 12, 321111
+Object: 13, 3111111
+Object: 14, 2211111
+Object: 15, 21111111
+Object: 16, 222111
+Object: 17, 33111
+Object: 18, 32211
+Object: 19, 22221
+Object: 20, 4311
+Object: 21, 4221
+Object: 22, 3321
+Object: 23, 3222
+Object: 24, 531
+Object: 25, 522
+Object: 26, 432
+Object: 27, 333
+Object: 28, 441
+Object: 29, 63
+Object: 30, 54
+Attribute: 1, 9
+Attribute: 2, 111111111
+Attribute: 3, 81
+Attribute: 4, 72
+Attribute: 5, 711
+Attribute: 6, 621
+Attribute: 7, 6111
+Attribute: 8, 5211
+Attribute: 9, 51111
+Attribute: 10, 42111
+Attribute: 11, 411111
+Attribute: 12, 321111
+Attribute: 13, 3111111
+Attribute: 14, 2211111
+Attribute: 15, 21111111
+Attribute: 16, 222111
+Attribute: 17, 33111
+Attribute: 18, 32211
+Attribute: 19, 22221
+Attribute: 20, 4311
+Attribute: 21, 4221
+Attribute: 22, 3321
+Attribute: 23, 3222
+Attribute: 24, 531
+Attribute: 25, 522
+Attribute: 26, 432
+Attribute: 27, 333
+Attribute: 28, 441
+Attribute: 29, 63
+Attribute: 30, 54
+EOF
