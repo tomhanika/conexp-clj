@@ -44,7 +44,7 @@
   `(with-local-vars [sum# (double 0)]
      (doseq ~bindings
        (var-set sum# (+ (double (var-get sum#)) (double ~expr))))
-     (var-get sum#)))
+     (double (var-get sum#))))
 
 (defn- unit-vector
   "Returns unit vector between first and second point. Returns
@@ -146,10 +146,9 @@
 (defn layout-energy
   "Returns the overall energy of the given layout."
   [layout]
-  (double
-   (+ (* *repulsive-amount* (repulsive-energy layout))
-      (* *attractive-amount* (attractive-energy layout))
-      (* *gravitative-amount* (gravitative-energy layout)))))
+  (+ (* *repulsive-amount* (repulsive-energy layout))
+     (* *attractive-amount* (attractive-energy layout))
+     (* *gravitative-amount* (gravitative-energy layout))))
 
 ;;
 
