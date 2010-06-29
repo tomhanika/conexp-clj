@@ -13,46 +13,50 @@
 	                                         DifferentiableMultivariateRealOptimizer
 	                                         RealConvergenceChecker]
 	   [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead MultiDirectional]
-	   [org.apache.commons.math.optimization.general AbstractScalarDifferentiableOptimizer
-	                                                 NonLinearConjugateGradientOptimizer
+	   [org.apache.commons.math.optimization.general NonLinearConjugateGradientOptimizer
 	                                                 ConjugateGradientFormula]))
-
 ;;;
 
-(defn- customize-optimizer
-  "Customizes given optimizer with options."
-  [optimizer options]
-  (when (:iterations options)
-    (let [#^RealConvergenceChecker cc (.getConvergenceChecker optimizer)]
-      (.setConvergenceChecker optimizer
-			      (proxy [RealConvergenceChecker] []
-				(converged [iterations previous current]
-				  (or (.converged cc iterations previous current)
-				      (>= iterations (:iterations options))))))))
-  optimizer)
+; better way to type hint without code duplication?
 
 (defn- make-direct-optimizer
   "Direct optimizer used by directly-optimize."
   [options]
-  (doto (NelderMead.)
-    (customize-optimizer options)))
+  (let [^DirectSearchOptimizer optimizer (NelderMead.)]
+    (when (:iterations options)
+      (let [^RealConvergenceChecker cc (.getConvergenceChecker optimizer)]
+        (.setConvergenceChecker optimizer
+                                (proxy [RealConvergenceChecker] []
+                                  (converged [iterations previous current]
+                                    (or (.converged cc iterations previous current)
+                                        (>= iterations (:iterations options))))))))
+    optimizer))
 
 (defn- make-differential-optimizer
   "Optimizer for differentiable functions used by differentially-optimize."
   [options]
-  (doto (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES)
-    (customize-optimizer options)))
+  (let [^DifferentiableMultivariateRealOptimizer optimizer
+        (NonLinearConjugateGradientOptimizer. ConjugateGradientFormula/FLETCHER_REEVES)]
+    (when (:iterations options)
+      (let [^RealConvergenceChecker cc (.getConvergenceChecker optimizer)]
+        (.setConvergenceChecker optimizer
+                                (proxy [RealConvergenceChecker] []
+                                  (converged [iterations previous current]
+                                    (or (.converged cc iterations previous current)
+                                        (>= iterations (:iterations options))))))))
+    optimizer))
 
 (defn- point-value-pair-to-vector
   "Converts RealPointValuePair to a point-value-vector."
-  [#^RealPointValuePair pvp]
+  [^RealPointValuePair pvp]
   [(vec (.getPoint pvp)) (.getValue pvp)])
 
 (defn- directly-optimize
   "Optimizes fn according to goal as given by
-  *direct-optimizer*. options is a hash-map to control the optimizer."
+  *direct-optimizer*. options is a hash-map to control the optimizer,
+  fn must be suitable for as-multivariate-fn."
   [fn starting-point goal options]
-  (let [point-value-pair (.optimize (make-direct-optimizer options)
+  (let [point-value-pair (.optimize ^DirectSearchOptimizer (make-direct-optimizer options)
 				    (as-multivariate-real-fn fn)
 				    goal
 				    (into-array Double/TYPE starting-point))]
@@ -62,9 +66,10 @@
   "Optimizes fn according to goal as given by
   *differential-optimizer*. partial-derivatives must be a function
   computing the k-th partial derivation (as clojure function) when
-  given k. options is a hash-map to control the optimizer."
+  given k. options is a hash-map to control the optimizer, fn must be
+  suitable for as-differentiable-multivariate-real-fn."
   [fn partial-derivatives starting-point goal options]
-  (let [point-value-pair (.optimize (make-differential-optimizer options)
+  (let [point-value-pair (.optimize ^DifferentiableMultivariateRealOptimizer (make-differential-optimizer options)
 				    (as-differentiable-multivariate-real-fn
 				     fn
 				     (count starting-point)

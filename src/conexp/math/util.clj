@@ -15,21 +15,21 @@
 
 (defn as-multivariate-real-fn
   "Transforms given function fn to a MultivariateRealFunction as
-  needed by commons-math. fn must be a function taking a fixed number
-  of doubles and returning one scalar double value."
+  needed by commons-math. fn must be a function taking an array of
+  doubles and returning one scalar double value."
   [fn]
   (proxy [MultivariateRealFunction] []
     (value [double-point]
-      (double (apply fn (seq double-point))))))
+      (double (fn double-point)))))
 
 (defn as-multivariate-vectorial-fn
   "Transforms given function fn to a MultivariateVectorialFunction as
-  needed by commons-math. fn must be a function taking a fixed number
-  of doubles and returning a sequence of double values of fixed length."
+  needed by commons-math. fn must be a function taking an array of
+  doubles and returning a sequence of double values of fixed length."
   [fn]
   (proxy [MultivariateVectorialFunction] []
     (value [double-point]
-      (into-array Double/TYPE (apply fn (seq double-point))))))
+      (into-array Double/TYPE (fn double-point)))))
 
 (defn as-differentiable-multivariate-real-fn
   "Transforms given function fn to a DifferentiableMultivariateRealFunction as

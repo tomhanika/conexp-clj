@@ -31,17 +31,17 @@
 
 (defn positions
   "Return positions map of layout."
-  [layout]
+  [^Layout layout]
   (.positions layout))
 
 (defn connections
   "Returns set of connections of layout."
-  [layout]
+  [^Layout layout]
   (.connections layout))
 
 (defn- information
   "Returns stored additional information of layout."
-  [layout]
+  [^Layout layout]
   (.information layout))
 
 (defn update-positions

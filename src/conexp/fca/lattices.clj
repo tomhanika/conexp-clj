@@ -10,6 +10,8 @@
   (:use conexp.base
 	conexp.fca.contexts))
 
+(ns-doc "Basis datastructure and definitions for abstract lattices.")
+
 ;;; Datastructure
 
 (declare order)
@@ -18,7 +20,7 @@
   Object
   (equals [this other]
     (and (= (class this) (class other))
-         (= (.base-set this) (.base-set other))
+         (= (.base-set this) (.base-set ^Lattice other))
 	 (let [order-this (order this),
 	       order-other (order other)]
 	   (forall [x (.base-set this)
@@ -30,14 +32,14 @@
 
 (defn base-set
   "Returns the base set of lattice."
-  [lattice]
+  [^Lattice lattice]
   (.base-set lattice))
 
 (defn order
   "Returns a function of one or two arguments representing the order
   relation. If called with one argument it is assumed that this
   argument is a pair of elements."
-  [lattice]
+  [^Lattice lattice]
   (if-let [order-relation (.order-relation lattice)]
     (fn order-fn
       ([pair] (order-relation pair))
@@ -49,7 +51,7 @@
 
 (defn inf
   "Returns a function computing the infimum in lattice."
-  [lattice]
+  [^Lattice lattice]
   (or (.inf lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
@@ -64,7 +66,7 @@
 
 (defn sup
   "Returns a function computing the supremum in lattice."
-  [lattice]
+  [^Lattice lattice]
   (or (.sup lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
@@ -77,7 +79,7 @@
 					      (order [z a]))))]
 		   z))))))
 
-(defmethod print-method Lattice [lattice out]
+(defmethod print-method Lattice [^Lattice lattice out]
   (.write out
 	  (str "Lattice on " (count (base-set lattice)) " elements.")))
 

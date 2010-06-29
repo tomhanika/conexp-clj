@@ -12,10 +12,10 @@
 	conexp.layout.base
 	conexp.layout.common
 	conexp.math.util
-	conexp.math.optimize
-	clojure.contrib.pprint))
+	conexp.math.optimize)
+  (:use	clojure.contrib.pprint))
 
-;;; Force layout as described by C. Zschalig
+(ns-doc "Force layout as described by C. Zschalig.")
 
 ;; Helpers
 
@@ -41,10 +41,10 @@
 (defmacro sum
   "Sums up all values of bindings obtained with expr. See for."
   [bindings expr]
-  `(reduce +
-	   (double 0)
-	   (for ~bindings
-	     (double ~expr))))
+  `(with-local-vars [sum# (double 0)]
+     (doseq ~bindings
+       (var-set sum# (+ (double (var-get sum#)) (double ~expr))))
+     (var-get sum#)))
 
 (defn- unit-vector
   "Returns unit vector between first and second point. Returns
@@ -60,8 +60,9 @@
 ;; Repulsive Energy
 
 (defn- node-line-distance
-  "Returns the distance from node to the line between [x_1, y_1] and [x_2, y_2]."
-  [[x, y] [[x_1, y_1] [x_2, y_2]]]
+  "Returns the distance from node [x,y] to the line between [x_1, y_1]
+  and [x_2, y_2]."
+  [[x, y] [x_1, y_1] [x_2, y_2]]
   (with-doubles [x, y, x_1, y_1, x_2, y_2]
     (if (and (= x_1 x_2) (= y_1 y_2))
       (distance [x, y] [x_1, y_1])
@@ -79,17 +80,16 @@
 (defn- repulsive-energy
   "Computes the repulsive energy of the given layout."
   [layout]
-  (let [node-positions (positions layout),
+  (let [node-positions   (positions layout),
 	node-connections (connections layout)]
     (try
      (let [edges (map (fn [[x y]]
 			[x y (get node-positions x) (get node-positions y)])
 		      node-connections)]
        (sum [[v pos-v] node-positions,
-	     [x y pos-x pos-y] edges
-	     :when (not (contains? #{x, y} v))]
-	    (/ 1.0
-	       (double (node-line-distance pos-v [pos-x, pos-y])))))
+	     [x y pos-x pos-y] edges,
+	     :when (not (#{x y} v))]
+	    (/ (node-line-distance pos-v pos-x pos-y))))
      (catch Exception e
        Double/MAX_VALUE))))
 
@@ -118,11 +118,11 @@
 (defn- gravitative-energy
   "Returns the gravitative energy of the given layout."
   [layout]
-  (let [node-positions (positions layout),
+  (let [node-positions   (positions layout),
 	node-connections (connections layout),
-	inf-irrs (inf-irreducibles layout),
+	inf-irrs         (inf-irreducibles layout),
 	upper-neighbours (upper-neighbours-of-inf-irreducibles layout),
-	E_0   (double (- (/ Math/PI 2.0)))]
+	E_0              (double (- (/ Math/PI 2.0)))]
     (try
      (sum [n inf-irrs,
 	   :let [phi_n (double (phi (node-positions n)
@@ -154,13 +154,13 @@
 ;;
 
 (defn- energy-by-inf-irr-positions
-  "Returns pair of energy function and function returning n-th partial
-  derivative when given index n."
+  "Returns pair of energy function and function returning the n-th
+  partial derivative when given index n."
   [layout seq-of-inf-irrs]
   (let [lattice  (lattice layout),
 	top-pos  ((positions layout) (lattice-one lattice)),
-	energy   (fn [& point-coordinates]
-		   (let [points (partition 2 point-coordinates),
+	energy   (fn [point-coordinates]
+		   (let [points            (partition 2 point-coordinates),
 			 inf-irr-placement (apply hash-map
 						  (interleave seq-of-inf-irrs
 							      points))]
