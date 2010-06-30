@@ -360,6 +360,32 @@
         selection   (join "\n" sel-lines)]
     (set-clipboard-contents selection)))
 
+(defn-swing cut-to-clipboard
+  "Copies the selected cells from the table widget to the system
+   clipboard and afterwards empties the contents"
+  [obj]
+  (assert (keyword-isa? obj table-control))
+  (let [control     (get-control obj),
+        sel-columns (-> control .getSelectedColumns seq),
+        sel-rows    (-> control .getSelectedRows seq),
+        sel-pairs   (map (fn [y]
+                           (map (fn [x]
+                                  (list y x)) sel-columns))
+                         sel-rows),
+        sel-values  (map (fn [l]
+                           (map (fn [p]
+                                  (str (get-value-at-view obj
+                                                          (first p)
+                                                          (second p)))) l))
+                         sel-pairs),
+        sel-lines   (map #(join "\t" %) sel-values)
+        selection   (join "\n" sel-lines)]
+    (set-clipboard-contents selection)
+    (doseq [lines sel-pairs] 
+      (doseq [p lines] 
+        (set-value-at-view obj (first p) (second p) "")))))
+
+
 (defn-swing get-view-coordinates-at-point
   "Returns the current view coordinates as [row column] for the given
    point."
@@ -504,6 +530,8 @@
                             JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
         keystroke-copy  (KeyStroke/getKeyStroke KeyEvent/VK_C
                                                 ActionEvent/CTRL_MASK false),
+        keystroke-cut   (KeyStroke/getKeyStroke KeyEvent/VK_X
+                                                ActionEvent/CTRL_MASK false),
         keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
                                                 ActionEvent/CTRL_MASK false),
 
@@ -580,6 +608,7 @@
       (set-resize-mode :off)
       (set-cell-selection-mode :cells)
       (register-keyboard-action copy-to-clipboard "Copy" keystroke-copy :focus)
+      (register-keyboard-action cut-to-clipboard "Cut" keystroke-cut :focus)
       (register-keyboard-action paste-from-clipboard "Paste" keystroke-paste :focus)
       (add-control-mouse-listener cell-permutor))
     widget))

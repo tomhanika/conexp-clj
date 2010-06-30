@@ -139,6 +139,8 @@
         (set-floatable false)
         (add-button- "Copy"  #(do (copy-to-clipboard (get-table %))
                                   (get-context (get-ectx %))))
+        (add-button- "Cut"   #(do (cut-to-clipboard (get-table %))
+                                  (get-context (get-ectx %))))
         (add-button- "Paste" #(do (paste-from-clipboard (get-table %))
                                   (get-context (get-ectx %))))
         (add-button- "Second Operand"
