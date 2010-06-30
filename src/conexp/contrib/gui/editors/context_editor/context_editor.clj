@@ -16,8 +16,9 @@
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts
         conexp.contrib.gui.editors.context-editor.context-editor-control)
-  (:import [javax.swing JRootPane]
-           [java.awt BorderLayout])
+  (:import [javax.swing JRootPane KeyStroke]
+           [java.awt BorderLayout]
+           [java.awt.event KeyEvent ActionEvent])
   (:import conexp.contrib.gui.editors.context-editor.context-editor-control.context-editor-widget))
 
 
@@ -105,6 +106,23 @@
                 (remove (set selected-atts) (attributes ctx))
                 (incidence ctx)))
 
+;;; Helper for filling with X's
+
+(defn-swing fill-selection-with-X
+  "Fills the selected cells from the table widget with 'X's"
+  [obj]
+  (assert (keyword-isa? obj conexp.contrib.gui.editors.context-editor.table-control.table-control))
+  (let [control     (get-control obj),
+        sel-columns (-> control .getSelectedColumns seq),
+        sel-rows    (-> control .getSelectedRows seq),
+        sel-pairs   (map (fn [y]
+                           (map (fn [x]
+                                  (list y x)) sel-columns))
+                         sel-rows)]
+    (doseq [lines sel-pairs] 
+      (doseq [p lines] 
+        (set-value-at-view obj (first p) (second p) "X")))))
+
 
 ;;; Creating context editor widgets
 
@@ -127,13 +145,15 @@
           toolbar (make-toolbar-control :vert)
           e-ctx   @ectx,
           widget  (context-editor-widget. root table toolbar ectx),
-
+          keystroke-fill  (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
+                                                ActionEvent/CTRL_MASK false),
           add-button- (fn [toolbar text f & args]
                         (add-button toolbar
                                     (doto (make-button text)
                                       (set-handler #(set-context @ectx (f widget))))))]
       (.. root getContentPane (add (get-widget toolbar) BorderLayout/LINE_START))
       (.. root getContentPane (add (get-widget table)))
+      (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
       (add-widget e-ctx widget)
       (doto toolbar
         (set-floatable false)
