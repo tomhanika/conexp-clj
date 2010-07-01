@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.graphics.buttons
+(ns conexp.contrib.graphics.buttons
   (:use conexp.base)
   (:import [javax.swing JPanel JButton JTextField JLabel
 	                JSeparator SwingConstants Box JComboBox]

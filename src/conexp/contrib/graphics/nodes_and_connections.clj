@@ -6,11 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.graphics.nodes-and-connections
+(ns conexp.contrib.graphics.nodes-and-connections
   (:use [conexp.base :only (ns-doc,defvar-, defvar, round, union, difference)]
-	conexp.graphics.util
-	conexp.graphics.scenes
-	[clojure.contrib.core :only (-?>)])
+	conexp.contrib.graphics.util
+	conexp.contrib.graphics.scenes)
+  (:use	[clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
 	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment
 	                           GStyle GInteraction ZoomInteraction

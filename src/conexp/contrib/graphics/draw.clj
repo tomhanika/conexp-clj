@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.graphics.draw
+(ns conexp.contrib.graphics.draw
   (:use [conexp.base :only (ns-doc,
 			    get-root-cause,
 			    with-swing-error-msg,
@@ -22,28 +22,28 @@
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
-	[conexp.graphics.util :only (device-to-world)]
-	[conexp.graphics.scenes :only (add-callback-for-hook,
-				       redraw-scene,
-				       start-interaction,
-				       get-zoom-factors,
-				       save-image,
-				       get-canvas-from-scene,
-				       show-labels)]
-	[conexp.graphics.scene-layouts :only (draw-on-scene,
-					      get-layout-from-scene,
-					      update-layout-of-scene,
-					      do-nodes)]
-	[conexp.graphics.nodes-and-connections :only (move-interaction,
-						      zoom-interaction,
-						      move-node-by,
-						      all-nodes-above,
-						      all-nodes-below,
-						      all-inf-add-influenced-nodes,
-						      all-sup-add-influenced-nodes,
-						      *default-node-radius*,
-						      set-node-radius!)],
-        conexp.graphics.buttons)
+	[conexp.contrib.graphics.util :only (device-to-world)]
+	[conexp.contrib.graphics.scenes :only (add-callback-for-hook,
+                                               redraw-scene,
+                                               start-interaction,
+                                               get-zoom-factors,
+                                               save-image,
+                                               get-canvas-from-scene,
+                                               show-labels)]
+	[conexp.contrib.graphics.scene-layouts :only (draw-on-scene,
+                                                      get-layout-from-scene,
+                                                      update-layout-of-scene,
+                                                      do-nodes)]
+	[conexp.contrib.graphics.nodes-and-connections :only (move-interaction,
+                                                              zoom-interaction,
+                                                              move-node-by,
+                                                              all-nodes-above,
+                                                              all-nodes-below,
+                                                              all-inf-add-influenced-nodes,
+                                                              all-sup-add-influenced-nodes,
+                                                              *default-node-radius*,
+                                                              set-node-radius!)],
+        conexp.contrib.graphics.buttons)
   (:use clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JSeparator SwingConstants BoxLayout Box
