@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.draw.lattice-drawer
+(ns conexp.contrib.draw.lattices
   (:use [conexp.base :only (ns-doc,
 			    get-root-cause,
 			    with-swing-error-msg,

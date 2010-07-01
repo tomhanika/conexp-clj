@@ -15,7 +15,7 @@
         conexp.io
 	conexp.layout
 	[conexp.layout.base :only (lattice)]
-	conexp.contrib.draw.lattice-drawer
+	conexp.contrib.draw.lattices
 	conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.context-editor
 	conexp.contrib.gui.plugins.base)

@@ -7,12 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw
-  (:require conexp.contrib.draw.lattice-drawer)
+  (:require conexp.contrib.draw.lattices)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
 
-(immigrate 'conexp.contrib.draw.lattice-drawer)
+(immigrate 'conexp.contrib.draw.lattices)
 
 ;;;
 

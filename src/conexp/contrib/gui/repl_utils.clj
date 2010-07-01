@@ -10,7 +10,7 @@
   (:require [conexp.contrib.gui.util :as util])
   (:use conexp.base
 	conexp.layout
-	conexp.contrib.draw.lattice-drawer))
+	conexp.contrib.draw.lattices))
 
 ;;;
 
