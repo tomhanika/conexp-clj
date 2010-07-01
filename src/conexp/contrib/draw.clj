@@ -6,13 +6,13 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.graphics
-  (:require conexp.contrib.graphics.draw)
+(ns conexp.contrib.draw
+  (:require conexp.contrib.draw.lattice-drawer)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
 
-(immigrate 'conexp.contrib.graphics.draw)
+(immigrate 'conexp.contrib.draw.lattice-drawer)
 
 ;;;
 

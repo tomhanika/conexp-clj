@@ -6,13 +6,13 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.graphics.scene-layouts
+(ns conexp.contrib.draw.scene-layouts
   (:use [conexp.base :only (ns-doc, illegal-argument, defvar-)]
 	[conexp.layout.base :only (make-layout, positions, connections,
 						nodes, update-positions, annotation)]
 	[conexp.layout.util :only (edges-of-points)]
-	conexp.contrib.graphics.nodes-and-connections
-	conexp.contrib.graphics.scenes)
+	conexp.contrib.draw.nodes-and-connections
+	conexp.contrib.draw.scenes)
   (:use	[clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JFrame JButton JPanel JLabel]
 	   [java.awt Dimension BorderLayout Color]
