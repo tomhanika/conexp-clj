@@ -164,8 +164,8 @@
     (doto scn
       (.add object))
 
-    (let [#^GText upper-text (GText. upper-label GPosition/NORTH),
-	  #^GText lower-text (GText. lower-label GPosition/SOUTH)]
+    (let [#^GText upper-text (GText. (print-str upper-label) GPosition/NORTH),
+	  #^GText lower-text (GText. (print-str lower-label) GPosition/SOUTH)]
 	(.setStyle upper-text *default-node-label-style*)
 	(.setStyle lower-text *default-node-label-style*)
 	(.addText upper-segment upper-text)
