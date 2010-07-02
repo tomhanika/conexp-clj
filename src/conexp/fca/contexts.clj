@@ -683,7 +683,12 @@
        (context? ctx-2)
        (= (objects ctx-1) (objects ctx))
        (= (attributes ctx-2) (attributes ctx))
-       (= (incidence ctx) (incidence (smallest-bond ctx-1 ctx-2 (incidence ctx))))))
+       (forall [g (objects ctx-1)]
+         (let [g-R (object-derivation ctx #{g})]
+           (= g-R (context-attribute-closure ctx g-R))))
+       (forall [m (attributes ctx-2)]
+         (let [m-R (attribute-derivation ctx #{m})]
+           (= m-R (context-object-closure ctx m-R))))))
 
 (defn all-bonds
   "Returns all bonds between ctx-1 and ctx-2."
