@@ -41,7 +41,7 @@
   (let [partials (map partial-derivatives (range number-of-args))]
     (proxy [DifferentiableMultivariateRealFunction] []
       (value [double-point]
-        (double (apply fun (seq double-point))))
+        (double (fun double-point)))
       (partialDerivative [k]
         (as-multivariate-real-fn (nth partials k)))
       (gradient []
