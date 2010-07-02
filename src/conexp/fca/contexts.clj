@@ -23,6 +23,11 @@
   (hashCode [this]
     (hash-combine-hash Context objects attributes incidence)))
 
+(defn context?
+  "Returns true iff thing is a context."
+  [thing]
+  (instance? Context thing))
+
 (defmulti objects
   "Returns the objects of a formal context.."
   {:arglists '([context])}
@@ -582,7 +587,7 @@
 				     (I_2 [g_2,m_2]))])]
     (make-context-nc new-objs new-atts new-inz)))
 
-;;;
+;;; Subcontexts
 
 (defn subcontext?
   "Tests whether ctx-1 is a subcontext ctx-2 or not."
@@ -642,6 +647,50 @@
   [concept subcontext]
   [(intersection (first concept) (objects subcontext)),
    (intersection (second concept) (attributes subcontext))])
+
+;;; Bonds
+
+(defn smallest-bond
+  "Returns the smallest bond between ctx-1 and ctx-2 that has the
+  elements of rel as crosses."
+  [ctx-1 ctx-2 rel]
+  (loop [ctx-rel (make-context-nc (objects ctx-1) (attributes ctx-2) rel)]
+    (let [next-rel (union (set-of [g m] [m (attributes ctx-2),
+                                         g (attribute-derivation
+                                            ctx-1
+                                            (object-derivation
+                                             ctx-1
+                                             (attribute-derivation
+                                              ctx-rel
+                                              #{m})))])
+                          (set-of [g m] [g (objects ctx-1),
+                                         m (object-derivation
+                                            ctx-2
+                                            (attribute-derivation
+                                             ctx-2
+                                             (object-derivation
+                                              ctx-rel
+                                              #{g})))]))]
+      (if (= next-rel (incidence ctx-rel))
+        ctx-rel
+        (recur (make-context-nc (objects ctx-1) (attributes ctx-2) next-rel))))))
+
+(defn bond?
+  "Checks whether context ctx is a context between ctx-1 and ctx-2."
+  [ctx-1 ctx-2 ctx]
+  (and (context? ctx)
+       (context? ctx-1)
+       (context? ctx-2)
+       (= (objects ctx-1) (objects ctx))
+       (= (attributes ctx-2) (attributes ctx))
+       (= (incidence ctx) (incidence (smallest-bond ctx-1 ctx-2 (incidence ctx))))))
+
+(defn all-bonds
+  "Returns all bonds between ctx-1 and ctx-2."
+  [ctx-1 ctx-2]
+  (map #(make-context (objects ctx-1) (attributes ctx-2) %)
+       (all-closed-sets (cross-product (objects ctx-1) (attributes ctx-2))
+                        #(incidence (smallest-bond ctx-1 ctx-2 %)))))
 
 ;;;
 
