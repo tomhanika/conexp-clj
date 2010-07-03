@@ -16,11 +16,9 @@
 	                           GStyle GInteraction ZoomInteraction
 	                           GText GPosition]))
 
-
 (ns-doc
  "Namespace for representing nodes and their connections for drawing
  lattice diagrams.")
-
 
 ;;; nodes and connections
 
@@ -170,7 +168,6 @@
 	(.setStyle lower-text *default-node-label-style*)
 	(.addText upper-segment upper-text)
 	(.addText lower-segment lower-text))
-    ;;
 
     object))
 

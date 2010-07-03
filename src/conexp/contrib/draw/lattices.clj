@@ -7,42 +7,52 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.lattices
-  (:use [conexp.base :only (ns-doc,
-			    get-root-cause,
-			    with-swing-error-msg,
-			    with-printed-result,
-			    now,
-                            defvar-,
-                            defmacro-)]
-	[conexp.math.util :only (with-doubles)]
-	[conexp.layout :only (*standard-layout-function*, inf-additive-layout)]
-	[conexp.layout.base :only (lattice, annotation)]
-	[conexp.layout.force :only (force-layout,
-				    layout-energy,
-				    *repulsive-amount*,
-				    *attractive-amount*,
-				    *gravitative-amount*)]
-	[conexp.contrib.draw.util :only (device-to-world)]
-	[conexp.contrib.draw.scenes :only (add-callback-for-hook,
-                                           redraw-scene,
-                                           start-interaction,
-                                           get-zoom-factors,
-                                           save-image,
-                                           get-canvas-from-scene,
-                                           show-labels)]
-	[conexp.contrib.draw.scene-layouts :only (draw-on-scene,
-                                                  get-layout-from-scene,
-                                                  update-layout-of-scene,
-                                                  do-nodes)]
-	[conexp.contrib.draw.nodes-and-connections :only (move-interaction,
-                                                          zoom-interaction,
-                                                          move-node-by,
-                                                          all-nodes-above,
-                                                          all-nodes-below,
-                                                          all-inf-add-influenced-nodes,
-                                                          all-sup-add-influenced-nodes,
-                                                          *default-node-radius*,
-                                                          set-node-radius!)],
+  (:use [conexp.base
+         :only (ns-doc,
+                get-root-cause,
+                with-swing-error-msg,
+                with-printed-result,
+                now,
+                defvar-,
+                defmacro-)]
+	[conexp.math.util
+         :only (with-doubles)]
+	[conexp.layout
+         :only (*standard-layout-function*,
+                inf-additive-layout)]
+	[conexp.layout.base
+         :only (lattice,
+                annotation)]
+	[conexp.layout.force
+         :only (force-layout,
+                layout-energy,
+                *repulsive-amount*,
+                *attractive-amount*,
+                *gravitative-amount*)]
+        ;; drawing
+	[conexp.contrib.draw.scenes
+         :only (add-callback-for-hook,
+                redraw-scene,
+                start-interaction,
+                get-zoom-factors,
+                save-image,
+                get-canvas-from-scene,
+                show-labels)]
+	[conexp.contrib.draw.scene-layouts
+         :only (draw-on-scene,
+                get-layout-from-scene,
+                update-layout-of-scene,
+                do-nodes)]
+	[conexp.contrib.draw.nodes-and-connections
+         :only (move-interaction,
+                zoom-interaction,
+                move-node-by,
+                all-nodes-above,
+                all-nodes-below,
+                all-inf-add-influenced-nodes,
+                all-sup-add-influenced-nodes,
+                *default-node-radius*,
+                set-node-radius!)],
         conexp.contrib.draw.buttons)
   (:use clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
@@ -68,7 +78,7 @@
   "Installs parameter list which influences lattice drawing."
   [frame scn buttons]
   ;; node radius
-  (let [#^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
+  (let [^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
     (add-action-listener node-radius
 			 (fn [evt]
 			   (let [new-radius (Double/parseDouble (.getText node-radius))]
@@ -79,7 +89,7 @@
   (make-padding buttons)
 
   ;; labels
-  (let [#^JButton label-toggler (make-button buttons "No Labels")]
+  (let [^JButton label-toggler (make-button buttons "No Labels")]
     (show-labels scn false)
     (add-action-listener label-toggler
 			 (fn [evt]
@@ -90,13 +100,13 @@
 				(.setText label-toggler "No Labels"))
 			      (do
 				(show-labels scn true)
-				(.setText label-toggler  "Labels")))
+				(.setText label-toggler "Labels")))
 			    (redraw-scene scn)))))
 
   ;; layouts
   (let [layouts {"standard" *standard-layout-function*,
 		 "inf-add"  inf-additive-layout},
-	#^JComboBox combo-box (make-combo-box buttons (keys layouts))]
+	^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (add-action-listener combo-box
 			 (fn [evt]
 			   (let [selected (.. evt getSource getSelectedItem),
@@ -106,14 +116,14 @@
 			       scn
 			       (layout-fn (lattice (get-layout-from-scene scn)))))))))
 
-  ;; move mode (ideal, filter, chain, single)
+  ;; move mode
   (let [move-modes {"single" (single-move-mode),
 		    "ideal"  (ideal-move-mode),
 		    "filter" (filter-move-mode),
 		    "chain"  (chain-move-mode),
 		    "inf"    (infimum-additive-move-mode),
 		    "sup"    (supremum-additive-move-mode)}
-	#^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
+	^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
 	current-move-mode (atom (move-modes "single"))]
     (add-callback-for-hook scn :move-drag
 			   (fn [node dx dy]
@@ -195,19 +205,19 @@
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
   [frame scn buttons]
-  (let [#^JTextField rep-field    (make-labeled-text-field buttons "rep"  (str *repulsive-amount*)),
-	#^JTextField attr-field   (make-labeled-text-field buttons "attr" (str *attractive-amount*)),
-	#^JTextField grav-field   (make-labeled-text-field buttons "grav" (str *gravitative-amount*)),
-	#^JTextField iter-field   (make-labeled-text-field buttons "iter" (str "300")),
-	_                         (make-padding buttons),
-	#^JButton button          (make-button buttons "Force"),
+  (let [^JTextField rep-field    (make-labeled-text-field buttons "rep"  (str *repulsive-amount*)),
+	^JTextField attr-field   (make-labeled-text-field buttons "attr" (str *attractive-amount*)),
+	^JTextField grav-field   (make-labeled-text-field buttons "grav" (str *gravitative-amount*)),
+	^JTextField iter-field   (make-labeled-text-field buttons "iter" (str "300")),
+	_                        (make-padding buttons),
+	^JButton button          (make-button buttons "Force"),
 
-	get-force-parameters      (fn []
-				    (let [r (Double/parseDouble (.getText rep-field)),
-					  a (Double/parseDouble (.getText attr-field)),
-					  g (Double/parseDouble (.getText grav-field)),
-					  i (Integer/parseInt (.getText iter-field))]
-				      [r a g i]))]
+	get-force-parameters     (fn []
+                                   (let [r (Double/parseDouble (.getText rep-field)),
+                                         a (Double/parseDouble (.getText attr-field)),
+                                         g (Double/parseDouble (.getText grav-field)),
+                                         i (Integer/parseInt (.getText iter-field))]
+                                     [r a g i]))]
     (add-action-listener button (fn [evt]
 				  (do-swing
 				   (with-swing-error-msg frame "An Error occured."
@@ -225,8 +235,8 @@
 			   (printf "%1.2f" zoom-x)
 			   (print " x ")
 			   (printf "%1.2f" zoom-y)))),
-	#^JButton zoom-move (make-button buttons "Move"),
-	#^JLabel  zoom-info (make-label buttons " -- ")]
+	^JButton zoom-move (make-button buttons "Move"),
+	^JLabel  zoom-info (make-label buttons " -- ")]
     (add-action-listener zoom-move
 			 (fn [evt]
 			   (do-swing
@@ -247,7 +257,7 @@
 
 (defn- get-file-extension
   "Returns file extension of given file."
-  [#^File file]
+  [^File file]
   (let [name (.getName file),
 	idx  (.lastIndexOf name ".")]
     (if-not (= -1 idx)
@@ -257,8 +267,8 @@
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
-  (let [#^JButton save-button (make-button buttons "Save"),
-	#^JFileChooser fc (JFileChooser.),
+  (let [^JButton save-button (make-button buttons "Save"),
+	^JFileChooser fc (JFileChooser.),
 	jpg-filter (FileNameExtensionFilter. "JPEG Files" (into-array ["jpg" "jpeg"])),
 	gif-filter (FileNameExtensionFilter. "GIF Files"  (into-array ["gif"])),
 	png-filter (FileNameExtensionFilter. "PNG Files"  (into-array ["png"]))]
@@ -282,7 +292,7 @@
   saves the image."
   [frame scn buttons]
   (let [saved-layouts (atom {}),
-	#^JComboBox combo (make-combo-box buttons @saved-layouts),
+	^JComboBox combo (make-combo-box buttons @saved-layouts),
 	save-layout   (fn [_]
 			(do-swing
 			 (let [layout (get-layout-from-scene scn),
@@ -301,7 +311,7 @@
 
 ;;; Technical Helpers
 
-(defmacro- install-changers
+(defmacro- with-layout-modifiers
   "Installs given methods to scene with buttons."
   [frame scene buttons & methods]
   `(do
@@ -317,7 +327,7 @@
 
 ;;; Constructor
 
-(let [scenes (ref {})]			;memory leaks possible?
+(let [scenes (ref {})]			;memory leak possible
 
   (defn make-lattice-editor
     "Creates a lattice editor with initial layout."
@@ -340,7 +350,7 @@
       ;; buttons
       (.setLayout buttons box-layout)
       (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
-      (install-changers frame scn buttons
+      (with-layout-modifiers frame scn buttons
         toggle-zoom-move
 	change-parameters
 	improve-layout-by-force
@@ -362,6 +372,7 @@
 	      BorderLayout/WEST)
 	(.setMinimumSize (Dimension. 0 0)))
 
+      ;;
       main-panel))
 
   (defn get-layout-from-panel
@@ -387,7 +398,6 @@
 	 (.add ^JPanel (make-lattice-editor frame (layout-function lattice)))
 	 (.setSize (Dimension. 600 600))
 	 (.setVisible true)))))
-
 
 ;;;
 

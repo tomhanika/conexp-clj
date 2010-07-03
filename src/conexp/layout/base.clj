@@ -168,12 +168,11 @@
     (hashmap-by-function (fn [x] [x ""]) (nodes layout))
     (let [uppers (upper-neighbours layout),
 	  lowers (lower-neighbours layout)]
-      (hashmap-by-function (fn [node]
-			     [(set-to-label
-			       (apply difference (second node) (map second (uppers node))))
-			      (set-to-label
-			       (apply difference (first node) (map first (lowers node))))])
-			   (nodes layout)))))
+      (into {} (for [node (nodes layout)]
+                 [(set-to-label
+                   (apply difference (second node) (map second (uppers node))))
+                  (set-to-label
+                   (apply difference (first node) (map first (lowers node))))])))))
 
 ;;;
 
