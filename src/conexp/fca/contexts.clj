@@ -697,6 +697,38 @@
        (all-closed-sets (cross-product (objects ctx-1) (attributes ctx-2))
                         #(incidence (smallest-bond ctx-1 ctx-2 %)))))
 
+;;; Shared Intents (by Stefan Borgwardt)
+
+(defn- next-shared-intent
+  "The smallest shared intent of contexts ctx-1 and ctx-2 containing b."
+  [ctx-1 ctx-2 b]
+  (loop [shared-attrs b,
+         objs-1       (attribute-derivation ctx-1 b),
+         objs-2       (attribute-derivation ctx-2 b)]
+    (let [new-shared-attrs-1 (difference (object-derivation ctx-1 objs-1)
+                                         shared-attrs),
+          new-shared-attrs-2 (difference (object-derivation ctx-2 objs-2)
+                                         shared-attrs)]
+      (if (and (empty? new-shared-attrs-1) (empty? new-shared-attrs-2))
+        shared-attrs
+        (recur (union shared-attrs new-shared-attrs-1 new-shared-attrs-2)
+               (intersection objs-1 (attribute-derivation ctx-1 new-shared-attrs-2))
+               (intersection objs-2 (attribute-derivation ctx-2 new-shared-attrs-1)))))))
+
+(defn all-shared-intents
+  "All intents shared between contexts ctx-1 and ctx-2. ctx-1 and
+  ctx-2 must have the same attribute set."
+  [ctx-1 ctx-2]
+  (assert (= (attributes ctx-1) (attributes ctx-2)))
+  (all-closed-sets (attributes ctx-1) #(next-shared-intent ctx-1 ctx-2 %)))
+
+;; (defn all-bonds-by-shared-intents
+;;   "All bonds between ctx-1 and ctx-2, computed using shared intents."
+;;   [ctx-1 ctx-2]
+;;   (map #(make-context (objects ctx-1) (attributes ctx-2) %)
+;;        (all-shared-intents (context-product (adiag-context (objects ctx-1)) ctx-2)
+;;                            (dual-context (context-product ctx-1 (adiag-context (attributes ctx-2)))))))
+
 ;;;
 
 nil
