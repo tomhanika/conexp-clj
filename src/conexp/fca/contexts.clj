@@ -226,8 +226,8 @@
   [ctx [set-of-obj set-of-att]]
   (and (subset? set-of-obj (objects ctx))
        (subset? set-of-att (attributes ctx))
-       (= set-of-obj (object-derivation ctx set-of-att))
-       (= set-of-att (attribute-derivation ctx set-of-obj))))
+       (= set-of-obj (attribute-derivation ctx set-of-att))
+       (= set-of-att (object-derivation ctx set-of-obj))))
 
 (defn clarify-objects
   "Clarifies objects in context ctx."
