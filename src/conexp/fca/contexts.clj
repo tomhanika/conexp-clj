@@ -728,12 +728,12 @@
   (assert (= (attributes ctx-1) (attributes ctx-2)))
   (all-closed-sets (attributes ctx-1) #(next-shared-intent ctx-1 ctx-2 %)))
 
-;; (defn all-bonds-by-shared-intents
-;;   "All bonds between ctx-1 and ctx-2, computed using shared intents."
-;;   [ctx-1 ctx-2]
-;;   (map #(make-context (objects ctx-1) (attributes ctx-2) %)
-;;        (all-shared-intents (context-product (adiag-context (objects ctx-1)) ctx-2)
-;;                            (dual-context (context-product ctx-1 (adiag-context (attributes ctx-2)))))))
+(defn all-bonds-by-shared-intents
+  "All bonds between ctx-1 and ctx-2, computed using shared intents."
+  [ctx-1 ctx-2]
+  (map #(make-context (objects ctx-1) (attributes ctx-2) %)
+       (all-shared-intents (context-product (adiag-context (objects ctx-1)) ctx-2)
+                           (dual-context (context-product ctx-1 (adiag-context (attributes ctx-2)))))))
 
 ;;;
 
