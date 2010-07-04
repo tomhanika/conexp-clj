@@ -218,7 +218,8 @@
      (try (time (do
                   (.start thread#)
                   (.join thread#)))
-          (catch Exception ex#
+          (catch Throwable ex#
+            (println "Exception thrown:" ex#)
             (.stop thread#))
           (finally
            (show-profiling :thread thread# ~@output-options)
