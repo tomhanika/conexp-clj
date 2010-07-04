@@ -200,12 +200,12 @@
         m (count G),
         n (count M)]
     (assert (= (* m n) (count bits)))
-    (make-context G M
-                  (set-of [a b] [i (range (count G)),
-                                 j (range (count M)),
-                                 :when (= 1 (nth bits (+ (* n i) j)))
-                                 :let [a (nth G i),
-                                       b (nth M j)]]))))
+    (make-context-nc G M
+                     (set-of [a b] [i (range (count G)),
+                                    j (range (count M)),
+                                    :when (= 1 (nth bits (+ (* n i) j)))
+                                    :let [a (nth G i),
+                                          b (nth M j)]]))))
 
 (defn object-derivation
   "Computes set of attributes common to all objects in context."
@@ -294,7 +294,7 @@
 	inz (incidence ctx)
 	prime (memoize (partial attribute-derivation ctx))]
     (set-of [g m]
-	    [g obj
+	    [g obj,
 	     m att
 	     :when (and (not (inz [g m]))
 			(forall [n att]
@@ -344,10 +344,10 @@
 	     att (attributes ctx)
 	     uda (up-down-arrows ctx)]
 	 (and (forall [g obj]
-		(exists [ [h _] uda ]
+		(exists [[h _] uda]
 		  (= g h)))
 	      (forall [m att]
-		(exists [ [_ n] uda ]
+		(exists [[_ n] uda]
 		  (= m n)))))))
 
 (defn context-object-closure
@@ -381,7 +381,7 @@
   (for [objs (context-extents ctx)]
     [objs, (object-derivation ctx objs)]))
 
-;; Common Operations with Contexts
+;;; Common Operations with Contexts
 
 (defn dual-context
   "Dualizes context ctx, that is $(G,M,I)$ gets $(M,G,I^{-1})$."
@@ -515,7 +515,7 @@
 			(set-of [[g_2 2] [m_1 1]]
 				[g_2 (objects ctx-2)
 				 m_1 (attributes ctx-1)]))]
-    (make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-product
   "Computes the context product of ctx-1 and ctx-2, that is
