@@ -210,14 +210,14 @@
 (defn object-derivation
   "Computes set of attributes common to all objects in context."
   [ctx objects]
-  (let [inz (incidence ctx)
+  (let [inz  (incidence ctx),
 	atts (attributes ctx)]
     (set-of m [m atts :when (forall [g objects] (inz [g m]))])))
 
 (defn attribute-derivation
   "Computes set of objects common to all attributes in context."
   [ctx attributes]
-  (let [inz (incidence ctx)
+  (let [inz  (incidence ctx),
         objs (objects ctx)]
     (set-of g [g objs :when (forall [m attributes] (inz [g m]))])))
 
@@ -705,15 +705,21 @@
   (loop [shared-attrs b,
          objs-1       (attribute-derivation ctx-1 b),
          objs-2       (attribute-derivation ctx-2 b)]
-    (let [new-shared-attrs-1 (difference (object-derivation ctx-1 objs-1)
-                                         shared-attrs),
-          new-shared-attrs-2 (difference (object-derivation ctx-2 objs-2)
-                                         shared-attrs)]
+    (let [new-shared-attrs-1 (set-of m [m (difference (attributes ctx-1) shared-attrs)
+                                        :when (forall [g objs-1]
+                                                ((incidence ctx-1) [g m]))]),
+          new-shared-attrs-2 (set-of m [m (difference (attributes ctx-2) shared-attrs)
+                                        :when (forall [g objs-2]
+                                                ((incidence ctx-2) [g m]))])]
       (if (and (empty? new-shared-attrs-1) (empty? new-shared-attrs-2))
         shared-attrs
         (recur (union shared-attrs new-shared-attrs-1 new-shared-attrs-2)
-               (intersection objs-1 (attribute-derivation ctx-1 new-shared-attrs-2))
-               (intersection objs-2 (attribute-derivation ctx-2 new-shared-attrs-1)))))))
+               (set-of g [g objs-1
+                          :when (forall [m new-shared-attrs-2]
+                                  ((incidence ctx-1) [g m]))])
+               (set-of g [g objs-2
+                          :when (forall [m new-shared-attrs-1]
+                                  ((incidence ctx-2) [g m]))]))))))
 
 (defn all-shared-intents
   "All intents shared between contexts ctx-1 and ctx-2. ctx-1 and
