@@ -215,11 +215,14 @@
   [starting-options output-options & body]
   `(let [^Thread thread# (Thread. #(do ~@body))]
      (start-profiling :thread thread# ~@starting-options)
-     (time (do
-             (.start thread#)
-             (.join thread#)))
-     (show-profiling :thread thread# ~@output-options)
-     (stop-profiling :thread thread#)))
+     (try (time (do
+                  (.start thread#)
+                  (.join thread#)))
+          (catch Exception ex#
+            (.stop thread#))
+          (finally
+           (show-profiling :thread thread# ~@output-options)
+           (stop-profiling :thread thread#)))))
 
 ;;;
 
