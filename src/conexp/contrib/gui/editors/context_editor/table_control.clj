@@ -15,12 +15,12 @@
         conexp.contrib.gui.editors.context-editor.widgets)
   (:use [clojure.contrib.string :only (join split-lines split)])
   (:import [javax.swing JComponent AbstractAction JTable
-                        JScrollPane KeyStroke]
+                        JScrollPane KeyStroke DefaultCellEditor JTextField]
            [javax.swing.event TableModelListener]
            [java.awt.event ActionListener KeyEvent ActionEvent MouseEvent InputEvent]
            [javax.swing.event MouseInputAdapter]
            [java.awt Point]
-           [javax.swing.table DefaultTableModel]))
+           [javax.swing.table DefaultTableModel TableCellEditor]))
 
 
 ;;; mouse-click-interface-helpers
@@ -32,7 +32,7 @@
   `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2))
      ~@exprs))
 
-(defn proxy-mouse-listener
+(defn- proxy-mouse-listener
   "Returns a proxy class that will implement the MouseListener
    interface and call the given 1-ary functions accordingly.
    The passed parameter will be a map mapping :button (button
@@ -539,6 +539,9 @@
         hooks           (:hooks (make-hookable)),
         widget          (table-control. pane table hooks model 
                           (ref [identity identity])),
+        cell-editor (proxy [DefaultCellEditor] [(JTextField.)]
+                      (isCellEditable [event] (with-swing-threads (message-box "X")))),
+
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
                             (with-swing-threads
@@ -600,6 +603,10 @@
                                             ignore-event
                                             drag-motion-event)]
     (.addTableModelListener model change-listener)
+    (doto table
+      (.setCellEditor cell-editor)
+      (.setDefaultEditor java.lang.Object cell-editor))
+
     (doto widget
       (add-hook "table-changed"     (fn [c f l t]
                                       (table-change-hook widget c f l t)))

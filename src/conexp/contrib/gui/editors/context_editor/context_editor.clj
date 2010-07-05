@@ -147,16 +147,6 @@
           widget  (context-editor-widget. root table toolbar ectx),
           keystroke-fill  (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
                                                 ActionEvent/CTRL_MASK false),
-          ignore-event (fn [x] nil),
-          show-data    (fn [x] (message-box (str x)))
-          double-click-event (fn [x] (if (and 
-                                           (= (:modifiers x) nil)
-                                           (= (:button x) 1)
-                                           (> (:click-count x) 1))
-                                        (show-data x))),
-          double-click-editor (proxy-mouse-listener ignore-event
-                                  ignore-event ignore-event ignore-event
-                                  double-click-event ignore-event ignore-event),
           add-button- (fn [toolbar text f & args]
                         (add-button toolbar
                                     (doto (make-button text)
@@ -164,7 +154,6 @@
       (.. root getContentPane (add (get-widget toolbar) BorderLayout/LINE_START))
       (.. root getContentPane (add (get-widget table)))
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
-      (add-control-mouse-listener (get-control table) double-click-editor)
       (add-widget e-ctx widget)
       (doto toolbar
         (set-floatable false)
