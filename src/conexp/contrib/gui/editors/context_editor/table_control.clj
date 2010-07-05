@@ -17,10 +17,12 @@
   (:import [javax.swing JComponent AbstractAction JTable
                         JScrollPane KeyStroke DefaultCellEditor JTextField]
            [javax.swing.event TableModelListener]
-           [java.awt.event ActionListener KeyEvent ActionEvent MouseEvent InputEvent]
+           [java.awt.event ActionListener KeyEvent ActionEvent MouseEvent
+             InputEvent]
            [javax.swing.event MouseInputAdapter]
            [java.awt Point]
-           [javax.swing.table DefaultTableModel TableCellEditor]))
+           [javax.swing.table DefaultTableModel TableCellEditor
+             DefaultTableCellRenderer]))
 
 
 ;;; mouse-click-interface-helpers
@@ -566,7 +568,17 @@
                                             row col)]
                               result))
                           true))),
-
+        cell-renderer (proxy [DefaultTableCellRenderer] []
+                        (getTableCellRendererComponent 
+                          [jtable value is-selected has-focus row column]
+                          (do-swing-return
+                            (let [component (proxy-super 
+                                              getTableCellRendererComponent 
+                                              jtable value is-selected 
+                                              has-focus row column)]
+                              (call-hook widget "cell-renderer-hook"
+                                component row column is-selected has-focus
+                                value))))),
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
                             (with-swing-threads
@@ -630,8 +642,8 @@
     (.addTableModelListener model change-listener)
     (doto table
       (.setCellEditor cell-editor)
-      (.setDefaultEditor java.lang.Object cell-editor))
-
+      (.setDefaultEditor java.lang.Object cell-editor)
+      (.setDefaultRenderer java.lang.Object cell-renderer))    
     (doto widget
       (add-hook "table-changed"     (fn [c f l t]
                                       (table-change-hook widget c f l t)))
@@ -639,6 +651,9 @@
       (add-hook "extend-rows-to"    #(set-row-count widget %))
       (add-hook "cell-value"        (fn [_ _ contents] contents))
       (add-hook "mouse-click-cell-editable-hook" (fn [view-row view-col] true))
+      (add-hook "cell-renderer-hook" 
+        (fn [component view-row view-col is-selected has-focus value] 
+          component))
       (set-resize-mode :off)
       (set-cell-selection-mode :cells)
       (register-keyboard-action copy-to-clipboard "Copy" keystroke-copy :focus)

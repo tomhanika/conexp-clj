@@ -15,7 +15,9 @@
         conexp.contrib.gui.util.hookable
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control
-        conexp.contrib.gui.editors.context-editor.editable-contexts))
+        conexp.contrib.gui.editors.context-editor.editable-contexts)
+  (:import [java.awt Color Font]
+    [javax.swing JLabel SwingConstants]))
 
 
 ;;; Context editor control
@@ -99,6 +101,57 @@
           (set-value-at-view table view-row view-col inverted-value)
           false)
         false))))
+(let [ attr-obj-font (Font. "SansSerif" Font/BOLD 12),
+       plain-font (Font. "SansSerif" Font/PLAIN 12),
+       header-foreground (Color. 96 96 96),
+       header-background (Color. 255 255 255),
+       attr-obj-foreground (Color. 0 0 0),
+       attr-obj-background (Color. 255 255 0),
+       selected-foreground (Color. 255 255 255),
+       selected-background (Color. 48 110 255),
+       plain-background-11 (Color. 255 255 255),
+       plain-background-01 (Color. 255 255 192),
+       plain-background-10 (Color. 255 255 192),
+       plain-background-00 (Color. 255 255 128),
+       plain-foreground (Color. 0 0 0)]
+  (defn- context-cell-renderer-hook
+    "Returns the component given as first parameter, optionally changes 
+     attributes of it depending on the cell"
+    [table component view-row view-col is-selected has-focus value]
+    (let [ row (get-row-index table view-row)
+           col (get-column-index table view-col) ]
+      (cond
+        (= 0 row col)
+        (doto component
+          (.setFont attr-obj-font)
+          (.setForeground header-foreground)
+          (.setBackground header-background))
+
+        (or (= 0 row) (= 0 col))
+        (doto component
+          (.setFont attr-obj-font)
+          (.setForeground attr-obj-foreground)
+          (.setBackground attr-obj-background))
+        
+        :otherwise
+        (let [plain-background (if (even? view-row)
+                                 (if (even? view-col)
+                                   plain-background-00
+                                   plain-background-01)
+                                 (if (even? view-col)
+                                   plain-background-10
+                                   plain-background-11))]
+          (doto component
+            (.setFont plain-font)
+            (.setBackground plain-background)
+            (.setForeground plain-foreground))))
+      (if is-selected
+        (doto component
+          (.setForeground selected-foreground)
+          (.setBackground selected-background)))
+      (if (instance? JLabel component)
+        (.setHorizontalAlignment component SwingConstants/CENTER))
+      component)))
             
 
 (defn add-widget
@@ -125,6 +178,9 @@
     (set-hook table "mouse-click-cell-editable-hook" 
       (let [last-ref (ref nil)]
         (fn [r c] (mouse-click-cell-edtble table last-ref r c))))
+    (set-hook table "cell-renderer-hook" (fn [com r c s f v] 
+                                           (context-cell-renderer-hook table
+                                             com r c s f v)))
     (set-column-count table (+ 1 (count att)))
     (set-row-count table (+ 1 (count obj)))
     (doseq [a att]
