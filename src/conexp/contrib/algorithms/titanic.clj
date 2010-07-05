@@ -15,11 +15,6 @@
 
 ;;; Pragmatics
 
-(defmacro- set-val!
-  "Sets (via set!) the value for key in map to val."
-  [map key val]
-  `(set! ~map (assoc ~map ~key ~val)))
-
 (defn- minimum
   "Computes the minimum of weights in a given sequence of
   weights. order must be a linear order on elements plus max-val and
