@@ -32,7 +32,7 @@
   `(when (not= 0 (bit-and ~bit-mask-1 ~bit-mask-2))
      ~@exprs))
 
-(defn- proxy-mouse-listener
+(defn proxy-mouse-listener
   "Returns a proxy class that will implement the MouseListener
    interface and call the given 1-ary functions accordingly.
    The passed parameter will be a map mapping :button (button
@@ -67,6 +67,7 @@
                           {:button (translate-button (.getButton event))
                            :modifiers (translate-modifier (.getModifiersEx event))
                            :position [(.getX event) (.getY event)]
+                           :click-count (.getClickCount event)
                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
     (proxy [MouseInputAdapter] []
       (mousePressed [event]
