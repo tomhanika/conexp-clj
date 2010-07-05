@@ -11,7 +11,7 @@
 
 (ns-doc
  "Implements the TITANIC algorithm. Note that this implementation is
- not tune for speed but for flexibility.")
+ not tuned for speed but for flexibility.")
 
 ;;; Pragmatics
 
