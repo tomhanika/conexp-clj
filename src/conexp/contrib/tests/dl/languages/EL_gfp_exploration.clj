@@ -74,7 +74,7 @@
                             (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All])))))
   (are [model gci-count] (let [gcis (model-gcis model)]
-                           (and (= gci-count (count (model-gcis model)))
+                           (and (= gci-count (count gcis))
                                 (forall [gci gcis]
                                   (holds-in-model? model gci))))
        some-model  9
