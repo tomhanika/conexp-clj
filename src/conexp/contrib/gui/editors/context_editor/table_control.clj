@@ -416,6 +416,21 @@
       (let [at-view (get-index-column otable (col-idx col))]
         (move-column otable at-view col)))))
 
+(defn-swing is-view-cell-selected
+  "Returns true, if the given cell of the table control in view
+   coordinates is selected"
+  [obj view-row view-col]
+  (assert (keyword-isa? obj table-control))
+  (let [ control     (get-control obj),
+         sel-columns (-> control .getSelectedColumns seq),
+         sel-rows    (-> control .getSelectedRows seq),
+         sel-pairs   (map (fn [y]
+                           (map (fn [x]
+                                  (list y x)) sel-columns))
+                         sel-rows)]
+    (if (filter (fn [x] (= x (list view-row view-col))) sel-pairs) true false)))
+        
+
 (defn-swing move-row
   "Moves the row at view index old-view to be viewed at view index
    new-view."
@@ -540,7 +555,17 @@
         widget          (table-control. pane table hooks model 
                           (ref [identity identity])),
         cell-editor (proxy [DefaultCellEditor] [(JTextField.)]
-                      (isCellEditable [event] (with-swing-threads (message-box "X")))),
+                      (isCellEditable [event] 
+                        (if (isa? (type event) MouseEvent)
+                          (do-swing-return
+                            (let [ pt (.getPoint event)
+                                   col (.columnAtPoint table pt)
+                                   row (.rowAtPoint table pt)
+                                   result (call-hook widget 
+                                            "mouse-click-cell-editable-hook"
+                                            row col)]
+                              result))
+                          true))),
 
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
@@ -613,6 +638,7 @@
       (add-hook "extend-columns-to" #(set-column-count widget %))
       (add-hook "extend-rows-to"    #(set-row-count widget %))
       (add-hook "cell-value"        (fn [_ _ contents] contents))
+      (add-hook "mouse-click-cell-editable-hook" (fn [view-row view-col] true))
       (set-resize-mode :off)
       (set-cell-selection-mode :cells)
       (register-keyboard-action copy-to-clipboard "Copy" keystroke-copy :focus)

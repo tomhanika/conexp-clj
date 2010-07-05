@@ -80,6 +80,27 @@
 
 (declare ectx-cell-value-hook ectx-extend-rows-hook ectx-extend-columns-hook)
 
+(defn- mouse-click-cell-edtble
+  "Returns true if the cell clicked on given in the view coordinates is editable
+   as text control, i.e. if it is an attribute or object name"
+  [table last-ref view-row view-col]
+  (let [ row (get-row-index table view-row),
+         col (get-column-index table view-col),
+         last (deref last-ref),
+         coord-list (list view-row view-col)]
+    (dosync (ref-set last-ref coord-list))
+    (if (and (or (and (= 0 row) (> col 0))
+               (and (= 0 col) (> row 0)))
+          (= coord-list last)) 
+      true
+      (if (and (> row 0) (> col 0) (= coord-list last))
+        (let [ current-value (get-value-at-view table view-row view-col)
+               inverted-value (if (= " " current-value) "X" "")]
+          (set-value-at-view table view-row view-col inverted-value)
+          false)
+        false))))
+            
+
 (defn add-widget
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context."
@@ -101,6 +122,9 @@
      (set-ectx editor e-ctx)
      (alter (:widgets e-ctx) add editor))
     (set-hook table "cell-value" (fn [_ _ x] x))
+    (set-hook table "mouse-click-cell-editable-hook" 
+      (let [last-ref (ref nil)]
+        (fn [r c] (mouse-click-cell-edtble table last-ref r c))))
     (set-column-count table (+ 1 (count att)))
     (set-row-count table (+ 1 (count obj)))
     (doseq [a att]
