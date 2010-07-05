@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.graphics.draw
+(ns conexp.contrib.draw.lattices
   (:use [conexp.base :only (ns-doc,
 			    get-root-cause,
 			    with-swing-error-msg,
@@ -22,41 +22,40 @@
 				    *repulsive-amount*,
 				    *attractive-amount*,
 				    *gravitative-amount*)]
-	[conexp.graphics.util :only (device-to-world)]
-	[conexp.graphics.scenes :only (add-callback-for-hook,
-				       redraw-scene,
-				       start-interaction,
-				       get-zoom-factors,
-				       save-image,
-				       get-canvas-from-scene,
-				       show-labels)]
-	[conexp.graphics.scene-layouts :only (draw-on-scene,
-					      get-layout-from-scene,
-					      update-layout-of-scene,
-					      do-nodes)]
-	[conexp.graphics.nodes-and-connections :only (move-interaction,
-						      zoom-interaction,
-						      move-node-by,
-						      all-nodes-above,
-						      all-nodes-below,
-						      all-inf-add-influenced-nodes,
-						      all-sup-add-influenced-nodes,
-						      *default-node-radius*,
-						      set-node-radius!)],
-        conexp.graphics.buttons)
+	[conexp.contrib.draw.util :only (device-to-world)]
+	[conexp.contrib.draw.scenes :only (add-callback-for-hook,
+                                           redraw-scene,
+                                           start-interaction,
+                                           get-zoom-factors,
+                                           save-image,
+                                           get-canvas-from-scene,
+                                           show-labels)]
+	[conexp.contrib.draw.scene-layouts :only (draw-on-scene,
+                                                  get-layout-from-scene,
+                                                  update-layout-of-scene,
+                                                  do-nodes)]
+	[conexp.contrib.draw.nodes-and-connections :only (move-interaction,
+                                                          zoom-interaction,
+                                                          move-node-by,
+                                                          all-nodes-above,
+                                                          all-nodes-below,
+                                                          all-inf-add-influenced-nodes,
+                                                          all-sup-add-influenced-nodes,
+                                                          *default-node-radius*,
+                                                          set-node-radius!)],
+        conexp.contrib.draw.buttons)
   (:use clojure.contrib.swing-utils)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JSeparator SwingConstants BoxLayout Box
 	                JScrollBar JComboBox JScrollPane JFileChooser]
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
-	   [java.awt.event ActionListener]
+	   [java.awt.event ActionEvent ActionListener]
 	   [java.io File]))
 
 (ns-doc
  "This namespace provides a lattice editor and a convenience function
  to draw lattices.")
-
 
 ;;; Lattice Editor
 
@@ -323,16 +322,16 @@
   (defn make-lattice-editor
     "Creates a lattice editor with initial layout."
     [frame layout]
-    (let [#^JPanel main-panel (JPanel. (BorderLayout.)),
+    (let [^JPanel main-panel (JPanel. (BorderLayout.)),
 
 	  scn (draw-on-scene layout),
-	  canvas (get-canvas-from-scene scn),
+	  ^Canvas canvas (get-canvas-from-scene scn),
 
-	  #^JPanel canvas-panel (JPanel. (BorderLayout.)),
-	  hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
-	  vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+	  ^JPanel canvas-panel (JPanel. (BorderLayout.)),
+	  ^JScrollBar hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
+	  ^JScrollBar vscrollbar (JScrollBar. JScrollBar/VERTICAL),
 
-	  #^JPanel buttons (JPanel.),
+	  ^JPanel buttons (JPanel.),
 	  box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
 
       ;; save scene
@@ -383,9 +382,9 @@
   ([lattice]
      (draw-lattice lattice *standard-layout-function*))
   ([lattice layout-function]
-     (let [#^JFrame frame (JFrame. "conexp-clj Lattice")]
+     (let [^JFrame frame (JFrame. "conexp-clj Lattice")]
        (doto frame
-	 (.add (make-lattice-editor frame (layout-function lattice)))
+	 (.add ^JPanel (make-lattice-editor frame (layout-function lattice)))
 	 (.setSize (Dimension. 600 600))
 	 (.setVisible true)))))
 

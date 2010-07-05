@@ -28,7 +28,7 @@
   {:arglists '([context])}
   type)
 
-(defmethod objects Context [ctx]
+(defmethod objects Context [^Context ctx]
   (.objects ctx))
 
 (defmulti attributes
@@ -36,7 +36,7 @@
   {:arglists '([context])}
   type)
 
-(defmethod attributes Context [ctx]
+(defmethod attributes Context [^Context ctx]
   (.attributes ctx))
 
 (defmulti incidence
@@ -44,7 +44,7 @@
   {:arglists '([context])}
   type)
 
-(defmethod incidence Context [ctx]
+(defmethod incidence Context [^Context ctx]
   (.incidence ctx))
 
 (defn- compare-order
@@ -82,7 +82,7 @@
     :else
     (compare-order x y)))
 
-(defn print-context
+(defn ^String print-context
   "Prints contexts in a human readable form."
   [ctx order-on-objects order-on-attributes]
   (let [str #(if (= % nil) "nil" (str %))
@@ -107,8 +107,9 @@
 	    " "])
 	 "\n"]))))
 
-(defmethod print-method Context [ctx out]
-  (.write out (print-context ctx sort-by-second sort-by-second)))
+(defmethod print-method Context [ctx, ^java.io.Writer out]
+  (.write out
+          (print-context ctx sort-by-second sort-by-second)))
 
 ;;;
 

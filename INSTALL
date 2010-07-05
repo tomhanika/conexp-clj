@@ -18,8 +18,9 @@ Now switch in the source directory of conexp-clj and run
 
   $ lein deps
 
-This will download any missing jar files needed for conexp-clj to run,
-except for one (G.jar), which you have to copy manually
+This will download any missing jar files needed for conexp-clj to
+run. If you want to use the GUI you need to copy one extra library
+(G.jar) by hand:
 
   $ cp stuff/libs/*.jar lib
 

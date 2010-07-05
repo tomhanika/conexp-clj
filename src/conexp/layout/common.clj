@@ -13,21 +13,9 @@
 	conexp.layout.layered
 	[conexp.layout.base :exclude (order)]))
 
-(ns-doc
- "Implements common layout algorithm.")
-
+(ns-doc "Implements common layout algorithm.")
 
 ;;; inf-irreducible additive layout
-
-(defn- vector-plus
-  "Implements pointwise plus for vectors."
-  [vec1 vec2]
-  (vec (map + vec1 vec2)))
-
-(defn- vector-minus
-  "Implements pointwise minus for vectors."
-  [vec1 vec2]
-  (vec (map - vec1 vec2)))
 
 (defn placement-by-initials
   "Computes placement for all elements by of some positions of some
@@ -37,7 +25,9 @@
 	      (get placement v
 		   (reduce (fn [p w]
 			     (if ((order lattice) [v w])
-			       (vector-plus p (vector-minus (placement w) top))
+                               (let [p-w (placement w)]
+                                 [(+ (first p) (- (first p-w) (first top))),
+                                  (+ (second p) (- (second p-w) (second top)))])
 			       p))
 			   top
 			   (keys placement))))]
@@ -49,19 +39,21 @@
   the resulting additive layout."
   [lattice layout]
   (let [old-positions (positions layout),
-	top-pos  (old-positions (lattice-one lattice)),
-	inf-irr  (set (inf-irreducibles layout)),
-	elements (filter inf-irr (top-down-elements-in-layout layout))]
+	top-pos       (old-positions (lattice-one lattice)),
+	inf-irr       (set (inf-irreducibles layout)),
+	elements      (filter inf-irr (top-down-elements-in-layout layout))]
     (loop [positions (select-keys old-positions inf-irr),
-	   nodes elements]
+	   nodes     elements]
       (if (empty? nodes)
 	(update-positions layout (placement-by-initials lattice top-pos positions))
-	(let [next (first nodes),
+	(let [next          (first nodes),
 	      [x-old y-old] (positions next),
 	      [x-new y-new] (reduce (fn [p w]
 				      (if (and ((order lattice) [next w])
 					       (not= next w))
-					(vector-plus p (vector-minus (positions w) top-pos))
+                                        (let [p-w (positions w)]
+                                          [(+ (first p) (- (first p-w) (first top-pos))),
+                                           (+ (second p) (- (second p-w) (second top-pos)))])
 					p))
 				    top-pos
 				    (keys positions))]

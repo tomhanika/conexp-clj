@@ -10,8 +10,7 @@
   (:require conexp.base
 	    conexp.fca
 	    conexp.io
-	    conexp.layout
-	    conexp.graphics)
+	    conexp.layout)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 (conexp.base/ns-doc
@@ -22,8 +21,7 @@
 (def *conexp-namespaces* '[conexp.base
 			   conexp.fca
 			   conexp.io
-			   conexp.layout
-			   conexp.graphics])
+			   conexp.layout])
 
 (dorun (map immigrate *conexp-namespaces*))
 

@@ -31,17 +31,17 @@
 
 (defn positions
   "Return positions map of layout."
-  [layout]
+  [^Layout layout]
   (.positions layout))
 
 (defn connections
   "Returns set of connections of layout."
-  [layout]
+  [^Layout layout]
   (.connections layout))
 
 (defn- information
   "Returns stored additional information of layout."
-  [layout]
+  [^Layout layout]
   (.information layout))
 
 (defn update-positions
@@ -50,14 +50,14 @@
   [layout new-positions]
   (Layout. new-positions (connections layout) (information layout)))
 
-(defmethod print-method Layout [layout out]
+(defmethod print-method Layout [layout, ^java.io.Writer out]
   (.write out
-	  (with-out-str
-	    (println "Layout")
-	    (println "Positions")
-	    (pprint (positions layout))
-	    (println "Connections")
-	    (pprint (connections layout)))))
+	  ^String (with-out-str
+                    (println "Layout")
+                    (println "Positions")
+                    (pprint (positions layout))
+                    (println "Connections")
+                    (pprint (connections layout)))))
 
 (defn nodes
   "Returns all nodes of a given layout."

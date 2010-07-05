@@ -6,9 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.graphics.scenes
+(ns conexp.contrib.draw.scenes
   (:use conexp.base
-	conexp.graphics.util)
+	conexp.contrib.draw.util)
   (:import [java.awt Color Canvas]
 	   [java.awt.event ComponentListener]
 	   [java.io File]
