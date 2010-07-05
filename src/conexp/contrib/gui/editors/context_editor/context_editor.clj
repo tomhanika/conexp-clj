@@ -217,6 +217,24 @@
       (swap! panels assoc panel widget)
       panel))
 
+  (defn clone-context-view-from-panel
+    "Creates another view from the view represented by the given panel,
+     and returns the root panel of the new view."
+    [panel]
+    (let [old-widget (@panels panel),
+          new-widget (make-context-editor-widget (make-context #{} #{} [])),
+          new-panel (get-widget new-widget),
+          old-ectx (get-ectx old-widget),
+          old-table (get-table old-widget),
+          old-col-permutator (get-column-index-permutator old-table)
+          old-row-permutator (get-row-index-permutator old-table)
+          new-table (get-table new-widget)]
+      (swap! panels assoc new-panel new-widget)
+      (add-widget old-ectx new-widget)
+      (set-column-index-permutator new-table old-col-permutator)
+      (set-row-index-permutator new-table old-row-permutator)
+      new-panel))
+
   (defn get-context-from-panel
     "Returns the context that is currently associated with the context
     editor widget represented by the given panel."

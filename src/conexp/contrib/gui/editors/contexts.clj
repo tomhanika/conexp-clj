@@ -49,6 +49,14 @@
 	       (make-context-editor thing)
 	       (str "Context " path)))))
 
+(defn- clone-context-and-go
+  "Loads context with given loader and adds a new tab with a context-editor."
+  [frame]
+  (add-tab frame
+    (clone-context-view-from-panel (current-tab frame))
+    (str (current-tab-title frame) "*")))
+  
+
 (defn- random-context-and-go
   "Creates a random context and adds a new tab with a context-editor."
   [frame]
@@ -102,6 +110,8 @@
                                                                     (fn [ctx path]
                                                                       (write-context format ctx path))))})
                                  (list-context-formats)))},
+             {:name "Clone Current Context View"
+              :handler clone-context-and-go},
              {}
              {:name "Show Concept Lattice",
               :handler show-lattice-and-go}]}

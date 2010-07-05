@@ -40,7 +40,10 @@
 
 (defn set-ectx
   "Sets the editable-context that is currently associated with the
-   context-editor-widget to the second parameter."
+   context-editor-widget to the second parameter.
+   This one only updates the reference, if you want to add another
+   widget to an existing context, YOU PROBABLY WANT TO USE add-widget
+   INSTEAD, which will also update the viewed table etc."
   [widget e-ctx]
   (assert (instance? context-editor-widget widget))
   (dosync (ref-set (:e-ctx widget) e-ctx)))

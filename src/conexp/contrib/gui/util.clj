@@ -362,6 +362,7 @@
 	(.add tabpane pane)
 	(let [index (.indexOfComponent tabpane pane)]
 	  (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
+          (.setTitleAt tabpane index title)
 	  (.setSelectedIndex tabpane index)))
       (.validate frame)))
   ([frame pane]
@@ -395,6 +396,15 @@
     (if (= -1 index)
       nil
       (.getComponentAt tabpane index))))
+
+(defn current-tab-title
+  "Returns the currently selected tab's title and nil if there is none."
+  [frame]
+  (let [#^JTabbedPane tabpane (get-tabpane frame),
+	index (.getSelectedIndex tabpane)]
+    (if (= -1 index)
+      nil
+      (.getTitleAt tabpane index))))
 
 ;; remove-tabs
 ;; find-tabs-by
