@@ -139,7 +139,28 @@
        keep-both-img (get-image-icon-or-string "context-editor/keep-both.png" "8<")
        cut-attribute-img (get-image-icon-or-string "context-editor/cut-attribute.png" "-A")
        cut-object-img (get-image-icon-or-string "context-editor/cut-object.png" "-O")
-       cut-both-img (get-image-icon-or-string "context-editor/cut-both.png" "-OA")]
+       cut-both-img (get-image-icon-or-string "context-editor/cut-both.png" "-OA")
+       clarify-attribute-img (get-image-icon-or-string "context-editor/clarify-attribute.png"
+                                "cA")
+       clarify-object-img (get-image-icon-or-string "context-editor/clarify-object.png" "cO")
+       clarify-both-img (get-image-icon-or-string "context-editor/clarify-both.png" "cOA")
+       reduce-attribute-img (get-image-icon-or-string "context-editor/reduce-attribute.png"
+                                "rA")
+       reduce-object-img (get-image-icon-or-string "context-editor/reduce-object.png" "rO")
+       reduce-both-img (get-image-icon-or-string "context-editor/reduce-both.png" "rOA")
+       transitiy-closure-img (get-image-icon-or-string "context-editor/transitive-closure.png"
+                               "trans")
+       dual-context-img (get-image-icon-or-string "context-editor/dual-context.png" "dual")
+       inverse-context-img (get-image-icon-or-string "context-editor/inverse-context.png" "inv")
+       sum-img (get-image-icon-or-string "context-editor/sum.png" "sum")
+       product-img (get-image-icon-or-string "context-editor/product.png" "prod")
+       semi-product-img (get-image-icon-or-string "context-editor/semi-product.png" "semi")
+       xia-product-img (get-image-icon-or-string "context-editor/xia-product.png" "Xia")
+       union-img (get-image-icon-or-string "context-editor/union.png" "union")
+       intersection-img (get-image-icon-or-string "context-editor/intersection.png" "inter")
+       composition-img (get-image-icon-or-string "context-editor/composition.png" "comp")
+       apposition-img (get-image-icon-or-string "context-editor/appositon.png" "ap")
+       subposition-img (get-image-icon-or-string "context-editor/subpositon.png" "sub")]
 
 
   (defn get-current-second-operand-context
@@ -201,7 +222,6 @@
                            :tip  "Use a copy of this context as second operand",
                            :no-return #(reset! second-operand (get-context (get-ectx %))) }
                         )
-        (add-separator)
         (add-button-box {:name add-attribute-img,
                          :tip "Adds a new attribute column to the context",
                          :f add-new-attribute}
@@ -228,18 +248,36 @@
                         {:name cut-both-img,
                          :tip "Remove all selected rows and columns from the context",
                          :f cut-objects-attributes})
-        (add-button- "Clarify attributes" (cc-1 clarify-attributes))
-        (add-button- "Clarify objects"    (cc-1 clarify-objects))
-        (add-button- "Clarify context"    (cc-1 clarify-context))
-        (add-separator)
-        (add-button- "Reduce attributes"  (cc-1 reduce-context-attributes))
-        (add-button- "Reduce objects"     (cc-1 reduce-context-objects))
-        (add-button- "Reduce context"     (cc-1 reduce-context))
-        (add-separator)
-        (add-button- "Transitive closure" (cc-1 context-transitive-closure))
-        (add-separator)
-        (add-button- "Dual context"    (cc-1 dual-context)) ;todo: keep order!
-        (add-button- "Inverse context" (cc-1 invert-context))
+        (add-button-box {:name clarify-attribute-img,
+                         :tip "Clarify the attribute columns of the context",
+                         :f (cc-1 clarify-attributes)}
+                        {:name clarify-object-img,
+                         :tip "Clarify the object rows of the context",
+                         :f (cc-1 clarify-objects)}
+                        {:name clarify-both-img,
+                         :tip "Clarify both objects and attributes of the context",
+                         :f (cc-1 clarify-context)}
+                        {:spacer 3}
+                        {:name reduce-attribute-img,
+                         :tip "Reduce the attribute columns of the context",
+                         :f (cc-1 reduce-context-attributes)}
+                        {:name reduce-object-img,
+                         :tip "Reduce the object rows of the context",
+                         :f (cc-1 reduce-context-objects)}
+                        {:name reduce-both-img,
+                         :tip "Reduce both objects and attributes of the context",
+                         :f (cc-1 reduce-context)})
+        (add-button-box {:name transitiy-closure-img,
+                         :tip "Apply transitive closure to the context",
+                         :f (cc-1 context-transitive-closure)}
+                        {:spacer 3}
+                        {:name dual-context-img,
+                         :tip "Flip objects and attributes",
+                         :f (cc-1 dual-context)}
+                        {:name inverse-context-img,
+                         :tip "Flip all crosses",
+                         :f (cc-1 invert-context)})
+
         (add-separator)
         (add-button- "Context sum"          (cc-2 context-sum))
         (add-button- "Context product"      (cc-2 context-product))
