@@ -134,9 +134,9 @@
        second-op-img (get-image-icon-or-string "context-editor/second-op.png" "M+")
        add-attribute-img (get-image-icon-or-string "context-editor/add-attribute.png" "+A")
        add-object-img (get-image-icon-or-string "context-editor/add-object.png" "+O")
-       keep-attribute-img (get-image-icon-or-string "context-editor/keep-attribute.png" "8< A")
-       keep-object-img (get-image-icon-or-string "context-editor/keep-object.png" "8< O")
-       keep-both-img (get-image-icon-or-string "context-editor/keep-both.png" "8<")
+       keep-attribute-img (get-image-icon-or-string "context-editor/keep-attribute.png" "8<A")
+       keep-object-img (get-image-icon-or-string "context-editor/keep-object.png" "8<O")
+       keep-both-img (get-image-icon-or-string "context-editor/keep-both.png" "8<OA")
        cut-attribute-img (get-image-icon-or-string "context-editor/cut-attribute.png" "-A")
        cut-object-img (get-image-icon-or-string "context-editor/cut-object.png" "-O")
        cut-both-img (get-image-icon-or-string "context-editor/cut-both.png" "-OA")
@@ -277,19 +277,35 @@
                         {:name inverse-context-img,
                          :tip "Flip all crosses",
                          :f (cc-1 invert-context)})
-
-        (add-separator)
-        (add-button- "Context sum"          (cc-2 context-sum))
-        (add-button- "Context product"      (cc-2 context-product))
-        (add-button- "Context semiproduct"  (cc-2 context-semiproduct))
-        (add-button- "Context Xia product"  (cc-2 context-xia-product))
-        (add-button- "Context union"        (cc-2 context-union))
-        (add-button- "Context intersection" (cc-2 context-intersection))
-        (add-button- "Context composition"  (cc-2 context-composition))
-        (add-button- "Context apposition"   (cc-2 context-apposition))
-        (add-button- "Context-subposition"  (cc-2 context-subposition)))
-;;      (.. root getContentPane (add (get-widget toolbar) BorderLayout/PAGE_START))
-;;      (.. root getContentPane (add (get-widget table)))
+        (add-button-box {:name sum-img,
+                         :tip "Calculate the context sum of this context with the second operand context"
+                         :f (cc-2 context-sum)}
+                        {:name product-img,
+                         :tip "Calculate the context product of this context with the second operand context"
+                         :f (cc-2 context-product)}
+                        {:name semi-product-img,
+                         :tip "Calculate the context semiproduct of this context with the second operand context"
+                         :f (cc-2 context-semiproduct)}
+                        {:name xia-product-img,
+                         :tip "Calculate the context Xia product of this context with the second operand context"
+                         :f (cc-2 context-xia-product)}
+                        {:spacer 3}
+                        {:name union-img,
+                         :tip "Calculate the context union of this context with the second operand context"
+                         :f (cc-2 context-union)}
+                        {:name intersection-img,
+                         :tip "Calculate the context intersection of this context with the second operand context"
+                         :f (cc-2 context-intersection)}
+                        {:spacer 3}
+                        {:name composition-img,
+                         :tip "Calculate the context composition of this context with the second operand context"
+                         :f (cc-2 context-composition)}
+                        {:name apposition-img,
+                         :tip "Calculate the context apposition of this context with the second operand context"
+                         :f (cc-2 context-apposition)}
+                        {:name subposition-img,
+                         :tip "Calculate the context subposition of this context with the second operand context"
+                         :f (cc-2 context-subposition)}))
       (set-divider-location root 86)
       widget))
 

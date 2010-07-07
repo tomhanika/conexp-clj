@@ -209,7 +209,7 @@
                                orientation)),
         
         widget     (toolbar-control. toolbar toolbar)
-        layout     (FlowLayout. FlowLayout/LEFT 5 1)]
+        layout     (FlowLayout. FlowLayout/LEFT 5 3)]
     (.setLayout toolbar layout)
     widget))
 
