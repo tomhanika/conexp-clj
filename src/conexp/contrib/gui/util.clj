@@ -25,6 +25,19 @@
 	clojure.contrib.swing-utils)
   (:require [clojure.contrib.string :as string]))
 
+;;; return res path for images etc...
+
+(let [ all-paths (string/split #":" (System/getProperty "java.class.path"))
+       cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)) 
+                   all-paths) 
+       res-root (if (empty? cclj-path) "./" 
+                  (str (re-find #".*/" (first cclj-path)) "../"))
+       res-path (str res-root "res/")]
+  (defn get-resource-file-path
+    "for a given file name, returns the file name with the current resource path
+     before it"
+    [res]
+    (str res-path res)))
 
 ;;; Helper functions
 
