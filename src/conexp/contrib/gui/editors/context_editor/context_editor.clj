@@ -16,7 +16,7 @@
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts
         conexp.contrib.gui.editors.context-editor.context-editor-control)
-  (:import [javax.swing JRootPane KeyStroke]
+  (:import [javax.swing JRootPane KeyStroke Box]
            [java.awt BorderLayout]
            [java.awt.event KeyEvent ActionEvent])
   (:import conexp.contrib.gui.editors.context-editor.context-editor-control.context-editor-widget))
@@ -126,7 +126,12 @@
 
 ;;; Creating context editor widgets
 
-(let [second-operand (atom nil)]
+(let [ second-operand (atom nil)
+       copy-img (get-image-icon-or-string "context-editor/copy.png" "C")
+       paste-img (get-image-icon-or-string "context-editor/paste.png" "P")
+       cut-img (get-image-icon-or-string "context-editor/cut.png" "X")
+       cut-img (get-image-icon-or-string "context-editor/cut.png" "X")
+       second-op-img (get-image-icon-or-string "context-editor/second-op.png" "M+")]
 
   (defn get-current-second-operand-context
     "Returns the current second operand."
@@ -149,23 +154,41 @@
                                                 ActionEvent/CTRL_MASK false),
           add-button- (fn [toolbar text f & args]
                         (add-button toolbar
-                                    (doto (make-button text)
-                                      (set-handler #(set-context @ectx (f widget))))))]
+                                    (doto (make-tooltip-button "no-tip" text)
+                                      (set-handler #(set-context @ectx (f widget))))))
+          
+          add-button-box (fn [toolbar & buttonlist]
+                           (let [box (Box/createHorizontalBox)]
+                             (doseq [button buttonlist]
+                               (let [ bctrl (make-tooltip-button (:tip button) (:name button))
+                                      handler #(do
+                                                 (if (contains? button :no-return)
+                                                   ((:no-return button) widget))
+                                                 (if (contains? button :f)
+                                                   (set-context @ectx ((:f button) widget))))]
+                                 (set-handler bctrl handler)
+                                 ;;(add-button toolbar bctrl)))
+                                 (.add box (get-widget bctrl))))
+                             (add-button toolbar box)))]
       (.. root getContentPane (add (get-widget toolbar) BorderLayout/LINE_START))
       (.. root getContentPane (add (get-widget table)))
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
       (add-widget e-ctx widget)
       (doto toolbar
         (set-floatable false)
-        (add-button- "Copy"  #(do (copy-to-clipboard (get-table %))
-                                  (get-context (get-ectx %))))
-        (add-button- "Cut"   #(do (cut-to-clipboard (get-table %))
-                                  (get-context (get-ectx %))))
-        (add-button- "Paste" #(do (paste-from-clipboard (get-table %))
-                                  (get-context (get-ectx %))))
-        (add-button- "Second Operand"
-                     #(do (reset! second-operand (get-context (get-ectx %)))
-                          (get-context (get-ectx %))))
+        (add-button-box  { :name copy-img,
+                           :tip  "Copy the selected cells to clipboard",
+                           :no-return #(copy-to-clipboard (get-table %)) }
+                         { :name cut-img,
+                           :tip  "Cut the selected cells to clipboard",
+                           :no-return #(cut-to-clipboard (get-table %)) }
+                         { :name paste-img,
+                           :tip  "Paste the clipboard to the selected cell and its down-right neighbors",
+                           :no-return #(paste-from-clipboard (get-table %)) }
+                         { :name second-op-img,
+                           :tip  "Use a copy of this context as second operand",
+                           :no-return #(reset! second-operand (get-context (get-ectx %))) }
+                        )
         (add-separator)
         (add-button- "New attribute" add-new-attribute)
         (add-button- "New object"    add-new-object)

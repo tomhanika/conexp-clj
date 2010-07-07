@@ -10,7 +10,7 @@
 
 (ns conexp.contrib.gui.editors.context-editor.widgets
   (:import [javax.swing JSplitPane JScrollPane JOptionPane JToolBar JButton]
-           [java.awt Toolkit Dimension]
+           [java.awt Toolkit Dimension Insets]
            [java.awt.event ActionListener]
            [java.awt.datatransfer DataFlavor StringSelection])
   (:use clojure.contrib.swing-utils
@@ -130,8 +130,18 @@
   [name]
   (let [jbutton (JButton. name),
         widget  (button. jbutton)]
+    (.setMargin jbutton (Insets. 0 0 0 0))
     widget))
 
+(defn-swing make-tooltip-button
+  "Creates a managed button object with tooltip."
+  [tooltip name]
+  (let [jbutton (JButton. name),
+        widget  (button. jbutton)]
+    (doto jbutton
+      (.setToolTipText tooltip)
+      (.setMargin (Insets. 0 0 0 0)))
+    widget))
 
 ;;;  Split Pane
 
@@ -172,7 +182,7 @@
                     orientation)))
 
 (defn-swing add-button
-  "Adds a button to the toolbar."
+  "Adds a button (or any other component) to the toolbar."
   [otoolbar button]
   (assert (keyword-isa? otoolbar toolbar-control))
   (.add (get-control otoolbar)

@@ -12,11 +12,12 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-	                AbstractButton SwingConstants JFileChooser JOptionPane]
+	                AbstractButton SwingConstants JFileChooser JOptionPane
+                        ImageIcon]
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [javax.imageio ImageIO]
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color
-	             Graphics Graphics2D BasicStroke FlowLayout]
+	             Graphics Graphics2D BasicStroke FlowLayout MediaTracker]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil,
@@ -38,6 +39,7 @@
      before it"
     [res]
     (str res-path res)))
+
 
 ;;; Helper functions
 
@@ -120,6 +122,14 @@
   (if (vector? doc)
     `(defn ~name ~doc (do-swing-return ~params ~@body))
     `(defn ~name ~doc ~params (do-swing-return ~@body))))
+
+(defn-swing get-image-icon-or-string
+  "returns either the image-icon for the given resource or the given alternative
+   string"
+  [res alt]
+  (let [img (ImageIcon. (get-resource-file-path res))]
+    (if (= (.getImageLoadStatus img) MediaTracker/COMPLETE)
+      img alt)))
 
 
 ;;; widgets
