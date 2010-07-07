@@ -10,7 +10,7 @@
 
 (ns conexp.contrib.gui.editors.context-editor.widgets
   (:import [javax.swing JSplitPane JScrollPane JOptionPane JToolBar JButton]
-           [java.awt Toolkit Dimension Insets]
+           [java.awt Toolkit Dimension Insets FlowLayout]
            [java.awt.event ActionListener]
            [java.awt.datatransfer DataFlavor StringSelection])
   (:use clojure.contrib.swing-utils
@@ -207,10 +207,10 @@
   (let [toolbar    (JToolBar. ({:horiz JToolBar/HORIZONTAL
                                 :vert JToolBar/VERTICAL}
                                orientation)),
-        scrollpane (JScrollPane. toolbar
-                                 JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
-                                 JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
-        widget     (toolbar-control. scrollpane toolbar)]
+        
+        widget     (toolbar-control. toolbar toolbar)
+        layout     (FlowLayout. FlowLayout/LEFT 5 1)]
+    (.setLayout toolbar layout)
     widget))
 
 ;;;

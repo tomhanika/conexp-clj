@@ -16,7 +16,7 @@
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts
         conexp.contrib.gui.editors.context-editor.context-editor-control)
-  (:import [javax.swing JRootPane KeyStroke Box]
+  (:import [javax.swing JRootPane KeyStroke Box JFrame]
            [java.awt BorderLayout]
            [java.awt.event KeyEvent ActionEvent])
   (:import conexp.contrib.gui.editors.context-editor.context-editor-control.context-editor-widget))
@@ -131,7 +131,16 @@
        paste-img (get-image-icon-or-string "context-editor/paste.png" "P")
        cut-img (get-image-icon-or-string "context-editor/cut.png" "X")
        cut-img (get-image-icon-or-string "context-editor/cut.png" "X")
-       second-op-img (get-image-icon-or-string "context-editor/second-op.png" "M+")]
+       second-op-img (get-image-icon-or-string "context-editor/second-op.png" "M+")
+       add-attribute-img (get-image-icon-or-string "context-editor/add-attribute.png" "+A")
+       add-object-img (get-image-icon-or-string "context-editor/add-object.png" "+O")
+       keep-attribute-img (get-image-icon-or-string "context-editor/keep-attribute.png" "8< A")
+       keep-object-img (get-image-icon-or-string "context-editor/keep-object.png" "8< O")
+       keep-both-img (get-image-icon-or-string "context-editor/keep-both.png" "8<")
+       cut-attribute-img (get-image-icon-or-string "context-editor/cut-attribute.png" "-A")
+       cut-object-img (get-image-icon-or-string "context-editor/cut-object.png" "-O")
+       cut-both-img (get-image-icon-or-string "context-editor/cut-both.png" "-OA")]
+
 
   (defn get-current-second-operand-context
     "Returns the current second operand."
@@ -142,36 +151,39 @@
     "Creates a control for editing contexts, starting with the initial
     context ctx."
     [ctx]
-    (let [root    (JRootPane.),
-          table   (doto (make-table-control)
+    (let [table   (doto (make-table-control)
                     (set-row-count 1)
                     (set-column-count 1)),
           ectx    (ref (make-editable-context ctx)),
-          toolbar (make-toolbar-control :vert)
+          toolbar (make-toolbar-control :horiz)
+          root    (make-split-pane :vert toolbar table)
           e-ctx   @ectx,
-          widget  (context-editor-widget. root table toolbar ectx),
+          widget  (context-editor-widget. (get-widget root) table toolbar ectx),
           keystroke-fill  (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
                                                 ActionEvent/CTRL_MASK false),
           add-button- (fn [toolbar text f & args]
                         (add-button toolbar
                                     (doto (make-tooltip-button "no-tip" text)
                                       (set-handler #(set-context @ectx (f widget))))))
+
+          add-separator (fn [toolbar]
+                          (add-button toolbar (Box/createVerticalStrut 3)))
           
           add-button-box (fn [toolbar & buttonlist]
                            (let [box (Box/createHorizontalBox)]
                              (doseq [button buttonlist]
-                               (let [ bctrl (make-tooltip-button (:tip button) (:name button))
-                                      handler #(do
-                                                 (if (contains? button :no-return)
-                                                   ((:no-return button) widget))
-                                                 (if (contains? button :f)
-                                                   (set-context @ectx ((:f button) widget))))]
-                                 (set-handler bctrl handler)
-                                 ;;(add-button toolbar bctrl)))
-                                 (.add box (get-widget bctrl))))
-                             (add-button toolbar box)))]
-      (.. root getContentPane (add (get-widget toolbar) BorderLayout/LINE_START))
-      (.. root getContentPane (add (get-widget table)))
+                               (if (contains? button :spacer)
+                                 (.add box (Box/createHorizontalStrut (:spacer button)))
+                                 (let [ bctrl (make-tooltip-button (:tip button) (:name button))
+                                        handler #(do
+                                                   (if (contains? button :no-return)
+                                                     ((:no-return button) widget))
+                                                   (if (contains? button :f)
+                                                     (set-context @ectx ((:f button) widget))))]
+                                   (set-handler bctrl handler)
+                                   ;;(add-button toolbar bctrl)))
+                                   (.add box (get-widget bctrl)))))
+                             (.add (get-control toolbar) box)))]
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
       (add-widget e-ctx widget)
       (doto toolbar
@@ -190,17 +202,32 @@
                            :no-return #(reset! second-operand (get-context (get-ectx %))) }
                         )
         (add-separator)
-        (add-button- "New attribute" add-new-attribute)
-        (add-button- "New object"    add-new-object)
-        (add-separator)
-        (add-button- "Keep attributes" keep-attributes)
-        (add-button- "Keep objects"    keep-objects)
-        (add-button- "Keep both"       keep-objects-attributes)
-        (add-separator)
-        (add-button- "Cut attributes" cut-attributes)
-        (add-button- "Cut objects"    cut-objects)
-        (add-button- "Cut both"       cut-objects-attributes)
-        (add-separator)
+        (add-button-box {:name add-attribute-img,
+                         :tip "Adds a new attribute column to the context",
+                         :f add-new-attribute}
+                        {:name add-object-img,
+                         :tip "Adds a new object row to the context",
+                         :f add-new-object}
+                        {:spacer 3}
+                        {:name keep-attribute-img,
+                         :tip "Remove all non-selected attribute columns from the context",
+                         :f keep-attributes}
+                        {:name keep-object-img,
+                         :tip "Remove all non-selected object rows from the context",
+                         :f keep-objects}
+                        {:name keep-both-img,
+                         :tip "Remove all non-selected rows and columns from the context",
+                         :f keep-objects-attributes}
+                        {:spacer 3}
+                        {:name cut-attribute-img,
+                         :tip "Remove all selected attribute columns from the context",
+                         :f cut-attributes}
+                        {:name cut-object-img,
+                         :tip "Remove all selected object rows from the context",
+                         :f cut-objects}
+                        {:name cut-both-img,
+                         :tip "Remove all selected rows and columns from the context",
+                         :f cut-objects-attributes})
         (add-button- "Clarify attributes" (cc-1 clarify-attributes))
         (add-button- "Clarify objects"    (cc-1 clarify-objects))
         (add-button- "Clarify context"    (cc-1 clarify-context))
@@ -223,6 +250,9 @@
         (add-button- "Context composition"  (cc-2 context-composition))
         (add-button- "Context apposition"   (cc-2 context-apposition))
         (add-button- "Context-subposition"  (cc-2 context-subposition)))
+;;      (.. root getContentPane (add (get-widget toolbar) BorderLayout/PAGE_START))
+;;      (.. root getContentPane (add (get-widget table)))
+      (set-divider-location root 86)
       widget))
 
   nil)
