@@ -52,13 +52,12 @@
 ;;; Types
 
 (defmacro with-doubles
-  ""
+  "Defines all vars to be double valued in the evaluation of body."
   [vars & body]
   `(let ~(vec (mapcat (fn [var]
 			`[~var (double ~var)])
 		      vars))
      ~@body))
-		       
 
 ;;; Dirty Math Tricks
 
