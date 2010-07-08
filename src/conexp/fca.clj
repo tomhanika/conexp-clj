@@ -12,7 +12,8 @@
 	    conexp.fca.implications
 	    conexp.fca.association-rules
 	    conexp.fca.exploration
-	    conexp.fca.lattices)
+	    conexp.fca.lattices
+            conexp.fca.more)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
@@ -22,7 +23,8 @@
 	   'conexp.fca.implications
 	   'conexp.fca.association-rules
 	   'conexp.fca.exploration
-	   'conexp.fca.lattices)
+	   'conexp.fca.lattices
+           'conexp.fca.more)
 
 ;;;
 
