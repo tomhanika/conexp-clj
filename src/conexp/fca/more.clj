@@ -121,9 +121,24 @@
 (defn all-bonds
   "Returns all bonds between ctx-1 and ctx-2."
   [ctx-1 ctx-2]
-  (map #(make-context (objects ctx-1) (attributes ctx-2) %)
-       (all-closed-sets (cross-product (objects ctx-1) (attributes ctx-2))
-                        #(incidence (smallest-bond ctx-1 ctx-2 %)))))
+  (let [G-1 (objects ctx-1),
+        M-2 (attributes ctx-2),
+        impls-1 (set-of (make-implication (cross-product A #{m})
+                                          (cross-product B #{m}))
+                        [impl (stem-base (dual-context ctx-1)),
+                         :let [A (premise impl),
+                               B (conclusion impl)],
+                         m M-2]),
+        impls-2 (set-of (make-implication (cross-product #{g} A)
+                                          (cross-product #{g} B))
+                        [impl (stem-base ctx-2),
+                         :let [A (premise impl),
+                               B (conclusion impl)],
+                         g G-1]),
+        clop (clop-by-implications (union impls-1 impls-2))]
+    (map #(make-context (objects ctx-1) (attributes ctx-2) %)
+         (all-closed-sets (cross-product (objects ctx-1) (attributes ctx-2))
+                          clop))))
 
 ;;; Shared Intents (by Stefan Borgwardt)
 
