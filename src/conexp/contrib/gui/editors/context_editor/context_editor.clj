@@ -130,7 +130,6 @@
        copy-img (get-image-icon-or-string "context-editor/copy.png" "C")
        paste-img (get-image-icon-or-string "context-editor/paste.png" "P")
        cut-img (get-image-icon-or-string "context-editor/cut.png" "X")
-       cut-img (get-image-icon-or-string "context-editor/cut.png" "X")
        second-op-img (get-image-icon-or-string "context-editor/second-op.png" "M+")
        add-attribute-img (get-image-icon-or-string "context-editor/add-attribute.png" "+A")
        add-object-img (get-image-icon-or-string "context-editor/add-object.png" "+O")
@@ -158,9 +157,10 @@
        xia-product-img (get-image-icon-or-string "context-editor/xia-product.png" "Xia")
        union-img (get-image-icon-or-string "context-editor/union.png" "union")
        intersection-img (get-image-icon-or-string "context-editor/intersection.png" "inter")
+
+       apposition-img (get-image-icon-or-string "context-editor/apposition.png" "ap")
        composition-img (get-image-icon-or-string "context-editor/composition.png" "comp")
-       apposition-img (get-image-icon-or-string "context-editor/appositon.png" "ap")
-       subposition-img (get-image-icon-or-string "context-editor/subpositon.png" "sub")]
+       subposition-img (get-image-icon-or-string "context-editor/subposition.png" "sub")]
 
 
   (defn get-current-second-operand-context
