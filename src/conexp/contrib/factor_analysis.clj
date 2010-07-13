@@ -107,7 +107,35 @@
                  (conj F [C D])))
         (clear-factors F)))))
 
-;;; Many Valued (with t-norms, TODO)
+;;; Many Valued (with t-norms)
+
+(defmulti t-norm
+  "Returns the t-norm and it's residuum corresponding to the name given."
+  {:arglists '[(t-norm-name)]}
+  identity)
+
+(defmethod t-norm :łukasiewicz
+  [_]
+  [(fn [x y] (max 0 (+ x y -1))),
+   (fn [x y] (min 1 (+ 1 (- x) y)))])
+
+(defmethod t-norm :lukasiewicz
+  [_]
+  (t-norm :łukasiewicz))
+
+(defmethod t-norm :gödel
+  [_]
+  [(fn [x y] (min x y)),
+   (fn [x y] y)])
+
+(defmethod t-norm :goedel
+  [_]
+  (t-norm :gödel))
+
+(defmethod t-norm :product
+  [_]
+  [(fn [x y] (* x y)),
+   (fn [x y] (/ y x))])
 
 ;;;
 
