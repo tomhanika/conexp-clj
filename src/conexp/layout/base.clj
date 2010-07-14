@@ -165,7 +165,7 @@
   the lower label."
   [layout]
   (if-not (concept-lattice-layout? layout)
-    (hashmap-by-function (fn [x] [x ""]) (nodes layout))
+    (map-by-fn (fn [x] [x ""]) (nodes layout))
     (let [uppers (upper-neighbours layout),
 	  lowers (lower-neighbours layout)]
       (into {} (for [node (nodes layout)]

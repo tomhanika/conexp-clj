@@ -133,7 +133,7 @@
   (let [symbols     (defined-concepts tbox)]
     (when-not (some #(= target %) symbols)
       (illegal-argument "Target given to uniquify-ttp does not occur in the defined concepts of the given tbox."))
-    (let [new-symbols (hashmap-by-function (fn [_] (gensym)) symbols)]
+    (let [new-symbols (map-by-fn (fn [_] (gensym)) symbols)]
       [(make-tbox (tbox-language tbox)
                   (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
                              [(new-symbols sym)

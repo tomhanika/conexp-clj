@@ -31,7 +31,7 @@
 			       p))
 			   top
 			   (keys placement))))]
-    (hashmap-by-function pos (base-set lattice))))
+    (map-by-fn pos (base-set lattice))))
 
 (defn to-inf-additive-layout
   "Returns an infimum additive layout from given layout, taking the
