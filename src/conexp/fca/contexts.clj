@@ -28,7 +28,7 @@
   (instance? Context thing))
 
 (defmulti objects
-  "Returns the objects of a formal context.."
+  "Returns the objects of a formal context."
   {:arglists '([context])}
   type)
 
