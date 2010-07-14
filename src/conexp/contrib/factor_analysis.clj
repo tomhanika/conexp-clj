@@ -172,7 +172,39 @@
 
 ;;;
 
+(defn fuzzy-object-derivation
+  "Computes the fuzzy derivation of the fuzzy set C of objects in
+  the given context."
+  [context C]
+  (let [inz (incidence context)]
+    (map-by-fn (fn [m]
+                 (reduce (fn [a g]
+                           (f-and a (f-impl (C g) (inz [g m]))))
+                         1
+                         (objects context)))
+               (attributes context))))
 
+(defn fuzzy-attribute-derivation
+  "Computes the fuzzy derivation of the fuzzy set D of attributes in
+  the given context."
+  [context D]
+  (let [inz (incidence context)]
+    (map-by-fn (fn [g]
+                 (reduce (fn [a m]
+                           (f-and a (f-impl (D m) (inz [g m]))))
+                         1
+                         (attributes context)))
+               (objects context))))
+
+(defn- fuzzy-oplus-a
+  ""
+  [context U D a j]
+  (let [D+ (assoc D j a),
+        D+down (fuzzy-attribute-derivation context D+),
+        D+down-up (fuzzy-object-derivation context D+up)]
+    (set-of [k l] [[k l] U,
+                   :when (>= (f-star (D+down k) (D+down-up l))
+                             ((incidence context) [k l]))])))
 
 ;;;
 
