@@ -143,16 +143,36 @@
 
 ;;;
 
+(defmacro- define-fuzzy-operator
+  "Defines a fuzzy operator, which throws an
+  UnsupportedOperationException when called. The operator is meant to be
+  rebound."
+  [name arity]
+  `(defn ~name ~(vec (map (fn [_] (gensym)) (range arity)))
+     (unsupported-operation "The operator " (str '~name) " is not rebound.")))
+
+(define-fuzzy-operator f-star 2)
+(define-fuzzy-operator f-impl 2)
+(define-fuzzy-operator f-and 2)
+(define-fuzzy-operator f-or 2)
+(define-fuzzy-operator f-neg 1)
+
 (defmacro with-fuzzy-logic
   "For the given t-norm norm and the names of the corresponding operators evaluates body in an
-  lexical environment where the fuzzy logic for norm is in effect."
-  [norm [t-strong-and t-impl t-and t-or t-neg] & body]
-  `(let [[~t-strong-and ~t-impl] (t-norm ~norm),
-         ~t-and (fn [x# y#] (~t-strong-and x# (~t-impl x# y#))),
-         ~t-or  (fn [x# y#] (~t-and (~t-impl (~t-impl x# y#) y#)
-                                    (~t-impl (~t-impl y# x#) x#))),
-         ~t-neg (fn [x#] (~t-impl x# 0))]
-     ~@body))
+  dynamic environment where the fuzzy logic for norm is in effect."
+  [norm & body]
+  `(let [[x# y#] (t-norm ~norm)]
+     (binding [~'f-star x#,
+               ~'f-impl y#,
+               ~'f-and (fn [x# y#] (f-star x# (f-impl x# y#))),
+               ~'f-or  (fn [x# y#] (f-and (f-impl (f-impl x# y#) y#)
+                                          (f-impl (f-impl y# x#) x#))),
+               ~'f-neg (fn [x#] (f-impl x# 0))]
+       ~@body)))
+
+;;;
+
+
 
 ;;;
 
