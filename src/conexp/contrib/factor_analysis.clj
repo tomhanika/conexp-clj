@@ -114,6 +114,10 @@
   {:arglists '[(t-norm-name)]}
   identity)
 
+(defmethod t-norm :default
+  [norm]
+  (illegal-argument "Norm " (str norm) " is not known."))
+
 (defmethod t-norm :łukasiewicz
   [_]
   [(fn [x y] (max 0 (+ x y -1))),
@@ -136,6 +140,19 @@
   [_]
   [(fn [x y] (* x y)),
    (fn [x y] (/ y x))])
+
+;;;
+
+(defmacro with-fuzzy-logic
+  "For the given t-norm norm and the names of the corresponding operators evaluates body in an
+  lexical environment where the fuzzy logic for norm is in effect."
+  [norm [t-strong-and t-impl t-and t-or t-neg] & body]
+  `(let [[~t-strong-and ~t-impl] (t-norm ~norm),
+         ~t-and (fn [x# y#] (~t-strong-and x# (~t-impl x# y#))),
+         ~t-or  (fn [x# y#] (~t-and (~t-impl (~t-impl x# y#) y#)
+                                    (~t-impl (~t-impl y# x#) x#))),
+         ~t-neg (fn [x#] (~t-impl x# 0))]
+     ~@body))
 
 ;;;
 
