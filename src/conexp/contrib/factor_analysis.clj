@@ -186,6 +186,8 @@
                                 (= (hashmap k) (ohashmap k))))))))))
   (hashCode [this]
     (hash-combine-hash Fuzzy-Set hashmap))
+  (toString [this]
+    (str hashmap))
   ;;
   clojure.lang.ISeq
   (first [this]
@@ -212,12 +214,19 @@
   clojure.lang.IFn
   (invoke [this thing]
     (let [result (hashmap thing)]
-      (or result 0))))
+      (or result 0)))
+  (applyTo [this seq]
+    (if (= 1 (count seq))
+      (apply hashmap seq)
+      (illegal-argument "Cannot apply fuzzy sets to non-singleton sequences."))))
 
 (defn make-fuzzy-set [map]
   (Fuzzy-Set. (select-keys map (map (fn [k] (and (< 0 (map k))
                                                  (<= (map k) 1)))
                                     (keys map)))))
+
+(defmethod print-method Fuzzy-Set [set out]
+  (.write out (str "#F" set)))
 
 ;;;
 
@@ -226,24 +235,24 @@
   the given context."
   [context C]
   (let [inz (incidence context)]
-    (map-by-fn (fn [m]
-                 (reduce (fn [a g]
-                           (f-and a (f-impl (C g) (inz [g m]))))
-                         1
-                         (objects context)))
-               (attributes context))))
+    (Fuzzy-Set. (map-by-fn (fn [m]
+                             (reduce (fn [a g]
+                                       (f-and a (f-impl (C g) (inz [g m]))))
+                                     1
+                                     (objects context)))
+                           (attributes context)))))
 
 (defn fuzzy-attribute-derivation
   "Computes the fuzzy derivation of the fuzzy set D of attributes in
   the given context."
   [context D]
   (let [inz (incidence context)]
-    (map-by-fn (fn [g]
-                 (reduce (fn [a m]
-                           (f-and a (f-impl (D m) (inz [g m]))))
-                         1
-                         (attributes context)))
-               (objects context))))
+    (Fuzzy-Set. (map-by-fn (fn [g]
+                             (reduce (fn [a m]
+                                       (f-and a (f-impl (D m) (inz [g m]))))
+                                     1
+                                     (attributes context)))
+                           (objects context)))))
 
 (defn- fuzzy-oplus-a
   ""
