@@ -206,6 +206,39 @@
                    :when (>= (f-star (D+down k) (D+down-up l))
                              ((incidence context) [k l]))])))
 
+(defn fuzzy-find-factors
+  "Implements factorization with fuzzy logic. Note that you need to
+  rebind all fuzzy operations."
+  [context]
+  (let [inz          (incidence context),
+        find-maximal (fn [U D]
+                       (max-key (fn [j a]
+                                  (count (fuzzy-oplus-a context U D a j)))
+                                (map (fn [[g m] v]
+                                       [m v])
+                                     inz)))]
+    ;;
+    (loop [U (set-of [g m] [g (objects context),
+                            m (attributes context)
+                            :when (not (zero? (inz [g m])))]),
+           F #{}]
+      (if (empty? U)
+        F
+        (let [D (loop [D {},
+                       V 0,
+                       [j a] (find-maximal U D)]
+                  (if (> (count (fuzzy-oplus-a context U D a j)) V)
+                    (recur (assoc D j a)
+                           (count (fuzzy-oplus-a context U D a j))
+                           (find-maximal U D))
+                    D)),
+              C (fuzzy-attribute-derivation context D),
+              F (conj F [C,D]),
+              U (set-of [i j] [[i j] U
+                               :when (not (<= (inz [i j])
+                                              (f-star (C i) (D j))))])]
+          (recur U F))))))
+
 ;;;
 
 nil
