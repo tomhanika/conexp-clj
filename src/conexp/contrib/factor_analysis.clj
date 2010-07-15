@@ -201,7 +201,7 @@
   [context U D a j]
   (let [D+ (assoc D j a),
         D+down (fuzzy-attribute-derivation context D+),
-        D+down-up (fuzzy-object-derivation context D+up)]
+        D+down-up (fuzzy-object-derivation context D+down)]
     (set-of [k l] [[k l] U,
                    :when (>= (f-star (D+down k) (D+down-up l))
                              ((incidence context) [k l]))])))
