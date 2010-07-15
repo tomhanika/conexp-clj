@@ -172,6 +172,55 @@
 
 ;;;
 
+(deftype Fuzzy-Set [hashmap]
+  Object
+  (equals [this other]
+    (boolean (or (identical? this other)
+                 (when (= (class this) (class other))
+                   (let [ohashmap (.hashmap ^Fuzzy-Set other)]
+                     (and (forall [k (keys hashmap)]
+                            (=> (not (zero? (hashmap k)))
+                                (= (hashmap k) (ohashmap k))))
+                          (forall [k (keys ohashmap)]
+                            (=> (not (zero? (ohashmap k)))
+                                (= (hashmap k) (ohashmap k))))))))))
+  (hashCode [this]
+    (hash-combine-hash Fuzzy-Set hashmap))
+  ;;
+  clojure.lang.ISeq
+  (first [this]
+    (first hashmap))
+  (next [this]
+    (next hashmap))
+  (more [this]
+    (if-let [n (next hashmap)]
+      n
+      ()))
+  (cons [this o]
+    (if (zero? (second o))
+      this
+      (Fuzzy-Set. (conj hashmap o))))
+  (seq [this]
+    (seq hashmap))
+  (count [this]
+    (count hashmap))
+  (empty [this]
+    (Fuzzy-Set. {}))
+  (equiv [this other]
+    (.equals ^Fuzzy-Set this other))
+  ;;
+  clojure.lang.IFn
+  (invoke [this thing]
+    (let [result (hashmap thing)]
+      (or result 0))))
+
+(defn make-fuzzy-set [map]
+  (Fuzzy-Set. (select-keys map (map (fn [k] (and (< 0 (map k))
+                                                 (<= (map k) 1)))
+                                    (keys map)))))
+
+;;;
+
 (defn fuzzy-object-derivation
   "Computes the fuzzy derivation of the fuzzy set C of objects in
   the given context."
@@ -212,24 +261,22 @@
   [context]
   (let [inz          (incidence context),
         find-maximal (fn [U D]
-                       (max-key (fn [j a]
-                                  (count (fuzzy-oplus-a context U D a j)))
+                       (max-key second
                                 (map (fn [[g m] v]
-                                       [m v])
+                                       [[m v], (count (fuzzy-oplus-a context U D v m))])
                                      inz)))]
-    ;;
     (loop [U (set-of [g m] [g (objects context),
-                            m (attributes context)
+                            m (attributes context),
                             :when (not (zero? (inz [g m])))]),
            F #{}]
       (if (empty? U)
         F
         (let [D (loop [D {},
                        V 0,
-                       [j a] (find-maximal U D)]
-                  (if (> (count (fuzzy-oplus-a context U D a j)) V)
+                       [[j a] value] (find-maximal U D)]
+                  (if (> value V)
                     (recur (assoc D j a)
-                           (count (fuzzy-oplus-a context U D a j))
+                           value
                            (find-maximal U D))
                     D)),
               C (fuzzy-attribute-derivation context D),
