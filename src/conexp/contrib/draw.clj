@@ -7,16 +7,14 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw
-  (:require conexp.contrib.draw.scenes
-            conexp.contrib.draw.scene-layouts
+  (:require conexp.contrib.draw.scene-layouts
             conexp.contrib.draw.nodes-and-connections
             conexp.contrib.draw.lattices)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 ;;;
 
-(immigrate 'conexp.contrib.draw.scenes
-           'conexp.contrib.draw.scene-layouts
+(immigrate 'conexp.contrib.draw.scene-layouts
            'conexp.contrib.draw.nodes-and-connections
            'conexp.contrib.draw.lattices)
 

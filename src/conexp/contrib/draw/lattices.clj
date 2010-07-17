@@ -377,18 +377,18 @@
       ;;
       main-panel))
 
-  (defn get-layout-from-panel
-    "If the given panel contains a lattice editor, return the
-    corresponding layout and nil otherwise."
-    [panel]
-    (when-let [scn (get @scenes panel nil)]
-      (get-layout-from-scene scn)))
-
-  (defn- get-scene-from-panel
+  (defn get-scene-from-panel
     "If the given panel contains a lattice editor, returns the
     corresponding scene, nil otherwise."
     [panel]
     (get @scenes panel nil))
+
+  (defn get-layout-from-panel
+    "If the given panel contains a lattice editor, return the
+    corresponding layout and nil otherwise."
+    [panel]
+    (when-let [scn (get-scene-from-panel panel)]
+      (get-layout-from-scene scn)))
 
   nil)
 
