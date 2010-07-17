@@ -15,7 +15,8 @@
                 with-printed-result,
                 now,
                 defvar-,
-                defmacro-)]
+                defmacro-,
+                defnk)]
 	[conexp.math.util
          :only (with-doubles)]
 	[conexp.layout
@@ -39,7 +40,8 @@
                 get-zoom-factors,
                 save-image,
                 get-canvas-from-scene,
-                show-labels)]
+                show-labels,
+                add-scrollbars)]
 	[conexp.contrib.draw.scene-layouts
          :only (draw-on-scene,
                 get-layout-from-scene,
@@ -364,7 +366,7 @@
 	(.add canvas BorderLayout/CENTER)
 	(.add hscrollbar BorderLayout/SOUTH)
 	(.add vscrollbar BorderLayout/EAST))
-      (.installScrollHandler scn hscrollbar vscrollbar)
+      (add-scrollbars scn hscrollbar vscrollbar)
 
       ;; main panel
       (doto main-panel
@@ -395,20 +397,26 @@
 
 ;;; Drawing Routine for the REPL
 
-(defn draw-lattice
-  "Draws given lattice with given layout-function on a canvas. Uses
-  *standard-layout-function* if no layout-function is given. Returns
-  the panel of the lattice editor."
-  ([lattice]
-     (draw-lattice lattice *standard-layout-function*))
-  ([lattice layout-function]
-     (let [^JFrame frame (JFrame. "conexp-clj Lattice"),
-           ^JPanel lattice-editor (make-lattice-editor frame (layout-function lattice))]
-       (doto frame
-	 (.add lattice-editor)
-	 (.setSize (Dimension. 600 600))
-	 (.setVisible true))
-       lattice-editor)))
+(defnk draw-lattice
+  "Draws given lattice with given layout-function on a canvas. Returns
+  the panel of the lattice editor. The following options are allowed,
+  their default values are given in paranthese:
+
+    - layout-fn (*standard-layout-function*)
+    - visible (true)
+    - dimension [600 600]
+  "
+  [lattice
+   :layout-fn *standard-layout-function*
+   :visible true
+   :dimension [600 600]]
+  (let [^JFrame frame (JFrame. "conexp-clj Lattice"),
+        ^JPanel lattice-editor (make-lattice-editor frame (layout-fn lattice))]
+    (doto frame
+      (.add lattice-editor)
+      (.setSize (Dimension. (first dimension) (second dimension)))
+      (.setVisible visible))
+    lattice-editor))
 
 ;;;
 
