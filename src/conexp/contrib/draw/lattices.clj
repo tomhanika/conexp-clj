@@ -87,7 +87,7 @@
 			 (fn [evt]
 			   (let [new-radius (Double/parseDouble (.getText node-radius))]
 			      (do-nodes [n scn]
-					(set-node-radius! n new-radius))))))
+				(set-node-radius! n new-radius))))))
   (make-padding buttons)
 
   ;; labels

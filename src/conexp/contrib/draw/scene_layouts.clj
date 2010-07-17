@@ -32,7 +32,7 @@
 ;;; node and line iterators
 
 (defmacro do-nodes
-  "Do whatever with every node on the scene."
+  "Do whatever with every node on the scene. Redraws scene afterwards."
   [[node scene] & body]
   `(do-swing
      (doseq [~node (filter node? (get-diagram-from-scene ~scene))]
@@ -40,7 +40,7 @@
      (redraw-scene ~scene)))
 
 (defmacro do-lines
-  "Do whatever with every connection on the scene."
+  "Do whatever with every connection on the scene. Redraws scene afterwards."
   [[line scene] & body]
   `(do-swing
      (doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
@@ -64,16 +64,15 @@
   (do-swing
    (let [pos (positions layout),
 	 [x_min y_min x_max y_max] (edges-of-points (vals pos))]
-     (do-nodes [node scene]
-      (let [[x y] (pos (get-name node))]
-	(move-node-unchecked-to node x y)))
      (doto scene
        (add-data-to-scene :layout layout)
        (.setWorldExtent (double (- x_min (* 2 *default-node-radius*)))
 			(double (- y_min (* 2 *default-node-radius*)))
 			(double (- x_max x_min (* -4 *default-node-radius*)))
-			(double (- y_max y_min (* -4 *default-node-radius*))))
-       (redraw-scene))
+			(double (- y_max y_min (* -4 *default-node-radius*)))))
+     (do-nodes [node scene]
+       (let [[x y] (pos (get-name node))]
+         (move-node-unchecked-to node x y)))
      (call-hook-with scene :image-changed))))
 
 (defn set-layout-of-scene
