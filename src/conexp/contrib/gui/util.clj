@@ -12,11 +12,12 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
 	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
 	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-	                AbstractButton SwingConstants JFileChooser JOptionPane]
+	                AbstractButton SwingConstants JFileChooser JOptionPane
+                        ImageIcon]
 	   [javax.swing.filechooser FileNameExtensionFilter]
 	   [javax.imageio ImageIO]
 	   [java.awt GridLayout BorderLayout Dimension Image Font Color
-	             Graphics Graphics2D BasicStroke FlowLayout]
+	             Graphics Graphics2D BasicStroke FlowLayout MediaTracker]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil,
@@ -24,6 +25,20 @@
   (:use [clojure.contrib.seq :only (indexed)]
 	clojure.contrib.swing-utils)
   (:require [clojure.contrib.string :as string]))
+
+;;; return res path for images etc...
+
+(let [ all-paths (string/split #":" (System/getProperty "java.class.path"))
+       cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)) 
+                   all-paths) 
+       res-root (if (empty? cclj-path) "./" 
+                  (str (re-find #".*/" (first cclj-path)) "../"))
+       res-path (str res-root "res/")]
+  (defn get-resource-file-path
+    "for a given file name, returns the file name with the current resource path
+     before it"
+    [res]
+    (str res-path res)))
 
 
 ;;; Helper functions
@@ -107,6 +122,14 @@
   (if (vector? doc)
     `(defn ~name ~doc (do-swing-return ~params ~@body))
     `(defn ~name ~doc ~params (do-swing-return ~@body))))
+
+(defn-swing get-image-icon-or-string
+  "returns either the image-icon for the given resource or the given alternative
+   string"
+  [res alt]
+  (let [img (ImageIcon. (get-resource-file-path res))]
+    (if (= (.getImageLoadStatus img) MediaTracker/COMPLETE)
+      img alt)))
 
 
 ;;; widgets
@@ -362,6 +385,7 @@
 	(.add tabpane pane)
 	(let [index (.indexOfComponent tabpane pane)]
 	  (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
+          (.setTitleAt tabpane index title)
 	  (.setSelectedIndex tabpane index)))
       (.validate frame)))
   ([frame pane]
@@ -395,6 +419,15 @@
     (if (= -1 index)
       nil
       (.getComponentAt tabpane index))))
+
+(defn current-tab-title
+  "Returns the currently selected tab's title and nil if there is none."
+  [frame]
+  (let [#^JTabbedPane tabpane (get-tabpane frame),
+	index (.getSelectedIndex tabpane)]
+    (if (= -1 index)
+      nil
+      (.getTitleAt tabpane index))))
 
 ;; remove-tabs
 ;; find-tabs-by

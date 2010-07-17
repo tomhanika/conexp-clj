@@ -15,12 +15,14 @@
         conexp.contrib.gui.editors.context-editor.widgets)
   (:use [clojure.contrib.string :only (join split-lines split)])
   (:import [javax.swing JComponent AbstractAction JTable
-                        JScrollPane KeyStroke]
+                        JScrollPane KeyStroke DefaultCellEditor JTextField]
            [javax.swing.event TableModelListener]
-           [java.awt.event ActionListener KeyEvent ActionEvent MouseEvent InputEvent]
+           [java.awt.event ActionListener KeyEvent ActionEvent MouseEvent
+             InputEvent]
            [javax.swing.event MouseInputAdapter]
            [java.awt Point]
-           [javax.swing.table DefaultTableModel]))
+           [javax.swing.table DefaultTableModel TableCellEditor
+             DefaultTableCellRenderer]))
 
 
 ;;; mouse-click-interface-helpers
@@ -67,6 +69,7 @@
                           {:button (translate-button (.getButton event))
                            :modifiers (translate-modifier (.getModifiersEx event))
                            :position [(.getX event) (.getY event)]
+                           :click-count (.getClickCount event)
                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
     (proxy [MouseInputAdapter] []
       (mousePressed [event]
@@ -360,6 +363,32 @@
         selection   (join "\n" sel-lines)]
     (set-clipboard-contents selection)))
 
+(defn-swing cut-to-clipboard
+  "Copies the selected cells from the table widget to the system
+   clipboard and afterwards empties the contents"
+  [obj]
+  (assert (keyword-isa? obj table-control))
+  (let [control     (get-control obj),
+        sel-columns (-> control .getSelectedColumns seq),
+        sel-rows    (-> control .getSelectedRows seq),
+        sel-pairs   (map (fn [y]
+                           (map (fn [x]
+                                  (list y x)) sel-columns))
+                         sel-rows),
+        sel-values  (map (fn [l]
+                           (map (fn [p]
+                                  (str (get-value-at-view obj
+                                                          (first p)
+                                                          (second p)))) l))
+                         sel-pairs),
+        sel-lines   (map #(join "\t" %) sel-values)
+        selection   (join "\n" sel-lines)]
+    (set-clipboard-contents selection)
+    (doseq [lines sel-pairs] 
+      (doseq [p lines] 
+        (set-value-at-view obj (first p) (second p) "")))))
+
+
 (defn-swing get-view-coordinates-at-point
   "Returns the current view coordinates as [row column] for the given
    point."
@@ -388,6 +417,21 @@
     (doseq [col (range col-count)]
       (let [at-view (get-index-column otable (col-idx col))]
         (move-column otable at-view col)))))
+
+(defn-swing is-view-cell-selected
+  "Returns true, if the given cell of the table control in view
+   coordinates is selected"
+  [obj view-row view-col]
+  (assert (keyword-isa? obj table-control))
+  (let [ control     (get-control obj),
+         sel-columns (-> control .getSelectedColumns seq),
+         sel-rows    (-> control .getSelectedRows seq),
+         sel-pairs   (map (fn [y]
+                           (map (fn [x]
+                                  (list y x)) sel-columns))
+                         sel-rows)]
+    (if (filter (fn [x] (= x (list view-row view-col))) sel-pairs) true false)))
+        
 
 (defn-swing move-row
   "Moves the row at view index old-view to be viewed at view index
@@ -504,12 +548,37 @@
                             JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
         keystroke-copy  (KeyStroke/getKeyStroke KeyEvent/VK_C
                                                 ActionEvent/CTRL_MASK false),
+        keystroke-cut   (KeyStroke/getKeyStroke KeyEvent/VK_X
+                                                ActionEvent/CTRL_MASK false),
         keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
                                                 ActionEvent/CTRL_MASK false),
 
         hooks           (:hooks (make-hookable)),
         widget          (table-control. pane table hooks model 
                           (ref [identity identity])),
+        cell-editor (proxy [DefaultCellEditor] [(JTextField.)]
+                      (isCellEditable [event] 
+                        (if (isa? (type event) MouseEvent)
+                          (do-swing-return
+                            (let [ pt (.getPoint event)
+                                   col (.columnAtPoint table pt)
+                                   row (.rowAtPoint table pt)
+                                   result (call-hook widget 
+                                            "mouse-click-cell-editable-hook"
+                                            row col)]
+                              result))
+                          true))),
+        cell-renderer (proxy [DefaultTableCellRenderer] []
+                        (getTableCellRendererComponent 
+                          [jtable value is-selected has-focus row column]
+                          (do-swing-return
+                            (let [component (proxy-super 
+                                              getTableCellRendererComponent 
+                                              jtable value is-selected 
+                                              has-focus row column)]
+                              (call-hook widget "cell-renderer-hook"
+                                component row column is-selected has-focus
+                                value))))),
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
                             (with-swing-threads
@@ -571,15 +640,24 @@
                                             ignore-event
                                             drag-motion-event)]
     (.addTableModelListener model change-listener)
+    (doto table
+      (.setCellEditor cell-editor)
+      (.setDefaultEditor java.lang.Object cell-editor)
+      (.setDefaultRenderer java.lang.Object cell-renderer))    
     (doto widget
       (add-hook "table-changed"     (fn [c f l t]
                                       (table-change-hook widget c f l t)))
       (add-hook "extend-columns-to" #(set-column-count widget %))
       (add-hook "extend-rows-to"    #(set-row-count widget %))
       (add-hook "cell-value"        (fn [_ _ contents] contents))
+      (add-hook "mouse-click-cell-editable-hook" (fn [view-row view-col] true))
+      (add-hook "cell-renderer-hook" 
+        (fn [component view-row view-col is-selected has-focus value] 
+          component))
       (set-resize-mode :off)
       (set-cell-selection-mode :cells)
       (register-keyboard-action copy-to-clipboard "Copy" keystroke-copy :focus)
+      (register-keyboard-action cut-to-clipboard "Cut" keystroke-cut :focus)
       (register-keyboard-action paste-from-clipboard "Paste" keystroke-paste :focus)
       (add-control-mouse-listener cell-permutor))
     widget))

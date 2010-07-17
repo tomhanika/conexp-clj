@@ -15,7 +15,9 @@
         conexp.contrib.gui.util.hookable
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control
-        conexp.contrib.gui.editors.context-editor.editable-contexts))
+        conexp.contrib.gui.editors.context-editor.editable-contexts)
+  (:import [java.awt Color Font]
+    [javax.swing JLabel SwingConstants]))
 
 
 ;;; Context editor control
@@ -40,7 +42,10 @@
 
 (defn set-ectx
   "Sets the editable-context that is currently associated with the
-   context-editor-widget to the second parameter."
+   context-editor-widget to the second parameter.
+   This one only updates the reference, if you want to add another
+   widget to an existing context, YOU PROBABLY WANT TO USE add-widget
+   INSTEAD, which will also update the viewed table etc."
   [widget e-ctx]
   (assert (instance? context-editor-widget widget))
   (dosync (ref-set (:e-ctx widget) e-ctx)))
@@ -77,6 +82,78 @@
 
 (declare ectx-cell-value-hook ectx-extend-rows-hook ectx-extend-columns-hook)
 
+(defn- mouse-click-cell-edtble
+  "Returns true if the cell clicked on given in the view coordinates is editable
+   as text control, i.e. if it is an attribute or object name"
+  [table last-ref view-row view-col]
+  (let [ row (get-row-index table view-row),
+         col (get-column-index table view-col),
+         last (deref last-ref),
+         coord-list (list view-row view-col)]
+    (dosync (ref-set last-ref coord-list))
+    (if (and (or (and (= 0 row) (> col 0))
+               (and (= 0 col) (> row 0)))
+          (= coord-list last)) 
+      true
+      (if (and (> row 0) (> col 0) (= coord-list last))
+        (let [ current-value (get-value-at-view table view-row view-col)
+               inverted-value (if (= " " current-value) "X" "")]
+          (set-value-at-view table view-row view-col inverted-value)
+          false)
+        false))))
+(let [ attr-obj-font (Font. "SansSerif" Font/BOLD 12),
+       plain-font (Font. "SansSerif" Font/PLAIN 12),
+       header-foreground (Color. 96 96 96),
+       header-background (Color. 255 255 255),
+       attr-obj-foreground (Color. 0 0 0),
+       attr-obj-background (Color. 255 255 0),
+       selected-foreground (Color. 255 255 255),
+       selected-background (Color. 48 110 255),
+       plain-background-11 (Color. 255 255 255),
+       plain-background-01 (Color. 255 255 192),
+       plain-background-10 (Color. 255 255 192),
+       plain-background-00 (Color. 255 255 128),
+       plain-foreground (Color. 0 0 0)]
+  (defn- context-cell-renderer-hook
+    "Returns the component given as first parameter, optionally changes 
+     attributes of it depending on the cell"
+    [table component view-row view-col is-selected has-focus value]
+    (let [ row (get-row-index table view-row)
+           col (get-column-index table view-col) ]
+      (cond
+        (= 0 row col)
+        (doto component
+          (.setFont attr-obj-font)
+          (.setForeground header-foreground)
+          (.setBackground header-background))
+
+        (or (= 0 row) (= 0 col))
+        (doto component
+          (.setFont attr-obj-font)
+          (.setForeground attr-obj-foreground)
+          (.setBackground attr-obj-background))
+        
+        :otherwise
+        (let [plain-background (if (even? view-row)
+                                 (if (even? view-col)
+                                   plain-background-00
+                                   plain-background-01)
+                                 (if (even? view-col)
+                                   plain-background-10
+                                   plain-background-11))]
+          (doto component
+            (.setFont plain-font)
+            (.setBackground plain-background)
+            (.setForeground plain-foreground))))
+      (if is-selected
+        (doto component
+          (.setForeground selected-foreground)
+          (.setBackground selected-background)))
+      (if (instance? JLabel component)
+        (.setHorizontalAlignment component SwingConstants/CENTER))
+      component)))
+            
+
 (defn add-widget
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context."
@@ -98,6 +175,12 @@
      (set-ectx editor e-ctx)
      (alter (:widgets e-ctx) add editor))
     (set-hook table "cell-value" (fn [_ _ x] x))
+    (set-hook table "mouse-click-cell-editable-hook" 
+      (let [last-ref (ref nil)]
+        (fn [r c] (mouse-click-cell-edtble table last-ref r c))))
+    (set-hook table "cell-renderer-hook" (fn [com r c s f v] 
+                                           (context-cell-renderer-hook table
+                                             com r c s f v)))
     (set-column-count table (+ 1 (count att)))
     (set-row-count table (+ 1 (count obj)))
     (doseq [a att]
