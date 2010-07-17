@@ -8,7 +8,6 @@
 
 (ns conexp.contrib.draw.nodes-and-connections
   (:use [conexp.base :only (ns-doc,defvar-, defvar, round, union, difference)]
-	conexp.contrib.draw.util
 	conexp.contrib.draw.scenes)
   (:use	[clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
