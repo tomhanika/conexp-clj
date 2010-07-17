@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.scenes
-  (:use conexp.base
-	conexp.contrib.draw.util)
+  (:use conexp.base)
   (:import [java.awt Color Canvas]
 	   [java.awt.event ComponentListener]
 	   [java.io File]
@@ -36,31 +35,31 @@
 
 (defn- initialize-scene
   "Initializies given scene."
-  [#^GScene scn]
+  [^GScene scn]
   (.setUserData scn (ref {}))
   scn)
 
 (defn add-data-to-scene
   "Adds given data under keyword to scene."
-  [#^GScene scn, key, data]
+  [^GScene scn, key, data]
   (dosync
    (alter (.getUserData scn) assoc key data)))
 
 (defn update-data-for-scene
   "Updates data item associated with keys in scene."
-  [#^GScene scn, keys, data]
+  [^GScene scn, keys, data]
   (dosync
    (alter (.getUserData scn) assoc-in keys data)))
 
 (defn remove-data-from-scene
   "Removes all data associated with key from scene."
-  [#^GScene scn, key]
+  [^GScene scn, key]
   (dosync
    (alter (.getUserData scn) disj key)))
 
 (defn get-data-from-scene
   "Returns data associated with key from scene."
-  [#^GScene scn, key]
+  [^GScene scn, key]
   (-> scn .getUserData deref (get key)))
 
 (declare add-hook)
@@ -68,7 +67,7 @@
 (defn make-scene
   "Makes scene on given window."
   [window]
-  (let [#^GScene scn (GScene. window)]
+  (let [^GScene scn (GScene. window)]
     (doto scn
       (initialize-scene)
       (add-data-to-scene :hooks {})
@@ -80,7 +79,7 @@
 
 (defn redraw-scene
   "Redraws current viewport of scene."
-  [#^GScene scn]
+  [^GScene scn]
   (.zoom scn 1.0))
 
 ;; hooks
@@ -128,21 +127,21 @@
 (defn start-interaction
   "Starts a given interaction for scene. interaction must be a
   function from a scene to a GInteraction object."
-  [#^GScene scn interaction]
+  [^GScene scn interaction]
   (.. scn getWindow (startInteraction (interaction scn))))
 
 (defn get-zoom-factors
   "Returns zoom factors for height and width of given scene."
-  [#^GScene scn]
-  (let [#^GWorldExtent current-world-extent (.getWorldExtent scn),
-	#^GWorldExtent initial-world-extent (.getInitialWorldExtent scn)]
+  [^GScene scn]
+  (let [^GWorldExtent current-world-extent (.getWorldExtent scn),
+	^GWorldExtent initial-world-extent (.getInitialWorldExtent scn)]
     [(/ (.getHeight current-world-extent) (.getHeight initial-world-extent)),
      (/ (.getWidth current-world-extent) (.getWidth initial-world-extent))]))
 
 (defn get-canvas-from-scene
   "Returns canvas associated with a scene."
-  [#^GScene scn]
-  (let [#^Canvas canvas (.. scn getWindow getCanvas)]
+  [^GScene scn]
+  (let [^Canvas canvas (.. scn getWindow getCanvas)]
     (.addComponentListener canvas (proxy [ComponentListener] []
 				    (componentResized [comp-evt]
 				      (call-hook-with scn :image-changed))))
@@ -150,9 +149,9 @@
 
 (defn save-image
   "Saves image on scene scn in given file with given format."
-  [#^GScene scn, #^File file, format]
-  (let [#^Canvas cnv (.. scn getWindow getCanvas)]
-    (let [#^BufferedImage image (BufferedImage. (.getWidth cnv)
+  [^GScene scn, ^File file, format]
+  (let [^Canvas cnv (.. scn getWindow getCanvas)]
+    (let [^BufferedImage image (BufferedImage. (.getWidth cnv)
 						(.getHeight cnv)
 						BufferedImage/TYPE_INT_RGB)]
       (.print cnv (.createGraphics image))
@@ -161,7 +160,7 @@
 
 (defn show-labels
   "Turns visibility of labels on scene on and off."
-  [#^GScene scn, toggle]
+  [^GScene scn, toggle]
   (.setVisibility scn (if toggle
 			GScene/ANNOTATION_VISIBLE
 			GScene/ANNOTATION_INVISIBLE)))
@@ -170,6 +169,27 @@
   "Adds given scrollbars for scene."
   [^GScene scene, ^JScrollBar horizontal-scrollbar, ^JScrollBar vertical-scrollbar]
   (.installScrollHandler scene horizontal-scrollbar vertical-scrollbar))
+
+;;; coordinate transformers
+
+(defn device-to-world
+  "Transforms a device coordinate pair [x y] to a world coordinate pair for the given scene."
+  [^GScene scn x y]
+  (let [trf (.getTransformer scn)
+	ptn (.deviceToWorld trf x y)]
+    [(aget ptn 0) (aget ptn 1)]))
+
+(defn world-to-device
+  "Transforms a world coordinate pair [x y] of the given scene to a device coordinate pair."
+  [^GScene scn x y]
+  (let [trf (.getTransformer scn)
+	ptn (.worldToDevice trf x y)]
+    [(aget ptn 0) (aget ptn 1)]))
+
+(defn origin
+  "Returns the origin of scn."
+  [scn]
+  (world-to-device scn 0 0))
 
 ;;;
 
