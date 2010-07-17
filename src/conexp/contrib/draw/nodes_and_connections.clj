@@ -178,7 +178,7 @@
                                             (.setLineWidth 3.0))
   "Default node style for lattice diagrams for highlighted nodes.")
 
-(defn toggle-highlight
+(defn highlight-node
   "Toggles the highlight-state of the given node."
   [node]
   (if (= (.getStyle node) *default-node-style*)
@@ -394,7 +394,7 @@
 				   (reset! interaction-obj nil)),
            GWindow/BUTTON3_DOWN  (let [thing (.find scn x y)]
                                    (when (node? thing)
-                                     (toggle-highlight thing)
+                                     (highlight-node thing)
                                      (.refresh scn))),
 	   nil)))))
 
