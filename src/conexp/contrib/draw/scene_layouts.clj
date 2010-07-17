@@ -34,14 +34,18 @@
 (defmacro do-nodes
   "Do whatever with every node on the scene."
   [[node scene] & body]
-  `(doseq [~node (filter node? (get-diagram-from-scene ~scene))]
-     ~@body))
+  `(do-swing
+     (doseq [~node (filter node? (get-diagram-from-scene ~scene))]
+       ~@body)
+     (redraw-scene ~scene)))
 
 (defmacro do-lines
   "Do whatever with every connection on the scene."
   [[line scene] & body]
-  `(doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
-     ~@body))
+  `(do-swing
+     (doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
+       ~@body)
+     (redraw-scene ~scene)))
 
 ;;; manipulate layout of scene
 

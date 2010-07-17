@@ -86,10 +86,8 @@
     (add-action-listener node-radius
 			 (fn [evt]
 			   (let [new-radius (Double/parseDouble (.getText node-radius))]
-			     (do-swing
 			      (do-nodes [n scn]
-					(set-node-radius! n new-radius))
-			      (redraw-scene scn))))))
+					(set-node-radius! n new-radius))))))
   (make-padding buttons)
 
   ;; labels
@@ -399,7 +397,7 @@
 
 (defnk draw-lattice
   "Draws given lattice with given layout-function on a canvas. Returns
-  the panel of the lattice editor. The following options are allowed,
+  the frame and the scene (as map). The following options are allowed,
   their default values are given in parantheses:
 
     - layout-fn (*standard-layout-function*)
@@ -416,21 +414,8 @@
       (.add lattice-editor)
       (.setSize (Dimension. (first dimension) (second dimension)))
       (.setVisible visible))
-    lattice-editor))
-
-;;;
-
-(defmacro do-nodes-in-panel
-  "Executes code for every node on the lattice editor in the given
-  frame, if there is one."
-  [[node panel] & body]
-  `(let [^JPanel scn# (get-scene-from-panel ~panel)]
-     (when-not scn#
-       (illegal-argument "Given panel for do-nodes-in-panel does not contain a lattice-editor."))
-     (do-swing
-      (do-nodes [~node scn#]
-        ~@body)
-      (redraw-scene scn#))))
+    {:frame frame,
+     :scene (get-scene-from-panel lattice-editor)}))
 
 ;;;
 
