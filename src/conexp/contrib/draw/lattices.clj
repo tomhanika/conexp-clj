@@ -419,9 +419,10 @@
   `(let [^JPanel scn# (get-scene-from-panel ~panel)]
      (when-not scn#
        (illegal-argument "Given panel for do-nodes-in-panel does not contain a lattice-editor."))
-     (do-nodes [~node scn#]
-               ~@body)
-     (redraw-scene scn#)))
+     (do-swing
+      (do-nodes [~node scn#]
+        ~@body)
+      (redraw-scene scn#))))
 
 ;;;
 
