@@ -9,6 +9,7 @@
 (ns conexp.contrib.draw.lattices
   (:use [conexp.base
          :only (ns-doc,
+                illegal-argument,
                 get-root-cause,
                 with-swing-error-msg,
                 with-printed-result,
@@ -32,6 +33,7 @@
         ;; drawing
 	[conexp.contrib.draw.scenes
          :only (add-callback-for-hook,
+                call-hook-with,
                 redraw-scene,
                 start-interaction,
                 get-zoom-factors,
@@ -376,11 +378,17 @@
       main-panel))
 
   (defn get-layout-from-panel
-    "If given panel contains a lattice editor, return the
+    "If the given panel contains a lattice editor, return the
     corresponding layout and nil otherwise."
     [panel]
     (when-let [scn (get @scenes panel nil)]
       (get-layout-from-scene scn)))
+
+  (defn- get-scene-from-panel
+    "If the given panel contains a lattice editor, retusnt eh
+    corresponding scene, nil otherwise."
+    [panel]
+    (get @scenes panel nil))
 
   nil)
 
@@ -388,16 +396,32 @@
 ;;; Drawing Routine for the REPL
 
 (defn draw-lattice
-  "Draws given lattice with given layout-function on a canvas and returns
-  it. Uses *standard-layout-function* if no layout-function is given."
+  "Draws given lattice with given layout-function on a canvas. Uses
+  *standard-layout-function* if no layout-function is given. Returns
+  the panel of the lattice editor."
   ([lattice]
      (draw-lattice lattice *standard-layout-function*))
   ([lattice layout-function]
-     (let [^JFrame frame (JFrame. "conexp-clj Lattice")]
+     (let [^JFrame frame (JFrame. "conexp-clj Lattice"),
+           ^JPanel lattice-editor (make-lattice-editor frame (layout-function lattice))]
        (doto frame
-	 (.add ^JPanel (make-lattice-editor frame (layout-function lattice)))
+	 (.add lattice-editor)
 	 (.setSize (Dimension. 600 600))
-	 (.setVisible true)))))
+	 (.setVisible true))
+       lattice-editor)))
+
+;;;
+
+(defmacro do-nodes-in-panel
+  "Executes code for every node on the lattice editor in the given
+  frame, if there is one."
+  [[node panel] & body]
+  `(let [^JPanel scn# (get-scene-from-panel ~panel)]
+     (when-not scn#
+       (illegal-argument "Given panel for do-nodes-in-panel does not contain a lattice-editor."))
+     (do-nodes [~node scn#]
+               ~@body)
+     (redraw-scene scn#)))
 
 ;;;
 

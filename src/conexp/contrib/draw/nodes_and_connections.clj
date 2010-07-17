@@ -179,7 +179,7 @@
                                             (.setLineWidth 3.0))
   "Default node style for lattice diagrams for highlighted nodes.")
 
-(defn- toggle-highlight
+(defn toggle-highlight
   "Toggles the highlight-state of the given node."
   [node]
   (if (= (.getStyle node) *default-node-style*)
@@ -364,7 +364,7 @@
   [node]
   (all-additively-influenced-nodes node lower-neighbors upper-neighbors))
 
-;;;
+;;; Interactions
 
 (defn move-interaction
   "Standard move interaction for lattice diagrams. Installs
@@ -412,6 +412,8 @@
 	(when scn
 	  (call-hook-with scn :zoom-event)
 	  (call-hook-with scn :image-changed))))))
+
+;;;
 
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected
