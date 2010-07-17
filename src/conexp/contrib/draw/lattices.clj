@@ -387,7 +387,7 @@
       (get-layout-from-scene scn)))
 
   (defn- get-scene-from-panel
-    "If the given panel contains a lattice editor, retusnt eh
+    "If the given panel contains a lattice editor, returns the
     corresponding scene, nil otherwise."
     [panel]
     (get @scenes panel nil))
@@ -400,7 +400,7 @@
 (defnk draw-lattice
   "Draws given lattice with given layout-function on a canvas. Returns
   the panel of the lattice editor. The following options are allowed,
-  their default values are given in paranthese:
+  their default values are given in parantheses:
 
     - layout-fn (*standard-layout-function*)
     - visible (true)
