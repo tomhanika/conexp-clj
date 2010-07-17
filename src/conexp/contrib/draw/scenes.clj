@@ -14,6 +14,7 @@
 	   [java.io File]
 	   [java.awt.image BufferedImage]
 	   [javax.imageio ImageIO]
+           [javax.swing JScrollBar]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent]))
 
 (ns-doc "Namespace for scene abstraction.")
@@ -164,6 +165,11 @@
   (.setVisibility scn (if toggle
 			GScene/ANNOTATION_VISIBLE
 			GScene/ANNOTATION_INVISIBLE)))
+
+(defn add-scrollbars
+  "Adds given scrollbars for scene."
+  [^GScene scene, ^JScrollBar horizontal-scrollbar, ^JScrollBar vertical-scrollbar]
+  (.installScrollHandler scene horizontal-scrollbar vertical-scrollbar))
 
 ;;;
 
