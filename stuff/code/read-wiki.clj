@@ -10,23 +10,22 @@
 
 (use '[clojure.contrib.io :only (with-in-reader)]
      '[clojure.walk :only (walk)]
-     '[clojure.contrib.def :only (defnk)]
      '[conexp.base :only (set-of)])
 
 ;;;
 
-(defn line-to-pair
+(defn- line-to-pair
   "Converts RDF line to a pair [role [First Second]]."
   [line]
   (let [[A to B] (rest (re-find #"<(.*)> <(.*)> <(.*)>" line))]
     [to [A B]]))
 
-(defn map-count
+(defn- map-count
   "Counts overall entries in a map."
   [hash-map]
   (reduce + (map #(count (get hash-map %)) (keys hash-map))))
 
-(defn read-lines-from-file [file interesting-role? interesting-A? interesting-B?]
+(defn- read-lines-from-file [file interesting-role? interesting-A? interesting-B?]
   (with-in-reader file
     (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
       (loop [map {},
@@ -46,28 +45,17 @@
             (println line-count)
             map))))))
 
-(defn role-count
-  "Returns a hash-map from role names to their cardinality."
-  [file]
-  (with-in-reader file
-    (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
-      (loop [map {},
-             line-count 0]
-        (if-let [line (read-line)]
-          (do
-            (when (zero? (mod line-count 10000))
-              (println line-count (count map)))
-            (let [[role [A B]] (line-to-pair line)]
-              (recur (assoc map role (inc (get map role 0)))
-                     (inc line-count))))
-          map)))))
-
-(defn capitalize [word]
+(defn- capitalize
+  "Capitalizes word."
+  [word]
   (if (empty? word)
     word
     (apply str (Character/toUpperCase (first word)) (rest word))))
 
-(defn symbolify [coll]
+(defn- symbolify
+  "Transforms every string in coll to a symbol, walking through
+  sequential collectiones recursively."
+  [coll]
   ((fn transform [thing]
      (cond
       (string? thing) (symbol (capitalize thing)),
@@ -78,11 +66,11 @@
       :else thing))
    coll))
 
-(defn prepare-for-conexp [hash-map]
+(defn- prepare-for-conexp [hash-map]
   (into {} (for [[k v] (symbolify hash-map)]
              [k (set v)])))
 
-(defn role-map->concept-map [role-map]
+(defn- role-map->concept-map [role-map]
   (assert (= 1 (count role-map)))
   (loop [concept-map {},
          is-as (get role-map (first (keys role-map)))]
@@ -94,18 +82,24 @@
 
 ;;;
 
+(defvar *wikipedia-properties* "/users/lat/borch/wikiprops.nt"
+  "File containing the properties as defined by dbpedia")
+
+(defvar *wikipedia-instances* "/users/lat/borch/wikiinstances.nt"
+  "File containing the instances as defined by dbpedia")
+
 (defn read-wiki [roles]
   "Reads model from wikipedia entries. roles can be any quoted
   sequence of child, father, mother, influenced, influencedBy, relation,
   relative, spouse, partner, opponent, ..."
-  (let [relations (read-lines-from-file "/users/lat/borch/wikiprops.nt"
+  (let [relations (read-lines-from-file *wikipedia-properties*
                                         (set-of (str "http://dbpedia.org/ontology/" role)
                                                 [role roles])
                                         (constantly true)
                                         (constantly true)),
         instances (set (flatten (vals relations))),
         concepts (role-map->concept-map
-                  (read-lines-from-file "/users/lat/borch/wikiinstances.nt"
+                  (read-lines-from-file *wikipedia-instances*
                                         (constantly true)
                                         #(contains? instances %)
                                         #(not (re-find #"owl#Thing" %))))]
@@ -122,11 +116,16 @@
      'conexp.contrib.dl.languages.EL-gfp-exploration
      'conexp.contrib.dl.languages.interaction)
 
-(defn read-wiki-model [roles]
+(defn read-wiki-model
+  "For the given set of roles (as symbols) returns the smallest model
+  containing the interpretations of roles in the data-set of dbpedia."
+  [roles]
   (let [[concepts, roles] (read-wiki roles)]
     (interpretation->model concepts roles :base-lang EL-gfp)))
 
-(defn collect [start relation]
+(defn collect
+  "Returns the smallest connected subrelation of relation containing start."
+  [start relation]
   (let [related (set (for [[x y] relation,
                            :when (or (contains? start x)
                                      (contains? start y)),
@@ -135,6 +134,22 @@
     (if (= start related)
       start
       (recur related relation))))
+
+(defn smallest-submodel
+  "Returns the smallest submodel of model containing the given
+  individuals."
+  [model individuals]
+  (let [relation (reduce union #{} (map #(interpret model %) (role-names (model-language model)))),
+        base-set (collect (set individuals) relation),
+
+        name-int (into {} (for [name (concept-names (model-language model))]
+                            [name (intersection base-set (interpret model name))])),
+        role-int (let [base-square (cross-product base-set base-set)]
+                   (into {} (for [role (role-names (model-language model))]
+                              [role (intersection base-square (interpret model role))])))],
+    (make-model (model-language model)
+                base-set
+                (merge name-int role-int))))
 
 (defn explore-wiki-model
   "Computes a basis of gcis holding in wiki-model. Returns a reference
