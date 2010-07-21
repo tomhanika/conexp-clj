@@ -137,11 +137,9 @@
 (defn- fuzzy-oplus-a
   "Helper function to compute D\\oplus_a j."
   [context U D a j]
-  (let [D+ (assoc D j a),
-        D+down (fuzzy-attribute-derivation context D+),
+  (let [D+        (assoc D j a),
+        D+down    (fuzzy-attribute-derivation context D+),
         D+down-up (fuzzy-object-derivation context D+down)]
-    (println "D+down =" D+down)
-    (println "D+down-up =" D+down-up)
     (set-of [k l] [[k l] U,
                    :when (>= (f-star (D+down k) (D+down-up l))
                              ((incidence context) [k l]))])))
@@ -166,17 +164,11 @@
                               m (attributes context),
                               :when (not (zero? (inz [g m])))]),
              F #{}]
-        (println)
-        (println "F =" F)
-        (println "I =" (select-keys inz U))
         (if (empty? U)
           F
           (let [D (loop [D (make-fuzzy-set {}),
                          V 0,
                          [[j a] value] (find-maximal U D)]
-                    (println "[j a] =" [j a])
-                    (println "V =" V)
-                    (println "value =" value)
                     (if (> value V)
                       (recur (fuzzy-object-derivation context
                                                       (fuzzy-attribute-derivation context (assoc D j a)))

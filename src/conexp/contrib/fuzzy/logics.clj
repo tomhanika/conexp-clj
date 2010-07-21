@@ -34,7 +34,7 @@
 (defmethod t-norm :gödel
   [_]
   [(fn [x y] (min x y)),
-   (fn [x y] y)])
+   (fn [x y] (if (<= x y) 1 y))])
 
 (defmethod t-norm :goedel
   [_]
@@ -43,7 +43,7 @@
 (defmethod t-norm :product
   [_]
   [(fn [x y] (* x y)),
-   (fn [x y] (/ y x))])
+   (fn [x y] (if (<= x y) 1 (/ y x)))])
 
 ;;; Basic Fuzzy Logic
 
