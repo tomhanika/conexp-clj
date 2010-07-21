@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.factor-analysis
   (:use conexp.main
-        [conexp.contrib.fuzzy sets logics])
+        [conexp.contrib.fuzzy sets logics fca])
   (:import [java.util HashMap]))
 
 (ns-doc "Implements factorization algorithms for contexts.")
@@ -109,30 +109,6 @@
         (clear-factors F)))))
 
 ;;; Many Valued (with t-norms)
-
-(defn fuzzy-object-derivation
-  "Computes the fuzzy derivation of the fuzzy set C of objects in
-  the given context."
-  [context C]
-  (let [inz (incidence context)]
-    (make-fuzzy-set (map-by-fn (fn [m]
-                                 (reduce (fn [a g]
-                                           (f-and a (f-impl (C g) (inz [g m]))))
-                                         1
-                                         (objects context)))
-                               (attributes context)))))
-
-(defn fuzzy-attribute-derivation
-  "Computes the fuzzy derivation of the fuzzy set D of attributes in
-  the given context."
-  [context D]
-  (let [inz (incidence context)]
-    (make-fuzzy-set (map-by-fn (fn [g]
-                                 (reduce (fn [a m]
-                                           (f-and a (f-impl (D m) (inz [g m]))))
-                                         1
-                                         (attributes context)))
-                               (objects context)))))
 
 (defn- fuzzy-oplus-a
   "Helper function to compute D\\oplus_a j."
