@@ -42,10 +42,12 @@
     (if-let [n (next hashmap)]
       n
       ()))
-  (cons [this o]
-    (if (zero? (second o))
-      this
-      (Fuzzy-Set. (conj hashmap o))))
+  (cons [this [k v]]
+    (when-not (and (number? v)
+                   (< 0 v)
+                   (<= v 1))
+      (illegal-argument "Fuzzy sets only support real values in (0,1]"))
+    (Fuzzy-Set. (conj hashmap [k v])))
   (seq [this]
     (seq hashmap))
   (count [this]
@@ -62,7 +64,15 @@
   (applyTo [this seq]
     (if (= 1 (count seq))
       (.applyTo hashmap seq)
-      (illegal-argument "Cannot apply fuzzy sets to non-singleton sequences."))))
+      (illegal-argument "Cannot apply fuzzy sets to non-singleton sequences.")))
+  ;;
+  clojure.lang.Associative
+  (containsKey [this o]
+    (unsupported-operation "Fuzzy sets do not support the contains? operation."))
+  (entryAt [this o]
+    (.entryAt hashmap o))
+  (assoc [this k v]
+    (.cons this [k v])))
 
 (defn make-fuzzy-set
   "Constructs a fuzzy set from a given hashmap. The values must be
