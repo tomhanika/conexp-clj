@@ -16,7 +16,9 @@
 ;;; Interface
 
 (defmulti factorize-context
-  "Factorize context by given method."
+  "Factorize context by given method. Note that the method determines
+  whether the context is a formal context (as in the boolean case) or
+  a many-valued one (as in the fuzzy case)."
   {:arglists '([method context & args])}
   (fn [method context & _] method))
 
