@@ -134,31 +134,30 @@
               (select-keys (incidence context) U))))
 
 (defmethod factorize-context :fuzzy
-  [_ context logic]
-  (with-fuzzy-logic logic
-    (let [inz          (incidence context),
-          find-maximal (partial find-maximal context)]
-      (loop [U (set-of [g m] [g (objects context),
-                              m (attributes context),
-                              :when (not (zero? (inz [g m])))]),
-             F #{}]
-        (if (empty? U)
-          F
-          (let [D (loop [D (make-fuzzy-set {}),
-                         V 0,
-                         [[j a] value] (find-maximal U D)]
-                    (if (> value V)
-                      (recur (fuzzy-object-derivation context
-                                                      (fuzzy-attribute-derivation context (assoc D j a)))
-                             value
-                             (find-maximal U D))
-                      D)),
-                C (fuzzy-attribute-derivation context D),
-                F (conj F [C,D]),
-                U (set-of [i j] [[i j] U,
-                                 :when (not (<= (inz [i j])
-                                                (f-star (C i) (D j))))])]
-            (recur U F)))))))
+  [_ context]
+  (let [inz          (incidence context),
+        find-maximal (partial find-maximal context)]
+    (loop [U (set-of [g m] [g (objects context),
+                            m (attributes context),
+                            :when (not (zero? (inz [g m])))]),
+           F #{}]
+      (if (empty? U)
+        F
+        (let [D (loop [D (make-fuzzy-set {}),
+                       V 0,
+                       [[j a] value] (find-maximal U D)]
+                  (if (> value V)
+                    (recur (fuzzy-object-derivation context
+                                                    (fuzzy-attribute-derivation context (assoc D j a)))
+                           value
+                           (find-maximal U D))
+                    D)),
+              C (fuzzy-attribute-derivation context D),
+              F (conj F [C,D]),
+              U (set-of [i j] [[i j] U,
+                               :when (not (<= (inz [i j])
+                                              (f-star (C i) (D j))))])]
+          (recur U F))))))
 
 ;;;
 
