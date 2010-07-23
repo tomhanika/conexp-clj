@@ -33,9 +33,17 @@
 
 (defmethod make-fuzzy-context [clojure-coll clojure-coll clojure-coll]
   [objects attributes values]
-  (when-not (forall [v values] (and (number? v) (<= 0 v 1)))
-    (illegal-argument "Given value table does not contain of real values between 0 and 1."))
-  (make-mv-context-from-matrix objects attributes values))
+  (let [mv-ctx (make-mv-context-from-matrix objects attributes values)]
+    (when-not (forall [[_ v] (incidence mv-ctx)] (and (number? v) (<= 0 v 1)))
+      (illegal-argument "Given value table does not contain of real values between 0 and 1."))
+    mv-ctx))
+
+(defn make-fuzzy-context-from-matrix
+  "Creates a fuzzy context from the given (number of) objects, (number
+  of) attributes and the value table, which must contain only real
+  values between 0 and 1."
+  [objects attributes values]
+  (make-fuzzy-context objects attributes values))
 
 ;;;
 
