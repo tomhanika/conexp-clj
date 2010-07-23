@@ -14,6 +14,25 @@
 
 ;;;
 
+(defmulti make-fuzzy-context
+  "Creates a fuzzy context from the given attributes. A fuzzy context
+  is nothing else than a Many-Valued Context with real entries between
+  0 and 1."
+  {:arglists '([objects attributes incidence])}
+  (fn [& args]
+    (vec (map clojure-type args))))
+
+(defmethod make-fuzzy-context [clojure-coll clojure-coll clojure-fn]
+  [objects attributes truth-function]
+  (let [mv-ctx (make-mv-context (set objects)
+                                (set attributes)
+                                truth-function)]
+    (when-not (forall [[_ v] (incidence mv-ctx)] (and (number? v) (<= 0 v 1)))
+      (illegal-argument "Given function does not return real values between 0 and 1."))
+    mv-ctx))
+
+;;;
+
 (defn fuzzy-object-derivation
   "Computes the fuzzy derivation of the fuzzy set C of objects in
   the given context."

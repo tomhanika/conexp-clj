@@ -126,7 +126,8 @@
   relation is auzomatically restricted to the cartesian product of the
   object an the attribute set."
   {:arglists '([objects attributes incidence])}
-  (fn [& args] (vec (map clojure-type args))))
+  (fn [& args]
+    (vec (map clojure-type args))))
 
 (defmethod make-context [clojure-coll clojure-coll clojure-coll]
   [objects attributes incidence]
