@@ -47,11 +47,21 @@
 
 ;;;
 
+(defn- ensure-fuzzy-set
+  "Ensures that given argument, which may also be a hash map, is a
+  fuzzy set."
+  [thing]
+  (cond
+   (fuzzy-set? thing) thing,
+   (map? thing) (make-fuzzy-set thing),
+   :else (illegal-argument (str thing) " cannot be transformed to a fuzzy set.")))
+
 (defn fuzzy-object-derivation
   "Computes the fuzzy derivation of the fuzzy set C of objects in
   the given context."
   [context C]
-  (let [inz (incidence context)]
+  (let [inz (incidence context),
+        C   (ensure-fuzzy-set C)]
     (make-fuzzy-set (map-by-fn (fn [m]
                                  (reduce (fn [a g]
                                            (f-and a (f-impl (C g) (inz [g m]))))
@@ -63,7 +73,8 @@
   "Computes the fuzzy derivation of the fuzzy set D of attributes in
   the given context."
   [context D]
-  (let [inz (incidence context)]
+  (let [inz (incidence context),
+        D   (ensure-fuzzy-set D)]
     (make-fuzzy-set (map-by-fn (fn [g]
                                  (reduce (fn [a m]
                                            (f-and a (f-impl (D m) (inz [g m]))))
