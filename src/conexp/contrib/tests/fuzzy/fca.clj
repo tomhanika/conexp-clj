@@ -8,6 +8,8 @@
 
 (ns conexp.contrib.tests.fuzzy.fca
   (:use conexp.main
+        conexp.contrib.fuzzy.sets
+        conexp.contrib.fuzzy.logics
         conexp.contrib.fuzzy.fca)
   (:use clojure.test))
 

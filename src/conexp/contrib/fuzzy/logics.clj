@@ -53,7 +53,7 @@
   rebound."
   [name arity]
   `(defn ~name ~(vec (map (fn [_] (gensym)) (range arity)))
-     (unsupported-operation "The operator " (str '~name) " is not rebound.")))
+     (unsupported-operation "You need to choose a logic with with-fuzzy-logic.")))
 
 (define-fuzzy-operator f-star 2)
 (define-fuzzy-operator f-impl 2)
