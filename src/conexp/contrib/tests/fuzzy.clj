@@ -6,16 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests
+(ns conexp.contrib.tests.fuzzy
   (:use conexp.main))
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.util
-              conexp.contrib.tests.algorithms
-              conexp.contrib.tests.dl
-              conexp.contrib.tests.fuzzy
-              conexp.contrib.tests.factor-analysis)
+(tests-to-run conexp.contrib.tests.fuzzy.fca)
 
 ;;;
 

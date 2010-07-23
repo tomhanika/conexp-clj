@@ -108,6 +108,22 @@
 		    (clojure-type vals) ", "
 		    (clojure-type inz) "."))
 
+(defn make-mv-context-from-matrix
+  "Creates a many-valued context from a given matrix of
+  values. objects and attributes may either be given as numbers
+  representing the corresponding number of objects and attributes
+  respectively, or as collections. The number of entries in values
+  must match the number of objects times the number of attributes."
+  [objects attributes values]
+  (let [objects    (if (number? objects) (range objects) objects),
+        attributes (if (number? attributes) (range attributes) attributes),
+        m          (count objects),
+        n          (count attributes)]
+    (assert (= (* m n) (count values)))
+    (let [entries (into {} (for [i (range m), j (range n)]
+                             [[(nth objects i) (nth attributes j)] (nth values (+ (* n i) j))]))]
+      (make-mv-context objects attributes (fn [a b] (entries [a b]))))))
+
 ;;;
 
 (defn scale-mv-context

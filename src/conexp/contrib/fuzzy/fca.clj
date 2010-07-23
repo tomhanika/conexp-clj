@@ -31,6 +31,12 @@
       (illegal-argument "Given function does not return real values between 0 and 1."))
     mv-ctx))
 
+(defmethod make-fuzzy-context [clojure-coll clojure-coll clojure-coll]
+  [objects attributes values]
+  (when-not (forall [v values] (and (number? v) (<= 0 v 1)))
+    (illegal-argument "Given value table does not contain of real values between 0 and 1."))
+  (make-mv-context-from-matrix objects attributes values))
+
 ;;;
 
 (defn fuzzy-object-derivation
