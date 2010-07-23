@@ -76,17 +76,22 @@
 
 (defn make-fuzzy-set
   "Constructs a fuzzy set from a given hashmap. The values must be
-  numbers between 0 (exclusive) and 1 (inclusive)."
+  numbers between 0 and 1."
   [hashmap]
   (assert (forall [[k v] hashmap]
             (and (number? v)
-                 (< 0 v)
+                 (<= 0 v)
                  (<= v 1))))
-  (Fuzzy-Set. hashmap))
+  (Fuzzy-Set. (select-keys hashmap (remove #(zero? (hashmap %)) (keys hashmap)))))
 
 (defmethod print-method Fuzzy-Set [set out]
   (.write ^java.io.Writer out
           ^String (str "#F" set)))
+
+(defn fuzzy-set?
+  "Tests thing for being a fuzzy set."
+  [thing]
+  (instance? Fuzzy-Set thing))
 
 ;;;
 
