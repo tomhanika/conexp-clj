@@ -41,7 +41,7 @@
   the conexp-clj jar file. Returns \"source\" if there is none in the
   classpath."
   []
-  (if-let [[_ date time] (re-find #"conexp-clj-(\d+).(\d+).jar"
+  (if-let [[_ date time] (re-find #"conexp-clj-.*-(\d+).(\d+).jar"
                                   (System/getProperty "java.class.path"))]
     (str date "." time)
     "source"))
