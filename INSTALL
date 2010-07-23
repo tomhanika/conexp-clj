@@ -1,8 +1,8 @@
 Installation Instructions for conexp-clj
 ---------------------------------------
 
-To compile conexp-clj from source you need leiningen, a build tool for
-clojure. To get it just issue
+To compile conexp-clj from source you need leiningen (at least version 1.2.0),
+a build tool for clojure. To get it just issue
 
   $ wget http://github.com/technomancy/leiningen/raw/stable/bin/lein
 
