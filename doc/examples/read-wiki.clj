@@ -6,6 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; A program to convert data from the dbpedia project to DL models
+
 (in-ns 'user)
 
 (use '[clojure.contrib.io :only (with-in-reader)]
