@@ -93,6 +93,8 @@
   [thing]
   (instance? Fuzzy-Set thing))
 
+;;; TODO: set operations
+
 ;;;
 
 nil
