@@ -14,6 +14,32 @@
 
 ;;;
 
+(deftype Fuzzy-Context [objects attributes incidence]
+    Object
+  (equals [this other]
+    (generic-equals [this other] Fuzzy-Context [objects attributes incidence]))
+  (hashCode [this]
+    (hash-combine-hash Fuzzy-Context objects attributes incidence))
+  ;;
+  conexp.fca.contexts/Context
+  (objects [this] objects)
+  (attributes [this] attributes)
+  (incidence [this] incidence))
+
+(defn- mv->fuzzy-context-nc
+  "Converts a many-valued-context to a fuzzy context, without checking."
+  [mv-ctx]
+  (Fuzzy-Context. (objects mv-ctx) (attributes mv-ctx) (make-fuzzy-set (incidence mv-ctx))))
+
+(defmethod print-method Fuzzy-Context
+  [ctx out]
+  (.write ^java.io.Writer out
+          ^String (print-mv-context (make-mv-context (objects ctx)
+                                                     (attributes ctx)
+                                                     (fn [a b] ((incidence ctx) [a b]))))))
+
+;;;
+
 (defmulti make-fuzzy-context
   "Creates a fuzzy context from the given attributes. A fuzzy context
   is nothing else than a Many-Valued Context with real entries between
@@ -29,14 +55,14 @@
                                 truth-function)]
     (when-not (forall [[_ v] (incidence mv-ctx)] (and (number? v) (<= 0 v 1)))
       (illegal-argument "Given function does not return real values between 0 and 1."))
-    mv-ctx))
+    (mv->fuzzy-context-nc mv-ctx)))
 
 (defmethod make-fuzzy-context [clojure-coll clojure-coll clojure-coll]
   [objects attributes values]
   (let [mv-ctx (make-mv-context-from-matrix objects attributes values)]
     (when-not (forall [[_ v] (incidence mv-ctx)] (and (number? v) (<= 0 v 1)))
       (illegal-argument "Given value table does not contain of real values between 0 and 1."))
-    mv-ctx))
+    (mv->fuzzy-context-nc mv-ctx)))
 
 (defn make-fuzzy-context-from-matrix
   "Creates a fuzzy context from the given (number of) objects, (number

@@ -10,6 +10,8 @@
   (:use conexp.base
 	conexp.fca.contexts))
 
+(ns-doc "Many-Valued-Contexts and some functions for scaling.")
+
 ;;;
 
 (deftype Many-Valued-Context [objects attributes incidence]
@@ -119,6 +121,14 @@
     (let [entries (into {} (for [i (range m), j (range n)]
                              [[(nth objects i) (nth attributes j)] (nth values (+ (* n i) j))]))]
       (make-mv-context objects attributes (fn [a b] (entries [a b]))))))
+
+(defn make-mv-context-nc
+  "Just creates a many-valued context from a set of objects, a set of
+  attributes and a hashmap from pairs of objects and attributes to
+  values. Does no checking, use with care."
+  [objects attributes incidence]
+  (assert (map? incidence))
+  (Many-Valued-Context. (set objects) (set attributes) incidence))
 
 ;;;
 

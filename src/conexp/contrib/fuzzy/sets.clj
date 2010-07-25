@@ -15,7 +15,7 @@
 
 ;;;
 
-(deftype Fuzzy-Set [^clojure.lang.PersistentHashMap hashmap]
+(deftype Fuzzy-Set [^clojure.lang.IPersistentMap hashmap]
   ;;
   Object
   (equals [this other]

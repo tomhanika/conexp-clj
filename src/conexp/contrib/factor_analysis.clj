@@ -22,6 +22,12 @@
   {:arglists '([method context & args])}
   (fn [method context & _] method))
 
+(defmulti incidence-cover?
+  "Returns true iff the given sequence of concepts cover the incidence
+  relation of the given context."
+  {:arglists '([method context concepts])}
+  (fn [method context concepts] method))
+
 ;;; Boolean
 
 (defn- clear-factors
@@ -110,6 +116,13 @@
                  (conj F [C D])))
         (clear-factors F)))))
 
+(defmethod incidence-cover? :boolean
+  [_ context concepts]
+  (= (incidence context)
+     (set-of [g m] [[C D] concepts,
+                    g C,
+                    m D])))
+
 ;;; Many Valued (with t-norms)
 
 (defn- fuzzy-oplus-a
@@ -141,11 +154,15 @@
                             m (attributes context),
                             :when (not (zero? (inz [g m])))]),
            F #{}]
+      (println)
+      (println U)
       (if (empty? U)
         F
         (let [D (loop [D (make-fuzzy-set {}),
                        V 0,
                        [[j a] value] (find-maximal U D)]
+                  (when (zero? value)
+                    (illegal-state "0 value"))
                   (if (> value V)
                     (recur (fuzzy-object-derivation context
                                                     (fuzzy-attribute-derivation context (assoc D j a)))
