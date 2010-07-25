@@ -65,11 +65,18 @@
 	     (< my-patch patch)))))
 
 (defn test-conexp
-  "Runs tests for conexp."
-  []
-  (require 'conexp.tests :reload-all)
-  (require 'clojure.test)
-  (clojure.test/run-tests 'conexp.tests))
+  "Runs tests for conexp. If with-contrib? is given and true, tests
+  conexp.contrib.tests too."
+  ([] (test-conexp false))
+  ([with-contrib?]
+     (require 'clojure.test)
+     (if with-contrib?
+       (do (require 'conexp.tests
+                    'conexp.contrib.tests)
+           (clojure.test/run-tests 'conexp.tests
+                                   'conexp.contrib.tests))
+       (do (require 'conexp.tests)
+           (clojure.test/run-tests 'conexp.tests)))))
 
 ;;;
 
