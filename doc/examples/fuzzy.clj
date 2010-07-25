@@ -38,7 +38,7 @@
 ;;; Fuzzy logics
 
 ;; Fuzzy logics come from t-norm and conexp-clj defines 3 norms:
-;; Lukasiewicz, Goedel and Product t-norm. They can be used to rebind
+;; Łukasiewicz, Gödel and Product t-norm. They can be used to rebind
 ;; the fuzzy operators f-star, f-impl, f-and, f-or and f-neg to their
 ;; corresponding functions. This is done using the with-fuzzy-logic
 ;; macro
