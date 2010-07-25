@@ -17,16 +17,12 @@
   (equals [this other]
     (generic-equals [this other] Many-Valued-Context [objects attributes incidence]))
   (hashCode [this]
-    (hash-combine-hash Many-Valued-Context objects attributes incidence)))
-
-(defmethod objects Many-Valued-Context [^Many-Valued-Context mv-ctx]
-  (.objects mv-ctx))
-
-(defmethod attributes Many-Valued-Context [^Many-Valued-Context mv-ctx]
-  (.attributes mv-ctx))
-
-(defmethod incidence Many-Valued-Context [^Many-Valued-Context mv-ctx]
-  (.incidence mv-ctx))
+    (hash-combine-hash Many-Valued-Context objects attributes incidence))
+  ;;
+  conexp.fca.contexts/Context
+  (objects [this] objects)
+  (attributes [this] attributes)
+  (incidence [this] incidence))
 
 (defn print-mv-context
   "Prints the given many-valued context mv-ctx as a value-table."

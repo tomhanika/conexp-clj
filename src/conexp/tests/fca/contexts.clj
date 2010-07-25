@@ -73,7 +73,7 @@
 
 ;;;
 
-(deftest test-Context-toString
+(deftest test-Formal-Context-toString
   (is (= (print-context *test-ctx-01* sort-by-second sort-by-second)
 	 (str "  |1 2 3 4 5 \n"
               "--+----------\n"
@@ -83,7 +83,7 @@
               "4 |. . . . . \n"
               "5 |. x x x . \n"))))
 
-(deftest test-Context-equals
+(deftest test-Formal-Context-equals
   (is (not= nil (make-context #{} #{} #{})))
   (is (not= (make-context #{} #{} #{}) nil))
   (is (not= (Object.) (make-context #{} #{} #{})))

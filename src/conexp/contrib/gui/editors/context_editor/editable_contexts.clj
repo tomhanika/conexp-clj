@@ -94,7 +94,7 @@
   [ctx]
   (deref (:context ctx)))
 
-(defmethod get-context :conexp.fca.contexts/Context
+(defmethod get-context :conexp.fca.contexts/Formal-Context
   [x] x)
 
 (defn- make-context-compatible

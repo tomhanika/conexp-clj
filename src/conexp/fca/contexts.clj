@@ -15,41 +15,27 @@
 
 ;;;
 
-(deftype Context [objects attributes incidence]
+(defprotocol Context
+  (objects [ctx]    "Returns the objects of a context.")
+  (attributes [ctx] "Returns the attributes of a context.")
+  (incidence [ctx]  "Returns the incidence of a context as a set of pairs."))
+
+(deftype Formal-Context [objects attributes incidence]
   Object
   (equals [this other]
-    (generic-equals [this other] Context [objects attributes incidence]))
+    (generic-equals [this other] Formal-Context [objects attributes incidence]))
   (hashCode [this]
-    (hash-combine-hash Context objects attributes incidence)))
+    (hash-combine-hash Formal-Context objects attributes incidence))
+  ;;
+  Context
+  (objects [this] objects)
+  (attributes [this] attributes)
+  (incidence [this] incidence))
 
 (defn context?
-  "Returns true iff thing is a context."
+  "Returns true iff thing is a formal context."
   [thing]
-  (instance? Context thing))
-
-(defmulti objects
-  "Returns the objects of a formal context."
-  {:arglists '([context])}
-  type)
-
-(defmethod objects Context [^Context ctx]
-  (.objects ctx))
-
-(defmulti attributes
-  "Returns the attributes of a formal context."
-  {:arglists '([context])}
-  type)
-
-(defmethod attributes Context [^Context ctx]
-  (.attributes ctx))
-
-(defmulti incidence
-  "Returns the incidence of a formal context as a set of pairs."
-  {:arglists '([context])}
-  type)
-
-(defmethod incidence Context [^Context ctx]
-  (.incidence ctx))
+  (instance? Formal-Context thing))
 
 (defn- compare-order
   "Orders things for proper output of formal contexts."
@@ -111,9 +97,9 @@
 	    " "])
 	 "\n"]))))
 
-(defmethod print-method Context [ctx, ^java.io.Writer out]
-  (.write out
-          (print-context ctx sort-by-second sort-by-second)))
+(defmethod print-method Formal-Context [ctx out]
+  (.write ^java.io.Writer out
+          ^String (print-context ctx sort-by-second sort-by-second)))
 
 ;;;
 
@@ -136,18 +122,18 @@
 	inz  (set-of [g m] [[g m] incidence
 			    :when (and (contains? objs g)
 				       (contains? atts m))])]
-    (Context. objs atts inz)))
+    (Formal-Context. objs atts inz)))
 
 (defmethod make-context [clojure-coll clojure-coll clojure-fn]
   [objects attributes incidence]
-  (Context. (set objects)
-	    (set attributes)
-	    (set-of [x y] [x objects
-			   y attributes
-			   :when (incidence x y)])))
+  (Formal-Context. (set objects)
+                   (set attributes)
+                   (set-of [x y] [x objects
+                                  y attributes
+                                  :when (incidence x y)])))
 
 (defmethod make-context :default [obj att inz]
-  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
+  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a formal context."))
 
 (defmulti make-context-nc
   "Context constructor similar to make-context, but does not restrict
@@ -158,10 +144,10 @@
 
 (defmethod make-context-nc [clojure-coll clojure-coll clojure-coll]
   [objects attributes incidence]
-  (Context. (set objects) (set attributes) (set incidence)))
+  (Formal-Context. (set objects) (set attributes) (set incidence)))
 
 (defmethod make-context-nc :default [obj att inz]
-  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a Context."))
+  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a formal context."))
 
 ;;; Common Operations in Contexts
 
