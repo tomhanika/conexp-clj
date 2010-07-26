@@ -82,6 +82,28 @@
                                          (attributes context)))
                                (objects context)))))
 
+(defn doubly-scale-fuzzy-context
+  "Returns the doubly scaled formal context for the given fuzzy
+  context ctx."
+  [ctx]
+  (let [inz  (incidence ctx),
+        objs (set-of [g ny]
+                     [g (objects ctx),
+                      m (attributes ctx),
+                      :let [ny (inz [g m])],
+                      :when (not (zero? ny))]),
+        atts (set-of [m lambda]
+                     [g (objects ctx),
+                      m (attributes ctx),
+                      :let [lambda (inz [g m])],
+                      :when (not (zero? lambda))]),
+        inci  (set-of [[g ny] [m lambda]]
+                      [[g ny] objs,
+                       [m lambda] atts,
+                       :when (<= (f-star ny lambda)
+                                 (inz [g m]))])]
+    (make-context objs atts inci)))
+
 ;;;
 
 nil
