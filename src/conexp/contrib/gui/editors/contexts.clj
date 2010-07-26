@@ -21,7 +21,7 @@
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
 	[clojure.contrib.io :exclude (spit)]
-        [clojure.contrib.string :only (replace-str title-case)])
+        [clojure.contrib.string :only (replace-str)])
   (:import [java.io File]))
 
 (ns-doc
