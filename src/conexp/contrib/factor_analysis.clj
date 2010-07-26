@@ -136,7 +136,7 @@
                              ((incidence context) [k l]))])))
 
 (defn- find-maximal
-  "Find the maximal [m v], where m is an attribute and v in (0,1],
+  "Find a pair [m v], where m is an attribute and v in (0,1],
   such that the cardinality of the set returned by fuzzy-oplus-a is
   maximal. Returns the pair [[m v], count], where count is the
   aforementioned cardinality."
