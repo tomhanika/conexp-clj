@@ -13,7 +13,7 @@
 
 ;;;
 
-(deftype Fuzzy-Set [^clojure.lang.IPersistentMap hashmap]
+(deftype Fuzzy-Set [^clojure.lang.APersistentMap hashmap]
   ;;
   Object
   (equals [this other]
@@ -42,10 +42,11 @@
       ()))
   (cons [this [k v]]
     (when-not (and (number? v)
-                   (< 0 v)
-                   (<= v 1))
-      (illegal-argument "Fuzzy sets only support real values in (0,1]"))
-    (Fuzzy-Set. (conj hashmap [k v])))
+                   (<= 0 v 1))
+      (illegal-argument "Fuzzy sets only support real values in [0,1]"))
+    (if (zero? v)
+      (Fuzzy-Set. (dissoc hashmap k))
+      (Fuzzy-Set. (assoc hashmap k v))))
   (seq [this]
     (seq hashmap))
   (count [this]
@@ -53,15 +54,15 @@
   (empty [this]
     (Fuzzy-Set. {}))
   (equiv [this other]
-    (.equals ^Fuzzy-Set this other))
+    (.equals this other))
   ;;
   clojure.lang.IFn
   (invoke [this thing]
     (let [result (hashmap thing)]
       (or result 0)))
-  (applyTo [this seq]
+  (applyTo [this ^clojure.lang.ISeq seq]
     (if (= 1 (count seq))
-      (apply hashmap seq)
+      (.applyTo hashmap seq)
       (illegal-argument "Cannot apply fuzzy sets to non-singleton sequences.")))
   ;;
   clojure.lang.Associative
@@ -72,15 +73,24 @@
   (assoc [this k v]
     (.cons this [k v])))
 
-(defn make-fuzzy-set
-  "Constructs a fuzzy set from a given hashmap. The values must be
-  numbers between 0 and 1."
+(defmulti make-fuzzy-set
+  "Constructs a fuzzy set from a given collection."
+  clojure-type)
+
+(defmethod make-fuzzy-set clojure-map
   [hashmap]
-  (assert (forall [[k v] hashmap]
+  (assert (forall [v (vals hashmap)]
             (and (number? v)
-                 (<= 0 v)
-                 (<= v 1))))
+                 (<= 0 v 1))))
   (Fuzzy-Set. (select-keys hashmap (remove #(zero? (hashmap %)) (keys hashmap)))))
+
+(defmethod make-fuzzy-set Fuzzy-Set
+  [fuzzy-set]
+  fuzzy-set)
+
+(defmethod make-fuzzy-set clojure-set
+  [set]
+  (Fuzzy-Set. (map-by-fn (constantly 1) set)))
 
 (defmethod print-method Fuzzy-Set [set out]
   (.write ^java.io.Writer out
