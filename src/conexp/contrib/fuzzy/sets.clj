@@ -142,6 +142,13 @@
   (fn [first & rest]
     (max 0 (apply - first rest))))
 
+(defn fuzzy-subset?
+  "Returns true iff fuzzy-set-1 is a subset of fuzzy-set-2."
+  [fuzzy-set-1 fuzzy-set-2]
+  (forall [k (keys (fuzzy-set-as-hashmap fuzzy-set-1))]
+    (<= (fuzzy-set-1 k)
+        (fuzzy-set-2 k))))
+
 ;;;
 
 nil
