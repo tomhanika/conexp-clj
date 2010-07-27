@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.fuzzy.sets
-  (:use conexp.main))
+  (:use conexp.main
+        conexp.contrib.fuzzy.logics))
 
 (ns-doc "Basic definitions for fuzzy sets")
 
@@ -148,6 +149,17 @@
   (forall [k (keys (fuzzy-set-as-hashmap fuzzy-set-1))]
     (<= (fuzzy-set-1 k)
         (fuzzy-set-2 k))))
+
+;;;
+
+(defn subsethood
+  "Returns the degree to which fuzzy-set-1 is a subset of
+  fuzzy-set-2."
+  [fuzzy-set-1 fuzzy-set-2]
+  (reduce (fn [result element]
+            (f-and result (f-impl (fuzzy-set-1 element) (fuzzy-set-2 element))))
+          1
+          (keys (fuzzy-set-as-hashmap fuzzy-set-1))))
 
 ;;;
 
