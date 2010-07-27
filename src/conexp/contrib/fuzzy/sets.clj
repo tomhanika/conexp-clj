@@ -11,8 +11,6 @@
 
 (ns-doc "Basic definitions for fuzzy sets")
 
-(set! *warn-on-reflection* true)
-
 ;;;
 
 (deftype Fuzzy-Set [^clojure.lang.IPersistentMap hashmap]
@@ -63,7 +61,7 @@
       (or result 0)))
   (applyTo [this seq]
     (if (= 1 (count seq))
-      (.applyTo hashmap seq)
+      (apply hashmap seq)
       (illegal-argument "Cannot apply fuzzy sets to non-singleton sequences.")))
   ;;
   clojure.lang.Associative
