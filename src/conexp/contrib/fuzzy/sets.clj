@@ -60,11 +60,17 @@
   ;;
   clojure.lang.Associative
   (containsKey [this o]
-    (unsupported-operation "Fuzzy sets do not support the contains? operation."))
+    true)
   (entryAt [this o]
     (.entryAt hashmap o))
   (assoc [this k v]
-    (.cons this [k v])))
+    (.cons this [k v]))
+  ;;
+  clojure.lang.ILookup
+  (valAt [this o]
+    (get hashmap o 0))
+  (valAt [this o not-found]
+    (get hashmap o not-found)))
 
 ;;; Constructors
 
@@ -87,6 +93,11 @@
   [set]
   (Fuzzy-Set. (map-by-fn (constantly 1) set)))
 
+(defn fuzzy-set-as-hashmap
+  "Returns the hashmap corresponding to the given fuzzy set."
+  [fuzzy-set]
+  (.hashmap ^Fuzzy-Set fuzzy-set))
+
 (defmethod print-method Fuzzy-Set [set out]
   (.write ^java.io.Writer out
           ^String (str "#F" set)))
@@ -96,7 +107,40 @@
   [thing]
   (instance? Fuzzy-Set thing))
 
-;;; TODO: set operations
+;;; Set Operations
+
+(defn- pointwise-fuzzy
+  "Returns a fuzzy set where op is done pointwise on the fuzzy sets."
+  [op fuzzy-sets]
+  ;; slow, make it faster!
+  (make-fuzzy-set (map-by-fn (fn [k]
+                               (apply op (map #(% k) fuzzy-sets)))
+                             (apply union (map (comp set keys fuzzy-set-as-hashmap) fuzzy-sets)))))
+
+(defmacro define-fuzzy-set-operation
+  "Defines a fuzzy set operation by applying op pointwise to all its
+  arguments. If only one argument is given, it is returned."
+  [name docstring op]
+  `(defn ~name
+     ~docstring
+     [& ~'fuzzy-sets]
+     (condp = (count ~'fuzzy-sets)
+      0 (illegal-argument ~name " needs at least one argument."),
+      1 (first ~'fuzzy-sets),
+      (pointwise-fuzzy ~op ~'fuzzy-sets))))
+
+(define-fuzzy-set-operation fuzzy-intersection
+  "Intersection of fuzzy sets."
+  min)
+
+(define-fuzzy-set-operation fuzzy-union
+  "Union of fuzzy sets."
+  max)
+
+(define-fuzzy-set-operation fuzzy-difference
+  "Difference of fuzzy set."
+  (fn [first & rest]
+    (max 0 (apply - first rest))))
 
 ;;;
 
