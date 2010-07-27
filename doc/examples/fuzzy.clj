@@ -29,9 +29,9 @@
 ;; Now you can ask for containment; note that fuzzy sets can be called
 ;; like ordinary functions
 
-(println (fs-2 1)) ; -> 0.2
-(println (fs-2 6)) ; -> 0
-(println (fs-3 1)) ; -> 1/5
+(fs-2 1) ; -> 0.2
+(fs-2 6) ; -> 0
+(fs-3 1) ; -> 1/5
 
 ;; More to come (set operations and the like)
 
@@ -44,7 +44,7 @@
 ;; macro
 
 (with-fuzzy-logic :product
-  (println (f-impl (f-and 1.0 0.4) (f-or 0.4 0.234))))
+  (f-impl (f-and 1.0 0.4) (f-or 0.4 0.234)))
 
 ;; That's it actually. Whenever an operation uses fuzzy operators just
 ;; make sure that a call to this operation is wrapped in a
@@ -66,21 +66,19 @@
 ;; used by Belohlavek and Vychodil
 
 (with-fuzzy-logic :lukasiewicz
-  (println
-   (fuzzy-attribute-derivation fuzzy-context
-                               (make-fuzzy-set {2 0.3, 4 0.8}))))
+  (fuzzy-attribute-derivation fuzzy-context
+                              (make-fuzzy-set {2 0.3, 4 0.8})))
 
 ;; Note that you can also directly use hashmaps here, since the
 ;; derivation operations automatically convert them to fuzzy sets if
 ;; possible
 
 (with-fuzzy-logic :goedel
-  (println
-   (fuzzy-attribute-derivation fuzzy-context {2 0.3, 4 0.8})))
+  (fuzzy-attribute-derivation fuzzy-context {2 0.3, 4 0.8}))
 
 ;; If you don't like rounding errors and you are willing to wait a bit
 ;; longer you can also use rationals (i.e. 1/2 instead of 0.5) or
-;; BigFloats (i.e. 0.5M instead of 0.5) when specifying the fuzzy
+;; BigDecimals (i.e. 0.5M instead of 0.5) when specifying the fuzzy
 ;; context.
 
 ;;;

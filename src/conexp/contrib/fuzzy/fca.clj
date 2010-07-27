@@ -121,6 +121,27 @@
                                  (inz [g m]))])]
     (make-context objs atts inci)))
 
+;;;
+
+(defn globalization
+  "Implements globalization."
+  [x]
+  (if (= x 1) 1 0))
+
+(defn validity
+  "Returns the degree to which the implication A ==> B is true in the
+  given fuzzy-context. A and B are fuzzy subsets of the attributes of
+  fuzzy-context."
+  [fuzzy-context A B]
+  (subsethood (make-fuzzy-set B)
+              (fuzzy-object-derivation
+                 fuzzy-context
+                 (fuzzy-attribute-derivation
+                  fuzzy-context
+                  (make-fuzzy-set A)))))
+
+;;;
+
 ;;; TODO:
 ;;;  - Compute fuzzy concepts
 ;;;  - attribute exploration?
