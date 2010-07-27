@@ -53,14 +53,14 @@
   (let [mv-ctx (make-mv-context (set objects)
                                 (set attributes)
                                 truth-function)]
-    (when-not (forall [[_ v] (incidence mv-ctx)] (and (number? v) (<= 0 v 1)))
+    (when-not (forall [v (vals (incidence mv-ctx))] (and (number? v) (<= 0 v 1)))
       (illegal-argument "Given function does not return real values between 0 and 1."))
     (mv->fuzzy-context-nc mv-ctx)))
 
 (defmethod make-fuzzy-context [clojure-coll clojure-coll clojure-coll]
   [objects attributes values]
   (let [mv-ctx (make-mv-context-from-matrix objects attributes values)]
-    (when-not (forall [[_ v] (incidence mv-ctx)] (and (number? v) (<= 0 v 1)))
+    (when-not (forall [v (vals (incidence mv-ctx))] (and (number? v) (<= 0 v 1)))
       (illegal-argument "Given value table does not contain of real values between 0 and 1."))
     (mv->fuzzy-context-nc mv-ctx)))
 
@@ -121,6 +121,10 @@
                                  (inz [g m]))])]
     (make-context objs atts inci)))
 
-;;;
+;;; TODO:
+;;;  - Compute fuzzy concepts
+;;;  - attribute exploration?
+;;;  - non-redundant basis of implications
+;;;  - glinclosure
 
 nil
