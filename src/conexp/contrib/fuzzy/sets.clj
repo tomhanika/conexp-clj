@@ -14,18 +14,12 @@
 ;;;
 
 (deftype Fuzzy-Set [^clojure.lang.APersistentMap hashmap]
+  ;; Contract: hashmap does not contain elements whose values are
+  ;; not-numbers or smaller-equal 0 or greater 1.
   ;;
   Object
   (equals [this other]
-    (boolean (or (identical? this other)
-                 (when (= (class this) (class other))
-                   (let [ohashmap (.hashmap ^Fuzzy-Set other)]
-                     (and (forall [k (keys hashmap)]
-                            (=> (not (zero? (hashmap k)))
-                                (= (hashmap k) (ohashmap k))))
-                          (forall [k (keys ohashmap)]
-                            (=> (not (zero? (ohashmap k)))
-                                (= (hashmap k) (ohashmap k))))))))))
+    (generic-equals [this other] Fuzzy-Set [hashmap]))
   (hashCode [this]
     (hash-combine-hash Fuzzy-Set hashmap))
   (toString [this]
@@ -41,8 +35,7 @@
       n
       ()))
   (cons [this [k v]]
-    (when-not (and (number? v)
-                   (<= 0 v 1))
+    (when-not (and (number? v) (<= 0 v 1))
       (illegal-argument "Fuzzy sets only support real values in [0,1]"))
     (if (zero? v)
       (Fuzzy-Set. (dissoc hashmap k))
@@ -72,6 +65,8 @@
     (.entryAt hashmap o))
   (assoc [this k v]
     (.cons this [k v])))
+
+;;; Constructors
 
 (defmulti make-fuzzy-set
   "Constructs a fuzzy set from a given collection."
