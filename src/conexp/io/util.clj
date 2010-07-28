@@ -30,6 +30,11 @@
                *read-eval* false]
        ~@body)))
 
+(defn tmpfile
+  "Returns a temporary and unique File object."
+  []
+  (java.io.File/createTempFile "conexp-clj-" ".tmp"))
+
 ;;; Format dispatch framework macro
 
 (defmacro define-format-dispatch
@@ -40,12 +45,13 @@
   the format determined from its only argument."
   [name]
   (let [add   (symbol (str "add-" name "-input-format")),
-	get   (symbol (str "get-known-" name "-input-formats")),
-	find  (symbol (str "find-" name "-input-format")),
-	write (symbol (str "write-" name)),
-	read  (symbol (str "read-" name)),
-	get-default-write (symbol (str "get-default-" name "-format")),
-	set-default-write (symbol (str "set-default-" name "-format!"))]
+        get   (symbol (str "get-known-" name "-input-formats")),
+        find  (symbol (str "find-" name "-input-format")),
+        write (symbol (str "write-" name)),
+        read  (symbol (str "read-" name)),
+        get-default-write (symbol (str "get-default-" name "-format")),
+        set-default-write (symbol (str "set-default-" name "-format!")),
+        list-formats (symbol (str "list-" name "-formats"))]
   `(do
      (let [known-context-input-formats# (ref {})]
        (defn- ~add [name# predicate#]
@@ -55,12 +61,13 @@
        (defn- ~get []
 	 (keys @known-context-input-formats#))
 
-       (defn- ~find [file#]
-	 (first
-	  (for [[name# predicate#] @known-context-input-formats#
-		:when (with-open [in-rdr# (reader file#)]
-			(predicate# in-rdr#))]
-	    name#)))
+       (defn- ~find
+         [file#]
+         (first
+          (for [[name# predicate#] @known-context-input-formats#
+                :when (with-open [in-rdr# (reader file#)]
+                        (predicate# in-rdr#))]
+            name#)))
 
        nil)
 
@@ -94,11 +101,20 @@
        (~write (~get-default-write) ctx# file#))
 
      (defmulti ~read
-       ~(str "Reads "name " from file, automatically determining the format used.")
+       ~(str "Reads " name " from file, automatically determining the format used.")
        {:arglists (list [(symbol "file")])}
-       ~find)
-     (defmethod ~read :default [file#]
+       (fn [& args#] (apply ~find args#)))
+     (defmethod ~read :default
+       [file#]
        (illegal-argument "Cannot determine format of " ~name " in " file#))
+
+     (defn ~list-formats
+       ~(str "Returns a list of known " name " formats, with the default value as"
+             " first element.")
+       []
+       (let [def#   (~get-default-write),
+             other# (sort (filter (fn [x#] (not= x# def#)) (~get)))]
+         (conj other# def#)))
 
      nil)))
 

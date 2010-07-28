@@ -295,16 +295,9 @@
     (doseq [[g m] (incidence ctx)]
       (println (str g "," m)))))
 
-(defn list-context-formats
-  "Returns a list of known context formats, with the default value as
-  first element."
-  []
-  (let [ def (get-default-context-format)
-         other (sort (filter (fn [x] (not= x def))
-                       (get-known-context-input-formats))) ]
-    (conj other def)))
 ;;; TODO
 
+;; fimi (see fcalgs)
 ;; slf
 ;; csc
 ;; csx?

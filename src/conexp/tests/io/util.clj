@@ -8,15 +8,12 @@
 
 (ns conexp.tests.io.util
   (:use conexp.base
-        conexp.io)
-  (:import [java.io File]))
+        [conexp.io.util :only (tmpfile)]
+        conexp.io))
+
+(ns-doc "Utilities for writing out-in tests for IO.")
 
 ;;;
-
-(defn tmpfile
-  "Returns a temporary and unique File object."
-  []
-  (File/createTempFile "conexp-clj-" ".tmp"))
 
 (defn out-in
   "Returns object, treates as type, read in from a file where it has
