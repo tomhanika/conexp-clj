@@ -9,18 +9,31 @@
 (ns conexp.contrib.exec
   (:use conexp.main
         [conexp.io.util :only (tmpfile)])
-  (:use clojure.contrib.shell-out))
+  (:use clojure.contrib.shell-out
+        [clojure.contrib.io :only (with-out-writer)]))
 
 (ns-doc "Executing external programs with a common interface.")
 
 ;;;
 
 (defn run-in-shell
-  "Runs given commandline in an external shell process."
+  "Runs given commandline in an external shell process. Returns the
+  output on stdout as result."
   [& cmdln]
-  (apply sh
-         :return-map true
-         cmdln))
+  (let [result (apply sh
+                      :return-map true
+                      cmdln)]
+    (when-not (zero? (:exit result))
+      (illegal-state "External program " (first cmdln) " returned with non-zero status: " (:err result)))
+    (:out result)))
+
+(defn- context-to-file
+  "Writes context to a file using format and returns the name of the
+  file."
+  [context format]
+  (let [^java.io.File file (tmpfile)]
+    (write-context format context file)
+    (.getAbsolutePath file)))
 
 (defmacro define-external-program
   "Defines program-name to be a function calling an external
@@ -55,20 +68,24 @@
                                        (dissoc (zipmap arguments arg-names) :context))
                                 cmdln)))))
 
-;;;
+(defmacro with-context-from-output
+  "Runs body, expecting to get a string containing a formal
+  context. Writes this string to a file and reads it in
+  with read-context, returning the result."
+  [& body]
+  `(let [result# (do ~@body),
+         file#   (tmpfile)]
+     (with-out-writer file#
+       (print result#))
+     (read-context file#)))
 
-(defn- context-to-file
-  "Writes context to a file using format and returns the name of the
-  file."
-  [context format]
-  (let [^java.io.File file (tmpfile)]
-    (write-context format context file)
-    (.getAbsolutePath file)))
-
-(defn- context-from-file
-  "Returns the context from file."
-  [file]
-  (read-context file))
+(defmacro with-context-from-tmpfile
+  "Creates a new temporary file, executes body and returns the result
+  from calling read-context on file."
+  [file & body]
+  `(let [~file (tmpfile),
+         result# (do ~@body)]
+     (read-context ~file)))
 
 ;;;
 
