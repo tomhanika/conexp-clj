@@ -79,11 +79,14 @@
   "Constructs a fuzzy set from a given collection."
   clojure-type)
 
+(defmethod make-fuzzy-set :default
+  [thing]
+  (illegal-argument "Don't know how to create a fuzzy set from " thing "."))
+
 (defmethod make-fuzzy-set clojure-map
   [hashmap]
   (assert (forall [v (vals hashmap)]
-            (and (number? v)
-                 (<= 0 v 1))))
+            (and (number? v) (<= 0 v 1))))
   (Fuzzy-Set. (select-keys hashmap (remove #(zero? (hashmap %)) (keys hashmap)))))
 
 (defmethod make-fuzzy-set Fuzzy-Set
@@ -93,6 +96,17 @@
 (defmethod make-fuzzy-set clojure-set
   [set]
   (Fuzzy-Set. (map-by-fn (constantly 1) set)))
+
+(defmethod make-fuzzy-set clojure-coll
+  [coll]
+  (make-fuzzy-set (set coll)))
+
+(defmethod make-fuzzy-set clojure-vec
+  [vec]
+  (make-fuzzy-set (set vec)))
+
+(defalias fuzzy-set make-fuzzy-set
+  "Alias for make-fuzzy-set")
 
 (defn fuzzy-set-as-hashmap
   "Returns the hashmap corresponding to the given fuzzy set."
