@@ -104,16 +104,13 @@
   context ctx."
   [ctx]
   (let [inz  (incidence ctx),
+        vals (-> (set (vals inz)) (disj 0)),
         objs (set-of [g ny]
                      [g (objects ctx),
-                      m (attributes ctx),
-                      :let [ny (inz [g m])],
-                      :when (not (zero? ny))]),
+                      ny vals]),
         atts (set-of [m lambda]
-                     [g (objects ctx),
-                      m (attributes ctx),
-                      :let [lambda (inz [g m])],
-                      :when (not (zero? lambda))]),
+                     [m (attributes ctx),
+                      lambda vals]),
         inci  (set-of [[g ny] [m lambda]]
                       [[g ny] objs,
                        [m lambda] atts,
