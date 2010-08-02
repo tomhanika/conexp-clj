@@ -29,14 +29,16 @@
                              (fn [rdr]
                                (= "conexp-clj simple" (.readLine rdr))))
 
-(defmethod write-mv-context :simple [_ mv-context file]
+(define-mv-context-output-format :simple
+  [mv-context file]
   (with-out-writer file
     (println "conexp-clj simple")
     (prn {:many-valued-context [(objects mv-context)
                                 (attributes mv-context)
                                 (incidence mv-context)]})))
 
-(defmethod read-mv-context :simple [file]
+(define-mv-context-input-format :simple
+  [file]
   (with-in-reader file
     (let [_        (get-line),
           hash-map (binding [*in* (PushbackReader. *in*)]
@@ -65,7 +67,8 @@
                                 (re-matches #"^[^,]+,[^,]+.*$" (.readLine rdr))
                                 (catch Exception _))))
 
-(defmethod write-mv-context :data-table [_ mv-context file]
+(define-mv-context-output-format :data-table
+  [mv-context file]
   (with-out-writer file
     (when (> 2 (count (attributes mv-context)))
       (illegal-argument "Cannot store many-valued contexts with less then 2 attributes in format :data-table."))
@@ -82,7 +85,8 @@
       (doseq [g (objects mv-context)]
         (write-comma-line (cons g (map #((incidence mv-context) [g %]) (attributes mv-context))))))))
 
-(defmethod read-mv-context :data-table [file]
+(define-mv-context-input-format :data-table
+  [file]
   (with-in-reader file
     (let [read-comma-line (fn []
                             (let [line (get-line)]

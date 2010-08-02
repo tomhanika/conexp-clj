@@ -116,6 +116,20 @@
              other# (sort (filter (fn [x#] (not= x# def#)) (~get)))]
          (conj other# def#)))
 
+     (defmacro ~(symbol (str "define-" name "-input-format"))
+       ~(str "Defines input format for " name "s.")
+       [~'input-format [~'file] & ~'body]
+       `(defmethod ~'~read ~~'input-format
+          [~~'file]
+          ~@~'body))
+
+     (defmacro ~(symbol (str "define-" name "-output-format"))
+       ~(str "Defines output format for " name "s.")
+       [~'input-format [~'thing ~'file] & ~'body]
+       `(defmethod ~'~write ~~'input-format
+          [~'~'_ ~~'thing ~~'file]
+          ~@~'body))
+
      nil)))
 
 ;;;

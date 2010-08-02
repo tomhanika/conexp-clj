@@ -28,13 +28,15 @@
 			 (fn [rdr]
 			   (= "conexp-clj simple" (.readLine rdr))))
 
-(defmethod write-layout :simple [_ layout file]
+(define-layout-output-format :simple
+  [layout file]
   (with-out-writer file
     (println "conexp-clj simple")
     (prn {:layout [(positions layout)
 		   (connections layout)]})))
 
-(defmethod read-layout :simple [file]
+(define-layout-input-format :simple
+  [file]
   (with-in-reader file
     (let [_        (get-line),
 	  hash-map (binding [*in* (PushbackReader. *in*)]

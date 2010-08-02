@@ -30,14 +30,16 @@
 			  (fn [rdr]
 			    (= "conexp-clj simple" (.readLine rdr))))
 
-(defmethod write-context :simple [_ ctx file]
+(define-context-output-format :simple
+  [ctx file]
   (with-out-writer file
     (println "conexp-clj simple")
     (prn {:context [(objects ctx)
 		    (attributes ctx)
 		    (incidence ctx)]})))
 
-(defmethod read-context :simple [file]
+(define-context-input-format :simple
+  [file]
   (with-in-reader file
     (let [_        (get-line)
 	  hash-map (binding [*in* (PushbackReader. *in*)]
@@ -54,7 +56,8 @@
 			  (fn [rdr]
 			    (= "B" (.readLine rdr))))
 
-(defmethod write-context :burmeister [_ ctx file]
+(define-context-output-format :burmeister
+  [ctx file]
   (with-out-writer file
     (println \B)
     (println)
@@ -69,9 +72,10 @@
 	  (print (if (inz [g m]) "X" ".")))
 	(println)))))
 
-(defmethod read-context :burmeister [file]
+(define-context-input-format :burmeister
+  [file]
   (with-in-reader file
-    (let [_                    (get-lines 2)    ; "B\n\n"
+    (let [_                    (get-lines 2)    ; "B\n\n", we don't support names
 
 	  number-of-objects    (Integer/parseInt (get-line))
 	  number-of-attributes (Integer/parseInt (get-line))
@@ -115,7 +119,8 @@
 			     (= :ConceptualSystem (-> (parse-seq rdr) first :name))
 			     (catch Exception _))))
 
-(defmethod read-context :conexp [file]
+(define-context-input-format :conexp
+  [file]
   (with-in-reader file
     (let [xml-tree (parse-trim *in*)
 	  contexts (:content (first (find-tags (:content xml-tree) :Contexts)))]
@@ -163,7 +168,8 @@
      attributes
      objects]))
 
-(defmethod write-context :conexp [_ ctx file]
+(define-context-output-format :conexp
+  [ctx file]
   (binding [*prxml-indent* 2]
     (with-out-writer file
       (prxml [:decl! {:version "1.0"}])
@@ -182,7 +188,8 @@
 				    (= :BinaryContext (-> xml-tree second :name))))
 			     (catch Exception _))))
 
-(defmethod write-context :galicia [_ ctx file]
+(define-context-output-format :galicia
+  [ctx file]
   (let [atts (apply hash-map (interleave (attributes ctx) (iterate inc 0)))
 	objs (apply hash-map (interleave (objects ctx) (iterate inc 0)))
 
@@ -203,7 +210,8 @@
 		   [:BinRel {:idxO (str (objs g)),
 			     :idxA (str (atts m))}])]])))))
 
-(defmethod read-context :galicia [file]
+(define-context-input-format :galicia
+  [file]
   (with-in-reader file
     (let [ctx-xml-tree (-> (parse-trim *in*) :content first)
 
@@ -236,7 +244,8 @@
 				   (re-matches blank line)
 				   (re-matches row line))))))
 
-(defmethod write-context :colibri [_ ctx file]
+(define-context-output-format :colibri
+  [ctx file]
   (if (some (fn [m] (and (string? m) (some #(#{\ ,\:,\;} %) m))) (attributes ctx))
     (illegal-argument
      "Cannot export to :colibri format, object or attribute names contain invalid characters."))
@@ -252,17 +261,18 @@
 	(print m))
       (print ";\n"))))
 
-(defmethod read-context :colibri [file]
+(define-context-input-format :colibri
+  [file]
   (loop [in (reader file)
 	 objs #{}
 	 inz #{}]
     (let [line (.readLine in)]
       (cond
 	(not line)
-	(make-context-nc objs (set-of m [[g m] inz]) inz)
+	(make-context-nc objs (set-of m [[g m] inz]) inz),
 	(or (re-matches #"^\s*$" line)     ; blank
 	    (re-matches #"^\s*#.*$" line)) ; comment
-	(recur in objs inz)
+	(recur in objs inz),
 	:else
 	(let [[_ g atts] (re-matches #"^\s*(.+)\s*:\s*(.+)?\s*;\s*(?:#.*)?$" line)
 	      atts (and atts (split #"\s+" atts))]
@@ -277,7 +287,7 @@
 			     (re-matches #"^[^,]+,[^,]+$" (.readLine rdr))
 			     (catch Exception _))))
 
-(defmethod read-context :csv
+(define-context-input-format :csv
   [file]
   (let [in (reader file)]
     (loop [inz #{}]
@@ -289,8 +299,8 @@
 	  (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]
 	    (recur (conj inz [g m]))))))))
 
-(defmethod write-context :csv
-  [_ ctx file]
+(define-context-output-format :csv
+  [ctx file]
   (if (some (fn [x] (and (string? x) (some #(= \, %) x)))
             (concat (objects ctx) (attributes ctx)))
     (illegal-argument "Cannot export to :csv format, object or attribute names contain \",\"."))
@@ -300,8 +310,8 @@
 
 ;; output as tex tabular
 
-(defmethod write-context :tex
-  [_ ctx file]
+(define-context-output-format :tex
+  [ctx file]
   (with-out-writer file
     (println (str "\\begin{tabular}{l|*{" (count (attributes ctx)) "}{c|}}"))
     (doseq [m (attributes ctx)]

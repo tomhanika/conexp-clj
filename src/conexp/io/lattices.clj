@@ -26,7 +26,8 @@
 			  (fn [rdr]
 			    (= "conexp-clj simple" (.readLine rdr))))
 
-(defmethod write-lattice :simple [_ lat file]
+(define-lattice-output-format :simple
+  [lat file]
   (with-out-writer file
     (println "conexp-clj simple")
     (prn {:lattice [(base-set lat)
@@ -35,7 +36,8 @@
 			     y (base-set lat)
 			     :when ((order lat) [x y])])]})))
 
-(defmethod read-lattice :simple [file]
+(define-lattice-input-format :simple
+  [file]
   (with-in-reader file
     (let [_        (get-line),
 	  hash-map (binding [*in* (PushbackReader. *in*)]
