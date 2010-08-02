@@ -277,7 +277,8 @@
 			     (re-matches #"^[^,]+,[^,]+$" (.readLine rdr))
 			     (catch Exception _))))
 
-(defmethod read-context :csv [file]
+(defmethod read-context :csv
+  [file]
   (let [in (reader file)]
     (loop [inz #{}]
       (let [line (.readLine in)]
@@ -288,12 +289,30 @@
 	  (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]
 	    (recur (conj inz [g m]))))))))
 
-(defmethod write-context :csv [_ ctx file]
-  (if (some (fn [x] (and (string? x) (some #(= \, %) x))) (concat (objects ctx) (attributes ctx)))
+(defmethod write-context :csv
+  [_ ctx file]
+  (if (some (fn [x] (and (string? x) (some #(= \, %) x)))
+            (concat (objects ctx) (attributes ctx)))
     (illegal-argument "Cannot export to :csv format, object or attribute names contain \",\"."))
   (with-out-writer file
     (doseq [[g m] (incidence ctx)]
       (println (str g "," m)))))
+
+;; output as tex tabular
+
+(defmethod write-context :tex
+  [_ ctx file]
+  (with-out-writer file
+    (println (str "\\begin{tabular}{l|*{" (count (attributes ctx)) "}{c|}}"))
+    (doseq [m (attributes ctx)]
+      (print (str "& " m)))
+    (println "\\\\\\hline\\hline")
+    (doseq [g (objects ctx)]
+      (print (str g))
+      (doseq [m (attributes ctx)]
+        (print (str "& " (if ((incidence ctx) [g m]) "\\times" "\\cdot"))))
+      (println "\\\\\\hline"))
+    (println (str "\\end{tabular}"))))
 
 ;;; TODO
 
@@ -302,7 +321,6 @@
 ;; csc
 ;; csx?
 ;; tuples
-;; out only: TeX
 
 ;;;
 
