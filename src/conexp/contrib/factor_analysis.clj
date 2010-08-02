@@ -148,6 +148,8 @@
 
 (defmethod factorize-context :fuzzy
   [_ context]
+  (unsupported-operation
+   "Factorization of fuzzy contexts is up to now not implemented correctly.")
   (let [inz          (incidence context),
         find-maximal (partial find-maximal context)]
     (loop [U (set-of [g m] [g (objects context),
