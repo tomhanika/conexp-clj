@@ -308,12 +308,14 @@
     (doseq [[g m] (incidence ctx)]
       (println (str g "," m)))))
 
-;; output as tex tabular
+
+;; output as tex array
 
 (define-context-output-format :tex
   [ctx file]
   (with-out-writer file
-    (println (str "\\begin{tabular}{l|*{" (count (attributes ctx)) "}{c|}}"))
+    (println "\\[")
+    (println (str "\\begin{array}{l||*{" (count (attributes ctx)) "}{c|}}"))
     (doseq [m (attributes ctx)]
       (print (str "& " m)))
     (println "\\\\\\hline\\hline")
@@ -322,7 +324,8 @@
       (doseq [m (attributes ctx)]
         (print (str "& " (if ((incidence ctx) [g m]) "\\times" "\\cdot"))))
       (println "\\\\\\hline"))
-    (println (str "\\end{tabular}"))))
+    (println (str "\\end{array}"))
+    (println "\\]")))
 
 ;;; TODO
 
