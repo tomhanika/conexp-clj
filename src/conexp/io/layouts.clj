@@ -10,7 +10,6 @@
   (:use conexp.base
 	conexp.io.util
 	conexp.layout.base)
-  (:use [clojure.contrib.io :only (with-out-writer)])
   (:import [java.io PushbackReader]))
 
 (ns-doc "Implements IO for layouts.")

@@ -10,8 +10,7 @@
   (:use conexp.base
 	conexp.fca.contexts
 	conexp.io.util)
-  (:use [clojure.contrib.io :only (with-out-writer, read-lines, reader)]
-	[clojure.contrib.lazy-xml :exclude (attributes)]
+  (:use [clojure.contrib.lazy-xml :exclude (attributes)]
 	clojure.contrib.prxml
 	[clojure.contrib.string :only (split)])
   (:import [java.io PushbackReader]))

@@ -10,7 +10,6 @@
   (:use conexp.base
 	conexp.fca.lattices
 	conexp.io.util)
-  (:use [clojure.contrib.io :only (with-out-writer)])
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch

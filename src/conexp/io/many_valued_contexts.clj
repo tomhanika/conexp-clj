@@ -11,7 +11,6 @@
         conexp.fca.contexts
         conexp.fca.many-valued-contexts
         conexp.io.util)
-  (:use [clojure.contrib.io :only (with-out-writer)])
   (:import [java.io PushbackReader]))
 
 (ns-doc "Implements IO for Many-Valued Contexts.")

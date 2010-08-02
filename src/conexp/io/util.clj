@@ -8,9 +8,13 @@
 
 (ns conexp.io.util
   (:use conexp.base)
-  (:use [clojure.contrib.io :only (reader)]))
+  (:require [clojure.contrib.io :as io]))
 
 ;;;
+
+(defalias reader io/reader)
+(defalias with-out-writer io/with-out-writer)
+(defalias read-lines io/read-lines)
 
 (defn get-line
   "Reads one line from *in*."
