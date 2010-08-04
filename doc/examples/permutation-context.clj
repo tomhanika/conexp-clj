@@ -42,8 +42,9 @@
 
 ;; Try it out!
 
-(count (concepts (K 1))) ;-> 1
-(count (concepts (reduce-context (K 5)))) ;-> 120
+(defn run-examples []
+  (println (count (concepts (K 1)))) ;-> 1
+  (println (count (concepts (reduce-context (K 5)))))) ;-> 120
 
 ;;;
 
