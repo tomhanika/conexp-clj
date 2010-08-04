@@ -9,7 +9,7 @@
 (in-ns 'user)
 (use 'conexp.main)
 
-;;;
+;;; Context computation
 
 (defn context-crossover
   "For four given context ctx-{1,2,3,4} computes
@@ -19,9 +19,8 @@
      ctx-3 | ctx-4
   "
   [ctx-1 ctx-2 ctx-3 ctx-4]
-  (context-subposition
-   (context-apposition ctx-1 ctx-2)
-   (context-apposition ctx-3 ctx-4)))
+  (context-subposition (context-apposition ctx-1 ctx-2)
+                       (context-apposition ctx-3 ctx-4)))
 
 (defn L
   "Computes the context IL as in example 12."
@@ -44,7 +43,7 @@
 ;; Try it out!
 
 (count (concepts (K 1))) ;-> 1
-(count (concepts (K 5))) ;-> 120
+(count (concepts (reduce-context (K 5)))) ;-> 120
 
 ;;;
 
