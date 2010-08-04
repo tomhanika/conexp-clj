@@ -9,25 +9,17 @@
 
 ;;;
 
-(defn two-elemental-subsets
-  "Returns the set of all two elemental subsets of set."
-  [set]
-  (set-of #{a b} [a set, b (disj set a)]))
-
 (defn T
   "Returns a context for the Tamari lattice of all bracketings of n+1
   symbols."
   [n]
-  (let [base-set (two-elemental-subsets (set-of-range n))]
+  (let [elements (set-of-range n),
+        base-set (set-of [a b] [a elements, b elements, :when (< a b)])]
     (make-context base-set
                   base-set
-                  (set-of [#{i j} #{p q}]
-                          [pair-1 base-set,
-                           pair-2 base-set,
-                           :let [i (apply min pair-1),
-                                 j (apply max pair-1),
-                                 p (apply min pair-2),
-                                 q (apply max pair-2)]
+                  (set-of [[i j] [p q]]
+                          [[i j] base-set,
+                           [p q] base-set,
                            :when (not (and (<= p i q j)
                                            (not= i q)))]))))
 
