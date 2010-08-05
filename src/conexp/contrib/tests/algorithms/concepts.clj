@@ -21,7 +21,7 @@
   (dotimes [_ test-runs]
     (let [ctx (cm/rand-context (cm/set-of-range (rand 15)) (rand))]
       (if-not (apply = (map #(set (concepts % ctx)) concepts-methods))
-        (do (println "Context\n" ctx "returned different results for concepts.")
+        (do (println "concepts returned different result for\n" ctx)
             (is false))
         (is true)))))
 
