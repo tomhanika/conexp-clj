@@ -7,8 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.concepts
-  (:use conexp.base
-	conexp.contrib.algorithms.bitwise)
+  (:use conexp.contrib.algorithms.bitwise
+        conexp.contrib.algorithms.generators
+        [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)])
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue]))
@@ -16,8 +17,6 @@
 (ns-doc
  "Implements various algorithms to compute the concepts of a given
  context efficiently.")
-
-;(set! *warn-on-reflection* true)
 
 ;;; Concept Calculation Multi-Method
 
@@ -36,57 +35,6 @@
 
 
 ;; NextClosure (:next-closure)
-
-;; TODO: Sort attributes before starting (see naïve implementation of next closure)
-
-(defn- lectic-<_i
-  ""
-  [i, #^BitSet A, #^BitSet B]
-  (let [i (int i)]
-    (and (.get B i)
-	 (not (.get A i))
-	 (loop [j (int (dec i))]
-	   (cond
-	     (< j 0)
-	     true,
-	     (not= (.get A j) (.get B j))
-	     false,
-	     :else
-	     (recur (dec j)))))))
-
-(defn- oplus
-  ""
-  [object-count, attribute-count, incidence-matrix, #^BitSet A, i]
-  (let [#^BitSet A-short (.clone A),
-	#^BitSet B (BitSet.),
-	i (int i)]
-    (.set A-short i true)
-    (.set A-short (inc i) (int attribute-count) false)
-    (dotimes [obj object-count]
-      (if (forall-in-bitset [att A-short]
-	    (== 1 (deep-aget ints incidence-matrix obj att)))
-	(.set B obj)))
-    (dotimes [att attribute-count]
-      (if (and (not (.get A-short att))
-	       (forall-in-bitset [obj B]
-		 (== 1 (deep-aget ints incidence-matrix obj att))))
-	(.set A-short att)))
-    A-short))
-
-(defn- next-closed-set
-  ""
-  [object-count, attribute-count, incidence-matrix, #^BitSet A]
-  (loop [i (dec (int attribute-count))]
-    (cond
-      (== -1 i)
-      nil,
-      (.get A i)
-      (recur (dec i)),
-      :else
-      (let [A_i (oplus object-count attribute-count incidence-matrix A i)]
-	(if (lectic-<_i i A A_i)
-	  A_i
-	  (recur (dec i)))))))
 
 (defmethod concepts :next-closure [_ context]
   (let [object-vector (vec (objects context))
@@ -131,13 +79,11 @@
 	  (.set D j false))))
     [C, D]))
 
-(defn- generate-from
-  ""
-  [object-count, attribute-count, incidence-matrix, rows, #^BitSet A, #^BitSet B, y, #^SynchronousQueue queue]
-  (.put queue [A, B])
-  (if (or (== attribute-count (.cardinality B))
-	  (>= (int y) (int attribute-count)))
-    nil
+(defg generate-from
+  [object-count, attribute-count, incidence-matrix, rows, #^BitSet A, #^BitSet B, y]
+  (yield [A, B])
+  (when (and (not (== attribute-count (.cardinality B)))
+             (< (int y) (int attribute-count)))
     (doseq [j (range (int y) (int attribute-count))
 	    :when (not (.get B j))
 	    :let [[#^BitSet C, #^BitSet D] (compute-closure object-count attribute-count,
@@ -154,8 +100,9 @@
 	    :when (not skip)]
       (generate-from object-count attribute-count,
 		     incidence-matrix rows,
-		     C D (inc j)
-		     queue))))
+		     C D (inc j)))))
+
+(alter-meta! (var generate-from) assoc :private true)
 
 (defmethod concepts :vychodil [_ context]
   (let [[object-vector attribute-vector
@@ -179,22 +126,17 @@
 	empty-down-up (bitwise-object-derivation incidence-matrix
 						 object-count
 						 attribute-count
-						 empty-down)
-
-	;; this is a hack; we may use conexp.contrib.generators instead?
-	queue (SynchronousQueue.)
-	worker (Thread. (fn []
-			  (generate-from object-count attribute-count,
-					 incidence-matrix rows,
-					 empty-down empty-down-up 0
-					 queue)
-			  (.put queue 1)))]
-    (.start worker)
+						 empty-down)]
     (map (fn [pair]
 	   [(to-hashset object-vector (first pair))
 	    (to-hashset attribute-vector (second pair))])
-	 (take-while #(not= 1 %)
-		     (repeatedly #(.take queue))))))
+         (generate (generate-from object-count
+                                  attribute-count
+                                  incidence-matrix
+                                  rows
+                                  empty-down
+                                  empty-down-up
+                                  0)))))
 
 
 ;; In-Close (:in-close)
@@ -254,6 +196,6 @@
 	 (persistent! Bs))))
 
 
-;;; Close-by-One?, Nourine-Raynaud?, Bordat?, Lindig?, Berry? Some other fancy stuff?
+;;;
 
 nil

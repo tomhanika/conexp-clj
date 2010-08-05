@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.generators
+(ns conexp.contrib.algorithms.generators
   (:use [clojure.contrib.def])
   (:import [java.util.concurrent SynchronousQueue]
 	   [java.util NoSuchElementException]))
@@ -46,14 +46,14 @@
 
 ;; Note: Normally generators are "function" returning different values
 ;; on different calls (hence they are not functions, actually). Here
-;; generators are thought of as functions returning "function" which
+;; generators are thought of as functions returning "functions" which
 ;; generate the different values. These functions also throw
 ;; NoSuchElementExceptions when there is nothing left to
 ;; generate. (See also iterators)
 
 ;; Generators
 
-(defmacro- make-generator
+(defmacro make-generator
   "Creates a generator from the given function definition, which may
   use the function \"yield\". The result may be called with arguments
   to give a function returning all yielded values on subsequent
