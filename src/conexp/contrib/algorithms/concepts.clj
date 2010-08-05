@@ -61,16 +61,16 @@
 (defn- compute-closure
   [object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
   (let [^BitSet C (BitSet.),
-	^BitSet D (BitSet.),
-	^BitSet E (.clone A),
-	y (int y)]
+        ^BitSet D (BitSet.),
+        ^BitSet E (.clone A),
+        y (int y)]
     (.set D 0 (int attribute-count))
     (.and E (aget ^objects rows y))
     (dobits [i E]
       (.set C i)
       (dotimes [j attribute-count]
-	(if (== 0 (deep-aget ints incidence-matrix i j))
-	  (.set D j false))))
+        (if (== 0 (deep-aget ints incidence-matrix i j))
+          (.set D j false))))
     [C, D]))
 
 (defg generate-from
@@ -79,22 +79,19 @@
   (when (and (not (== attribute-count (.cardinality B)))
              (< (int y) (int attribute-count)))
     (doseq [j (range (int y) (int attribute-count))
-	    :when (not (.get B j))
-	    :let [[^BitSet C, ^BitSet D] (compute-closure object-count attribute-count,
+            :when (not (.get B j))
+            :let [[^BitSet C, ^BitSet D] (compute-closure object-count attribute-count,
                                                           incidence-matrix rows,
                                                           A B j)
-		  skip (loop [k (int 0)]
-			 (cond
-			   (== k j)
-			   false,
-			   (not= (.get D k) (.get B k))
-			   true,
-			   :else
-			   (recur (inc k))))]
-	    :when (not skip)]
+                  skip (loop [k (int 0)]
+                         (cond
+                           (== k j) false,
+                           (not= (.get D k) (.get B k)) true,
+                           :else (recur (inc k))))]
+            :when (not skip)]
       (generate-from object-count attribute-count,
-		     incidence-matrix rows,
-		     C D (inc j)))))
+                     incidence-matrix rows,
+                     C D (inc j)))))
 
 (alter-meta! (var generate-from) assoc :private true)
 
@@ -154,15 +151,15 @@
     (when (< j attribute-count)
       (.clear ^BitSet (.get As @last))
       (dobits [i (.get As current)]
-	(when (== 1 (deep-aget ints incidence-matrix i j))
-	  (.set ^BitSet (.get As @last) i)))
+        (when (== 1 (deep-aget ints incidence-matrix i j))
+          (.set ^BitSet (.get As @last) i)))
       (if (== (.cardinality ^BitSet (.get As current))
-	      (.cardinality ^BitSet (.get As @last)))
-	(.set ^BitSet (.get Bs current) j)
-	(when (cannonical? incidence-matrix (.get As @last) (.get Bs current) j)
-	  (.add Bs @last (.clone ^BitSet (.get Bs current)))
-	  (.set ^BitSet (.get Bs @last) j)
-	  (in-close attribute-count incidence-matrix As Bs last @last (+ j 1))))
+              (.cardinality ^BitSet (.get As @last)))
+        (.set ^BitSet (.get Bs current) j)
+        (when (cannonical? incidence-matrix (.get As @last) (.get Bs current) j)
+          (.add Bs @last (.clone ^BitSet (.get Bs current)))
+          (.set ^BitSet (.get Bs @last) j)
+          (in-close attribute-count incidence-matrix As Bs last @last (+ j 1))))
       (recur (inc j)))))
 
 (defmethod concepts :in-close

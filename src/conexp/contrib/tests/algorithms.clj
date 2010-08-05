@@ -11,7 +11,8 @@
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.algorithms.titanic)
+(tests-to-run conexp.contrib.tests.algorithms.titanic
+              conexp.contrib.tests.algorithms.concepts)
 
 ;;;
 
