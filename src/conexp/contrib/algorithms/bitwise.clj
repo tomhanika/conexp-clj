@@ -92,7 +92,9 @@
     incidence-matrix))
 
 (defn to-binary-context
-  ""
+  "Returns [object-vector, attribute-vector, object-count,
+  attribute-count, incidence-matrix] of context with the obvious
+  definitions."
   [context]
   (let [object-vector (vec (objects context))
 	attribute-vector (vec (attributes context))
@@ -104,6 +106,15 @@
     [object-vector attribute-vector,
      object-count  attribute-count,
      incidence-matrix]))
+
+(defmacro with-binary-context
+  "For a given context defines object-vector, attribute-vector,
+  object-count, attribute-count and incidence-matrix in the obvious
+  way."
+  [context & body]
+  `(let [[~'object-vector ~'attribute-vector ~'object-count ~'attribute-count ~'incidence-matrix]
+         (to-binary-context ~context)]
+     ~@body))
 
 (defn bitwise-object-derivation
   ""

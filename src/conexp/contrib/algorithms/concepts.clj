@@ -11,12 +11,14 @@
         conexp.contrib.algorithms.generators
         [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)])
-  (:import [java.util BitSet])
+  (:import [java.util BitSet Vector])
   (:import [java.util.concurrent SynchronousQueue]))
 
 (ns-doc
  "Implements various algorithms to compute the concepts of a given
  context efficiently.")
+
+(set! *warn-on-reflection* true)
 
 ;;; Concept Calculation Multi-Method
 
@@ -36,42 +38,34 @@
 
 ;; NextClosure (:next-closure)
 
-(defmethod concepts :next-closure [_ context]
-  (let [object-vector (vec (objects context))
-	attribute-vector (vec (attributes context))
-	incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))
-
-	object-count (int (count object-vector))
-	attribute-count (int (count attribute-vector))
-
-	o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count)
-	a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count)
-	start (o-prime (a-prime (BitSet.)))
-
-	intents (take-while identity
-			    (iterate #(next-closed-set object-count
-						       attribute-count
-						       incidence-matrix
-						       %)
-				     start))]
-    (map (fn [bitset]
-	   [(to-hashset object-vector (a-prime bitset))
-	    (to-hashset attribute-vector bitset)])
-	 intents)))
+(defmethod concepts :next-closure
+  [_ context]
+  (with-binary-context context
+    (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
+          a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
+          start   (o-prime (a-prime (BitSet.))),
+          intents (take-while identity
+                              (iterate #(next-closed-set object-count
+                                                         attribute-count
+                                                         incidence-matrix
+                                                         %)
+                                       start))]
+      (map (fn [bitset]
+             [(to-hashset object-vector (a-prime bitset)),
+              (to-hashset attribute-vector bitset)])
+           intents))))
 
 
 ;; Vychodil (:vychodil)
 
 (defn- compute-closure
-  ""
-  [object-count attribute-count incidence-matrix rows #^BitSet A #^BitSet B y]
-  (let [#^BitSet C (BitSet.)
-	#^BitSet D (BitSet.)
-	#^BitSet E (BitSet.)
+  [object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
+  (let [^BitSet C (BitSet.),
+	^BitSet D (BitSet.),
+	^BitSet E (.clone A),
 	y (int y)]
     (.set D 0 (int attribute-count))
-    (.or E A)
-    (.and E (aget #^objects rows y))
+    (.and E (aget ^objects rows y))
     (dobits [i E]
       (.set C i)
       (dotimes [j attribute-count]
@@ -80,15 +74,15 @@
     [C, D]))
 
 (defg generate-from
-  [object-count, attribute-count, incidence-matrix, rows, #^BitSet A, #^BitSet B, y]
+  [object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
   (yield [A, B])
   (when (and (not (== attribute-count (.cardinality B)))
              (< (int y) (int attribute-count)))
     (doseq [j (range (int y) (int attribute-count))
 	    :when (not (.get B j))
-	    :let [[#^BitSet C, #^BitSet D] (compute-closure object-count attribute-count,
-							    incidence-matrix rows,
-							    A B j)
+	    :let [[^BitSet C, ^BitSet D] (compute-closure object-count attribute-count,
+                                                          incidence-matrix rows,
+                                                          A B j)
 		  skip (loop [k (int 0)]
 			 (cond
 			   (== k j)
@@ -104,39 +98,35 @@
 
 (alter-meta! (var generate-from) assoc :private true)
 
-(defmethod concepts :vychodil [_ context]
-  (let [[object-vector attribute-vector
-	 object-count attribute-count
-	 incidence-matrix]
-	(to-binary-context context)
-
-	rows (into-array (map (fn [y]
-				(let [#^BitSet bs (BitSet.)]
-				  (.set bs y)
-				  (bitwise-attribute-derivation incidence-matrix
-								object-count
-								attribute-count
-								bs)))
-			      (range attribute-count)))
-
-	empty-down (bitwise-attribute-derivation incidence-matrix
-						 object-count
-						 attribute-count
-						 (BitSet.))
-	empty-down-up (bitwise-object-derivation incidence-matrix
-						 object-count
-						 attribute-count
-						 empty-down)]
-    (map (fn [pair]
-	   [(to-hashset object-vector (first pair))
-	    (to-hashset attribute-vector (second pair))])
-         (generate (generate-from object-count
-                                  attribute-count
-                                  incidence-matrix
-                                  rows
-                                  empty-down
-                                  empty-down-up
-                                  0)))))
+(defmethod concepts :vychodil
+  [_ context]
+  (with-binary-context context
+    (let [rows          (into-array (map (fn [y]
+                                           (let [^BitSet bs (BitSet.)]
+                                             (.set bs y)
+                                             (bitwise-attribute-derivation incidence-matrix
+                                                                           object-count
+                                                                           attribute-count
+                                                                           bs)))
+                                         (range attribute-count)))
+          empty-down    (bitwise-attribute-derivation incidence-matrix
+                                                      object-count
+                                                      attribute-count
+                                                      (BitSet.))
+          empty-down-up (bitwise-object-derivation incidence-matrix
+                                                   object-count
+                                                   attribute-count
+                                                   empty-down)]
+      (map (fn [pair]
+             [(to-hashset object-vector (first pair))
+              (to-hashset attribute-vector (second pair))])
+           (generate (generate-from object-count
+                                    attribute-count
+                                    incidence-matrix
+                                    rows
+                                    empty-down
+                                    empty-down-up
+                                    0))))))
 
 
 ;; In-Close (:in-close)
@@ -145,7 +135,7 @@
 
 (defn- cannonical?
   "Implements the IsCannonical method of In-Close."
-  [incidence-matrix, #^BitSet A-new, #^BitSet B, y]
+  [incidence-matrix, ^BitSet A-new, ^BitSet B, y]
   (loop [j (dec (int y))]
     (cond
      (< j 0) true,
@@ -157,44 +147,42 @@
 
 (defn- in-close
   "Implements the InClose method of In-Close."
-  [attribute-count incidence-matrix As Bs last current y]
+  [attribute-count, incidence-matrix, ^Vector As, ^Vector Bs, last, current, y]
   (swap! last + 1)
-  (assoc! As @last (BitSet.))
+  (.add As @last (BitSet.))
   (loop [j (int y)]
     (when (< j attribute-count)
-      (.clear #^BitSet (get As @last))
-      (dobits [i (get As current)]
+      (.clear ^BitSet (.get As @last))
+      (dobits [i (.get As current)]
 	(when (== 1 (deep-aget ints incidence-matrix i j))
-	  (.set #^BitSet (get As @last) i)))
-      (if (== (.cardinality #^BitSet (get As current))
-	      (.cardinality #^BitSet (get As @last)))
-	(.set #^BitSet (get Bs current) j)
-	(when (cannonical? incidence-matrix (get As @last) (get Bs current) j)
-	  (assoc! Bs @last (.clone #^BitSet (get Bs current)))
-	  (.set #^BitSet (get Bs @last) j)
+	  (.set ^BitSet (.get As @last) i)))
+      (if (== (.cardinality ^BitSet (.get As current))
+	      (.cardinality ^BitSet (.get As @last)))
+	(.set ^BitSet (.get Bs current) j)
+	(when (cannonical? incidence-matrix (.get As @last) (.get Bs current) j)
+	  (.add Bs @last (.clone ^BitSet (.get Bs current)))
+	  (.set ^BitSet (.get Bs @last) j)
 	  (in-close attribute-count incidence-matrix As Bs last @last (+ j 1))))
       (recur (inc j)))))
 
-(defmethod concepts :in-close [_ context]
-  (let [[object-vector attribute-vector,
-	 object-count attribute-count,
-	 incidence-matrix]
-	(to-binary-context context),
+(defmethod concepts :in-close
+  [_ context]
+  (with-binary-context context
+    (let [^Vector As (Vector.),
+          ^Vector Bs (Vector.),
+          last (atom 0)]
+      (.add As 0 (BitSet.))
+      (.set ^BitSet (.get As 0) 0 (int object-count))
+      (.add Bs 0 (BitSet.))
+      (in-close attribute-count incidence-matrix As Bs last 0 0)
+      (map (fn [A B]
+             [(to-hashset object-vector A),
+              (to-hashset attribute-vector B)])
+           As Bs))))
 
-	As (transient []),
-	Bs (transient []),
+;;;
 
-	last (atom 0)]
-    (assoc! As 0 (BitSet.))
-    (.set #^BitSet (get As 0) 0 (int object-count))
-    (assoc! Bs 0 (BitSet.))
-    (in-close attribute-count incidence-matrix As Bs last 0 0)
-    (map (fn [A B]
-	   [(to-hashset object-vector A),
-	    (to-hashset attribute-vector B)])
-	 (persistent! As)
-	 (persistent! Bs))))
-
+(set! *warn-on-reflection* false)
 
 ;;;
 
