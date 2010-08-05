@@ -13,7 +13,7 @@
 
 ;;;
 
-(defvar- concepts-methods (remove #{:conexp.contrib.algorithms.concepts/default-concepts}
+(defvar- concepts-methods (remove #(.startsWith (name %) "default")
                                   (keys (methods concepts))))
 (defvar- test-runs 50)
 
