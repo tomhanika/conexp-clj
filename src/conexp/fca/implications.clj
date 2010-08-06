@@ -8,7 +8,10 @@
 
 (ns conexp.fca.implications
   (:use conexp.base
-	conexp.fca.contexts))
+        conexp.fca.contexts)
+  (:import [java.util HashMap HashSet]))
+
+(ns-doc "Implications for Formal Concept Analysis")
 
 ;;;
 
@@ -44,7 +47,7 @@
   "Creates an implication (premise => conclusion $\\setminus$ premise)."
   [premise conclusion]
   (let [premise (set premise)
-	conclusion (set conclusion)]
+        conclusion (set conclusion)]
     (Implication. premise (difference conclusion premise))))
 
 ;;;
@@ -61,34 +64,29 @@
   (forall [intent (context-intents ctx)]
     (respects? intent impl)))
 
-(defn- add-immediate-elements
-  "Adds all elements which follow from implications with premises in
-  initial-set."
-  [implications initial-set]
-  (loop [conclusions []
-	 impls implications
-	 unused-impls []]
-    (if (empty? impls)
-      [(apply union initial-set conclusions) unused-impls]
-      (let [impl (first impls)]
-	(if (and (subset? (premise impl) initial-set)
-		 (not (subset? (conclusion impl) initial-set)))
-	  (recur (conj conclusions (conclusion impl))
-		 (rest impls)
-		 unused-impls)
-	  (recur conclusions
-		 (rest impls)
-		 (conj unused-impls impl)))))))
-
 (defn- close-under-implications
-  "Computes smallest superset of set being closed under given implications."
-  [implications set]
-  (loop [set set
-	 impls implications]
-    (let [[new impls] (add-immediate-elements impls set)]
-      (if (= new set)
-	new
-	(recur new impls)))))
+  "Computes smallest superset of start being closed under given implications."
+  [implications start]
+  ;; this is LinClosure
+  (let [^HashMap counts (HashMap.),
+        ^HashMap list   (HashMap.),
+        ^HashSet update (HashSet. start),
+        ^HashSet newdep (HashSet. start)]
+    (doseq [impl implications]
+      (.put counts impl (count (premise impl)))
+      (doseq [a (premise impl)]
+        (.put list a (conj (.get list a) impl))))
+    (while (seq update)
+      (let [a (first update)]
+        (.remove update a)
+        (doseq [impl (.get list a)]
+          (.put counts impl (dec (.get counts impl)))
+          (when (zero? (.get counts impl))
+            (let [z (HashSet. (conclusion impl))]
+              (.removeAll z newdep)
+              (.addAll newdep z)
+              (.addAll update z))))))
+    (set newdep)))
 
 (defn clop-by-implications
   "Returns closure operator given by implications."
@@ -100,7 +98,7 @@
   implications."
   [implication implications]
   (subset? (conclusion implication)
-	   (close-under-implications implications (premise implication))))
+           (close-under-implications implications (premise implication))))
 
 (defn minimal-implication-set?
   "Checks whether given set of implications is minimal, i.e. no
@@ -132,27 +130,32 @@
   proper subsets of initial-set. This is needed for computing the
   stem-base."
   [implications initial-set]
-  (loop [conclusions []
-	 impls implications
-	 unused-impls []]
+  (loop [conclusions  [],
+         impls        implications,
+         unused-impls []]
     (if (empty? impls)
       [(apply union initial-set conclusions) unused-impls]
       (let [impl (first impls)]
-	(if (and (proper-subset? (premise impl) initial-set)
-		 (not (subset? (conclusion impl) initial-set)))
-	  (recur (conj conclusions (conclusion impl))
-		 (rest impls)
-		 unused-impls)
-	  (recur conclusions
-		 (rest impls)
-		 (conj unused-impls impl)))))))
+        (if (and (proper-subset? (premise impl) initial-set)
+                 (not (subset? (conclusion impl) initial-set)))
+          (recur (conj conclusions (conclusion impl))
+                 (rest impls)
+                 unused-impls)
+          (recur conclusions
+                 (rest impls)
+                 (conj unused-impls impl)))))))
 
 (defn clop-by-implications*
   "Returns closure operator given by implications. Closed sets are
   computed from implications with premises being proper subsets."
   [implications]
-  (binding [add-immediate-elements add-immediate-elements*]
-    (partial close-under-implications implications)))
+  (fn [set]
+    (loop [set set,
+           impls implications]
+      (let [[new impls] (add-immediate-elements* impls set)]
+        (if (= new set)
+          new
+          (recur new impls))))))
 
 (defn stem-base
   "Returns stem base of given context. Uses background-knowledge as
