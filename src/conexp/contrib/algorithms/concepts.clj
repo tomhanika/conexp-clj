@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.concepts
-  (:use conexp.contrib.algorithms.bitwise
+  (:use [conexp.main :only (ns-doc, illegal-argument)]
+        conexp.contrib.algorithms.bitwise
         conexp.contrib.algorithms.generators
         [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)])

@@ -9,7 +9,8 @@
 (ns conexp.contrib.tests.algorithms.concepts
   (:require [conexp.main :as cm])
   (:use conexp.contrib.algorithms.concepts)
-  (:use clojure.test))
+  (:use clojure.test
+        clojure.contrib.def))
 
 ;;;
 
