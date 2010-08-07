@@ -13,7 +13,7 @@
         conexp.tests.fca.contexts)
   (:use clojure.test))
 
-;;;
+;;; Subcontexts
 
 (deftest test-subcontext?
   (test-for-every-test-ctx
@@ -36,6 +36,20 @@
        *test-ctx-08*)
   (is (let [some-context (make-context #{1 2 3} '#{c d e} '#{[1 c] [2 c] [2 e] [3 e]})]
 	(some #(= some-context %) (compatible-subcontexts *test-ctx-08*)))))
+
+;;; Bonds
+
+(deftest test-all-bonds
+  (is (= 2216 (count (all-bonds (make-context-from-matrix 5 5 [0 1 0 1 0
+                                                               1 0 1 1 0
+                                                               1 0 0 0 0
+                                                               1 0 1 1 1
+                                                               0 0 0 1 1])
+                                (make-context-from-matrix 5 5 [1 1 1 0 1
+                                                               1 0 1 1 1
+                                                               1 1 1 0 0
+                                                               1 1 0 0 0
+                                                               0 1 1 0 0]))))))
 
 ;;;
 
