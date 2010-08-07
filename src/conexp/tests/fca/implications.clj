@@ -46,6 +46,14 @@
 ;; holds?
 ;; respects?
 ;; add-immediate-elements (private)
+
+(deftest test-close-under-implications
+  (let [cbi @#'conexp.fca.implications/close-under-implications]
+    (are [start impls result] (= result (cbi (map (partial apply make-implication) impls) start))
+         #{} [[#{} #{1}]] #{1},
+         #{1} [[#{1} #{2}] [#{2} #{3}] [#{3} #{4}] [#{4} #{5}]] #{1 2 3 4 5},
+         #{1 2 3} [[#{1 2} #{4}] [#{1 4} #{5}] [#{1 6} #{7}]] #{1 2 3 4 5})))
+
 ;; close-under-implications (private)
 ;; clop-by-implications
 ;; follows-semantically

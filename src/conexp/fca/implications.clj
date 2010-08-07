@@ -72,16 +72,21 @@
         ^HashMap list   (HashMap.),
         ^HashSet update (HashSet. start),
         ^HashSet newdep (HashSet. start)]
-    (doseq [impl implications]
-      (.put counts impl (count (premise impl)))
-      (doseq [a (premise impl)]
-        (.put list a (conj (.get list a) impl))))
+    (doseq [impl implications
+            :let [impl-count (count (premise impl))]]
+      (.put counts impl impl-count)
+      (if (zero? impl-count)
+        (do (.addAll update (conclusion impl))
+            (.addAll newdep (conclusion impl)))
+        (doseq [a (premise impl)]
+          (.put list a (conj (.get list a) impl)))))
     (while (seq update)
       (let [a (first update)]
         (.remove update a)
-        (doseq [impl (.get list a)]
-          (.put counts impl (dec (.get counts impl)))
-          (when (zero? (.get counts impl))
+        (doseq [impl (.get list a)
+                :let [impl-count (.get counts impl)]]
+          (.put counts impl (dec impl-count))
+          (when (zero? (dec impl-count))
             (let [z (HashSet. (conclusion impl))]
               (.removeAll z newdep)
               (.addAll newdep z)
