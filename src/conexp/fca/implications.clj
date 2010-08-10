@@ -130,38 +130,6 @@
 
 ;; Stem Base
 
-(defn- add-immediate-elements*
-  "Add all elements from conclusion of implications whose premises are
-  proper subsets of initial-set. This is needed for computing the
-  stem-base."
-  [implications initial-set]
-  (loop [conclusions  [],
-         impls        implications,
-         unused-impls []]
-    (if (empty? impls)
-      [(apply union initial-set conclusions) unused-impls]
-      (let [impl (first impls)]
-        (if (and (proper-subset? (premise impl) initial-set)
-                 (not (subset? (conclusion impl) initial-set)))
-          (recur (conj conclusions (conclusion impl))
-                 (rest impls)
-                 unused-impls)
-          (recur conclusions
-                 (rest impls)
-                 (conj unused-impls impl)))))))
-
-(defn clop-by-implications*
-  "Returns closure operator given by implications. Closed sets are
-  computed from implications with premises being proper subsets."
-  [implications]
-  (fn [set]
-    (loop [set set,
-           impls implications]
-      (let [[new impls] (add-immediate-elements* impls set)]
-        (if (= new set)
-          new
-          (recur new impls))))))
-
 (defn stem-base
   "Returns stem base of given context. Uses background-knowledge as
   starting set of implications, which will also be subtracted from the
@@ -169,20 +137,19 @@
   ([ctx]
      (stem-base ctx #{}))
   ([ctx background-knowledge]
-     (let [double-prime (partial context-attribute-closure ctx),
-           attributes   (attributes ctx)]
-       (loop [implications background-knowledge,
-              last         #{}]
-         (let [conclusion-from-last (double-prime last),
-               implications (if (not= last conclusion-from-last)
-                              (conj implications
-                                    (make-implication last conclusion-from-last))
-                              implications),
-               clop (clop-by-implications* implications),
-               next (next-closed-set attributes clop last)]
-           (if next
-             (recur implications next)
-             (difference implications background-knowledge)))))))
+     (loop [implications background-knowledge,
+            last         #{}]
+       (let [conclusion-from-last (context-attribute-closure ctx last),
+             implications         (if (not= last conclusion-from-last)
+                                    (conj implications
+                                          (make-implication last conclusion-from-last))
+                                    implications),
+             next                 (next-closed-set (attributes ctx)
+                                                   (clop-by-implications implications)
+                                                   last)]
+         (if next
+           (recur implications next)
+           (difference implications background-knowledge))))))
 
 ;;; Proper Premises
 

@@ -54,7 +54,6 @@
          #{1} [[#{1} #{2}] [#{2} #{3}] [#{3} #{4}] [#{4} #{5}]] #{1 2 3 4 5},
          #{1 2 3} [[#{1 2} #{4}] [#{1 4} #{5}] [#{1 6} #{7}]] #{1 2 3 4 5})))
 
-;; close-under-implications (private)
 ;; clop-by-implications
 ;; follows-semantically
 ;; {minimal,sound,complete}-implication-set?
