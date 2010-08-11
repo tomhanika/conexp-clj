@@ -42,7 +42,7 @@
            (if (= last conclusion-from-last)
              (recur implications
                     (next-closed-set (attributes ctx)
-                                     (clop-by-implications* implications)
+                                     (clop-by-implications implications)
                                      last)
                     ctx)
              (let [new-impl (make-implication last conclusion-from-last),
@@ -51,7 +51,7 @@
                  (let [new-implications (conj implications new-impl)]
                    (recur new-implications
                           (next-closed-set (attributes ctx)
-                                           (clop-by-implications* new-implications)
+                                           (clop-by-implications new-implications)
                                            last)
                           ctx))
                  (let [new-ctx (make-context (conj (objects ctx) (new-row 0))
@@ -59,7 +59,7 @@
                                              (union (incidence ctx) (new-row 1)))]
                    (recur implications
                           (next-closed-set (attributes new-ctx)
-                                           (clop-by-implications* implications)
+                                           (clop-by-implications implications)
                                            last)
                           new-ctx))))))))))
 
