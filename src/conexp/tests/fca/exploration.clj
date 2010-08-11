@@ -24,12 +24,25 @@
    (diag-context (set-of-range 5)),
    (adiag-context (set-of-range 5)),
    (null-context (set-of-range 5)),
-   (one-context #{})])
+   (one-context #{}),
+   (rand-context #{1 2 3 4 5} 0.3),
+   (rand-context #{1 2 3 4 5} 0.4),
+   (rand-context #{1 2 3 4 5} 0.5),
+   (rand-context #{1 2 3 4 5} 0.6),
+   (rand-context #{1 2 3 4 5} 0.7),
+   ])
 
 (deftest test-explore-attributes-is-stem-base
   (with-testing-data [ctx *testing-data*]
     (= (stem-base ctx)
        (explore-attributes ctx #{} (constantly [true []])))))
+
+(defn- say-no [ctx impl]
+  [false, [(gensym) (premise impl)]])
+
+(deftest test-explore-attributes-with-always-saying-no
+  (with-testing-data [ctx *testing-data*]
+    (= #{} (explore-attributes ctx #{} say-no))))
 
 ;;;
 

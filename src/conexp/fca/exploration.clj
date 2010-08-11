@@ -25,9 +25,10 @@
   new-row], where status is a boolean, indicating whether this
   implication is to be accepted or not, and a new-row, which, in the
   case of not accepting an implication, has to be a valid
-  counterexample. background-implications denotes a set of
-  implications used as background knowledge, which will be subtracted
-  from the computed result."
+  counterexample of the form [new-obj new-obj-attributes].
+  background-implications denotes a set of implications used as
+  background knowledge, which will be subtracted from the computed
+  result."
   ([ctx]
      (explore-attributes ctx #{}))
   ([ctx background-implications]
@@ -45,22 +46,22 @@
                                      (clop-by-implications implications)
                                      last)
                     ctx)
-             (let [new-impl (make-implication last conclusion-from-last),
+             (let [new-impl     (make-implication last conclusion-from-last),
                    [ok new-row] (handler ctx new-impl)]
                (if ok
-                 (let [new-implications (conj implications new-impl)]
-                   (recur new-implications
-                          (next-closed-set (attributes ctx)
-                                           (clop-by-implications new-implications)
-                                           last)
-                          ctx))
-                 (let [new-ctx (make-context (conj (objects ctx) (new-row 0))
+                 (recur (conj implications new-impl)
+                        (next-closed-set (attributes ctx)
+                                         (clop-by-implications (conj implications new-impl))
+                                         last)
+                        ctx)
+                 (let [new-obj (nth new-row 0),
+                       new-ctx (make-context (conj (objects ctx) new-obj)
                                              (attributes ctx)
-                                             (union (incidence ctx) (new-row 1)))]
+                                             (union (incidence ctx)
+                                                    (set-of [new-obj m]
+                                                            [m (nth new-row 1)])))]
                    (recur implications
-                          (next-closed-set (attributes new-ctx)
-                                           (clop-by-implications implications)
-                                           last)
+                          last
                           new-ctx))))))))))
 
 (defn falsifies-implication?
@@ -108,7 +109,7 @@
                                     (falsifies-implication? new-atts impl)))
                              (str "These attributes are not valid or do not falsify the implication.\n"
                                   "Please enter a new set (in the form #{... atts ...}): "))]
-            [false [new-obj (set (map (fn [att] [new-obj att]) new-att))]]))))))
+            [false [new-obj (set new-att)]]))))))
 
 ;;;
 
