@@ -68,8 +68,7 @@
            (illegal-argument "Given initial-ordering for explore-model must consist "
                              "of all concept names of the language of the given model."))
 
-         (loop [k     0,
-                M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
+         (loop [M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
                 K     (induced-context (seq-on M_k) initial-model),
                 Pi_k  [],
                 P_k   #{},
@@ -120,7 +119,7 @@
 		   next-P_k   (next-closed-set (seq-on next-M_k)
 					       (clop-by-implications (union implications background-knowledge))
 					       P_k)]
-	       (recur (inc k) next-M_k next-K next-Pi_k next-P_k next-model implications background-knowledge))))))))
+	       (recur next-M_k next-K next-Pi_k next-P_k next-model implications background-knowledge))))))))
 
 ;;; gcis
 
