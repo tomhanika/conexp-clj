@@ -74,7 +74,7 @@
         ^HashMap list   (HashMap.),
         ^HashSet update (HashSet. ^java.util.Collection start),
         ^HashSet newdep (HashSet. ^java.util.Collection start)]
-    (doseq [impl implications
+    (doseq [impl implications,
             :let [impl-count (count (premise impl))]]
       (.put counts impl impl-count)
       (if (zero? impl-count)
@@ -82,17 +82,17 @@
             (.addAll newdep (conclusion impl)))
         (doseq [a (premise impl)]
           (.put list a (conj (.get list a) impl)))))
-    (while (seq update)
+    (while (not (.isEmpty update))
       (let [a (first update)]
         (.remove update a)
         (doseq [impl (.get list a)
                 :let [impl-count (.get counts impl)]]
           (.put counts impl (dec impl-count))
           (when (zero? (dec impl-count))
-            (let [z (HashSet. ^java.util.Collection (conclusion impl))]
-              (.removeAll z newdep)
-              (.addAll newdep z)
-              (.addAll update z))))))
+            (doseq [x (conclusion impl)
+                    :when (not (.contains newdep x))]
+              (.add newdep x)
+              (.add update x))))))
     (set newdep)))
 
 (defn clop-by-implications
