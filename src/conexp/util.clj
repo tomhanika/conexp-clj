@@ -48,15 +48,16 @@
 				    namespaces))))))
 
 (defmacro with-testing-data
-  "Expects for all bindings of var to elements of coll the body to be
-  evaluated to true."
-  [[var coll] & body]
-  `(forall [~var ~coll]
+  "Expects for all bindings the body to be evaluated to true. bindings
+  must be those of forall."
+  [bindings & body]
+  `(forall ~bindings
      ~@(map (fn [expr]
               `(let [result# (do ~expr)]
                  (if-not result#
-                   (do (println "Test failed for" '~var "being" ~var)
-                       (is false))
+                   ~(let [vars (vec (take-nth 2 bindings))]
+                      `(do (println "Test failed for" '~vars "being" ~vars)
+                           (is false)))
                    (is true))))
             body)))
 
