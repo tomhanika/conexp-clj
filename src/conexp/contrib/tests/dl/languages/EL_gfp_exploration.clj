@@ -67,12 +67,14 @@
                             (and (exists HasChild (and Female))))
                (subsumption (and (exists HasChild (and Female)) Female)
                             (and Mother))
-               (subsumption (and Male Mother)
+               (subsumption (and Mother Male)
                             (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and Female)))))
                             (and [(tbox All (and Father Mother (exists HasChild All))),
-                                  All])))))
+                                  All]))))))
+
+(deftest- model-gcis-returns-correct-count
   (are [model gci-count] (let [gcis (model-gcis model)]
                            (and (= gci-count (count gcis))
                                 (forall [gci gcis]
@@ -84,7 +86,8 @@
        grandparent-model 32))
 
 (defn test-ns-hook []
-  (model-gcis-returns-correct-result))
+  (model-gcis-returns-correct-result)
+  (model-gcis-returns-correct-count))
 
 ;;;
 
