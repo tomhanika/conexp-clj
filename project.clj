@@ -16,7 +16,9 @@
 		 [org.apache.commons/commons-math "2.0"]
 		 [jline "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.2.1"]]
-  :namespaces [conexp.main])
+  :aot [conexp.main]
+  :jar-name "conexp-clj.jar"
+  :jvm-opts ["-server"])
 
 ;;;
 
