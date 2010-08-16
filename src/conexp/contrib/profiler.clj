@@ -47,16 +47,16 @@
   "Returns a sequence of names representing the stack of the given
   thread."
   [^Thread thread]
-  (map (fn [^StackTraceElement stack-element]
-         (str (.getClassName stack-element)
-              "/"
-              (.getMethodName stack-element)
-              " ("
-              (.getFileName stack-element)
-              ":"
-              (.getLineNumber stack-element)
-              ")"))
-       (.getStackTrace thread)))
+  (distinct (map (fn [^StackTraceElement stack-element]
+                   (str (.getClassName stack-element)
+                        "/"
+                        (.getMethodName stack-element)
+                        " ("
+                        (.getFileName stack-element)
+                        ":"
+                        (.getLineNumber stack-element)
+                        ")"))
+                 (.getStackTrace thread))))
 
 (defonce #^{:private true,
             :doc "Contains for every thread a hash-map mapping method
