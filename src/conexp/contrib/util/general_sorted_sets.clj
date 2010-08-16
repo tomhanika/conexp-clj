@@ -47,13 +47,15 @@
 		     (recur (concat have next-have)))))]
     (runner (vec @(.minimal-elements gss)))))
 
-(defmethod print-method General-Sorted-Set [#^General-Sorted-Set gss, out]
-  (.write out (with-out-str
-                (println "General Sorted Set")
-                (doseq [x (sort-gss gss)]
-                  (println "Node:" (:node x)
-                           ", Lowers:" (map :node @(:lowers x))
-                           ", Uppers:" (map :node @(:uppers x)))))))
+(defmethod print-method General-Sorted-Set
+  [#^General-Sorted-Set gss, out]
+  (.write ^java.io.Writer out
+          ^String (with-out-str
+                    (println "General Sorted Set")
+                    (doseq [x (sort-gss gss)]
+                      (println "Node:" (:node x)
+                               ", Lowers:" (map :node @(:lowers x))
+                               ", Uppers:" (map :node @(:uppers x)))))))
 
 (defmethod seq-on General-Sorted-Set [gss]
   (map :node (sort-gss gss)))

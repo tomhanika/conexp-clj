@@ -23,13 +23,13 @@
 
 (defn- gss-of-concept-set
   "Returns the general-sorted-set of a concept-set."
-  [concept-set]
+  [^Concept-Set concept-set]
   (.gss concept-set))
 
 (defn- seq-of-concepts
   "Returns the sequence of concepts added to concept-set, in the
   ordere they have been added, latest first."
-  [concept-set]
+  [^Concept-Set concept-set]
   (.seq-of-concepts concept-set))
 
 (defn make-concept-set

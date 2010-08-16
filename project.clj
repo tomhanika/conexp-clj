@@ -18,7 +18,8 @@
   :dev-dependencies [[swank-clojure "1.2.1"]]
   :aot [conexp.main]
   :jar-name "conexp-clj.jar"
-  :jvm-opts ["-server", "-Xmx1g"])
+  :jvm-opts ["-server", "-Xmx1g"]
+  :warn-on-reflection true)
 
 ;;;
 

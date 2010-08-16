@@ -55,7 +55,7 @@
                                        (vertices dg)
                                        (neighbours dg)
                                        (vertex-labels dg))))]
-    (.write out (.trim output))))
+    (.write ^java.io.Writer out (.trim output))))
 
 ;;; Normalizing
 
@@ -393,9 +393,9 @@
   "Returns tripel [sim, remove, pre*] as needed by
   efficient-simulator-sets. sim, remove and pre* are Java HashMaps."
   [language G-1 G-2]
-  (let [#^HashMap sim    (HashMap.),
-        #^HashMap remove (HashMap.),
-        #^HashMap pre*   (HashMap.),
+  (let [^HashMap sim    (HashMap.),
+        ^HashMap remove (HashMap.),
+        ^HashMap pre*   (HashMap.),
 
         label-1 (:labels G-1),
         label-2 (:labels G-2),
@@ -429,14 +429,16 @@
         G-1 (single-edge->double-edge-graph G-1),
         G-2 (single-edge->double-edge-graph G-2),
 
-        [^HashMap sim,
-         ^HashMap remove,
-         ^HashMap pre*] (efficient-initialize L G-1 G-2),
+        vars            (efficient-initialize L G-1 G-2),
+        ^HashMap sim    (nth vars 0),
+        ^HashMap remove (nth vars 1),
+        ^HashMap pre*   (nth vars 2),
 
-        ^HashSet non-empty-removes (HashSet. (for [v (:base-set G-1),
-                                                   r R,
-                                                   :when (not (empty? (.get remove [v r])))]
-                                               [v r]))]
+        non-empty-removes (for [v (:base-set G-1),
+                                r R,
+                                :when (not (empty? (.get remove [v r])))]
+                            [v r]),
+        ^HashSet non-empty-removes (HashSet. ^java.util.Collection non-empty-removes)]
     (while-let [[v r] (first non-empty-removes)]
       (doseq [u ((:pre G-1) v r),
               w (.get remove [v r])]
@@ -455,14 +457,11 @@
 
 ;; simulation invocation point
 
-(defvar *simulator-set-algorithm* efficient-simulator-sets
-  "Algorithm to use when computing simulator sets between two description graphs.")
-
 (defn simulates?
   "Returns true iff there exists a simulation from G-1 to G-2, where
   vertex v in G-1 simulates vertex w in G-2."
   [G-1 G-2 v w]
-  (let [sim-sets (*simulator-set-algorithm* G-1 G-2)]
+  (let [sim-sets (efficient-simulator-sets G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
 
@@ -474,7 +473,7 @@
   [model [tbox target]]
   (let [tbox-graph (tbox->description-graph tbox),
         model-graph (model->description-graph model)]
-    ((*simulator-set-algorithm* tbox-graph model-graph) target)))
+    ((efficient-simulator-sets tbox-graph model-graph) target)))
 
 ;;;
 

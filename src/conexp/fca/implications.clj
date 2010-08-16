@@ -66,6 +66,8 @@
   (forall [intent (context-intents ctx)]
     (respects? intent impl)))
 
+(set! *warn-on-reflection* true)
+
 (defn- close-under-implications
   "Computes smallest superset of start being closed under given implications."
   [implications start]
