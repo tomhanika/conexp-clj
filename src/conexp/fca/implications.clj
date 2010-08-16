@@ -38,8 +38,10 @@
 (defmethod conclusion Implication [#^Implication impl]
   (.conclusion impl))
 
-(defmethod print-method Implication [impl out]
-  (.write out (str "(" (premise impl) "  ==>  " (conclusion impl) ")")))
+(defmethod print-method Implication
+  [impl out]
+  (.write ^java.io.Writer out
+          ^String (str "(" (premise impl) "  ==>  " (conclusion impl) ")")))
 
 ;;;
 
@@ -70,8 +72,8 @@
   ;; this is LinClosure
   (let [^HashMap counts (HashMap.),
         ^HashMap list   (HashMap.),
-        ^HashSet update (HashSet. start),
-        ^HashSet newdep (HashSet. start)]
+        ^HashSet update (HashSet. ^java.util.Collection start),
+        ^HashSet newdep (HashSet. ^java.util.Collection start)]
     (doseq [impl implications
             :let [impl-count (count (premise impl))]]
       (.put counts impl impl-count)
@@ -87,7 +89,7 @@
                 :let [impl-count (.get counts impl)]]
           (.put counts impl (dec impl-count))
           (when (zero? (dec impl-count))
-            (let [z (HashSet. (conclusion impl))]
+            (let [z (HashSet. ^java.util.Collection (conclusion impl))]
               (.removeAll z newdep)
               (.addAll newdep z)
               (.addAll update z))))))
