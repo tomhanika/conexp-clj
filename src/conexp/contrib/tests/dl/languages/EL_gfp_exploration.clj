@@ -79,10 +79,10 @@
                            (and (= gci-count (count gcis))
                                 (forall [gci gcis]
                                   (holds-in-model? model gci))))
-       some-model  9
-       riding-model 7
-       family-model 19
-       more-family-model 21
+       some-model  9,
+       riding-model 7,
+       family-model 19,
+       more-family-model 21,
        grandparent-model 32))
 
 (defn test-ns-hook []
