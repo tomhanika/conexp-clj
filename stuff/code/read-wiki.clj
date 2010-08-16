@@ -221,6 +221,15 @@
      (concept-size A)
      (+ 1 (concept-support model A))))
 
+;;; How to use
+
+(comment
+
+  (defvar- mymodel (read-wiki-model '[child]))
+  (explore-wiki-model mymodel)
+
+  )
+
 ;;;
 
 nil
