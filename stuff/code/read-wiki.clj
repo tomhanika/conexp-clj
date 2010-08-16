@@ -11,8 +11,16 @@
 (in-ns 'user)
 
 (use '[clojure.contrib.io :only (with-in-reader)]
-     '[clojure.walk :only (walk)]
-     '[conexp.base :only (set-of)])
+     '[clojure.walk :only (walk)])
+
+(use 'conexp.main
+     'conexp.contrib.profiler
+     'conexp.contrib.dl.framework.syntax
+     'conexp.contrib.dl.framework.boxes
+     'conexp.contrib.dl.framework.semantics
+     'conexp.contrib.dl.languages.EL-gfp
+     'conexp.contrib.dl.languages.EL-gfp-exploration
+     'conexp.contrib.dl.languages.interaction)
 
 ;;;
 
@@ -90,7 +98,7 @@
 (defvar *wikipedia-instances* "/users/lat/borch/wikiinstances.nt"
   "File containing the instances as defined by dbpedia")
 
-(defn read-wiki [roles]
+(defn- read-wiki [roles]
   "Reads model from wikipedia entries. roles can be any quoted
   sequence of child, father, mother, influenced, influencedBy, relation,
   relative, spouse, partner, opponent, ..."
@@ -108,15 +116,6 @@
     [(prepare-for-conexp concepts), (prepare-for-conexp relations)]))
 
 ;;;
-
-(use 'conexp.base
-     'conexp.contrib.profiler
-     'conexp.contrib.dl.framework.syntax
-     'conexp.contrib.dl.framework.boxes
-     'conexp.contrib.dl.framework.semantics
-     'conexp.contrib.dl.languages.EL-gfp
-     'conexp.contrib.dl.languages.EL-gfp-exploration
-     'conexp.contrib.dl.languages.interaction)
 
 (defn read-wiki-model
   "For the given set of roles (as symbols) returns the smallest model
@@ -189,13 +188,13 @@
   [model A B]
   (count (interpret model (list 'and A (list 'not B)))))
 
-(defn support
+(defn concept-support
   "Returns the support of the given concept, i.e. the cardinality of
   its extension in model."
   [model A]
   (count (interpret model A)))
 
-(defn confidence
+(defn gci-confidence
   "Returns some kind of confidence for the gci A -> B in model."
   [model A B]
   (- 1 (/ (number-of-counterexamples model A B)
@@ -220,7 +219,7 @@
   [model A B]
   (/ (concept-size B)
      (concept-size A)
-     (+ 1 (support model A))))
+     (+ 1 (concept-support model A))))
 
 ;;;
 
