@@ -104,18 +104,18 @@
     (set [dl-expression])
     (set (arguments dl-expression))))
 
- (defn- abbreviate-expression
-   "Abbreviates expression with given knowledge."
-   [expression knowledge]
-   (let [language            (expression-language expression),
-         implication-closure (memoize (clop-by-implications knowledge)),
-         more-specific?      more-specific?] ;hehe...
-     (binding [more-specific? #(more-specific?
-                                 %1 %2
-                                 (fn [term-1 term-2]
-                                   (contains? (implication-closure #{(make-dl-expression-nc language term-1)})
-                                              (make-dl-expression-nc language term-2))))]
-       (make-dl-expression-nc language (normalize-EL-gfp-term (expression-term expression))))))
+(defn- abbreviate-expression
+  "Abbreviates expression with given knowledge."
+  [expression knowledge]
+  (let [language            (expression-language expression),
+        implication-closure (memoize (clop-by-implications knowledge)),
+        more-specific?      more-specific?] ;hehe...
+    (binding [more-specific? #(more-specific?
+                               %1 %2
+                               (fn [term-1 term-2]
+                                 (contains? (implication-closure #{(make-dl-expression-nc language term-1)})
+                                            (make-dl-expression-nc language term-2))))]
+      (make-dl-expression-nc language (normalize-EL-gfp-term (expression-term expression))))))
 
 (defn abbreviate-subsumption
   "Takes a subsumption whose subsumee and subsumer are in normal form
