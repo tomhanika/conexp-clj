@@ -122,9 +122,10 @@
 		  0)]
     (split-at index sequence)))
 
-(defn- die-with-error
+(defn die-with-error
   "Stops program by raising the given error with strings as message."
-  [^Throwable error, strings]
+  [^Class error, strings]
+  (assert (isa? error Throwable))
   (throw (.. error
 	     (getConstructor (into-array Class [String]))
 	     (newInstance (into-array Object [(apply str strings)])))))
