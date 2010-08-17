@@ -66,36 +66,63 @@
   (forall [intent (context-intents ctx)]
     (respects? intent impl)))
 
-(set! *warn-on-reflection* true)
+(defn- add-immediate-elements
+  "Adds all elements which follow from implications with premises in
+  initial-set."
+  [implications initial-set]
+  (loop [conclusions  [],
+         impls        implications,
+         unused-impls []]
+    (if (empty? impls)
+      [(apply union initial-set conclusions) unused-impls]
+      (let [impl (first impls)]
+        (if (and (subset? (premise impl) initial-set)
+                 (not (subset? (conclusion impl) initial-set)))
+          (recur (conj conclusions (conclusion impl))
+                 (rest impls)
+                 unused-impls)
+          (recur conclusions
+                 (rest impls)
+                 (conj unused-impls impl)))))))
 
-(defn- close-under-implications
-  "Computes smallest superset of start being closed under given implications."
-  [implications start]
-  ;; this is LinClosure
-  (let [^HashMap counts (HashMap.),
-        ^HashMap list   (HashMap.),
-        ^HashSet update (HashSet. ^java.util.Collection start),
-        ^HashSet newdep (HashSet. ^java.util.Collection start)]
-    (doseq [impl implications,
-            :let [impl-count (count (premise impl))]]
-      (.put counts impl impl-count)
-      (if (zero? impl-count)
-        (do (.addAll update (conclusion impl))
-            (.addAll newdep (conclusion impl)))
-        (doseq [a (premise impl)]
-          (.put list a (conj (.get list a) impl)))))
-    (while (not (.isEmpty update))
-      (let [a (first update)]
-        (.remove update a)
-        (doseq [impl (.get list a)
-                :let [impl-count (.get counts impl)]]
-          (.put counts impl (dec impl-count))
-          (when (zero? (dec impl-count))
-            (doseq [x (conclusion impl)
-                    :when (not (.contains newdep x))]
-              (.add newdep x)
-              (.add update x))))))
-    (set newdep)))
+(defn close-under-implications
+  "Computes smallest superset of set being closed under given implications."
+  [implications set]
+  (loop [set   set,
+         impls implications]
+    (let [[new impls] (add-immediate-elements impls set)]
+      (if (= new set)
+        new
+        (recur new impls)))))
+
+;; (defn- close-under-implications
+;;   "Computes smallest superset of start being closed under given implications."
+;;   [implications start]
+;;   ;; this is LinClosure
+;;   (let [^HashMap counts (HashMap.),
+;;         ^HashMap list   (HashMap.),
+;;         ^HashSet update (HashSet. ^java.util.Collection start),
+;;         ^HashSet newdep (HashSet. ^java.util.Collection start)]
+;;     (doseq [impl implications,
+;;             :let [impl-count (count (premise impl))]]
+;;       (.put counts impl impl-count)
+;;       (if (zero? impl-count)
+;;         (do (.addAll update (conclusion impl))
+;;             (.addAll newdep (conclusion impl)))
+;;         (doseq [a (premise impl)]
+;;           (.put list a (conj (.get list a) impl)))))
+;;     (while (not (.isEmpty update))
+;;       (let [a (first update)]
+;;         (.remove update a)
+;;         (doseq [impl (.get list a)
+;;                 :let [impl-count (.get counts impl)]]
+;;           (.put counts impl (dec impl-count))
+;;           (when (zero? (dec impl-count))
+;;             (doseq [x (conclusion impl)
+;;                     :when (not (.contains newdep x))]
+;;               (.add newdep x)
+;;               (.add update x))))))
+;;     (set newdep)))
 
 (defn clop-by-implications
   "Returns closure operator given by implications."
