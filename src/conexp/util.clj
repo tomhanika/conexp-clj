@@ -39,13 +39,11 @@
   called is tested by test-ns."
   [& namespaces]
   `(defn ~'test-ns-hook []
-     (dosync
-      (ref-set *report-counters*
-	       (merge-with + ~@(map (fn [ns]
-				      `(do
-					 (require '~ns)
-					 (test-ns '~ns)))
-				    namespaces))))))
+     (doseq [ns# '~namespaces]
+       (let [result# (do (require ns#) (test-ns ns#))]
+         (dosync
+          (ref-set *report-counters*
+                   (merge-with + @*report-counters* result#)))))))
 
 (defmacro with-testing-data
   "Expects for all bindings the body to be evaluated to true. bindings

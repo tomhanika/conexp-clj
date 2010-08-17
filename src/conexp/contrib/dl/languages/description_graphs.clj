@@ -434,11 +434,11 @@
         ^HashMap remove (nth vars 1),
         ^HashMap pre*   (nth vars 2),
 
-        non-empty-removes (for [v (:base-set G-1),
-                                r R,
-                                :when (not (empty? (.get remove [v r])))]
-                            [v r]),
-        ^HashSet non-empty-removes (HashSet. ^java.util.Collection non-empty-removes)]
+        ^HashSet non-empty-removes (HashSet.)]
+    (doseq [v (:base-set G-1),
+            r R,
+            :when (not (empty? (.get remove [v r])))]
+      (.add non-empty-removes [v r]))
     (while-let [[v r] (first non-empty-removes)]
       (doseq [u ((:pre G-1) v r),
               w (.get remove [v r])]
