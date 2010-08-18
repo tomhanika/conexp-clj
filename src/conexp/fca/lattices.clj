@@ -55,7 +55,7 @@
   (or (.inf lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
-	(fn [x y]
+	(memo-fn _ [x y]
 	  (first (for [z base
 		       :when (and (order [z x])
 				  (order [z y])
@@ -70,7 +70,7 @@
   (or (.sup lattice)
       (let [order (order lattice)
 	    base  (base-set lattice)]
-	(fn [x y]
+	(memo-fn _ [x y]
 	  (first (for [z base
 		       :when (and (order [x z])
 				  (order [y z])
@@ -80,8 +80,8 @@
 		   z))))))
 
 (defmethod print-method Lattice [^Lattice lattice out]
-  (.write out
-	  (str "Lattice on " (count (base-set lattice)) " elements.")))
+  (.write ^java.io.Writer out
+	  ^String (str "Lattice on " (count (base-set lattice)) " elements.")))
 
 
 ;;; Constructors
