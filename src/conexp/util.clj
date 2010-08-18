@@ -155,13 +155,12 @@
 (defmacro memo-fn
   "Defines memoized, anonymous function."
   [name args & body]
-  `(let [cache# (ref {})]
+  `(let [cache# (atom {})]
      (fn ~name ~args
        (if (contains? @cache# ~args)
 	 (@cache# ~args)
 	 (let [rslt# (do ~@body)]
-	   (dosync
-	    (alter cache# assoc ~args rslt#))
+	   (swap! cache# assoc ~args rslt#)
 	   rslt#)))))
 
 (defn inits
