@@ -396,7 +396,7 @@
   "Returns hashmap from numbers to tab contents of given frame."
   [frame]
   (let [^JTabbedPane tabpane (get-tabpane frame)]
-    (into {} (indexed (seq (.getComponents tabpane))))))
+    (into {} (indexed (rest (seq (.getComponents tabpane)))))))
 
 (defn add-tab-with-name-icon-tooltip
   "Addes given panel to the tabpane of frame, giving name icon and tooltip"
@@ -430,8 +430,6 @@
       nil
       (.getTitleAt tabpane index))))
 
-;; remove-tabs
-;; find-tabs-by
 
 ;;; file chooser
 
