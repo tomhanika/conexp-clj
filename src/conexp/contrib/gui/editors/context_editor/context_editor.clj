@@ -330,12 +330,12 @@
     [panel]
     (let [old-widget (@panels panel),
           new-widget (make-context-editor-widget (make-context #{} #{} [])),
-          new-panel (get-widget new-widget),
-          old-ectx (get-ectx old-widget),
-          old-table (get-table old-widget),
-          old-col-permutator (get-column-index-permutator old-table)
-          old-row-permutator (get-row-index-permutator old-table)
-          new-table (get-table new-widget)]
+          new-panel  (get-widget new-widget),
+          old-ectx   (get-ectx old-widget),
+          old-table  (get-table old-widget),
+          old-col-permutator (get-column-index-permutator old-table),
+          old-row-permutator (get-row-index-permutator old-table),
+          new-table  (get-table new-widget)]
       (swap! panels assoc new-panel new-widget)
       (add-widget old-ectx new-widget)
       (set-column-index-permutator new-table old-col-permutator)
@@ -349,6 +349,13 @@
     (let [widget (@panels panel)]
       (when widget
         (get-context (get-ectx widget)))))
+
+  (defn set-context-in-panel
+    "Sets the context of the given panel to the given context."
+    [panel context]
+    (if-let [widget (@panels panel)]
+      (set-context (get-ectx widget) context)
+      (illegal-argument "Given panel does not contain a context.")))
 
   nil)
 

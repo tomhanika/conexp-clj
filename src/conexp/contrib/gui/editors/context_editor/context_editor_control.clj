@@ -96,11 +96,12 @@
           (= coord-list last)) 
       true
       (if (and (> row 0) (> col 0) (= coord-list last))
-        (let [ current-value (get-value-at-view table view-row view-col)
-               inverted-value (if (= " " current-value) "X" "")]
+        (let [current-value  (get-value-at-view table view-row view-col),
+              inverted-value (if (= " " current-value) "X" "")]
           (set-value-at-view table view-row view-col inverted-value)
           false)
         false))))
+
 (let [ attr-obj-font (Font. "SansSerif" Font/BOLD 12),
        plain-font (Font. "SansSerif" Font/PLAIN 12),
        header-foreground (Color. 96 96 96),
@@ -118,8 +119,8 @@
     "Returns the component given as first parameter, optionally changes 
      attributes of it depending on the cell"
     [table component view-row view-col is-selected has-focus value]
-    (let [ row (get-row-index table view-row)
-           col (get-column-index table view-col) ]
+    (let [row (get-row-index table view-row),
+          col (get-column-index table view-col) ]
       (cond
         (= 0 row col)
         (doto component
