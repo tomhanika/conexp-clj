@@ -27,7 +27,7 @@
 (defn- eof-ex?
   "Returns true iff given throwable is an \"EOF while reading\" or \"Write
   end dead\" exception not thrown from the repl." ; hopefully
-  [throwable]
+  [^Throwable throwable]
   (and (not (instance? clojure.lang.Compiler$CompilerException throwable))
        (.getMessage throwable)
        (or (re-matches #".*EOF while reading.*" (.getMessage throwable))
@@ -81,7 +81,7 @@
     (.start repl-thread)
     {:repl-thread repl-thread
      :repl-fn (fn [cmd]
-		(.write cmd-wtr cmd)
+		(.write cmd-wtr ^String cmd)
 		(.flush cmd-wtr))
      :result-fn (fn []
 		  (loop [#^CharArrayWriter wtr (CharArrayWriter.)]
@@ -104,12 +104,12 @@
 (defn repl-interrupt
   "Interrupts (stops) given repl process."
   [rpl]
-  (.stop (:repl-thread rpl)))
+  (.stop ^Thread (:repl-thread rpl)))
 
 (defn repl-alive?
   "Tests whether given repl process is still alive or not."
   [rpl]
-  (.isAlive (:repl-thread rpl)))
+  (.isAlive ^Thread (:repl-thread rpl)))
 
 
 ;;; Display
@@ -141,24 +141,27 @@
   [frame]
   (let [last-pos (ref 0),
 	repl-thread (create-clojure-repl-process frame),
-	#^PlainDocument
+
+	^PlainDocument
 	repl-container (proxy [PlainDocument conexp.contrib.gui.repl.ReplProcess] []
                          (getReplThreadMap []
                            repl-thread)
 			 (remove [off len]
-			   (when (>= (- off len -1) @last-pos)
-			     (proxy-super remove off len)))
+                           (when (>= (- off len -1) @last-pos)
+                             (let [^PlainDocument this this]
+                               (proxy-super remove off len))))
 			 (insertString [off string attr-set]
-			   (when (>= off @last-pos)
-			     (proxy-super insertString off string attr-set)
-			     (when (and (= string "\n")
-					(= off (- (-> this .getEndPosition .getOffset)
-						  2)))
-			       (let [input (.getText this
-						     (- @last-pos 1)
-						     (- (-> this .getEndPosition .getOffset) @last-pos 1))]
-				 (when (balanced? input)
-				   (repl-in repl-thread input)))))))
+                           (when (>= off @last-pos)
+                             (let [^PlainDocument this this]
+                               (proxy-super insertString off string attr-set)
+                               (when (and (= string "\n")
+                                          (= off (- (-> this .getEndPosition .getOffset)
+                                                    2)))
+                                 (let [input (.getText this
+                                                       (- @last-pos 1)
+                                                       (- (-> this .getEndPosition .getOffset) @last-pos 1))]
+                                   (when (balanced? input)
+                                     (repl-in repl-thread input))))))))
 	insert-result (fn [result]
 			(.insertString repl-container
 				       (.getLength repl-container)
@@ -194,7 +197,7 @@
 (defn- into-text-area
   "Puts repl-container (a PlainDocument) into a JTextArea adding some hotkeys."
   [repl-container repl-thread]
-  (let [#^JTextArea repl-window (JTextArea. repl-container)]
+  (let [^JTextArea repl-window (JTextArea. ^javax.swing.text.Document repl-container)]
     (doto repl-window
       (add-input-event "control C" "interrupt")
       (add-action-event "interrupt" #(repl-interrupt repl-thread)))))

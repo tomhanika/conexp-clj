@@ -180,7 +180,7 @@
 
 (defn highlight-node
   "Toggles the highlight-state of the given node."
-  [node]
+  [^GObject node]
   (if (= (.getStyle node) *default-node-style*)
     (.setStyle node *default-highlighted-node-style*)
     (.setStyle node *default-node-style*)))

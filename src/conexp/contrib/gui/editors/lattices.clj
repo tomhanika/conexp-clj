@@ -55,7 +55,7 @@
       (illegal-argument "Current tab does not contain a lattice editor.")
       (write format
 	     (transformer layout)
-	     (.getPath (choose-save-file frame))))))
+	     (.getPath ^File (choose-save-file frame))))))
 
 (defn- edit-standard-context
   "Opens a context-editor with the standard context of the lattice

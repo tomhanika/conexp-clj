@@ -26,22 +26,21 @@
 	clojure.contrib.swing-utils)
   (:require [clojure.contrib.string :as string]))
 
-;;; return res path for images etc...
-
-(let [ all-paths (string/split #":" (System/getProperty "java.class.path"))
-       cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)) 
-                   all-paths) 
-       res-root (if (empty? cclj-path) "./" 
-                  (str (re-find #".*/" (first cclj-path)) "../"))
-       res-path (str res-root "res/")]
-  (defn get-resource-file-path
-    "for a given file name, returns the file name with the current resource path
-     before it"
-    [res]
-    (str res-path res)))
-
 
 ;;; Helper functions
+
+(let [all-paths (string/split #":" (System/getProperty "java.class.path")),
+      cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)),
+                        all-paths),
+      res-root  (if (empty? cclj-path)
+                  "./"
+                  (str (re-find #".*/" (first cclj-path)) "../")),
+      res-path  (str res-root "res/")]
+  (defn get-resource-file-path
+    "For a given file name, returns the file name with the current
+     resource path before it."
+    [res]
+    (str res-path res)))
 
 (defn- add-handler
   "Adds an ActionListener to thing that calls function with frame when
@@ -55,19 +54,19 @@
 
 (defn implements-interface?
   "Returns true iff given class implements given interface."
-  [class interface]
+  [^Class class, interface]
   (some #(= interface %) (.getInterfaces class)))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
-  [component predicate]
+  [^java.awt.Container component, predicate]
   (if (predicate component)
     component
     (first-non-nil (map #(get-component % predicate) (.getComponents component)))))
 
 (defn show-in-frame
   "Creates new frame with thing embedded and shows it."
-  [thing]
+  [^java.awt.Component thing]
   (let [frame (JFrame.)]
     (.add frame thing)
     (.setVisible frame true)
@@ -117,17 +116,17 @@
      @returnvalue#))
 
 (defmacro defn-swing
-  "Defines a function that is surrounded by do-swing-return"
+  "Defines a function that is surrounded by do-swing-return."
   [name doc params & body]
   (if (vector? doc)
     `(defn ~name ~doc (do-swing-return ~params ~@body))
     `(defn ~name ~doc ~params (do-swing-return ~@body))))
 
 (defn-swing get-image-icon-or-string
-  "returns either the image-icon for the given resource or the given alternative
-   string"
+  "Returns either the image-icon for the given resource or the given
+   alternative string."
   [res alt]
-  (let [img (ImageIcon. (get-resource-file-path res))]
+  (let [img (ImageIcon. ^String (get-resource-file-path res))]
     (if (= (.getImageLoadStatus img) MediaTracker/COMPLETE)
       img alt)))
 
@@ -183,7 +182,7 @@
    (empty? hash) (JSeparator.),
    (contains? hash :content) (hash-map->menu frame hash),
    :else
-   (let [menu-item (JMenuItem. (:name hash))]
+   (let [menu-item (JMenuItem. ^String (:name hash))]
      (if (contains? hash :handler)
        (add-handler menu-item frame (:handler hash))
        (.setEnabled menu-item false))
@@ -195,7 +194,7 @@
   [frame hash-menu]
   (if (instance? java.awt.Component hash-menu)
     hash-menu
-    (let [menu (JMenu. (:name hash-menu))]
+    (let [menu (JMenu. ^String (:name hash-menu))]
       (doseq [entry (:content hash-menu)]
 	(.add menu (hash-map->menu-item frame entry)))
       menu)))
@@ -204,10 +203,10 @@
   "Adds the menus (specified as hash-maps) to the frame in front of
   the first Box$Filler found in the menu-bar of frame. Returns the
   menus added."
-  [frame menus]
+  [frame, menus]
   (let [our-menus (map #(hash-map->menu frame %) menus)]
     (do-swing
-     (let [menu-bar (get-menubar frame)
+     (let [menu-bar (get-menubar frame),
 	   [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
 						  (seq (.getComponents menu-bar)))]
        (.removeAll menu-bar)
@@ -298,7 +297,7 @@
   "Removes icons (as Java objects) from toolbar of frame. The
   resulting toolbar in frame will have no two equal icons side by
   side."
-  [frame icons]
+  [frame, icons]
   (do-swing
    (let [toolbar (get-toolbar frame),
 	 rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
@@ -323,34 +322,36 @@
 (defn- make-tab-button
   "Creates and returns a button for a tab component in tabpane to
   close the tab containing component when it is pressed."
-  [#^JTabbedPane tabpane, component]
+  [^JTabbedPane tabpane, component]
   ;; This contains code copied from TabComponentDemo and
   ;; ButtonTabComponent from the Java Tutorial
   (let [tabbutton      (proxy [JButton] []
-		         (paintComponent [#^Graphics g]
-		           (proxy-super paintComponent g)
-			   (let [#^Graphics2D g2 (.create g),
-				 delta 6]
-			     (when (.. this getModel isPressed)
-			       (.translate g2 1 1))
-			     (.setStroke g2 (BasicStroke. 2))
-			     (.setColor g2 Color/BLACK)
-			     (when (.. this getModel isRollover)
-			       (.setColor g2 Color/MAGENTA))
-			     (.drawLine g2 delta delta
-					(- (. this getWidth) delta 1) (- (. this getHeight) delta 1))
-			     (.drawLine g2 (- (. this getWidth) delta 1) delta
-					delta (- (. this getHeight) delta 1))
-			     (.dispose g2)))),
+		         (paintComponent [^Graphics g]
+                           (let [^JButton this this]
+                             (proxy-super paintComponent g)
+                             (let [^Graphics2D g2 (.create g),
+                                   delta 6]
+                               (when (.. this getModel isPressed)
+                                 (.translate g2 1 1))
+                               (.setStroke g2 (BasicStroke. 2))
+                               (.setColor g2 Color/BLACK)
+                               (when (.. this getModel isRollover)
+                                 (.setColor g2 Color/MAGENTA))
+                               (.drawLine g2 delta delta
+                                          (- (. this getWidth) delta 1)
+                                          (- (.  this getHeight) delta 1))
+                               (.drawLine g2 (- (. this getWidth) delta 1) delta
+                                          delta (- (. this getHeight) delta 1))
+                               (.dispose g2))))),
 	mouse-listener (proxy [MouseAdapter] []
-			 (mouseEntered [#^MouseEvent evt]
+			 (mouseEntered [^MouseEvent evt]
 			   (let [component (.getComponent evt)]
 			     (when (instance? AbstractButton component)
-			       (.setBorderPainted #^AbstractButton component true))))
-			 (mouseExited [#^MouseEvent evt]
+			       (.setBorderPainted ^AbstractButton component true))))
+			 (mouseExited [^MouseEvent evt]
 			   (let [component (.getComponent evt)]
 			     (when (instance? AbstractButton component)
-			       (.setBorderPainted #^AbstractButton component false)))))]
+			       (.setBorderPainted ^AbstractButton component false)))))]
     (doto tabbutton
       (add-action-listener (fn [evt]
 			     (.remove tabpane (.indexOfComponent tabpane component))))
@@ -363,10 +364,10 @@
 
 (defn- make-tab-head
   "Creates and returns a panel to be used as tab component."
-  [#^JTabbedPane tabpane, component, title]
-  (let [#^JPanel head (JPanel.),
-	#^JLabel text (JLabel.),
-	#^JButton btn (make-tab-button tabpane component)]
+  [^JTabbedPane tabpane, component, title]
+  (let [^JPanel head (JPanel.),
+	^JLabel text (JLabel.),
+	^JButton btn (make-tab-button tabpane component)]
     (doto text
       (.setText title)
       (.setBorder (BorderFactory/createEmptyBorder 0 0 0 5)))
@@ -379,9 +380,9 @@
 
 (defn add-tab
   "Addes given panel to the tabpane of frame with given title, if given."
-  ([frame pane title]
+  ([^JFrame frame, ^JPanel pane, title]
      (do-swing
-      (let [#^JTabbedPane tabpane (get-tabpane frame)]
+      (let [^JTabbedPane tabpane (get-tabpane frame)]
 	(.add tabpane pane)
 	(let [index (.indexOfComponent tabpane pane)]
 	  (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
@@ -394,27 +395,27 @@
 (defn get-tabs
   "Returns hashmap from numbers to tab contents of given frame."
   [frame]
-  (let [#^JTabbedPane tabpane (get-tabpane frame)]
+  (let [^JTabbedPane tabpane (get-tabpane frame)]
     (into {} (indexed (seq (.getComponents tabpane))))))
 
 (defn add-tab-with-name-icon-tooltip
   "Addes given panel to the tabpane of frame, giving name icon and tooltip"
-  [frame pane name icon tooltip]
+  [^JFrame frame, ^JPanel pane, name icon tooltip]
   (do-swing
-   (.addTab (get-tabpane frame) name icon pane tooltip)
+   (.addTab ^JTabbedPane (get-tabpane frame) name icon pane tooltip)
    (.validate frame)))
 
 (defn remove-tab
   "Removes a panel from the windows JTabbedPane."
-   [frame pane]
-  (do-swing
-   (.remove (get-tabpane frame) pane)
-   (.validate frame)))
+   [^JFrame frame, ^JPanel pane]
+   (do-swing
+    (.remove ^JTabbedPane (get-tabpane frame) pane)
+    (.validate frame)))
 
 (defn current-tab
   "Returns the currently selected tab and nil if there is none."
   [frame]
-  (let [#^JTabbedPane tabpane (get-tabpane frame),
+  (let [^JTabbedPane tabpane (get-tabpane frame),
 	index (.getSelectedIndex tabpane)]
     (if (= -1 index)
       nil
@@ -423,7 +424,7 @@
 (defn current-tab-title
   "Returns the currently selected tab's title and nil if there is none."
   [frame]
-  (let [#^JTabbedPane tabpane (get-tabpane frame),
+  (let [^JTabbedPane tabpane (get-tabpane frame),
 	index (.getSelectedIndex tabpane)]
     (if (= -1 index)
       nil
@@ -437,9 +438,9 @@
 (defn- make-file-chooser
   "Creates a JFileChooser with given filters for frame."
   [frame & filters]
-  (let [#^JFileChooser fc (JFileChooser.)]
+  (let [^JFileChooser fc (JFileChooser.)]
     (doseq [[name & endings] filters]
-      (let [#^FileFilter filter (FileNameExtensionFilter. name (into-array endings))]
+      (let [^FileFilter filter (FileNameExtensionFilter. name (into-array endings))]
 	(.addChoosableFileFilter fc filter)))
     fc))
 
@@ -449,7 +450,7 @@
   sequence of pairs [name & endings], where name names the type of files
   and endings are file suffixes."
   [frame & filters]
-  (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
+  (let [^JFileChooser fc (apply make-file-chooser frame filters)]
     (when (= (.showOpenDialog fc frame) JFileChooser/APPROVE_OPTION)
       (.getSelectedFile fc))))
 
@@ -459,10 +460,10 @@
   sequence of pairs [name & endings], where name names the type of files
   and endings are file suffixes."
   [frame & filters]
-  (let [#^JFileChooser fc (apply make-file-chooser frame filters)]
+  (let [^JFileChooser fc (apply make-file-chooser frame filters)]
     (loop []
       (when (= (.showSaveDialog fc frame) JFileChooser/APPROVE_OPTION)
-	(let [#^File file (.getSelectedFile fc)]
+	(let [^File file (.getSelectedFile fc)]
 	  (if (not (.exists file))
 	    file
 	    (condp = (confirm frame "File exists, overwrite?")

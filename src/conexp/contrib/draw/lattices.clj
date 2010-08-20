@@ -110,7 +110,7 @@
 		 "inf-add"  inf-additive-layout},
 	^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (add-action-listener combo-box
-			 (fn [evt]
+			 (fn [^ActionEvent evt]
 			   (let [selected (.. evt getSource getSelectedItem),
 				 layout-fn (get layouts selected)]
 			     (do-swing
@@ -131,7 +131,7 @@
 			   (fn [node dx dy]
 			     (@current-move-mode node dx dy)))
     (add-action-listener combo-box
-			 (fn [evt]
+			 (fn [^ActionEvent evt]
 			   (let [selected (.. evt getSource getSelectedItem),
 				 move-mode (get move-modes selected)]
 			     (reset! current-move-mode move-mode)))))
@@ -303,7 +303,7 @@
 			   (.addItem combo key))))]
     (add-callback-for-hook scn :move-stop save-layout)
     (add-action-listener combo
-			 (fn [evt]
+			 (fn [^ActionEvent evt]
 			   (do-swing
 			    (let [selected (.. evt getSource getSelectedItem),
 				  layout (@saved-layouts selected)]
