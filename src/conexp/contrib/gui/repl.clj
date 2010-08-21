@@ -200,7 +200,10 @@
   (let [^JTextArea repl-window (JTextArea. ^javax.swing.text.Document repl-container)]
     (doto repl-window
       (add-input-event "control C" "interrupt")
-      (add-action-event "interrupt" #(repl-interrupt repl-thread)))))
+      (add-action-event "interrupt" #(repl-interrupt repl-thread))
+      (add-input-event "meta p" "previous")
+      (add-input-event "meta n" "next")
+      (add-action-event "next" #(println "next entry")))))
 
 ;;;
 
