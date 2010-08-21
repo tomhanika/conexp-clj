@@ -13,7 +13,7 @@
         conexp.contrib.dl.framework.semantics
         conexp.contrib.dl.util.graphs)
   (:use clojure.contrib.pprint)
-  (:import [java.util HashMap LinkedList]))
+  (:import [java.util HashMap HashSet]))
 
 (ns-doc
  "Implements description graphs and common operations on them.")
@@ -418,8 +418,9 @@
         (.put remove [v r]
               (set-of w [w base-set-2,
                          :let [post-w (post-2 w r)]
-                         :when (and (seq post-w) ;i.e. (not (empty? post-w))
-                                    (empty? (intersection (.get sim v) post-w)))]))))
+                         :when (seq post-w) ;i.e. (not (empty? post-w))
+                         :let [sim-v (.get sim v)]
+                         :when (forall [x post-w] (not (contains? sim-v x)))]))))
     (doseq [w base-set-2]
       (.put pre* w
             (set-of [u r] [r R, u (pre-2 w r)])))
@@ -440,7 +441,7 @@
         ^HashMap remove (nth vars 1),
         ^HashMap pre*   (nth vars 2),
 
-        ^LinkedList non-empty-removes (LinkedList.),
+        ^HashSet non-empty-removes (HashSet.),
 
         base-set-1 (:base-set G-1),
         post-2     (:post G-2),
@@ -448,8 +449,8 @@
     (doseq [v base-set-1,
             r R,
             :when (seq (.get remove [v r]))] ;i.e. (not (empty? (.get remove [v r])))
-      (.addFirst non-empty-removes [v r]))
-    (while-let [[v r] (.peekFirst non-empty-removes)]
+      (.add non-empty-removes [v r]))
+    (while-let [[v r] (first non-empty-removes)]
       (doseq [w (.get remove [v r]),
               u (pre-1 v r)]
         (when (contains? (.get sim u) w)
@@ -461,9 +462,9 @@
                     (not (contains? sim-u x)))
               (.put remove [u r*]
                     (conj (.get remove [u r*]) w*))
-              (.addLast non-empty-removes [u r*])))))
+              (.add non-empty-removes [u r*])))))
       (.put remove [v r] #{})
-      (.removeFirst non-empty-removes))
+      (.remove non-empty-removes [v r]))
     (HashMap->hash-map sim)))
 
 
