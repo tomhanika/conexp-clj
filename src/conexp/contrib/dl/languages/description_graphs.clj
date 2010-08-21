@@ -13,7 +13,7 @@
         conexp.contrib.dl.framework.semantics
         conexp.contrib.dl.util.graphs)
   (:use clojure.contrib.pprint)
-  (:import [java.util HashMap HashSet]))
+  (:import [java.util HashMap LinkedList]))
 
 (ns-doc
  "Implements description graphs and common operations on them.")
@@ -438,7 +438,7 @@
         ^HashMap remove (nth vars 1),
         ^HashMap pre*   (nth vars 2),
 
-        ^HashSet non-empty-removes (HashSet.),
+        ^LinkedList non-empty-removes (LinkedList.),
 
         base-set-1 (:base-set G-1),
         post-2     (:post G-2),
@@ -446,10 +446,10 @@
     (doseq [v base-set-1,
             r R,
             :when (not (empty? (.get remove [v r])))]
-      (.add non-empty-removes [v r]))
-    (while-let [[v r] (first non-empty-removes)]
-      (doseq [u (pre-1 v r),
-              w (.get remove [v r])]
+      (.addFirst non-empty-removes [v r]))
+    (while-let [[v r] (.peekFirst non-empty-removes)]
+      (doseq [w (.get remove [v r]),
+              u (pre-1 v r)]
         (when (contains? (.get sim u) w)
           (.put sim u
                 (disj (.get sim u) w))
@@ -457,9 +457,9 @@
             (when (empty? (intersection (.get sim u) (post-2 w* r*)))
               (.put remove [u r*]
                     (conj (.get remove [u r*]) w*))
-              (.add non-empty-removes [u r*])))))
+              (.addLast non-empty-removes [u r*])))))
       (.put remove [v r] #{})
-      (.remove non-empty-removes [v r]))
+      (.removeFirst non-empty-removes))
     (HashMap->hash-map sim)))
 
 
