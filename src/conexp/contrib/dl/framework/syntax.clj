@@ -62,7 +62,22 @@
 
 ;;;
 
-(defrecord DL-expression [language sexp])
+(deftype DL-expression [language sexp hash-cache]
+  Object
+  (equals [this other]
+    (generic-equals [this other] DL-expression [language sexp]))
+  (hashCode [this]
+    (if-let [cached-value @hash-cache]
+      cached-value
+      (let [result (hash-combine-hash DL-expression language sexp)]
+        (reset! hash-cache result)
+        result))))
+
+(defn make-dl-expression-nc
+  "Creates a DL expression without any checks on already present DL
+  expression. Use with care."
+  [language dl-sexp]
+  (DL-expression. language dl-sexp (atom nil)))
 
 (defn expression-term
   "Returns the s-exp describing this expression."
@@ -99,12 +114,6 @@
    (dl-expression? expr) (expression-term expr),
    (sequential? expr)    (walk dl-sexp->term identity expr),
    :else                 expr))
-
-(defn make-dl-expression-nc
-  "Creates a DL expression without any checks on already present DL
-  expression. Use with care."
-  [language dl-sexp]
-  (DL-expression. language dl-sexp))
 
 (defn make-dl-expression
   "Takes a DL and a s-exp describing a concept description and returns
@@ -269,7 +278,7 @@
   (when-not (compound? dl-expression)
     (illegal-argument "Given expression is atomic and has no arguments."))
   (map #(if-not (dl-expression? %)
-	  (DL-expression. (expression-language dl-expression) %)
+	  (make-dl-expression-nc (expression-language dl-expression) %)
 	  %)
        (rest (expression-term dl-expression))))
 
@@ -319,8 +328,8 @@
   "Substitutes in the first dl-expression all occurences of keys in
   names by their values, returning the resulting expression."
   [dl-expr names]
-  (DL-expression. (expression-language dl-expr)
-                  (substitute-syntax (expression-term dl-expr) names)))
+  (make-dl-expression-nc (expression-language dl-expr)
+                         (substitute-syntax (expression-term dl-expr) names)))
 
 ;;; Definitions
 
