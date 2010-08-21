@@ -320,9 +320,11 @@
 
 (defn- HashMap->hash-map
   "Converts a Java HashMap to a Clojure hash-map."
-  [#^HashMap map]
-  (into {} (for [k (.keySet map)]
-             [k (.get map k)])))
+  [^HashMap map]
+  (reduce (fn [map, ^java.util.Map$Entry entry]
+            (conj map [(.getKey entry) (.getValue entry)]))
+          {}
+          (.entrySet map)))
 
 (defmacro- while-let
   "Runs body with binding in effect as long as x is non-nil.
@@ -445,7 +447,7 @@
         pre-1      (:pre G-1)]
     (doseq [v base-set-1,
             r R,
-            :when (not (empty? (.get remove [v r])))]
+            :when (seq (.get remove [v r]))] ;i.e. (not (empty? (.get remove [v r])))
       (.addFirst non-empty-removes [v r]))
     (while-let [[v r] (.peekFirst non-empty-removes)]
       (doseq [w (.get remove [v r]),
@@ -453,8 +455,10 @@
         (when (contains? (.get sim u) w)
           (.put sim u
                 (disj (.get sim u) w))
-          (doseq [[w* r*] (.get pre* w)]
-            (when (empty? (intersection (.get sim u) (post-2 w* r*)))
+          (doseq [[w* r*] (.get pre* w),
+                  :let [sim-u (.get sim u)]]
+            (when (forall [x (post-2 w* r*)]
+                    (not (contains? sim-u x)))
               (.put remove [u r*]
                     (conj (.get remove [u r*]) w*))
               (.addLast non-empty-removes [u r*])))))
