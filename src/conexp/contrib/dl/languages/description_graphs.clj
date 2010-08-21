@@ -347,7 +347,7 @@
         neighbours-2 (neighbours G-2),
         edge-2? (fn [v r w] (contains? (neighbours-2 v) [r w])),
 
-        #^HashMap sim-sets (HashMap.)]
+        ^HashMap sim-sets (HashMap.)]
 
     (doseq [v (vertices G-1)]
       (.put sim-sets v (set-of w [w (vertices G-2)
@@ -397,26 +397,30 @@
         ^HashMap remove (HashMap.),
         ^HashMap pre*   (HashMap.),
 
-        label-1 (:labels G-1),
-        label-2 (:labels G-2),
+        label-1    (:labels G-1),
+        label-2    (:labels G-2),
+        base-set-1 (:base-set G-1),
+        base-set-2 (:base-set G-2),
+        post-1     (:post G-1),
+        post-2     (:post G-2),
+        pre-2      (:pre G-2),
 
         R (role-names language)]
-    (doseq [v (:base-set G-1)]
+    (doseq [v base-set-1]
       (.put sim v
-            (set-of u [u (:base-set G-2),
+            (set-of u [u base-set-2,
                        :when (and (subset? (label-1 v) (label-2 u))
-                                  (forall [r R]
-                                    (=> (empty? ((:post G-2) u r))
-                                        (empty? ((:post G-1) v r)))))]))
+                                  (forall [r R] (=> (empty? (post-2 u r))
+                                                    (empty? (post-1 v r)))))]))
       (doseq [r R]
         (.put remove [v r]
-              (set-of w [w (:base-set G-2),
-                         :let [post-w ((:post G-2) w r)]
-                         :when (and (not (empty? post-w))
+              (set-of w [w base-set-2,
+                         :let [post-w (post-2 w r)]
+                         :when (and (seq post-w) ;i.e. (not (empty? post-w))
                                     (empty? (intersection (.get sim v) post-w)))]))))
-    (doseq [w (:base-set G-2)]
+    (doseq [w base-set-2]
       (.put pre* w
-            (set-of [u r] [r R, u ((:pre G-2) w r)])))
+            (set-of [u r] [r R, u (pre-2 w r)])))
     [sim remove pre*]))
 
 (defn efficient-simulator-sets
@@ -434,19 +438,23 @@
         ^HashMap remove (nth vars 1),
         ^HashMap pre*   (nth vars 2),
 
-        ^HashSet non-empty-removes (HashSet.)]
-    (doseq [v (:base-set G-1),
+        ^HashSet non-empty-removes (HashSet.),
+
+        base-set-1 (:base-set G-1),
+        post-2     (:post G-2),
+        pre-1      (:pre G-1)]
+    (doseq [v base-set-1,
             r R,
             :when (not (empty? (.get remove [v r])))]
       (.add non-empty-removes [v r]))
     (while-let [[v r] (first non-empty-removes)]
-      (doseq [u ((:pre G-1) v r),
+      (doseq [u (pre-1 v r),
               w (.get remove [v r])]
         (when (contains? (.get sim u) w)
           (.put sim u
                 (disj (.get sim u) w))
           (doseq [[w* r*] (.get pre* w)]
-            (when (empty? (intersection (.get sim u) ((:post G-2) w* r*)))
+            (when (empty? (intersection (.get sim u) (post-2 w* r*)))
               (.put remove [u r*]
                     (conj (.get remove [u r*]) w*))
               (.add non-empty-removes [u r*])))))
