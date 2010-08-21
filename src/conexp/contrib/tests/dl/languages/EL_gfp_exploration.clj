@@ -18,23 +18,25 @@
 ;;;
 
 (deftest- model-gcis-returns-correct-result
-  (are [model initial-ordering result] (if-let [[a b] ((fn find-first-unequal [seq-1 seq-2]
-                                                         (when-not (and (empty? seq-1)
-                                                                        (empty? seq-2))
-                                                           (let [a (first seq-1),
-                                                                 b (first seq-2)]
-                                                             (if (not= a b)
-                                                               [a b]
-                                                               (find-first-unequal (rest seq-1)
-                                                                                   (rest seq-2))))))
-                                                       (model-gcis model 'initial-ordering)
-                                                       result)]
-                                         (do
-                                           (println "First unequal:")
-                                           (println "Got:" a)
-                                           (println "Exp:" b)
-                                           false)
-                                         true)
+  (are [model initial-ordering result] (letfn [(find-all-unequal [seq-1 seq-2]
+                                                 (when-not (and (empty? seq-1)
+                                                                (empty? seq-2))
+                                                   (let [a (first seq-1),
+                                                         b (first seq-2)]
+                                                     (if (not= a b)
+                                                       (cons [a b]
+                                                             (find-all-unequal (rest seq-1) (rest seq-2)))
+                                                       (find-all-unequal (rest seq-1) (rest seq-2))))))]
+                                         (let [unequals (find-all-unequal (model-gcis model 'initial-ordering)
+                                                                          result)]
+                                           (if-not (empty? unequals)
+                                             (do
+                                               (doseq [[a b] unequals]
+                                                 (println "Unequal:")
+                                                 (println "Got:" a)
+                                                 (println "Exp:" b))
+                                               false)
+                                             true)))
        paper-model [Male Female Father Mother]
        (with-dl SimpleDL
          (list (subsumption (and Male Female)
@@ -58,16 +60,16 @@
        small-model [Female Mother Male Father]
        (with-dl SimpleDL
          (list (subsumption (and Mother)
-                            (and Female (exists HasChild (and Female))))
+                            (and (exists HasChild (and Female)) Female))
                (subsumption (and Male)
                             (and Father))
                (subsumption (and Father)
                             (and Male))
                (subsumption (and (exists HasChild (and)))
                             (and (exists HasChild (and Female))))
-               (subsumption (and (exists HasChild (and)) Female)
+               (subsumption (and (exists HasChild (and Female)) Female)
                             (and Mother))
-               (subsumption (and Male Mother)
+               (subsumption (and Mother Male)
                             (and [(tbox All (and Father Mother (exists HasChild All))),
                                   All]))
                (subsumption (and (exists HasChild (and (exists HasChild (and Female)))))
