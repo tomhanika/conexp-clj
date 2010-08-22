@@ -38,38 +38,6 @@
   (is (= (set (range 0 10 2)) (set-of-range 0 10 2)))
   (is (= #{} (set-of-range 23 11))))
 
-(deftest test-prime?
-  (let [yes identity
-	no  not]
-    (are [x pred] (pred (prime? x))
-	 2 yes
-	 3 yes
-	 4 no
-	 7 yes
-	 2311 yes)))
-
-(deftest test-crossfoot
-  (are [num sum] (= (crossfoot num) sum)
-       10 1
-       0  0
-       12 3
-       123 6
-       1234 10
-       12345 15
-       123456 21
-       1234567 28
-       9999999 63))
-
-(deftest test-factorial
-  (are [num fac] (= (factorial num) fac)
-       0 1
-       1 1
-       2 2
-       3 6
-       4 24
-       5 120
-       6 720))
-
 (deftest test-subelts
   (is (= (seq #{1 2 3 4}) (subelts #{1 2 3 4 5 6 7 8 9 10} 5)))
   (is (empty? (subelts #{1 2 3 4} 1)))
