@@ -76,8 +76,8 @@
   unique symbols. Returns a pair of the result and the transformation
   map used."
   [tbox-map]
-  (let [old->new (into {} (for [A (keys tbox-map)]
-                            [A (make-dl-expression (expression-language A) (gensym))])),
+  (let [old->new  (into {} (for [A (keys tbox-map)]
+                             [A (make-dl-expression (expression-language A) (gensym))])),
         old->new* (into {} (for [[A B] old->new]
                              [(expression-term A) B]))]
     [(into {} (for [[A def-A] tbox-map]
