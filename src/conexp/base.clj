@@ -50,24 +50,6 @@
   ([start end step]
      (set (range start end step))))
 
-(defn prime?
-  "Returns true iff n is prime with a certainty of (- 1 (/ 1 (expt 2 1000)))"
-  [n]
-  (let [actual-number (if (instance? BigInteger n)
-			n
-			(BigInteger. (str n)))]
-    (.isProbablePrime ^java.math.BigInteger actual-number 1000)))
-
-(defn crossfoot
-  "Returns the crossfoot of n."
-  [n]
-  (reduce + (map #(Integer/parseInt (str %)) (str n))))
-
-(defn factorial
-  "Returns n!."
-  [n]
-  (reduce * (range 2 (inc n))))
-
 
 ;;; Next Closure
 

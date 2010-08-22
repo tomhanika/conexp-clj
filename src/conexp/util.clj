@@ -86,7 +86,7 @@
 (defn with-str-out
   "Returns string of all output being made in (flatten body)."
   [& body]
-  (with-out-str 
+  (with-out-str
     (doseq [element (flatten body)]
       (print element))))
 
