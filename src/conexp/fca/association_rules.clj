@@ -20,15 +20,15 @@
   (hashCode [this]
     (hash-combine-hash Association-Rule context premise conclusion)))
 
-(defmethod premise Association-Rule [#^Association-Rule ar]
+(defmethod premise Association-Rule [^Association-Rule ar]
   (.premise ar))
 
-(defmethod conclusion Association-Rule [#^Association-Rule ar]
+(defmethod conclusion Association-Rule [^Association-Rule ar]
   (.conclusion ar))
 
 (defn context
   "Returns the corresponding context for a given association rule."
-  [#^Association-Rule ar]
+  [^Association-Rule ar]
   (.context ar))
 
 (defn support

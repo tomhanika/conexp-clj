@@ -84,7 +84,7 @@
 		(.write cmd-wtr ^String cmd)
 		(.flush cmd-wtr))
      :result-fn (fn []
-		  (loop [#^CharArrayWriter wtr (CharArrayWriter.)]
+		  (loop [^CharArrayWriter wtr (CharArrayWriter.)]
 		    (.write wtr (.read result-rdr))
 		    (if (.ready result-rdr)
 		      (recur wtr)

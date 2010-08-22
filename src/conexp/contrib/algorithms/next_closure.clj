@@ -16,7 +16,7 @@
 
 (defn- lectic-<_i
   ""
-  [i, #^BitSet A, #^BitSet B]
+  [i, ^BitSet A, ^BitSet B]
   (let [i (int i)]
     (and (.get B i)
 	 (not (.get A i))
@@ -31,9 +31,9 @@
 
 (defn- oplus
   ""
-  [object-count, attribute-count, incidence-matrix, #^BitSet A, i]
-  (let [#^BitSet A-short (.clone A),
-	#^BitSet B (BitSet.),
+  [object-count, attribute-count, incidence-matrix, ^BitSet A, i]
+  (let [^BitSet A-short (.clone A),
+	^BitSet B (BitSet.),
 	i (int i)]
     (.set A-short i true)
     (.set A-short (inc i) (int attribute-count) false)
@@ -50,7 +50,7 @@
 
 (defn next-closed-set
   ""
-  [object-count, attribute-count, incidence-matrix, #^BitSet A]
+  [object-count, attribute-count, incidence-matrix, ^BitSet A]
   (loop [i (dec (int attribute-count))]
     (cond
       (== -1 i)

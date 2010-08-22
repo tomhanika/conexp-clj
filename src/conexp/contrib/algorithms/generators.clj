@@ -9,7 +9,7 @@
 (ns conexp.contrib.algorithms.generators
   (:use [clojure.contrib.def])
   (:import [java.util.concurrent SynchronousQueue]
-	   [java.util NoSuchElementException]))
+           [java.util NoSuchElementException]))
 
 ;;
 ;; Aim:
@@ -60,30 +60,30 @@
   calls."
   [function]
   `(fn [& args#]
-     (let [#^SynchronousQueue demand-queue# (SynchronousQueue.),   ; send demands to worker thread
-	   #^SynchronousQueue delivery-queue# (SynchronousQueue.), ; deliver results to consumer thread
-	   end# (atom false),
-	   eos# (Object.)]
+     (let [^SynchronousQueue demand-queue# (SynchronousQueue.),   ; send demands to worker thread
+           ^SynchronousQueue delivery-queue# (SynchronousQueue.), ; deliver results to consumer thread
+           end# (atom false),
+           eos# (Object.)]
        (letfn [(~(symbol "yield") [x#]
-		(.put delivery-queue# x#)
-		(.take demand-queue#))]
-	 (.start (Thread. (fn []
-			    (.take demand-queue#)
-			    (apply ~function args#)
-			    (.put delivery-queue# eos#))))
-	 (fn []
-	   (let [next# (if @end#
-			 eos#
-			 (let [new# (do
-				      (.put demand-queue# 1)
-				      (.take delivery-queue#))]
-			   (if (= new# eos#)
-			     (reset! end# true))
-			   new#))]
-	     (if @end#
-	       (throw
-		(java.util.NoSuchElementException. "No more elements to generate."))
-	       next#)))))))
+                (.put delivery-queue# x#)
+                (.take demand-queue#))]
+         (.start (Thread. (fn []
+                            (.take demand-queue#)
+                            (apply ~function args#)
+                            (.put delivery-queue# eos#))))
+         (fn []
+           (let [next# (if @end#
+                         eos#
+                         (let [new# (do
+                                      (.put demand-queue# 1)
+                                      (.take delivery-queue#))]
+                           (if (= new# eos#)
+                             (reset! end# true))
+                           new#))]
+             (if @end#
+               (throw
+                (java.util.NoSuchElementException. "No more elements to generate."))
+               next#)))))))
 
 (defmacro defg
   "Globally def'ines a generator. When given some arguments a function
@@ -111,15 +111,15 @@
   "
   [generator]
   (let [eos (gensym),
-	runner (fn runner []
-		 (lazy-seq
-		  (let [next-elt (try
-				  (generator)
-				  (catch NoSuchElementException _
-				    eos))]
-		    (if (= next-elt eos)
-		      nil
-		      (cons next-elt (runner))))))]
+        runner (fn runner []
+                 (lazy-seq
+                  (let [next-elt (try
+                                  (generator)
+                                  (catch NoSuchElementException _
+                                    eos))]
+                    (if (= next-elt eos)
+                      nil
+                      (cons next-elt (runner))))))]
     (runner)))
 
 (defmacro generate-by

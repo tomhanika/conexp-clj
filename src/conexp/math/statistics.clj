@@ -20,7 +20,7 @@
   [points]
   (if (> 2 (count points))
     (illegal-argument "linear-regression needs at least 2 points."))
-  (let [#^SimpleRegression regression (SimpleRegression.)]
+  (let [^SimpleRegression regression (SimpleRegression.)]
     (doseq [[x y] points]
       (.addData regression (double x) (double y)))
     [(.getIntercept regression) (.getSlope regression)]))

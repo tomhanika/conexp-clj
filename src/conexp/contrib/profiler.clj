@@ -58,8 +58,8 @@
                         ")"))
                  (.getStackTrace thread))))
 
-(defonce #^{:private true,
-            :doc "Contains for every thread a hash-map mapping method
+(defonce ^{:private true,
+           :doc "Contains for every thread a hash-map mapping method
   names to the number of occurences found while profiling."}
   profiled-data (ref {}))
 
@@ -68,8 +68,8 @@
   []
   (keys @profiled-data))
 
-(defonce #^{:private true,
-            :doc "Contains for every thread the profiling thread."}
+(defonce ^{:private true,
+           :doc "Contains for every thread the profiling thread."}
   profilers (ref {}))
 
 (defn- get-profiled-data

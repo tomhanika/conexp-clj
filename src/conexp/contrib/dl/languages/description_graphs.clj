@@ -24,24 +24,24 @@
 
 (defn vertices
   "Returns vertices of given description graph."
-  [#^Description-Graph description-graph]
+  [^Description-Graph description-graph]
   (.vertices description-graph))
 
 (defn neighbours
   "Returns a function mapping vertices to sets of pairs of roles and
   names."
-  [#^Description-Graph description-graph]
+  [^Description-Graph description-graph]
   (.neighbours description-graph))
 
 (defn vertex-labels
   "Returns vertex labeling function of given description graph."
-  [#^Description-Graph description-graph]
+  [^Description-Graph description-graph]
   (.vertex-labels description-graph))
 
 (defn graph-language
   "Returns the underlying description language of the given
   description graph."
-  [#^Description-Graph description-graph]
+  [^Description-Graph description-graph]
   (.language description-graph))
 
 (defn make-description-graph

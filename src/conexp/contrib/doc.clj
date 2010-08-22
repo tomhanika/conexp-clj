@@ -25,13 +25,13 @@
 				(:doc (meta var)))])
 	       (filter (fn [[f var]]
 			 (and (= (:ns (meta var)) ns)
-			      (not (Character/isUpperCase #^Character (first (str f))))))
+			      (not (Character/isUpperCase ^Character (first (str f))))))
 		       (ns-map ns))))))
 
 (defn- tex-escape
   "Escapes special characters for \\TeX."
   [string]
-  (let [#^StringBuilder sb (StringBuilder.)
+  (let [^StringBuilder sb (StringBuilder.),
 	string (str string)]
     (doseq [c string]
       (cond

@@ -56,7 +56,7 @@
   (let [actual-number (if (instance? BigInteger n)
 			n
 			(BigInteger. (str n)))]
-    (.isProbablePrime #^java.math.BigInteger actual-number 1000)))
+    (.isProbablePrime ^java.math.BigInteger actual-number 1000)))
 
 (defn crossfoot
   "Returns the crossfoot of n."

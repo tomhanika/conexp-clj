@@ -90,7 +90,7 @@
   (.language dl-expression))
 
 (defmethod print-method DL-expression [dl-exp out]
-  (let [#^String output (with-out-str
+  (let [^String output (with-out-str
 			  (if *print-with-dl-type*
 			    (print (list 'DL-expr (expression-term dl-exp)))
 			    (print (expression-term dl-exp))))]
@@ -190,7 +190,7 @@
     - symbols in (get-common-constructors) being the first element of a sequence are quoted."
   [language expression]
   (let [transform-symbol (fn [symbol]
-			   (if (Character/isUpperCase (first (str symbol)))
+			   (if (Character/isUpperCase ^Character (first (str symbol)))
 			     (list 'quote symbol)
 			     symbol)),
 	transform (fn transform [sexp]
@@ -211,7 +211,7 @@
   "Constructs a description logic from the given arguments."
   [name concepts roles constr :extends nil]
   (when (exists [name (concat concepts roles)]
-          (not (Character/isUpperCase (first (str name)))))
+          (not (Character/isUpperCase ^Character (first (str name)))))
     (illegal-argument "Concept and role names must start with a capital letter. (sorry for that)"))
 
   (when (not (empty? (intersection (set concepts) (set roles))))
@@ -388,7 +388,7 @@
   (DL-subsumption. C D))
 
 (defmethod print-method DL-subsumption [susu out]
-  (let [#^String output (with-out-str
+  (let [^String output (with-out-str
 			  (print (list (subsumee susu)
                                        '==>
                                        (subsumer susu))))]

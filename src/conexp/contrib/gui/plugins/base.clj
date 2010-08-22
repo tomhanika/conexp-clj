@@ -126,7 +126,7 @@
 
 (defn plugins-from-file
   "Returns all plugins defined in the file named by file-name."
-  [#^String file-name]
+  [^String file-name]
   (let [absolute-path (.getAbsolutePath (java.io.File. file-name))]
     (load-file absolute-path)
     (filter #(= (:file (meta %)) absolute-path)

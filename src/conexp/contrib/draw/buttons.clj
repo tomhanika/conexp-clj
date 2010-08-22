@@ -62,9 +62,9 @@
 (defn make-labeled-text-field
   "Uniformly creates a text field for lattice editor."
   [buttons label text]
-  (let [#^JTextField text-field (JTextField. text),
-	#^JLabel label (JLabel. label),
-	#^JPanel panel (JPanel.)]
+  (let [^JTextField text-field (JTextField. text),
+	^JLabel label (JLabel. label),
+	^JPanel panel (JPanel.)]
     (doto panel
       (.add label)
       (.add text-field)
@@ -78,7 +78,7 @@
   "Uniformly creates a combo box from the given choices. First item is
   selected by default."
   [buttons choices]
-  (let [#^JComboBox combo-box (JComboBox. (into-array String choices))]
+  (let [^JComboBox combo-box (JComboBox. (into-array String choices))]
     (doto combo-box
       (.setMaximumSize (Dimension. *item-width* *item-height*)))
     (.add buttons combo-box)

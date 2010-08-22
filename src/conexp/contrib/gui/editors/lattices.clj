@@ -39,7 +39,7 @@
   "Loads lattice with given loader and adds a new tab with with a
   lattice-editor from the result of tranformer."
   [frame loader transformer]
-  (when-let [#^File file (choose-open-file frame)]
+  (when-let [^File file (choose-open-file frame)]
     (let [thing (loader (.getPath file))]
       (add-tab frame
 	       (make-lattice-editor frame

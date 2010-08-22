@@ -43,7 +43,7 @@
 			    (println "The objects " (difference new-objects old-objects)
 				     " are already definied in the given model. Please use other names.")
 			    (recur))
-			  (if-not (every? #(Character/isUpperCase #^Character (first (str %)))
+			  (if-not (every? #(Character/isUpperCase ^Character (first (str %)))
 					  new-objects)
 			    (do
 			      (println (str "New objects need to start with a capital letter."))

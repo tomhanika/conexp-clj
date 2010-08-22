@@ -23,7 +23,7 @@
   (let [frm (promise)]
     (do-swing
      (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-     (let [#^JFrame frame (apply conexp-main-frame args)]
+     (let [^JFrame frame (apply conexp-main-frame args)]
        (.setVisible frame true)
        (deliver frm frame)))
     @frm))

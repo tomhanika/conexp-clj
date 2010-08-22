@@ -17,16 +17,16 @@
 
 (defn tbox-language
   "Returns language for which tbox is a tbox."
-  [#^TBox tbox]
+  [^TBox tbox]
   (.language tbox))
 
 (defn tbox-definition-map
   "Returns a hash-map mapping symbols to their corresponding definition in tbox."
-  [#^TBox tbox]
+  [^TBox tbox]
   (.definition-map tbox))
 
 (defmethod print-method TBox [tbox out]
-  (let [#^String output (with-out-str
+  (let [^String output (with-out-str
                           (print (list 'TBox
                                        (vals (tbox-definition-map tbox)))))]
     (.write out (.trim output))))

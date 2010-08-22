@@ -26,7 +26,7 @@
 
 (defn get-diagram-from-scene
   "Returns nodes and lines of a scene."
-  [#^GScene scene]
+  [^GScene scene]
   (seq (.getChildren scene)))
 
 ;;; node and line iterators
@@ -60,7 +60,7 @@
 
 (defn update-layout-of-scene
   "Updates layout according to new layout."
-  [#^GScene scene, layout]
+  [^GScene scene, layout]
   (do-swing
    (let [pos (positions layout),
 	 [x_min y_min x_max y_max] (edges-of-points (vals pos))]
@@ -77,7 +77,7 @@
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
-  [#^GScene scene, layout]
+  [^GScene scene, layout]
   (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout)))]
     (doto scene
       (.removeAll)
@@ -95,7 +95,7 @@
 (defn draw-on-scene
   "Draws given layout on a GScene and returns it."
   [layout]
-  (let [#^GWindow wnd (make-window),
+  (let [^GWindow wnd (make-window),
 	scn (make-scene wnd)]
     (doto scn
       (set-layout-of-scene layout))

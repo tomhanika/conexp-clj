@@ -282,7 +282,7 @@
 			 (fn [evt]
 			   (let [retVal (.showSaveDialog fc frame)]
 			     (when (= retVal JFileChooser/APPROVE_OPTION)
-			       (let [#^File file (.getSelectedFile fc)]
+			       (let [^File file (.getSelectedFile fc)]
 				 (with-swing-error-msg frame "Error while saving"
 				   (save-image scn file (get-file-extension file)))))))))
   nil)

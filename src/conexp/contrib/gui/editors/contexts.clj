@@ -42,7 +42,7 @@
 (defn- load-context-and-go
   "Loads context with given loader and adds a new tab with a context-editor."
   [frame loader]
-  (when-let [#^File file (choose-open-file frame)]
+  (when-let [^File file (choose-open-file frame)]
     (let [path (.getPath file),
           thing (loader path)]
       (add-tab frame
@@ -77,10 +77,10 @@
   "Saves context with given writer."
   [frame writer]
   (when-let [thing (get-context-from-panel (current-tab frame))]
-    (when-let [#^File file (choose-save-file frame)]
+    (when-let [^File file (choose-save-file frame)]
       (let [path (.getPath file)]
         (writer thing path)))))
-  
+
 (defn- show-lattice-and-go
   "Shows concept lattice of current tab."
   [frame]

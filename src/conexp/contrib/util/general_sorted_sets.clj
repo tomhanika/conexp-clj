@@ -34,7 +34,7 @@
 
 (defn- sort-gss
   "Does topological sort on a given gss."
-  [#^General-Sorted-Set gss]
+  [^General-Sorted-Set gss]
   (let [runner (fn runner [have]
 		 (let [next-have (distinct (for [x have,
 						 y @(:uppers x),
@@ -48,7 +48,7 @@
     (runner (vec @(.minimal-elements gss)))))
 
 (defmethod print-method General-Sorted-Set
-  [#^General-Sorted-Set gss, out]
+  [^General-Sorted-Set gss, out]
   (.write ^java.io.Writer out
           ^String (with-out-str
                     (println "General Sorted Set")
@@ -85,7 +85,7 @@
 
 (defn- find-upper-neighbours
   "Finds all upper neighbours of x in gss."
-  [#^General-Sorted-Set gss, x]
+  [^General-Sorted-Set gss, x]
   (find-neighbours gss
 		   #((.order-fn gss) x (:node %))
 		   (comp deref :lowers)
@@ -93,7 +93,7 @@
 
 (defn- find-lower-neighbours
   "Finds all lower neighbours of x in gss."
-  [#^General-Sorted-Set gss, x]
+  [^General-Sorted-Set gss, x]
   (find-neighbours gss
 		   #((.order-fn gss) (:node %) x)
 		   (comp deref :uppers)
@@ -102,7 +102,7 @@
 (defn add-to-gss!
   "Adds the element elt to the general sorted set gss returning the
   result. Note that this function modifies gss."
-  [#^General-Sorted-Set gss, elt]
+  [^General-Sorted-Set gss, elt]
   (dosync
    (let [order-fn (.order-fn gss),
 	 uppers (find-upper-neighbours gss elt)]
@@ -141,7 +141,7 @@
 
 (defn remove-from-gss!
   "Removes the element elt from the general sorted set gss."
-  [#^General-Sorted-Set gss, elt]
+  [^General-Sorted-Set gss, elt]
   (unsupported-operation "Removing elements from a general sorted set has not been thought of!"))
 
 ;;;
@@ -150,7 +150,7 @@
   "Checks whether an element elt in contained in a general sorted set
   gss, i.e. whether there exists an element in gss which is equal (in
   the sense of the underlying order relation) to elt."
-  [#^General-Sorted-Set gss, elt]
+  [^General-Sorted-Set gss, elt]
   (let [order-fn (.order-fn gss),
 	uppers (find-upper-neighbours gss elt)]
     (and (= 1 (count uppers))
@@ -158,7 +158,7 @@
 
 (defn hasse-graph
   "Returns the Hasse Graph of the general sorted set gss."
-  [#^General-Sorted-Set gss]
+  [^General-Sorted-Set gss]
   (let [edges (fn edges [x]
 		(concat (for [y @(:lowers x)]
 			  [(:node y) (:node x)])

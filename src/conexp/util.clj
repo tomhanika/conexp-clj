@@ -187,8 +187,8 @@
 (defn now
   "Returns the current time in a human readable format."
   []
-  (let [#^Calendar cal (Calendar/getInstance),
-        #^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
+  (let [^Calendar cal (Calendar/getInstance),
+        ^SimpleDateFormat sdf (SimpleDateFormat. "HH:mm:ss yyyy-MM-dd")]
     (.format sdf (.getTime cal))))
 
 ;;; deftype utilities
@@ -308,7 +308,7 @@
 
 (defn get-root-cause
   "Returns original message of first exception causing the given one."
-  [#^Throwable exception]
+  [^Throwable exception]
   (if-let [cause (.getCause exception)]
     (get-root-cause cause)
     (.getMessage exception)))
