@@ -11,10 +11,10 @@
 (defproject conexp-clj (.trim #=(slurp "VERSION"))
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
-  :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
-                 [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
-		 [org.apache.commons/commons-math "2.0"]
-		 [jline "0.9.94"]]
+  :dependencies [[org.clojure/clojure "1.2.0"]
+                 [org.clojure/clojure-contrib "1.2.0"]
+                 [org.apache.commons/commons-math "2.0"]
+                 [jline "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.2.1"]]
   :aot [conexp.main]
   :jar-name "conexp-clj.jar"
