@@ -17,13 +17,42 @@
 
 ;;;
 
+(defn- term= [a b]
+  (cond
+   (and (not (seq? a)) (not (seq? b)))
+   (= a b),
+
+   (or (not (seq? a)) (not (seq? b)))
+   false,
+
+   (= 'and (first a) (first b))
+   (and (forall [x (rest a)]
+          (exists [y (rest b)]
+            (term= x y)))
+        (forall [y (rest b)]
+          (exists [x (rest a)]
+            (term= x y)))),
+
+   (= 'exists (first a) (first b))
+   (and (= (second a) (second b))
+        (term= (nth a 2) (nth b 2))),
+
+   :otherwise
+   false))
+
+(defn- subsumption= [a b]
+  (and (term= (expression-term (subsumee a))
+              (expression-term (subsumee b)))
+       (term= (expression-term (subsumer a))
+              (expression-term (subsumer b)))))
+
 (deftest- model-gcis-returns-correct-result
   (are [model initial-ordering result] (letfn [(find-all-unequal [seq-1 seq-2]
                                                  (when-not (and (empty? seq-1)
                                                                 (empty? seq-2))
                                                    (let [a (first seq-1),
                                                          b (first seq-2)]
-                                                     (if (not= a b)
+                                                     (if (not (subsumption= a b))
                                                        (cons [a b]
                                                              (find-all-unequal (rest seq-1) (rest seq-2)))
                                                        (find-all-unequal (rest seq-1) (rest seq-2))))))]
@@ -32,7 +61,6 @@
                                            (if-not (empty? unequals)
                                              (do
                                                (doseq [[a b] unequals]
-                                                 (println "Unequal:")
                                                  (println "Got:" a)
                                                  (println "Exp:" b))
                                                false)
@@ -88,7 +116,7 @@
        grandparent-model 32))
 
 (defn test-ns-hook []
-;  (model-gcis-returns-correct-result)
+  (model-gcis-returns-correct-result)
   (model-gcis-returns-correct-count))
 
 ;;;
