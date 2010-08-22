@@ -70,7 +70,7 @@
   (for [ns *conexp-namespaces*
 	[f _] (public-api ns)
 	:let [def-ns (defining-namespace ns f)]
-	:when (and (.startsWith def-ns "conexp")
+	:when (and (.startsWith ^String def-ns "conexp")
 		   (not (test-exists? (defining-namespace ns f) f)))]
     (symbol def-ns (str f))))
 
