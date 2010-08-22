@@ -11,6 +11,7 @@
   (:use [clojure.contrib.io :only (with-out-writer)]
 	[clojure.contrib.string :only (split)]))
 
+
 ;;; API Documentation
 
 (defn- public-api
@@ -27,48 +28,6 @@
 			 (and (= (:ns (meta var)) ns)
 			      (not (Character/isUpperCase ^Character (first (str f))))))
 		       (ns-map ns))))))
-
-(defn- tex-escape
-  "Escapes special characters for \\TeX."
-  [string]
-  (let [^StringBuilder sb (StringBuilder.),
-	string (str string)]
-    (doseq [c string]
-      (cond
-	(#{\_,\&,\%,\#} c)
-	(.append sb (str \\ c))
-	(#{\^} c)
-	(.append sb "\\verb+^+")
-	:else
-	(.append sb c)))
-    (str sb)))
-
-(defn- public-api-as-tex
-  "Returns output suitable for \\TeX describing the public apis of the
-  given namespaces with their corresponding documentations."
-  [& namespaces]
-  (with-out-str
-    (doseq [ns namespaces]
-      (let [api (sort (public-api ns))]
-	(println (str "\\section{" (tex-escape ns) "}"))
-	(println "\\begin{description}")
-	(doseq [[fn doc] api]
-	  (println (str "  \\item[" (tex-escape fn) "]"))
-	  (println (tex-escape doc))
-	  (println))
-	(println "\\end{description}"))
-      (println))))
-
-(defn- public-api-to-file
-  "Prints out public api to file for external usage."
-  [file & namespaces]
-  (with-out-writer file
-    (print (apply public-api-as-tex namespaces))))
-
-(defn conexp-api
-  "Prints conexp-clj api to file, in nearly TeX-readable format."
-  [file]
-  (apply public-api-to-file file *conexp-namespaces*))
 
 
 ;;; Documentation Coverage
