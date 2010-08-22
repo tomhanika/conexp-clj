@@ -19,8 +19,6 @@
  "Implements various algorithms to compute the concepts of a given
  context efficiently.")
 
-(set! *warn-on-reflection* true)
-
 ;;; Concept Calculation Multi-Method
 
 (defmulti concepts
@@ -177,10 +175,6 @@
              [(to-hashset object-vector A),
               (to-hashset attribute-vector B)])
            As Bs))))
-
-;;;
-
-(set! *warn-on-reflection* false)
 
 ;;;
 

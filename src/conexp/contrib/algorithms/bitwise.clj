@@ -12,7 +12,6 @@
   (:use [clojure.contrib.seq-utils :only (indexed)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)]))
 
-(set! *warn-on-reflection* true)
 
 ;;; Helpers to convert to and from BitSets
 
@@ -133,10 +132,6 @@
               (== 1 (deep-aget ints incidence-matrix obj att)))
         (.set derived-objects obj)))
     derived-objects))
-
-;;;
-
-(set! *warn-on-reflection* false)
 
 ;;;
 
