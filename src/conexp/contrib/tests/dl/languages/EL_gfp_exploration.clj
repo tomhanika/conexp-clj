@@ -88,7 +88,7 @@
        grandparent-model 32))
 
 (defn test-ns-hook []
-  (model-gcis-returns-correct-result)
+;  (model-gcis-returns-correct-result)
   (model-gcis-returns-correct-count))
 
 ;;;
