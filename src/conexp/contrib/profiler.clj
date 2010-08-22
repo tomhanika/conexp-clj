@@ -107,13 +107,14 @@
 (defn- tick-thread
   "Adds current stack trace to profiled data of thread."
   [thread]
-  (dosync
-   (ref-set profiled-data
-            (assoc @profiled-data thread
-                   (reduce #(assoc %1 %2 (inc (get %1 %2 0)))
-                           (update-in (get @profiled-data thread)
-                                      [:overall] inc)
-                           (stackdump thread))))))
+  (let [dump (stackdump thread)]
+    (dosync
+     (ref-set profiled-data
+              (assoc @profiled-data thread
+                     (reduce #(assoc %1 %2 (inc (get %1 %2 0)))
+                             (update-in (get @profiled-data thread)
+                                        [:overall] inc)
+                             dump))))))
 
 ;;; Formatting
 
