@@ -13,19 +13,19 @@
 ;;;
 
 (defn- real= [tol a b]
-  (>= tol (Math/abs (- a b))))
+  (>= tol (Math/abs (double (- a b)))))
 
 (deftest test-minimize
-  (is (let [[[x] opt] (minimize #(Math/sin (aget % 0)) ;note: function gets array of doubles!
+  (is (let [[[x] opt] (minimize #(Math/sin (aget ^doubles % 0)) ;note: function gets array of doubles!
                                 (fn [k]
                                   (condp = k
-                                    0 #(Math/cos (aget % 0)),
+                                    0 #(Math/cos (aget ^doubles % 0)),
                                     (constantly 0.0)))
                                 [0.0]
                                 {})]
         (and (real= 1e-16 opt -1.0)
              (real= 1e-16 x -1.5707963267948966))))
-  (is (let [[[x] opt] (minimize #(Math/sin (aget % 0)) ;note: function gets array of doubles!
+  (is (let [[[x] opt] (minimize #(Math/sin (aget ^doubles % 0)) ;note: function gets array of doubles!
                                 [0.0]
                                 {})]
         (and (real= 1e-10 opt -1.0)
