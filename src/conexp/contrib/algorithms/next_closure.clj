@@ -12,56 +12,56 @@
 
 ;;;
 
-;; TODO: Sort attributes before starting (see naïve implementation of next closure)
-
 (defn- lectic-<_i
-  ""
+  "Returns true iff A is lectically smaller than B at position i."
   [i, ^BitSet A, ^BitSet B]
   (let [i (int i)]
     (and (.get B i)
-	 (not (.get A i))
-	 (loop [j (int (dec i))]
-	   (cond
-	     (< j 0)
-	     true,
-	     (not= (.get A j) (.get B j))
-	     false,
-	     :else
-	     (recur (dec j)))))))
+         (not (.get A i))
+         (loop [j (int (dec i))]
+           (cond
+             (< j 0)
+             true,
+             (not= (.get A j) (.get B j))
+             false,
+             :else
+             (recur (dec j)))))))
 
-(defn- oplus
-  ""
-  [object-count, attribute-count, incidence-matrix, ^BitSet A, i]
-  (let [^BitSet A-short (.clone A),
-	^BitSet B (BitSet.),
-	i (int i)]
-    (.set A-short i true)
-    (.set A-short (inc i) (int attribute-count) false)
+(defn- closure
+  "Computes the closure of A in the context given by the parameters."
+  [object-count, attribute-count, incidence-matrix, ^BitSet A]
+  (let [^BitSet A (.clone A),
+        ^BitSet B (BitSet.)]
     (dotimes [obj object-count]
-      (if (forall-in-bitset [att A-short]
-	    (== 1 (deep-aget ints incidence-matrix obj att)))
-	(.set B obj)))
+      (when (forall-in-bitset [att A]
+              (== 1 (deep-aget ints incidence-matrix obj att)))
+        (.set B obj)))
     (dotimes [att attribute-count]
-      (if (and (not (.get A-short att))
-	       (forall-in-bitset [obj B]
-		 (== 1 (deep-aget ints incidence-matrix obj att))))
-	(.set A-short att)))
-    A-short))
+      (when (and (not (.get A att))
+                 (forall-in-bitset [obj B]
+                   (== 1 (deep-aget ints incidence-matrix obj att))))
+        (.set A att)))
+    A))
 
 (defn next-closed-set
-  ""
+  "Computes the next closed set after A in the given context. Returns
+  nil if there is none."
   [object-count, attribute-count, incidence-matrix, ^BitSet A]
-  (loop [i (dec (int attribute-count))]
-    (cond
-      (== -1 i)
-      nil,
-      (.get A i)
-      (recur (dec i)),
-      :else
-      (let [A_i (oplus object-count attribute-count incidence-matrix A i)]
-	(if (lectic-<_i i A A_i)
-	  A_i
-	  (recur (dec i)))))))
+  (let [^BitSet B (.clone A)]
+    (loop [i (dec (int attribute-count))]
+      (cond
+       (== -1 i)
+       nil,
+       (.get B i)
+       (do (.clear B i)
+           (recur (dec i))),
+       :else
+       (do (.set B i)
+           (let [A_i (closure object-count attribute-count incidence-matrix B)]
+             (if (lectic-<_i i A A_i)
+               A_i
+               (do (.clear B i)
+                   (recur (dec i))))))))))
 
 ;;;
 
