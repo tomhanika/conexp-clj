@@ -12,7 +12,7 @@
         conexp.contrib.algorithms.generators
         [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)])
-  (:import [java.util BitSet Vector])
+  (:import [java.util BitSet List ArrayList])
   (:import [java.util.concurrent SynchronousQueue]))
 
 (ns-doc
@@ -145,7 +145,7 @@
 
 (defn- in-close
   "Implements the InClose method of In-Close."
-  [attribute-count, incidence-matrix, ^Vector As, ^Vector Bs, last, current, y]
+  [attribute-count, incidence-matrix, ^List As, ^List Bs, last, current, y]
   (swap! last + 1)
   (.add As @last (BitSet.))
   (loop [j (int y)]
@@ -160,14 +160,14 @@
         (when (cannonical? incidence-matrix (.get As @last) (.get Bs current) j)
           (.add Bs @last (.clone ^BitSet (.get Bs current)))
           (.set ^BitSet (.get Bs @last) j)
-          (in-close attribute-count incidence-matrix As Bs last @last (+ j 1))))
+          (in-close attribute-count incidence-matrix As Bs last @last (inc j))))
       (recur (inc j)))))
 
 (defmethod concepts :in-close
   [_ context]
   (with-binary-context context
-    (let [^Vector As (Vector.),
-          ^Vector Bs (Vector.),
+    (let [^List As (ArrayList.),
+          ^List Bs (ArrayList.),
           last (atom 0)]
       (.add As 0 (BitSet.))
       (.set ^BitSet (.get As 0) 0 (int object-count))
