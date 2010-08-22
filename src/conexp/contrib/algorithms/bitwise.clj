@@ -48,7 +48,7 @@
 
 (defn filter-bitset
   "Returns a new bitset of all bits in bitset for which predicate returns true."
-  [predicate bitset]
+  [predicate, ^BitSet bitset]
   (let [result (BitSet.)]
     (dobits [i bitset]
       (when (predicate i)
@@ -61,7 +61,7 @@
   order of the elements in the resulting BitSet."
   [element-vector hashset]
   (let [^BitSet bs (BitSet. (count element-vector))]
-    (doseq [pair (indexed element-vector)
+    (doseq [pair  (indexed element-vector)
             :when (contains? hashset (second pair))]
       (.set bs (first pair)))
     bs))
@@ -71,12 +71,12 @@
   actual objects to be collected, i.e. element v at position p in
   element-vector is included in the result iff p is set in bitset."
   [element-vector, ^BitSet bitset]
-  (loop [pos (int (.nextSetBit bitset 0)),
-         result #{}]
+  (loop [pos    (int (.nextSetBit bitset 0)),
+         result (transient #{})]
     (if (== -1 pos)
-      result
+      (persistent! result)
       (recur (.nextSetBit bitset (inc pos))
-             (conj result (nth element-vector pos))))))
+             (conj! result (nth element-vector pos))))))
 
 (defn to-binary-matrix
   "Converts the incidence-relation to a binary matrix (in the sense of
