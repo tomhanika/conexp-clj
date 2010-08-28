@@ -170,7 +170,8 @@
                        V 0,
                        [j a value] (find-maximal U D)]
                   (when (zero? value)
-                    (illegal-state "0 value"))
+                    (illegal-state "Could not find next attribute (0 value). "
+                                   "Make sure that no floating point inaccuracies occured."))
                   (if (> value V)
                     (recur (fuzzy-object-derivation context
                                                     (fuzzy-attribute-derivation context (assoc D j a)))
