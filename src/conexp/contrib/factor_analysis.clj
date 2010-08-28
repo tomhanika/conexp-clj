@@ -138,31 +138,37 @@
 (defn- find-maximal
   "Find a pair [m v], where m is an attribute and v in (0,1],
   such that the cardinality of the set returned by fuzzy-oplus-a is
-  maximal. Returns the pair [[m v], count], where count is the
+  maximal. Returns the triple [m v count], where count is the
   aforementioned cardinality."
   [context U D]
-  (apply max-key second
-         (map (fn [[[g m] v]]
-                [[m v], (count (fuzzy-oplus-a context U D v m))])
-              (select-keys (incidence context) U))))
+  (let [values     (set (vals (incidence context))),
+        attributes (set-of m [[[_ m] _] (select-keys (incidence context) U)])] ;note: is not empty
+    (with-local-vars [attribute nil,
+                      max-value -1,
+                      fuzzyness nil]
+      (doseq [m attributes
+              v values
+              :when (not (>= (D m) v))
+              :let  [c (count (fuzzy-oplus-a context U D v m))]
+              :when (< (var-get max-value) c)]
+        (var-set max-value c)
+        (var-set attribute m)
+        (var-set fuzzyness v))
+      [(var-get attribute) (var-get fuzzyness), (var-get max-value)])))
 
 (defmethod factorize-context :fuzzy
   [_ context]
-  (unsupported-operation
-   "Factorization of fuzzy contexts is up to now not implemented correctly.")
   (let [inz          (incidence context),
         find-maximal (partial find-maximal context)]
     (loop [U (set-of [g m] [g (objects context),
                             m (attributes context),
                             :when (not (zero? (inz [g m])))]),
            F #{}]
-      (println)
-      (println U)
       (if (empty? U)
         F
         (let [D (loop [D (make-fuzzy-set {}),
                        V 0,
-                       [[j a] value] (find-maximal U D)]
+                       [j a value] (find-maximal U D)]
                   (when (zero? value)
                     (illegal-state "0 value"))
                   (if (> value V)
