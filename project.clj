@@ -14,7 +14,8 @@
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
                  [org.apache.commons/commons-math "2.0"]
-                 [jline "0.9.94"]]
+                 [jline "0.9.94"]
+                 [clj-iter "0.1.0-SNAPSHOT"]]
   :dev-dependencies [[swank-clojure "1.2.1"]]
   :aot [conexp.main]
   :jar-name "conexp-clj.jar"
