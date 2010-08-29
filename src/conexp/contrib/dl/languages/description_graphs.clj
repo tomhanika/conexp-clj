@@ -12,7 +12,7 @@
         conexp.contrib.dl.framework.boxes
         conexp.contrib.dl.framework.semantics
         conexp.contrib.dl.util.graphs)
-  (:use clojure.contrib.pprint)
+  (:use clojure.pprint)
   (:import [java.util HashMap HashSet]))
 
 (ns-doc

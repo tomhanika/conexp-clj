@@ -9,7 +9,7 @@
 (ns conexp.layout.base
   (:use conexp.base
 	[conexp.fca.lattices :only (make-lattice, standard-context)]
-	clojure.contrib.pprint))
+	clojure.pprint))
 
 (ns-doc "Basic definition of layout datatype")
 
@@ -50,8 +50,9 @@
   [layout new-positions]
   (Layout. new-positions (connections layout) (information layout)))
 
-(defmethod print-method Layout [layout, ^java.io.Writer out]
-  (.write out
+(defmethod print-method Layout
+  [layout out]
+  (.write ^java.io.Writer out
 	  ^String (with-out-str
                     (println "Layout")
                     (println "Positions")
@@ -63,7 +64,7 @@
   "Returns all nodes of a given layout."
   [layout]
   (set (keys (positions layout))))
-  
+
 
 ;;; Layout Auxiliary Functions
 

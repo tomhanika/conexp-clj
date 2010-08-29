@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.profiler
-  (:use [conexp.base :only (ns-doc)])
+  (:use [conexp.base :only (ns-doc, defnk, defvar-)])
   (:use clojure.contrib.profile
-        [clojure.contrib.def :only (defnk, defvar-)]
-        [clojure.contrib.pprint :only (pprint, cl-format)]
+        [clojure.pprint :only (pprint, cl-format)]
         [clojure.contrib.except :only (throw-if, throw-if-not)]))
 
 (ns-doc
