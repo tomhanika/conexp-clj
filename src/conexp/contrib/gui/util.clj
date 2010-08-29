@@ -24,12 +24,12 @@
                             with-swing-error-msg, illegal-argument)])
   (:use [clojure.contrib.seq :only (indexed)]
 	clojure.contrib.swing-utils)
-  (:require [clojure.contrib.string :as string]))
+  (:require [clojure.string :as string]))
 
 
 ;;; Helper functions
 
-(let [all-paths (string/split #":" (System/getProperty "java.class.path")),
+(let [all-paths (string/split (System/getProperty "java.class.path")  #":"),
       cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)),
                         all-paths),
       res-root  (if (empty? cclj-path)
@@ -139,9 +139,10 @@
   [c]
   (let [rv          string/reverse,
         classname   (str c),
-        keywordname (rv (string/replace-first-re
-                         #"\." "/" 
-                         (rv (string/replace-first-re #"class " "" classname))))]
+        keywordname (rv (string/replace-first
+                         (rv (string/replace-first classname #"class " ""))
+                         #"\."
+                         "/"))]
     (keyword keywordname)))
 
 (defn keyword-class

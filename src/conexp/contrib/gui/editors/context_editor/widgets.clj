@@ -13,8 +13,7 @@
            [java.awt Toolkit Dimension Insets FlowLayout]
            [java.awt.event ActionListener]
            [java.awt.datatransfer DataFlavor StringSelection])
-  (:use clojure.contrib.swing-utils
-        [clojure.contrib.string :only (join split-lines split)])
+  (:use clojure.contrib.swing-utils)
   (:use [conexp.base :exclude (join)]
         conexp.contrib.gui.util
         conexp.contrib.gui.util.hookable))

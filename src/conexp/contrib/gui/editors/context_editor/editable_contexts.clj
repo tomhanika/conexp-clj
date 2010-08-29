@@ -14,7 +14,7 @@
         conexp.contrib.gui.util.one-to-many
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control)
-  (:use [clojure.contrib.string :only (join)]))
+  (:use [clojure.string :only (join)]))
 
 ;;; Helpers
 

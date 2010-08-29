@@ -9,7 +9,8 @@
 (ns conexp.contrib.doc
   (:use conexp.main)
   (:use [clojure.contrib.io :only (with-out-writer)]
-	[clojure.contrib.string :only (split)]))
+	[clojure.string :only (split replace)
+                        :rename {replace replace-str}]))
 
 
 ;;; API Documentation
@@ -39,40 +40,6 @@
 	[f _] (public-api ns)
 	:when (not (:doc (meta (resolve (symbol (str ns) (str f))))))]
     (symbol (str ns) (str f))))
-
-
-;;; Test Coverage
-
-(defn- defining-namespace
-  "Returns the namespace in which name in namespace ns was orignally defined."
-  [ns name]
-  (let [defining-file (:file (meta (resolve (symbol (str ns) (str name)))))]
-    (apply str
-	   (interpose "."
-		      (split #"/" (apply str
-					 (drop-last 4 defining-file)))))))
-
-(defn- test-exists?
-  "Checks whether for symbol f in namespace conexp.ns there exists a
-  symbol test-f in conexp.tests.ns."
-  [ns f]
-  (let [test-ns (symbol (str "conexp.tests." (second (split #"\." 2 (str ns)))))]
-    (try
-     (require test-ns)
-     (contains? (public-api test-ns) (symbol (str "test-" f)))
-     (catch java.io.FileNotFoundException _
-       false))))
-
-(defn conexp-fns-needing-tests
-  "Returns all functions in the public API of conexp, where no
-  corresponding test in conexp.tests exists."
-  []
-  (for [ns *conexp-namespaces*
-	[f _] (public-api ns)
-	:let [def-ns (defining-namespace ns f)]
-	:when (and (.startsWith ^String def-ns "conexp")
-		   (not (test-exists? (defining-namespace ns f) f)))]
-    (symbol def-ns (str f))))
 
 ;;;
 

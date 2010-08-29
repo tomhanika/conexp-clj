@@ -12,7 +12,7 @@
 	conexp.io.util)
   (:use [clojure.contrib.lazy-xml :exclude (attributes)]
 	clojure.contrib.prxml
-	[clojure.contrib.string :only (split)])
+	[clojure.string :only (split)])
   (:import [java.io PushbackReader]))
 
 
@@ -274,7 +274,7 @@
 	(recur in objs inz),
 	:else
 	(let [[_ g atts] (re-matches #"^\s*(.+)\s*:\s*(.+)?\s*;\s*(?:#.*)?$" line)
-	      atts (and atts (split #"\s+" atts))]
+	      atts (and atts (split atts #"\s+"))]
 	  (recur in (conj objs g) (union inz (set-of [g m] [m atts]))))))))
 
 

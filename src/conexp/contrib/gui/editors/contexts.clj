@@ -21,7 +21,8 @@
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
 	[clojure.contrib.io :exclude (spit)]
-        [clojure.contrib.string :only (replace-str)])
+        [clojure.string :only (replace)
+                        :rename {replace replace-str}])
   (:import [java.io File]))
 
 (ns-doc
@@ -103,7 +104,7 @@
              {}
              {:name "Save Context",
               :content (vec (map (fn [format]
-                                   {:name (str (replace-str ":" "" (str format))
+                                   {:name (str (replace-str (str format) ":" "")
                                                " format"),
                                     :handler (fn [frame]
                                                (save-context-and-go frame

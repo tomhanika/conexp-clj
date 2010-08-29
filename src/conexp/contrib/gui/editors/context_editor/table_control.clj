@@ -13,7 +13,7 @@
         conexp.contrib.gui.util
         conexp.contrib.gui.util.hookable
         conexp.contrib.gui.editors.context-editor.widgets)
-  (:use [clojure.contrib.string :only (join split-lines split)])
+  (:use [clojure.string :only (join split-lines split)])
   (:import [javax.swing JComponent AbstractAction JTable
                         JScrollPane KeyStroke DefaultCellEditor JTextField]
            [javax.swing.event TableModelListener]
@@ -331,7 +331,7 @@
       (let [data   (str (get-clipboard-contents)),
             startx (first sel-columns),
             starty (first sel-rows),
-            cells  (vec (map #(vec (split #"\t" %))
+            cells  (vec (map #(vec (split % #"\t"))
                              (split-lines data))),
             lns    (range (count cells))]
         (doseq [r lns]
@@ -384,8 +384,8 @@
         sel-lines   (map #(join "\t" %) sel-values)
         selection   (join "\n" sel-lines)]
     (set-clipboard-contents selection)
-    (doseq [lines sel-pairs] 
-      (doseq [p lines] 
+    (doseq [lines sel-pairs]
+      (doseq [p lines]
         (set-value-at-view obj (first p) (second p) "")))))
 
 

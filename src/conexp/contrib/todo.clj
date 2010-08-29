@@ -8,8 +8,8 @@
 
 (ns conexp.contrib.todo
   (:use conexp.main)
-  (:use [clojure.contrib.string :only (split)]
-	[clojure.contrib.pprint :only (pprint)]))
+  (:use [clojure.string :only (split)]
+	[clojure.pprint :only (pprint)]))
 
 (ns-doc "Provides information on all tasks planned for conexp-clj.")
 
@@ -95,7 +95,7 @@
   ([]
      (print (format-output *conexp-todo-list*)))
   ([ns]
-     (let [ns-as-seq (split #"\." (str ns))
+     (let [ns-as-seq (split (str ns) #"\.")
 	   tasks (access-todo-list ns-as-seq)]
        (print (format-output tasks)))))
 

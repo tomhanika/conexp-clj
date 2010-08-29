@@ -12,8 +12,7 @@
 	conexp.layout.base
 	conexp.layout.common
 	conexp.math.util
-	conexp.math.optimize)
-  (:use	clojure.contrib.pprint))
+	conexp.math.optimize))
 
 (ns-doc "Force layout as described by C. Zschalig.")
 
