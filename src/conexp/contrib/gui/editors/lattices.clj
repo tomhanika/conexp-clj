@@ -17,7 +17,6 @@
 	conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.context-editor
 	conexp.contrib.gui.plugins.base)
-  (:use clojure.contrib.swing-utils)
   (:import [java.io File]))
 
 (ns-doc

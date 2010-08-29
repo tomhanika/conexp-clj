@@ -19,8 +19,7 @@
 	conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.context-editor
 	conexp.contrib.gui.plugins.base)
-  (:use clojure.contrib.swing-utils
-        [clojure.string :only (replace)
+  (:use [clojure.string :only (replace)
                         :rename {replace replace-str}])
   (:import [java.io File]))
 

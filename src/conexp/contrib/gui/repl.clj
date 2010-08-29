@@ -16,7 +16,7 @@
 	[conexp.contrib.gui.util :as util])
   (:require [conexp.contrib.gui.repl-utils :as repl-utils])
   (:use	[clojure.contrib.pprint :only (write)]
-	clojure.contrib.swing-utils)
+	[clojure.contrib.swing-utils :only (do-swing)])
   (:require clojure.main))
 
 ;;; REPL Process

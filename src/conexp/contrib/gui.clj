@@ -9,8 +9,8 @@
 (ns conexp.contrib.gui
   (:import [javax.swing UIManager JFrame])
   (:use conexp.base
-	conexp.contrib.gui.base)
-  (:use clojure.contrib.swing-utils))
+        [conexp.contrib.gui.util :only (do-swing-return)]
+	conexp.contrib.gui.base))
 
 (ns-doc "Provides standard gui for conexp-clj.")
 
@@ -20,13 +20,11 @@
   "Starts the standard gui for conexp-clj. args may be a sequence of
   parameters given by keywords and values."
   [& args]
-  (let [frm (promise)]
-    (do-swing
-     (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-     (let [^JFrame frame (apply conexp-main-frame args)]
-       (.setVisible frame true)
-       (deliver frm frame)))
-    @frm))
+  (do-swing-return
+   (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
+   (let [^JFrame frame (apply conexp-main-frame args)]
+     (.setVisible frame true)
+     frame)))
 
 ;;;
 

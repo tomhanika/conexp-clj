@@ -309,28 +309,6 @@
      result#))
 
 
-;;; Swings
-
-(defn get-root-cause
-  "Returns original message of first exception causing the given one."
-  [^Throwable exception]
-  (if-let [cause (.getCause exception)]
-    (get-root-cause cause)
-    (.getMessage exception)))
-
-(defmacro with-swing-error-msg
-  "Runs given code and catches any thrown exception, which is then
-  displayed in a message dialog."
-  [frame title & body]
-  `(try
-    ~@body
-    (catch Exception e#
-      (javax.swing.JOptionPane/showMessageDialog ~frame
-						 (apply str (get-root-cause e#) "\n"
-                                                        (interpose "\n" (.getStackTrace e#)))
-						 ~title
-						 javax.swing.JOptionPane/ERROR_MESSAGE))))
-
 ;;;
 
 nil

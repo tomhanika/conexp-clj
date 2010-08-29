@@ -18,8 +18,7 @@
 	[conexp.contrib.gui.plugins.base :only (load-plugin)]
 	[conexp.contrib.gui.editors.contexts :only (context-editor)]
 	[conexp.contrib.gui.editors.lattices :only (lattice-editor)]
-        [conexp.contrib.gui.editors.code :only (code-editor)])
-  (:use clojure.contrib.swing-utils))
+        [conexp.contrib.gui.editors.code :only (code-editor)]))
 
 
 (ns-doc "Provides basic definitions for the standard conexp-clj GUI.")

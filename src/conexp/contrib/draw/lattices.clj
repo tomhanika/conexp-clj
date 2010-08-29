@@ -10,8 +10,6 @@
   (:use [conexp.base
          :only (ns-doc,
                 illegal-argument,
-                get-root-cause,
-                with-swing-error-msg,
                 with-printed-result,
                 now,
                 defvar-,
@@ -31,6 +29,8 @@
                 *repulsive-amount*,
                 *attractive-amount*,
                 *gravitative-amount*)]
+        [conexp.contrib.gui.util
+         :only (with-swing-error-msg)]
         ;; drawing
 	[conexp.contrib.draw.scenes
          :only (add-callback-for-hook,
@@ -58,7 +58,7 @@
                 *default-node-radius*,
                 set-node-radius!)],
         conexp.contrib.draw.buttons)
-  (:use clojure.contrib.swing-utils)
+  (:use [clojure.contrib.swing-utils :only (do-swing, add-action-listener)])
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
 	                JSeparator SwingConstants BoxLayout Box
 	                JScrollBar JComboBox JScrollPane JFileChooser]

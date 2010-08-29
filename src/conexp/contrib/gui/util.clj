@@ -20,10 +20,9 @@
 	             Graphics Graphics2D BasicStroke FlowLayout MediaTracker]
 	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
 	   [java.io File])
-  (:use [conexp.base :only (defvar, defmacro-, first-non-nil,
-                            with-swing-error-msg, illegal-argument)])
+  (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
   (:use [clojure.contrib.seq :only (indexed)]
-	clojure.contrib.swing-utils)
+        [clojure.contrib.swing-utils :only (do-swing, add-action-listener)])
   (:require [clojure.string :as string]))
 
 
@@ -41,6 +40,26 @@
      resource path before it."
     [res]
     (str res-path res)))
+
+(defn get-root-cause
+  "Returns original message of first exception causing the given one."
+  [^Throwable exception]
+  (if-let [cause (.getCause exception)]
+    (get-root-cause cause)
+    (.getMessage exception)))
+
+(defmacro with-swing-error-msg
+  "Runs given code and catches any thrown exception, which is then
+  displayed in a message dialog."
+  [frame title & body]
+  `(try
+    ~@body
+    (catch Exception e#
+      (javax.swing.JOptionPane/showMessageDialog ~frame
+						 (apply str (get-root-cause e#) "\n"
+                                                        (interpose "\n" (.getStackTrace e#)))
+						 ~title
+						 javax.swing.JOptionPane/ERROR_MESSAGE))))
 
 (defn- add-handler
   "Adds an ActionListener to thing that calls function with frame when
