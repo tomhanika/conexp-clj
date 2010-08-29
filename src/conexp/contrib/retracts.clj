@@ -15,7 +15,7 @@
 			    restrict-concept,
 			    make-context,
 			    set-of)])
-  (:use [clojure.contrib.pprint :only (cl-format)]))
+  (:use [clojure.pprint :only (cl-format)]))
 
 (ns-doc "Package for computing retracts from formal contexts.")
 
