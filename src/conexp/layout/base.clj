@@ -169,10 +169,11 @@
     (let [uppers (upper-neighbours layout),
 	  lowers (lower-neighbours layout)]
       (into {} (for [node (nodes layout)]
-                 [(set-to-label
-                   (apply difference (second node) (map second (uppers node))))
-                  (set-to-label
-                   (apply difference (first node) (map first (lowers node))))])))))
+                 [node
+                  [(set-to-label
+                    (apply difference (second node) (map second (uppers node))))
+                   (set-to-label
+                    (apply difference (first node) (map first (lowers node))))]])))))
 
 ;;;
 
