@@ -8,8 +8,7 @@
 
 (ns conexp.contrib.dl.framework.syntax
   (:use conexp.main)
-  (:use	[clojure.walk :only (walk)]
-        [clojure.contrib.macro-utils :only (macrolet)]))
+  (:use	[clojure.walk :only (walk)]))
 
 (ns-doc
  "Provides basic syntax definitions for DL expressions and the like.")
@@ -161,9 +160,9 @@
                         :else form))]
       (cons 'do (insert-dl body)))))
 
-  ;; `(macrolet ~(vec (for [sym (get-dl-syntax)]
-  ;;                    `(~sym [& args#] `(~'~sym ~'~dl ~@args#))))
-  ;;    ~@body))
+;; `(macrolet ~(vec (for [sym (get-dl-syntax)]
+;;                    `(~sym [& args#] `(~'~sym ~'~dl ~@args#))))
+;;    ~@body))
 
 ;;;
 
