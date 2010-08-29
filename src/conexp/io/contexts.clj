@@ -238,7 +238,7 @@
 			    (let [comment #"^\s*#.*$"
 				  blank   #"^\s*$"
 				  row     #"^\s*.+\s*:.*;\s*$"]
-			    (forall [line (read-lines rdr)]
+			    (forall [line (line-seq rdr)]
 			       (or (re-matches comment line)
 				   (re-matches blank line)
 				   (re-matches row line))))))

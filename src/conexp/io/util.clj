@@ -8,13 +8,12 @@
 
 (ns conexp.io.util
   (:use conexp.base)
-  (:require [clojure.contrib.io :as io]))
+  (:require [clojure.java.io :as io]))
 
 ;;;
 
 (defalias reader io/reader)
-(defalias with-out-writer io/with-out-writer)
-(defalias read-lines io/read-lines)
+(defalias writer io/writer)
 
 (defn get-line
   "Reads one line from *in*."
@@ -34,10 +33,18 @@
                *read-eval* false]
        ~@body)))
 
+(defmacro with-out-writer
+  "Opens file with writer and binds it to *out*."
+  [file & body]
+  `(with-open [output# (writer ~file)]
+     (binding [*out* output#]
+       ~@body)))
+
 (defn tmpfile
   "Returns a temporary and unique File object."
   []
   (java.io.File/createTempFile "conexp-clj-" ".tmp"))
+
 
 ;;; Format dispatch framework macro
 
