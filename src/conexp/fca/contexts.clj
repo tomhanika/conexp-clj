@@ -458,6 +458,14 @@
   ([objects attributes fill-rate]
      (make-context objects attributes (fn [_ _] (> fill-rate (rand))))))
 
+(defn random-contexts
+  "Returns a sequence of number contexts, with random fill rate and random
+  size between 0 and upper-limit."
+  [number upper-limit]
+  (repeatedly number #(rand-context (set-of-range (dec (rand upper-limit)))
+                                    (set-of-range (dec (rand upper-limit)))
+                                    (rand 1.0))))
+
 (defn one-context
   "Returns context full of crosses."
   [base-set]

@@ -8,8 +8,7 @@
 
 (ns conexp.tests.io.util
   (:use conexp.base
-        [conexp.io.util :only (tmpfile)]
-        conexp.io))
+        [conexp.io.util :only (tmpfile)]))
 
 (ns-doc "Utilities for writing out-in tests for IO.")
 
