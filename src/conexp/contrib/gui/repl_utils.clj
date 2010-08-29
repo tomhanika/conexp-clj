@@ -62,7 +62,7 @@
   "Returns the context in the given tab (or the current tab if none is
   given) if there exists one."
   ([]
-     (context-from-tab (current-tab)))
+     (get-context-from-tab (current-tab)))
   ([tab]
      (context-editor/get-context-from-panel tab)))
 
