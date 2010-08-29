@@ -9,7 +9,7 @@
 (ns conexp.contrib.exec
   (:use conexp.main
         [conexp.io.util :only (tmpfile with-out-writer)])
-  (:use clojure.contrib.shell-out))
+  (:use [clojure.java.shell :only (sh)]))
 
 (ns-doc "Executing external programs with a common interface.")
 
@@ -19,9 +19,7 @@
   "Runs given commandline in an external shell process. Returns the
   output on stdout as result."
   [& cmdln]
-  (let [result (apply sh
-                      :return-map true
-                      cmdln)]
+  (let [result (apply sh cmdln)]
     (when-not (zero? (:exit result))
       (illegal-state "External program " (first cmdln) " returned with non-zero status: " (:err result)))
     (:out result)))
@@ -66,6 +64,8 @@
        (run-in-shell ~@(replace (merge {:context `(context-to-file ~'context ~input-format)}
                                        (dissoc (zipmap arguments arg-names) :context))
                                 cmdln)))))
+
+;;;
 
 (defmacro with-context-from-output
   "Runs body, expecting to get a string containing a formal
