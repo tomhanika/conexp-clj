@@ -8,8 +8,7 @@
 
 (ns conexp.contrib.doc
   (:use conexp.main)
-  (:use [clojure.contrib.io :only (with-out-writer)]
-	[clojure.string :only (split replace)
+  (:use [clojure.string :only (split replace)
                         :rename {replace replace-str}]))
 
 
@@ -21,14 +20,14 @@
   [ns]
   (let [ns (find-ns ns)]
     (into {}
-	  (map (fn [[function var]]
-		 [function (str (:arglists (meta var))
-				"\n\n"
-				(:doc (meta var)))])
-	       (filter (fn [[f var]]
-			 (and (= (:ns (meta var)) ns)
-			      (not (Character/isUpperCase ^Character (first (str f))))))
-		       (ns-map ns))))))
+          (map (fn [[function var]]
+                 [function (str (:arglists (meta var))
+                                "\n\n"
+                                (:doc (meta var)))])
+               (filter (fn [[f var]]
+                         (and (= (:ns (meta var)) ns)
+                              (not (Character/isUpperCase ^Character (first (str f))))))
+                       (ns-map ns))))))
 
 
 ;;; Documentation Coverage
@@ -37,8 +36,8 @@
   "Returns function in public conexp-clj api not having documentation."
   []
   (for [ns *conexp-namespaces*
-	[f _] (public-api ns)
-	:when (not (:doc (meta (resolve (symbol (str ns) (str f))))))]
+        [f _] (public-api ns)
+        :when (not (:doc (meta (resolve (symbol (str ns) (str f))))))]
     (symbol (str ns) (str f))))
 
 ;;;

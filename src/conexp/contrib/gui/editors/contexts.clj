@@ -20,7 +20,6 @@
         conexp.contrib.gui.editors.context-editor.context-editor
 	conexp.contrib.gui.plugins.base)
   (:use clojure.contrib.swing-utils
-	[clojure.contrib.io :exclude (spit)]
         [clojure.string :only (replace)
                         :rename {replace replace-str}])
   (:import [java.io File]))
@@ -56,7 +55,6 @@
   (add-tab frame
     (clone-context-view-from-panel (current-tab frame))
     (str (current-tab-title frame) "*")))
-  
 
 (defn- random-context-and-go
   "Creates a random context and adds a new tab with a context-editor."

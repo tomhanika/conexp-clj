@@ -8,9 +8,8 @@
 
 (ns conexp.contrib.exec
   (:use conexp.main
-        [conexp.io.util :only (tmpfile)])
-  (:use clojure.contrib.shell-out
-        [clojure.contrib.io :only (with-out-writer)]))
+        [conexp.io.util :only (tmpfile with-out-writer)])
+  (:use clojure.contrib.shell-out))
 
 (ns-doc "Executing external programs with a common interface.")
 

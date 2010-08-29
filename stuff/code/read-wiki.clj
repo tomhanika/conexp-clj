@@ -10,7 +10,7 @@
 
 (in-ns 'user)
 
-(use '[clojure.contrib.io :only (with-in-reader)]
+(use '[conexp.io.util :only (with-in-reader)]
      '[clojure.walk :only (walk)])
 
 (use 'conexp.main
@@ -60,7 +60,7 @@
   [word]
   (if (empty? word)
     word
-    (apply str (Character/toUpperCase (first word)) (rest word))))
+    (apply str (Character/toUpperCase ^Character (first word)) (rest word))))
 
 (defn- symbolify
   "Transforms every string in coll to a symbol, walking through
