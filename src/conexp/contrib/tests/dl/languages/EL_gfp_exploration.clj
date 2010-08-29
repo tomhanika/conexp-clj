@@ -17,7 +17,10 @@
 
 ;;;
 
-(defn- term= [a b]
+(defn- term=
+  "Returns true iff the term a and b are syntactically equal upto
+  trivial rewriting."
+  [a b]
   (cond
    (and (not (seq? a)) (not (seq? b)))
    (= a b),
@@ -40,31 +43,38 @@
    :otherwise
    false))
 
-(defn- subsumption= [a b]
+(defn- subsumption=
+  "Returns true iff the subsumptions a and b are term= in both there
+  subsumee and subsumer."
+  [a b]
   (and (term= (expression-term (subsumee a))
               (expression-term (subsumee b)))
        (term= (expression-term (subsumer a))
               (expression-term (subsumer b)))))
 
+(defn- find-all-unequal
+  "Finds all elements in seq-1, that are not subsumption= to the
+  corresponding element in seq-2."
+  [seq-1 seq-2]
+  (when-not (and (empty? seq-1)
+                 (empty? seq-2))
+    (let [a (first seq-1),
+          b (first seq-2)]
+      (if (not (subsumption= a b))
+        (cons [a b]
+              (find-all-unequal (rest seq-1) (rest seq-2)))
+        (find-all-unequal (rest seq-1) (rest seq-2))))))
+
 (deftest- model-gcis-returns-correct-result
-  (are [model initial-ordering result] (letfn [(find-all-unequal [seq-1 seq-2]
-                                                 (when-not (and (empty? seq-1)
-                                                                (empty? seq-2))
-                                                   (let [a (first seq-1),
-                                                         b (first seq-2)]
-                                                     (if (not (subsumption= a b))
-                                                       (cons [a b]
-                                                             (find-all-unequal (rest seq-1) (rest seq-2)))
-                                                       (find-all-unequal (rest seq-1) (rest seq-2))))))]
-                                         (let [unequals (find-all-unequal (model-gcis model 'initial-ordering)
-                                                                          result)]
-                                           (if-not (empty? unequals)
-                                             (do
-                                               (doseq [[a b] unequals]
-                                                 (println "Got:" a)
-                                                 (println "Exp:" b))
-                                               false)
-                                             true)))
+  (are [model initial-ordering result] (let [unequals (find-all-unequal (model-gcis model 'initial-ordering)
+                                                                        result)]
+                                         (if-not (empty? unequals)
+                                           (do
+                                             (doseq [[a b] unequals]
+                                               (println "Got:" a)
+                                               (println "Exp:" b))
+                                             false)
+                                           true))
        paper-model [Male Female Father Mother]
        (with-dl SimpleDL
          (list (subsumption (and Female Male)
