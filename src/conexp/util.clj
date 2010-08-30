@@ -47,9 +47,9 @@
 
 (defmacro with-testing-data
   "Expects for all bindings the body to be evaluated to true. bindings
-  must be those of forall."
+  must be those of doseq."
   [bindings & body]
-  `(forall ~bindings
+  `(doseq ~bindings
      ~@(map (fn [expr]
               `(let [result# (try (do ~expr) (catch Throwable _# false))]
                  (if-not result#
