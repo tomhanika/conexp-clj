@@ -7,11 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.concepts
-  (:use [conexp.main :only (ns-doc, illegal-argument)]
+  (:use [conexp.main :only (ns-doc, illegal-argument, improve-basic-order)]
         conexp.contrib.algorithms.bitwise
         conexp.contrib.algorithms.generators
         [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
-  (:use [conexp.fca.contexts :only (objects attributes incidence)])
+  (:use [conexp.fca.contexts :only (objects attributes incidence context-attribute-closure)])
   (:import [java.util BitSet List ArrayList])
   (:import [java.util.concurrent SynchronousQueue]))
 
@@ -39,20 +39,26 @@
 
 (defmethod concepts :next-closure
   [_ context]
-  (with-binary-context context
-    (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
-          a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
-          start   (o-prime (a-prime (BitSet.))),
-          intents (take-while identity
-                              (iterate #(next-closed-set object-count
-                                                         attribute-count
-                                                         incidence-matrix
-                                                         %)
-                                       start))]
+  (let [object-vector    (vec (objects context)),
+        attribute-vector (vec (improve-basic-order (attributes context)
+                                                   #(context-attribute-closure context %))),
+        object-count     (count object-vector),
+        attribute-count  (count attribute-vector),
+        incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context)),
+
+        o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
+        a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
+        start   (o-prime (a-prime (BitSet.))),
+        intents (take-while identity
+                            (iterate #(next-closed-set object-count
+                                                       attribute-count
+                                                       incidence-matrix
+                                                       %)
+                                     start))]
       (map (fn [bitset]
              [(to-hashset object-vector (a-prime bitset)),
               (to-hashset attribute-vector bitset)])
-           intents))))
+           intents)))
 
 
 ;; Vychodil (:vychodil)
