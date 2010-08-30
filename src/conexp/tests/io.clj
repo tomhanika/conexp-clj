@@ -11,7 +11,9 @@
 
 ;;;
 
-(tests-to-run conexp.tests.io.contexts)
+(tests-to-run conexp.tests.io.contexts
+              conexp.tests.io.lattices
+              conexp.tests.io.layouts)
 
 ;;;
 

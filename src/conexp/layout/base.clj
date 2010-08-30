@@ -18,7 +18,7 @@
 (deftype Layout [positions connections information]
   Object
   (equals [this other]
-    (generic-equals [this other] Layout [positions connections information]))
+    (generic-equals [this other] Layout [positions connections]))
   (hashCode [this]
     (hash-combine-hash Layout positions connections)))
 
