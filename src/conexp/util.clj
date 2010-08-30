@@ -51,7 +51,11 @@
   [bindings & body]
   `(doseq ~bindings
      ~@(map (fn [expr]
-              `(let [result# (try (do ~expr) (catch Throwable _# false))]
+              `(let [result# (try
+                               (do ~expr)
+                               (catch Throwable e#
+                                 (println "Caught exception:" e#)
+                                 false))]
                  (if-not result#
                    ~(let [vars (vec (take-nth 2 bindings))]
                       `(do (println "Test failed for" '~vars "being" ~vars)
