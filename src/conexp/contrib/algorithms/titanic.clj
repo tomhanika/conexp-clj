@@ -41,21 +41,21 @@
 
   "
   [X X-weight base-set keys set-weight closure]
-  (let [keys (map first (take-while #(not= (second %) X-weight) keys))]
-    (loop [Y        (apply union X (map #(closure (disj X %)) X)),
-           elements (difference base-set Y)]
+  (let [keys  (doall (map first (take-while #(not= (second %) X-weight) keys))),
+        start (reduce #(union %1 (closure (disj X %2)))
+                      X X)]
+    (loop [Y        (transient start),
+           elements (difference base-set start)]
       (if-not (empty? elements)
         (let [m    (first elements),
               X+m  (conj X m),
               add? (if-let [s (set-weight X+m)]
                      (= s X-weight)
-                     (not (first (for [K keys,
-                                       :when (and (contains? K m)
-                                                  (subset? K X+m))]
-                                   K))))]
-          (recur (if add? (conj Y m) Y)
+                     (not (exists [K keys]
+                            (and (contains? K m) (subset? K X+m)))))]
+          (recur (if add? (conj! Y m) Y)
                  (rest elements)))
-        Y))))
+        (persistent! Y)))))
 
 (defn- titanic-generate
   "Computes the next candidate set."
@@ -91,9 +91,8 @@
       (if (seq next-key-set)            ;i.e. (not (empty? next-key-set))
         (recur closure,
                set-weight,
-               next-key-set
-               (sort (fn [X Y]
-                       (weight-order (second X) (second Y)))
+               next-key-set,
+               (sort #(weight-order (second %1) (second %2))
                      (concat next-key-set keys)))
         (distinct (vals closure))))))
 
@@ -127,6 +126,7 @@
   (let [num-of-objects (count (objects context)),
         minnum (* minsupp num-of-objects)]
     (fn [coll]
+      ;; this should be done in one run through the context
       (into {} (for [atts coll]
                  [atts (let [num (count (attribute-derivation context atts))]
                          (if (< num minnum)
