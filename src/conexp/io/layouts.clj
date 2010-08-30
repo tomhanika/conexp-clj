@@ -9,7 +9,7 @@
 (ns conexp.io.layouts
   (:use conexp.base
 	conexp.io.util
-	conexp.layout.base)
+	conexp.layouts.base)
   (:import [java.io PushbackReader]))
 
 (ns-doc "Implements IO for layouts.")

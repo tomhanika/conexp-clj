@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layout.base
+(ns conexp.layouts.base
   (:use conexp.base
 	[conexp.fca.lattices :only (make-lattice, standard-context)]
 	clojure.pprint))

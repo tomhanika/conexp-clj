@@ -11,8 +11,8 @@
 	conexp.fca.contexts
 	conexp.fca.lattices
 	conexp.io
-	conexp.layout
-	[conexp.layout.base :only (lattice)]
+	conexp.layouts
+	[conexp.layouts.base :only (lattice)]
 	conexp.contrib.draw.lattices
 	conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.context-editor

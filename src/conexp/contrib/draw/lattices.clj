@@ -17,13 +17,13 @@
                 defnk)]
 	[conexp.math.util
          :only (with-doubles)]
-	[conexp.layout
+	[conexp.layouts
          :only (*standard-layout-function*,
                 inf-additive-layout)]
-	[conexp.layout.base
+	[conexp.layouts.base
          :only (lattice,
                 annotation)]
-	[conexp.layout.force
+	[conexp.layouts.force
          :only (force-layout,
                 layout-energy,
                 *repulsive-amount*,

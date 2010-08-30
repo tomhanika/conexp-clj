@@ -6,9 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layout.util
+(ns conexp.layouts.util
   (:use conexp.base
-	[conexp.layout.base :only (make-layout, positions, connections)]
+	[conexp.layouts.base :only (make-layout, positions, connections)]
 	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
   (:use [clojure.contrib.graph :only (directed-graph, dependency-list)]))
 

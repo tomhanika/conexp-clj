@@ -8,9 +8,9 @@
 
 (ns conexp.contrib.draw.scene-layouts
   (:use [conexp.base :only (ns-doc, illegal-argument, defvar-)]
-	[conexp.layout.base :only (make-layout, positions, connections,
-						nodes, update-positions, annotation)]
-	[conexp.layout.util :only (edges-of-points)]
+	[conexp.layouts.base :only (make-layout, positions, connections,
+                                                 nodes, update-positions, annotation)]
+	[conexp.layouts.util :only (edges-of-points)]
 	conexp.contrib.draw.nodes-and-connections
 	conexp.contrib.draw.scenes)
   (:use [clojure.contrib.swing-utils :only (do-swing)])

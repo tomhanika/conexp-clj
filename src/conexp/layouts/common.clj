@@ -6,12 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layout.common
+(ns conexp.layouts.common
   (:use conexp.base
 	conexp.fca.lattices
-	conexp.layout.util
-	conexp.layout.layered
-	[conexp.layout.base :exclude (order)]))
+	conexp.layouts.util
+	conexp.layouts.layered
+	[conexp.layouts.base :exclude (order)]))
 
 (ns-doc "Implements common layout algorithm.")
 

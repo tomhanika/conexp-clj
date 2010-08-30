@@ -10,7 +10,7 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.lattices
-        conexp.layout
+        conexp.layouts
         conexp.io
         conexp.tests.io.util)
   (:use clojure.test))

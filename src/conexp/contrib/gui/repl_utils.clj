@@ -10,7 +10,7 @@
   (:require [conexp.contrib.gui.util :as util]
             [conexp.contrib.gui.editors.context-editor.context-editor :as context-editor])
   (:use conexp.base
-	conexp.layout
+	conexp.layouts
 	conexp.contrib.draw.lattices))
 
 ;;;

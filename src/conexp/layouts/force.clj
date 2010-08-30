@@ -6,11 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layout.force
+(ns conexp.layouts.force
   (:use conexp.base
         [conexp.fca.lattices :exclude (order)]
-	conexp.layout.base
-	conexp.layout.common
+	conexp.layouts.base
+	conexp.layouts.common
 	conexp.math.util
 	conexp.math.optimize))
 

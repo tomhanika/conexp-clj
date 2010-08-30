@@ -6,10 +6,10 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layout
+(ns conexp.layouts
   (:use conexp.base
-	conexp.layout.layered
-	conexp.layout.common))
+	conexp.layouts.layered
+	conexp.layouts.common))
 
 ;;;
 
