@@ -18,7 +18,7 @@ intents in parallel.")
 ;;;
 
 (define-external-program pcbo
-  pcbo #_(-P :threads -L :depth -S :min-support) :input-file :fcalgs)
+  pcbo :threads :depth :min-support :input-file :fcalgs)
 (alter-meta! (var pcbo) assoc :private true)
 
 (defn- to-fcalgs-context
@@ -32,7 +32,7 @@ intents in parallel.")
   [threads depth min-support context]
   (let [[ctx obj-vec att-vec] (to-fcalgs-context context)]
     (map #(read-string (str "#{" % "}"))
-         (split-lines (pcbo #_(threads depth min-support) ctx)))))
+         (split-lines (pcbo (str "-P" threads) (str "-L" depth) (str "-S" min-support) ctx)))))
 
 ;;;
 
