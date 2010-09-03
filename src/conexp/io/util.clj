@@ -73,12 +73,14 @@
 	 (keys @known-context-input-formats#))
 
        (defn- ~find
-         [file#]
-         (first
-          (for [[name# predicate#] @known-context-input-formats#
-                :when (with-open [in-rdr# (reader file#)]
-                        (predicate# in-rdr#))]
-            name#)))
+         ([file#]
+            (first
+             (for [[name# predicate#] @known-context-input-formats#
+                   :when (with-open [in-rdr# (reader file#)]
+                           (predicate# in-rdr#))]
+               name#)))
+         ([file# format#]
+            format#))
 
        nil)
 
@@ -113,7 +115,7 @@
 
      (defmulti ~read
        ~(str "Reads " name " from file, automatically determining the format used.")
-       {:arglists (list [(symbol "file")])}
+       {:arglists (list [(symbol "file")] [(symbol "file") (symbol "explicit-format")])}
        (fn [& args#] (apply ~find args#)))
      (defmethod ~read :default
        [file#]
@@ -131,8 +133,10 @@
        ~(str "Defines input format for " name "s.")
        [~'input-format [~'file] & ~'body]
        `(defmethod ~'~read ~~'input-format
-          [~~'file]
-          ~@~'body))
+          ([~~'file]
+             ~@~'body)
+          ([~~'file ~'~'_]
+             ~@~'body)))
 
      (defmacro ~(symbol (str "define-" name "-output-format"))
        ~(str "Defines output format for " name "s.")
