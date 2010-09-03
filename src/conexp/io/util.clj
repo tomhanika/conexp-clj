@@ -43,7 +43,9 @@
 (defn tmpfile
   "Returns a temporary and unique File object."
   []
-  (java.io.File/createTempFile "conexp-clj-" ".tmp"))
+  (let [^java.io.File file (java.io.File/createTempFile "conexp-clj-" ".tmp")]
+    (.deleteOnExit file)
+    file))
 
 
 ;;; Format dispatch framework macro
