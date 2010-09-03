@@ -24,7 +24,8 @@ intents in parallel.")
 (alter-meta! (var pcbo) assoc :private true)
 
 (defn- pcbo
-  "Runs pcbo."
+  "Runs pcbo and returns the name of the file where the concepts have
+  been written to."
   [threads depth min-support context]
   (let [output-file (.getAbsolutePath ^java.io.File (tmpfile))]
     (pcbo-external (str "-P" threads) (str "-L" depth) (str "-S" (float (* min-support 100)))
@@ -55,11 +56,17 @@ intents in parallel.")
   (let [[ctx _ att-vec] (to-fcalgs-context context),
         output-file     (pcbo threads depth min-support ctx),
         intents         (line-seq (reader output-file)),
-        transform-back  #(set-of (nth att-vec (Integer/parseInt ^String x))
+        to-int          #(Integer/parseInt ^String %),
+        transform-back  #(set-of (nth att-vec (to-int x))
                                  [x (split % #"\s+")])]
     (if (= "" (first intents))
       (cons #{} (map transform-back (rest intents)))
       (map transform-back intents))))
+
+(defn count-intents-by-parallel-cbo
+  "Counts the intents of context using parallel close-by-one (CbO)."
+  [threads depth min-support context]
+  (count (line-seq (reader (pcbo threads depth min-support (first (to-fcalgs-context context)))))))
 
 ;;;
 
