@@ -326,9 +326,59 @@
     (println (str "\\end{array}"))
     (println "\\]")))
 
+
+;; fcalgs
+
+(add-context-input-format
+ :fcalgs
+ (fn [rdr]
+   (try (forall [line (line-seq rdr),
+                 x    line]
+          (or (= x \space)
+              (Character/isDigit ^Character x)))
+        (catch Exception _ false))))
+
+(define-context-input-format :fcalgs
+  [file]
+  (with-in-reader file
+    (loop [count     0,
+           incidence #{}]
+      (if-let [line (get-line)]
+        (recur (inc count)
+               (into incidence (for [x (read-string (str "(" line ")"))]
+                                 [count x])))
+        (let [objects    (set-of g [[g _] incidence]),
+              attributes (set-of m [[_ m] incidence])]
+          (make-context objects attributes incidence))))))
+
+(define-context-output-format :fcalgs
+  [context file]
+  (with-out-writer file
+    (when-not (and (= (set-of-range (count (objects context)))
+                      (objects context))
+                   (= (set-of-range (count (attributes context)))
+                      (attributes context)))
+      (illegal-argument "Format :fcalgs can only store contexts with "
+                        "integral objects and attributes >= 0, counting upwards."))
+    (when (let [max-att (dec (count (attributes context)))]
+            (forall [g (objects context)]
+              (not (contains? (incidence context) [g max-att]))))
+      (illegal-argument "Cannot store context with last column empty in format :fcalgs"))
+    (when (exists [g (objects context)]
+            (forall [m (attributes context)]
+              (not (contains? (incidence context) [g m]))))
+      (illegal-argument "Cannot store context with empty rows in format :fcalgs"))
+    (let [object-count    (count (objects context))
+          attribute-count (count (attributes context))]
+      (doseq [g (range object-count)]
+        (doseq [m (range attribute-count)]
+          (when (contains? (incidence context) [g m])
+            (print (str m " "))))
+        (println)))))
+
+
 ;;; TODO
 
-;; fimi (see fcalgs)
 ;; slf
 ;; csc
 ;; csx?

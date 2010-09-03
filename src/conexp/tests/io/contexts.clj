@@ -26,7 +26,10 @@
 (deftest test-context-out-in
   (with-testing-data [ctx *contexts-oi*,
                       fmt (list-context-formats)]
-    (= ctx (out-in ctx 'context fmt))))
+    (try (= ctx (out-in ctx 'context fmt))
+         (catch IllegalArgumentException _ true))))
+
+;;
 
 (defvar- *contexts-oioi*
   [(make-context #{1 2 3} #{4 5 6} <),
@@ -36,7 +39,10 @@
 (deftest test-context-out-in-out-in
   (with-testing-data [ctx *contexts-oioi*,
                       fmt (list-context-formats)]
-    (out-in-out-in-test ctx 'context fmt)))
+    (try (out-in-out-in-test ctx 'context fmt)
+         (catch IllegalArgumentException _ true))))
+
+;;
 
 (defvar- *contexts-with-empty-columns*
   [(null-context #{1 2 3 4}),
@@ -47,13 +53,17 @@
 
 (deftest test-empty-columns
   (with-testing-data [ctx *contexts-with-empty-columns*,
-                      fmt (remove #{:colibri} (list-context-formats))]
-    (out-in-out-in-test ctx 'context fmt)))
+                      fmt (list-context-formats)]
+    (try (out-in-out-in-test ctx 'context fmt)
+         (catch IllegalArgumentException _ true))))
+
+;;
 
 (deftest test-for-random-contexts
   (with-testing-data [ctx (random-contexts 20 50),
-                      fmt (remove #{:colibri} (list-context-formats))]
-    (out-in-out-in-test ctx 'context fmt)))
+                      fmt (list-context-formats)]
+    (try (out-in-out-in-test ctx 'context fmt)
+         (catch IllegalArgumentException _ true))))
 
 ;;;
 
