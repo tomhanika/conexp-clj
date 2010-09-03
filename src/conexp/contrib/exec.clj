@@ -24,7 +24,7 @@
       (illegal-state "External program " (first cmdln) " returned with non-zero status: " (:err result)))
     (:out result)))
 
-(defn- context-to-file
+(defn context-to-file
   "Writes context to a file using format and returns the name of the
   file."
   [context format]
