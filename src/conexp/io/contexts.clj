@@ -231,8 +231,6 @@
 
 ;; Colibri (.bri, .con)
 
-;; Note: Colibri cannot store empty columns. They get lost when writing
-
 (add-context-input-format :colibri
 			  (fn [rdr]
 			    (let [comment #"^\s*#.*$"
@@ -245,10 +243,13 @@
 
 (define-context-output-format :colibri
   [ctx file]
-  (if (some (fn [m] (and (string? m) (some #(#{\ ,\:,\;} %) m))) (attributes ctx))
+  (when (some (fn [m]
+                (and (string? m) (some #(#{\ ,\:,\;} %) m)))
+              (attributes ctx))
     (illegal-argument
      "Cannot export to :colibri format, object or attribute names contain invalid characters."))
-  (if (not (empty? (difference (attributes ctx) (set-of m [[g m] (incidence ctx)]))))
+  (when (not (empty? (difference (attributes ctx)
+                                 (set-of m [[g m] (incidence ctx)]))))
     (illegal-argument
      "Cannot export to :colibri format, context contains empty columns."))
   (with-out-writer file
@@ -300,8 +301,9 @@
 
 (define-context-output-format :csv
   [ctx file]
-  (if (some (fn [x] (and (string? x) (some #(= \, %) x)))
-            (concat (objects ctx) (attributes ctx)))
+  (when (some (fn [x]
+                (and (string? x) (some #(= \, %) x)))
+              (concat (objects ctx) (attributes ctx)))
     (illegal-argument "Cannot export to :csv format, object or attribute names contain \",\"."))
   (with-out-writer file
     (doseq [[g m] (incidence ctx)]
