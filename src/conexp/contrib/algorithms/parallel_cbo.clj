@@ -8,8 +8,10 @@
 
 (ns conexp.contrib.algorithms.parallel-cbo
   (:use conexp.main
-        conexp.contrib.exec)
-  (:use [clojure.string :only (split-lines)]))
+        conexp.contrib.exec
+        [conexp.io.util :only (tmpfile)])
+  (:use [clojure.string :only (split-lines split)]
+        [clojure.java.io :only (reader)]))
 
 (ns-doc "Defines an external binding to the program «pcbo» by Petr
 Krajca, Jan Outrata, and Vilem Vychodil, which can compute context
@@ -17,22 +19,47 @@ intents in parallel.")
 
 ;;;
 
-(define-external-program pcbo
-  pcbo :threads :depth :min-support :input-file :fcalgs)
+(define-external-program pcbo-external
+  pcbo :threads :depth :min-support :input-file :fcalgs :output-file)
 (alter-meta! (var pcbo) assoc :private true)
+
+(defn- pcbo
+  "Runs pcbo."
+  [threads depth min-support context]
+  (let [output-file (.getAbsolutePath ^java.io.File (tmpfile))]
+    (pcbo-external (str "-P" threads) (str "-L" depth) (str "-S" (float (* min-support 100)))
+                   context output-file)
+    output-file))
 
 (defn- to-fcalgs-context
   "Transforms ctx to a context suitable for the :fcalgs context
   format, returns a vector [context object-vector attribute-vector]."
   [ctx]
-  [ctx [] []])
+  (let [object-vector    (vec (objects ctx)),
+        attribute-vector (vec (attributes ctx)),
+
+        new-objects      (range (count object-vector)),
+        new-attributes   (range (count attribute-vector)),
+        new-incidence    (set-of [g m] [g new-objects,
+                                        m new-attributes,
+                                        :when (contains? (incidence ctx)
+                                                         [(nth object-vector g)
+                                                          (nth attribute-vector m)])])]
+    [(make-context new-objects new-attributes new-incidence)
+     object-vector
+     attribute-vector]))
 
 (defn concept-intents-by-parallel-cbo
   "Computes the intents of context using parallel close-by-one (CbO)."
   [threads depth min-support context]
-  (let [[ctx obj-vec att-vec] (to-fcalgs-context context)]
-    (map #(read-string (str "#{" % "}"))
-         (split-lines (pcbo (str "-P" threads) (str "-L" depth) (str "-S" min-support) ctx)))))
+  (let [[ctx _ att-vec] (to-fcalgs-context context),
+        output-file     (pcbo threads depth min-support ctx),
+        intents         (line-seq (reader output-file)),
+        transform-back  #(set-of (nth att-vec (Integer/parseInt ^String x))
+                                 [x (split % #"\s+")])]
+    (if (= "" (first intents))
+      (cons #{} (map transform-back (rest intents)))
+      (map transform-back intents))))
 
 ;;;
 
