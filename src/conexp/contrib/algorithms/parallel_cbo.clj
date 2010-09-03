@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.parallel-cbo
-  (:use conexp.main
+  (:use [conexp.main :exclude (context-intents)]
         conexp.contrib.exec
         [conexp.io.util :only (tmpfile)])
   (:use [clojure.string :only (split-lines split)]
@@ -50,7 +50,7 @@ intents in parallel.")
      object-vector
      attribute-vector]))
 
-(defn concept-intents-by-parallel-cbo
+(defn context-intents
   "Computes the intents of context using parallel close-by-one (CbO)."
   [threads depth min-support context]
   (let [[ctx _ att-vec] (to-fcalgs-context context),
@@ -63,7 +63,7 @@ intents in parallel.")
       (cons #{} (map transform-back (rest intents)))
       (map transform-back intents))))
 
-(defn count-intents-by-parallel-cbo
+(defn count-context-intents
   "Counts the intents of context using parallel close-by-one (CbO)."
   [threads depth min-support context]
   (count (line-seq (reader (pcbo threads depth min-support (first (to-fcalgs-context context)))))))
