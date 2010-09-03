@@ -9,9 +9,29 @@
 (ns conexp.contrib.exec
   (:use conexp.main
         [conexp.io.util :only (tmpfile with-out-writer)])
-  (:use [clojure.java.shell :only (sh)]))
+  (:use [clojure.java.shell :only (sh)]
+        [clojure.string :only (split)])
+  (:import [java.io File]
+           [java.util Map]))
 
 (ns-doc "Executing external programs with a common interface.")
+
+;;;
+
+(defn program-exists?
+  "Tests whether the given program-name is an executable program in
+  the current path."
+  [program-name]
+  (let [path     (split (.get ^Map (System/getenv) "PATH")
+                        (re-pattern File/pathSeparator)),
+        program  (first (for [dir path,
+                              program (.list ^File (File. ^String dir)),
+                              :when (= program program-name)]
+                          (str dir "/" program)))]
+    (boolean (and program
+                  (let [^File program-file (File. ^String program)]
+                    (and (.canExecute program-file)
+                         (.isFile program-file)))))))
 
 ;;;
 
