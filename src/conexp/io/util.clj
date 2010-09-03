@@ -64,21 +64,20 @@
         set-default-write (symbol (str "set-default-" name "-format!")),
         list-formats (symbol (str "list-" name "-formats"))]
   `(do
-     (let [known-context-input-formats# (ref {})]
+     (let [known-input-formats# (ref {})]
        (defn- ~add [name# predicate#]
 	 (dosync
-	  (alter known-context-input-formats# assoc name# predicate#)))
+	  (alter known-input-formats# assoc name# predicate#)))
 
        (defn- ~get []
-	 (keys @known-context-input-formats#))
+	 (keys @known-input-formats#))
 
        (defn- ~find
          ([file#]
-            (first
-             (for [[name# predicate#] @known-context-input-formats#
-                   :when (with-open [in-rdr# (reader file#)]
-                           (predicate# in-rdr#))]
-               name#)))
+            (first (for [[name# predicate#] @known-input-formats#
+                         :when (with-in-reader file#
+                                 (predicate# *in*))]
+                     name#)))
          ([file# format#]
             format#))
 
