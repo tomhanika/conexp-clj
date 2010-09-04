@@ -27,7 +27,7 @@
   (with-testing-data [ctx *contexts-oi*,
                       fmt (list-context-formats)]
     (try (= ctx (out-in ctx 'context fmt))
-         (catch IllegalArgumentException _ true))))
+         (catch UnsupportedOperationException _ true))))
 
 ;;
 
@@ -40,7 +40,7 @@
   (with-testing-data [ctx *contexts-oioi*,
                       fmt (list-context-formats)]
     (try (out-in-out-in-test ctx 'context fmt)
-         (catch IllegalArgumentException _ true))))
+         (catch UnsupportedOperationException _ true))))
 
 ;;
 
@@ -55,7 +55,7 @@
   (with-testing-data [ctx *contexts-with-empty-columns*,
                       fmt (list-context-formats)]
     (try (out-in-out-in-test ctx 'context fmt)
-         (catch IllegalArgumentException _ true))))
+         (catch UnsupportedOperationException _ true))))
 
 ;;
 
@@ -63,7 +63,7 @@
   (with-testing-data [ctx (random-contexts 20 50),
                       fmt (list-context-formats)]
     (try (out-in-out-in-test ctx 'context fmt)
-         (catch IllegalArgumentException _ true))))
+         (catch UnsupportedOperationException _ true))))
 
 ;;;
 

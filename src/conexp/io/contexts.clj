@@ -45,7 +45,7 @@
 		     (read)),
 	  context  (:context hash-map)]
       (when-not context
-	(illegal-argument "File " file " does not contain a context."))
+	(unsupported-operation "File " file " does not contain a context."))
       (apply make-context context))))
 
 
@@ -246,11 +246,11 @@
   (when (some (fn [m]
                 (and (string? m) (some #(#{\ ,\:,\;} %) m)))
               (attributes ctx))
-    (illegal-argument
+    (unsupported-operation
      "Cannot export to :colibri format, object or attribute names contain invalid characters."))
   (when (not (empty? (difference (attributes ctx)
                                  (set-of m [[g m] (incidence ctx)]))))
-    (illegal-argument
+    (unsupported-operation
      "Cannot export to :colibri format, context contains empty columns."))
   (with-out-writer file
     (doseq [g (objects ctx)]
@@ -304,7 +304,7 @@
   (when (some (fn [x]
                 (and (string? x) (some #(= \, %) x)))
               (concat (objects ctx) (attributes ctx)))
-    (illegal-argument "Cannot export to :csv format, object or attribute names contain \",\"."))
+    (unsupported-operation "Cannot export to :csv format, object or attribute names contain \",\"."))
   (with-out-writer file
     (doseq [[g m] (incidence ctx)]
       (println (str g "," m)))))
@@ -360,16 +360,16 @@
                       (objects context))
                    (= (set-of-range (count (attributes context)))
                       (attributes context)))
-      (illegal-argument "Format :fcalgs can only store contexts with "
-                        "integral objects and attributes >= 0, counting upwards."))
+      (unsupported-operation "Format :fcalgs can only store contexts with "
+                             "integral objects and attributes >= 0, counting upwards."))
     (when (let [max-att (dec (count (attributes context)))]
             (forall [g (objects context)]
               (not (contains? (incidence context) [g max-att]))))
-      (illegal-argument "Cannot store context with last column empty in format :fcalgs"))
+      (unsupported-operation "Cannot store context with last column empty in format :fcalgs"))
     (when (exists [g (objects context)]
             (forall [m (attributes context)]
               (not (contains? (incidence context) [g m]))))
-      (illegal-argument "Cannot store context with empty rows in format :fcalgs"))
+      (unsupported-operation "Cannot store context with empty rows in format :fcalgs"))
     (let [object-count    (count (objects context))
           attribute-count (count (attributes context))]
       (doseq [g (range object-count)]

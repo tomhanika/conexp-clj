@@ -21,7 +21,7 @@
   (let [writer (resolve (symbol "conexp.io" (str "write-" type))),
         reader (resolve (symbol "conexp.io" (str "read-" type)))]
     (when (or (nil? writer) (nil? reader))
-      (illegal-argument "out-in called with invalid type " type "."))
+      (illegal-argument "out-in called with invalid type «" type "»."))
     (let [tmp (.getAbsolutePath ^java.io.File (tmpfile))]
       (@writer format object tmp)
       (@reader tmp))))
