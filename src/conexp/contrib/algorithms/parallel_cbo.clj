@@ -24,12 +24,12 @@ intents in parallel.")
 (alter-meta! (var pcbo-external) assoc :private true)
 
 (defn- pcbo
-  "Runs pcbo and returns the name of the file where the concepts have
-  been written to."
+  "Runs pcbo and returns the file where the concepts have been written
+  to."
   [threads depth min-support context]
-  (let [output-file (.getAbsolutePath ^java.io.File (tmpfile))]
+  (let [^java.io.File output-file (tmpfile)]
     (pcbo-external (str "-P" threads) (str "-L" depth) (str "-S" (float (* min-support 100)))
-                   context output-file)
+                   context (.getAbsolutePath output-file))
     output-file))
 
 (defn- to-fcalgs-context
