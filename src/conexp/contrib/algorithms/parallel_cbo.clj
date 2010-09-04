@@ -50,8 +50,25 @@ intents in parallel.")
      object-vector
      attribute-vector]))
 
-(defn- string-to-int [str]
-  (reduce #(+ (* 10 %1) (Character/digit ^Character %2 10)) 0 str))
+(defn- string-to-ints [vec str]
+  (loop [str         str,
+         current-int -1,
+         ints        (transient #{})]
+    (if (empty? str)
+      (if (neg? current-int)
+        (persistent! ints)
+        (persistent! (conj! ints (nth vec current-int))))
+      (let [next-char (first str)]
+        (if (= \space next-char)
+          (recur (rest str)
+                 -1
+                 (if (neg? current-int)
+                   ints
+                   (conj! ints (nth vec current-int))))
+          (recur (rest str)
+                 (let [next-int (int (Character/digit ^Character next-char 10))]
+                   (+ (* 10 (max 0 current-int)) next-int))
+                 ints))))))
 
 (defn context-intents
   "Computes the intents of context using parallel close-by-one (CbO)."
@@ -59,8 +76,7 @@ intents in parallel.")
   (let [[ctx _ att-vec] (to-fcalgs-context context),
         output-file     (pcbo threads depth min-support ctx),
         intents         (line-seq (reader output-file)),
-        transform-back  #(set-of (nth att-vec (string-to-int x))
-                                 [x (split % #"\s+")])]
+        transform-back  #(string-to-ints att-vec %)]
     (if (= "" (first intents))
       (cons #{} (map transform-back (rest intents)))
       (map transform-back intents))))
