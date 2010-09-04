@@ -21,7 +21,7 @@ intents in parallel.")
 
 (define-external-program pcbo-external
   pcbo :threads :depth :min-support :input-file :fcalgs :output-file)
-(alter-meta! (var pcbo) assoc :private true)
+(alter-meta! (var pcbo-external) assoc :private true)
 
 (defn- pcbo
   "Runs pcbo and returns the name of the file where the concepts have
@@ -50,14 +50,16 @@ intents in parallel.")
      object-vector
      attribute-vector]))
 
+(defn- string-to-int [str]
+  (reduce #(+ (* 10 %1) (Character/digit ^Character %2 10)) 0 str))
+
 (defn context-intents
   "Computes the intents of context using parallel close-by-one (CbO)."
   [threads depth min-support context]
   (let [[ctx _ att-vec] (to-fcalgs-context context),
         output-file     (pcbo threads depth min-support ctx),
         intents         (line-seq (reader output-file)),
-        to-int          #(Integer/parseInt ^String %),
-        transform-back  #(set-of (nth att-vec (to-int x))
+        transform-back  #(set-of (nth att-vec (string-to-int x))
                                  [x (split % #"\s+")])]
     (if (= "" (first intents))
       (cons #{} (map transform-back (rest intents)))
