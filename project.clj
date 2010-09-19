@@ -16,7 +16,7 @@
                  [org.clojure.contrib/complete "1.3.0-SNAPSHOT" :classifier "bin"]
                  [org.apache.commons/commons-math "2.0"]
                  [jline "0.9.94"]]
-  :dev-dependencies [[swank-clojure "1.2.1"]]
+  :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]]
   :aot [conexp.main]
   :jar-name "conexp-clj.jar"
   :jvm-opts ["-server", "-Xmx1g"]
