@@ -18,14 +18,18 @@ Now switch in the source directory of conexp-clj and run
 
   $ lein deps
 
-This will download any missing jar files needed for conexp-clj to
-run. If you want to use the GUI you need to copy one extra library
-(G.jar) by hand:
+This will download any missing jar files needed for conexp-clj to run. With
+this you can now run conexp-clj directly from source and hack in its internals!
+For a fast repl run
 
-  $ cp stuff/libs/*.jar lib
+  $ lein repl
 
-With this you can now run conexp-clj directly from source and hack in
-its internals!
+If you want a swank server, run
+
+  $ lein swank
+
+and connnect your Emacs (or whatever) to Port 4005 at 127.0.0.1. See the
+documentation of swank-clojure for more details on this.
 
 To create a standalone zip just call bundle.sh in the top source
 directory. This will do everything to create a zip archive containing

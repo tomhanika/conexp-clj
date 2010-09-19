@@ -22,6 +22,20 @@
   :jvm-opts ["-server", "-Xmx1g"]
   :warn-on-reflection true)
 
+(require 'clojure.java.io
+         'robert.hooke
+         'leiningen.deps)
+
+(robert.hooke/add-hook #'leiningen.deps/deps
+                       (fn [f & args]
+                         (apply f args)
+                         (let [source (java.io.File. "stuff/libs/G.jar"),
+                               target (java.io.File. "lib/G.jar")]
+                           (when (not (.exists target))
+                             (println "Copying G.jar to lib")
+                             (clojure.java.io/copy source target)))))
+
+
 ;;;
 
 nil
