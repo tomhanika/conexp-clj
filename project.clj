@@ -9,13 +9,13 @@
 ;;;
 
 (defproject conexp-clj (.trim #=(slurp "VERSION"))
+  :min-lein-version "1.3.0"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
-  :dependencies [[org.clojure/clojure "1.2.0"]
-                 [org.clojure/clojure-contrib "1.2.0"]
+  :dependencies [[org.clojure/clojure "1.3.0-master-SNAPSHOT"]
+                 [org.clojure.contrib/complete "1.3.0-SNAPSHOT" :classifier "bin"]
                  [org.apache.commons/commons-math "2.0"]
-                 [jline "0.9.94"]
-                 [clj-iter "0.1.0-SNAPSHOT"]]
+                 [jline "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.2.1"]]
   :aot [conexp.main]
   :jar-name "conexp-clj.jar"

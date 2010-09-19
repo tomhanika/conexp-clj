@@ -9,7 +9,7 @@
 (ns conexp.contrib.algorithms.bitwise
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue])
-  (:use [clojure.contrib.seq-utils :only (indexed)])
+  (:use [clojure.contrib.seq :only (indexed)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)]))
 
 

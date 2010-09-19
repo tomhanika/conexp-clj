@@ -63,11 +63,6 @@
                    (is true))))
             body)))
 
-;;; iter
-
-(require 'pl.danieljanus.iter)
-(defalias iter pl.danieljanus.iter/iter)
-
 ;;; Types
 
 (defvar clojure-set clojure.lang.PersistentHashSet)
