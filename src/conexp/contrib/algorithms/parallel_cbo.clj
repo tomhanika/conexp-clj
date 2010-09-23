@@ -21,15 +21,18 @@ intents in parallel.")
 ;;;
 
 (define-external-program pcbo-external
-  pcbo :threads :depth :min-support :input-file :fcalgs :output-file)
+  pcbo :threads :depth :min-support :verbosity :input-file :fcalgs :output-file)
 (alter-meta! (var pcbo-external) assoc :private true)
 
 (defn- pcbo
   "Runs pcbo and returns the file where the concepts have been written
   to."
-  [threads depth min-support context]
+  [threads depth min-support verbosity context]
   (let [^java.io.File output-file (tmpfile)]
-    (pcbo-external (str "-P" threads) (str "-L" depth) (str "-S" (float (* min-support 100)))
+    (pcbo-external (str "-P" threads)
+                   (str "-L" depth)
+                   (str "-S" (float (* min-support 100)))
+                   (str "-V" verbosity)
                    context (.getAbsolutePath output-file))
     output-file))
 
@@ -47,15 +50,15 @@ intents in parallel.")
                                         :when (contains? (incidence ctx)
                                                          [(nth object-vector g)
                                                           (nth attribute-vector m)])])]
-    [(make-context new-objects new-attributes new-incidence)
-     object-vector
+    [(make-context new-objects new-attributes new-incidence),
+     object-vector,
      attribute-vector]))
 
 (defn context-intents
   "Computes the intents of context using parallel close-by-one (CbO)."
   [threads depth min-support context]
   (let [[ctx _ att-vec] (to-fcalgs-context context),
-        output-file     (pcbo threads depth min-support ctx),
+        output-file     (pcbo threads depth min-support 1 ctx),
         intents         (line-seq (reader output-file)),
         transform-back  #(string-to-ints att-vec %)]
     (if (= "" (first intents))
@@ -65,7 +68,10 @@ intents in parallel.")
 (defn count-context-intents
   "Counts the intents of context using parallel close-by-one (CbO)."
   [threads depth min-support context]
-  (count (line-seq (reader (pcbo threads depth min-support (first (to-fcalgs-context context)))))))
+  (-> (pcbo threads depth min-support 1 (first (to-fcalgs-context context)))
+      reader
+      line-seq
+      count))
 
 ;;;
 
