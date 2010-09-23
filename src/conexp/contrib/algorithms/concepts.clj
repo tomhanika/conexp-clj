@@ -11,7 +11,10 @@
         conexp.contrib.algorithms.bitwise
         conexp.contrib.algorithms.generators
         [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
-  (:use [conexp.fca.contexts :only (objects attributes incidence context-attribute-closure)])
+  (:use [conexp.fca.contexts :only (context?, objects, attributes,
+                                    incidence, attribute-derivation,
+                                    context-attribute-closure)])
+  (:require [conexp.contrib.algorithms.parallel-cbo :as pcbo])
   (:import [java.util BitSet List ArrayList])
   (:import [java.util.concurrent SynchronousQueue]))
 
@@ -26,16 +29,24 @@
   argument. Default is :next-closure."
   {:arglists '([algorithm context] [context])}
   (fn [& args]
+    (when-not (<= 1 (count args) 2)
+      (illegal-argument "Wrong number of args passed to c.c.algorithms.concepts."))
+    (when (and (= 1 (count args))
+               (not (context? (first args))))
+      (illegal-argument "Argument of concepts is not a context."))
+    (when (and (= 2 (count args))
+               (or (not (keyword? (first args)))
+                   (not (context? (second args)))))
+      (illegal-argument "First argument to concepts must be a keyword and the second argument must be a context."))
     (cond
      (= 1 (count args)) ::default-concepts
-     (= 2 (count args)) (first args)
-     :else (illegal-argument "Wrong number of args passed to c.c.algorithms.concepts."))))
+     (= 2 (count args)) (first args))))
 
 (defmethod concepts ::default-concepts [context]
   (concepts :next-closure context))
 
 
-;; NextClosure (:next-closure)
+;;; NextClosure (:next-closure)
 
 (defmethod concepts :next-closure
   [_ context]
@@ -61,7 +72,7 @@
            intents)))
 
 
-;; Vychodil (:vychodil)
+;;; Vychodil (:vychodil)
 
 (defn- compute-closure
   [object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
@@ -131,7 +142,7 @@
                                     0))))))
 
 
-;; In-Close (:in-close)
+;;; In-Close (:in-close)
 
 ;; TODO: Check this, it's too slow.
 
@@ -181,6 +192,18 @@
              [(to-hashset object-vector A),
               (to-hashset attribute-vector B)])
            As Bs))))
+
+
+;;; Parallel-Close-by-One (:pcbo)
+
+(defmethod concepts :pcbo
+  [_ context]
+  (map #(vector (attribute-derivation context %) ;this is slow
+                %)
+       (pcbo/context-intents (* 2 (.availableProcessors (Runtime/getRuntime)))
+                             3
+                             0
+                             context)))
 
 ;;;
 

@@ -81,6 +81,7 @@
         arguments                  (filter keyword? cmdln),
         arg-names                  (vec (map (comp symbol name) arguments))]
     `(defn ~program-name ~arg-names
+       (assert (program-exists? ~(first cmdln)))
        (run-in-shell ~@(replace (merge {:context `(context-to-file ~'context ~input-format)}
                                        (dissoc (zipmap arguments arg-names) :context))
                                 cmdln)))))

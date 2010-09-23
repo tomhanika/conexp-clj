@@ -9,7 +9,8 @@
 (ns conexp.contrib.algorithms.parallel-cbo
   (:use [conexp.main :exclude (context-intents)]
         conexp.contrib.exec
-        [conexp.io.util :only (tmpfile)])
+        [conexp.io.util :only (tmpfile)]
+        [conexp.contrib.algorithms.util :only (string-to-ints)])
   (:use [clojure.string :only (split-lines split)]
         [clojure.java.io :only (reader)]))
 
@@ -49,26 +50,6 @@ intents in parallel.")
     [(make-context new-objects new-attributes new-incidence)
      object-vector
      attribute-vector]))
-
-(defn- string-to-ints [vec str]
-  (loop [str         str,
-         current-int -1,
-         ints        (transient #{})]
-    (if (empty? str)
-      (if (neg? current-int)
-        (persistent! ints)
-        (persistent! (conj! ints (nth vec current-int))))
-      (let [next-char (first str)]
-        (if (= \space next-char)
-          (recur (rest str)
-                 -1
-                 (if (neg? current-int)
-                   ints
-                   (conj! ints (nth vec current-int))))
-          (recur (rest str)
-                 (let [next-int (int (Character/digit ^Character next-char 10))]
-                   (+ (* 10 (max 0 current-int)) next-int))
-                 ints))))))
 
 (defn context-intents
   "Computes the intents of context using parallel close-by-one (CbO)."
