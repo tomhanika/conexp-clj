@@ -49,6 +49,53 @@
 
 'TODO
 
+;;; Text
+
+(defn- seq-positions
+  "Returns a map from"
+  [seq]
+  (loop [seq   seq,
+         index 0,
+         map   {}]
+    (if (empty? seq)
+      map
+      (recur (rest seq)
+             (inc index)
+             (assoc map (first seq) index)))))
+
+(define-layout-output-format :text
+  [layout file]
+  (when-not (concept-lattice-layout? layout)
+    (illegal-argument "Cannot store layout in :text format which does "
+                      "not come from a concept lattice."))
+  (let [nodes       (vec (keys (positions layout))),
+        node-number (comp inc (seq-positions nodes))]
+    (with-out-writer file
+      ;; Node
+      (doseq [n nodes]
+        (let [[x y] ((positions layout) n)]
+          (println (str "Node: " (node-number n) ", " x ", " y))))
+      ;; Edge
+      (doseq [[x y] (connections layout)]
+        (println (str "Edge: " (node-number x) ", " (node-number y))))
+      ;; Object
+      (doseq [n nodes,
+              g (first n)]
+        (println (str "Object: " (node-number n) ", " g)))
+      ;; Attribute
+      (doseq [n nodes,
+              m (second n)]
+        (println (str "Attribute: " (node-number n) ", " m)))
+      (println "EOF"))))
+
+;; todo: :text input format
+
+;;; FCA-style
+
+(define-layout-output-format :fca-style
+  [layout file]
+  'to-be-done)
+
 ;;;
 
 nil

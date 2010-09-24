@@ -141,7 +141,7 @@
   [layout]
   (standard-context (lattice layout)))
 
-(defn- concept-lattice-layout?
+(defn concept-lattice-layout?
   "Tests whether layout comes from a concept lattice."
   [layout]
   (and (forall [node (nodes layout)]
