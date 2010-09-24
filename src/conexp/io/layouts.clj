@@ -52,7 +52,7 @@
 ;;; Text
 
 (defn- seq-positions
-  "Returns a map from"
+  "Returns a map from elements of seq to their positions."
   [seq]
   (loop [seq   seq,
          index 0,
@@ -88,13 +88,18 @@
         (println (str "Attribute: " (node-number n) ", " m)))
       (println "EOF"))))
 
-;; todo: :text input format
+(add-layout-input-format :text
+                         (fn [_] (re-find #"^Node: " (read-line))))
+
+(define-layout-input-format :text
+  [file]
+  (unsupported-operation "Input in :text format is not yet supported."))
 
 ;;; FCA-style
 
 (define-layout-output-format :fca-style
   [layout file]
-  'to-be-done)
+  (unsupported-operation "Output in :fca-style is not yet supported."))
 
 ;;;
 
