@@ -435,7 +435,7 @@
 (defn context-subposition
   "Returns context subposition of ctx-1 and ctx-2, that is
   \\[
-     \frac{(G_1,M_1,I_1)}{(G_2,M_1,I_2)} := (G_1\\cup G_2,M_1,I_1\\cup I_2).
+     \\frac{(G_1,M_1,I_1)}{(G_2,M_1,I_2)} := (G_1\\cup G_2,M_1,I_1\\cup I_2).
   \\]"
   [ctx-1 ctx-2]
   (if (not= (attributes ctx-1) (attributes ctx-2))
