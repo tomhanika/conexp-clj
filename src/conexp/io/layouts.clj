@@ -10,6 +10,7 @@
   (:use conexp.base
 	conexp.io.util
 	conexp.layouts.base)
+  (:require clojure.string)
   (:import [java.io PushbackReader]))
 
 (ns-doc "Implements IO for layouts.")
@@ -91,9 +92,50 @@
 (add-layout-input-format :text
                          (fn [_] (re-find #"^Node: " (read-line))))
 
+(defn- get-arguments
+  [line start]
+  (let [[first args] (rest (re-matches #"^([^:]*): (.*)$" line))]
+    (when-not (= first start)
+      (illegal-argument "Expected " start ", got " first))
+    (clojure.string/split args #", ")))
+
 (define-layout-input-format :text
   [file]
-  (unsupported-operation "Input in :text format is not yet supported."))
+  (let [lines (partition-by #(second (re-matches #"^([^:]*): .*$" %))
+                            (line-seq (reader file)))]
+    (when-not (= 5 (count lines))
+      (illegal-argument "File " file " does not contain a valid :text layout."))
+    (let [;; Node
+          pos  (reduce (fn [map line]
+                         (let [[node x y] (get-arguments line "Node")]
+                           (assoc map node [(Double/parseDouble x), (Double/parseDouble y)])))
+                       {}
+                       (nth lines 0)),
+          ;; Edge
+          conn (reduce (fn [set line]
+                         (conj set (get-arguments line "Edge")))
+                       #{}
+                       (nth lines 1)),
+          ;; Object
+          objs (reduce (fn [map line]
+                         (let [[node obj] (get-arguments line "Object")]
+                           (update-in map [node] conj obj)))
+                       {}
+                       (nth lines 2)),
+          ;; Attribute
+          atts (reduce (fn [map line]
+                         (let [[node att] (get-arguments line "Attribute")]
+                           (update-in map [node] conj att)))
+                       {}
+                       (nth lines 3)),
+          ;; Layout construction
+          nodes (map-by-fn (fn [node]
+                             [(set (objs node)), (set (atts node))])
+                           (keys pos))]
+      (make-layout (into {} (for [[number, coord] pos]
+                              [(nodes number), coord]))
+                   (set-of [(nodes x) (nodes y)]
+                           [[x y] conn])))))
 
 ;;; FCA-style
 
