@@ -107,7 +107,7 @@
                                                (save-context-and-go frame
                                                                     (fn [ctx path]
                                                                       (write-context format ctx path))))})
-                                 (list-context-formats)))},
+                                 (list-context-output-formats)))},
              {:name "Clone Current Context View"
               :handler clone-context-and-go},
              {}

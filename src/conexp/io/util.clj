@@ -64,7 +64,9 @@
         read  (symbol (str "read-" name)),
         get-default-write (symbol (str "get-default-" name "-format")),
         set-default-write (symbol (str "set-default-" name "-format!")),
-        list-formats (symbol (str "list-" name "-formats"))]
+        list-formats (symbol (str "list-" name "-formats")),
+        list-in-formats (symbol (str "list-" name "-input-formats")),
+        list-out-formats (symbol (str "list-" name "-output-formats"))]
   `(do
      (let [known-input-formats# (ref {})]
        (defn- ~add [name# predicate#]
@@ -122,13 +124,24 @@
        [file#]
        (illegal-argument "Cannot determine format of " ~name " in " file#))
 
-     (defn ~list-formats
-       ~(str "Returns a list of known " name " formats, with the default value as"
-             " first element.")
+     (defn ~list-in-formats
+       ~(str "Returns a list of known " name " input formats")
        []
-       (let [def#   (~get-default-write),
-             other# (sort (filter (fn [x#] (not= x# def#)) (~get)))]
-         (conj other# def#)))
+       (keys (dissoc (methods ~read)
+                     :default)))
+
+     (defn ~list-out-formats
+       ~(str "Returns a list of known " name " input formats")
+       []
+       (keys (dissoc (methods ~write)
+                     :default
+                     ::default-write)))
+
+     (defn ~list-formats
+       ~(str "Returns a list of known " name " IO formats, i.e. formats "
+             "for which reading and writing is defined.")
+       []
+       (seq (intersection (set (~list-in-formats)) (set (~list-out-formats)))))
 
      (defmacro ~(symbol (str "define-" name "-input-format"))
        ~(str "Defines input format for " name "s.")
