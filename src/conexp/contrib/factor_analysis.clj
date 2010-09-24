@@ -140,9 +140,8 @@
   such that the cardinality of the set returned by fuzzy-oplus-a is
   maximal. Returns the triple [m v count], where count is the
   aforementioned cardinality."
-  [context U D]
-  (let [values     (set (vals (incidence context))),
-        attributes (set-of m [[[_ m] _] (select-keys (incidence context) U)])] ;note: is not empty
+  [values context U D]
+  (let [attributes (set-of m [[[_ m] _] (select-keys (incidence context) U)])] ;note: is not empty
     (with-local-vars [attribute nil,
                       max-value -1,
                       fuzzyness nil]
@@ -157,9 +156,9 @@
       [(var-get attribute) (var-get fuzzyness), (var-get max-value)])))
 
 (defmethod factorize-context :fuzzy
-  [_ context]
+  [_ context truth-values]
   (let [inz          (incidence context),
-        find-maximal (partial find-maximal context)]
+        find-maximal (partial find-maximal truth-values context)]
     (loop [U (set-of [g m] [g (objects context),
                             m (attributes context),
                             :when (not (zero? (inz [g m])))]),
