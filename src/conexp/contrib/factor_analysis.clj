@@ -106,7 +106,7 @@
                        V 0]
                   (let [j-s     (difference M D),
                         max-j   (apply max-key (partial oplus-count context U D) j-s),
-                        max-val (oplus-count context U D max-j)]
+                        max-val (int (oplus-count context U D max-j))]
                     (if (< V max-val)
                       (recur (context-attribute-closure context (conj D max-j))
                              max-val)
@@ -165,18 +165,19 @@
            F #{}]
       (if (empty? U)
         F
-        (let [D (loop [D (make-fuzzy-set {}),
-                       V 0,
+        (let [D (loop [D           (make-fuzzy-set {}),
+                       V           0,
                        [j a value] (find-maximal U D)]
-                  (when (zero? value)
-                    (illegal-state "Could not find next attribute (0 value). "
-                                   "Make sure that no floating point inaccuracies occured."))
-                  (if (> value V)
-                    (recur (fuzzy-object-derivation context
-                                                    (fuzzy-attribute-derivation context (assoc D j a)))
-                           value
-                           (find-maximal U D))
-                    D)),
+                  (let [value (int value)]
+                    (when (zero? value)
+                      (illegal-state "Could not find next attribute (0 value). "
+                                     "Make sure that no floating point inaccuracies occured."))
+                    (if (> value V)
+                      (recur (fuzzy-object-derivation context
+                                                      (fuzzy-attribute-derivation context (assoc D j a)))
+                             value
+                             (find-maximal U D))
+                      D))),
               C (fuzzy-attribute-derivation context D),
               F (conj F [C,D]),
               U (set-of [i j] [[i j] U,
