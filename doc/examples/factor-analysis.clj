@@ -34,17 +34,19 @@
 
 (defvar- fuzzy-ctx (make-fuzzy-context [1 2 3 4]
                                        [1 2 3 4]
-                                       [0.1 0.2 0.3 0.4,
-                                        0.5 0.6 0.7 0.8,
-                                        0.9 1.0 0.9 0.8,
-                                        0.7 0.6 0.5 0.4]))
+                                       [1/10 2/10 3/10 4/10,
+                                        5/10 6/10 7/10 8/10,
+                                        9/10 1    9/10 8/10,
+                                        7/10 6/10 5/10 4/10]))
 
 ;; and then call factorize-context with the parameter :fuzzy. Note
 ;; that you need to wrap this call in with-fuzzy-logic to determine
 ;; the logic to use. Also see the example for fuzzy FCA for "more" details.
 
 (with-fuzzy-logic :goedel
-  (factorize-context :fuzzy fuzzy-ctx))
+  (factorize-context :fuzzy
+                     fuzzy-ctx
+                     #{0 1/10 2/10 3/10 4/10 5/10 6/10 7/10 8/10 9/10 1}))
 
 ;;;
 
