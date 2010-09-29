@@ -60,7 +60,6 @@
                 *default-node-radius*,
                 set-node-radius!)],
         conexp.contrib.draw.buttons)
-  (:use [clojure.contrib.swing-utils :only (do-swing, add-action-listener)])
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
                         JSeparator SwingConstants BoxLayout Box
                         JScrollBar JComboBox JScrollPane JFileChooser]
@@ -146,9 +145,8 @@
   "Moves nodes neighbored to node by [dx dy]."
   [neighbors]
   (fn [node dx dy]
-    (do-swing
-     (doseq [n (neighbors node)]
-       (move-node-by n dx dy)))))
+    (doseq [n (neighbors node)]
+      (move-node-by n dx dy))))
 
 (defn- ideal-move-mode
   "Moves all nodes below the current node."
@@ -174,10 +172,9 @@
   influence."
   [influenced-nodes]
   (fn [node dx dy]
-    (do-swing
-     (doseq [[n weight] (influenced-nodes node)]
-       (with-doubles [dx dy weight]
-         (move-node-by n (* dx weight) (* dy weight)))))))
+    (doseq [[n weight] (influenced-nodes node)]
+      (with-doubles [dx dy weight]
+        (move-node-by n (* dx weight) (* dy weight))))))
 
 (defn- infimum-additive-move-mode
   "Moves all nodes infimum-additively with node."
@@ -247,8 +244,7 @@
                    (.setText zoom-move "Move"))))
     (add-callback-for-hook scn :image-changed
                            (fn []
-                             (do-swing
-                              (.setText zoom-info (zoom-factors))))))
+                             (.setText zoom-info (zoom-factors)))))
   nil)
 
 ;; export images to files
@@ -291,11 +287,10 @@
   (let [saved-layouts (atom {}),
         ^JComboBox combo (make-combo-box buttons @saved-layouts),
         save-layout   (fn [_]
-                        (do-swing
-                         (let [layout (get-layout-from-scene scn),
-                               key    (now)]
-                           (swap! saved-layouts conj [key, layout])
-                           (.addItem combo key))))]
+                        (let [layout (get-layout-from-scene scn),
+                              key    (now)]
+                          (swap! saved-layouts conj [key, layout])
+                          (.addItem combo key)))]
     (add-callback-for-hook scn :move-stop save-layout)
     (action-on combo
                (let [selected (.. evt getSource getSelectedItem),

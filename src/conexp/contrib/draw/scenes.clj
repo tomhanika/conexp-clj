@@ -8,6 +8,7 @@
 
 (ns conexp.contrib.draw.scenes
   (:use conexp.base)
+  (:use [clojure.contrib.swing-utils :only (do-swing)])
   (:import [java.awt Color Canvas]
 	   [java.awt.event ComponentListener]
 	   [java.io File]
@@ -115,12 +116,13 @@
 			       function)))
 
 (defn call-hook-with
-  "Calls all callbacks of hook with given arguments."
+  "Calls all callbacks of hook with given arguments. Every hook is
+  called in a thread-safe manner."
   [scn hook & args]
   (when (not (contains? (get-scene-hooks scn) hook))
     (illegal-argument "Hook " hook " cannot be called for scene."))
   (doseq [callback (get (get-scene-hooks scn) hook)]
-    (apply callback args)))
+    (do-swing (apply callback args))))
 
 ;; methods on scenes
 
