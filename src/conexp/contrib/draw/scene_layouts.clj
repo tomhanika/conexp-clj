@@ -58,18 +58,28 @@
 			    {}
 			    (filter node? (get-diagram-from-scene scn)))))
 
+(defn fit-scene-to-layout
+  "Adjusts scene such that layout fits on it. Uses stored layout if
+  none is given."
+  ([^GScene scene]
+     (fit-scene-to-layout scene (get-layout-from-scene scene)))
+  ([^GScene scene, layout]
+     (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout)))]
+       (.setWorldExtent scene
+                        (double (- x_min (* 2 *default-node-radius*)))
+                        (double (- y_min (* 2 *default-node-radius*)))
+                        (double (- x_max x_min (* -4 *default-node-radius*)))
+                        (double (- y_max y_min (* -4 *default-node-radius*))))
+       (.unzoom scene))))
+
 (defn update-layout-of-scene
   "Updates layout according to new layout."
   [^GScene scene, layout]
   (do-swing
-   (let [pos (positions layout),
-	 [x_min y_min x_max y_max] (edges-of-points (vals pos))]
+   (let [pos (positions layout)]
      (doto scene
        (add-data-to-scene :layout layout)
-       (.setWorldExtent (double (- x_min (* 2 *default-node-radius*)))
-			(double (- y_min (* 2 *default-node-radius*)))
-			(double (- x_max x_min (* -4 *default-node-radius*)))
-			(double (- y_max y_min (* -4 *default-node-radius*)))))
+       (fit-scene-to-layout layout))
      (do-nodes [node scene]
        (let [[x y] (pos (get-name node))]
          (move-node-unchecked-to node x y)))
@@ -78,17 +88,12 @@
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
   [^GScene scene, layout]
-  (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout)))]
-    (doto scene
-      (.removeAll)
-      (.setWorldExtent (double (- x_min (* 2 *default-node-radius*)))
-		       (double (- y_min (* 2 *default-node-radius*)))
-		       (double (- x_max x_min (* -4 *default-node-radius*)))
-		       (double (- y_max y_min (* -4 *default-node-radius*))))
-      (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
-      (add-data-to-scene :layout layout)
-      (.unzoom))
-    (call-hook-with scene :image-changed)))
+  (doto scene
+    (.removeAll)
+    (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
+    (add-data-to-scene :layout layout)
+    (fit-scene-to-layout layout))
+  (call-hook-with scene :image-changed))
 
 ;;; draw nodes with coordinates and connections on a scene
 

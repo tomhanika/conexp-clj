@@ -45,6 +45,7 @@
 	[conexp.contrib.draw.scene-layouts
          :only (draw-on-scene,
                 get-layout-from-scene,
+                fit-scene-to-layout,
                 update-layout-of-scene,
                 do-nodes)]
 	[conexp.contrib.draw.nodes-and-connections
@@ -108,7 +109,11 @@
   ;; layouts
   (let [layouts {"standard" *standard-layout-function*,
 		 "inf-add"  inf-additive-layout},
+        ^JButton fit (make-button buttons "Fit"),
 	^JComboBox combo-box (make-combo-box buttons (keys layouts))]
+    (add-action-listener fit
+                         (fn [evt]
+                           (do-swing (fit-scene-to-layout scn))))
     (add-action-listener combo-box
 			 (fn [^ActionEvent evt]
 			   (let [selected (.. evt getSource getSelectedItem),
