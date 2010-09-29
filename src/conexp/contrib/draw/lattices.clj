@@ -92,7 +92,7 @@
     (add-callback-for-hook scn :image-changed
                            (fn []
                              (let [new-radius (Double/parseDouble (.getText node-radius)),
-                                   length (min (scene-height scn) (scene-width scn))]
+                                   length     (min (scene-height scn) (scene-width scn))]
                                (do-nodes [n scn]
                                  (set-node-radius! n (/ (* length new-radius) 400))))))
     (action-on node-radius
@@ -118,7 +118,9 @@
                  "inf-add"  inf-additive-layout},
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
-    (action-on fit (fit-scene-to-layout scn))
+    (action-on fit
+               (fit-scene-to-layout scn)
+               (call-hook-with scn :image-changed))
     (action-on combo-box
                (let [selected (.. evt getSource getSelectedItem),
                      layout-fn (get layouts selected)]
