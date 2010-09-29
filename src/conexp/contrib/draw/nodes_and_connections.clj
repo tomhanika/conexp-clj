@@ -400,16 +400,16 @@
 
 (defn zoom-interaction
   "Standrd zoom interaction for lattice diagrams. Installs
-  :zoom-event hook called whenever view changes. Callbacks
-  take no arguments."
+  :zoom hook called whenever view changes. Callbacks take no
+  arguments."
   [scene]
-  (add-hook scene :zoom-event)
+  (add-hook scene :zoom)
   (let [^ZoomInteraction zoom-obj (ZoomInteraction. scene)]
     (proxy [GInteraction] []
       (event [^GScene scn, evt, x, y]
 	(.event zoom-obj scn evt x y)
 	(when scn
-	  (call-hook-with scn :zoom-event)
+	  (call-hook-with scn :zoom)
 	  (call-hook-with scn :image-changed))))))
 
 ;;;
