@@ -30,7 +30,8 @@
                 *attractive-amount*,
                 *gravitative-amount*)]
         [conexp.contrib.gui.util
-         :only (with-swing-error-msg)]
+         :only (with-swing-error-msg,
+                action-on)]
         ;; drawing
         [conexp.contrib.draw.scenes
          :only (add-callback-for-hook,
@@ -84,44 +85,37 @@
   [frame scn buttons]
   ;; node radius
   (let [^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
-    (add-action-listener node-radius
-                         (fn [evt]
-                           (let [new-radius (Double/parseDouble (.getText node-radius))]
-                              (do-nodes [n scn]
-                                (set-node-radius! n new-radius))))))
+    (action-on node-radius
+               (let [new-radius (Double/parseDouble (.getText node-radius))]
+                 (do-nodes [n scn]
+                   (set-node-radius! n new-radius)))))
   (make-padding buttons)
 
   ;; labels
   (let [^JButton label-toggler (make-button buttons "No Labels")]
     (show-labels scn false)
-    (add-action-listener label-toggler
-                         (fn [evt]
-                           (do-swing
-                            (if (= "Labels" (.getText label-toggler))
-                              (do
-                                (show-labels scn false)
-                                (.setText label-toggler "No Labels"))
-                              (do
-                                (show-labels scn true)
-                                (.setText label-toggler "Labels")))
-                            (redraw-scene scn)))))
+    (action-on label-toggler
+               (if (= "Labels" (.getText label-toggler))
+                 (do
+                   (show-labels scn false)
+                   (.setText label-toggler "No Labels"))
+                 (do
+                   (show-labels scn true)
+                   (.setText label-toggler "Labels")))
+               (redraw-scene scn)))
 
   ;; layouts
   (let [layouts {"standard" *standard-layout-function*,
                  "inf-add"  inf-additive-layout},
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
-    (add-action-listener fit
-                         (fn [evt]
-                           (do-swing (fit-scene-to-layout scn))))
-    (add-action-listener combo-box
-                         (fn [^ActionEvent evt]
-                           (let [selected (.. evt getSource getSelectedItem),
-                                 layout-fn (get layouts selected)]
-                             (do-swing
-                              (update-layout-of-scene
-                               scn
-                               (layout-fn (lattice (get-layout-from-scene scn)))))))))
+    (action-on fit (fit-scene-to-layout scn))
+    (action-on combo-box
+               (let [selected (.. evt getSource getSelectedItem),
+                     layout-fn (get layouts selected)]
+                 (update-layout-of-scene
+                  scn
+                  (layout-fn (lattice (get-layout-from-scene scn)))))))
 
   ;; move mode
   (let [move-modes {"single" (single-move-mode),
@@ -135,11 +129,11 @@
     (add-callback-for-hook scn :move-drag
                            (fn [node dx dy]
                              (@current-move-mode node dx dy)))
-    (add-action-listener combo-box
-                         (fn [^ActionEvent evt]
-                           (let [selected (.. evt getSource getSelectedItem),
-                                 move-mode (get move-modes selected)]
-                             (reset! current-move-mode move-mode)))))
+    (action-on combo-box
+               (let [selected (.. evt getSource getSelectedItem),
+                     move-mode (get move-modes selected)]
+                 (reset! current-move-mode move-mode))))
+
   nil)
 
 (defn- single-move-mode
@@ -225,11 +219,10 @@
                                          g (Double/parseDouble (.getText grav-field)),
                                          i (Integer/parseInt (.getText iter-field))]
                                      [r a g i]))]
-    (add-action-listener button (fn [evt]
-                                  (do-swing
-                                   (with-swing-error-msg frame "An Error occured."
-                                     (let [[r a g i] (get-force-parameters)]
-                                       (improve-with-force scn i r a g))))))))
+    (action-on button
+               (with-swing-error-msg frame "An Error occured."
+                 (let [[r a g i] (get-force-parameters)]
+                   (improve-with-force scn i r a g))))))
 
 ;; zoom-move
 
@@ -244,16 +237,14 @@
                            (printf "%1.2f" zoom-y)))),
         ^JButton zoom-move (make-button buttons "Move"),
         ^JLabel  zoom-info (make-label buttons " -- ")]
-    (add-action-listener zoom-move
-                         (fn [evt]
-                           (do-swing
-                            (if (= "Move" (.getText zoom-move))
-                              (do
-                                (start-interaction scn zoom-interaction)
-                                (.setText zoom-move "Zoom"))
-                              (do
-                                (start-interaction scn move-interaction)
-                                (.setText zoom-move "Move"))))))
+    (action-on zoom-move
+               (if (= "Move" (.getText zoom-move))
+                 (do
+                   (start-interaction scn zoom-interaction)
+                   (.setText zoom-move "Zoom"))
+                 (do
+                   (start-interaction scn move-interaction)
+                   (.setText zoom-move "Move"))))
     (add-callback-for-hook scn :image-changed
                            (fn []
                              (do-swing
@@ -283,13 +274,12 @@
       (.addChoosableFileFilter jpg-filter)
       (.addChoosableFileFilter gif-filter)
       (.addChoosableFileFilter png-filter))
-    (add-action-listener save-button
-                         (fn [evt]
-                           (let [retVal (.showSaveDialog fc frame)]
-                             (when (= retVal JFileChooser/APPROVE_OPTION)
-                               (let [^File file (.getSelectedFile fc)]
-                                 (with-swing-error-msg frame "Error while saving"
-                                   (save-image scn file (get-file-extension file)))))))))
+    (action-on save-button
+               (let [retVal (.showSaveDialog fc frame)]
+                 (when (= retVal JFileChooser/APPROVE_OPTION)
+                   (let [^File file (.getSelectedFile fc)]
+                     (with-swing-error-msg frame "Error while saving"
+                       (save-image scn file (get-file-extension file))))))))
   nil)
 
 ;; save changes
@@ -307,12 +297,10 @@
                            (swap! saved-layouts conj [key, layout])
                            (.addItem combo key))))]
     (add-callback-for-hook scn :move-stop save-layout)
-    (add-action-listener combo
-                         (fn [^ActionEvent evt]
-                           (do-swing
-                            (let [selected (.. evt getSource getSelectedItem),
-                                  layout (@saved-layouts selected)]
-                              (update-layout-of-scene scn layout)))))
+    (action-on combo
+               (let [selected (.. evt getSource getSelectedItem),
+                     layout (@saved-layouts selected)]
+                 (update-layout-of-scene scn layout)))
     (save-layout nil)))
 
 

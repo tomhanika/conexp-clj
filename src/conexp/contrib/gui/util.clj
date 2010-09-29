@@ -28,6 +28,15 @@
 
 ;;; Helper functions
 
+(defmacro action-on
+  "Adds an action listener on thing to execute body, with the catched
+  ActionEvent Object bound to the variable evt. body will be executed
+  in a thread-safe manner."
+  [thing & body]
+  `(add-action-listener ~thing
+                        (fn [^java.awt.event.ActionEvent ~'evt]
+                          (do-swing ~@body))))
+
 (let [all-paths (string/split (System/getProperty "java.class.path")  #":"),
       cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)),
                         all-paths),
