@@ -34,7 +34,9 @@
                 action-on)]
         ;; drawing
         [conexp.contrib.draw.scenes
-         :only (add-callback-for-hook,
+         :only (scene-height,
+                scene-width,
+                add-callback-for-hook,
                 call-hook-with,
                 redraw-scene,
                 start-interaction,
@@ -83,11 +85,19 @@
   "Installs parameter list which influences lattice drawing."
   [frame scn buttons]
   ;; node radius
-  (let [^JTextField node-radius (make-labeled-text-field buttons "radius" (str *default-node-radius*))]
+  (let [^JTextField
+        node-radius (make-labeled-text-field buttons
+                                             "radius"
+                                             (str *default-node-radius*))]
+    (add-callback-for-hook scn :image-changed
+                           (fn []
+                             (let [new-radius (Double/parseDouble (.getText node-radius)),
+                                   length (min (scene-height scn) (scene-width scn))]
+                               (do-nodes [n scn]
+                                 (set-node-radius! n (/ (* length new-radius) 400))))))
     (action-on node-radius
-               (let [new-radius (Double/parseDouble (.getText node-radius))]
-                 (do-nodes [n scn]
-                   (set-node-radius! n new-radius)))))
+               (call-hook-with scn :image-changed)))
+
   (make-padding buttons)
 
   ;; labels

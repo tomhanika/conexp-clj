@@ -83,6 +83,16 @@
   [^GScene scn]
   (.zoom scn 1.0))
 
+(defn scene-height
+  "Returns the height of the given scene."
+  [^GScene scn]
+  (.getHeight (.getWorldExtent scn)))
+
+(defn scene-width
+  "Returns the width of the given scene."
+  [^GScene scn]
+  (.getWidth (.getWorldExtent scn)))
+
 ;; hooks
 
 (defn- get-scene-hooks
