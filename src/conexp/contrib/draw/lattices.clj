@@ -273,7 +273,7 @@
 (defn- export-as-file
   "Installs a file exporter."
   [frame scn buttons]
-  (let [^JButton save-button (make-button buttons "Save"),
+  (let [^JButton save-button (make-button buttons "Export to File"),
         ^JFileChooser fc (JFileChooser.),
         jpg-filter (FileNameExtensionFilter. "JPEG Files" (into-array ["jpg" "jpeg"])),
         gif-filter (FileNameExtensionFilter. "GIF Files"  (into-array ["gif"])),
@@ -297,17 +297,22 @@
   saves the image."
   [frame scn buttons]
   (let [saved-layouts (atom {}),
-        ^JComboBox combo (make-combo-box buttons @saved-layouts),
+        ^JComboBox
+        combo         (make-combo-box buttons @saved-layouts),
         save-layout   (fn [_]
                         (let [layout (get-layout-from-scene scn),
                               key    (now)]
-                          (swap! saved-layouts conj [key, layout])
-                          (.addItem combo key)))]
+                          (swap! saved-layouts assoc key layout)
+                          (.addItem combo key))),
+        ^JButton
+        snapshot      (make-button buttons "Snapshot")]
     (add-callback-for-hook scn :move-stop save-layout)
     (action-on combo
                (let [selected (.. evt getSource getSelectedItem),
-                     layout (@saved-layouts selected)]
+                     layout   (@saved-layouts selected)]
                  (update-layout-of-scene scn layout)))
+    (action-on snapshot
+               (save-layout nil))
     (save-layout nil)))
 
 

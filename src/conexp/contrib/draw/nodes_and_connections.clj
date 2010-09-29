@@ -375,6 +375,8 @@
   (add-hook scene :move-start)
   (add-hook scene :move-drag)
   (add-hook scene :move-stop)
+  (add-callback-for-hook scene :move-stop
+                         (fn [_] (call-hook-with scene :image-changed)))
   (let [interaction-obj (atom nil)]
     (proxy [GInteraction] []
       (event [^GScene scn, evt, x, y]
@@ -389,9 +391,9 @@
 				     (move-node-by @interaction-obj (- x a) (- y b))
 				     (call-hook-with scn :move-drag @interaction-obj (- x a) (- y b))
 				     (.refresh scn))),
-	   GWindow/BUTTON1_UP    (do
-				   (call-hook-with scn :move-stop @interaction-obj)
-				   (reset! interaction-obj nil)),
+	   GWindow/BUTTON1_UP    (when @interaction-obj
+                                   (call-hook-with scn :move-stop @interaction-obj)
+                                   (reset! interaction-obj nil)),
            GWindow/BUTTON3_DOWN  (let [thing (.find scn x y)]
                                    (when (node? thing)
                                      (highlight-node thing)

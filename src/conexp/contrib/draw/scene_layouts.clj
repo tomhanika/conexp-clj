@@ -64,12 +64,15 @@
   ([^GScene scene]
      (fit-scene-to-layout scene (get-layout-from-scene scene)))
   ([^GScene scene, layout]
-     (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout)))]
+     (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout))),
+           max-radius                (reduce #(max %1 (radius %2))
+                                             0
+                                             (filter node? (get-diagram-from-scene scene)))]
        (.setWorldExtent scene
-                        (double (- x_min (* 2 *default-node-radius*)))
-                        (double (- y_min (* 2 *default-node-radius*)))
-                        (double (- x_max x_min (* -4 *default-node-radius*)))
-                        (double (- y_max y_min (* -4 *default-node-radius*))))
+                        (double (- x_min (* 2 max-radius)))
+                        (double (- y_min (* 2 max-radius)))
+                        (double (- x_max x_min (* -4 max-radius)))
+                        (double (- y_max y_min (* -4 max-radius))))
        (.unzoom scene))))
 
 (defn update-layout-of-scene
@@ -77,12 +80,11 @@
   [^GScene scene, layout]
   (do-swing
    (let [pos (positions layout)]
-     (doto scene
-       (add-data-to-scene :layout layout)
-       (fit-scene-to-layout layout))
+     (add-data-to-scene scene :layout layout)
      (do-nodes [node scene]
        (let [[x y] (pos (get-name node))]
          (move-node-unchecked-to node x y)))
+     (fit-scene-to-layout scene layout)
      (call-hook-with scene :image-changed))))
 
 (defn set-layout-of-scene
@@ -92,8 +94,9 @@
     (.removeAll)
     (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
     (add-data-to-scene :layout layout)
-    (fit-scene-to-layout layout))
-  (call-hook-with scene :image-changed))
+    (fit-scene-to-layout layout)
+    (call-hook-with :image-changed)))
+
 
 ;;; draw nodes with coordinates and connections on a scene
 
