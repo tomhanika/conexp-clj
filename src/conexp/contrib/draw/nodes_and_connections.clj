@@ -408,7 +408,9 @@
     (proxy [GInteraction] []
       (event [^GScene scn, evt, x, y]
 	(.event zoom-obj scn evt x y)
-	(when scn
+	(when (and scn
+                   (or (= evt GWindow/BUTTON1_UP)
+                       (= evt GWindow/BUTTON3_UP)))
 	  (call-hook-with scn :zoom)
 	  (call-hook-with scn :image-changed))))))
 
