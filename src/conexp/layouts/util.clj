@@ -55,8 +55,7 @@
 	 points)))
 
 (defn scale-layout
-  "Scales given layout to rectangle [x1 y1], [x2 y2]. Layout is given
-  as a map of points to coordinates and a sequence of connection pairs."
+  "Scales given layout to rectangle [x1 y1], [x2 y2]."
   [[x1 y1] [x2 y2] layout]
   (let [points (seq (positions layout))]
     (make-layout (apply hash-map
