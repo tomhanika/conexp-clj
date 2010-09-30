@@ -7,62 +7,52 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.lattices
-  (:use [conexp.base
-         :only (ns-doc,
-                illegal-argument,
-                with-printed-result,
-                now,
-                defvar-,
-                defmacro-,
-                defnk)]
-        [conexp.math.util
-         :only (with-doubles)]
-        [conexp.layouts
-         :only (*standard-layout-function*,
-                inf-additive-layout)]
-        [conexp.layouts.util
-         :only (scale-layout)]
-        [conexp.layouts.base
-         :only (lattice,
-                annotation)]
-        [conexp.layouts.force
-         :only (force-layout,
-                layout-energy,
-                *repulsive-amount*,
-                *attractive-amount*,
-                *gravitative-amount*)]
-        [conexp.contrib.gui.util
-         :only (with-swing-error-msg,
-                action-on)]
+  (:use [conexp.base             :only (ns-doc,
+                                        illegal-argument,
+                                        with-printed-result,
+                                        now,
+                                        defvar-,
+                                        defmacro-,
+                                        defnk)]
+        [conexp.math.util        :only (with-doubles)]
+        [conexp.layouts          :only (*standard-layout-function*,
+                                        inf-additive-layout)]
+        [conexp.layouts.util     :only (scale-layout)]
+        [conexp.layouts.base     :only (lattice,
+                                        annotation)]
+        [conexp.layouts.force    :only (force-layout,
+                                        layout-energy,
+                                        *repulsive-amount*,
+                                        *attractive-amount*,
+                                        *gravitative-amount*)]
+        [conexp.contrib.gui.util :only (with-swing-error-msg,
+                                        action-on)]
         ;; drawing
-        [conexp.contrib.draw.scenes
-         :only (scene-height,
-                scene-width,
-                add-callback-for-hook,
-                call-hook-with,
-                redraw-scene,
-                start-interaction,
-                get-zoom-factors,
-                save-image,
-                get-canvas-from-scene,
-                show-labels,
-                add-scrollbars)]
-        [conexp.contrib.draw.scene-layouts
-         :only (draw-on-scene,
-                get-layout-from-scene,
-                fit-scene-to-layout,
-                update-layout-of-scene,
-                do-nodes)]
-        [conexp.contrib.draw.nodes-and-connections
-         :only (move-interaction,
-                zoom-interaction,
-                move-node-by,
-                all-nodes-above,
-                all-nodes-below,
-                all-inf-add-influenced-nodes,
-                all-sup-add-influenced-nodes,
-                *default-node-radius*,
-                set-node-radius!)],
+        [conexp.contrib.draw.scenes                :only (scene-height,
+                                                          scene-width,
+                                                          add-callback-for-hook,
+                                                          call-hook-with,
+                                                          redraw-scene,
+                                                          start-interaction,
+                                                          get-zoom-factors,
+                                                          save-image,
+                                                          get-canvas-from-scene,
+                                                          show-labels,
+                                                          add-scrollbars)]
+        [conexp.contrib.draw.scene-layouts         :only (draw-on-scene,
+                                                          get-layout-from-scene,
+                                                          fit-scene-to-layout,
+                                                          update-layout-of-scene,
+                                                          do-nodes)]
+        [conexp.contrib.draw.nodes-and-connections :only (move-interaction,
+                                                          zoom-interaction,
+                                                          move-node-by,
+                                                          all-nodes-above,
+                                                          all-nodes-below,
+                                                          all-inf-add-influenced-nodes,
+                                                          all-sup-add-influenced-nodes,
+                                                          *default-node-radius*,
+                                                          set-node-radius!)],
         conexp.contrib.draw.buttons)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
                         JSeparator SwingConstants BoxLayout Box
