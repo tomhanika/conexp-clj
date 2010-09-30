@@ -21,11 +21,6 @@
   (map (comp *standard-layout-function* concept-lattice)
        (random-contexts 20 10)))
 
-(deftest test-layout-oi
-  (with-testing-data [lay *testing-layouts*,
-                      fmt (list-layout-formats)]
-    (= lay (out-in lay 'layout fmt))))
-
 (deftest test-layout-oioi
   (with-testing-data [lay *testing-layouts*,
                       fmt (list-layout-formats)]

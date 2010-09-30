@@ -103,31 +103,37 @@
   [file]
   (let [lines (partition-by #(second (re-matches #"^([^:]*): .*$" %))
                             (line-seq (reader file)))]
-    (when-not (= 5 (count lines))
+    (when-not (<= (count lines) 5)
       (illegal-argument "File " file " does not contain a valid :text layout."))
-    (let [;; Node
+    (when-not (= (first (last lines)) "EOF")
+      (illegal-state "Layout :text format must end with EOF."))
+    (let [;; Entries
+          entries (apply hash-map (mapcat #(list (second (re-matches #"^([^:]*): .*$" (first %)))
+                                                 %)
+                                          lines)),
+          ;; Node
           pos  (reduce (fn [map line]
                          (let [[node x y] (get-arguments line "Node")]
                            (assoc map node [(Double/parseDouble x), (Double/parseDouble y)])))
                        {}
-                       (nth lines 0)),
+                       (entries "Node")),
           ;; Edge
           conn (reduce (fn [set line]
                          (conj set (get-arguments line "Edge")))
                        #{}
-                       (nth lines 1)),
+                       (entries "Edge")),
           ;; Object
           objs (reduce (fn [map line]
                          (let [[node obj] (get-arguments line "Object")]
                            (update-in map [node] conj obj)))
                        {}
-                       (nth lines 2)),
+                       (entries "Object")),
           ;; Attribute
           atts (reduce (fn [map line]
                          (let [[node att] (get-arguments line "Attribute")]
                            (update-in map [node] conj att)))
                        {}
-                       (nth lines 3)),
+                       (entries "Attribute")),
           ;; Layout construction
           nodes (map-by-fn (fn [node]
                              [(set (objs node)), (set (atts node))])
