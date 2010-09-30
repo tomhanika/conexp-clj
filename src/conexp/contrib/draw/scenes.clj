@@ -63,7 +63,7 @@
   [^GScene scn, key]
   (-> scn .getUserData deref (get key)))
 
-(declare add-hook)
+(declare add-scene-hook)
 
 (defn make-scene
   "Makes scene on given window."
@@ -72,7 +72,7 @@
     (doto scn
       (initialize-scene)
       (add-data-to-scene :hooks {})
-      (add-hook :image-changed)
+      (add-scene-hook :image-changed)
       (.shouldZoomOnResize true)
       (.shouldWorldExtentFitViewport false)
       (.setStyle *default-scene-style*))
@@ -105,27 +105,27 @@
   [scn, hooks]
   (add-data-to-scene scn :hooks hooks))
 
-(defn add-hook
+(defn add-scene-hook
   "Adds hook for scene."
   [scn, hook]
   (when (not (contains? (get-scene-hooks scn) hook))
     (update-data-for-scene scn [:hooks hook] [])))
 
-(defn set-callback-for-hook
+(defn set-scene-callback
   "Sets given functions as callbacks for hook on scene."
   [scn hook functions]
   (when (not (contains? (get-scene-hooks scn) hook))
-    (add-hook scn hook))
+    (add-scene-hook scn hook))
   (set-scene-hooks scn (assoc (get-scene-hooks scn) hook functions)))
 
-(defn add-callback-for-hook
+(defn add-scene-callback
   "Adds given function as additional callback for hook."
   [scn hook function]
-  (set-callback-for-hook scn hook
-			 (conj (get (get-scene-hooks scn) hook)
-			       function)))
+  (set-scene-callback scn hook
+                      (conj (get (get-scene-hooks scn) hook)
+                            function)))
 
-(defn call-hook-with
+(defn call-scene-hook
   "Calls all callbacks of hook with given arguments. Every hook is
   called in a thread-safe manner."
   [scn hook & args]
@@ -156,7 +156,7 @@
   (let [^Canvas canvas (.. scn getWindow getCanvas)]
     (.addComponentListener canvas (proxy [ComponentListener] []
 				    (componentResized [comp-evt]
-				      (call-hook-with scn :image-changed))))
+				      (call-scene-hook scn :image-changed))))
     canvas))
 
 (defn save-image

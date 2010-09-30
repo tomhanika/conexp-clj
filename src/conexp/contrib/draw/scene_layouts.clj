@@ -85,7 +85,7 @@
        (let [[x y] (pos (get-name node))]
          (move-node-unchecked-to node x y)))
      (fit-scene-to-layout scene layout)
-     (call-hook-with scene :image-changed))))
+     (call-scene-hook scene :image-changed))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
@@ -95,7 +95,7 @@
     (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
     (add-data-to-scene :layout layout)
     (fit-scene-to-layout layout)
-    (call-hook-with :image-changed)))
+    (call-scene-hook :image-changed)))
 
 
 ;;; draw nodes with coordinates and connections on a scene

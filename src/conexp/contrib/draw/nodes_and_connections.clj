@@ -372,11 +372,11 @@
   argument, :move-drag additionally gets the vector by which the given
   vertex has been moved."
   [scene]
-  (add-hook scene :move-start)
-  (add-hook scene :move-drag)
-  (add-hook scene :move-stop)
-  (add-callback-for-hook scene :move-stop
-                         (fn [_] (call-hook-with scene :image-changed)))
+  (add-scene-hook scene :move-start)
+  (add-scene-hook scene :move-drag)
+  (add-scene-hook scene :move-stop)
+  (add-scene-callback scene :move-stop
+                      (fn [_] (call-scene-hook scene :image-changed)))
   (let [interaction-obj (atom nil)]
     (proxy [GInteraction] []
       (event [^GScene scn, evt, x, y]
@@ -384,15 +384,15 @@
 	   GWindow/BUTTON1_DOWN  (let [thing (.find scn x y)]
 				   (when (node? thing)
 				     (reset! interaction-obj thing)
-				     (call-hook-with scn :move-start thing))),
+				     (call-scene-hook scn :move-start thing))),
 	   GWindow/BUTTON1_DRAG  (when @interaction-obj
 				   (let [[a b] (position @interaction-obj),
 					 [x y] (device-to-world scn x y)]
 				     (move-node-by @interaction-obj (- x a) (- y b))
-				     (call-hook-with scn :move-drag @interaction-obj (- x a) (- y b))
+				     (call-scene-hook scn :move-drag @interaction-obj (- x a) (- y b))
 				     (.refresh scn))),
 	   GWindow/BUTTON1_UP    (when @interaction-obj
-                                   (call-hook-with scn :move-stop @interaction-obj)
+                                   (call-scene-hook scn :move-stop @interaction-obj)
                                    (reset! interaction-obj nil)),
            GWindow/BUTTON3_DOWN  (let [thing (.find scn x y)]
                                    (when (node? thing)
@@ -405,7 +405,7 @@
   :zoom hook called whenever view changes. Callbacks take no
   arguments."
   [scene]
-  (add-hook scene :zoom)
+  (add-scene-hook scene :zoom)
   (let [^ZoomInteraction zoom-obj (ZoomInteraction. scene)]
     (proxy [GInteraction] []
       (event [^GScene scn, evt, x, y]
@@ -413,8 +413,8 @@
 	(when (and scn
                    (or (= evt GWindow/BUTTON1_UP)
                        (= evt GWindow/BUTTON3_UP)))
-	  (call-hook-with scn :zoom)
-	  (call-hook-with scn :image-changed))))))
+	  (call-scene-hook scn :zoom)
+	  (call-scene-hook scn :image-changed))))))
 
 ;;;
 

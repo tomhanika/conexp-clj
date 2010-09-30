@@ -30,8 +30,8 @@
         ;; drawing
         [conexp.contrib.draw.scenes                :only (scene-height,
                                                           scene-width,
-                                                          add-callback-for-hook,
-                                                          call-hook-with,
+                                                          add-scene-callback,
+                                                          call-scene-hook,
                                                           redraw-scene,
                                                           start-interaction,
                                                           get-zoom-factors,
@@ -81,14 +81,14 @@
         node-radius (make-labeled-text-field buttons
                                              "radius"
                                              (str *default-node-radius*))]
-    (add-callback-for-hook scn :image-changed
-                           (fn []
-                             (let [new-radius (Double/parseDouble (.getText node-radius)),
-                                   length     (min (scene-height scn) (scene-width scn))]
-                               (do-nodes [n scn]
-                                 (set-node-radius! n (/ (* length new-radius) 400))))))
+    (add-scene-callback scn :image-changed
+                        (fn []
+                          (let [new-radius (Double/parseDouble (.getText node-radius)),
+                                length     (min (scene-height scn) (scene-width scn))]
+                            (do-nodes [n scn]
+                              (set-node-radius! n (/ (* length new-radius) 400))))))
     (action-on node-radius
-               (call-hook-with scn :image-changed)))
+               (call-scene-hook scn :image-changed)))
 
   (make-padding buttons)
 
@@ -112,7 +112,7 @@
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (action-on fit
                (fit-scene-to-layout scn)
-               (call-hook-with scn :image-changed))
+               (call-scene-hook scn :image-changed))
     (action-on combo-box
                (let [selected (.. evt getSource getSelectedItem),
                      layout-fn (get layouts selected)]
@@ -131,9 +131,9 @@
                     "sup"    (supremum-additive-move-mode)}
         ^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
         current-move-mode (atom (move-modes "single"))]
-    (add-callback-for-hook scn :move-drag
-                           (fn [node dx dy]
-                             (@current-move-mode node dx dy)))
+    (add-scene-callback scn :move-drag
+                        (fn [node dx dy]
+                          (@current-move-mode node dx dy)))
     (action-on combo-box
                (let [selected (.. evt getSource getSelectedItem),
                      move-mode (get move-modes selected)]
@@ -248,9 +248,9 @@
                  (do
                    (start-interaction scn move-interaction)
                    (.setText zoom-move "Move"))))
-    (add-callback-for-hook scn :image-changed
-                           (fn []
-                             (.setText zoom-info (zoom-factors)))))
+    (add-scene-callback scn :image-changed
+                        (fn []
+                          (.setText zoom-info (zoom-factors)))))
   nil)
 
 ;; export images to files
@@ -300,7 +300,7 @@
                           (.addItem combo key))),
         ^JButton
         snapshot      (make-button buttons "Snapshot")]
-    (add-callback-for-hook scn :move-stop save-layout)
+    (add-scene-callback scn :move-stop save-layout)
     (action-on combo
                (let [selected (.. evt getSource getSelectedItem),
                      layout   (@saved-layouts selected)]
