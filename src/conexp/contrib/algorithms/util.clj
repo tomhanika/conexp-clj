@@ -34,7 +34,7 @@
                    (conj! ints (nth vec current-int))))
           (recur (rest str)
                  (let [next-int (int (Character/digit ^Character next-char 10))]
-                   (+ (* 10 (max 0 current-int)) next-int))
+                   (long (+ (* 10 (max 0 current-int)) next-int)))
                  ints))))))
 
 ;;;
