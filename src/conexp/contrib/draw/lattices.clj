@@ -20,6 +20,8 @@
         [conexp.layouts
          :only (*standard-layout-function*,
                 inf-additive-layout)]
+        [conexp.layouts.util
+         :only (scale-layout)]
         [conexp.layouts.base
          :only (lattice,
                 annotation)]
@@ -126,7 +128,9 @@
                      layout-fn (get layouts selected)]
                  (update-layout-of-scene
                   scn
-                  (layout-fn (lattice (get-layout-from-scene scn)))))))
+                  (scale-layout [0.0 0.0]
+                                [100.0 100.0]
+                                (layout-fn (lattice (get-layout-from-scene scn))))))))
 
   ;; move mode
   (let [move-modes {"single" (single-move-mode),
