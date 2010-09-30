@@ -76,11 +76,11 @@
        (.unzoom scene))))
 
 (defn update-layout-of-scene
-  "Updates layout according to new layout."
+  "Updates layout according to new layout. The underlying lattice must
+  not be changed."
   [^GScene scene, layout]
   (do-swing
    (let [pos (positions layout)]
-     (add-data-to-scene scene :layout layout)
      (do-nodes [node scene]
        (let [[x y] (pos (get-name node))]
          (move-node-unchecked-to node x y)))
