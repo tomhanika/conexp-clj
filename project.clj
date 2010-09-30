@@ -26,15 +26,18 @@
          'robert.hooke
          'leiningen.deps)
 
+(defn copy-file [name]
+  (let [source (java.io.File. (str "stuff/libs/" name)),
+        target (java.io.File. (str "lib/" name))]
+    (when (not (.exists target))
+      (println (str "Copying " name " to lib"))
+      (clojure.java.io/copy source target))))
+
 (robert.hooke/add-hook #'leiningen.deps/deps
                        (fn [f & args]
                          (apply f args)
-                         (let [source (java.io.File. "stuff/libs/G.jar"),
-                               target (java.io.File. "lib/G.jar")]
-                           (when (not (.exists target))
-                             (println "Copying G.jar to lib")
-                             (clojure.java.io/copy source target)))))
-
+                         (copy-file "G.jar")
+                         (copy-file "LatDraw.jar")))
 
 ;;;
 
