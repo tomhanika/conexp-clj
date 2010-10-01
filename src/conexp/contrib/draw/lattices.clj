@@ -20,6 +20,7 @@
         [conexp.layouts.util     :only (scale-layout)]
         [conexp.layouts.base     :only (lattice,
                                         annotation)]
+        [conexp.layouts.freese   :only (freese-layout)]
         [conexp.layouts.force    :only (force-layout,
                                         layout-energy,
                                         *repulsive-amount*,
@@ -107,7 +108,8 @@
 
   ;; layouts
   (let [layouts {"standard" *standard-layout-function*,
-                 "inf-add"  inf-additive-layout},
+                 "inf-add"  inf-additive-layout,
+                 "freese"   freese-layout},
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (action-on fit
