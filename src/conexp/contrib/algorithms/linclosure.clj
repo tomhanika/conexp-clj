@@ -43,4 +43,20 @@
 
 ;;;
 
+(comment
+
+  (use '[clojure.contrib.def :only (defvar-)])
+  (require '[conexp.main :as cm])
+
+  (defvar- impls (cm/set-of (cm/make-implication A B)
+                            [A (cm/subsets #{1 2 3 4 5 6 7 8 9 10}),
+                             B (cm/subsets #{1 2 3 4 5 6 7 8 9 10})]))
+
+  (time (close-under-implications impls #{}))
+  (time (cm/close-under-implications impls #{}))
+
+  nil)
+
+;;;
+
 nil
