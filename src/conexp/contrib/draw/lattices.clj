@@ -339,7 +339,9 @@
   (defn make-lattice-editor
     "Creates a lattice editor with initial layout."
     [frame layout]
-    (let [^JPanel main-panel (JPanel. (BorderLayout.)),
+    (let [layout (scale-layout [0 0] [100 100] layout),
+
+          ^JPanel main-panel (JPanel. (BorderLayout.)),
 
           scn (draw-on-scene layout),
           ^Canvas canvas (get-canvas-from-scene scn),
