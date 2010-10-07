@@ -19,6 +19,7 @@
   (let [answer (ask (str "Do you accept the subsumption \n\n"
 			 (print-str subsumption)
 			 " ?\n\n")
+                    read
 		    '#{yes no}
 		    "Please enter yes or no.\n")]
     (if (= answer 'yes)

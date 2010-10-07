@@ -82,7 +82,7 @@
   is asked for an answer (via read). If this answer does not satisfy
   pred, fail-message is printed and the user is asked again, until the
   given answer fulfills pred."
-  [prompt pred fail-message]
+  [prompt read pred fail-message]
   (do
     (print prompt)
     (flush)
@@ -99,6 +99,7 @@
   [ctx impl]
   (do
     (let [answer (ask (str "Does the implication " (print-str impl) " hold? ")
+                      read
                       #{'yes 'no}
 		      "Please answer 'yes' or 'no': ")]
       (if (= answer 'yes)
@@ -106,14 +107,16 @@
         (do
           (println ctx)
           (let [new-obj (ask (str "Please enter new object: ")
+                             #(read-string (str "\"" (read-line) "\""))
                              (fn [new-obj] (not ((objects ctx) new-obj)))
                              "This object is already present, please enter a new one: "),
-                new-att (ask (str "Please enter the attributes the new object should have: ")
+                new-att (ask (str "Please enter the attributes the new object should have (in the form #{... atts ...}): ")
+                             #(read-string (str "#{" (read-line) "\""))
                              (fn [new-atts]
-                               (and (subset? new-atts (attributes ctx))
+                               (and (set? new-atts)
+                                    (subset? new-atts (attributes ctx))
                                     (falsifies-implication? new-atts impl)))
-                             (str "These attributes are not valid or do not falsify the implication.\n"
-                                  "Please enter a new set (in the form #{... atts ...}): "))]
+                             (str "These attributes are not valid or do not falsify the implication."))]
             [false [new-obj (set new-att)]]))))))
 
 ;;;
