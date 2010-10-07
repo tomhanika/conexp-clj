@@ -46,10 +46,14 @@
   rectangle given by [x1 y1] and [x2 y2]."
   [[x1 y1] [x2 y2] points]
   (let [[x_min y_min x_max y_max] (edges-of-points points),
-	a_x (/ (- x1 x2) (- x_min x_max 0.1)), ; -0.1 for (= x_min x_max)
-	b_x (- x1 (* a_x x_min)),
-	a_y (/ (- y1 y2) (- y_min y_max 0.1)),
-	b_y (- y1 (* a_y y_min))]
+	[a_x, b_x] (if (= x_min x_max)
+                     [0, (/ (+ x1 x2) 2)]
+                     (let [slope (/ (- x1 x2) (- x_min x_max))]
+                       [slope, (- x1 (* slope x_min))])),
+	[a_y, b_y] (if (= y_min y_max)
+                     [0, (/ (+ y1 y2) 2)]
+                     (let [slope (/ (- y1 y2) (- y_min y_max))]
+                       [slope, (- y1 (* slope y_min))]))]
     (map (fn [[x y]]
 	   [(+ (* a_x x) b_x), (+ (* a_y y) b_y)])
 	 points)))
