@@ -23,7 +23,7 @@
 
 (deftest test-layout-oioi
   (with-testing-data [lay *testing-layouts*,
-                      fmt (list-layout-formats)]
+                      fmt (remove #{:text} (list-layout-formats))]
     (out-in-out-in-test lay 'layout fmt)))
 
 ;;;

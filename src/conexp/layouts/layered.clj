@@ -28,13 +28,13 @@
      :neighbors (memoize
 		 (fn [x]
 		   (let [order (order lattice)]
-		     (filter #(order [% x]) (base-set lattice))))))))
+		     (filter #(order [x %]) (base-set lattice))))))))
 
-(defn layers
+(defn- layers
   "Returns the layers of the given lattice, that is sequence of points
-  with equal heights."
+  with equal depth, starting with the lowest layer."
   [lattice]
-  (dependency-list (lattice->graph lattice)))
+  (reverse (dependency-list (lattice->graph lattice))))
 
 (defn- layer-coordinates
   "Assigns coordinates to a given layer such that it is centerer
