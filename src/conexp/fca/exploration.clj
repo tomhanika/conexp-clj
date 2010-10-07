@@ -99,7 +99,7 @@
   [ctx impl]
   (do
     (let [answer (ask (str "Does the implication " (print-str impl) " hold? ")
-                      read
+                      #(read-string (str (read-line)))
                       #{'yes 'no}
 		      "Please answer 'yes' or 'no': ")]
       (if (= answer 'yes)
@@ -110,13 +110,14 @@
                              #(read-string (str "\"" (read-line) "\""))
                              (fn [new-obj] (not ((objects ctx) new-obj)))
                              "This object is already present, please enter a new one: "),
-                new-att (ask (str "Please enter the attributes the new object should have (in the form #{... atts ...}): ")
-                             #(read-string (str "#{" (read-line) "\""))
+                new-att (ask (str "Please enter the attributes the new object should have: ")
+                             #(read-string (str "#{" (read-line) "}"))
                              (fn [new-atts]
                                (and (set? new-atts)
                                     (subset? new-atts (attributes ctx))
                                     (falsifies-implication? new-atts impl)))
-                             (str "These attributes are not valid or do not falsify the implication."))]
+                             (str "These attributes are not valid or do not falsify the implication.\n"
+                                  "Please enter new attributes: "))]
             [false [new-obj (set new-att)]]))))))
 
 ;;;
