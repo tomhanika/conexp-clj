@@ -13,7 +13,7 @@
 	[conexp.fca.lattices :only (base-set order)])
   (:use [clojure.contrib.graph :only (directed-graph, dependency-list, remove-loops)]))
 
-(ns-doc "Basic namespace for lattice layouts.")
+(ns-doc "Layered lattice layouts.")
 
 
 ;;; Simple Layered Layout
@@ -45,6 +45,8 @@
 		(map #(vector % number)
 		     (iterate inc start)))))
 
+;;;
+
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."
   [lattice]
@@ -53,10 +55,9 @@
 				(map layer-coordinates
 				     (iterate inc 0)
 				     (layers lattice))))]
-    (scale-layout [0.0 0.0] [200.0 200.0]
-		  (make-layout positions (edges lattice)))))
-
+    (make-layout positions (edges lattice))))
 
 ;;;
+
 
 nil
