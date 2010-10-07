@@ -70,7 +70,7 @@
 
 (defn antiexchange? [f S]
   (forall [A (subsets S),
-           x S, 
+           x S,
            y S]
     (=> (and (not= x y)
              (not (contains? (f A) x))
