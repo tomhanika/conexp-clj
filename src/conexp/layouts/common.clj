@@ -37,6 +37,7 @@
   "Returns an infimum additive layout from given layout, taking the
   positions of the infimum irreducible elements as initial positions for
   the resulting additive layout."
+  ;; this is stupid, do it better!
   [lattice layout]
   (let [old-positions (positions layout),
 	top-pos       (old-positions (lattice-one lattice)),
