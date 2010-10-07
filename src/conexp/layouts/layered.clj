@@ -50,10 +50,10 @@
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."
   [lattice]
-  (make-layout (into {}
-                     (mapcat layer-coordinates
-                             (iterate inc 0)
-                             (layers lattice)))
+  (make-layout (apply hash-map
+                      (mapcat layer-coordinates
+                              (iterate inc 0)
+                              (layers lattice)))
                (edges lattice)))
 
 ;;;
