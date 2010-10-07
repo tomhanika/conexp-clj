@@ -20,6 +20,8 @@
         [conexp.layouts.util     :only (scale-layout)]
         [conexp.layouts.base     :only (lattice,
                                         annotation)]
+        [conexp.layouts.layered  :only (simple-layered-layout,
+                                        as-chain)]
         [conexp.layouts.freese   :only (freese-layout)]
         [conexp.layouts.force    :only (force-layout,
                                         layout-energy,
@@ -109,7 +111,9 @@
   ;; layouts
   (let [layouts {"standard" *standard-layout-function*,
                  "inf-add"  inf-additive-layout,
-                 "freese"   freese-layout},
+                 "freese"   freese-layout,
+                 "simple-layer" simple-layered-layout,
+                 "as-chain" as-chain},
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (action-on fit

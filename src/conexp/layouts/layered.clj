@@ -50,12 +50,24 @@
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."
   [lattice]
-  (let [positions (apply hash-map
-			 (apply concat
-				(map layer-coordinates
-				     (iterate inc 0)
-				     (layers lattice))))]
-    (make-layout positions (edges lattice))))
+  (make-layout (into {}
+                     (mapcat layer-coordinates
+                             (iterate inc 0)
+                             (layers lattice)))
+               (edges lattice)))
+
+;;;
+
+(defn as-chain
+  "Returns the layout of lattice as a simple chain."
+  [lattice]
+  (make-layout (into {}
+                     (mapcat (fn [i layer]
+                               (map (fn [x] [x [0, i]])
+                                    layer))
+                             (iterate inc 0)
+                             (layers lattice)))
+               (edges lattice)))
 
 ;;;
 
