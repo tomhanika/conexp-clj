@@ -19,13 +19,17 @@
 (declare default-handler)
 
 (defn explore-attributes
-  "Performs attribute exploration in given context. Interaction is
-  accomplished via the given handler, which is called with the current
-  context and a new implication. It has to return a pair [status
-  new-row], where status is a boolean, indicating whether this
-  implication is to be accepted or not, and a new-row, which, in the
-  case of not accepting an implication, has to be a valid
+  "Performs attribute exploration in given context. Returns a hashmap
+  of implications computed and the final context, stored with keys
+  :implications and :context, respectively.
+
+  Interaction is accomplished via the given handler, which is called
+  with the current context and a new implication. It has to return a
+  pair [status new-row], where status is a boolean, indicating whether
+  this implication is to be accepted or not, and a new-row, which, in
+  the case of not accepting an implication, has to be a valid
   counterexample of the form [new-obj new-obj-attributes].
+
   background-implications denotes a set of implications used as
   background knowledge, which will be subtracted from the computed
   result."
@@ -38,7 +42,8 @@
             last         #{},
             ctx          ctx]
        (if (not last)
-         (difference implications background-implications)
+         {:implications (difference implications background-implications),
+          :context ctx}
          (let [conclusion-from-last (context-attribute-closure ctx last)]
            (if (= last conclusion-from-last)
              (recur implications

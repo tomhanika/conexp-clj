@@ -34,15 +34,18 @@
 
 (deftest test-explore-attributes-is-stem-base
   (with-testing-data [ctx *testing-data*]
-    (= (stem-base ctx)
-       (explore-attributes ctx #{} (constantly [true []])))))
+    (let [result (explore-attributes ctx #{} (constantly [true []]))]
+      (and (= (stem-base ctx)
+              (:implications result))
+           (= ctx
+              (:context result))))))
 
 (defn- say-no [ctx impl]
   [false, [(gensym) (premise impl)]])
 
 (deftest test-explore-attributes-with-always-saying-no
   (with-testing-data [ctx *testing-data*]
-    (= #{} (explore-attributes ctx #{} say-no))))
+    (= #{} (:implications (explore-attributes ctx #{} say-no)))))
 
 ;;;
 
