@@ -109,11 +109,11 @@
                (redraw-scene scn)))
 
   ;; layouts
-  (let [layouts {"standard" *standard-layout-function*,
-                 "inf-add"  inf-additive-layout,
-                 "freese"   freese-layout,
+  (let [layouts {"standard"     *standard-layout-function*,
+                 "inf-add"      inf-additive-layout,
+                 "freese"       freese-layout,
                  "simple-layer" simple-layered-layout,
-                 "as-chain" as-chain},
+                 "as-chain"     as-chain},
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (action-on fit
