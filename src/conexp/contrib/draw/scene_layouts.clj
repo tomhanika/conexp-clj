@@ -32,7 +32,8 @@
 ;;; node and line iterators
 
 (defmacro do-nodes
-  "Do whatever with every node on the scene. Redraws scene afterwards."
+  "Do whatever with every node on the scene. Does not redraw the scene
+  afterwards."
   [[node scene] & body]
   `(do-swing
      (doseq [~node (filter node? (get-diagram-from-scene ~scene))]
@@ -40,7 +41,8 @@
      (redraw-scene ~scene)))
 
 (defmacro do-lines
-  "Do whatever with every connection on the scene. Redraws scene afterwards."
+  "Do whatever with every connection on the scene. Does not redraw the
+  scene afterwards."
   [[line scene] & body]
   `(do-swing
      (doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
@@ -60,7 +62,7 @@
 
 (defn fit-scene-to-layout
   "Adjusts scene such that layout fits on it. Uses stored layout if
-  none is given."
+  none is given. Calls :image-changed hook."
   ([^GScene scene]
      (fit-scene-to-layout scene (get-layout-from-scene scene)))
   ([^GScene scene, layout]
@@ -73,29 +75,27 @@
                         (double (- y_min (* 2 max-radius)))
                         (double (- x_max x_min (* -4 max-radius)))
                         (double (- y_max y_min (* -4 max-radius))))
-       (.unzoom scene))))
+       (.unzoom scene))
+     (call-scene-hook scene :image-changed)))
 
 (defn update-layout-of-scene
   "Updates layout according to new layout. The underlying lattice must
   not be changed."
-  [^GScene scene, layout]
+  [^GScene scene layout]
   (do-swing
    (let [pos (positions layout)]
      (do-nodes [node scene]
        (let [[x y] (pos (get-name node))]
-         (move-node-unchecked-to node x y)))
-     (fit-scene-to-layout scene layout)
-     (call-scene-hook scene :image-changed))))
+         (move-node-unchecked-to node x y))))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
-  [^GScene scene, layout]
-  (doto scene
-    (.removeAll)
-    (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
-    (add-data-to-scene :layout layout)
-    (fit-scene-to-layout layout)
-    (call-scene-hook :image-changed)))
+  [^GScene scene layout]
+  (do-swing
+   (doto scene
+     (.removeAll)
+     (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
+     (add-data-to-scene :layout layout))))
 
 
 ;;; draw nodes with coordinates and connections on a scene
@@ -106,7 +106,8 @@
   (let [^GWindow wnd (make-window),
 	scn (make-scene wnd)]
     (doto scn
-      (set-layout-of-scene layout))
+      (set-layout-of-scene layout)
+      (fit-scene-to-layout layout))
     (doto wnd
       (.startInteraction (move-interaction scn)))
     scn))

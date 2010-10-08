@@ -59,6 +59,7 @@
                                                           *default-node-radius*,
                                                           set-node-radius!)],
         conexp.contrib.draw.buttons)
+  (:use [clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
                         JSeparator SwingConstants BoxLayout Box
                         JScrollBar JComboBox JScrollPane JFileChooser
@@ -93,7 +94,8 @@
                           (let [new-radius (Double/parseDouble (.getText node-radius)),
                                 length     (min (scene-height scn) (scene-width scn))]
                             (do-nodes [n scn]
-                              (set-node-radius! n (/ (* length new-radius) 400))))))
+                              (set-node-radius! n (/ (* length new-radius) 400)))
+                            (redraw-scene scn))))
     (with-action-on node-radius
       (call-scene-hook scn :image-changed)))
 
@@ -129,7 +131,8 @@
          scn
          (scale-layout [0.0 0.0]
                        [100.0 100.0]
-                       (layout-fn (lattice (get-layout-from-scene scn))))))))
+                       (layout-fn (lattice (get-layout-from-scene scn)))))
+        (fit-scene-to-layout scn))))
 
   ;; move mode
   (let [move-modes {"single" (single-move-mode),
@@ -213,7 +216,8 @@
     (update-layout-of-scene scn
                             (if (<= iterations 0)
                               (force-layout (get-layout-from-scene scn))
-                              (force-layout (get-layout-from-scene scn) iterations)))))
+                              (force-layout (get-layout-from-scene scn) iterations)))
+    (fit-scene-to-layout scn)))
 
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
@@ -313,7 +317,8 @@
     (with-action-on combo
       (let [selected (.. evt getSource getSelectedItem),
             layout   (@saved-layouts selected)]
-        (update-layout-of-scene scn layout)))
+        (update-layout-of-scene scn layout)
+        (fit-scene-to-layout scn)))
     (with-action-on snapshot
       (save-layout nil))
     (save-layout nil)))
@@ -329,21 +334,21 @@
         ^JButton rotate (make-button buttons "Rotate"),
         rotate-thread   (atom nil)]
     (with-action-on btn
-      (update-layout-of-scene scn (layout (get-value))))
+      (update-layout-of-scene scn (layout (get-value)))
+      (fit-scene-to-layout scn))
     (with-change-on spn
       (update-layout-of-scene scn (layout (get-value))))
     (with-action-on rotate
       (if-not (nil? @rotate-thread)
-        (do
-          (.stop @rotate-thread)
-          (reset! rotate-thread nil))
+        (reset! rotate-thread nil)
         (do
           (reset! rotate-thread
                   (Thread. #(doseq [angle (drop-while (let [y (get-value)]
                                                         (fn [x] (<= x y)))
-                                                      (cycle (range 0 (* 2 Math/PI) 0.05)))]
-                              (Thread/sleep 100)
-                              (.setValue spn angle))))
+                                                      (cycle (range 0 (* 2 Math/PI) 0.05))),
+                                    :while @rotate-thread]
+                              (Thread/sleep 50)
+                              (do-swing (.setValue spn angle)))))
           (.start @rotate-thread))))))
 
 ;;; Technical Helpers
