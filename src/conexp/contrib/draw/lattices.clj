@@ -339,6 +339,8 @@
       (if-not (nil? @rotate-thread)
         (reset! rotate-thread nil)
         (do
+          (update-layout-of-scene scn (layout (get-value)))
+          (fit-scene-to-layout scn)
           (reset! rotate-thread
                   (Thread. #(doseq [angle (drop-while (let [y (get-value)]
                                                         (fn [x] (<= x y)))
