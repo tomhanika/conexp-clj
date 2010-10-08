@@ -62,7 +62,7 @@
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
                         JSeparator SwingConstants BoxLayout Box
                         JScrollBar JComboBox JScrollPane JFileChooser
-                        JSlider]
+                        JSlider JSpinner]
            [javax.swing.filechooser FileNameExtensionFilter]
            [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
            [java.awt.event ActionEvent ActionListener]
@@ -318,6 +318,34 @@
       (save-layout nil))
     (save-layout nil)))
 
+;;; Freese layout
+
+(defn- freese
+  [frame scn buttons]
+  (let [^JButton btn    (make-button buttons "Freese"),
+        ^JSpinner spn   (make-spinner buttons 0 (* 2 Math/PI) 0 0.01),
+        layout          (freese-layout (lattice (get-layout-from-scene scn))),
+        get-value       #(.getValue spn),
+        ^JButton rotate (make-button buttons "Rotate"),
+        rotate-thread   (atom nil)]
+    (with-action-on btn
+      (update-layout-of-scene scn (layout (get-value))))
+    (with-change-on spn
+      (update-layout-of-scene scn (layout (get-value))))
+    (with-action-on rotate
+      (if-not (nil? @rotate-thread)
+        (do
+          (.stop @rotate-thread)
+          (reset! rotate-thread nil))
+        (do
+          (reset! rotate-thread
+                  (Thread. #(doseq [angle (drop-while (let [y (get-value)]
+                                                        (fn [x] (<= x y)))
+                                                      (cycle (range 0 (* 2 Math/PI) 0.05)))]
+                              (Thread/sleep 100)
+                              (.setValue spn angle))))
+          (.start @rotate-thread))))))
+
 ;;; Technical Helpers
 
 (defmacro- with-layout-modifiers
@@ -366,7 +394,8 @@
         change-parameters
         improve-layout-by-force
         snapshot-saver
-        export-as-file)
+        export-as-file
+        freese)
 
       ;; drawing area
       (doto canvas-panel
