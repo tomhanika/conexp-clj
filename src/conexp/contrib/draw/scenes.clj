@@ -8,7 +8,6 @@
 
 (ns conexp.contrib.draw.scenes
   (:use conexp.base)
-  (:use [clojure.contrib.swing-utils :only (do-swing)])
   (:import [java.awt Color Canvas]
 	   [java.awt.event ComponentListener]
 	   [java.io File]
@@ -139,7 +138,7 @@
   (when (not (contains? (get-scene-hooks scn) hook))
     (illegal-argument "Hook " hook " cannot be called for scene."))
   (doseq [callback (get (get-scene-hooks scn) hook)]
-    (do-swing (apply callback args))))
+    (apply callback args)))
 
 ;; methods on scenes
 
