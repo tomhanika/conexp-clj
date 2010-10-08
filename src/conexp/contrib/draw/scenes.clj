@@ -125,6 +125,13 @@
                       (conj (get (get-scene-hooks scn) hook)
                             function)))
 
+(defn remove-scene-callback
+  "Removes a given function from a given hook."
+  [scn hook function]
+  (set-scene-callback scn hook
+                      (remove #{function}
+                              (get (get-scene-hooks scn) hook))))
+
 (defn call-scene-hook
   "Calls all callbacks of hook with given arguments. Every hook is
   called in a thread-safe manner."

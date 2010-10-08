@@ -34,6 +34,7 @@
         [conexp.contrib.draw.scenes                :only (scene-height,
                                                           scene-width,
                                                           add-scene-callback,
+                                                          remove-scene-callback,
                                                           call-scene-hook,
                                                           redraw-scene,
                                                           start-interaction,
@@ -381,7 +382,7 @@
               BorderLayout/WEST)
         (.setMinimumSize (Dimension. 0 0)))
 
-      ;;
+      ;; return main panel
       main-panel))
 
   (defn get-scene-from-panel
