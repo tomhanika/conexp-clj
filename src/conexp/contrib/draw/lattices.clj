@@ -22,7 +22,6 @@
                                         annotation)]
         [conexp.layouts.layered  :only (simple-layered-layout,
                                         as-chain)]
-        [conexp.layouts.freese   :only (freese-layout)]
         [conexp.layouts.force    :only (force-layout,
                                         layout-energy,
                                         *repulsive-amount*,
@@ -112,7 +111,6 @@
   ;; layouts
   (let [layouts {"standard"     *standard-layout-function*,
                  "inf-add"      inf-additive-layout,
-                 "freese"       freese-layout,
                  "simple-layer" simple-layered-layout,
                  "as-chain"     as-chain},
         ^JButton fit (make-button buttons "Fit"),
