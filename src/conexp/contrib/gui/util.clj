@@ -46,7 +46,7 @@
   `(.addChangeListener ~thing
                        (proxy [ChangeListener] []
                          (stateChanged [^ChangeEvent ~'evt]
-                           ~@body))))
+                           (do-swing ~@body)))))
 
 (let [all-paths (string/split (System/getProperty "java.class.path")  #":"),
       cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)),
