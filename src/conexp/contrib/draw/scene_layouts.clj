@@ -67,12 +67,13 @@
      (fit-scene-to-layout scene (get-layout-from-scene scene)))
   ([^GScene scene, layout]
      (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout))),
-           old-radius                (radius (first (filter node? (get-diagram-from-scene scene))))]
+           width  (- x_max x_min),
+           height (- y_max y_min)]
        (.setWorldExtent scene
-                        (double (- x_min (* 2 old-radius)))
-                        (double (- y_min (* 2 old-radius)))
-                        (double (- x_max x_min (* -4 old-radius)))
-                        (double (- y_max y_min (* -4 old-radius))))
+                        (double (- x_min (* 0.05 width)))
+                        (double (- y_min (* 0.05 height)))
+                        (double (* 1.10 width))
+                        (double (* 1.10 height)))
        (.unzoom scene)
        (call-scene-hook scene :image-changed))))
 
