@@ -337,7 +337,9 @@
       (update-layout-of-scene scn (layout (get-value))))
     (with-action-on rotate
       (if-not (nil? @rotate-thread)
-        (reset! rotate-thread nil)
+        (do
+          (.stop @rotate-thread)
+          (reset! rotate-thread nil))
         (do
           (update-layout-of-scene scn (layout (get-value)))
           (fit-scene-to-layout scn)
