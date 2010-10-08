@@ -7,28 +7,30 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.lattices
-  (:use [conexp.base             :only (ns-doc,
-                                        illegal-argument,
-                                        with-printed-result,
-                                        now,
-                                        defvar-,
-                                        defmacro-,
-                                        defnk)]
-        [conexp.math.util        :only (with-doubles)]
-        [conexp.layouts          :only (*standard-layout-function*,
-                                        inf-additive-layout)]
-        [conexp.layouts.util     :only (scale-layout)]
-        [conexp.layouts.base     :only (lattice,
-                                        annotation)]
-        [conexp.layouts.layered  :only (simple-layered-layout,
-                                        as-chain)]
-        [conexp.layouts.force    :only (force-layout,
-                                        layout-energy,
-                                        *repulsive-amount*,
-                                        *attractive-amount*,
-                                        *gravitative-amount*)]
-        [conexp.contrib.gui.util :only (with-swing-error-msg,
-                                        action-on)]
+  (:use [conexp.base                       :only (ns-doc,
+                                                  illegal-argument,
+                                                  with-printed-result,
+                                                  now,
+                                                  defvar-,
+                                                  defmacro-,
+                                                  defnk)]
+        [conexp.math.util                  :only (with-doubles)]
+        [conexp.layouts                    :only (*standard-layout-function*,
+                                                  inf-additive-layout)]
+        [conexp.layouts.util               :only (scale-layout)]
+        [conexp.layouts.base               :only (lattice,
+                                                  annotation)]
+        [conexp.layouts.layered            :only (simple-layered-layout,
+                                                  as-chain)]
+        [conexp.layouts.force              :only (force-layout,
+                                                  layout-energy,
+                                                  *repulsive-amount*,
+                                                  *attractive-amount*,
+                                                  *gravitative-amount*)]
+        [conexp.layouts.interactive.freese :only (freese-layout)]
+        [conexp.contrib.gui.util           :only (with-swing-error-msg,
+                                                  with-action-on
+                                                  with-change-on)]
         ;; drawing
         [conexp.contrib.draw.scenes                :only (scene-height,
                                                           scene-width,
@@ -59,10 +61,12 @@
         conexp.contrib.draw.buttons)
   (:import [javax.swing JFrame JPanel JButton JTextField JLabel
                         JSeparator SwingConstants BoxLayout Box
-                        JScrollBar JComboBox JScrollPane JFileChooser]
+                        JScrollBar JComboBox JScrollPane JFileChooser
+                        JSlider]
            [javax.swing.filechooser FileNameExtensionFilter]
            [java.awt Canvas Color Dimension BorderLayout GridLayout Component Graphics]
            [java.awt.event ActionEvent ActionListener]
+           [javax.swing.event ChangeEvent ChangeListener]
            [java.io File]))
 
 (ns-doc
@@ -90,23 +94,23 @@
                                 length     (min (scene-height scn) (scene-width scn))]
                             (do-nodes [n scn]
                               (set-node-radius! n (/ (* length new-radius) 400))))))
-    (action-on node-radius
-               (call-scene-hook scn :image-changed)))
+    (with-action-on node-radius
+      (call-scene-hook scn :image-changed)))
 
   (make-padding buttons)
 
   ;; labels
   (let [^JButton label-toggler (make-button buttons "No Labels")]
     (show-labels scn false)
-    (action-on label-toggler
-               (if (= "Labels" (.getText label-toggler))
-                 (do
-                   (show-labels scn false)
-                   (.setText label-toggler "No Labels"))
-                 (do
-                   (show-labels scn true)
-                   (.setText label-toggler "Labels")))
-               (redraw-scene scn)))
+    (with-action-on label-toggler
+      (if (= "Labels" (.getText label-toggler))
+        (do
+          (show-labels scn false)
+          (.setText label-toggler "No Labels"))
+        (do
+          (show-labels scn true)
+          (.setText label-toggler "Labels")))
+      (redraw-scene scn)))
 
   ;; layouts
   (let [layouts {"standard"     *standard-layout-function*,
@@ -115,17 +119,17 @@
                  "as-chain"     as-chain},
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
-    (action-on fit
-               (fit-scene-to-layout scn)
-               (call-scene-hook scn :image-changed))
-    (action-on combo-box
-               (let [selected (.. evt getSource getSelectedItem),
-                     layout-fn (get layouts selected)]
-                 (update-layout-of-scene
-                  scn
-                  (scale-layout [0.0 0.0]
-                                [100.0 100.0]
-                                (layout-fn (lattice (get-layout-from-scene scn))))))))
+    (with-action-on fit
+      (fit-scene-to-layout scn)
+      (call-scene-hook scn :image-changed))
+    (with-action-on combo-box
+      (let [selected (.. evt getSource getSelectedItem),
+            layout-fn (get layouts selected)]
+        (update-layout-of-scene
+         scn
+         (scale-layout [0.0 0.0]
+                       [100.0 100.0]
+                       (layout-fn (lattice (get-layout-from-scene scn))))))))
 
   ;; move mode
   (let [move-modes {"single" (single-move-mode),
@@ -139,10 +143,10 @@
     (add-scene-callback scn :move-drag
                         (fn [node dx dy]
                           (@current-move-mode node dx dy)))
-    (action-on combo-box
-               (let [selected (.. evt getSource getSelectedItem),
-                     move-mode (get move-modes selected)]
-                 (reset! current-move-mode move-mode))))
+    (with-action-on combo-box
+      (let [selected (.. evt getSource getSelectedItem),
+            move-mode (get move-modes selected)]
+        (reset! current-move-mode move-mode))))
 
   nil)
 
@@ -227,10 +231,10 @@
                                          g (Double/parseDouble (.getText grav-field)),
                                          i (Integer/parseInt (.getText iter-field))]
                                      [r a g i]))]
-    (action-on button
-               (with-swing-error-msg frame "An Error occured."
-                 (let [[r a g i] (get-force-parameters)]
-                   (improve-with-force scn i r a g))))))
+    (with-action-on button
+      (with-swing-error-msg frame "An Error occured."
+        (let [[r a g i] (get-force-parameters)]
+          (improve-with-force scn i r a g))))))
 
 ;; zoom-move
 
@@ -245,14 +249,14 @@
                            (printf "%1.2f" zoom-y)))),
         ^JButton zoom-move (make-button buttons "Move"),
         ^JLabel  zoom-info (make-label buttons " -- ")]
-    (action-on zoom-move
-               (if (= "Move" (.getText zoom-move))
-                 (do
-                   (start-interaction scn zoom-interaction)
-                   (.setText zoom-move "Zoom"))
-                 (do
-                   (start-interaction scn move-interaction)
-                   (.setText zoom-move "Move"))))
+    (with-action-on zoom-move
+      (if (= "Move" (.getText zoom-move))
+        (do
+          (start-interaction scn zoom-interaction)
+          (.setText zoom-move "Zoom"))
+        (do
+          (start-interaction scn move-interaction)
+          (.setText zoom-move "Move"))))
     (add-scene-callback scn :image-changed
                         (fn []
                           (.setText zoom-info (zoom-factors)))))
@@ -281,12 +285,12 @@
       (.addChoosableFileFilter jpg-filter)
       (.addChoosableFileFilter gif-filter)
       (.addChoosableFileFilter png-filter))
-    (action-on save-button
-               (let [retVal (.showSaveDialog fc frame)]
-                 (when (= retVal JFileChooser/APPROVE_OPTION)
-                   (let [^File file (.getSelectedFile fc)]
-                     (with-swing-error-msg frame "Error while saving"
-                       (save-image scn file (get-file-extension file))))))))
+    (with-action-on save-button
+      (let [retVal (.showSaveDialog fc frame)]
+        (when (= retVal JFileChooser/APPROVE_OPTION)
+          (let [^File file (.getSelectedFile fc)]
+            (with-swing-error-msg frame "Error while saving"
+              (save-image scn file (get-file-extension file))))))))
   nil)
 
 ;; save changes
@@ -306,14 +310,13 @@
         ^JButton
         snapshot      (make-button buttons "Snapshot")]
     (add-scene-callback scn :move-stop save-layout)
-    (action-on combo
-               (let [selected (.. evt getSource getSelectedItem),
-                     layout   (@saved-layouts selected)]
-                 (update-layout-of-scene scn layout)))
-    (action-on snapshot
-               (save-layout nil))
+    (with-action-on combo
+      (let [selected (.. evt getSource getSelectedItem),
+            layout   (@saved-layouts selected)]
+        (update-layout-of-scene scn layout)))
+    (with-action-on snapshot
+      (save-layout nil))
     (save-layout nil)))
-
 
 ;;; Technical Helpers
 

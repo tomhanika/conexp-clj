@@ -10,16 +10,17 @@
 
 (ns conexp.contrib.gui.util
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
-	                JButton ImageIcon JSeparator JTabbedPane JSplitPane
-	                JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-	                AbstractButton SwingConstants JFileChooser JOptionPane
+                        JButton ImageIcon JSeparator JTabbedPane JSplitPane
+                        JLabel JTextArea JScrollPane SwingUtilities BorderFactory
+                        AbstractButton SwingConstants JFileChooser JOptionPane
                         ImageIcon]
-	   [javax.swing.filechooser FileNameExtensionFilter]
-	   [javax.imageio ImageIO]
-	   [java.awt GridLayout BorderLayout Dimension Image Font Color
-	             Graphics Graphics2D BasicStroke FlowLayout MediaTracker]
-	   [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
-	   [java.io File])
+           [javax.swing.filechooser FileNameExtensionFilter]
+           [javax.imageio ImageIO]
+           [java.awt GridLayout BorderLayout Dimension Image Font Color
+                     Graphics Graphics2D BasicStroke FlowLayout MediaTracker]
+           [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
+           [javax.swing.event ChangeListener ChangeEvent]
+           [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
   (:use [clojure.contrib.seq :only (indexed)]
         [clojure.contrib.swing-utils :only (do-swing, add-action-listener)])
@@ -28,7 +29,7 @@
 
 ;;; Helper functions
 
-(defmacro action-on
+(defmacro with-action-on
   "Adds an action listener on thing to execute body, with the catched
   ActionEvent Object bound to the variable evt. body will be executed
   in a thread-safe manner."
@@ -36,6 +37,16 @@
   `(add-action-listener ~thing
                         (fn [^java.awt.event.ActionEvent ~'evt]
                           (do-swing ~@body))))
+
+(defmacro with-change-on
+  "Adds a change listener on thing to execute body, with the catched
+  ChangeEvent Object bound to the variable evt. body will be executed
+  in a thread-safe manner."
+  [thing & body]
+  `(.addChangeListener ~thing
+                       (proxy [ChangeListener] []
+                         (stateChanged [^ChangeEvent ~'evt]
+                           ~@body))))
 
 (let [all-paths (string/split (System/getProperty "java.class.path")  #":"),
       cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)),
@@ -65,10 +76,10 @@
     ~@body
     (catch Exception e#
       (javax.swing.JOptionPane/showMessageDialog ~frame
-						 (apply str (get-root-cause e#) "\n"
+                                                 (apply str (get-root-cause e#) "\n"
                                                         (interpose "\n" (.getStackTrace e#)))
-						 ~title
-						 javax.swing.JOptionPane/ERROR_MESSAGE))))
+                                                 ~title
+                                                 javax.swing.JOptionPane/ERROR_MESSAGE))))
 
 (defn- add-handler
   "Adds an ActionListener to thing that calls function with frame when
@@ -77,8 +88,8 @@
   (.addActionListener thing
     (proxy [ActionListener] []
       (actionPerformed [evt]
-	(with-swing-error-msg frame "Error"
-	  (function frame))))))
+        (with-swing-error-msg frame "Error"
+          (function frame))))))
 
 (defn implements-interface?
   "Returns true iff given class implements given interface."
@@ -225,7 +236,7 @@
     hash-menu
     (let [menu (JMenu. ^String (:name hash-menu))]
       (doseq [entry (:content hash-menu)]
-	(.add menu (hash-map->menu-item frame entry)))
+        (.add menu (hash-map->menu-item frame entry)))
       menu)))
 
 (defn add-menus
@@ -236,11 +247,11 @@
   (let [our-menus (map #(hash-map->menu frame %) menus)]
     (do-swing
      (let [menu-bar (get-menubar frame),
-	   [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
-						  (seq (.getComponents menu-bar)))]
+           [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
+                                                  (seq (.getComponents menu-bar)))]
        (.removeAll menu-bar)
        (doseq [menu (concat menus-before our-menus menus-after)]
-	 (.add menu-bar menu))
+         (.add menu-bar menu))
        (.validate frame)))
     our-menus))
 
@@ -249,7 +260,7 @@
   [frame menus]
   (do-swing
    (let [menu-bar (get-menubar frame),
-	 new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
+         new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
      (.removeAll menu-bar)
      (doseq [menu new-menus]
        (.add menu-bar menu))
@@ -284,17 +295,17 @@
     (javax.swing.JToolBar$Separator.)
     (let [button (JButton.)]
       (doto button
-	(.setName (:name icon-hash))
-	(add-handler frame (:handler icon-hash))
-	(.setToolTipText (:name icon-hash)))
+        (.setName (:name icon-hash))
+        (add-handler frame (:handler icon-hash))
+        (.setToolTipText (:name icon-hash)))
       (let [icon (:icon icon-hash)
-	    image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
-				      (File. icon)
-				      *default-icon-image*))
-		      (.getScaledInstance *icon-size*
-					  *icon-size*
-					  Image/SCALE_SMOOTH))]
-	(.setIcon button (ImageIcon. image)))
+            image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
+                                      (File. icon)
+                                      *default-icon-image*))
+                      (.getScaledInstance *icon-size*
+                                          *icon-size*
+                                          Image/SCALE_SMOOTH))]
+        (.setIcon button (ImageIcon. image)))
       button)))
 
 (defn- collapse-separators
@@ -303,9 +314,9 @@
   [objects]
   (let [partitioned-objects (partition-by class objects)]
     (apply concat (map #(if (instance? javax.swing.JSeparator (first %))
-			  (list (first %))
-			  %)
-		       partitioned-objects))))
+                          (list (first %))
+                          %)
+                       partitioned-objects))))
 
 (defn add-icons
   "Adds icons (sepcified as hash-maps) to toolbar of frame, returning
@@ -314,11 +325,11 @@
   (let [our-icons (map #(make-icon frame %) icons)]
     (do-swing
      (let [toolbar (get-toolbar frame),
-	   new-icons (collapse-separators (concat (.getComponents toolbar)
-						  our-icons))]
+           new-icons (collapse-separators (concat (.getComponents toolbar)
+                                                  our-icons))]
        (.removeAll toolbar)
        (doseq [icon new-icons]
-	 (.add toolbar icon))
+         (.add toolbar icon))
        (.validate frame)))
     our-icons))
 
@@ -329,7 +340,7 @@
   [frame, icons]
   (do-swing
    (let [toolbar (get-toolbar frame),
-	 rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
+         rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
      (.removeAll toolbar)
      (doseq [icon rem-icons]
        (.add toolbar icon))
@@ -355,7 +366,7 @@
   ;; This contains code copied from TabComponentDemo and
   ;; ButtonTabComponent from the Java Tutorial
   (let [tabbutton      (proxy [JButton] []
-		         (paintComponent [^Graphics g]
+                         (paintComponent [^Graphics g]
                            (let [^JButton this this]
                              (proxy-super paintComponent g)
                              (let [^Graphics2D g2 (.create g),
@@ -372,18 +383,18 @@
                                (.drawLine g2 (- (. this getWidth) delta 1) delta
                                           delta (- (. this getHeight) delta 1))
                                (.dispose g2))))),
-	mouse-listener (proxy [MouseAdapter] []
-			 (mouseEntered [^MouseEvent evt]
-			   (let [component (.getComponent evt)]
-			     (when (instance? AbstractButton component)
-			       (.setBorderPainted ^AbstractButton component true))))
-			 (mouseExited [^MouseEvent evt]
-			   (let [component (.getComponent evt)]
-			     (when (instance? AbstractButton component)
-			       (.setBorderPainted ^AbstractButton component false)))))]
+        mouse-listener (proxy [MouseAdapter] []
+                         (mouseEntered [^MouseEvent evt]
+                           (let [component (.getComponent evt)]
+                             (when (instance? AbstractButton component)
+                               (.setBorderPainted ^AbstractButton component true))))
+                         (mouseExited [^MouseEvent evt]
+                           (let [component (.getComponent evt)]
+                             (when (instance? AbstractButton component)
+                               (.setBorderPainted ^AbstractButton component false)))))]
     (doto tabbutton
       (add-action-listener (fn [evt]
-			     (.remove tabpane (.indexOfComponent tabpane component))))
+                             (.remove tabpane (.indexOfComponent tabpane component))))
       (.addMouseListener mouse-listener)
       (.setPreferredSize (Dimension. 17 17))
       (.setToolTipText "Close this tab")
@@ -395,8 +406,8 @@
   "Creates and returns a panel to be used as tab component."
   [^JTabbedPane tabpane, component, title]
   (let [^JPanel head (JPanel.),
-	^JLabel text (JLabel.),
-	^JButton btn (make-tab-button tabpane component)]
+        ^JLabel text (JLabel.),
+        ^JButton btn (make-tab-button tabpane component)]
     (doto text
       (.setText title)
       (.setBorder (BorderFactory/createEmptyBorder 0 0 0 5)))
@@ -412,11 +423,11 @@
   ([^JFrame frame, ^JPanel pane, title]
      (do-swing
       (let [^JTabbedPane tabpane (get-tabpane frame)]
-	(.add tabpane pane)
-	(let [index (.indexOfComponent tabpane pane)]
-	  (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
+        (.add tabpane pane)
+        (let [index (.indexOfComponent tabpane pane)]
+          (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
           (.setTitleAt tabpane index title)
-	  (.setSelectedIndex tabpane index)))
+          (.setSelectedIndex tabpane index)))
       (.validate frame)))
   ([frame pane]
      (add-tab frame pane "")))
@@ -445,7 +456,7 @@
   "Returns the currently selected tab and nil if there is none."
   [frame]
   (let [^JTabbedPane tabpane (get-tabpane frame),
-	index (.getSelectedIndex tabpane)]
+        index (.getSelectedIndex tabpane)]
     (if (= -1 index)
       nil
       (.getComponentAt tabpane index))))
@@ -454,7 +465,7 @@
   "Returns the currently selected tab's title and nil if there is none."
   [frame]
   (let [^JTabbedPane tabpane (get-tabpane frame),
-	index (.getSelectedIndex tabpane)]
+        index (.getSelectedIndex tabpane)]
     (if (= -1 index)
       nil
       (.getTitleAt tabpane index))))
@@ -468,7 +479,7 @@
   (let [^JFileChooser fc (JFileChooser.)]
     (doseq [[name & endings] filters]
       (let [^FileFilter filter (FileNameExtensionFilter. name (into-array endings))]
-	(.addChoosableFileFilter fc filter)))
+        (.addChoosableFileFilter fc filter)))
     fc))
 
 (defn choose-open-file
@@ -490,13 +501,13 @@
   (let [^JFileChooser fc (apply make-file-chooser frame filters)]
     (loop []
       (when (= (.showSaveDialog fc frame) JFileChooser/APPROVE_OPTION)
-	(let [^File file (.getSelectedFile fc)]
-	  (if (not (.exists file))
-	    file
-	    (condp = (confirm frame "File exists, overwrite?")
-	      JOptionPane/YES_OPTION file,
-	      JOptionPane/NO_OPTION (recur),
-	      JOptionPane/CANCEL_OPTION nil)))))))
+        (let [^File file (.getSelectedFile fc)]
+          (if (not (.exists file))
+            file
+            (condp = (confirm frame "File exists, overwrite?")
+              JOptionPane/YES_OPTION file,
+              JOptionPane/NO_OPTION (recur),
+              JOptionPane/CANCEL_OPTION nil)))))))
 
 ;;;
 

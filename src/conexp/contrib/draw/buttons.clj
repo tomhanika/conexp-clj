@@ -9,7 +9,8 @@
 (ns conexp.contrib.draw.buttons
   (:use conexp.base)
   (:import [javax.swing JPanel JButton JTextField JLabel
-	                JSeparator SwingConstants Box JComboBox]
+                        JSeparator SwingConstants Box JComboBox
+                        JSlider]
 	   [java.awt Dimension Component]))
 
 (ns-doc
@@ -83,6 +84,19 @@
       (.setMaximumSize (Dimension. *item-width* *item-height*)))
     (.add buttons combo-box)
     combo-box))
+
+(defn make-slider
+  "Uniformly creates a slider."
+  [buttons min max init]
+  (let [^JSlider slider (JSlider. JSlider/HORIZONTAL (int min) (int max) (int init))]
+    (doto slider
+      (.setMaximumSize (Dimension. *item-width* *item-height*))
+      (.setMajorTickSpacing 5)
+      (.setMinorTickSpacing 1)
+      (.setPaintTicks true)
+      (.setPaintLabels true))
+    (.add buttons slider)
+    slider))
 
 ;;;
 
