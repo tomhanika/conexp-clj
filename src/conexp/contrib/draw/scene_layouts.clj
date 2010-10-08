@@ -37,8 +37,7 @@
   [[node scene] & body]
   `(do-swing
      (doseq [~node (filter node? (get-diagram-from-scene ~scene))]
-       ~@body)
-     (redraw-scene ~scene)))
+       ~@body)))
 
 (defmacro do-lines
   "Do whatever with every connection on the scene. Does not redraw the
@@ -46,8 +45,7 @@
   [[line scene] & body]
   `(do-swing
      (doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
-       ~@body)
-     (redraw-scene ~scene)))
+       ~@body)))
 
 ;;; manipulate layout of scene
 
@@ -82,20 +80,18 @@
   "Updates layout according to new layout. The underlying lattice must
   not be changed."
   [^GScene scene layout]
-  (do-swing
-   (let [pos (positions layout)]
-     (do-nodes [node scene]
-       (let [[x y] (pos (get-name node))]
-         (move-node-unchecked-to node x y))))))
+  (let [pos (positions layout)]
+    (do-nodes [node scene]
+      (let [[x y] (pos (get-name node))]
+        (move-node-unchecked-to node x y)))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
   [^GScene scene layout]
-  (do-swing
-   (doto scene
-     (.removeAll)
-     (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
-     (add-data-to-scene :layout layout))))
+  (doto scene
+    (.removeAll)
+    (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
+    (add-data-to-scene :layout layout)))
 
 
 ;;; draw nodes with coordinates and connections on a scene
