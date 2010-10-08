@@ -32,20 +32,22 @@
 ;;; node and line iterators
 
 (defmacro do-nodes
-  "Do whatever with every node on the scene. Does not redraw the scene
+  "Do whatever with every node on the scene. Redraws the scene
   afterwards."
   [[node scene] & body]
-  `(do-swing
+  `(do
      (doseq [~node (filter node? (get-diagram-from-scene ~scene))]
-       ~@body)))
+       ~@body)
+     (redraw-scene ~scene)))
 
 (defmacro do-lines
-  "Do whatever with every connection on the scene. Does not redraw the
-  scene afterwards."
+  "Do whatever with every connection on the scene. Redraws the scene
+  afterwards."
   [[line scene] & body]
-  `(do-swing
+  `(do
      (doseq [~line (filter connection? (get-diagram-from-scene ~scene))]
-       ~@body)))
+       ~@body)
+     (redraw-scene)))
 
 ;;; manipulate layout of scene
 
@@ -65,16 +67,14 @@
      (fit-scene-to-layout scene (get-layout-from-scene scene)))
   ([^GScene scene, layout]
      (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout))),
-           max-radius                (reduce #(max %1 (radius %2))
-                                             0
-                                             (filter node? (get-diagram-from-scene scene)))]
+           old-radius                (radius (first (filter node? (get-diagram-from-scene scene))))]
        (.setWorldExtent scene
-                        (double (- x_min (* 2 max-radius)))
-                        (double (- y_min (* 2 max-radius)))
-                        (double (- x_max x_min (* -4 max-radius)))
-                        (double (- y_max y_min (* -4 max-radius))))
-       (.unzoom scene))
-     (call-scene-hook scene :image-changed)))
+                        (double (- x_min (* 2 old-radius)))
+                        (double (- y_min (* 2 old-radius)))
+                        (double (- x_max x_min (* -4 old-radius)))
+                        (double (- y_max y_min (* -4 old-radius))))
+       (.unzoom scene)
+       (call-scene-hook scene :image-changed))))
 
 (defn update-layout-of-scene
   "Updates layout according to new layout. The underlying lattice must

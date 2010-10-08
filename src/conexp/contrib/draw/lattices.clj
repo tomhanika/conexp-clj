@@ -94,8 +94,7 @@
                           (let [new-radius (Double/parseDouble (.getText node-radius)),
                                 length     (min (scene-height scn) (scene-width scn))]
                             (do-nodes [n scn]
-                              (set-node-radius! n (/ (* length new-radius) 400)))
-                            (redraw-scene scn))))
+                              (set-node-radius! n (/ (* length new-radius) 400))))))
     (with-action-on node-radius
       (call-scene-hook scn :image-changed)))
 
@@ -122,17 +121,15 @@
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
     (with-action-on fit
-      (fit-scene-to-layout scn)
-      (call-scene-hook scn :image-changed))
+      (fit-scene-to-layout scn))
     (with-action-on combo-box
-      (let [selected (.. evt getSource getSelectedItem),
-            layout-fn (get layouts selected)]
-        (update-layout-of-scene
-         scn
-         (scale-layout [0.0 0.0]
-                       [100.0 100.0]
-                       (layout-fn (lattice (get-layout-from-scene scn)))))
-        (fit-scene-to-layout scn))))
+      (let [selected  (.getSelectedItem ^JComboBox (.getSource evt)),
+            layout-fn (get layouts selected),
+            layout    (scale-layout [0.0 0.0]
+                                    [100.0 100.0]
+                                    (layout-fn (lattice (get-layout-from-scene scn))))]
+        (update-layout-of-scene scn layout)
+        (fit-scene-to-layout scn layout))))
 
   ;; move mode
   (let [move-modes {"single" (single-move-mode),
@@ -213,11 +210,11 @@
   (binding [*repulsive-amount* r,
             *attractive-amount* a,
             *gravitative-amount* g]
-    (update-layout-of-scene scn
-                            (if (<= iterations 0)
-                              (force-layout (get-layout-from-scene scn))
-                              (force-layout (get-layout-from-scene scn) iterations)))
-    (fit-scene-to-layout scn)))
+    (let [layout (if (<= iterations 0)
+                   (force-layout (get-layout-from-scene scn))
+                   (force-layout (get-layout-from-scene scn) iterations))]
+      (update-layout-of-scene scn layout)
+      (fit-scene-to-layout scn layout))))
 
 (defn- improve-layout-by-force
   "Improves layout on screen by force layout."
@@ -318,7 +315,7 @@
       (let [selected (.. evt getSource getSelectedItem),
             layout   (@saved-layouts selected)]
         (update-layout-of-scene scn layout)
-        (fit-scene-to-layout scn)))
+        (fit-scene-to-layout scn layout)))
     (with-action-on snapshot
       (save-layout nil))
     (save-layout nil)))
