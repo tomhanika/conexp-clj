@@ -12,10 +12,23 @@
   :min-lein-version "1.3.0"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
-  :dependencies [[org.clojure/clojure "1.3.0-master-SNAPSHOT"]
-                 [org.clojure.contrib/complete "1.3.0-SNAPSHOT"]
-                 [org.apache.commons/commons-math "2.0"]
-                 [jline "0.9.94"]]
+  :dependencies [[org.clojure/clojure               "1.3.0-master-SNAPSHOT"]
+                 [org.clojure.contrib/combinatorics "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/core          "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/def           "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/graph         "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/lazy-seqs     "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/lazy-xml      "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/math          "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/ns-utils      "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/prxml         "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/seq           "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/set           "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/swing-utils   "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/profile       "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/except        "1.3.0-SNAPSHOT"]
+                 [org.apache.commons/commons-math   "2.0"]
+                 [jline                             "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]]
   :aot [conexp.main]
   :jar-name "conexp-clj.jar"
