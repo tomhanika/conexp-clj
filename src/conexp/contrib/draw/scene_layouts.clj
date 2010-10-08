@@ -68,7 +68,13 @@
   ([^GScene scene, layout]
      (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout))),
            width  (- x_max x_min),
-           height (- y_max y_min)]
+           height (- y_max y_min),
+           width  (if (zero? width)
+                    1
+                    width),
+           height (if (zero? height)
+                    1
+                    height)]
        (.setWorldExtent scene
                         (double (- x_min (* 0.05 width)))
                         (double (- y_min (* 0.05 height)))
