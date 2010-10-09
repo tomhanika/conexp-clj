@@ -23,7 +23,7 @@
             att-objs (ask (str "Which of the objs " new-objs " definitively has the attribute " new-att "? ")
                           #(read-string (str "#{" (read-line) "}"))
                           #(subset? % new-objs)
-                          "Please only enter objects mentioned: ")]
+                          "Please enter only objects mentioned: ")]
         (new-handler (map #(vector % new-att) att-objs))
         [result new-col]))))
 
