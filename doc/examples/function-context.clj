@@ -60,7 +60,7 @@
 
 (defn exchange? [f S]
   (forall [A (subsets S),
-           x S, 
+           x S,
            y S]
     (=> (and (not= x y)
              (not (contains? (f A) x))
@@ -80,20 +80,14 @@
 
 ;;; Now generate all functions on an n-elemental set
 
-(defn generate-numbers [n digits]
-  (if (zero? n)
-    [[]]
-    (let [numbers (generate-numbers (- n 1) digits)]
-      (for [num numbers,
-            d digits]
-        (conj num d)))))
+(use '[clojure.contrib.combinatorics :only (selections)])
 
-(defn all-possible-funcs-on [base]
-  ;; this is not the best implementation, see
-  ;; clojure.contrib.combinatorics/selections
+(defn all-possible-funcs-on
+  "Generates all functions, as hash-maps, on the subsets of base."
+  [base]
   (let [subs (subsets base)]
     (map #(zipmap subs %)
-         (generate-numbers (expt 2 (count base)) subs))))
+         (selections subs (expt 2 (count base))))))
 
 (defvar function-context
   (make-context (set (all-possible-funcs-on #{0 1}))

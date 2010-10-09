@@ -4,21 +4,21 @@
 ;; A simple macro that computes a special context from a given set of
 ;; implications (it's the standard context of the closure system of
 ;; the given implications). Use it with
-;; 
+;;
 ;;   (closure-context #{1 2 3 4}
 ;;                    1 2   -> 3  --
 ;;                    2     -> 4  --
 ;;                    1 3 4 -> 2)
-;; 
+;;
 ;; It will give you something like
-;; 
+;;
 ;;            |#{1 3} #{1 4} #{2 4} #{3 4} #{2 3 4}
 ;;     -------+-------------------------------------
 ;;     #{1}   |x      x      .      .      .
 ;;     #{3}   |x      .      .      x      x
 ;;     #{4}   |.      x      x      x      x
 ;;     #{2 4} |.      .      x      .      x
-;; 
+;;
 ;; Note that -- is used to separate the implication descriptions and
 ;; that #{..} is Clojure's notation for sets. This file also contains
 ;; implementations for {intersection,union}-of-closure-system.
@@ -32,7 +32,6 @@
   "For a given collection of implications and a base set returns the
   full ordinal scala of the lattice of all closed subsets of the base
   set with respect to the given implications."
-  ;; nearly the same as context-for-clop
   [base-set implications]
   (let [clop (clop-by-implications implications),
         base (all-closed-sets base-set clop)]

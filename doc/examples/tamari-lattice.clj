@@ -36,7 +36,7 @@
 (defn draw-tamari-lattice
   "Draws the Tamari lattice for parameter n."
   [n]
-  (draw-lattice (tamari-lattice n)))  
+  (draw-lattice (tamari-lattice n)))
 
 ;;;
 
