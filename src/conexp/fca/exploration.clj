@@ -98,13 +98,13 @@
   "Default handler for attribute exploration. Does it's interaction on the console."
   [ctx impl]
   (let [answer (ask (str "Does the implication " (print-str impl) " hold? ")
-                    #(read-line)
+                    #(read-string (str (read-line)))
                     #{'yes 'no}
                     "Please answer 'yes' or 'no': ")]
     (when (= answer 'no)
       (println ctx)
       (let [new-obj (ask (str "Please enter new object: ")
-                         #(read-string (str "\"" (read-line) "\""))
+                         #(read-string (str (read-line)))
                          (fn [new-obj] (not ((objects ctx) new-obj)))
                          "This object is already present, please enter a new one: "),
             new-att (ask (str "Please enter the attributes the new object should have: ")
