@@ -16,16 +16,13 @@
 (defn- apprx-handler
   "Special handler for concept approximation exploration."
   [ctx new-impl new-objs new-handler]
-  (let [[result new-col] (default-handler ctx new-impl)]
-    (if result
-      [result new-col]
-      (let [new-att  (first new-col),
-            att-objs (ask (str "Which of the objs " new-objs " definitively has the attribute " new-att "? ")
-                          #(read-string (str "#{" (read-line) "}"))
-                          #(subset? % new-objs)
-                          "Please enter only objects mentioned: ")]
-        (new-handler (map #(vector % new-att) att-objs))
-        [result new-col]))))
+  (when-let [[new-att new-att-objs] (default-handler ctx new-impl)]
+    (let [att-objs (ask (str "Which of the objs " new-objs " definitively has the attribute " new-att "? ")
+                        #(read-string (str "#{" (read-line) "}"))
+                        #(subset? % new-objs)
+                        "Please enter only objects mentioned: ")]
+      (new-handler (map #(vector % new-att) att-objs))
+      [new-att new-att-objs])))
 
 (defn explore-approximations
   "Performs concept approximation exploration and returns the final
