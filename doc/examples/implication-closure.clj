@@ -1,4 +1,4 @@
-;; Copyright: Daniel Borchmann, 2010
+;; Daniel Borchmann, 2010
 ;; This file is in the public domain.
 
 ;; A simple macro that computes a special context from a given set of

@@ -1,4 +1,4 @@
-;; Copyright: Daniel Borchmann, 2010
+;; Daniel Borchmann, 2010
 ;; This file is in the public domain.
 
 ;; Computes a context of function used by Artem to explore certain

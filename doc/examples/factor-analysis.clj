@@ -1,4 +1,4 @@
-;; Copyright: Daniel Borchmann, 2010
+;; Daniel Borchmann, 2010
 ;; This file is in the public domain.
 
 ;; This file shows how to use conexp-clj to factorize context (formal
