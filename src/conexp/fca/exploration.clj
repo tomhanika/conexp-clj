@@ -83,16 +83,19 @@
   pred, fail-message is printed and the user is asked again, until the
   given answer fulfills pred."
   [prompt read pred fail-message]
-  (do
-    (print prompt)
-    (flush)
-    (loop [answer (read)]
-      (if (pred answer)
-        answer
-        (do
-          (print fail-message)
-          (flush)
-          (recur (read)))))))
+  (let [sentinel (Object.),
+        read-fn  #(try (read) (catch Throwable _ sentinel))]
+    (do
+      (print prompt)
+      (flush)
+      (loop [answer (read-fn)]
+        (if (or (identical? answer sentinel)
+                (not (pred answer)))
+          (do
+            (print fail-message)
+            (flush)
+            (recur (read-fn)))
+          answer)))))
 
 (defn default-handler
   "Default handler for attribute exploration. Does it's interaction on the console."
