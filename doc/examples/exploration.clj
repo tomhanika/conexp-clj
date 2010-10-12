@@ -52,11 +52,11 @@
 ;;; exploration. Just give, as second argument, a set of valid
 ;;; implications.
 
-(explore-attributes ctx #{(make-implication #{3} #{1})})
+(explore-attributes ctx :background-knowledge #{(make-implication #{3} #{1})})
 
 ;;; This "shortens" the exploration a bit:
 ;;;
-;;; user=> (explore-attributes ctx #{(make-implication #{3} #{1})})
+;;; user=> (explore-attributes ctx :background-knowledge #{(make-implication #{3} #{1})})
 ;;; {:implications #{}, :context   |1 2 3
 ;;;  --+------
 ;;;  a |. x .
@@ -69,24 +69,23 @@
 ;;; implications.
 
 ;;; Finally, you can control the way the exploration handles
-;;; interaction with a custom handler function as a third (!)
-;;; argument. This functions is called whenever an expert has to be
-;;; asked, getting as its arguments the current context and the
-;;; current implication. Standardly, the function «default-handler» is
-;;; used, which implements low level communication via the command
-;;; line.
+;;; interaction with a custom handler function. This functions is
+;;; called whenever an expert has to be asked, getting as its
+;;; arguments the current context and the current
+;;; implication. Standardly, the function «default-handler» is used,
+;;; which implements low level communication via the command line.
 
 ;;; Handlers have to return specific values to indicate approval or
 ;;; rejection of a given implication. The format of the return value
 ;;; is as follows:
 ;;;
 ;;;   On success: nil
-;;;   On failure: [«the new object» «a sequence of its attributes»]
+;;;   On failure: sequence of [«a new object» «a sequence of its attributes»]
 ;;;
 ;;; With that, you could immitate «stem-base» with explore-attributes
 ;;; via
 
-(= (:implications (explore-attributes ctx #{} (constantly nil)))
+(= (:implications (explore-attributes ctx :handler (constantly nil)))
    (stem-base ctx))
 
 ;;; and indeed this is one of the test cases for explore-attributes.
