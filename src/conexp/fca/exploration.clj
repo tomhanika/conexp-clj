@@ -14,6 +14,7 @@
 (ns-doc
  "Provides function for exploration and computing proper premises.")
 
+
 ;;; Attribute Exploration
 
 (declare default-handler)
@@ -40,7 +41,7 @@
     background-knowledge denotes a set of implications used as
     background knowledge, which will be subtracted from the computed
     result."
-  [ctx :background-knowledge #{} :handler default-handler]
+  [ctx, :background-knowledge #{}, :handler default-handler]
   (loop [implications background-knowledge,
          last         #{},
          ctx          ctx]
@@ -74,6 +75,7 @@
                                       last)
                      ctx))))))))
 
+
 ;;; Exploration Helper
 
 (defn falsifies-implication?
@@ -93,18 +95,38 @@
          [(gensym (str g "-")), (set-of (alpha m) [m atts])])
        auts))
 
+;; saturate-counterexample
+
+
+;;; Handler
+
 (declare counterexample-via-repl)
 
-(defn default-handler
-  "Default handler for attribute exploration. Does it's interaction on the console."
-  [ctx impl]
-  (when-not (yes-or-no? (str "Does the implication " (print-str impl) " hold? "))
-    (loop [counterexamples []]
-      (let [counterexample (counterexample-via-repl ctx impl),
-            new-counters   (conj counterexamples counterexample)]
-        (if (yes-or-no? "Do you want to give another counterexample? ")
-          (recur new-counters)
-          new-counters)))))
+(defnk make-handler
+  "Creates a handler for attribute exploration. Valid keys are
+
+  - automorphisms: A sequence of automorphisms of the overall context,
+      used to construct more examples from a given one.
+
+  - background-knowledge: The background-knowledge used during the
+      exploration."
+  ;; Not yet implemented
+  [:automorphisms nil, :background-knowledge nil]
+  (fn [ctx impl]
+    (when-not (yes-or-no? (str "Does the implication " (print-str impl) " hold? "))
+      (loop [counterexamples []]
+        (let [counterexample (counterexample-via-repl ctx impl),
+              new-counters   (conj counterexamples counterexample)]
+          (if (yes-or-no? "Do you want to give another counterexample? ")
+            (recur new-counters)
+            new-counters))))))
+
+(let [dh (make-handler)]
+  (defn default-handler
+    "Default handler for attribute exploration. Does it's interaction on the console."
+    [ctx impl]
+    dh))
+
 
 ;;; Counterexample REPL
 
@@ -162,8 +184,6 @@
       (if result
         (recur result)
         [(:object state) (set (:positives state))]))))
-
-;;; REPL functionality
 
 (defmacro- define-repl-fn [name doc & body]
   `(do
