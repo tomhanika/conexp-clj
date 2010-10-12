@@ -215,6 +215,15 @@
             (recur (read-fn)))
           answer)))))
 
+(defn yes-or-no?
+  "Asks string, expecting 'yes' or 'no'. Returns true when answered
+  'yes' and false otherwise."
+  [question]
+  (= 'yes (ask (str question)
+               #(read-string (str (read-line)))
+               #{'yes 'no}
+               "Please answer 'yes' or 'no': ")))
+
 
 ;;; deftype utilities
 
