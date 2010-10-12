@@ -125,7 +125,7 @@
   (defn default-handler
     "Default handler for attribute exploration. Does it's interaction on the console."
     [ctx impl]
-    dh))
+    (dh ctx impl)))
 
 
 ;;; Counterexample REPL
@@ -152,25 +152,27 @@
   "Runs the given REPL command query with state, context ctx and
   implication impl."
   [query state]
-  (let [suitable-methods (suitable-repl-commands query)]
-    (cond
-     (second suitable-methods)
-     (do
-       (println "Ambigious command, suitable methods are")
-       (doseq [name suitable-methods]
-         (println "  " name))
-       state),
-     (empty? suitable-methods)
-     (do
-       (println "Unknown command")
-       state)
-     :else
-     (try
-       (run-repl-command (first suitable-methods) state)
-       (catch Throwable t
-         (print "Encountered Error: ")
-         (println t)
-         state)))))
+  (if (= query 'abort)
+    (throw (Exception. "Abnormal abortion from attribute exploration"))
+    (let [suitable-methods (suitable-repl-commands query)]
+      (cond
+       (second suitable-methods)
+       (do
+         (println "Ambigious command, suitable methods are")
+         (doseq [name suitable-methods]
+           (println "  " name))
+         state),
+       (empty? suitable-methods)
+       (do
+         (println "Unknown command")
+         state)
+       :else
+       (try
+         (run-repl-command (first suitable-methods) state)
+         (catch Throwable t
+           (print "Encountered Error: ")
+           (println t)
+           state))))))
 
 (defn counterexample-via-repl
   "Starts a repl for counterexamples."
