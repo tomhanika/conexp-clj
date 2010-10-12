@@ -74,26 +74,6 @@
 
 ;;
 
-(defn ask
-  "Performs simple quering. prompt is printed first and then the user
-  is asked for an answer (via read). If this answer does not satisfy
-  pred, fail-message is printed and the user is asked again, until the
-  given answer fulfills pred."
-  [prompt read pred fail-message]
-  (let [sentinel (Object.),
-        read-fn  #(try (read) (catch Throwable _ sentinel))]
-    (do
-      (print prompt)
-      (flush)
-      (loop [answer (read-fn)]
-        (if (or (identical? answer sentinel)
-                (not (pred answer)))
-          (do
-            (print fail-message)
-            (flush)
-            (recur (read-fn)))
-          answer)))))
-
 (defn default-handler
   "Default handler for attribute exploration. Does it's interaction on the console."
   [ctx impl]
