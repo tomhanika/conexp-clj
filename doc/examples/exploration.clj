@@ -71,9 +71,10 @@
 ;;; Finally, you can control the way the exploration handles
 ;;; interaction with a custom handler function. This functions is
 ;;; called whenever an expert has to be asked, getting as its
-;;; arguments the current context and the current
-;;; implication. Standardly, the function «default-handler» is used,
-;;; which implements low level communication via the command line.
+;;; arguments the current context, all heretofore known implications
+;;; and the current implication. Standardly, the function
+;;; «default-handler» is used, which implements low level
+;;; communication via the command line.
 
 ;;; Handlers have to return specific values to indicate approval or
 ;;; rejection of a given implication. The format of the return value

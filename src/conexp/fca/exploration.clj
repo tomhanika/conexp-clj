@@ -30,12 +30,12 @@
   - :handler «fn»
 
     Interaction is accomplished via the given handler fn, which is
-    called with the current context, and a new implication. The
-    handler has to return counterexamples for the new implication, if
-    there are some. Otherwise it has to return nil. Counterexamples
-    are given as a sequence of rows, every row being of the form [g
-    ms], where «g» is a new object and «ms» is the set of its
-    attributes.
+    called with the current context, all implications known so far and
+    a new implication. The handler has to return counterexamples for
+    the new implication, if there are some. Otherwise it has to return
+    nil. Counterexamples are given as a sequence of rows, every row
+    being of the form [g ms], where «g» is a new object and «ms» is
+    the set of its attributes.
 
   - background-knowledge «set of implications»
 
@@ -57,7 +57,7 @@
                                   last)
                  ctx)
           (let [new-impl        (make-implication last conclusion-from-last),
-                counterexamples (handler ctx new-impl)]
+                counterexamples (handler ctx implications new-impl)]
             (if counterexamples
               (let [new-objs (map first counterexamples)]
                 (when (exists [g new-objs] (contains? (objects ctx) g))
@@ -82,16 +82,13 @@
   "Creates a handler for attribute exploration. Valid keys are
 
   - automorphisms: A sequence of automorphisms of the overall context,
-      used to construct more examples from a given one.
-
-  - background-knowledge: The background-knowledge used during the
-      exploration."
+      used to construct more examples from a given one."
   ;; Not yet completely implemented
-  [:automorphisms nil, :background-knowledge nil]
-  (fn [ctx impl]
+  [:automorphisms #{}]
+  (fn [ctx known impl]
     (when-not (yes-or-no? (str "Does the implication " (print-str impl) " hold? "))
       (loop [counterexamples []]
-        (let [counterexample (counterexample-via-repl ctx impl),
+        (let [counterexample (counterexample-via-repl ctx known impl),
               new-counters   (conj counterexamples counterexample)]
           (if (yes-or-no? "Do you want to give another counterexample? ")
             (recur new-counters)
@@ -100,8 +97,8 @@
 (let [dh (make-handler)]
   (defn default-handler
     "Default handler for attribute exploration. Does it's interaction on the console."
-    [ctx impl]
-    (dh ctx impl)))
+    [ctx known impl]
+    (dh ctx known impl)))
 
 ;;;
 

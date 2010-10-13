@@ -36,7 +36,7 @@
         new-objects      (difference (objects att-explored-ctx)
                                      (objects context)),
         known-crosses    (atom #{}),
-        handler          (fn [ctx impl]
+        handler          (fn [ctx known impl]
                            (apprx-handler ctx impl new-objects
                                           #(swap! known-crosses into %))),
         obj-explored-ctx (dual-context

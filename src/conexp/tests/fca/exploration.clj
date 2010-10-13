@@ -40,7 +40,7 @@
            (= ctx
               (:context result))))))
 
-(defn- say-no [ctx impl]
+(defn- say-no [ctx known impl]
   [[(gensym) (premise impl)]])
 
 (deftest test-explore-attributes-with-always-saying-no
