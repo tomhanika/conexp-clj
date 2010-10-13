@@ -128,6 +128,11 @@
                             "Please enter new attributes: "))]
     (assoc state :negatives negatives)))
 
+(define-repl-fn complete-example
+  "Adds all attributes, which are not positive, to the negatives."
+  (let [non-pos (difference (attributes ctx) (set (:positives state)))]
+    (assoc state :negatives non-pos)))
+
 (define-repl-fn saturate-partial-example
   "Saturates the given partial counterexample."
   (let [old-pos   (set (:positives state)),
