@@ -9,7 +9,8 @@
 (ns conexp.fca.exploration.repl
   (:use conexp.base
 	conexp.fca.contexts
-	conexp.fca.implications))
+	conexp.fca.implications
+        conexp.fca.exploration.util))
 
 (ns-doc
  "A REPL for giving counterexamples during attribute exploration.")
@@ -128,12 +129,6 @@
 (define-repl-fn saturate-partial-counterexample
   "Saturates the given partial counterexample. NOT YET IMPLEMENTED."
   (unsupported-operation "Not yet implemented"))
-
-(defn- falsifies-implication?
-  "Returns true iff set of new attributes does not respect implication impl."
-  [new-atts impl]
-  (and (subset? (premise impl) new-atts)
-       (not (subset? (conclusion impl) new-atts))))
 
 (defn- valid-counterexample?
   "Checks the given example for being valid."

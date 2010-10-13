@@ -10,11 +10,11 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
+        conexp.fca.exploration.util
         conexp.fca.exploration.repl))
 
 (ns-doc
  "Provides function for exploration and computing proper premises.")
-
 
 ;;; Attribute Exploration
 
@@ -76,19 +76,7 @@
                                       last)
                      ctx))))))))
 
-
 ;;; Handler
-
-(defn examples-by-automorphism
-  "Generates for the given context ctx and a given example row [g
-  atts] a sequence of new examples (as rows of the same form) by
-  applying the context automorphism in auts. The context automorphisms
-  are applied to the attributes in atts only, the corresponding object
-  will be a newly generated."
-  [ctx [g atts] auts]
-  (map (fn [alpha]
-         [(gensym (str g "-")), (set-of (alpha m) [m atts])])
-       auts))
 
 (defnk make-handler
   "Creates a handler for attribute exploration. Valid keys are
@@ -98,7 +86,7 @@
 
   - background-knowledge: The background-knowledge used during the
       exploration."
-  ;; Not yet implemented
+  ;; Not yet completely implemented
   [:automorphisms nil, :background-knowledge nil]
   (fn [ctx impl]
     (when-not (yes-or-no? (str "Does the implication " (print-str impl) " hold? "))
