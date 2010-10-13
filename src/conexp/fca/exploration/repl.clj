@@ -70,7 +70,7 @@
     (let [query  (ask "counterexample> "
                       #(read-string (str (read-line)))
                       (constantly true)
-                      "Erm? "),
+                      "counterexample> "),
           result (eval-command query state)]
       (if result
         (recur result)
@@ -134,7 +134,10 @@
         old-neg   (set (:negatives state)),
         [pos neg] (saturate-partial-example (:knowledge state)
                                             old-pos
-                                            old-neg)]
+                                            old-neg
+                                            (difference (attributes ctx)
+                                                        old-pos
+                                                        old-neg))]
     (-> state
         (assoc :positives pos)
         (assoc :negatives neg))))
@@ -187,6 +190,11 @@
 (define-repl-fn context
   "Prints the current context."
   (println ctx)
+  state)
+
+(define-repl-fn knowledge
+  "Prints the currently known implications (including background knowledge)."
+  (println knowledge)
   state)
 
 (define-repl-fn implication

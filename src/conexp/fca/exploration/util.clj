@@ -32,10 +32,18 @@
        auts))
 
 (defn saturate-partial-example
-  "Saturates the partial example given by positives and
-  negatives. Uses the set impls of implications for saturation."
-  [impls positives negatives]
-  (unsupported-operation "Not yet implemented."))
+  "Saturates the partial example given by positives, negatives and
+  unknown. Uses the set impls of implications for saturation."
+  [impls positives negatives unknown]
+  (let [clop    (clop-by-implications impls),
+        new-pos (clop positives)]
+    (when (exists [n negatives] (contains? new-pos n))
+      (illegal-argument "Example given contradicts already known facts."))
+    [new-pos,
+     (union negatives
+            (set-of ? [? unknown,
+                       :when (seq (intersection negatives
+                                                (clop (conj positives ?))))]))]))
 
 ;;;
 
