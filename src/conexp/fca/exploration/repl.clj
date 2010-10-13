@@ -194,7 +194,8 @@
 
 (define-repl-fn knowledge
   "Prints the currently known implications (including background knowledge)."
-  (println knowledge)
+  (doseq [impl (:knowledge state)]
+    (println impl))
   state)
 
 (define-repl-fn implication
