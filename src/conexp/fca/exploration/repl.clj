@@ -63,8 +63,10 @@
 
 (defn counterexample-via-repl
   "Starts a repl for counterexamples."
-  [ctx impl]
-  (loop [state {:context ctx, :implication impl}]
+  [ctx knowledge impl]
+  (loop [state {:context ctx,
+                :knowledge knowledge,
+                :implication impl}]
     (let [query  (ask "counterexample> "
                       #(read-string (str (read-line)))
                       (constantly true)
@@ -126,9 +128,16 @@
                             "Please enter new attributes: "))]
     (assoc state :negatives negatives)))
 
-(define-repl-fn saturate-partial-counterexample
-  "Saturates the given partial counterexample. NOT YET IMPLEMENTED."
-  (unsupported-operation "Not yet implemented"))
+(define-repl-fn saturate-partial-example
+  "Saturates the given partial counterexample."
+  (let [old-pos   (set (:positives state)),
+        old-neg   (set (:negatives state)),
+        [pos neg] (saturate-partial-example (:knowledge state)
+                                            old-pos
+                                            old-neg)]
+    (-> state
+        (assoc :positives pos)
+        (assoc :negatives neg))))
 
 (defn- valid-counterexample?
   "Checks the given example for being valid."
