@@ -5,6 +5,10 @@
 # with some specials for conexp-clj. The copyright is held by William
 # Stein, see the corresponding files for more information.
 
+# TODO:
+#  - conversion from clojure to python data is slow
+#  - conversion of args and keywords is not implemented
+
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 from sage.misc.sage_eval import sage_eval
 
