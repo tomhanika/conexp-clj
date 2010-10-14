@@ -2,13 +2,13 @@
 # This code is a mixture from the sage interfaces of
 #  - Lisp
 #  - Octave
-#
-# The copyright is held by William Stein, see the corresponding files
-# for more information.
+# with some specials for conexp-clj. The copyright is held by William
+# Stein, see the corresponding files for more information.
 
-from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled, AsciiArtString
-from sage.misc.misc import verbose
-import random
+from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
+from sage.misc.sage_eval import sage_eval
+
+###
 
 class ConexpCLJ(Expect):
     def __init__(self,
@@ -115,8 +115,22 @@ class ConexpCLJ(Expect):
         return self.new("(%s %s)"%(function, " ".join([s.name() for s in args])))
 
     def _coerce_impl(self, x, **kwds):
-        # coerce sage object to conexp-clj
-        raise NotImplementedError, "Converting to conexp-clj has not been done yet"
+        if x == None or x == False:
+            return self("nil")
+        elif x == True:
+            return self("true")
+        elif isinstance(x, set):
+            return self("#{%s}"%(str(map(self, x))[1:-1]))
+        elif isinstance(x, (list, tuple)):
+            return self("[%s]"%(str(map(self, x))[1:-1]))
+        elif isinstance(x, dict):
+            string = "{"
+            for key in x:
+                string += str(key) + " " + str(x[key]) + ", "
+            string += "}"
+            return self(string)
+        else:
+            return self(str(x))
 
 
 class ConexpCLJElement(ExpectElement):
@@ -145,12 +159,21 @@ class ConexpCLJElement(ExpectElement):
         raise NotImplementedError
 
     def _sage_(self):
-        # todo: convert wrapped conexp-clj objects to sage objects
-        name = repr(self)
-        if name == "nil":
+        P = self._check_valid()
+        name = self._name
+        if bool(P("(nil? %s)"%name)):
             return None
+        elif bool(P("(set? %s)"%name)):
+            return set([x._sage_() for x in self])
+        elif bool(P("(sequential? %s)"%name)):
+            return [x._sage_() for x in self]
+        elif bool(P("(map? %s)"%name)):
+            dit = {}
+            for pair in [x._sage_() for x in self]:
+                dit[pair[0]] = pair[1]
+            return dit
         else:
-            raise NotImplementedError, "Converting from conexp-clj has not been done yet"
+            return sage_eval(str(self))
 
     def attribute(self, attrname):
         P = self._check_valid()
@@ -167,6 +190,15 @@ class ConexpCLJElement(ExpectElement):
 
     def _vector_(self, n):
         raise NotImplementedError
+
+    def __len__(self):
+        P = self._check_valid()
+        return P("(count %s)"%self._name)
+
+    def __iter__(self):
+        self_seq = self.seq()
+        for i in xrange(0, len(self)):
+            yield self_seq.gen(i)
 
     def _contains(self, x):
         P = self._check_valid()
@@ -191,6 +223,7 @@ class ConexpCLJFunctionElement(FunctionElement):
         M = self._obj.parent()
         return M.help(self._name)
 
+###
 
 conexp_clj = ConexpCLJ()
 
@@ -203,3 +236,5 @@ def conexp_clj_console():
 
 def conexp_clj_version():
     return str(conexp_clj('(conexp-version)')).strip()
+
+###
