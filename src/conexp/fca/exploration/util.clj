@@ -27,9 +27,10 @@
   are applied to the attributes in atts only, the corresponding object
   will be a newly generated."
   [ctx [g atts] auts]
-  (map (fn [alpha]
-         [(gensym (str g "-")), (set-of (alpha m) [m atts])])
-       auts))
+  (distinct (conj (map (fn [alpha]
+                         [(gensym (str g "-")), (set-of (alpha m) [m atts])])
+                       auts)
+                  [g atts])))
 
 (defn saturate-partial-example
   "Saturates the partial example given by positives, negatives and

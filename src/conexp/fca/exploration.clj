@@ -41,8 +41,13 @@
 
     background-knowledge denotes a set of implications used as
     background knowledge, which will be subtracted from the computed
-    result."
+    result.
+
+  If you want to use automorphisms of the underlying context, you have
+  to construct a special handler using the «make-handler»
+  function. See its documentation."
   [ctx, :background-knowledge #{}, :handler default-handler]
+  (assert (set? background-knowledge))
   (loop [implications background-knowledge,
          last         #{},
          ctx          ctx]
@@ -83,13 +88,14 @@
 
   - automorphisms: A sequence of automorphisms of the overall context,
       used to construct more examples from a given one."
-  ;; Not yet completely implemented
   [:automorphisms #{}]
+  (assert (or (set? automorphisms) (seq? automorphisms)))
   (fn [ctx known impl]
     (when-not (yes-or-no? (str "Does the implication " (print-str impl) " hold? "))
       (loop [counterexamples []]
         (let [counterexample (counterexample-via-repl ctx known impl),
-              new-counters   (conj counterexamples counterexample)]
+              new-counters   (into counterexamples
+                                   (examples-by-automorphism ctx counterexample automorphisms))]
           (if (yes-or-no? "Do you want to give another counterexample? ")
             (recur new-counters)
             new-counters))))))
