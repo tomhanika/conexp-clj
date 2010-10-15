@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.nonsense
-  (:use conexp.base)
-  (:use [clojure.contrib.math :only (floor)]))
+  (:use conexp.base))
 
 (ns-doc
  "What it says.")
