@@ -252,7 +252,7 @@
   [lat]
   (make-context (lattice-sup-irreducibles lat)
 		(lattice-inf-irreducibles lat)
-		(fn [x y] 
+		(fn [x y]
 		  ((order lat) [x y]))))
 
 ;;;
