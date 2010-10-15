@@ -7,10 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.util
-  (:use conexp.base)
+  (:use conexp.base
+        conexp.contrib.gui.util)
+  (:use [clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JPanel JButton JTextField JLabel
                         JSeparator SwingConstants Box JComboBox
-                        JSlider SpinnerNumberModel JSpinner]
+                        JSlider SpinnerNumberModel JSpinner
+                        BoxLayout]
 	   [java.awt Dimension Component]))
 
 ;;;
@@ -65,6 +68,7 @@
 	^JLabel label (JLabel. label),
 	^JPanel panel (JPanel.)]
     (doto panel
+      (.setLayout (BoxLayout. panel BoxLayout/X_AXIS))
       (.add label)
       (.add text-field)
       (.setMaximumSize (Dimension. *item-width* *item-height*)))
@@ -105,7 +109,43 @@
     (.add buttons spinner)
     spinner))
 
+(defn make-panel
+  "Uniformly creates a panel."
+  [buttons]
+  (let [^JPanel panel (JPanel.)]
+    (.setMaximumSize panel (Dimension. *item-width* *item-height*))
+    (.add buttons panel)
+    panel))
+
 ;;;
+
+(defn make-control-choice
+  "Creates a choice control in buttons from given choices.
+  The choices should be given as \"key1\" \"choice1\" \"key2\"
+  \"choice2\" ... The choice control returned is a function of three
+  arguments [frame scene buttons] and can be used with
+  with-layout-modifiers, for example."
+  [& choices]
+  (let [choices (apply hash-map choices)]
+    (fn [frame scene buttons]
+      (let [^JPanel
+            base-pane   (make-panel buttons),
+            _           (.setLayout base-pane (BoxLayout. base-pane BoxLayout/Y_AXIS)),
+            ^JComboBox
+            combo-box   (make-combo-box base-pane (keys choices)),
+            _           (make-padding base-pane),
+            ^JPanel
+            choice-pane (make-panel base-pane)
+            _           (.setLayout choice-pane (BoxLayout. choice-pane BoxLayout/Y_AXIS))]
+        (.setMaximumSize base-pane nil)
+        (.setMaximumSize choice-pane nil)
+        (with-action-on combo-box
+          (let [selected (.getSelectedItem ^JComboBox (.getSource evt)),
+                control  (get choices selected)]
+            (do-swing
+             (.removeAll choice-pane)
+             (control frame scene choice-pane)
+             (.validate frame))))))))
 
 (defmacro with-layout-modifiers
   "Installs given methods to scene with buttons."

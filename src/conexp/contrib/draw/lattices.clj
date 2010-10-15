@@ -57,11 +57,11 @@
       (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
       (with-layout-modifiers frame scn buttons
         toggle-zoom-move
-        change-parameters
-        improve-layout-by-force
-        snapshot-saver
-        export-as-file
-        freese)
+        change-parameters,
+        (make-control-choice "Freese" freese,
+                             "Force"  improve-layout-by-force),
+        snapshot-saver,
+        export-as-file)
 
       ;; drawing area
       (doto canvas-panel
