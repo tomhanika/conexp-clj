@@ -27,14 +27,12 @@
 ;;;
 ;;; user=> (explore-attributes ctx)
 ;;; Does the implication (#{3}  ==>  #{1}) hold? no
-;;;   |1 2 3
-;;; --+------
-;;; a |. x .
-;;; b |x x .
-;;; c |x . x
-;;;
+;;; counterexample> object
 ;;; Please enter new object: d
+;;; counterexample> attributes
 ;;; Please enter the attributes the new object should have: 3
+;;; counterexample> q
+;;; Do you want to give another counterexample? no
 ;;; Does the implication (#{2 3}  ==>  #{1}) hold? yes
 ;;; {:implications #{(#{2 3}  ==>  #{1})}, :context   |1 2 3
 ;;;  --+------
