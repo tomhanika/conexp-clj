@@ -412,6 +412,7 @@
 	(.event zoom-obj scn evt x y)
 	(when (and scn
                    (or (= evt GWindow/BUTTON1_UP)
+                       (= evt GWindow/BUTTON2_UP)
                        (= evt GWindow/BUTTON3_UP)))
 	  (call-scene-hook scn :zoom)
 	  (call-scene-hook scn :image-changed))))))
