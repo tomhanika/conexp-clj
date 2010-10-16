@@ -18,14 +18,42 @@
            [javax.imageio ImageIO]
            [java.awt GridLayout BorderLayout Dimension Image Font Color
                      Graphics Graphics2D BasicStroke FlowLayout MediaTracker]
-           [java.awt.event KeyEvent ActionListener MouseAdapter MouseEvent]
+           [java.awt.event KeyEvent ActionListener ActionEvent MouseAdapter MouseEvent]
            [javax.swing.event ChangeListener ChangeEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
-  (:use [clojure.contrib.seq :only (indexed)]
-        [clojure.contrib.swing-utils :only (do-swing, add-action-listener)])
+  (:use [clojure.contrib.seq :only (indexed)])
   (:require [clojure.string :as string]))
 
+
+;;; Swing handmade concurrency
+
+(defn invoke-later-or-now
+  "Calls fn with SwingUtilities/invokeLater."
+  [fn]
+  (if (SwingUtilities/isEventDispatchThread)
+    (fn)
+    (SwingUtilities/invokeLater fn)))
+
+(defmacro do-swing
+  "Executes body within the Swing Dispatch Thread or immediately, if
+  execution is already in this thread."
+  [& body]
+  `(invoke-later-or-now #(do ~@body)))
+
+(defmacro do-swing-return
+  "Executes body in a thread-safe manner for Swing and returns its value."
+  [& body]
+  `(let [returnvalue# (promise)]
+     (do-swing (deliver returnvalue# (do ~@body)))
+     @returnvalue#))
+
+(defmacro defn-swing
+  "Defines a function that is surrounded by do-swing-return."
+  [name doc params & body]
+  (if (vector? doc)
+    `(defn ~name ~doc (do-swing-return ~params ~@body))
+    `(defn ~name ~doc ~params (do-swing-return ~@body))))
 
 ;;; Helper functions
 
@@ -34,9 +62,10 @@
   ActionEvent Object bound to the variable evt. body will be executed
   in a thread-safe manner."
   [thing & body]
-  `(add-action-listener ~thing
-                        (fn [^java.awt.event.ActionEvent ~'evt]
-                          (do-swing ~@body))))
+  `(.addActionListener ~thing
+                       (proxy [ActionListener] []
+                         (actionPerformed [^ActionEvent ~'evt]
+                          (do-swing ~@body)))))
 
 (defmacro with-change-on
   "Adds a change listener on thing to execute body, with the catched
@@ -130,36 +159,6 @@
   "Opens a message dialog asking for confirmation."
   [frame message]
   (JOptionPane/showConfirmDialog frame message))
-
-
-;;; Swing handmade concurrency
-
-(defn invoke-later-or-now
-  "Calls fn with SwingUtilities/invokeLater."
-  [fn]
-  (if (SwingUtilities/isEventDispatchThread)
-    (fn)
-    (SwingUtilities/invokeLater fn)))
-
-(defmacro with-swing-threads
-  "Executes body within the Swing Dispatch Thread or immediately, if
-  execution is already in this thread."
-  [& body]
-  `(invoke-later-or-now #(do ~@body)))
-
-(defmacro do-swing-return
-  "Executes body in a thread-safe manner for Swing and returns its value."
-  [& body]
-  `(let [returnvalue# (promise)]
-     (with-swing-threads (deliver returnvalue# (do ~@body)))
-     @returnvalue#))
-
-(defmacro defn-swing
-  "Defines a function that is surrounded by do-swing-return."
-  [name doc params & body]
-  (if (vector? doc)
-    `(defn ~name ~doc (do-swing-return ~params ~@body))
-    `(defn ~name ~doc ~params (do-swing-return ~@body))))
 
 (defn-swing get-image-icon-or-string
   "Returns either the image-icon for the given resource or the given

@@ -12,8 +12,8 @@
                                                  nodes, update-positions, annotation)]
 	[conexp.layouts.util :only (edges-of-points)]
 	conexp.contrib.draw.nodes-and-connections
-	conexp.contrib.draw.scenes)
-  (:use [clojure.contrib.swing-utils :only (do-swing)])
+	conexp.contrib.draw.scenes
+        conexp.contrib.gui.util)
   (:import [javax.swing JFrame JButton JPanel JLabel]
 	   [java.awt Dimension BorderLayout Color]
 	   [no.geosoft.cc.graphics GWindow GScene GStyle]))

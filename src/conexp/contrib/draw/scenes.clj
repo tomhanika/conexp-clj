@@ -18,19 +18,6 @@
 
 (ns-doc "Namespace for scene abstraction.")
 
-
-;;; scenes
-
-(defvar- *default-scene-style* (doto (GStyle.)
-				 (.setBackgroundColor Color/WHITE)
-				 (.setAntialiased true))
-  "Default GScene style.")
-
-(defn make-window
-  "Creates default window."
-  []
-  (GWindow. Color/WHITE))
-
 ;; setting custom data
 
 (defn- initialize-scene
@@ -62,21 +49,6 @@
   [^GScene scn, key]
   (-> scn .getUserData deref (get key)))
 
-(declare add-scene-hook)
-
-(defn make-scene
-  "Makes scene on given window."
-  [window]
-  (let [^GScene scn (GScene. window)]
-    (doto scn
-      (initialize-scene)
-      (add-data-to-scene :hooks {})
-      (add-scene-hook :image-changed)
-      (.shouldZoomOnResize true)
-      (.shouldWorldExtentFitViewport false)
-      (.setStyle *default-scene-style*))
-    scn))
-
 (defn redraw-scene
   "Redraws current viewport of scene."
   [^GScene scn]
@@ -91,6 +63,13 @@
   "Returns the width of the given scene."
   [^GScene scn]
   (.getWidth (.getWorldExtent scn)))
+
+(defn ^Canvas scene-canvas
+  "Returns canvas associated with a scene."
+  [^GScene scn]
+  (let [^Canvas canvas (.. scn getWindow getCanvas)]
+    canvas))
+
 
 ;; hooks
 
@@ -140,6 +119,34 @@
   (doseq [callback (get (get-scene-hooks scn) hook)]
     (apply callback args)))
 
+;; scene constructor
+
+(defvar- *default-scene-style* (doto (GStyle.)
+				 (.setBackgroundColor Color/WHITE)
+				 (.setAntialiased true))
+  "Default GScene style.")
+
+(defn make-window
+  "Creates default window."
+  []
+  (GWindow. Color/WHITE))
+
+(defn make-scene
+  "Makes scene on given window."
+  [window]
+  (let [^GScene scn (GScene. window)]
+    (doto scn
+      (initialize-scene)
+      (.shouldZoomOnResize true)
+      (.shouldWorldExtentFitViewport false)
+      (.setStyle *default-scene-style*)
+      (add-scene-hook :image-changed))
+    (.addComponentListener ^Canvas (.. scn getWindow getCanvas)
+                           (proxy [ComponentListener] []
+                             (componentResized [comp-evt]
+                               (call-scene-hook scn :image-changed))))
+    scn))
+
 ;; methods on scenes
 
 (defn start-interaction
@@ -155,15 +162,6 @@
 	^GWorldExtent initial-world-extent (.getInitialWorldExtent scn)]
     [(/ (.getHeight current-world-extent) (.getHeight initial-world-extent)),
      (/ (.getWidth current-world-extent) (.getWidth initial-world-extent))]))
-
-(defn get-canvas-from-scene
-  "Returns canvas associated with a scene."
-  [^GScene scn]
-  (let [^Canvas canvas (.. scn getWindow getCanvas)]
-    (.addComponentListener canvas (proxy [ComponentListener] []
-				    (componentResized [comp-evt]
-				      (call-scene-hook scn :image-changed))))
-    canvas))
 
 (defn save-image
   "Saves image on scene scn in given file with given format."

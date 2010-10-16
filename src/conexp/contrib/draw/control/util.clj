@@ -9,7 +9,6 @@
 (ns conexp.contrib.draw.control.util
   (:use conexp.base
         conexp.contrib.gui.util)
-  (:use [clojure.contrib.swing-utils :only (do-swing)])
   (:import [javax.swing JPanel JButton JTextField JLabel
                         JSeparator SwingConstants Box JComboBox
                         JSlider SpinnerNumberModel JSpinner

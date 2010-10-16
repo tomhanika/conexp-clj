@@ -10,9 +10,11 @@
   (:use conexp.layouts.base
         conexp.layouts.interactive.freese
         conexp.contrib.draw.control.util
+        conexp.contrib.draw.scenes
         conexp.contrib.draw.scene-layouts
         conexp.contrib.gui.util)
-  (:import [javax.swing JButton JSpinner]))
+  (:import [javax.swing JButton JSpinner JFrame]
+           [java.awt.event WindowEvent WindowListener]))
 
 ;;; Freese layout
 
@@ -31,7 +33,7 @@
     (with-action-on rotate
       (if-not (nil? @rotate-thread)
         (do
-          (.stop @rotate-thread)
+          (.stop ^Thread @rotate-thread)
           (reset! rotate-thread nil))
         (do
           (update-layout-of-scene scn (layout (get-value)))
@@ -40,10 +42,17 @@
                   (Thread. #(doseq [angle (drop-while (let [y (get-value)]
                                                         (fn [x] (<= x y)))
                                                       (cycle (range 0 (* 2 Math/PI) 0.05))),
-                                    :while @rotate-thread]
+                                    :while (and @rotate-thread
+                                                (.isVisible frame))]
                               (Thread/sleep 50)
                               (.setValue spn angle))))
-          (.start @rotate-thread))))))
+          (.start ^Thread @rotate-thread))))
+    (.addWindowListener ^JFrame frame
+                        (proxy [WindowListener] []
+                          (windowClosed [win-evt]
+                            (when @rotate-thread
+                              (.stop rotate-thread)
+                              (reset! rotate-thread nil)))))))
 
 ;;;
 

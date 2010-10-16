@@ -10,7 +10,7 @@
   (:use [conexp.base                       :only (ns-doc, defnk)]
         [conexp.layouts                    :only (*standard-layout-function*)]
         [conexp.layouts.util               :only (scale-layout)]
-        [conexp.contrib.draw.scenes        :only (get-canvas-from-scene,
+        [conexp.contrib.draw.scenes        :only (scene-canvas,
                                                   add-scrollbars)]
         [conexp.contrib.draw.scene-layouts :only (draw-on-scene,
                                                   get-layout-from-scene)]
@@ -39,8 +39,8 @@
 
           ^JPanel main-panel (JPanel. (BorderLayout.)),
 
-          scn (draw-on-scene layout),
-          ^Canvas canvas (get-canvas-from-scene scn),
+          scn    (draw-on-scene layout),
+          canvas (scene-canvas scn),
 
           ^JPanel canvas-panel (JPanel. (BorderLayout.)),
           ^JScrollBar hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),

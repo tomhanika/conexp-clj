@@ -73,19 +73,19 @@
                            :buttons-down (translate-pressed-btns (.getModifiersEx event))})]
     (proxy [MouseInputAdapter] []
       (mousePressed [event]
-        (with-swing-threads (pressed (translate-event event))))
+        (do-swing (pressed (translate-event event))))
       (mouseReleased [event]
-        (with-swing-threads (released (translate-event event))))
+        (do-swing (released (translate-event event))))
       (mouseEntered [event]
-        (with-swing-threads (entered (translate-event event))))
+        (do-swing (entered (translate-event event))))
       (mouseExited [event]
-        (with-swing-threads (exited (translate-event event))))
+        (do-swing (exited (translate-event event))))
       (mouseClicked [event]
-        (with-swing-threads (clicked (translate-event event))))
+        (do-swing (clicked (translate-event event))))
       (mouseMoved [event]
-        (with-swing-threads (moved (translate-event event))))
+        (do-swing (moved (translate-event event))))
       (mouseDragged [event]
-        (with-swing-threads (dragged (translate-event event)))))))
+        (do-swing (dragged (translate-event event)))))))
 
 
 ;;;  Table
@@ -563,25 +563,25 @@
                             (let [ pt (.getPoint event)
                                    col (.columnAtPoint table pt)
                                    row (.rowAtPoint table pt)
-                                   result (call-hook widget 
+                                   result (call-hook widget
                                             "mouse-click-cell-editable-hook"
                                             row col)]
                               result))
                           true))),
         cell-renderer (proxy [DefaultTableCellRenderer] []
-                        (getTableCellRendererComponent 
+                        (getTableCellRendererComponent
                           [jtable value is-selected has-focus row column]
                           (do-swing-return
-                            (let [component (proxy-super 
-                                              getTableCellRendererComponent 
-                                              jtable value is-selected 
+                            (let [component (proxy-super
+                                              getTableCellRendererComponent
+                                              jtable value is-selected
                                               has-focus row column)]
                               (call-hook widget "cell-renderer-hook"
                                 component row column is-selected has-focus
                                 value))))),
         change-listener (proxy [TableModelListener] []
                           (tableChanged [event]
-                            (with-swing-threads
+                            (do-swing
                               (let [column (.getColumn event),
                                     first  (.getFirstRow event),
                                     last   (.getLastRow event),
@@ -597,7 +597,7 @@
                                      (= (:modifiers x) #{:alt}))
                               (dosync
                                (ref-set drag-start
-                                        (get-view-coordinates-at-point 
+                                        (get-view-coordinates-at-point
                                          widget (:position x))))
                               (dosync (ref-set drag-start nil)))),
         button-up-event (fn [x]

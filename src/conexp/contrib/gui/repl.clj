@@ -13,9 +13,8 @@
 	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
 	   [java.awt Font Color])
   (:use [conexp.base :only (defvar-)]
-	[conexp.contrib.gui.util :as util])
+	conexp.contrib.gui.util)
   (:require [conexp.contrib.gui.repl-utils :as repl-utils])
-  (:use [clojure.contrib.swing-utils :only (do-swing)])
   (:require clojure.main))
 
 ;;; REPL Process
@@ -227,8 +226,8 @@
   (let [repl-container (get-component frame
                                       (fn [thing]
                                         (and (= (class thing) JTextArea)
-                                             (util/implements-interface? (class (.getDocument thing))
-                                                                         conexp.contrib.gui.repl.ReplProcess))))]
+                                             (implements-interface? (class (.getDocument thing))
+                                                                    conexp.contrib.gui.repl.ReplProcess))))]
     (when repl-container
       (.. repl-container getDocument getReplThreadMap))))
 
