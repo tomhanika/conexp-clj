@@ -392,8 +392,7 @@
                              (when (instance? AbstractButton component)
                                (.setBorderPainted ^AbstractButton component false)))))]
     (doto tabbutton
-      (add-action-listener (fn [evt]
-                             (.remove tabpane (.indexOfComponent tabpane component))))
+      (with-action-on (.remove tabpane (.indexOfComponent tabpane component)))
       (.addMouseListener mouse-listener)
       (.setPreferredSize (Dimension. 17 17))
       (.setToolTipText "Close this tab")
@@ -419,11 +418,14 @@
 
 (defn add-tab
   "Addes given panel to the tabpane of frame with given title, if given."
-  ([^JFrame frame, ^JPanel pane, title]
+  ([^JFrame frame, ^JPanel pane, ^String title]
      (do-swing
       (let [^JTabbedPane tabpane (get-tabpane frame)]
         (.add tabpane pane)
-        (let [index (.indexOfComponent tabpane pane)]
+        (let [index (.indexOfComponent tabpane pane),
+              title (if-not (.isEmpty title)
+                      (str index " (" title ")")
+                      (str index))]
           (.setTabComponentAt tabpane index (make-tab-head tabpane pane title))
           (.setTitleAt tabpane index title)
           (.setSelectedIndex tabpane index)))
