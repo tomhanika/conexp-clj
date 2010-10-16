@@ -118,7 +118,7 @@
 
 ;;;
 
-(defn make-control-choice
+(defn control-choice
   "Creates a choice control in buttons from given choices.
   The choices should be given as \"key1\" \"choice1\" \"key2\"
   \"choice2\" ... The choice control returned is a function of three

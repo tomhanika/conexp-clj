@@ -58,8 +58,8 @@
       (with-layout-modifiers frame scn buttons
         toggle-zoom-move
         change-parameters,
-        (make-control-choice "Freese" freese,
-                             "Force"  improve-layout-by-force),
+        (control-choice "Freese" freese,
+                        "Force"  improve-layout-by-force),
         snapshot-saver,
         export-as-file)
 
