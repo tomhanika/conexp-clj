@@ -125,6 +125,8 @@
   arguments [frame scene buttons] and can be used with
   with-layout-modifiers, for example."
   [& choices]
+  (assert (second choices))
+  (assert (even? (count choices)))
   (let [choices (apply hash-map choices)]
     (fn [frame scene buttons]
       (let [^JPanel
@@ -144,7 +146,8 @@
             (do-swing
              (.removeAll choice-pane)
              (control frame scene choice-pane)
-             (.validate frame))))))))
+             (.validate frame))))
+        (.setSelectedIndex combo-box 0)))))
 
 (defmacro with-layout-modifiers
   "Installs given methods to scene with buttons."
