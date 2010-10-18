@@ -215,4 +215,37 @@
 
 ;;;
 
+(defmacro scale-context
+  "Scales the given (many-valued) context ctx with the given
+  scales. These are of the form
+
+    [att_1 att_2 ...] short_scale,
+
+  where att_i is an attribute of the given context and short_scale
+  determines a call to a known scala, without the attributes. For
+  example, you may use this macro with
+
+    (scale-context ctx
+                   [a b c] (nominal-scale)
+                   [d]     (dichotomic-scale))
+
+  Note that attributes always have to be given in a sequence, even if
+  there is only one."
+  [ctx & scales]
+  (let [scales (partition 2 scales),
+        given-atts (mapcat first scales)]
+    (when (not= given-atts (distinct given-atts))
+      (illegal-argument "Doubly given attribute."))
+    `(do
+       (when-not (= (attributes ~ctx) ~(set given-atts))
+         (illegal-argument "Given scalas to scale-context do not "
+                           "yield the attribute set of the given context."))
+       (scale-mv-context ~ctx
+                         ~(into {}
+                                (for [[atts scale] scales,
+                                      att atts]
+                                  `['~att ~(list* (first scale) `(attributes ~ctx) (rest scale))]))))))
+
+;;;
+
 nil
