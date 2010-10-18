@@ -124,14 +124,17 @@
   associated with -1."
   [context minsupp]
   (let [num-of-objects (count (objects context)),
-        minnum (* minsupp num-of-objects)]
-    (fn [coll]
-      ;; this should be done in one run through the context
-      (into {} (for [atts coll]
-                 [atts (let [num (count (attribute-derivation context atts))]
-                         (if (< num minnum)
-                           -1
-                           (/ num num-of-objects)))])))))
+        minnum         (* minsupp num-of-objects),
+        obj-deriv      (map-by-fn #(object-derivation context #{%}) (objects context))]
+    (fn [att-sets]
+      (map-by-fn
+       (fn [att-set]
+         (let [obj-count (count (filter #(subset? att-set (obj-deriv %))
+                                        (objects context)))]
+           (if (<= minnum obj-count)
+             obj-count
+             -1)))
+       att-sets))))
 
 (defn titanic-context-intents
   "Computes the intents of the given context via TITANIC."
