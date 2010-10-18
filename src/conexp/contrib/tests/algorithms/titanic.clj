@@ -52,6 +52,18 @@
                                   <=)])
        (set (titanic-context-intents ctx)))))
 
+(deftest test-supports
+  (with-testing-data [ctx *testing-data*,
+                      min [0 0.2 0.4 0.7 1.0]]
+    (let [minnum (* (count (objects ctx)) min),
+          sp     (supports ctx min),
+          supps  (sp (subsets (attributes ctx)))]
+      (forall [[atts supp] supps]
+        (let [card (count (attribute-derivation ctx atts))]
+          (if (<= minnum card)
+            (= supp card)
+            (= supp -1))))))))
+
 ;;;
 
 nil
