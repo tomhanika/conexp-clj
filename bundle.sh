@@ -2,7 +2,7 @@
 
 CONEXP_CLJ_JAR=conexp-clj-$(cat VERSION)-$(date +%Y%m%d.%H%M%S).jar
 
-lein deps                                                     && \
+lein clean && lein deps                                       && \
 rm -rfv conexp-clj/ conexp-clj.zip                            && \
 lein jar $CONEXP_CLJ_JAR                                      && \
 mkdir -p conexp-clj/lib/                                      && \
