@@ -62,7 +62,7 @@
         (let [card (count (attribute-derivation ctx atts))]
           (if (<= minnum card)
             (= supp card)
-            (= supp -1))))))))
+            (= supp -1)))))))
 
 ;;;
 
