@@ -80,6 +80,13 @@
 
 ;;; Technical Helpers
 
+(defn singelton?
+  "Returns true iff given thing is a singelton sequence or set."
+  [x]
+  (and (or (set? x) (seq? x))
+       (not (empty? x))
+       (not (next x))))
+
 (defn ensure-length
   "Fills given string with padding to have at least the given length."
   ([string length]
