@@ -191,7 +191,7 @@
         (doseq [x (interpose ",\n" vertex-lines)]
           (print x))
         (println))
-      (println "      } \\nodex[\\nodetype] (\\nodename) at (\\xpos, \\ypos) {};")
+      (println "      } \\node[\\nodetype] (\\nodename) at (\\xpos, \\ypos) {};")
       (println "    \\end{scope}")
       (println "    \\begin{scope} %draw connections")
       (doseq [[v w] (connections layout)]
