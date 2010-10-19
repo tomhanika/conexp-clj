@@ -147,30 +147,16 @@
 
 (define-layout-output-format :tikz
   [layout file]
-  (let [infs         (set (inf-irreducibles layout)),
-        sups         (set (sup-irreducibles layout)),
-        insu         (intersection infs sups),
-        vertex-pos   (positions layout),
-        sorted       (sort #(let [[x_1 y_1] (vertex-pos %1),
-                                  [x_2 y_2] (vertex-pos %2)]
-                              (or (< y_1 y_2)
-                                  (and (= y_1 y_2)
-                                       (< x_1 x_2))))
-                           (nodes layout)),
-        vertex-idx   (into {}
-                           (map-indexed (fn [i v] [v i])
-                                        sorted)),
-        vertex-lines (map (fn [v]
-                            (let [i     (vertex-idx v),
-                                  [x y] (vertex-pos v)]
-                              (str "        " i "/"
-                                   (cond
-                                    (contains? insu v)  "divertex"
-                                    (contains? sups v)  "jivertex"
-                                    (contains? infs v)  "mivertex"
-                                    :else               "vertex")
-                                   "/" x "/" y)))
-                          sorted)]
+  (let [vertex-pos      (positions layout),
+        sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
+                                     [x_2 y_2] (vertex-pos %2)]
+                                 (or (< y_1 y_2)
+                                     (and (= y_1 y_2)
+                                          (< x_1 x_2))))
+                              (nodes layout)),
+        vertex-idx      (into {}
+                              (map-indexed (fn [i v] [v i])
+                                           sorted-vertices))]
     (with-out-writer file
       (println "\\colorlet{mivertexcolor}{blue}")
       (println "\\colorlet{jivertexcolor}{red}")
@@ -188,9 +174,23 @@
       (println "  \\begin{scope} %for scaling and the like")
       (println "    \\begin{scope} %draw vertices")
       (println "      \\foreach \\nodename/\\nodetype/\\xpos/\\ypos in {%")
-      (doseq [x (interpose ",\n" vertex-lines)]
-        (print x))
-      (println)
+      (let [infs         (set (inf-irreducibles layout)),
+            sups         (set (sup-irreducibles layout)),
+            insu         (intersection infs sups),
+            vertex-lines (map (fn [v]
+                                (let [i     (vertex-idx v),
+                                      [x y] (vertex-pos v)]
+                                  (str "        " i "/"
+                                       (cond
+                                        (contains? insu v)  "divertex"
+                                        (contains? sups v)  "jivertex"
+                                        (contains? infs v)  "mivertex"
+                                        :else               "vertex")
+                                       "/" x "/" y)))
+                              sorted-vertices)]
+        (doseq [x (interpose ",\n" vertex-lines)]
+          (print x))
+        (println))
       (println "      } \\nodex[\\nodetype] (\\nodename) at (\\xpos, \\ypos) {};")
       (println "    \\end{scope}")
       (println "    \\begin{scope} %draw connections")
@@ -199,7 +199,21 @@
       (println "    \\end{scope}")
       (println "    \\begin{scope} %add labels")
       (println "      \\foreach \\nodename/\\labelpos/\\labelopts/\\labelcontent in {%")
-      'todo
+      (let [ann       (annotation lay),
+            ann-lines (mapcat (fn [v]
+                                (let [[u l] (ann v),
+                                      lines (if-not (= "" u)
+                                              (list (str "        " (vertex-idx v) "/above//{" u "}"))
+                                              ()),
+                                      lines (if-not (= "" l)
+                                              (conj lines
+                                                    (str "        " (vertex-idx v) "/below//{" l "}"))
+                                              lines)]
+                                    lines))
+                              sorted-vertices)]
+        (doseq [x (interpose ",\n" ann-lines)]
+          (print x))
+        (println))
       (println "      } \\coordinate[label={[\\labelopts]\\labelpos:{\\labelcontent}}](c) at (\\nodename);")
       (println "    \\end{scope}")
       (println "  \\end{scope}")
