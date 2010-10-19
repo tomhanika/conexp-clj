@@ -110,20 +110,27 @@
   "Returns hash-map mapping the infimum irreducible elements to their
   upper neighbours."
   [layout]
-  (loop [inf-uppers {}
+  (loop [inf-uppers (transient {}),
 	 all-uppers (seq (upper-neighbours layout))]
     (if (empty? all-uppers)
-      inf-uppers
+      (persistent! inf-uppers)
       (let [[x upper-x] (first all-uppers)]
 	(recur (if (= 1 (count upper-x))
-		 (conj inf-uppers [x (first upper-x)])
+		 (assoc! inf-uppers x (first upper-x))
 		 inf-uppers)
 	       (rest all-uppers))))))
 
 (def-layout-fn inf-irreducibles
-  "Returns a sequence of infimum irreducible elements of layout."
+  "Returns the set of infimum irreducible elements of layout."
   [layout]
-  (keys (upper-neighbours-of-inf-irreducibles layout)))
+  (set-of v [[v uppers] (upper-neighbours layout),
+             :when (singelton? uppers)]))
+
+(def-layout-fn sup-irreducibles
+  "Returns the set of supremum irreducible elements of layout."
+  [layout]
+  (set-of v [[v lowers] (lower-neighbours layout),
+             :when (singelton? lowers)]))
 
 (def-layout-fn order
   "Returns underlying order relation of layout. This operation may be
