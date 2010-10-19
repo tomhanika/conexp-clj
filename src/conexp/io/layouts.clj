@@ -199,7 +199,7 @@
       (println "    \\end{scope}")
       (println "    \\begin{scope} %add labels")
       (println "      \\foreach \\nodename/\\labelpos/\\labelopts/\\labelcontent in {%")
-      (let [ann       (annotation lay),
+      (let [ann       (annotation layout),
             ann-lines (mapcat (fn [v]
                                 (let [[u l] (ann v),
                                       lines (if-not (= "" u)
