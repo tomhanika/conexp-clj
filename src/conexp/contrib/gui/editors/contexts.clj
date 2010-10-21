@@ -85,7 +85,7 @@
   (let [thing (get-context-from-panel (current-tab frame))]
     (add-tab frame
              (make-lattice-editor frame
-                                  (*standard-layout-function* (concept-lattice thing)))
+                                  (standard-layout (concept-lattice thing)))
              "Concept-Lattice")))
 
 ;;; The Hooks

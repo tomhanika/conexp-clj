@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.control.parameters
   (:use [conexp.math.util                  :only (with-doubles)]
-        [conexp.layouts                    :only (*standard-layout-function*,
+        [conexp.layouts                    :only (standard-layout,
                                                   inf-additive-layout)]
         [conexp.layouts.util               :only (scale-layout)]
         [conexp.layouts.base               :only (lattice)]
@@ -61,7 +61,7 @@
       (redraw-scene scn)))
 
   ;; layouts
-  (let [layouts {"standard"     *standard-layout-function*,
+  (let [layouts {"standard"     standard-layout,
                  "inf-add"      inf-additive-layout,
                  "simple-layer" simple-layered-layout,
                  "as-chain"     as-chain},

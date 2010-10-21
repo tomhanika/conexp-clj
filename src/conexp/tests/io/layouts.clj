@@ -17,12 +17,12 @@
 
 ;;;
 
-(defvar- *testing-layouts*
-  (map (comp *standard-layout-function* concept-lattice)
+(defvar- testing-layouts
+  (map (comp standard-layout concept-lattice)
        (random-contexts 20 10)))
 
 (deftest test-layout-oioi
-  (with-testing-data [lay *testing-layouts*,
+  (with-testing-data [lay testing-layouts,
                       fmt (remove #{:text} (list-layout-formats))]
     (out-in-out-in-test lay 'layout fmt)))
 

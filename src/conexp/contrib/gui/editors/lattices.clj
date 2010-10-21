@@ -72,10 +72,10 @@
 (defvar- *lattice-menu*
   {:name "Lattice",
    :content [{:name "Load Lattice",
-	      :handler #(load-lattice-and-go % read-lattice *standard-layout-function*)}
+	      :handler #(load-lattice-and-go % read-lattice standard-layout)}
 	     {:name "Load Lattice from Context"
 	      :handler #(load-lattice-and-go % read-context
-					     (comp *standard-layout-function* concept-lattice))}
+					     (comp standard-layout concept-lattice))}
 	     {:name "Load Layout"
 	      :handler #(load-lattice-and-go % read-layout identity)}
 	     {}

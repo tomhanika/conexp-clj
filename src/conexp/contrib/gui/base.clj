@@ -25,25 +25,25 @@
 
 ;;; Menus
 
-(defvar- *main-menu* {:name "Main",
-		      :content [---
-				{:name "Quit",
-				 :handler (fn [^JFrame frame]
-					    (condp = (.getDefaultCloseOperation frame)
-					      JFrame/DISPOSE_ON_CLOSE    (.dispose frame),
+(defvar- main-menu {:name "Main",
+                    :content [---
+                              {:name "Quit",
+                               :handler (fn [^JFrame frame]
+                                          (condp = (.getDefaultCloseOperation frame)
+                                              JFrame/DISPOSE_ON_CLOSE    (.dispose frame),
 					      JFrame/EXIT_ON_CLOSE       (System/exit 0),
 					      JFrame/HIDE_ON_CLOSE       (.hide frame),
 					      JFrame/DO_NOTHING_ON_CLOSE nil,
 					      (illegal-state "Unknown default close operation for given frame.")))}]}
   "Main menu for conexp-clj standard GUI.")
 
-(defvar- *help-menu* {:name "Help",
+(defvar- help-menu {:name "Help",
 		      :content [{:name "License"}
 				---
 				{:name "About"}]}
   "Help menu for conexp-clj standard GUI.")
 
-(defvar- *standard-menus* [*main-menu* === *help-menu*]
+(defvar- standard-menus [main-menu === help-menu]
   "Standard menus for conexp-clj GUI.")
 
 
@@ -59,7 +59,7 @@
       (.setSize 1000 800)
       (.setJMenuBar (JMenuBar.))
       (.setContentPane (JPanel. (BorderLayout.)))
-      (add-menus *standard-menus*)
+      (add-menus standard-menus)
       (add-plugin-manager))
 
     ;; tabbed-pane setup

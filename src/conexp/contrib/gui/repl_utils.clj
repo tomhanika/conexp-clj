@@ -87,7 +87,7 @@
   "Starts lattice editor with given lattice."
   [lattice]
   (add-tab (make-lattice-editor (get-main-frame)
-				(*standard-layout-function* lattice))
+				(standard-layout lattice))
 	   "Lattice"))
 
 ;;;

@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.lattices
   (:use [conexp.base                       :only (ns-doc, defnk)]
-        [conexp.layouts                    :only (*standard-layout-function*)]
+        [conexp.layouts                    :only (standard-layout)]
         [conexp.layouts.util               :only (scale-layout)]
         [conexp.contrib.draw.scenes        :only (scene-canvas,
                                                   add-scrollbars)]
@@ -103,13 +103,13 @@
   the frame and the scene (as map). The following options are allowed,
   their default values are given in parantheses:
 
-    - layout-fn (*standard-layout-function*)
+    - layout-fn (standard-layout)
     - visible (true)
     - dimension [600 600]
   "
   [lattice
-   :layout-fn *standard-layout-function*
-   :visible true
+   :layout-fn standard-layout,
+   :visible true,
    :dimension [600 600]]
   (let [^JFrame frame (JFrame. "conexp-clj Lattice"),
         ^JPanel lattice-editor (make-lattice-editor frame (layout-fn lattice))]
