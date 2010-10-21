@@ -8,12 +8,12 @@
 
 (ns conexp.contrib.draw.nodes-and-connections
   (:use [conexp.base :only (ns-doc,defvar-, defvar, round, union, difference)]
-	conexp.contrib.draw.scenes)
-  (:use	[clojure.contrib.core :only (-?>)])
+        conexp.contrib.draw.scenes)
+  (:use [clojure.contrib.core :only (-?>)])
   (:import [java.awt Color]
-	   [no.geosoft.cc.graphics GWindow GScene GObject GSegment
-	                           GStyle GInteraction ZoomInteraction
-	                           GText GPosition]))
+           [no.geosoft.cc.graphics GWindow GScene GObject GSegment
+                                   GStyle GInteraction ZoomInteraction
+                                   GText GPosition]))
 
 (ns-doc
  "Namespace for representing nodes and their connections for drawing
@@ -108,23 +108,23 @@
 (defn- create-two-halfcircles
   "Creates points for two half circles, lower circle points first."
   [x y radius]
-  (let [x (double x),
-	y (double y),
-	radius (double radius),
-	samples 100,
-	angle (/ Math/PI samples),
-	[upper-points, lower-points] (loop [current-angle (double (- (/ Math/PI 2.0))),
-					    acc-samples 0,
-					    upper-points [],
-					    lower-points []]
-				       (if (> acc-samples samples)
-					 [upper-points, lower-points]
-					 (let [new-x (+ x (* radius (Math/sin current-angle))),
-					       new-y (+ y (* radius (Math/cos current-angle)))]
-					   (recur (double (+ current-angle angle))
-						  (inc acc-samples)
-						  (conj upper-points new-x new-y)
-						  (conj lower-points new-x (+ y y (- new-y)))))))]
+  (let [x       (double x),
+        y       (double y),
+        radius  (double radius),
+        samples 100,
+        angle   (/ Math/PI samples),
+        [upper-points, lower-points] (loop [current-angle (double (- (/ Math/PI 2.0))),
+                                            acc-samples 0,
+                                            upper-points [],
+                                            lower-points []]
+                                       (if (> acc-samples samples)
+                                         [upper-points, lower-points]
+                                         (let [new-x (+ x (* radius (Math/sin current-angle))),
+                                               new-y (+ y (* radius (Math/cos current-angle)))]
+                                           (recur (double (+ current-angle angle))
+                                                  (inc acc-samples)
+                                                  (conj upper-points new-x new-y)
+                                                  (conj lower-points new-x (+ y y (- new-y)))))))]
     [(into-array Double/TYPE lower-points), (into-array Double/TYPE upper-points)]))
 
 (defvar default-node-radius 5.0
@@ -134,39 +134,39 @@
   "Adds a node to scn at position [x y]."
   [^GScene scn, x, y, name, [upper-label lower-label]]
   (let [^GSegment upper-segment (GSegment.),
-	^GSegment lower-segment (GSegment.),
-	object (proxy [GObject] []
-		 (draw []
-		   (let [upper-style (if (= 1 (-?> this upper-neighbors count))
-				       default-attribute-concept-style
-				       nil),
-			 lower-style (if (= 1 (-?> this lower-neighbors count))
-				       default-object-concept-style
-				       nil),
-			 [x y] (position this),
-			 [l u] (create-two-halfcircles x y (radius this))]
-		     (.setGeometryXy lower-segment l)
-		     (.setGeometryXy upper-segment u)
-		     (.setStyle lower-segment lower-style)
-		     (.setStyle upper-segment upper-style))))
-	style (GStyle.)]
+        ^GSegment lower-segment (GSegment.),
+        object (proxy [GObject] []
+                 (draw []
+                   (let [upper-style (if (= 1 (-?> this upper-neighbors count))
+                                       default-attribute-concept-style
+                                       nil),
+                         lower-style (if (= 1 (-?> this lower-neighbors count))
+                                       default-object-concept-style
+                                       nil),
+                         [x y] (position this),
+                         [l u] (create-two-halfcircles x y (radius this))]
+                     (.setGeometryXy lower-segment l)
+                     (.setGeometryXy upper-segment u)
+                     (.setStyle lower-segment lower-style)
+                     (.setStyle upper-segment upper-style))))
+        style (GStyle.)]
     (doto object
       (.setStyle default-node-style)
       (.addSegment lower-segment)
       (.addSegment upper-segment)
       (.setUserData (ref {:type :node,
-			  :position [(double x), (double y)],
-			  :radius default-node-radius,
-			  :name name})))
+                          :position [(double x), (double y)],
+                          :radius default-node-radius,
+                          :name name})))
     (doto scn
       (.add object))
 
     (let [^GText upper-text (GText. (print-str upper-label) GPosition/NORTH),
-	  ^GText lower-text (GText. (print-str lower-label) GPosition/SOUTH)]
-	(.setStyle upper-text default-node-label-style)
-	(.setStyle lower-text default-node-label-style)
-	(.addText upper-segment upper-text)
-	(.addText lower-segment lower-text))
+          ^GText lower-text (GText. (print-str lower-label) GPosition/SOUTH)]
+        (.setStyle upper-text default-node-label-style)
+        (.setStyle lower-text default-node-label-style)
+        (.addText upper-segment upper-text)
+        (.addText lower-segment lower-text))
 
     object))
 
@@ -198,27 +198,27 @@
     (connect-nodes scn x y (str (get-name x) " -> " (get-name y))))
   ([^GScene scn, ^GObject x, ^GObject y, name]
      (let [line (GSegment.),
-	   c    (proxy [GObject] []
-		  (draw []
-		    (let [[x1 y1] (position (lower-node this))
-			  [x2 y2] (position (upper-node this))]
-		      (.setGeometry line
-				    (double x1) (double y1)
-				    (double x2) (double y2)))))]
+           c    (proxy [GObject] []
+                  (draw []
+                    (let [[x1 y1] (position (lower-node this))
+                          [x2 y2] (position (upper-node this))]
+                      (.setGeometry line
+                                    (double x1) (double y1)
+                                    (double x2) (double y2)))))]
        (doto scn
-	 (.add c))
+         (.add c))
        (doto line
-	 (.setStyle default-line-style))
+         (.setStyle default-line-style))
        (doto c
-	 (.addSegment line)
-	 (.toBack)
-	 (.setUserData (ref {:type :connection,
-			     :lower x,
-			     :upper y,
-			     :name name})))
+         (.addSegment line)
+         (.toBack)
+         (.setUserData (ref {:type :connection,
+                             :lower x,
+                             :upper y,
+                             :name name})))
        (dosync
-	(alter (.getUserData x) update-in [:upper] conj c)
-	(alter (.getUserData y) update-in [:lower] conj c)))))
+        (alter (.getUserData x) update-in [:upper] conj c)
+        (alter (.getUserData y) update-in [:lower] conj c)))))
 
 
 ;;; move nodes around
@@ -230,8 +230,8 @@
     (if (empty? lowers)
       nil
       (reduce max (map (fn [node]
-			 ((position node) 1))
-		       lowers)))))
+                         ((position node) 1))
+                       lowers)))))
 
 (defn- height-of-upper-neighbors
   "Returns minimal height of all upper neighbors."
@@ -240,8 +240,8 @@
     (if (empty? uppers)
       nil
       (reduce min (map (fn [node]
-			 ((position node) 1))
-		       uppers)))))
+                         ((position node) 1))
+                       uppers)))))
 
 (defn move-node-unchecked-to
   "Moves node to [new-x new-y]."
@@ -265,11 +265,11 @@
   upper neighbors or under some of its lower neighbors."
   [^GObject node, dx, dy]
   (let [[x y] (position node),
-	;; make sure nodes don't go too far
-	max-y (height-of-upper-neighbors node),
-	min-y (height-of-lower-neighbors node),
-	dy    (if max-y (min dy (- max-y y)) dy),
-	dy    (if min-y (max dy (- min-y y)) dy)]
+        ;; make sure nodes don't go too far
+        max-y (height-of-upper-neighbors node),
+        min-y (height-of-lower-neighbors node),
+        dy    (if max-y (min dy (- max-y y)) dy),
+        dy    (if min-y (max dy (- min-y y)) dy)]
     (move-node-unchecked-to node (+ x dx) (+ y dy))))
 
 
@@ -283,12 +283,12 @@
      (if (empty? to-process)
        visited
        (let [next (first to-process)]
-	 (if (contains? visited next)
-	   (recur neighbors (rest to-process) visited)
-	   (let [neighs (neighbors next)]
-	     (recur neighbors
-		    (into (rest to-process) neighs)
-		    (conj visited next))))))))
+         (if (contains? visited next)
+           (recur neighbors (rest to-process) visited)
+           (let [neighs (neighbors next)]
+             (recur neighbors
+                    (into (rest to-process) neighs)
+                    (conj visited next))))))))
 
 (defn all-nodes-above
   "Returns the set of all nodes above node."
@@ -310,22 +310,22 @@
      (if (empty? to-process)
        visited
        (let [next (first to-process)]
-	 (if (contains? visited next)
-	   (recur neighbors (rest to-process) visited)
-	   (let [neighs (neighbors next)]
-	     (if (= 1 (count neighs))
-	       (recur neighbors (into (rest to-process) neighs) (conj visited next))
-	       (recur neighbors (into (rest to-process) neighs) visited))))))))
+         (if (contains? visited next)
+           (recur neighbors (rest to-process) visited)
+           (let [neighs (neighbors next)]
+             (if (= 1 (count neighs))
+               (recur neighbors (into (rest to-process) neighs) (conj visited next))
+               (recur neighbors (into (rest to-process) neighs) visited))))))))
 
 (defn- group-by-function
   "Categorizes elements in coll by their value under f."
   [f coll]
   (loop [elements coll,
-	 category {}]
+         category {}]
     (if (empty? elements)
       (vals category)
       (let [next (first elements)]
-	(recur (rest elements) (update-in category [(f next)] conj next))))))
+        (recur (rest elements) (update-in category [(f next)] conj next))))))
 
 (defn- all-additively-influenced-nodes
   "Returns all nodes which are additively influenced by node. upper
@@ -335,15 +335,15 @@
   representing the influence by node."
   [node uppers lowers]
   (let [irrs (all-irreducible-neighbored-nodes node uppers),
-	others (group-by-function identity
-			 (apply concat (map #(all-neighbored-nodes % lowers) irrs))),
-	irr-count (count irrs)]
+        others (group-by-function identity
+                         (apply concat (map #(all-neighbored-nodes % lowers) irrs))),
+        irr-count (count irrs)]
     (concat (for [n irrs
-		  :when (not= n node)]
-	      [n (/ irr-count)])
-	    (for [nodes others
-		  :when (not= (first nodes) node)]
-	      [(first nodes) (/ (count nodes) irr-count)]))))
+                  :when (not= n node)]
+              [n (/ irr-count)])
+            (for [nodes others
+                  :when (not= (first nodes) node)]
+              [(first nodes) (/ (count nodes) irr-count)]))))
 
 (defn all-inf-add-influenced-nodes
   "Returns all nodes (with weights) which are infimum-additively
@@ -374,25 +374,25 @@
   (let [interaction-obj (atom nil)]
     (proxy [GInteraction] []
       (event [^GScene scn, evt, x, y]
-	(condp = evt
-	   GWindow/BUTTON1_DOWN  (let [thing (.find scn x y)]
-				   (when (node? thing)
-				     (reset! interaction-obj thing)
-				     (call-scene-hook scn :move-start thing))),
-	   GWindow/BUTTON1_DRAG  (when @interaction-obj
-				   (let [[a b] (position @interaction-obj),
-					 [x y] (device-to-world scn x y)]
-				     (move-node-by @interaction-obj (- x a) (- y b))
-				     (call-scene-hook scn :move-drag @interaction-obj (- x a) (- y b))
-				     (.refresh scn))),
-	   GWindow/BUTTON1_UP    (when @interaction-obj
+        (condp = evt
+           GWindow/BUTTON1_DOWN  (let [thing (.find scn x y)]
+                                   (when (node? thing)
+                                     (reset! interaction-obj thing)
+                                     (call-scene-hook scn :move-start thing))),
+           GWindow/BUTTON1_DRAG  (when @interaction-obj
+                                   (let [[a b] (position @interaction-obj),
+                                         [x y] (device-to-world scn x y)]
+                                     (move-node-by @interaction-obj (- x a) (- y b))
+                                     (call-scene-hook scn :move-drag @interaction-obj (- x a) (- y b))
+                                     (.refresh scn))),
+           GWindow/BUTTON1_UP    (when @interaction-obj
                                    (call-scene-hook scn :move-stop @interaction-obj)
                                    (reset! interaction-obj nil)),
            GWindow/BUTTON3_DOWN  (let [thing (.find scn x y)]
                                    (when (node? thing)
                                      (highlight-node thing)
                                      (.refresh scn))),
-	   nil)))))
+           nil)))))
 
 (defn zoom-interaction
   "Standrd zoom interaction for lattice diagrams. Installs
@@ -403,13 +403,13 @@
   (let [^ZoomInteraction zoom-obj (ZoomInteraction. scene)]
     (proxy [GInteraction] []
       (event [^GScene scn, evt, x, y]
-	(.event zoom-obj scn evt x y)
-	(when (and scn
+        (.event zoom-obj scn evt x y)
+        (when (and scn
                    (or (= evt GWindow/BUTTON1_UP)
                        (= evt GWindow/BUTTON2_UP)
                        (= evt GWindow/BUTTON3_UP)))
-	  (call-scene-hook scn :zoom)
-	  (call-scene-hook scn :image-changed))))))
+          (call-scene-hook scn :zoom)
+          (call-scene-hook scn :image-changed))))))
 
 ;;;
 
