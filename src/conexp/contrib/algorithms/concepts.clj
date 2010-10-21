@@ -89,7 +89,7 @@
           (.set D j false))))
     [C, D]))
 
-(defg generate-from
+(defg vychodil-generate-from
   [object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
   (yield [A, B])
   (when (and (not (== attribute-count (.cardinality B)))
@@ -105,11 +105,11 @@
                            (not= (.get D k) (.get B k)) true,
                            :else (recur (inc k))))]
             :when (not skip)]
-      (generate-from object-count attribute-count,
-                     incidence-matrix rows,
-                     C D (inc j)))))
+      (vychodil-generate-from object-count attribute-count,
+                              incidence-matrix rows,
+                              C D (inc j)))))
 
-(alter-meta! (var generate-from) assoc :private true)
+(alter-meta! (var vychodil-generate-from) assoc :private true)
 
 (defmethod concepts :vychodil
   [_ context]
@@ -133,13 +133,13 @@
       (map (fn [pair]
              [(to-hashset object-vector (first pair))
               (to-hashset attribute-vector (second pair))])
-           (generate (generate-from object-count
-                                    attribute-count
-                                    incidence-matrix
-                                    rows
-                                    empty-down
-                                    empty-down-up
-                                    0))))))
+           (generate (vychodil-generate-from object-count
+                                             attribute-count
+                                             incidence-matrix
+                                             rows
+                                             empty-down
+                                             empty-down-up
+                                             0))))))
 
 
 ;;; In-Close (:in-close)
@@ -192,7 +192,6 @@
              [(to-hashset object-vector A),
               (to-hashset attribute-vector B)])
            As Bs))))
-
 
 ;;; Parallel-Close-by-One (:pcbo)
 
