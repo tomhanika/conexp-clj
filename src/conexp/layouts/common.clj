@@ -72,6 +72,29 @@
   [lattice top placement]
   (make-layout (placement-by-initials lattice top placement) (edges lattice)))
 
+;;; grid adjustment
+
+(defn- fit-point-to-grid
+  "Moves given point [x y] to the next point on the grid given by the
+  origin [x_origin y_origin] and the paddings x_pad and y_pad."
+  [[x_origin y_origin] x_pad y_pad [x y]] [(+ x_origin (*
+  x_pad (round (/ (- x x_origin) x_pad)))),
+   (+ y_origin (* y_pad (round (/ (- y y_origin) y_pad))))])
+
+(defn fit-layout-to-grid
+  "Specifies a grid by a origin point and paddings x_pad and y_pad
+  between two adjacent grid lines in x and y direction
+  respectively. Returns the layout resulting from adjusting the given
+  layout on this layout."
+  [layout origin x_pad y_pad]
+  (let [fit-point (partial fit-point-to-grid origin x_pad y_pad)]
+    (update-positions layout
+                      (persistent!
+                       (reduce (fn [map [name [x y]]]
+                                 (assoc! map name (fit-point [x y])))
+                               (transient {})
+                               (positions layout))))))
+
 ;;;
 
 nil
