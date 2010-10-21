@@ -38,12 +38,12 @@
     (Math/sqrt (+ (square (- x_1 x_2)) (square (- y_1 y_2))))))
 
 (defmacro sum
-  "Sums up all values of bindings obtained with expr. See for."
+  "Sums up all values of bindings obtained with expr. See doseq."
   [bindings expr]
-  `(with-local-vars [sum# (double 0)]
+  `(let [sum# (atom (double 0))]
      (doseq ~bindings
-       (var-set sum# (+ (double (var-get sum#)) (double ~expr))))
-     (double (var-get sum#))))
+       (swap! sum# + (double ~expr)))
+     (double @sum#)))
 
 (defn- unit-vector
   "Returns unit vector between first and second point. Returns

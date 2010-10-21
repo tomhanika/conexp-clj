@@ -142,18 +142,18 @@
   aforementioned cardinality."
   [values context U D]
   (let [attributes (set-of m [[[_ m] _] (select-keys (incidence context) U)])] ;note: is not empty
-    (with-local-vars [attribute nil,
-                      max-value -1,
-                      fuzzyness nil]
+    (let [attribute (atom nil),
+          max-value (atom -1),
+          fuzzyness (atom nil)]
       (doseq [m attributes
               v values
               :when (not (>= (D m) v))
               :let  [c (count (fuzzy-oplus-a context U D v m))]
-              :when (< (var-get max-value) c)]
-        (var-set max-value c)
-        (var-set attribute m)
-        (var-set fuzzyness v))
-      [(var-get attribute) (var-get fuzzyness), (var-get max-value)])))
+              :when (< @max-value c)]
+        (reset! max-value c)
+        (reset! attribute m)
+        (reset! fuzzyness v))
+      [@attribute @fuzzyness @max-value])))
 
 (defmethod factorize-context :fuzzy
   [_ context truth-values]
