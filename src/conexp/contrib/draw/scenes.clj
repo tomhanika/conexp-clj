@@ -121,9 +121,9 @@
 
 ;; scene constructor
 
-(defvar- *default-scene-style* (doto (GStyle.)
-				 (.setBackgroundColor Color/WHITE)
-				 (.setAntialiased true))
+(defvar- default-scene-style (doto (GStyle.)
+                               (.setBackgroundColor Color/WHITE)
+                               (.setAntialiased true))
   "Default GScene style.")
 
 (defn make-window
@@ -139,7 +139,7 @@
       (initialize-scene)
       (.shouldZoomOnResize true)
       (.shouldWorldExtentFitViewport false)
-      (.setStyle *default-scene-style*)
+      (.setStyle default-scene-style)
       (add-scene-hook :image-changed))
     (.addComponentListener ^Canvas (.. scn getWindow getCanvas)
                            (proxy [ComponentListener] []

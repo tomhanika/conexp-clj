@@ -35,7 +35,7 @@
   (let [^JTextField
         node-radius (make-labeled-text-field buttons
                                              "radius"
-                                             (str *default-node-radius*))]
+                                             (str default-node-radius))]
     (add-scene-callback scn :image-changed
                         (fn []
                           (let [new-radius (Double/parseDouble (.getText node-radius)),

@@ -282,9 +282,9 @@
   [frame]
   (get-component frame #(= (class %) JToolBar)))
 
-(defvar *default-icon-image* (get-resource "images/default.jpg")
+(defvar default-icon-image (get-resource "images/default.jpg")
   "Default icon image used when no other image is found.")
-(defvar *icon-size* 17
+(defvar icon-size 17
   "Default icon size.")
 
 (defn- make-icon
@@ -300,9 +300,8 @@
       (let [icon (:icon icon-hash)
             image (-> (ImageIO/read (if (and icon (.exists (File. icon)))
                                       (File. icon)
-                                      *default-icon-image*))
-                      (.getScaledInstance *icon-size*
-                                          *icon-size*
+                                      default-icon-image))
+                      (.getScaledInstance icon-size icon-size
                                           Image/SCALE_SMOOTH))]
         (.setIcon button (ImageIcon. image)))
       button)))

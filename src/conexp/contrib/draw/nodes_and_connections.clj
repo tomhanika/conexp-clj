@@ -87,22 +87,22 @@
 
 ;;; create and connect nodes
 
-(defvar- *default-node-style* (doto (GStyle.)
-				(.setForegroundColor Color/BLACK)
-				(.setBackgroundColor Color/WHITE)
-				(.setLineWidth 1.0))
+(defvar- default-node-style (doto (GStyle.)
+                              (.setForegroundColor Color/BLACK)
+                              (.setBackgroundColor Color/WHITE)
+                              (.setLineWidth 1.0))
   "Default node style for lattice diagrams.")
 
-(defvar- *default-object-concept-style* (doto (GStyle.)
-					  (.setBackgroundColor Color/BLACK))
+(defvar- default-object-concept-style (doto (GStyle.)
+                                        (.setBackgroundColor Color/BLACK))
   "Default style for nodes being an object concept.")
 
-(defvar- *default-attribute-concept-style* (doto (GStyle.)
-					     (.setBackgroundColor Color/BLUE))
+(defvar- default-attribute-concept-style (doto (GStyle.)
+                                           (.setBackgroundColor Color/BLUE))
   "Default style for nodes being an attribute concept.")
 
-(defvar- *default-node-label-style* (doto (GStyle.)
-				      (.setBackgroundColor Color/WHITE))
+(defvar- default-node-label-style (doto (GStyle.)
+                                    (.setBackgroundColor Color/WHITE))
   "Default style for node labels.")
 
 (defn- create-two-halfcircles
@@ -127,7 +127,7 @@
 						  (conj lower-points new-x (+ y y (- new-y)))))))]
     [(into-array Double/TYPE lower-points), (into-array Double/TYPE upper-points)]))
 
-(defvar *default-node-radius* 5.0
+(defvar default-node-radius 5.0
   "Initial node radius when drawing lattices.")
 
 (defn- add-node
@@ -138,10 +138,10 @@
 	object (proxy [GObject] []
 		 (draw []
 		   (let [upper-style (if (= 1 (-?> this upper-neighbors count))
-				       *default-attribute-concept-style*
+				       default-attribute-concept-style
 				       nil),
 			 lower-style (if (= 1 (-?> this lower-neighbors count))
-				       *default-object-concept-style*
+				       default-object-concept-style
 				       nil),
 			 [x y] (position this),
 			 [l u] (create-two-halfcircles x y (radius this))]
@@ -151,20 +151,20 @@
 		     (.setStyle upper-segment upper-style))))
 	style (GStyle.)]
     (doto object
-      (.setStyle *default-node-style*)
+      (.setStyle default-node-style)
       (.addSegment lower-segment)
       (.addSegment upper-segment)
       (.setUserData (ref {:type :node,
 			  :position [(double x), (double y)],
-			  :radius *default-node-radius*,
+			  :radius default-node-radius,
 			  :name name})))
     (doto scn
       (.add object))
 
     (let [^GText upper-text (GText. (print-str upper-label) GPosition/NORTH),
 	  ^GText lower-text (GText. (print-str lower-label) GPosition/SOUTH)]
-	(.setStyle upper-text *default-node-label-style*)
-	(.setStyle lower-text *default-node-label-style*)
+	(.setStyle upper-text default-node-label-style)
+	(.setStyle lower-text default-node-label-style)
 	(.addText upper-segment upper-text)
 	(.addText lower-segment lower-text))
 
@@ -172,24 +172,24 @@
 
 ;;
 
-(defvar- *default-highlighted-node-style* (doto (GStyle.)
-                                            (.setForegroundColor Color/RED)
-                                            (.setBackgroundColor Color/WHITE)
-                                            (.setLineWidth 3.0))
+(defvar- default-highlighted-node-style (doto (GStyle.)
+                                          (.setForegroundColor Color/RED)
+                                          (.setBackgroundColor Color/WHITE)
+                                          (.setLineWidth 3.0))
   "Default node style for lattice diagrams for highlighted nodes.")
 
 (defn highlight-node
   "Toggles the highlight-state of the given node."
   [^GObject node]
-  (if (= (.getStyle node) *default-node-style*)
-    (.setStyle node *default-highlighted-node-style*)
-    (.setStyle node *default-node-style*)))
+  (if (= (.getStyle node) default-node-style)
+    (.setStyle node default-highlighted-node-style)
+    (.setStyle node default-node-style)))
 
 ;;
 
-(defvar- *default-line-style* (doto (GStyle.)
-				(.setLineWidth 2.0)
-				(.setForegroundColor Color/BLACK))
+(defvar- default-line-style (doto (GStyle.)
+                              (.setLineWidth 2.0)
+                              (.setForegroundColor Color/BLACK))
   "Default line style.")
 
 (defn- connect-nodes
@@ -208,7 +208,7 @@
        (doto scn
 	 (.add c))
        (doto line
-	 (.setStyle *default-line-style*))
+	 (.setStyle default-line-style))
        (doto c
 	 (.addSegment line)
 	 (.toBack)
@@ -249,18 +249,14 @@
   ;; update self position
   (dosync
    (alter (.getUserData node) assoc :position [new-x new-y]))
-
   ;; move node on the device
   (.redraw node)
-
   ;; update connections to upper neighbors
   (doseq [^GObject c (upper-connections node)]
     (.redraw c))
-
   ;; update connections to lower neighbors
   (doseq [^GObject c (lower-connections node)]
     (.redraw c))
-
   ;; done
   [new-x new-y])
 
@@ -269,7 +265,6 @@
   upper neighbors or under some of its lower neighbors."
   [^GObject node, dx, dy]
   (let [[x y] (position node),
-
 	;; make sure nodes don't go too far
 	max-y (height-of-upper-neighbors node),
 	min-y (height-of-lower-neighbors node),
@@ -342,7 +337,6 @@
   (let [irrs (all-irreducible-neighbored-nodes node uppers),
 	others (group-by-function identity
 			 (apply concat (map #(all-neighbored-nodes % lowers) irrs))),
-
 	irr-count (count irrs)]
     (concat (for [n irrs
 		  :when (not= n node)]
@@ -423,11 +417,10 @@
   "Adds to scene scn nodes placed by node-coordinate-map and connected
   via pairs in the sequence node-connections."
   [scn node-coordinate-map node-connections annotation]
-  (let [node-map (apply hash-map
-			(apply concat (map (fn [[node [x y]]]
-					     [node
-					      (add-node scn x y node (annotation node))])
-					   node-coordinate-map)))]
+  (let [node-map (persistent! (reduce (fn [map [node [x y]]]
+                                        (assoc! map node (add-node scn x y node (annotation node))))
+                                      (transient {})
+                                      node-coordinate-map))]
     (doseq [[node-1 node-2] node-connections]
       (connect-nodes scn (node-map node-1) (node-map node-2)))
     node-map))
