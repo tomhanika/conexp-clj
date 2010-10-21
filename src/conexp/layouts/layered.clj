@@ -40,7 +40,8 @@
   "Assigns coordinates to a given layer such that it is centerer
   around 0 at height given by number."
   [number layer]
-  (let [start (double (- (/ (- (count layer) 1) 2)))]
+  (let [start  (double (- (/ (- (count layer) 1) 2))),
+        number (double number)]
     (interleave layer
 		(map #(vector % number)
 		     (iterate inc start)))))
