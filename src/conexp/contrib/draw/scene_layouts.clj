@@ -10,7 +10,7 @@
   (:use [conexp.base :only (ns-doc, illegal-argument, defvar-)]
 	[conexp.layouts.base :only (make-layout, positions, connections,
                                                  nodes, update-positions, annotation)]
-	[conexp.layouts.util :only (edges-of-points)]
+	[conexp.layouts.util :only (enclosing-rectangle)]
 	conexp.contrib.draw.nodes-and-connections
 	conexp.contrib.draw.scenes
         conexp.contrib.gui.util)
@@ -66,7 +66,7 @@
   ([^GScene scene]
      (fit-scene-to-layout scene (get-layout-from-scene scene)))
   ([^GScene scene, layout]
-     (let [[x_min y_min x_max y_max] (edges-of-points (vals (positions layout))),
+     (let [[x_min y_min x_max y_max] (enclosing-rectangle (vals (positions layout))),
            width  (- x_max x_min),
            height (- y_max y_min),
            width  (if (zero? width)

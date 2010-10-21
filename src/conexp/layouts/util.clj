@@ -18,7 +18,7 @@
 
 ;;;
 
-(defn edges-of-points
+(defn enclosing-rectangle
   "Returns left lower and right upper edge of the minimal rectangle
   containing all points. The coordinates are given in a vector of the
   form [x_min y_min x_max y_max]."
@@ -45,7 +45,7 @@
   "Scales the collection of points such that they fit in the
   rectangle given by [x1 y1] and [x2 y2]."
   [[x1 y1] [x2 y2] points]
-  (let [[x_min y_min x_max y_max] (edges-of-points points),
+  (let [[x_min y_min x_max y_max] (enclosing-rectangle points),
 	[a_x, b_x] (if (= x_min x_max)
                      [0, (/ (+ x1 x2) 2)]
                      (let [slope (/ (- x1 x2) (- x_min x_max))]
