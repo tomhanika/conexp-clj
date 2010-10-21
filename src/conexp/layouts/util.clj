@@ -10,11 +10,10 @@
   (:use conexp.base
 	[conexp.layouts.base :only (make-layout, positions, connections)]
 	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
-  (:use [clojure.contrib.graph :only (directed-graph, dependency-list)]))
+  (:require [clojure.contrib.graph :as graph]))
 
 (ns-doc
  "Utilities for computing lattice layouts.")
-
 
 ;;;
 
@@ -23,7 +22,7 @@
   containing all points. The coordinates are given in a vector of the
   form [x_min y_min x_max y_max]."
   [points]
-  (if (empty? points)
+  (when (empty? points)
     (illegal-argument (str "Cannot scale empty sequence of points.")))
   (let [[x0 y0] (first points),
 	[x_min y_min x_max y_max] (loop [x_min x0
@@ -68,6 +67,26 @@
 							       (map second points))))
 		 (connections layout))))
 
+;;;
+
+(defn lattice->graph
+  "Converts given lattice to it's corresponding graph with loops
+  removed."
+  [lattice]
+  (graph/remove-loops
+   (struct-map graph/directed-graph
+     :nodes (base-set lattice)
+     :neighbors (memoize
+		 (fn [x]
+		   (let [order (order lattice)]
+		     (filter #(order [x %]) (base-set lattice))))))))
+
+(defn layers
+  "Returns the layers of the given lattice, that is sequence of points
+  with equal depth, starting with the lowest layer."
+  [lattice]
+  (reverse (graph/dependency-list (lattice->graph lattice))))
+
 (defn edges
   "Returns a sequence of pairs of vertices of lattice which are
   directly neighbored in lattice."
@@ -80,12 +99,12 @@
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
   [layout]
-  (let [graph (struct-map directed-graph
+  (let [graph (struct-map graph/directed-graph
 		:nodes (keys (positions layout))
 		:neighbors (memoize (fn [x]
 				      (map second (filter (fn [[a b]] (= a x))
 							  (connections layout))))))]
-    (apply concat (dependency-list graph))))
+    (apply concat (graph/dependency-list graph))))
 
 ;;;
 

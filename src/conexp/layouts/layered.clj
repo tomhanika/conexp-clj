@@ -10,31 +10,11 @@
   (:use conexp.base
 	conexp.layouts.util
 	[conexp.layouts.base :only (make-layout)]
-	[conexp.fca.lattices :only (base-set order)])
-  (:use [clojure.contrib.graph :only (directed-graph, dependency-list, remove-loops)]))
+	[conexp.fca.lattices :only (base-set order)]))
 
 (ns-doc "Layered lattice layouts.")
 
-
 ;;; Simple Layered Layout
-
-(defn- lattice->graph
-  "Converts given lattice to it's corresponding graph with loops
-  removed."
-  [lattice]
-  (remove-loops
-   (struct-map directed-graph
-     :nodes (base-set lattice)
-     :neighbors (memoize
-		 (fn [x]
-		   (let [order (order lattice)]
-		     (filter #(order [x %]) (base-set lattice))))))))
-
-(defn- layers
-  "Returns the layers of the given lattice, that is sequence of points
-  with equal depth, starting with the lowest layer."
-  [lattice]
-  (reverse (dependency-list (lattice->graph lattice))))
 
 (defn- layer-coordinates
   "Assigns coordinates to a given layer such that it is centerer
@@ -46,8 +26,6 @@
 		(map #(vector % number)
 		     (iterate inc start)))))
 
-;;;
-
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."
   [lattice]
@@ -56,8 +34,6 @@
                               (iterate inc 0)
                               (layers lattice)))
                (edges lattice)))
-
-;;;
 
 (defn as-chain
   "Returns the layout of lattice as a simple chain."
