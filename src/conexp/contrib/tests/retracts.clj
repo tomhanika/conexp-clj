@@ -6,17 +6,17 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests
-  (:use conexp.main))
+(ns conexp.contrib.tests.retracts
+  (:use conexp.main
+        conexp.contrib.retracts)
+  (:use clojure.test))
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.util
-              conexp.contrib.tests.algorithms
-              conexp.contrib.tests.dl
-              conexp.contrib.tests.fuzzy
-              conexp.contrib.tests.factor-analysis
-              conexp.contrib.tests.retracts)
+(deftest test-retracts-simple
+  (= 1 (count (retracts (diag-context [1 2 3]))))
+  (= 10 (count (retracts (adiag-context [1 2 3]))))
+  (= 41 (count (retracts (adiag-context [1 2 3 4])))))
 
 ;;;
 

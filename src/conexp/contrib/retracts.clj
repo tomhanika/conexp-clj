@@ -7,14 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.retracts
-  (:use [conexp.main :only (ns-doc,
-			    concepts,
-			    objects, object-derivation,
-			    attributes, attribute-derivation,
-			    compatible-subcontexts,
-			    restrict-concept,
-			    make-context,
-			    set-of)])
+  (:use conexp.main)
   (:use [clojure.pprint :only (cl-format)]))
 
 (ns-doc "Package for computing retracts from formal contexts.")
@@ -40,11 +33,12 @@
   endofunctions of context originating from this homomorphism. The
   result may be thought of as a \"multifunction\"."
   [context hom]
-  (reduce (fn [hash concept]
-	    (assoc hash (hom concept)
-		   (conj (hash (hom concept)) concept)))
-	  {}
-	  (concepts context)))
+  (persistent!
+   (reduce (fn [hash concept]
+             (assoc! hash
+               (hom concept) (conj (hash (hom concept)) concept)))
+           (transient {})
+           (concepts context))))
 
 (defn- endofunctions-from-hash ; name is misleading
   "Computes all endofunctions (as a hash) in endo-hash."
@@ -74,38 +68,38 @@
 		      (attributes context)]]
     (and (= zero-concept (endo zero-concept))
 	 (= one-concept (endo one-concept))
-	 (let [imgs (vals endo)
+	 (let [imgs    (vals endo)
 	       img-ctx (make-context (objects context)
 				     (attributes context)
 				     (set-of [g m] [[objs atts] imgs,
 						    g objs,
 						    m atts]))]
 	   (= (count (distinct imgs))
-	      (count (concepts img-ctx)))))))
+	      (count (context-intents img-ctx)))))))
 
 (defn retracts
   "Returns all retracts of context as computed by the algorithm of
   Felix Kästner."
   [context]
-  (binding [concepts (memoize concepts)]
-    (let [concepts (concepts context)]
-      (for [hom (homomorphisms-by-cscs context)
-	    endo (endofunctions-by-homomorphism context hom)
-	    :let [ret (apply hash-map
-			     (interleave concepts
-					 (map (comp endo hom) concepts)))]
-	    :when (retract? context ret)]
-	ret))))
+  (when-not (reduced? context)
+    (illegal-argument "Can only compute retracts of reduced contexts."))
+  (let [concepts (concepts context)]
+    (for [hom  (homomorphisms-by-cscs context),
+          endo (endofunctions-by-homomorphism context hom),
+          :let [ret (zipmap concepts
+                            (map (comp endo hom) concepts))]
+          :when (retract? context ret)]
+      ret)))
 
 (defn- retract-to-pprint-str
-  "Pretty prints a retract of context."
+  "Returns a string for pretty printing a retract of a context."
   [retract]
   (let [key-value-pairs (sort (fn [[[A_1, _] _] [[A_2, _] _]]
 				(< 0 (compare (vec A_1) (vec A_2))))
 			      (seq retract)),
-	string-pairs (map #(map str %) key-value-pairs),
-	max-key (reduce max 0 (map (comp count first) string-pairs)),
-	max-val (reduce max 0 (map (comp count second) string-pairs))]
+	string-pairs    (map #(map str %) key-value-pairs),
+	max-key         (reduce max 0 (map (comp count first) string-pairs)),
+	max-val         (reduce max 0 (map (comp count second) string-pairs))]
     (map (fn [[k v]]
 	   (cl-format nil (str "~" max-key "@A  +->  ~" max-val "@A") k v))
 	 string-pairs)))
