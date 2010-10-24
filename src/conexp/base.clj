@@ -173,7 +173,7 @@
 			      [z_2 y] set-of-pairs
                              :when (= z_1 z_2)]))
 	      new))))
-	      
+
 (defn reflexive-transitive-closure
   "Computes the reflexive, transitive closure of a given set of pairs
   on base-set."
