@@ -138,9 +138,9 @@
 
 ;; Overall Energy
 
-(def *repulsive-amount* 500.0)
-(def *attractive-amount* 0.005)
-(def *gravitative-amount* 100.0)
+(def ^{:dynamic true} *repulsive-amount* 500.0)
+(def ^{:dynamic true} *attractive-amount* 0.005)
+(def ^{:dynamic true} *gravitative-amount* 100.0)
 
 (defn layout-energy
   "Returns the overall energy of the given layout."

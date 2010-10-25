@@ -115,26 +115,6 @@
                      (lectic-< base (clop #{y}) (clop #{x})))))
           base)))
 
-(defn next-closed-set
-  "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
-  interpreted as increasing, is taken to be the basic order of the elements."
-  [G clop A]
-  (next-closed-set-in-family (constantly true) G clop A))
-
-(defn all-closed-sets
-  "Computes all closed sets of a given closure operator on a given
-  set. Uses initial as first closed set it if supplied."
-  ([G clop]
-     (all-closed-sets G clop #{}))
-  ([G clop initial]
-     (let [G (if (set? G)
-               (improve-basic-order G clop)
-               G)]
-       (binding [subelts (memoize subelts)]
-         (take-while identity
-                     (iterate (partial next-closed-set G clop)
-                              (clop initial)))))))
-
 (defn all-closed-sets-in-family
   "Computes all closed sets of a given closure operator on a given set
   contained in the family described by predicate. See documentation of
@@ -143,14 +123,28 @@
   ([predicate G clop]
      (all-closed-sets-in-family predicate G clop #{}))
   ([predicate G clop initial]
-     (let [G (if (set? G)
-               (improve-basic-order G clop)
-               G)]
-       (binding [subelts (memoize subelts)]
-         (let [start (first (filter predicate (all-closed-sets G clop initial)))]
-           (take-while identity
+     (let [G (if (set? G) (improve-basic-order G clop) G)]
+       (with-memoized-fns [subelts]
+         (let [start (if (predicate initial)
+                       initial
+                       (next-closed-set-in-family predicate G clop initial))]
+           (take-while #(not (nil? %))
                        (iterate (partial next-closed-set-in-family predicate G clop)
                                 start)))))))
+
+(defn next-closed-set
+  "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
+  interpreted as increasing, is taken to be the basic order of the elements."
+  [G clop A]
+  (next-closed-set-in-family (constantly true) G clop A))
+
+(defn all-closed-sets
+  "Computes all closed sets of a given closure operator on a given
+  set. Uses initial as first closed set if supplied."
+  ([G clop]
+     (all-closed-sets G clop #{}))
+  ([G clop initial]
+     (all-closed-sets-in-family (constantly true) G clop (clop initial))))
 
 ;;; Common Math Algorithms
 

@@ -344,9 +344,7 @@
 (defn context-extents
   "Computes a sequence of all extents of ctx."
   [ctx]
-  (binding [attribute-derivation (memoize attribute-derivation)
-	    object-derivation    (memoize object-derivation)]
-    (all-closed-sets (objects ctx) (partial context-object-closure ctx))))
+  (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
 
 (defn context-attribute-closure
   "Computes double prime in context ctx for the given set-of-attributes."
@@ -356,9 +354,7 @@
 (defn context-intents
   "Computes a sequence of all intents of ctx."
   [ctx]
-  (binding [object-derivation (memoize object-derivation)
-	    attribute-derivation (memoize attribute-derivation)]
-    (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx))))
+  (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
 
 (defn concepts
   "Returns a sequence of all concepts of ctx as sequence of extents

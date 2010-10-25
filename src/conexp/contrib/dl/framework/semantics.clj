@@ -59,7 +59,7 @@
 
 (defn interpret
   "Interprets given expression in given model and returns the
-    corresponding extent."
+  corresponding extent."
   [model dl-expression]
   ((compile-expression (if (dl-expression? dl-expression)
                         dl-expression

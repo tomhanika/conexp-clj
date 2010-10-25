@@ -13,8 +13,10 @@
 
 ;;;
 
-(defn expert-refuses?
-  "Asks an expert (the user) whether a given subsumption is to be refuted or not."
+(defn ^{:dynamic true} expert-refuses?
+  "Asks an expert (the user) whether a given subsumption is to be
+  refuted or not. This is a dynamically defined function and can be
+  rebound."
   [subsumption]
   (let [answer (ask (str "Do you accept the subsumption \n\n"
 			 (print-str subsumption)

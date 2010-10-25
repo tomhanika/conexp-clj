@@ -100,9 +100,10 @@
                                           (not (expert-refuses? susu)))
                                     model
                                     (recur (extend-model-by-contradiction model susu))))),
-		   next-M_k   (apply add-concepts! M_k (for [r (role-names language)]
-                                                         (dl-expression language
-                                                                        (exists r (model-closure next-model all-P_k))))),
+		   next-M_k   (apply add-concepts! M_k
+                                     (for [r (role-names language)]
+                                       (dl-expression language
+                                                      (exists r (model-closure next-model all-P_k))))),
 		   next-K     (induced-context (seq-on next-M_k) next-model K),
 		   next-Pi_k  (conj Pi_k P_k),
 
@@ -188,9 +189,10 @@
                                        (= 1 (count (difference B A))))]))]
     (loop [K        (into {}
                           (for [[k v] (group-by count
-                                                (frequent-concept-sets model
-                                                                       (map #(make-dl-expression language %) (concept-names language))
-                                                                       minsupp))]
+                                                (frequent-concept-sets
+                                                 model
+                                                 (map #(make-dl-expression language %) (concept-names language))
+                                                 minsupp))]
                             [k (set v)])),
            all-keys (set-of (make-dl-expression language (cons 'and k)) [ks (vals K), k ks])]
       (println "K =" K)
@@ -221,7 +223,7 @@
                                                  :when (and (<= (* minsupp (count (model-base-set model)))
                                                                 (count extent))
                                                             (forall [x K]
-                                                                    (not= extent (interpret model (cons 'and (disj K x))))))]))]
+                                                              (not= extent (interpret model (cons 'and (disj K x))))))]))]
                        (if (and (> i j_max) (empty? K-i))
                          new-K
                          (recur (assoc new-K i K-i)

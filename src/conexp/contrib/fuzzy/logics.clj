@@ -52,7 +52,7 @@
   UnsupportedOperationException when called. The operator is meant to be
   rebound."
   [name arity]
-  `(defn ~name ~(vec (map (fn [_] (gensym)) (range arity)))
+  `(defn ~(with-meta name {:dynamic true}) ~(vec (map (fn [_] (gensym)) (range arity)))
      (unsupported-operation "You need to choose a logic with with-fuzzy-logic.")))
 
 (define-fuzzy-operator f-star 2)
