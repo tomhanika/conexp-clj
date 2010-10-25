@@ -125,9 +125,10 @@
   ([predicate G clop initial]
      (let [G (if (set? G) (improve-basic-order G clop) G)]
        (with-memoized-fns [subelts]
-         (let [start (if (predicate initial)
-                       initial
-                       (next-closed-set-in-family predicate G clop initial))]
+         (let [initial (clop initial),
+               start   (if (predicate initial)
+                         initial
+                         (next-closed-set-in-family predicate G clop initial))]
            (take-while #(not (nil? %))
                        (iterate (partial next-closed-set-in-family predicate G clop)
                                 start)))))))
@@ -144,7 +145,7 @@
   ([G clop]
      (all-closed-sets G clop #{}))
   ([G clop initial]
-     (all-closed-sets-in-family (constantly true) G clop (clop initial))))
+     (all-closed-sets-in-family (constantly true) G clop initial)))
 
 ;;; Common Math Algorithms
 

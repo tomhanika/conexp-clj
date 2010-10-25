@@ -40,6 +40,9 @@
 
 ;;;
 
+(deftest test-iceberg-intent-set
+  (is (= 1 (count (iceberg-intent-set (one-context [1 2 3 4]) 0.0)))))
+
 (deftest test-luxenburger-basis
   (are [context minsupp minconf] (let [ars (luxenburger-basis context minsupp minconf)]
                                    (forall [ar ars]
