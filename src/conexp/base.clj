@@ -161,24 +161,24 @@
 
 (defn transitive-closure
   "Computes transitive closure of a given set of pairs."
-  ([set-of-pairs]
-     (transitive-closure set-of-pairs set-of-pairs #{}))
-  ([set-of-pairs new old]
-     (if (= new old)
-       new
-       (recur set-of-pairs
-	      (union new
-		     (set-of [x y]
-			     [[x z_1] (difference new old)
-			      [z_2 y] set-of-pairs
-                             :when (= z_1 z_2)]))
-	      new))))
+  [pairs]
+  (let [pairs  (set pairs),
+        runner (fn runner [new old]
+                 (if (= new old)
+                   new
+                   (recur (union new
+                                 (set-of [x y]
+                                         [[x z_1] (difference new old)
+                                          [z_2 y] pairs
+                                          :when (= z_1 z_2)]))
+                          new)))]
+    (runner pairs #{})))
 
 (defn reflexive-transitive-closure
   "Computes the reflexive, transitive closure of a given set of pairs
   on base-set."
-  [base-set set-of-pairs]
-  (transitive-closure (union set-of-pairs
+  [base-set pairs]
+  (transitive-closure (union (set pairs)
 			     (set-of [x x] [x base-set]))))
 
 (defn graph-of-function?
