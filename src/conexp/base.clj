@@ -8,17 +8,17 @@
 
 (ns conexp.base
   (:require clojure.set
-	    clojure.contrib.set
-	    clojure.contrib.math
-	    clojure.contrib.lazy-seqs
-	    clojure.contrib.def)
+            clojure.contrib.set
+            clojure.contrib.math
+            clojure.contrib.lazy-seqs
+            clojure.contrib.def)
   (:use [clojure.contrib.ns-utils :only (immigrate)]))
 
 (immigrate 'clojure.set
-	   'clojure.contrib.set
-	   'clojure.contrib.math
-	   'clojure.contrib.lazy-seqs
-	   'clojure.contrib.def)
+           'clojure.contrib.set
+           'clojure.contrib.math
+           'clojure.contrib.lazy-seqs
+           'clojure.contrib.def)
 
 (load "util")
 
@@ -32,7 +32,7 @@
   (if (empty? sets)
     #{[]}
     (set-of (conj t x) [t (apply cross-product (butlast sets))
-			x (last sets)])))
+                        x (last sets)])))
 
 (defn disjoint-union
   "Computes the disjoint union of sets by joining the cross-products of the
@@ -78,7 +78,7 @@
   "Implements oplus from the Next Closure Algorithm."
   [G clop A i]
   (clop (set (conj (filter #(contains? A %) (subelts G i))
-		   i))))
+                   i))))
 
 (defn next-closed-set-in-family
   "Computes next closed set as with next-closed-set, which is in the
@@ -108,12 +108,12 @@
   clop operates on."
   [base clop]
   (let [base (seq base),
-	clop (memoize clop)]
+        clop (memoize clop)]
     (sort (fn [x y]
-	    (or (subset? (clop #{y}) (clop #{x}))
-		(and (not (subset? (clop #{x}) (clop #{y})))
-		     (lectic-< base (clop #{y}) (clop #{x})))))
-	  base)))
+            (or (subset? (clop #{y}) (clop #{x}))
+                (and (not (subset? (clop #{x}) (clop #{y})))
+                     (lectic-< base (clop #{y}) (clop #{x})))))
+          base)))
 
 (defn next-closed-set
   "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
@@ -128,12 +128,12 @@
      (all-closed-sets G clop #{}))
   ([G clop initial]
      (let [G (if (set? G)
-	       (improve-basic-order G clop)
-	       G)]
+               (improve-basic-order G clop)
+               G)]
        (binding [subelts (memoize subelts)]
-	 (take-while identity
-		     (iterate (partial next-closed-set G clop)
-			      (clop initial)))))))
+         (take-while identity
+                     (iterate (partial next-closed-set G clop)
+                              (clop initial)))))))
 
 (defn all-closed-sets-in-family
   "Computes all closed sets of a given closure operator on a given set
@@ -144,13 +144,13 @@
      (all-closed-sets-in-family predicate G clop #{}))
   ([predicate G clop initial]
      (let [G (if (set? G)
-	       (improve-basic-order G clop)
-	       G)]
+               (improve-basic-order G clop)
+               G)]
        (binding [subelts (memoize subelts)]
-	 (let [start (first (filter predicate (all-closed-sets G clop initial)))]
-	   (take-while identity
-		       (iterate (partial next-closed-set-in-family predicate G clop)
-				start)))))))
+         (let [start (first (filter predicate (all-closed-sets G clop initial)))]
+           (take-while identity
+                       (iterate (partial next-closed-set-in-family predicate G clop)
+                                start)))))))
 
 ;;; Common Math Algorithms
 
@@ -179,7 +179,7 @@
   on base-set."
   [base-set pairs]
   (transitive-closure (union (set pairs)
-			     (set-of [x x] [x base-set]))))
+                             (set-of [x x] [x base-set]))))
 
 (defn graph-of-function?
   "Returns true iff relation is the graph of a function from source to target."
@@ -194,7 +194,7 @@
   [clop A]
   (let [clop-A (clop A)]
     (loop [left     [A],                ;yet to consider
-           minimals []]                 ;minimals elements already found
+           minimals []]                 ;minimal elements already found
       (if (empty? left)
         (distinct minimals)
         (let [next (first left)]
