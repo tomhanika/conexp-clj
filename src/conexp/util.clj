@@ -297,11 +297,14 @@
 
 (defmacro set-of
   "Macro for writing sets as mathematicians do (at least similar to it.)"
-  [thing condition]
-  `(let [result# (atom (transient #{}))]
-     (doseq ~condition
-       (swap! result# conj! ~thing))
-     (persistent! @result#)))
+  [thing & condition]
+  (let [condition (if (= '| (first condition))
+                    (vec (rest condition))
+                    (vec (first condition)))]
+    `(let [result# (atom (transient #{}))]
+       (doseq ~condition
+         (swap! result# conj! ~thing))
+       (persistent! @result#))))
 
 (defn div
   "Integer division."
