@@ -296,7 +296,21 @@
   `(not ~(expand-bindings (map vec (partition 2 bindings)) `(not ~condition))))
 
 (defmacro set-of
-  "Macro for writing sets as mathematicians do (at least similar to it.)"
+  "Macro for writing sets as mathematicians do (at least similar to
+  it.) The following syntax constructions are supported:
+
+    (set-of x [x [1 2 3]])
+      for the set of all x with x in [1 2 3]
+
+    (set-of x | x [1 2 3])
+      for the same set
+
+    (set-of [x y] [x [1 2 3], y [4 5 6] :when (= 1 (gcd x y))])
+      for the set of all pairs [x y] with x in [1 2 3], y in [4 5 6]
+      and x and y are coprime.
+
+  In general, the condition vector (or the sequence after |) must be
+  suitable for doseq."
   [thing & condition]
   (let [condition (if (= '| (first condition))
                     (vec (rest condition))
