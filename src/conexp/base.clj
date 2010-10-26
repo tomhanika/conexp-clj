@@ -74,12 +74,6 @@
   [G A B]
   (exists [i G] (lectic-<_i G i A B)))
 
-(defn oplus
-  "Implements oplus from the Next Closure Algorithm."
-  [G clop A i]
-  (clop (set (conj (filter #(contains? A %) (subelts G i))
-                   i))))
-
 (defn next-closed-set-in-family
   "Computes next closed set as with next-closed-set, which is in the
   family $\\mathcal{F}$ of all closed sets satisfing

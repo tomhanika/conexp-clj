@@ -58,19 +58,6 @@
   (is (lectic-< [5 7 3 2 1] #{7 2 1} #{5}))
   (is (not (lectic-< [5 7 3 2 1] #{5 7 3 2 1} #{7 3 2 1}))))
 
-(deftest test-oplus
-  (let [clop #(conj % 1)]
-    (are [set index result] (= (oplus [5 7 3 2 1] clop set index)
-			       result)
-	 #{1 2 3} 3 #{1 3}
-	 #{}      1 #{1}
-	 #{7 3}   3 #{7 3 1}))
-  (let [clop identity]
-    (are [set index result] (= (oplus [5 7 3 2 1] clop set index)
-			       result)
-	 #{1 2 3} 3 #{3}
-	 #{}      5 #{5})))
-
 (deftest test-next-closed-set
   (are [set next] (= (next-closed-set [3 2 1] identity set) next)
        #{}      #{1}
