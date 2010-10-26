@@ -124,14 +124,13 @@
      (all-closed-sets-in-family predicate G clop #{}))
   ([predicate G clop initial]
      (let [G (if (set? G) (improve-basic-order G clop) G)]
-       (with-memoized-fns [subelts]
-         (let [initial (clop initial),
-               start   (if (predicate initial)
-                         initial
-                         (next-closed-set-in-family predicate G clop initial))]
-           (take-while #(not (nil? %))
-                       (iterate (partial next-closed-set-in-family predicate G clop)
-                                start)))))))
+       (let [initial (clop initial),
+             start   (if (predicate initial)
+                       initial
+                       (next-closed-set-in-family predicate G clop initial))]
+         (take-while #(not (nil? %))
+                     (iterate (partial next-closed-set-in-family predicate G clop)
+                              start))))))
 
 (defn next-closed-set
   "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
