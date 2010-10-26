@@ -126,7 +126,7 @@ class ConexpCLJ(Expect):
             return self("nil")
         elif x == True:
             return self("true")
-        elif isinstance(x, set):
+        elif isinstance(x, (set, frozenset)):
             return self("#{%s}"%(str(map(self, x))[1:-1]))
         elif isinstance(x, (list, tuple)):
             return self("[%s]"%(str(map(self, x))[1:-1]))
@@ -171,7 +171,7 @@ class ConexpCLJElement(ExpectElement):
         if bool(P("(nil? %s)"%name)):
             return None
         elif bool(P("(set? %s)"%name)):
-            return set([x for x in self])
+            return frozenset([x for x in self])
         elif bool(P("(sequential? %s)"%name)):
             return [x for x in self]
         elif bool(P("(map? %s)"%name)):
@@ -239,7 +239,10 @@ def reduce_load_conexp_clj():
 
 import os
 def conexp_clj_console():
-    os.system('conexp-clj.sh')
+    if "nt" == os.name():
+        os.system("conexp-clj.bat")
+    else:
+        os.system("conexp-clj.sh")
 
 def conexp_clj_version():
     return str(conexp_clj('(conexp-version)')).strip()
