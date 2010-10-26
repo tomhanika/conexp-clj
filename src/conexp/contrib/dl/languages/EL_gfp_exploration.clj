@@ -86,7 +86,7 @@
                       :when (not (subsumed-by? all-P mc-all-P))
                       :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
                                                          implicational-knowledge)]
-                      :when (not (empty? (arguments (subsumer susu))))]
+                      :when (not-empty (arguments (subsumer susu)))]
                   susu)))
 
              ;; else search for next implication
@@ -109,12 +109,12 @@
 
 		   implications (if (= K next-K)
                                   (let [new-impl (make-implication P_k (context-attribute-closure next-K P_k))]
-                                    (if (not (empty? (conclusion new-impl)))
+                                    (if (not-empty (conclusion new-impl))
                                       (conj implications new-impl)
                                       implications))
                                   (set-of impl [P_l next-Pi_k
                                                 :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
-                                                :when (not (empty? (conclusion impl)))])),
+                                                :when (not-empty (conclusion impl))])),
 		   background-knowledge (minimal-implication-set next-M_k),
 
 		   next-P_k   (next-closed-set (seq-on next-M_k)
