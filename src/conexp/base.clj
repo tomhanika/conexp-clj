@@ -79,7 +79,7 @@
   family $\\mathcal{F}$ of all closed sets satisfing
   predicate. predicate has to satisfy the condition
 
-    A ∈ F and i ∈ G ==> clop(A ∪ {1, …, i-1}) ∈ F.
+    A in F and i in G ==> clop(A union {1, …, i-1}) in F.
   "
   [predicate G clop A]
   (loop [i-s (reverse G),
