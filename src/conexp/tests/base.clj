@@ -38,12 +38,6 @@
   (is (= (set (range 0 10 2)) (set-of-range 0 10 2)))
   (is (= #{} (set-of-range 23 11))))
 
-(deftest test-subelts
-  (is (= (seq #{1 2 3 4}) (subelts #{1 2 3 4 5 6 7 8 9 10} 5)))
-  (is (empty? (subelts #{1 2 3 4} 1)))
-  (is (= (seq #{1 2 3 4}) (subelts #{1 2 3 4} 5)))
-  (is (= (seq [5 4 2 7 8]) (subelts [5 4 2 7 8 9 2 3] 9))))
-
 (deftest test-lectic-<_i
   (is (lectic-<_i [5 7 3 2 1] 2 #{5 3 1} #{5 3 2 1}))
   (is (lectic-<_i [5 7 3 2 1] 5 #{3} #{5 7}))

@@ -53,11 +53,6 @@
 
 ;;; Next Closure
 
-(defn subelts
-  "Returns a subsequence of seq up to index i."
-  [seq i]
-  (take-while #(not= % i) seq))
-
 (defn lectic-<_i
   "Implements lectic < at position i. The basic order is given by the ordering
   of G which is interpreted as increasing order.
