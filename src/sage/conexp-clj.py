@@ -111,14 +111,15 @@ class ConexpCLJ(Expect):
     def help(self, command):
         print self.eval("(doc %s)"%str(command))
 
-    #def _convert_args_kwds(self, args=None, kwds=None):
-    #    pass
-
     def function_call(self, function, args=None, kwds=None):
         args, kwds = self._convert_args_kwds(args, kwds)
-        function = function.replace("_","-")
         self._check_valid_function_name(function)
-        return self.new("(%s %s)"%(function, " ".join([s.name() for s in args])))
+        if function[0:3] == "is_":
+            function = function[3:] + "?"
+        function = function.replace("_","-")
+        arg_string = " ".join([s.name() for s in args])
+        kwd_string = " ".join([":" + key + " " + value.name() for key, value in kwds.iteritems()])
+        return self.new("(%s %s %s)"%(function,arg_string,kwd_string))
 
     def _coerce_impl(self, x, **kwds):
         if x == None or x == False:
@@ -132,7 +133,7 @@ class ConexpCLJ(Expect):
         elif isinstance(x, dict):
             string = "{"
             for key in x:
-                string += str(key) + " " + str(x[key]) + ", "
+                string += str(self(key)) + " " + str(self(x[key])) + ", "
             string += "}"
             return self(string)
         else:
@@ -170,9 +171,9 @@ class ConexpCLJElement(ExpectElement):
         if bool(P("(nil? %s)"%name)):
             return None
         elif bool(P("(set? %s)"%name)):
-            return set([x._sage_() for x in self])
+            return set([x for x in self])
         elif bool(P("(sequential? %s)"%name)):
-            return [x._sage_() for x in self]
+            return [x for x in self]
         elif bool(P("(map? %s)"%name)):
             dit = {}
             for pair in [x._sage_() for x in self]:
