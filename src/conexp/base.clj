@@ -65,8 +65,13 @@
   A and B have to be sets."
   [G i A B]
   (and (contains? B i) (not (contains? A i)) ; A and B will always be sets
-       (forall [j (subelts G i)]
-         (<=> (contains? B j) (contains? A j)))))
+       (loop [elements G]
+         (let [j (first elements)]
+           (if (= j i)
+             true
+             (if (identical? (contains? B j) (contains? A j))
+               (recur (rest elements))
+               false))))))
 
 (defn lectic-<
   "Implements lectic ordering. The basic order is given by the ordering of G
@@ -78,11 +83,9 @@
   "Computes next closed set as with next-closed-set, which is in the
   family $\\mathcal{F}$ of all closed sets satisfing
   predicate. predicate has to satisfy the condition
-  \\[
-     A \\in \\mathcal{F} \text{ and } i \\in G
-     \\implies
-     \\mathrm{clop}(A \\cap \\set{1, \\ldots, i-1}) \\in \\mathcal{F}.
-  \\]"
+
+    A ∈ F and i ∈ G ==> clop(A ∪ {1, …, i-1}) ∈ F.
+  "
   [predicate G clop A]
   (loop [i-s (reverse G),
          A   (set A)]
