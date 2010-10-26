@@ -231,7 +231,6 @@
                #{'yes 'no}
                "Please answer 'yes' or 'no': ")))
 
-
 ;;; deftype utilities
 
 (defmacro generic-equals

@@ -356,12 +356,38 @@
   [ctx]
   (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
 
+(defn- cbo-test
+  "Simple implementation of the test used by the «Close by One»
+  algorithm."
+  [attribute j B D]
+  (loop [i 0]
+    (if (= i j)
+      true
+      (if (not= (contains? B (attribute i))
+                (contains? D (attribute i)))
+        false
+        (recur (inc i))))))
+
 (defn concepts
-  "Returns a sequence of all concepts of ctx as sequence of extents
-  with their corresponding intents."
+  "Returns a sequence of all concepts of ctx."
   [ctx]
-  (for [objs (context-extents ctx)]
-    [objs, (object-derivation ctx objs)]))
+  (let [n             (count (attributes ctx)),
+        attribute     (vec (attributes ctx)),
+        att-extent    (vec (map #(attribute-derivation ctx #{%}) attribute)),
+        generate-from (fn generate-from [A B y]
+                        (lazy-seq
+                         (cons [A B]
+                               (when (not= B (attributes ctx))
+                                 (mapcat (fn [j]
+                                           (when-not (contains? B (attribute j))
+                                             (let [C (intersection A (att-extent j)),
+                                                   D (object-derivation ctx C)]
+                                               (when (cbo-test attribute j B D)
+                                                 (generate-from C D (inc j))))))
+                                         (range y n)))))),
+        empty-obj     (attribute-derivation ctx #{}),
+        empty-att     (object-derivation ctx empty-obj)]
+    (generate-from empty-obj empty-att 0)))
 
 ;;; Common Operations with Contexts
 
