@@ -49,6 +49,7 @@ class ConexpCLJ(Expect):
         conexp_clj_console()
 
     def eval(self, code, strip=True, **kwds):
+        print "Evaluating %s"%code
         with gc_disabled():
             code = str(code)
             out = self._eval_line(code)
@@ -141,6 +142,21 @@ class ConexpCLJ(Expect):
 
 
 class ConexpCLJElement(ExpectElement):
+    def __cmp__(self, other):
+        P = self._check_valid()
+        if not hasattr(other, 'parent') or P is not other.parent():
+            other = P(other)
+
+        # THIS IS DAMN WRONG! (but it works, sometimes...)
+        return P("(compare (hash %s) (hash %s))"%(self.name(), other.name()))
+
+    def __eq__(self, other):
+        P = self._check_valid()
+        if not hasattr(other, 'parent') or P is not other.parent():
+            other = P(other)
+
+        return bool(P("(= %s %s)"%(self.name(), other.name())))
+
     def _sage_doc_(self):
         M = self._obj.parent()
         return M.help(self._name)
@@ -174,6 +190,11 @@ class ConexpCLJElement(ExpectElement):
             return frozenset([x for x in self])
         elif bool(P("(sequential? %s)"%name)):
             return [x for x in self]
+        elif bool(P("(instance? conexp.fca.lattices.Lattice %s)"%name)):
+            edges = [x for x in P("(conexp.layouts.util/edges %s)"%name)]
+            G = DiGraph()
+            G.add_edges(edges)
+            return LatticePoset(G)
         elif bool(P("(map? %s)"%name)):
             dit = {}
             for pair in [x._sage_() for x in self]:
