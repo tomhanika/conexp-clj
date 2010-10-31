@@ -293,7 +293,7 @@
                                          :when (contains? (interpretation P) x)]))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
-(defn model->tbox
+(defn ^{:dynamic true} model->tbox
   "Converts a given model to its corresponding tbox."
   [model]
   (description-graph->tbox (model->description-graph model)))
