@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.algorithms.parallel-cbo
+(ns conexp.contrib.algorithms.close-by-one
   (:use [conexp.main :exclude (context-intents)]
         conexp.contrib.exec
         [conexp.io.util :only (tmpfile)]
@@ -19,22 +19,6 @@ Krajca, Jan Outrata, and Vilem Vychodil, which can compute context
 intents in parallel.")
 
 ;;;
-
-(define-external-program pcbo-external
-  pcbo :threads :depth :min-support :verbosity :input-file :fcalgs :output-file)
-(alter-meta! (var pcbo-external) assoc :private true)
-
-(defn- pcbo
-  "Runs pcbo and returns the file where the concepts have been written
-  to."
-  [threads depth min-support verbosity context]
-  (let [^java.io.File output-file (tmpfile)]
-    (pcbo-external (str "-P" threads)
-                   (str "-L" depth)
-                   (str "-S" (float (* min-support 100)))
-                   (str "-V" verbosity)
-                   context (.getAbsolutePath output-file))
-    output-file))
 
 (defn- to-fcalgs-context
   "Transforms ctx to a context suitable for the :fcalgs context
@@ -54,8 +38,26 @@ intents in parallel.")
      object-vector,
      attribute-vector]))
 
-(defn context-intents
-  "Computes the intents of context using parallel close-by-one (CbO)."
+;;;
+
+(define-external-program pcbo-external
+  pcbo :threads :depth :min-support :verbosity :input-file :fcalgs :output-file)
+(alter-meta! (var pcbo-external) assoc :private true)
+
+(defn- pcbo
+  "Runs pcbo and returns the file where the concepts have been written
+  to."
+  [threads depth min-support verbosity context]
+  (let [^java.io.File output-file (tmpfile)]
+    (pcbo-external (str "-P" threads)
+                   (str "-L" depth)
+                   (str "-S" (float (* min-support 100)))
+                   (str "-V" verbosity)
+                   context (.getAbsolutePath output-file))
+    output-file))
+
+(defn parallel-context-intents
+  "Computes the intents of context using parallel close-by-one (PCbO)."
   [threads depth min-support context]
   (let [[ctx _ att-vec] (to-fcalgs-context context),
         output-file     (pcbo threads depth min-support 1 ctx),
@@ -65,10 +67,45 @@ intents in parallel.")
       (cons #{} (map transform-back (rest intents)))
       (map transform-back intents))))
 
-(defn count-context-intents
-  "Counts the intents of context using parallel close-by-one (CbO)."
+(defn parallel-count-context-intents
+  "Counts the intents of context using parallel close-by-one (PCbO)."
   [threads depth min-support context]
   (-> (pcbo threads depth min-support 1 (first (to-fcalgs-context context)))
+      reader
+      line-seq
+      count))
+
+;;;
+
+(define-external-program fcbo-external
+  pcbo :min-support :verbosity :input-file :fcalgs :output-file)
+(alter-meta! (var fcbo-external) assoc :private true)
+
+(defn- fcbo
+  "Runs fcbo and returns the file where the concepts have been written
+  to."
+  [min-support verbosity context]
+  (let [^java.io.File output-file (tmpfile)]
+    (fcbo-external (str "-S" (float (* min-support 100)))
+                   (str "-V" verbosity)
+                   context (.getAbsolutePath output-file))
+    output-file))
+
+(defn fast-context-intents
+  "Computes the intents of context using fast close-by-one (FCbO)."
+  [min-support context]
+  (let [[ctx _ att-vec] (to-fcalgs-context context),
+        output-file     (fcbo min-support 1 ctx),
+        intents         (line-seq (reader output-file)),
+        transform-back  #(string-to-ints att-vec %)]
+    (if (= "" (first intents))
+      (cons #{} (map transform-back (rest intents)))
+      (map transform-back intents))))
+
+(defn fast-count-context-intents
+  "Counts the intents of context using parallel close-by-one (CbO)."
+  [min-support context]
+  (-> (fcbo min-support 1 (first (to-fcalgs-context context)))
       reader
       line-seq
       count))

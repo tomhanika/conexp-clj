@@ -14,7 +14,7 @@
   (:use [conexp.fca.contexts :only (context?, objects, attributes,
                                     incidence, attribute-derivation,
                                     context-attribute-closure)])
-  (:require [conexp.contrib.algorithms.parallel-cbo :as pcbo])
+  (:require [conexp.contrib.algorithms.close-by-one :as cbo])
   (:import [java.util BitSet List ArrayList])
   (:import [java.util.concurrent SynchronousQueue]))
 
@@ -199,10 +199,18 @@
   [_ context]
   (map #(vector (attribute-derivation context %) ;this is slow
                 %)
-       (pcbo/context-intents (* 2 (.availableProcessors (Runtime/getRuntime)))
-                             3
-                             0
-                             context)))
+       (cbo/parallel-context-intents (* 2 (.availableProcessors (Runtime/getRuntime)))
+                                     3
+                                     0
+                                     context)))
+
+;;; Fast Close-by-One (:fcbo)
+
+(defmethod concepts :fcbo
+  [_ context]
+  (map #(vector (attribute-derivation context %) ;this is slow
+                %)
+       (cbo/fast-context-intents 0 context)))
 
 ;;;
 
