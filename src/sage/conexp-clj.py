@@ -49,7 +49,7 @@ class ConexpCLJ(Expect):
         conexp_clj_console()
 
     def eval(self, code, strip=True, **kwds):
-        print "Evaluating %s"%code
+#        print "Evaluating %s"%code
         with gc_disabled():
             code = str(code)
             out = self._eval_line(code)
@@ -183,25 +183,32 @@ class ConexpCLJElement(ExpectElement):
 
     def _sage_(self):
         P = self._check_valid()
+
+        if hasattr(self, "__conexp_value__"):
+            return self.__conexp_value__
+
         name = self._name
+
         if bool(P("(nil? %s)"%name)):
-            return None
+            self.__conexp_value__= None
         elif bool(P("(set? %s)"%name)):
-            return frozenset([x for x in self])
+            self.__conexp_value__ = frozenset([x for x in self])
         elif bool(P("(sequential? %s)"%name)):
-            return [x for x in self]
+            self.__conexp_value__ = [x for x in self]
         elif bool(P("(instance? conexp.fca.lattices.Lattice %s)"%name)):
             edges = [x for x in P("(conexp.layouts.util/edges %s)"%name)]
             G = DiGraph()
             G.add_edges(edges)
-            return LatticePoset(G)
+            self.__conexp_value__ = LatticePoset(G)
         elif bool(P("(map? %s)"%name)):
             dit = {}
             for pair in [x._sage_() for x in self]:
                 dit[pair[0]] = pair[1]
-            return dit
+            self.__conexp_value__ = dit
         else:
-            return sage_eval(str(self))
+            self.__conexp_value__ = sage_eval(str(self))
+
+        return self.__conexp_value__
 
     def attribute(self, attrname):
         P = self._check_valid()
