@@ -35,7 +35,7 @@
 (defn conexp-fns-needing-doc
   "Returns function in public conexp-clj api not having documentation."
   []
-  (for [ns *conexp-namespaces*
+  (for [ns conexp-namespaces,
         [f _] (public-api ns)
         :when (not (:doc (meta (resolve (symbol (str ns) (str f))))))]
     (symbol (str ns) (str f))))

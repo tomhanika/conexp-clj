@@ -15,7 +15,7 @@
 
 ;;;
 
-(defvar *print-with-dl-type* false
+(defvar ^{:dynamic true} *print-with-dl-type* false
   "If true, prints DL data structures with type tag.")
 
 ;;;

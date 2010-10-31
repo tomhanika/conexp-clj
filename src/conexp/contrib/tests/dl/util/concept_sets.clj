@@ -17,7 +17,7 @@
 
 ;;; Testing Data
 
-(defvar- *concept-seqs*
+(defvar- concept-seqs
   (map (fn [[dl symbols]]
 	 (map #(dl-expression dl %)
 	      symbols))
@@ -48,7 +48,7 @@
 				  (rest coll2)))))))
 
 (deftest- inserts-in-right-order
-  (doseq [concept-seq *concept-seqs*]
+  (doseq [concept-seq concept-seqs]
     (let [cs-1 (make-concept-set concept-seq),
 	  cs-2 (make-concept-set []),
 	  cs-3 (make-concept-set [])]
@@ -62,7 +62,7 @@
 ;;
 
 (deftest- contains-no-equivalent-concepts
-  (doseq [concept-seq *concept-seqs*]
+  (doseq [concept-seq concept-seqs]
     (let [cs (seq-on (make-concept-set concept-seq))]
       (is (forall [x cs, y cs]
 		  (=> (equivalent? x y) (= x y)))))))
@@ -85,7 +85,7 @@
 	  (not (follows-semantically? impl (disj implications impl)))))
 
 (deftest- minimal-implication-set-is-sound-and-minimal
-  (doseq [concept-seq *concept-seqs*]
+  (doseq [concept-seq concept-seqs]
     (let [implications (minimal-implication-set (make-concept-set concept-seq))]
       (and (is (sound? implications))
 	   (is (minimal? implications))))))

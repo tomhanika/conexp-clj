@@ -18,23 +18,24 @@
 
 ;;;
 
-(def *conexp-namespaces* '[conexp.base
-			   conexp.fca
-			   conexp.io
-			   conexp.layouts])
+(def conexp-namespaces '[conexp.base
+                         conexp.fca
+                         conexp.io
+                         conexp.layouts])
 
-(dorun (map immigrate *conexp-namespaces*))
+(dorun (map immigrate conexp-namespaces))
 
 ;;;
 
 (defvar- *internal-version-string*
   (.trim #=(slurp "VERSION")))
 
-(def *conexp-version* (let [[_ major minor patch qualifier] (re-find #"(\d+).(\d+).(\d+)-(\w+)" *internal-version-string*)]
-                        {:major major,
-                         :minor minor,
-                         :patch patch,
-                         :qualifier qualifier}))
+(defvar- *conexp-version*
+  (let [[_ major minor patch qualifier] (re-find #"(\d+).(\d+).(\d+)-(\w+)" *internal-version-string*)]
+    {:major major,
+     :minor minor,
+     :patch patch,
+     :qualifier qualifier}))
 
 (defn- conexp-built-version
   "Returns the date of the conexp build, retrieved from the name of

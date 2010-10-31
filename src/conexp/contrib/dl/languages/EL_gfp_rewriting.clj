@@ -31,7 +31,7 @@
           (recur collected (rest left))
           (recur (conj (remove #(more-specific? next %) collected) next) (rest left)))))))
 
-(defn- more-specific?
+(defn- ^{:dynamic true} more-specific?
   "Returns true iff term-1 is more specific than term-2. When no tests succeeds
   (fallback term-1 term-2) is called and its return value is then
   returned."
