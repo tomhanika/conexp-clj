@@ -164,7 +164,7 @@ class ConexpCLJElement(ExpectElement):
     def _operation(self, operation, right):
         P = self._check_valid()
         try:
-            return P.new("(%s %s %s)"%(operation, self._name, right._name))
+            return P("(%s %s %s)"%(operation, self._name, right._name))
         except Exception, msg:
             raise TypeError, msg
 
@@ -176,12 +176,12 @@ class ConexpCLJElement(ExpectElement):
 
     def gen(self, n):
         P = self.parent()
-        return P.new("(nth %s %s)"%(self._name, n))
+        return P("(nth %s %s)"%(self._name, n))
 
     def _sage_repr(self):
         raise NotImplementedError
 
-    def _sage_(self):
+    def sage(self):
         P = self._check_valid()
 
         if hasattr(self, "__conexp_value__"):
@@ -202,7 +202,7 @@ class ConexpCLJElement(ExpectElement):
             self.__conexp_value__ = LatticePoset(G)
         elif bool(P("(map? %s)"%name)):
             dit = {}
-            for pair in [x._sage_() for x in self]:
+            for pair in [x for x in self]:
                 dit[pair[0]] = pair[1]
             self.__conexp_value__ = dit
         else:
