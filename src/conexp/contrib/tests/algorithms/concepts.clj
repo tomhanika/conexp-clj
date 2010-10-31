@@ -15,9 +15,13 @@
 
 ;;;
 
-(defvar- concepts-methods (let [invalid-methods #{}
-                                invalid-methods (when-not (program-exists? "pbco")
-                                                  (conj invalid-methods :pcbo))]
+(defn- add-if-not-exists [invalids program-name keyword]
+  (when-not (program-exists? program-name)
+    (conj invalids keyword)))
+
+(defvar- concepts-methods (let [invalid-methods (-> #{}
+                                                    (add-if-not-exists "pcbo" :pcbo)
+                                                    (add-if-not-exists "fcbo" :fcbo))]
                             (remove #(or (.startsWith ^String (name %) "default")
                                          (contains? invalid-methods %))
                                     (keys (methods concepts)))))
@@ -26,8 +30,10 @@
 
 (deftest test-concepts
   (dotimes [_ test-runs]
-    (let [ctx (cm/rand-context (cm/set-of-range (rand 15)) (rand))]
-      (if-not (apply = (map #(set (concepts % ctx)) concepts-methods))
+    (let [ctx (cm/rand-context (cm/set-of-range (rand 15)) (rand)),
+          rst (map set (keep #(try (concepts % ctx) (catch Exception _ nil))
+                             concepts-methods))]
+      (if-not (apply = rst)
         (do (println "concepts returned different result for\n" ctx)
             (is false))
         (is true)))))
