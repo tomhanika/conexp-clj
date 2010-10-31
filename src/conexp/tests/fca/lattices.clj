@@ -50,7 +50,7 @@
 
 ;;; Testing common operations for lattices
 
-(defvar- *testing-data*
+(defvar- testing-data
   [(make-lattice #{} #{}),
    (make-lattice [1 2 3 4 5 6] <=),
    (make-lattice (list 6 5 4 3 2 1) min max),
@@ -63,7 +63,7 @@
    (concept-lattice (rand-context (set-of-range 5) 0.9))])
 
 (deftest test-has-lattice-order?
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (has-lattice-order? lattice))
   (are [base-set order] (not (has-lattice-order? (make-lattice base-set order)))
     #{1} #{},
@@ -72,19 +72,19 @@
                [1 2] [3 4] [1 4] [2 3]]))
 
 (deftest test-Lattice-hashCode
-  (with-testing-data [lattice-1 *testing-data*,
-                      lattice-2 *testing-data*]
+  (with-testing-data [lattice-1 testing-data,
+                      lattice-2 testing-data]
     (=> (= lattice-1 lattice-2)
         (= (hash lattice-1) (hash lattice-2)))))
 
 (deftest test-dual-lattice
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (= lattice (dual-lattice (dual-lattice lattice))))
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (= (base-set lattice) (base-set (dual-lattice lattice)))))
 
 (deftest test-distributive?
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (<=> (distributive? lattice)
          (forall [x (base-set lattice),
                   y (base-set lattice),
@@ -95,7 +95,7 @@
                    ((sup lattice) x ((inf lattice) y z))))))))
 
 (deftest test-modular?
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (<=> (modular? lattice)
          (forall [a (base-set lattice),
                   b (base-set lattice),
@@ -105,19 +105,19 @@
                   ((inf lattice) ((sup lattice) x a) b)))))))
 
 (deftest test-lattice-one
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (let [one (lattice-one lattice)]
       (forall [x (base-set lattice)]
         ((order lattice) x one)))))
 
 (deftest test-lattice-zero
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (let [zero (lattice-zero lattice)]
       (forall [x (base-set lattice)]
         ((order lattice) zero x)))))
 
 (deftest test-directly-neighboured?
-  (with-testing-data [lattice *testing-data*]
+  (with-testing-data [lattice testing-data]
     (forall [x (base-set lattice),
              y (base-set lattice)]
       (<=> (directly-neighboured? lattice x y)

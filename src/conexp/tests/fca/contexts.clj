@@ -31,50 +31,50 @@
 
 ;;;
 
-(def *empty-context* (make-context #{} #{} #{}))
+(def empty-context (make-context #{} #{} #{}))
 
-(def *test-ctx-01* (make-context #{1 2 3 4 5} #{1 2 3 4 5}
-				 #{[1 2] [1 1] [1 3]
-				   [2 2] [2 3] [3 5]
-				   [5 2] [5 3] [5 4]}))
-(def *test-ctx-02* (make-context (set-of-range 0 30) (set-of-range 0 30) <))
-(def *test-ctx-03* (make-context (set-of-range 0 50)
-				 (set-of-range 0 50)
-				 #(= 1 (gcd %1 %2))))
-(def *test-ctx-04* (make-context #{} #{} #{}))
-(def *test-ctx-05* (make-context (set-of-range 0 50)
-				 (set-of-range 0 50)
-				 (fn [_ _] (< 0.5 (rand)))))
-(def *test-ctx-06* (make-context (set-of-range 0 10)
-				 (cross-product (set-of-range 0 10)
-						(set-of-range 0 10))
-				 (fn [x [y z]]
-				   (= x (mod (+ y z) 10)))))
-(def *test-ctx-07* (make-context #{1 2 3 4}
-				 #{1 2 3 4 5}
-				 #{[1 1] [1 3] [1 4] [2 1] [2 2] [2 4] [3 4] [4 1] [4 2] [4 5]}))
-(def *test-ctx-08* (make-context #{1 2 3 4} '#{a b c d e}
-				 '#{[1 a] [1 c]
-				    [2 a] [2 b] [2 c] [2 e]
-				    [3 b] [3 e]
-				    [4 c] [4 d] [4 e]}))
+(def test-ctx-01 (make-context #{1 2 3 4 5} #{1 2 3 4 5}
+                               #{[1 2] [1 1] [1 3]
+                                 [2 2] [2 3] [3 5]
+                                 [5 2] [5 3] [5 4]}))
+(def test-ctx-02 (make-context (set-of-range 0 30) (set-of-range 0 30) <))
+(def test-ctx-03 (make-context (set-of-range 0 50)
+                               (set-of-range 0 50)
+                               #(= 1 (gcd %1 %2))))
+(def test-ctx-04 (make-context #{} #{} #{}))
+(def test-ctx-05 (make-context (set-of-range 0 50)
+                               (set-of-range 0 50)
+                               (fn [_ _] (< 0.5 (rand)))))
+(def test-ctx-06 (make-context (set-of-range 0 10)
+                               (cross-product (set-of-range 0 10)
+                                              (set-of-range 0 10))
+                               (fn [x [y z]]
+                                 (= x (mod (+ y z) 10)))))
+(def test-ctx-07 (make-context #{1 2 3 4}
+                               #{1 2 3 4 5}
+                               #{[1 1] [1 3] [1 4] [2 1] [2 2] [2 4] [3 4] [4 1] [4 2] [4 5]}))
+(def test-ctx-08 (make-context #{1 2 3 4} '#{a b c d e}
+                               '#{[1 a] [1 c]
+                                  [2 a] [2 b] [2 c] [2 e]
+                                  [3 b] [3 e]
+                                  [4 c] [4 d] [4 e]}))
 
 (defmacro test-for-every-test-ctx
   [var-spec test]
   `(are ~var-spec ~test
-	*test-ctx-01*
-	*test-ctx-02*
-	*test-ctx-03*
-	*test-ctx-04*
-	*test-ctx-05*
-	*test-ctx-06*
-	*test-ctx-07*
-	*test-ctx-08*))
+	test-ctx-01
+	test-ctx-02
+	test-ctx-03
+	test-ctx-04
+	test-ctx-05
+	test-ctx-06
+	test-ctx-07
+	test-ctx-08))
 
 ;;;
 
 (deftest test-Formal-Context-toString
-  (is (= (print-context *test-ctx-01* sort-by-second sort-by-second)
+  (is (= (print-context test-ctx-01 sort-by-second sort-by-second)
 	 (str "  |1 2 3 4 5 \n"
               "--+----------\n"
               "1 |x x x . . \n"
@@ -101,23 +101,23 @@
 (deftest test-object-derivation
   (are [ctx objs derived-attributes]
        (= (object-derivation ctx objs) derived-attributes)
-       *test-ctx-01* #{1 2 5} #{2 3}))
+       test-ctx-01 #{1 2 5} #{2 3}))
 
 (deftest test-attribute-derivation
   (are [ctx atts derived-objects]
        (= (attribute-derivation ctx atts) derived-objects)
-       *test-ctx-01* #{2 3} #{1 2 5}))
+       test-ctx-01 #{2 3} #{1 2 5}))
 
 (deftest test-clarified?
-  (is (not (clarified? *test-ctx-03*)))
-  (is (clarified? *test-ctx-04*))
-  (is (not (clarified? *test-ctx-06*))))
+  (is (not (clarified? test-ctx-03)))
+  (is (clarified? test-ctx-04))
+  (is (not (clarified? test-ctx-06))))
 
 (deftest test-reduced?
-  (is (not (reduced? *test-ctx-01*)))
-  (is (not (reduced? *test-ctx-03*)))
-  (is (reduced? *test-ctx-04*))
-  (is (not (reduced? *test-ctx-06*))))
+  (is (not (reduced? test-ctx-01)))
+  (is (not (reduced? test-ctx-03)))
+  (is (reduced? test-ctx-04))
+  (is (not (reduced? test-ctx-06))))
 
 (deftest test-dual-context
   (test-for-every-test-ctx

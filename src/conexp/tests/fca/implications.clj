@@ -29,15 +29,15 @@
 
 ;;;
 
-(defvar- *testing-data*
+(defvar- testing-data
   [(make-implication [] []),
    (make-implication [1 2 3] '[a b c]),
    (make-implication [1 2 3] '[3 a b c])
    (make-implication #{1 2 3 4 5} #{3 4 5 6 7})])
 
 (deftest test-Implication-hashCode
-  (with-testing-data [impl-1 *testing-data*,
-                      impl-2 *testing-data*]
+  (with-testing-data [impl-1 testing-data,
+                      impl-2 testing-data]
     (=> (= impl-1 impl-2)
         (= (hash impl-1) (hash impl-2)))))
 
@@ -64,10 +64,10 @@
                (is (minimal-implication-set? sb))
                (is (sound-implication-set? ctx sb))
                (is (complete-implication-set? ctx sb)))
-    contexts/*test-ctx-01*,
-    contexts/*test-ctx-04*
-    contexts/*test-ctx-07*,
-    contexts/*test-ctx-08*))
+    contexts/test-ctx-01,
+    contexts/test-ctx-04
+    contexts/test-ctx-07,
+    contexts/test-ctx-08))
 
 (deftest test-minimal-intersection-sets
   (let [minimal-intersection-sets @#'conexp.fca.implications/minimal-intersection-sets]
@@ -83,10 +83,10 @@
                       (is (complete-implication-set? ctx pp-impls))
                       (is (forall [impl pp-impls]
                             (not (empty? (conclusion impl)))))))
-      contexts/*test-ctx-01*,
-      contexts/*test-ctx-04*,
-      contexts/*test-ctx-07*,
-      contexts/*test-ctx-08*
+      contexts/test-ctx-01,
+      contexts/test-ctx-04,
+      contexts/test-ctx-07,
+      contexts/test-ctx-08
       (make-context #{1 2 3 4 5} #{1 2 3 4 5 6 7 8}
                     #{[1 1] [1 3] [1 6] [1 7] [2 1]
                       [2 4] [2 6] [2 8] [3 1] [3 4]

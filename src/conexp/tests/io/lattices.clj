@@ -16,16 +16,16 @@
 
 ;;;
 
-(defvar- *testing-lattices*
+(defvar- testing-lattices
   (map concept-lattice (random-contexts 20 10)))
 
 (deftest test-lattice-oi
-  (with-testing-data [lat *testing-lattices*,
+  (with-testing-data [lat testing-lattices,
                       fmt (list-lattice-formats)]
     (= lat (out-in lat 'lattice fmt))))
 
 (deftest test-lattice-oioi
-  (with-testing-data [lat *testing-lattices*,
+  (with-testing-data [lat testing-lattices,
                       fmt (list-lattice-formats)]
     (out-in-out-in-test lat 'lattice fmt)))
 

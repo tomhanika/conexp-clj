@@ -15,7 +15,7 @@
 
 ;;;
 
-(defvar- *contexts-oi*
+(defvar- contexts-oi
   [(make-context #{"a" "b" "c"}
                  #{"1" "2" "3"}
                  #{["a" "1"] ["a" "3"]
@@ -24,27 +24,27 @@
   "Context to use for out-in testing")
 
 (deftest test-context-out-in
-  (with-testing-data [ctx *contexts-oi*,
+  (with-testing-data [ctx contexts-oi,
                       fmt (list-context-formats)]
     (try (= ctx (out-in ctx 'context fmt))
          (catch UnsupportedOperationException _ true))))
 
 ;;
 
-(defvar- *contexts-oioi*
+(defvar- contexts-oioi
   [(make-context #{1 2 3} #{4 5 6} <),
    (make-context #{'a} #{'+} #{['a '+]})]
   "Contexts to use for out-in-out-in testing")
 
 (deftest test-context-out-in-out-in
-  (with-testing-data [ctx *contexts-oioi*,
+  (with-testing-data [ctx contexts-oioi,
                       fmt (list-context-formats)]
     (try (out-in-out-in-test ctx 'context fmt)
          (catch UnsupportedOperationException _ true))))
 
 ;;
 
-(defvar- *contexts-with-empty-columns*
+(defvar- contexts-with-empty-columns
   [(null-context #{1 2 3 4}),
    (null-context #{1 2 3}),
    (null-context #{}),
@@ -52,7 +52,7 @@
   "Context with empty columns, to test for corner cases")
 
 (deftest test-empty-columns
-  (with-testing-data [ctx *contexts-with-empty-columns*,
+  (with-testing-data [ctx contexts-with-empty-columns,
                       fmt (list-context-formats)]
     (try (out-in-out-in-test ctx 'context fmt)
          (catch UnsupportedOperationException _ true))))
