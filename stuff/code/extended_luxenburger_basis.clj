@@ -61,7 +61,6 @@
   which have support greater or equal to minsupp."
   [context minsupp minconf]
   (let [closures (extended-iceberg-intent-set context minsupp)]
-    (println closures)
     (for [B_1 closures,
           B_2 closures,
           :when (and (proper-subset? B_1 B_2)
@@ -69,8 +68,7 @@
                             (and (proper-subset? B_1 C)
                                  (proper-subset? C B_2)))))
           :let [ar (make-association-rule context B_1 B_2)]
-          :when (or (zero? (support B_1 context))
-                    (>= (confidence ar) minconf))]
+          :when (>= (confidence ar) minconf)]
       ar)))
 
 ;;;
