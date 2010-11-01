@@ -8,8 +8,8 @@
 
 (ns conexp.fca.association-rules
   (:use conexp.base
-	conexp.fca.contexts
-	conexp.fca.implications))
+        conexp.fca.contexts
+        conexp.fca.implications))
 
 ;;;
 
@@ -41,17 +41,17 @@
   "Computes the confidence of the association rule ar."
   [ar]
   (/ (support (union (premise ar) (conclusion ar))
-	      (context ar))
+              (context ar))
      (support (premise ar)
-	      (context ar))))
+              (context ar))))
 
 (defmethod print-method Association-Rule [ar out]
   (.write out
-	  (str "( " (premise ar) " ==> " (conclusion ar)
-	       "; support " (support (union (premise ar)
-					    (conclusion ar))
-				     (context ar))
-	       ", confidence " (confidence ar) " )")))
+          (str "( " (premise ar) " ==> " (conclusion ar)
+               "; support " (support (union (premise ar)
+                                            (conclusion ar))
+                                     (context ar))
+               ", confidence " (confidence ar) " )")))
 
 ;;;
 
@@ -59,7 +59,7 @@
   "Constructs an association rule for context form premise and conclusion."
   [context premise conclusion]
   (let [premise (set premise)
-	conclusion (set conclusion)]
+        conclusion (set conclusion)]
     (when-not (and (subset? premise (attributes context))
                    (subset? conclusion (attributes context)))
       (illegal-argument "Premise and conclusion sets must be subsets "
@@ -75,10 +75,10 @@
   [context minsupp]
   (let [mincount (round (ceil (* minsupp (count (objects context)))))]
     (all-closed-sets-in-family (fn [intent]
-				 (>= (count (attribute-derivation context intent))
-				     mincount))
-			       (attributes context)
-			       (partial context-attribute-closure context))))
+                                 (>= (count (attribute-derivation context intent))
+                                     mincount))
+                               (attributes context)
+                               (partial context-attribute-closure context))))
 
 (defn luxenburger-basis
   "Computes the luxenburger-basis for context with minimal support
@@ -89,10 +89,10 @@
           B_2 closed-intents,
           :when (and (proper-subset? B_1 B_2)
                      ;; directly neighbored in iceberg concept set
-		     (forall [x (difference B_2 B_1)]
-		       (= B_2 (context-attribute-closure context (conj B_1 x)))))
-	  :let [ar (make-association-rule context B_1 B_2)]
-	  :when (>= (confidence ar) minconf)]
+                     (forall [x (difference B_2 B_1)]
+                       (= B_2 (context-attribute-closure context (conj B_1 x)))))
+          :let [ar (make-association-rule context B_1 B_2)]
+          :when (>= (confidence ar) minconf)]
       ar)))
 
 ;;;
