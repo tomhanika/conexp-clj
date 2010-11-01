@@ -12,12 +12,13 @@
 ;;
 ;; It will give you something like
 ;;
-;;            |#{1 3} #{1 4} #{2 4} #{3 4} #{2 3 4}
-;;     -------+-------------------------------------
-;;     #{1}   |x      x      .      .      .
-;;     #{3}   |x      .      .      x      x
-;;     #{4}   |.      x      x      x      x
-;;     #{2 4} |.      .      x      .      x
+;;             |1 2 3 4
+;;    ---------+--------
+;;    #{1 3}   |x . x .
+;;    #{1 4}   |x . . x
+;;    #{2 4}   |. x . x
+;;    #{3 4}   |. . x x
+;;    #{2 3 4} |. x x x
 ;;
 ;; Note that -- is used to separate the implication descriptions and
 ;; that #{..} is Clojure's notation for sets. This file also contains
@@ -27,18 +28,6 @@
 (in-ns 'user)
 
 (use 'conexp.main)
-
-(defn closure-context-by-implications
-  "For a given collection of implications and a base set returns the
-  full ordinal scala of the lattice of all closed subsets of the base
-  set with respect to the given implications."
-  [base-set implications]
-  (let [clop (clop-by-implications implications),
-        base (all-closed-sets base-set clop)]
-    (reduce-context-attributes
-     (make-context (set-of (clop #{i}) [i base-set])
-                   base
-                   subset?))))
 
 (defn- implications-from-macro
   "Implements the syntax used by closure-context."
@@ -78,7 +67,7 @@
                                 (subset? (conclusion impl#) ~base-set)))
            (illegal-argument "Given implications are not compatible with "
                              "given base-set."))
-         (closure-context-by-implications ~base-set impls#)))))
+         (context-from-clop ~base-set (clop-by-implications impls#))))))
 
 ;;;
 
@@ -88,9 +77,9 @@
   both."
   [ctx-1 ctx-2]
   (assert (= (objects ctx-1) (objects ctx-2)))
-  (closure-context-by-implications (objects ctx-1)
-                                   (union (stem-base (dual-context ctx-1))
-                                          (stem-base (dual-context ctx-2)))))
+  (context-from-clop (objects ctx-1)
+                     (clop-by-implications (union (stem-base (dual-context ctx-1))
+                                                  (stem-base (dual-context ctx-2))))))
 
 (defn union-of-closure-systems
   "Given two contexts ctx-1 and ctx-2 with the same object set
