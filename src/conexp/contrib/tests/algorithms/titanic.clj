@@ -13,7 +13,7 @@
 
 ;;;
 
-(defvar- *testing-data*
+(defvar- testing-data
   [(diag-context (set-of-range 10)),
    (one-context (set-of-range 10)),
    (make-context #{1 2 3 4 5 6 7 8 9 10}
@@ -31,20 +31,20 @@
    ])
 
 (deftest test-titanic-context-intents
-  (with-testing-data [ctx *testing-data*]
+  (with-testing-data [ctx testing-data]
     (= (set (context-intents ctx)) (set (titanic-context-intents ctx)))))
 
 (deftest test-titanic-iceberg-intent-set
   (forall [minsupp [0.0 0.2 0.5 0.7 0.9 1.0]]
-    (with-testing-data [ctx *testing-data*]
+    (with-testing-data [ctx testing-data]
       (= (set (iceberg-intent-set ctx minsupp))
          (set (titanic-iceberg-intent-set ctx minsupp)))))
-  (with-testing-data [ctx *testing-data*]
+  (with-testing-data [ctx testing-data]
     (= (set (titanic-context-intents ctx))
        (set (titanic-iceberg-intent-set ctx 0.0)))))
 
 (deftest test-titanic-keys
-  (with-testing-data [ctx *testing-data*]
+  (with-testing-data [ctx testing-data]
     (= (set-of (context-attribute-closure ctx key)
                [key (titanic-keys (attributes ctx)
                                   (supports ctx 0)
@@ -53,7 +53,7 @@
        (set (titanic-context-intents ctx)))))
 
 (deftest test-supports
-  (with-testing-data [ctx *testing-data*,
+  (with-testing-data [ctx testing-data,
                       min [0 0.2 0.4 0.7 1.0]]
     (let [minnum (* (count (objects ctx)) min),
           sp     (supports ctx min),

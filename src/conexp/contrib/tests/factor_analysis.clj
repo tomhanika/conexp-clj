@@ -13,7 +13,7 @@
 
 ;;;
 
-(defvar- *context-data*
+(defvar- context-data
   [(make-context #{} #{} #{}),
    (make-context (set-of-range 15)
                  (set-of-range 15)
@@ -63,7 +63,7 @@
 
 (defn- test-for-formal-context
   [method]
-  (with-testing-data [ctx *context-data*]
+  (with-testing-data [ctx context-data]
     (= (incidence ctx) (set-of [i j] [[C D] (factorize-context method ctx),
                                       i C, j D]))))
 
