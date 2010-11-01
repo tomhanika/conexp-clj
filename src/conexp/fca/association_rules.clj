@@ -66,7 +66,9 @@
                     1
                     (/ (support (union premise conclusion) context)
                        (support premise context)))]
-         (Association-Rule. premise (difference conclusion premise) supp conf)))))
+         (make-association-rule premise (difference conclusion premise) supp conf))))
+  ([premise conclusion support confidence]
+     (Association-Rule. premise conclusion support confidence)))
 
 ;;;
 
