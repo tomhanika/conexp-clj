@@ -32,18 +32,26 @@
   (.context ar))
 
 (defn support
-  "Computes the support of the set of attributes B in context ctx."
-  [B ctx]
-  (/ (count (attribute-derivation ctx B))
-     (count (objects ctx))))
+  "Computes the support of the set of attributes B in context ctx. If
+  an association rule is given, returns the support of the association
+  rule in its context."
+  ([B ctx]
+     (/ (count (attribute-derivation ctx B))
+        (count (objects ctx))))
+  ([ar]
+     (/ (count (attribute-derivation (context ar) (union (premise ar) (conclusion ar))))
+        (count (objects (context ar))))))
 
 (defn confidence
-  "Computes the confidence of the association rule ar."
+  "Computes the confidence of the association rule ar. If the premise
+  of ar zero support, returns 1."
   [ar]
-  (/ (support (union (premise ar) (conclusion ar))
-              (context ar))
-     (support (premise ar)
-              (context ar))))
+  (if (zero? (support (premise ar) (context ar)))
+    1
+    (/ (support (union (premise ar) (conclusion ar))
+                (context ar))
+       (support (premise ar)
+                (context ar)))))
 
 (defmethod print-method Association-Rule [ar out]
   (.write out
