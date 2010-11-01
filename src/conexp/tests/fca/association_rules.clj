@@ -25,8 +25,7 @@
 
 (deftest test-make-association-rule
   (are [context-1 premise-1 conclusion-1] (let [ar (make-association-rule context-1 premise-1 conclusion-1)]
-                                            (and (= (context ar) context-1)
-                                                 (= (premise ar) (set premise-1))
+                                            (and (= (premise ar) (set premise-1))
                                                  (= (conclusion ar) (set conclusion-1))))
        ctx-1 #{} #{},
        ctx-1 #{1 2 3 4} #{5 6 7},

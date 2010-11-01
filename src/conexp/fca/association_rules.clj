@@ -13,12 +13,12 @@
 
 ;;;
 
-(deftype Association-Rule [context premise conclusion]
+(deftype Association-Rule [premise conclusion support confidence]
   Object
   (equals [this other]
-    (generic-equals [this other] Association-Rule [context premise conclusion]))
+    (generic-equals [this other] Association-Rule [premise conclusion support confidence]))
   (hashCode [this]
-    (hash-combine-hash Association-Rule context premise conclusion)))
+    (hash-combine-hash Association-Rule premise conclusion support confidence)))
 
 (defmethod premise Association-Rule [^Association-Rule ar]
   (.premise ar))
@@ -26,54 +26,47 @@
 (defmethod conclusion Association-Rule [^Association-Rule ar]
   (.conclusion ar))
 
-(defn context
-  "Returns the corresponding context for a given association rule."
-  [^Association-Rule ar]
-  (.context ar))
-
 (defn support
   "Computes the support of the set of attributes B in context ctx. If
   an association rule is given, returns the support of the association
   rule in its context."
-  ([B ctx]
-     (/ (count (attribute-derivation ctx B))
+  ([set ctx]
+     (/ (count (attribute-derivation ctx set))
         (count (objects ctx))))
-  ([ar]
-     (/ (count (attribute-derivation (context ar) (union (premise ar) (conclusion ar))))
-        (count (objects (context ar))))))
+  ([^Association-Rule ar]
+     (.support ar)))
 
 (defn confidence
-  "Computes the confidence of the association rule ar. If the premise
-  of ar zero support, returns 1."
-  [ar]
-  (if (zero? (support (premise ar) (context ar)))
-    1
-    (/ (support (union (premise ar) (conclusion ar))
-                (context ar))
-       (support (premise ar)
-                (context ar)))))
+  "Computes the confidence of the association rule ar."
+  [^Association-Rule ar]
+  (.confidence ar))
 
 (defmethod print-method Association-Rule [ar out]
   (.write out
           (str "( " (premise ar) " ==> " (conclusion ar)
-               "; support " (support (union (premise ar)
-                                            (conclusion ar))
-                                     (context ar))
+               "; support " (support ar)
                ", confidence " (confidence ar) " )")))
 
 ;;;
 
 (defn make-association-rule
-  "Constructs an association rule for context form premise and conclusion."
-  [context premise conclusion]
-  (let [premise (set premise)
-        conclusion (set conclusion)]
-    (when-not (and (subset? premise (attributes context))
-                   (subset? conclusion (attributes context)))
-      (illegal-argument "Premise and conclusion sets must be subsets "
-                        "of the attributes of the given context when constructing an "
-                        "association rule."))
-    (Association-Rule. context premise (difference conclusion premise))))
+  "Constructs an association rule for context form premise and
+  conclusion. Note that if support turns out to be 0, the confidence
+  of the returned association rule will be 1."
+  ([context premise conclusion]
+     (let [premise (set premise)
+           conclusion (set conclusion)]
+       (when-not (and (subset? premise (attributes context))
+                      (subset? conclusion (attributes context)))
+         (illegal-argument "Premise and conclusion sets must be subsets "
+                           "of the attributes of the given context when constructing an "
+                           "association rule."))
+       (let [supp (support (union premise conclusion) context),
+             conf (if (zero? supp)
+                    1
+                    (/ (support (union premise conclusion) context)
+                       (support premise context)))]
+         (Association-Rule. premise (difference conclusion premise) supp conf)))))
 
 ;;;
 
