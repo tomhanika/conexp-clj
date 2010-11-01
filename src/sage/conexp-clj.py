@@ -188,27 +188,29 @@ class ConexpCLJElement(ExpectElement):
             return self.__conexp_value__
 
         name = self._name
+        val = None
 
         if bool(P("(nil? %s)"%name)):
-            self.__conexp_value__= None
+            val = None
         elif bool(P("(set? %s)"%name)):
-            self.__conexp_value__ = frozenset([x for x in self])
+            val = frozenset([x for x in self])
         elif bool(P("(sequential? %s)"%name)):
-            self.__conexp_value__ = [x for x in self]
+            val = [x for x in self]
         elif bool(P("(instance? conexp.fca.lattices.Lattice %s)"%name)):
             edges = [x for x in P("(conexp.layouts.util/edges %s)"%name)]
             G = DiGraph()
             G.add_edges(edges)
-            self.__conexp_value__ = LatticePoset(G)
+            val = LatticePoset(G)
         elif bool(P("(map? %s)"%name)):
             dit = {}
             for pair in [x for x in self]:
                 dit[pair[0]] = pair[1]
-            self.__conexp_value__ = dit
+            val = dit
         else:
-            self.__conexp_value__ = sage_eval(str(self))
+            val = sage_eval(str(self))
 
-        return self.__conexp_value__
+        self.__conexp_value__ = val
+        return val
 
     def attribute(self, attrname):
         P = self._check_valid()
