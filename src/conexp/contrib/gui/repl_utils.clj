@@ -34,14 +34,15 @@
   (util/add-tab (get-main-frame) panel name))
 
 (defn get-tabs
-  "Returns hashmap of indices to tabs."
+  "Returns a vector of tabs, where the index in the vector is the
+  index of the corresponding tab."
   []
   (util/get-tabs (get-main-frame)))
 
 (defn get-tab
   "Returns the tab given by its number, starting from 0."
   [n]
-  (get (get-tabs) n))
+  (nth (get-tabs) n))
 
 (defn current-tab
   "Returns the currently selected tab."

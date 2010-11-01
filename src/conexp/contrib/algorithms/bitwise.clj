@@ -9,7 +9,6 @@
 (ns conexp.contrib.algorithms.bitwise
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue])
-  (:use [clojure.contrib.seq :only (indexed)])
   (:use [conexp.fca.contexts :only (objects attributes incidence)]))
 
 
@@ -60,10 +59,14 @@
   order of the elements in the resulting BitSet."
   [element-vector hashset]
   (let [^BitSet bs (BitSet. (count element-vector))]
-    (doseq [pair  (indexed element-vector)
-            :when (contains? hashset (second pair))]
-      (.set bs (first pair)))
-    bs))
+    (loop [elements (seq element-vector)
+           index    0]
+      (if elements
+        (let [elt (first elements)]
+          (when (contains? hashset elt)
+            (.set bs index))
+          (recur (next elements) (inc index)))
+        bs))))
 
 (defn to-hashset
   "Converts given bitset to a set, where element-vector gives the

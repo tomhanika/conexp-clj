@@ -22,7 +22,6 @@
            [javax.swing.event ChangeListener ChangeEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
-  (:use [clojure.contrib.seq :only (indexed)])
   (:require [clojure.string :as string]))
 
 
@@ -436,7 +435,7 @@
   "Returns hashmap from numbers to tab contents of given frame."
   [frame]
   (let [^JTabbedPane tabpane (get-tabpane frame)]
-    (into {} (indexed (rest (seq (.getComponents tabpane)))))))
+    (vec (rest (seq (.getComponents tabpane))))))
 
 (defn add-tab-with-name-icon-tooltip
   "Addes given panel to the tabpane of frame, giving name icon and tooltip"

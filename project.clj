@@ -22,7 +22,6 @@
                  [org.clojure.contrib/math          "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/ns-utils      "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/prxml         "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/seq           "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/set           "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/profile       "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/except        "1.3.0-SNAPSHOT"]
