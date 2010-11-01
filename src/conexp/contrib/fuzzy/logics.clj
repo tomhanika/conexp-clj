@@ -22,23 +22,23 @@
   [norm]
   (illegal-argument "Norm " (str norm) " is not known."))
 
-(defmethod t-norm :łukasiewicz
+(defmethod t-norm :lukasiewicz
   [_]
   [(fn [x y] (max 0 (+ x y -1))),
    (fn [x y] (min 1 (+ 1 (- x) y)))])
 
-(defmethod t-norm :lukasiewicz
-  [_]
-  (t-norm :łukasiewicz))
+;; (defmethod t-norm :łukasiewicz
+;;   [_]
+;;   (t-norm :lukasiewicz))
 
-(defmethod t-norm :gödel
+(defmethod t-norm :goedel
   [_]
   [(fn [x y] (min x y)),
    (fn [x y] (if (<= x y) 1 y))])
 
-(defmethod t-norm :goedel
-  [_]
-  (t-norm :gödel))
+;; (defmethod t-norm :gödel
+;;   [_]
+;;   (t-norm :goedel))
 
 (defmethod t-norm :product
   [_]
