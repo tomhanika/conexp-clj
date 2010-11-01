@@ -27,14 +27,14 @@
 
 ;;;
 
-(defvar- *internal-version-string*
+(defvar- internal-version-string
   (.trim #=(slurp "VERSION")))
 
-(defvar- *conexp-version*
-  (let [[_ major minor patch qualifier] (re-find #"(\d+).(\d+).(\d+)-(\w+)" *internal-version-string*)]
-    {:major major,
-     :minor minor,
-     :patch patch,
+(defvar- conexp-version-map
+  (let [[_ major minor patch qualifier] (re-find #"(\d+).(\d+).(\d+)-(\w+)" internal-version-string)]
+    {:major (Integer/parseInt major),
+     :minor (Integer/parseInt minor),
+     :patch (Integer/parseInt patch),
      :qualifier qualifier}))
 
 (defn- conexp-built-version
@@ -50,14 +50,15 @@
 (defn conexp-version
   "Returns the version of conexp as a string."
   []
-  (let [{:keys [major minor patch qualifier]} *conexp-version*]
+  (let [{:keys [major minor patch qualifier]} conexp-version-map]
     (str major "." minor "." patch "-" qualifier "-" (conexp-built-version))))
 
 (defn has-version?
   "Compares given version of conexp and returns true if and only if
   the current version of conexp is higher or equal than the given one"
   [{my-major :major, my-minor :minor, my-patch :patch}]
-  (let [{:keys [major, minor, patch]} *conexp-version*]
+  (assert (and my-major my-minor my-patch))
+  (let [{:keys [major, minor, patch]} conexp-version-map]
     (or (and (< my-major major))
 	(and (= my-major major)
 	     (< my-minor minor))
