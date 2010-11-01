@@ -12,8 +12,7 @@
 	conexp.contrib.dl.framework.reasoning
 	conexp.contrib.dl.util.concept-sets
 	conexp.contrib.tests.dl.examples)
-  (:use clojure.test
-	[clojure.contrib.seq :only (seq-on)]))
+  (:use clojure.test))
 
 ;;; Testing Data
 
@@ -55,15 +54,15 @@
       (doseq [c concept-seq]
 	(add-concept! cs-2 c))
       (apply add-concepts! cs-3 concept-seq)
-      (is (order-consistent? (reverse concept-seq) (seq-on cs-1)))
-      (is (order-consistent? (reverse concept-seq) (seq-on cs-2)))
-      (is (order-consistent? (reverse concept-seq) (seq-on cs-3))))))
+      (is (order-consistent? (reverse concept-seq) cs-1))
+      (is (order-consistent? (reverse concept-seq) cs-2))
+      (is (order-consistent? (reverse concept-seq) cs-3)))))
 
 ;;
 
 (deftest- contains-no-equivalent-concepts
   (doseq [concept-seq concept-seqs]
-    (let [cs (seq-on (make-concept-set concept-seq))]
+    (let [cs (make-concept-set concept-seq)]
       (is (forall [x cs, y cs]
 		  (=> (equivalent? x y) (= x y)))))))
 

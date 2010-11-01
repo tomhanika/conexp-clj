@@ -7,17 +7,19 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.util.general-sorted-sets
-  (:use conexp.main)
-  (:use [clojure.contrib.seq :only (seq-on)]))
+  (:use conexp.main))
 
 (ns-doc
  "Implementation of a generalization of tree sets to partial orders.")
 
 ;;; sorted-set for non-total orderings
 
-(deftype General-Sorted-Set [order-fn maximal-elements minimal-elements])
+(declare add-to-gss! remove-from-gss! sort-gss)
 
-(declare add-to-gss! remove-from-gss!)
+(deftype General-Sorted-Set [order-fn maximal-elements minimal-elements]
+  clojure.lang.Seqable
+  (seq [this]
+    (map :node (sort-gss this))))
 
 (defn make-general-sorted-set
   "Constructs a general sorted set for the given order function and
@@ -56,9 +58,6 @@
                       (println "Node:" (:node x)
                                ", Lowers:" (map :node @(:lowers x))
                                ", Uppers:" (map :node @(:uppers x)))))))
-
-(defmethod seq-on General-Sorted-Set [gss]
-  (map :node (sort-gss gss)))
 
 ;;
 

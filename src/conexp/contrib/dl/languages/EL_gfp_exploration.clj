@@ -15,8 +15,7 @@
         conexp.contrib.dl.languages.description-graphs
 	conexp.contrib.dl.languages.EL-gfp
 	conexp.contrib.dl.languages.EL-gfp-rewriting
-	conexp.contrib.dl.util.concept-sets)
-  (:use [clojure.contrib.seq :only (seq-on)]))
+	conexp.contrib.dl.util.concept-sets))
 
 (ns-doc
  "Implements exploration for description logics EL and EL-gfp.")
@@ -69,7 +68,7 @@
                              "of all concept names of the language of the given model."))
 
          (loop [M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
-                K     (induced-context (seq-on M_k) initial-model),
+                K     (induced-context (seq M_k) initial-model),
                 Pi_k  [],
                 P_k   #{},
                 model initial-model,
@@ -104,7 +103,7 @@
                                      (for [r (role-names language)]
                                        (dl-expression language
                                                       (exists r (model-closure next-model all-P_k))))),
-		   next-K     (induced-context (seq-on next-M_k) next-model K),
+		   next-K     (induced-context (seq next-M_k) next-model K),
 		   next-Pi_k  (conj Pi_k P_k),
 
 		   implications (if (= K next-K)
@@ -117,7 +116,7 @@
                                                 :when (not-empty (conclusion impl))])),
 		   background-knowledge (minimal-implication-set next-M_k),
 
-		   next-P_k   (next-closed-set (seq-on next-M_k)
+		   next-P_k   (next-closed-set (seq next-M_k)
 					       (clop-by-implications (union implications background-knowledge))
 					       P_k)]
 	       (recur next-M_k next-K next-Pi_k next-P_k next-model implications background-knowledge))))))))

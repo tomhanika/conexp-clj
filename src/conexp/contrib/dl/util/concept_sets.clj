@@ -10,8 +10,7 @@
   (:use conexp.main
 	conexp.contrib.util.general-sorted-sets
 	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.reasoning)
-  (:use [clojure.contrib.seq :only (seq-on)]))
+	conexp.contrib.dl.framework.reasoning))
 
 (ns-doc
  "Implements a orderd set type for concepts with no two elements of
@@ -19,7 +18,10 @@
 
 ;;;
 
-(deftype Concept-Set [gss seq-of-concepts])
+(deftype Concept-Set [gss seq-of-concepts]
+  clojure.lang.Seqable
+  (seq [this]
+    @seq-of-concepts))
 
 (defn- gss-of-concept-set
   "Returns the general-sorted-set of a concept-set."
@@ -46,11 +48,8 @@
 	       (add-to-gss! gss (first coll))
 	       (recur (rest coll) (conj inserted (first coll))))))))
 
-(defmethod seq-on Concept-Set [concept-set]
-  @(seq-of-concepts concept-set))
-
 (defmethod print-method Concept-Set [concept-set out]
-  (print-method (seq-on concept-set) out))
+  (print-method (seq concept-set) out))
 
 ;;;
 
