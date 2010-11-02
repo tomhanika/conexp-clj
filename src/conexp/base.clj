@@ -55,12 +55,12 @@
 
 (defn lectic-<_i
   "Implements lectic < at position i. The basic order is given by the ordering
-  of G which is interpreted as increasing order.
+  of base which is interpreted as increasing order.
 
   A and B have to be sets."
-  [G i A B]
+  [base i A B]
   (and (contains? B i) (not (contains? A i)) ; A and B will always be sets
-       (loop [elements G]
+       (loop [elements base]
          (let [j (first elements)]
            (if (= j i)
              true
@@ -69,20 +69,20 @@
                false))))))
 
 (defn lectic-<
-  "Implements lectic ordering. The basic order is given by the ordering of G
+  "Implements lectic ordering. The basic order is given by the ordering of base
   which is interpreted as increasing order."
-  [G A B]
-  (exists [i G] (lectic-<_i G i A B)))
+  [base A B]
+  (exists [i base] (lectic-<_i base i A B)))
 
 (defn next-closed-set-in-family
   "Computes next closed set as with next-closed-set, which is in the
-  family $\\mathcal{F}$ of all closed sets satisfing
-  predicate. predicate has to satisfy the condition
+  family F of all closed sets satisfing predicate. predicate has to
+  satisfy the condition
 
-    A in F and i in G ==> clop(A union {1, …, i-1}) in F.
+    A in F and i in base ==> clop(A union {1, ..., i-1}) in F.
   "
-  [predicate G clop A]
-  (loop [i-s (reverse G),
+  [predicate base clop A]
+  (loop [i-s (reverse base),
          A   (set A)]
     (if (empty? i-s)
       nil
@@ -90,7 +90,7 @@
         (if (contains? A i)
           (recur (rest i-s) (disj A i))
           (let [clop-A (clop (conj A i))]
-            (if (and (lectic-<_i G i A clop-A)
+            (if (and (lectic-<_i base i A clop-A)
                      (predicate clop-A))
               clop-A
               (recur (rest i-s) A))))))))
@@ -109,34 +109,35 @@
 
 (defn all-closed-sets-in-family
   "Computes all closed sets of a given closure operator on a given set
-  contained in the family described by predicate. See documentation of
-  next-closed-set-in-family for more details. Uses initial as first
-  closed set if supplied."
-  ([predicate G clop]
-     (all-closed-sets-in-family predicate G clop #{}))
-  ([predicate G clop initial]
-     (let [G (if (set? G) (improve-basic-order G clop) G)]
+  base contained in the family described by predicate. See
+  documentation of next-closed-set-in-family for more details. Uses
+  initial as first closed set if supplied."
+  ([predicate base clop]
+     (all-closed-sets-in-family predicate base clop #{}))
+  ([predicate base clop initial]
+     (let [base (if (set? base) (improve-basic-order base clop) base)]
        (let [initial (clop initial),
              start   (if (predicate initial)
                        initial
-                       (next-closed-set-in-family predicate G clop initial))]
+                       (next-closed-set-in-family predicate base clop initial))]
          (take-while #(not (nil? %))
-                     (iterate (partial next-closed-set-in-family predicate G clop)
+                     (iterate (partial next-closed-set-in-family predicate base clop)
                               start))))))
 
 (defn next-closed-set
-  "Computes next closed set with the Next Closure Algorithm. The order of elements in G,
-  interpreted as increasing, is taken to be the basic order of the elements."
-  [G clop A]
-  (next-closed-set-in-family (constantly true) G clop A))
+  "Computes next closed set with the Next Closure Algorithm. The order of elements in base,
+  interpreted as increasing, is taken to be the basic order of the
+  elements."
+  [base clop A]
+  (next-closed-set-in-family (constantly true) base clop A))
 
 (defn all-closed-sets
   "Computes all closed sets of a given closure operator on a given
   set. Uses initial as first closed set if supplied."
-  ([G clop]
-     (all-closed-sets G clop #{}))
-  ([G clop initial]
-     (all-closed-sets-in-family (constantly true) G clop initial)))
+  ([base clop]
+     (all-closed-sets base clop #{}))
+  ([base clop initial]
+     (all-closed-sets-in-family (constantly true) base clop initial)))
 
 ;;; Common Math Algorithms
 

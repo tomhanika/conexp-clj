@@ -52,6 +52,32 @@
   (is (lectic-< [5 7 3 2 1] #{7 2 1} #{5}))
   (is (not (lectic-< [5 7 3 2 1] #{5 7 3 2 1} #{7 3 2 1}))))
 
+(deftest test-next-closed-set-in-family
+  (are [set next] (= (next-closed-set-in-family #(< (count %) 3)
+                                                [3 2 0 1]
+                                                identity
+                                                set)
+                     next)
+       #{} #{1}
+       #{1} #{0}
+       #{0} #{0 1}
+       #{0 1} #{2}
+       #{2} #{2 1}
+       #{2 1} #{2 0}
+       #{2 0} #{3}
+       #{3} #{3 1}
+       #{3 1} #{3 0}
+       #{3 0} #{3 2}
+       #{3 2} nil))
+
+(deftest test-improve-basic-order
+  (is (= #{1 2 3} (set (improve-basic-order [3 2 1] #(conj % 1)))))
+  (is (= #{} (set (improve-basic-order [] identity)))))
+
+(deftest test-all-closed-sets-in-family
+  (is (= '(#{2} #{1 2} #{0 2} #{3} #{1 3} #{0 3} #{2 3})
+         (all-closed-sets-in-family #(< (count %) 3) [3 2 0 1] identity #{2}))))
+
 (deftest test-next-closed-set
   (are [set next] (= (next-closed-set [3 2 1] identity set) next)
        #{}      #{1}
@@ -101,6 +127,12 @@
        #{[1 'a]}        #{[1 'a]}
        #{[+ -] [- *]}   #{[+ -] [- *] [+ *]}
        #{[1 2] [2 3] [3 4]} #{[1 2] [2 3] [3 4] [1 3] [1 4] [2 4]}))
+
+(deftest test-reflexive-transitive-closure
+  (is (= #{[1 2] [1 1] [2 2]}
+         (reflexive-transitive-closure [1 2] #{[1 2]})))
+  (is (= #{[nil nil] ['a nil] ['a 'a]}
+         (reflexive-transitive-closure [nil 'a] #{['a nil]}))))
 
 (deftest test-graph-of-function?
   (are [rel src trg] (graph-of-function? rel src trg)
