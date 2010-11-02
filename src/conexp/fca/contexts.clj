@@ -117,6 +117,8 @@
 
 (defmethod make-context [clojure-coll clojure-coll clojure-coll]
   [objects attributes incidence]
+  (when-not (and (not (map? objects)) (not (map? attributes)))
+    (illegal-argument "Objects and attributes should not be given as a map."))
   (let [objs (set objects)
 	atts (set attributes)
 	inz  (set-of [g m] [[g m] incidence
@@ -126,6 +128,8 @@
 
 (defmethod make-context [clojure-coll clojure-coll clojure-fn]
   [objects attributes incidence]
+  (when-not (and (not (map? objects)) (not (map? attributes)))
+    (illegal-argument "Objects and attributes should not be given as a map."))
   (Formal-Context. (set objects)
                    (set attributes)
                    (set-of [x y] [x objects
@@ -192,6 +196,20 @@
                                     :when (= 1 (nth bits (+ (* n i) j)))
                                     :let [a (nth G i),
                                           b (nth M j)]]))))
+
+(defn subcontext?
+  "Tests whether ctx-1 is a subcontext ctx-2 or not."
+  [ctx-1 ctx-2]
+  (let [objs-1 (objects ctx-1)
+	objs-2 (objects ctx-2)
+	atts-1 (attributes ctx-1)
+	atts-2 (attributes ctx-2)]
+    (and (subset? objs-1 objs-2)
+	 (subset? atts-1 atts-2)
+	 (forall [[g m] (incidence ctx-1)]
+	   (=> (and (contains? objs-1 g)
+		    (contains? atts-1 m))
+	       (contains? (incidence ctx-2) [g m]))))))
 
 (defn object-derivation
   "Computes set of attributes common to all objects in context."

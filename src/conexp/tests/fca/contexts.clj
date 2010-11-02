@@ -59,19 +59,22 @@
                                   [3 b] [3 e]
                                   [4 c] [4 d] [4 e]}))
 
-(defmacro test-for-every-test-ctx
-  [var-spec test]
-  `(are ~var-spec ~test
-	test-ctx-01
-	test-ctx-02
-	test-ctx-03
-	test-ctx-04
-	test-ctx-05
-	test-ctx-06
-	test-ctx-07
-	test-ctx-08))
+(defvar- testing-data
+  [empty-context,
+   test-ctx-01,
+   test-ctx-02,
+   test-ctx-03,
+   test-ctx-04,
+   test-ctx-05,
+   test-ctx-06,
+   test-ctx-07,
+   test-ctx-08])
 
 ;;;
+
+(deftest test-context?
+  (with-testing-data [ctx testing-data]
+    (context? ctx)))
 
 (deftest test-Formal-Context-toString
   (is (= (print-context test-ctx-01 sort-by-second sort-by-second)
@@ -98,6 +101,38 @@
        #{1 2 3} #{1 2 3 4} =  #{1 2 3} #{1 2 3} =
        #{'a 'b 'c} #{1 2}  =  #{'a 'b} #{1 2}   =))
 
+;;; Testing context construction
+
+(deftest test-make-context-again
+  (are [thing] (context? thing)
+       (make-context [1 2 3 4] [3 4 5 6] <)
+       (make-context [1 2 3] '[a b c] '#{[1 a] [2 c]}))
+  (are [thing] (thrown? Exception thing)
+       (make-context [1 2 3 4] [3 4 5 6] [1 2 3])
+       (make-context {1 2 3 4} {3 4 5 6} #{}))
+  (is (= (incidence (make-context [1 2 3] [2 3 4] <=))
+         #{[1 2] [1 3] [1 4] [2 2] [2 3] [2 4] [3 3] [3 4]}))
+  (is (= (objects (make-context [nil 'a +] [] []))
+         #{nil 'a +}))
+  (is (= (attributes (make-context [1] [nil nil '+ *] [[1 nil]]))
+         #{nil '+ *})))
+
+(deftest test-make-context-from-matrix
+  (is (= (incidence (make-context-from-matrix 2 2
+                                              [1 1
+                                               0 1]))
+         #{[0 0] [0 1] [1 1]}))
+  (let [ctx (make-context-from-matrix 2 2 [0 0 1 1])]
+    (is (= (objects ctx) #{0 1}))
+    (is (= (attributes ctx) #{0 1}))
+    (is (= (incidence ctx) #{[1 0] [1 1]})))
+  (let [ctx (make-context-from-matrix ['a +] 2 [0 1 0 1])]
+    (is (= (objects ctx) #{'a +}))
+    (is (= (attributes ctx) #{0 1}))
+    (is (= (incidence ctx) #{['a 1] [+ 1]}))))
+
+;;;
+
 (deftest test-object-derivation
   (are [ctx objs derived-attributes]
        (= (object-derivation ctx objs) derived-attributes)
@@ -113,11 +148,45 @@
   (is (clarified? test-ctx-04))
   (is (not (clarified? test-ctx-06))))
 
+(deftest test-clarify-context
+  (with-testing-data [ctx testing-data]
+    (subcontext? (clarify-context ctx) ctx))
+  (with-testing-data [ctx testing-data]
+    (clarified? (clarify-context ctx))))
+
 (deftest test-reduced?
   (is (not (reduced? test-ctx-01)))
   (is (not (reduced? test-ctx-03)))
   (is (reduced? test-ctx-04))
   (is (not (reduced? test-ctx-06))))
+
+(deftest test-reduce-context
+  (with-testing-data [ctx testing-data]
+    (subcontext? (reduce-context ctx) ctx))
+  (with-testing-data [ctx testing-data]
+    (reduced? (reduce-context ctx))))
+
+(deftest test-concepts
+  (with-testing-data [ctx testing-data]
+    (=> (and (<= (count (objects ctx)) 15)
+             (<= (count (attributes ctx)) 15))
+        (every? #(concept? ctx %) (concepts ctx)))))
+
+(deftest test-context-intents
+  (with-testing-data [ctx testing-data]
+    (=> (and (<= (count (objects ctx)) 15)
+             (<= (count (attributes ctx)) 15))
+        (= (set (context-intents ctx))
+           (set-of B [[_ B] (concepts ctx)])))))
+
+(deftest test-context-extents
+  (with-testing-data [ctx testing-data]
+    (=> (and (<= (count (objects ctx)) 15)
+             (<= (count (attributes ctx)) 15))
+        (= (set (context-extents ctx))
+           (set-of A [[A _] (concepts ctx)])))))
+
+;;;
 
 (deftest test-dual-context
   (test-for-every-test-ctx
