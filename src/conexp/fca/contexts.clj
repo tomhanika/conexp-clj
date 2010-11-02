@@ -313,8 +313,8 @@
   "Reduces context ctx assuming it is clarified."
   [ctx]
   (let [uda     (up-down-arrows ctx),
-        new-obj (set (map first uda)),
-        new-att (set (map second uda))]
+        new-obj (set-of g [[g _] uda]),
+        new-att (set-of m [[_ m] uda])]
     (make-context-nc new-obj new-att (incidence ctx))))
 
 (defn reduce-context-objects
