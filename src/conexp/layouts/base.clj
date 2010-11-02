@@ -124,13 +124,13 @@
   "Returns the set of infimum irreducible elements of layout."
   [layout]
   (set-of v [[v uppers] (upper-neighbours layout),
-             :when (singelton? uppers)]))
+             :when (singleton? uppers)]))
 
 (def-layout-fn sup-irreducibles
   "Returns the set of supremum irreducible elements of layout."
   [layout]
   (set-of v [[v lowers] (lower-neighbours layout),
-             :when (singelton? lowers)]))
+             :when (singleton? lowers)]))
 
 (def-layout-fn order
   "Returns underlying order relation of layout. This operation may be

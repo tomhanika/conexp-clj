@@ -80,10 +80,10 @@
 
 ;;; Technical Helpers
 
-(defn singelton?
-  "Returns true iff given thing is a singelton sequence or set."
+(defn singleton?
+  "Returns true iff given thing is a singleton sequence or set."
   [x]
-  (and (or (set? x) (seq? x))
+  (and (or (set? x) (sequential? x))
        (not (empty? x))
        (not (next x))))
 
@@ -109,9 +109,12 @@
   (map #(vector %1 %2) seq-1 seq-2))
 
 (defn first-non-nil
-  "Returns first non-nil element in seq."
+  "Returns first non-nil element in seq, or nil if there is none."
   [seq]
-  (first (drop-while #(= nil %) seq)))
+  (loop [seq seq]
+    (when seq
+      (let [elt (first seq)]
+        (or elt (recur (next seq)))))))
 
 (defn split-at-first
   "Splits given sequence at first element satisfing predicate.
@@ -183,7 +186,7 @@
 		   (lazy-seq
 		     (cons init (runner (conj init (first rest))
 					(next rest))))))]
-    (runner [] sqn)))
+    (runner [] (seq sqn))))
 
 (defn tails
   "Returns a lazy sequence of the tails of sqn."
@@ -193,7 +196,7 @@
 		   [[]]
 		   (lazy-seq
 		     (cons (vec rest) (runner (next rest))))))]
-    (runner sqn)))
+    (runner (seq sqn))))
 
 (defn now
   "Returns the current time in a human readable format."

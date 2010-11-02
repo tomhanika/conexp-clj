@@ -10,6 +10,20 @@
 
 ;;;
 
+(deftest test-singleton?
+  (are [x] (singleton? x)
+       #{1}
+       #{nil}
+       [1]
+       [nil]
+       ['a]
+       [[[]]])
+  (are [x] (not (singleton? x))
+       #{}
+       []
+       nil
+       [[][]]))
+
 (deftest test-ensure-length
   (is (= 10 (count (ensure-length "" 10))))
   (is (every? #(= \- %) (ensure-length "" 10 "-"))))
@@ -43,7 +57,33 @@
 
 (deftest test-illegal-argument
   (is (thrown-with-msg? IllegalArgumentException #"Dies ist eine Testnachricht."
-			(illegal-argument "Dies " "ist eine " "Testnachricht" "."))))
+        (illegal-argument "Dies " "ist eine " "Testnachricht" "."))))
+
+(deftest test-unsupported-operation
+  (is (thrown-with-msg? UnsupportedOperationException #"Und wieder eine Testnachricht."
+        (unsupported-operation "Und" " wieder " "eine" " Testnachricht."))))
+
+(deftest test-illegal-state
+  (is (thrown-with-msg? IllegalStateException #"und nochmal"
+        (illegal-state "und" " nochmal"))))
+
+(deftest test-with-memoized-fns
+  'todo)
+
+(deftest test-memo-fn
+  (is (= 1 (let [counter (atom 0),
+                 f (memo-fn my-fn [x] (swap! counter inc) x)]
+             (f 1)
+             (f 1)
+             (f 1)))))
+
+(deftest test-inits
+  (is (= (list [] [1] [1 2]) (inits [1 2])))
+  (is (= (list []) (inits []))))
+
+(deftest test-tails
+  (is (= (list [1 2] [2] []) (tails [1 2])))
+  (is (= (list []) (tails []))))
 
 (deftest test-=>
   (is (=> true true))
@@ -85,13 +125,31 @@
 (deftest test-set-of
   (is (= #{1 2 3 4 5 6} (set-of x [x (range 1 7)])))
   (is (= #{4 5 6} (set-of x [x (range 100) :when (<= 4 x 6)])))
-  (is (= #{1 2 3 4 5 6} (set-of x [x (range 7) :when (= 1 (gcd x 7))]))))
+  (is (= #{1 2 3 4 5 6} (set-of x [x (range 7) :when (= 1 (gcd x 7))])))
+  (is (= #{1 2 3 5 7 11 13 17 19} (set-of x | x (range 1 20),
+                                              :when (forall [y (range 1 x)]
+                                                      (= 1 (gcd x y)))))))
+
+(deftest test-div
+  (is (= 1 (div 3 2)))
+  (is (= 0 (div 1 2)))
+  (is (= 2 (div 4 2))))
 
 (deftest test-distinct-by-key
   (are [sqn key rslt] (= (distinct-by-key sqn key) rslt)
        #{1 2 3 4} identity (seq #{1 2 3 4})
        [1 2 3 4]  #(< % 3) (seq [1 3])
        #{}        identity (list)))
+
+(deftest test-map-by-fn
+  (is (= {1 2 2 3 3 4} (map-by-fn inc [1 2 3])))
+  (is (= {} (map-by-fn identity []))))
+
+(deftest test-with-printed-result
+  (is (= (with-out-str
+           (with-printed-result "Result:"
+             (inc 1)))
+         "Result: 2\n")))
 
 ;;;
 

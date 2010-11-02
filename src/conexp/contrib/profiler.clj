@@ -203,7 +203,7 @@
   arguments, in a separate thread and profiles it. Returns the new
   thread."
   [f]
-  (let [thread (Thread. f)]
+  (let [thread (Thread. ^Runnable f)]
     (start-profiling :thread thread)
     (.start thread)
     thread))

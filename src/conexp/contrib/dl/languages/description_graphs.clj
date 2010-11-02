@@ -61,7 +61,7 @@
 
 (defn- conjunctors
   "Returns the elements of the dl-expression connected by
-  conjunction. If the dl-expression is not a conjunction the singelton
+  conjunction. If the dl-expression is not a conjunction the singleton
   set containing the expression is returned."
   [dl-expr]
   (if (and (compound? dl-expr)
