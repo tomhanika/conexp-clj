@@ -59,16 +59,15 @@
                                   [3 b] [3 e]
                                   [4 c] [4 d] [4 e]}))
 
-(defvar- testing-data
-  [empty-context,
-   test-ctx-01,
-   test-ctx-02,
-   test-ctx-03,
-   test-ctx-04,
-   test-ctx-05,
-   test-ctx-06,
-   test-ctx-07,
-   test-ctx-08])
+(defvar testing-data [empty-context,
+                      test-ctx-01,
+                      test-ctx-02,
+                      test-ctx-03,
+                      test-ctx-04,
+                      test-ctx-05,
+                      test-ctx-06,
+                      test-ctx-07,
+                      test-ctx-08])
 
 ;;;
 
@@ -133,6 +132,11 @@
 
 ;;;
 
+(deftest test-subcontext?
+  (with-testing-data [ctx testing-data]
+    (and (subcontext? ctx ctx)
+         (subcontext? empty-context ctx))))
+
 (deftest test-object-derivation
   (are [ctx objs derived-attributes]
        (= (object-derivation ctx objs) derived-attributes)
@@ -189,12 +193,12 @@
 ;;;
 
 (deftest test-dual-context
-  (test-for-every-test-ctx
-   [ctx] (= ctx (dual-context (dual-context ctx)))))
+  (with-testing-data [ctx testing-data]
+    (= ctx (dual-context (dual-context ctx)))))
 
 (deftest test-invert-context
-  (test-for-every-test-ctx
-   [ctx] (= ctx (invert-context (invert-context ctx)))))
+  (with-testing-data [ctx testing-data]
+    (= ctx (invert-context (invert-context ctx)))))
 
 (deftest test-one-context
   (are [base-set] (let [ctx (one-context base-set)]

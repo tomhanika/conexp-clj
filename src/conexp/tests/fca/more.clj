@@ -15,15 +15,10 @@
 
 ;;; Subcontexts
 
-(deftest test-subcontext?
-  (test-for-every-test-ctx
-   [ctx] (and (subcontext? ctx ctx)
-	      (subcontext? empty-context ctx))))
-
 (deftest test-compatible-subcontext?
-  (test-for-every-test-ctx
-   [ctx] (and (compatible-subcontext? ctx ctx)
-	      (compatible-subcontext? empty-context ctx))))
+  (with-testing-data [ctx testing-data]
+    (and (compatible-subcontext? ctx ctx)
+         (compatible-subcontext? empty-context ctx))))
 
 (deftest test-compatible-subcontexts
   (are [ctx] (let [ctx (reduce-context ctx)]
