@@ -277,33 +277,31 @@
 (defn down-arrows
   "Computes the down arrow relation of ctx."
   [ctx]
-  (let [obj (objects ctx)
-	att (attributes ctx)
-	inz (incidence ctx)
-	prime (memoize (partial object-derivation ctx))]
+  (let [obj   (objects ctx),
+	att   (attributes ctx),
+	inz   (incidence ctx),
+	prime (map-by-fn #(object-derivation ctx #{%}) obj)]
     (set-of [g m]
 	    [g obj
 	     m att
 	     :when (and (not (inz [g m]))
 			(forall [h obj]
-			  (=> (proper-subset? (prime #{g})
-					      (prime #{h}))
+			  (=> (proper-subset? (prime g) (prime h))
 			      (inz [h m]))))])))
 
 (defn up-arrows
   "Computes the up arrow relation of ctx."
   [ctx]
-  (let [obj (objects ctx)
-	att (attributes ctx)
-	inz (incidence ctx)
-	prime (memoize (partial attribute-derivation ctx))]
+  (let [obj   (objects ctx),
+	att   (attributes ctx),
+	inz   (incidence ctx),
+	prime (map-by-fn #(attribute-derivation ctx #{%}) att)]
     (set-of [g m]
 	    [g obj,
 	     m att
 	     :when (and (not (inz [g m]))
 			(forall [n att]
-			  (=> (proper-subset? (prime #{m})
-					      (prime #{n}))
+			  (=> (proper-subset? (prime m) (prime n))
 			      (inz [g n]))))])))
 
 (defn up-down-arrows
@@ -314,24 +312,24 @@
 (defn reduce-clarified-context
   "Reduces context ctx assuming it is clarified."
   [ctx]
-  (let [uda (up-down-arrows ctx)
-	new-obj (set (map first uda))
+  (let [uda     (up-down-arrows ctx),
+	new-obj (set (map first uda)),
 	new-att (set (map second uda))]
-    (make-context new-obj new-att (incidence ctx))))
+    (make-context-nc new-obj new-att (incidence ctx))))
 
 (defn reduce-context-objects
   "Object reduction for ctx."
   [ctx]
-  (make-context (set-of g [[g _] (down-arrows ctx)])
-		(attributes ctx)
-		(incidence ctx)))
+  (make-context-nc (set-of g [[g _] (down-arrows ctx)])
+                   (attributes ctx)
+                   (incidence ctx)))
 
 (defn reduce-context-attributes
   "Attribute reduction for ctx."
   [ctx]
-  (make-context (objects ctx)
-		(set-of m [[_ m] (up-arrows ctx)])
-		(incidence ctx)))
+  (make-context-nc (objects ctx)
+                   (set-of m [[_ m] (up-arrows ctx)])
+                   (incidence ctx)))
 
 (defn reduce-context
   "Reduces context ctx."
@@ -344,8 +342,8 @@
   "Tests whether given context ctx is reduced or not."
   [ctx]
   (and (clarified? ctx)
-       (let [obj (objects ctx)
-	     att (attributes ctx)
+       (let [obj (objects ctx),
+	     att (attributes ctx),
 	     uda (up-down-arrows ctx)]
 	 (and (forall [g obj]
 		(exists [[h _] uda]
