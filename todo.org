@@ -1,12 +1,9 @@
 # -*- mode: org -*-
 # +startup: overview
 # +startup: hidestars
-# TODO: TODO | INPROGRESS | DONE
+# +TODO: TODO | INPROGRESS | DONE
 
 conexp-clj TODOs
-
-conexp-clj is a general purpose FCA tool and can be found on its
-official [[http://www.math.tu-dresden.de/~borch/conexp-clj][website]].
 
 * Overall
 ** TODO Implement Christians Force Layout with derivations
