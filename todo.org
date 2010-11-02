@@ -1,0 +1,41 @@
+# -*- mode: org -*-
+# +startup: overview
+# +startup: hidestars
+# TODO: TODO | INPROGRESS | DONE
+
+conexp-clj TODOs
+
+conexp-clj is a general purpose FCA tool and can be found on its
+official [[http://www.math.tu-dresden.de/~borch/conexp-clj][website]].
+
+* Overall
+** TODO Implement Christians Force Layout with derivations
+** TODO Implement Chrisitans Initial Position Layout
+** TODO Rule Exploration with Impex
+** TODO GUI context editor
+** TODO GUI lattice editor
+   The editor is there, but it has some tweaks.
+** TODO GUI code editor
+** TODO GUI plugin browser
+** TODO Rough Sets (?)
+   Do we need this?
+* Lattice Editor
+** TODO Fix stupid labeling
+** TODO Fix Neverending Rotation when switching tabs (this is a GUI problem)
+* For 0.0.7-alpha
+** TODO Improve test coverage of conexp contrib
+* For 0.0.6-alpha
+** INPROGRESS Improve test coverage of conexp core [1/5]             :Daniel:
+   - [X] conexp.base
+   - [ ] conexp.fca [0/7]
+     - [ ] association rules
+     - [ ] contexts
+     - [ ] exploration
+     - [ ] implications
+     - [ ] lattices
+     - [ ] many-valued contexts
+     - [ ] more
+   - [ ] conexp.layouts
+   - [ ] conexp.io
+   - [ ] conexp.math
+** TODO Add more example files                                    :Sebastian:
