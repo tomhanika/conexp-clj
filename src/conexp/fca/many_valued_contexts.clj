@@ -257,15 +257,17 @@
   "Scales the given many-valued context ctx with the given
   scales. These are of the form
 
-    [att_1 att_2 ...] short-scale,
+    [att_1 att_2 ...] scale,
 
-  where att_i is an attribute of the given context and short-scale
-  determines a call to a known scale, without the values. For example,
-  you may use this macro with
+  where att_i is an attribute of the given context and scale
+  determines a call to a known scale. The variable values will be
+  bound to the corresponding values of each attribute and may be used
+  when constructing the scale. For example, you may use this macro
+  with
 
     (scale-context ctx
-                   [a b c] (nominal-scale)
-                   [d]     (ordinal-scale <=))
+                   [a b c] (nominal-scale values)
+                   [d]     (ordinal-scale values <=))
 
   Note that attributes of ctx always have to be given in a sequence,
   even if there is only one."
@@ -282,7 +284,8 @@
                          ~(into {}
                                 (for [[atts scale] scales,
                                       att atts]
-                                  `['~att ~(list* (first scale) `(values-of-attribute ~ctx '~att) (rest scale))]))))))
+                                  `['~att (let [~'values (values-of-attribute ~ctx '~att)]
+                                            ~scale)]))))))
 
 ;;;
 

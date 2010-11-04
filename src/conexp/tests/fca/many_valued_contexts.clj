@@ -59,7 +59,29 @@
 ;;;
 
 (deftest test-scale-context
-  )
+  (let [mv-ctx (make-mv-context-from-matrix '[a b c] ['x 2 3] [true  1 4,
+                                                               false 2 2,
+                                                               true  3 0]),
+        sc-ctx (make-context-from-matrix '[a b c]
+                                         '[[x false]
+                                           [x true]
+                                           [2 "<= 1"]
+                                           [2 "<= 2"]
+                                           [2 "<= 3"]
+                                           [3 "<= 0"]
+                                           [3 "<= 2"]
+                                           [3 "<= 4"]
+                                           [3 ">= 0"]
+                                           [3 ">= 2"]
+                                           [3 ">= 4"]]
+                                         [0 1 1 1 1 0 0 1 1 1 1,
+                                          1 0 0 1 1 0 1 1 1 1 0,
+                                          0 1 0 0 1 1 1 1 1 0 0])]
+    (= (scale-mv-context-with mv-ctx
+                              [x] (nominal-scale values),
+                              [2] (ordinal-scale values <=),
+                              [3] (interordinal-scale values <= >=))
+       sc-ctx)))
 
 ;;;
 
