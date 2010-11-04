@@ -19,7 +19,21 @@
   (is (make-mv-context #{} #{} (constantly true)))
   (is (make-mv-context [1 2 3] [4 5 6] /))
   (is (thrown? IllegalArgumentException (make-mv-context 1 2 3)))
-  (is (make-mv-context [1] '#{a} (constantly false))))
+  (is (make-mv-context [1] '#{a} (constantly false)))
+  (is (= {[1 1] 2, [1 2] 3, [2 1] 3, [2 2] 4}
+         (incidence (make-mv-context [1 2] [1 2]
+                                     {[1 1] 2, [1 2] 3, [2 1] 3, [2 2] 4}))))
+  (is (thrown? IllegalArgumentException
+               (make-mv-context [] [] {[1 1] 2}))))
+
+(deftest test-make-mv-context-from-matrix
+  (is (let [mv-ctx (make-mv-context-from-matrix 2 2 [1 2 nil 3])]
+        (is (= #{0 1} (objects mv-ctx)))
+        (is (= #{0 1} (attributes mv-ctx)))
+        (is (= {[0 0] 1, [0 1] 2, [1 0] nil, [1 1] 3}
+               (incidence mv-ctx)))))
+  (is (= #{'a 'b} (objects (make-mv-context-from-matrix '[a b] [] []))))
+  (is (= #{nil =} (attributes (make-mv-context-from-matrix [] [nil =] [])))))
 
 (deftest test-Many-Valued-Context-equals
   (is (= (make-mv-context [] [] (constantly true))
@@ -31,8 +45,6 @@
   (is (= (make-mv-context [1] [1] +)
          (make-mv-context [1] [1] [[1 1 2] [1 2 3] [2 3 4]]))))
 
-;;;
-
 (defvar- testing-data
   [(make-mv-context #{} #{} +),
    (make-mv-context (range 100) (range 100) *),
@@ -43,6 +55,11 @@
                       mv-ctx-2 testing-data]
     (=> (= mv-ctx-1 mv-ctx-2)
         (= (hash mv-ctx-1) (hash mv-ctx-2)))))
+
+;;;
+
+(deftest test-scale-context
+  )
 
 ;;;
 

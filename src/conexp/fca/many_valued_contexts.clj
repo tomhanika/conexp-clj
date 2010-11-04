@@ -26,46 +26,46 @@
   (attributes [this] attributes)
   (incidence [this] incidence))
 
-(defn print-mv-context
-  "Prints the given many-valued context mv-ctx as a value-table."
-  [mv-ctx]
-  (let [objs         (sort (objects mv-ctx)),
-	atts         (sort (attributes mv-ctx)),
-	inz          (incidence mv-ctx),
+(defn mv-context-to-string
+  "Returns a string representing the given many-valued context mv-ctx
+  as a value-table."
+  ([mv-ctx]
+     (print-mv-context mv-ctx sort-by-first sort-by-first))
+  ([mv-ctx order-on-objects order-on-attributes]
+     (let [objs         (sort order-on-objects (objects mv-ctx)),
+           atts         (sort order-on-attributes (attributes mv-ctx)),
+           inz          (incidence mv-ctx),
 
-	str          #(if (nil? %) "nil" (str %))
+           str          #(if (nil? %) "nil" (str %))
 
-	max-obj-len  (reduce #(max %1 (count (str %2))) 0 objs)
-	max-att-lens (loop [lens (into {} (for [att atts]
-					    [att (count (str att))]))
-			    triples (for [g objs,
-					  m atts]
-				      [g m (inz [g m])])]
-		       (if (empty? triples)
-			 lens
-			 (let [[g m w] (first triples)
-			       len (count (str w))]
-			   (if (> len (lens m))
-			     (recur (assoc lens m len) (rest triples))
-			     (recur lens (rest triples))))))]
-    (with-str-out
-      (ensure-length "" max-obj-len " ") " |" (for [att atts]
-						[(ensure-length (str att) (max-att-lens att) " ") " "])
-      "\n"
-      (ensure-length "" max-obj-len "-") "-+" (for [att atts]
-						(ensure-length "" (inc (max-att-lens att)) "-"))
-      "\n"
-      (for [obj objs]
-	[(ensure-length (str obj) max-obj-len)
-	 " |"
-	 (for [att atts]
-	   [(ensure-length (str (inz [obj att]))
-			   (max-att-lens att))
-	    " "])
-	 "\n"]))))
+           max-obj-len  (reduce #(max %1 (count (str %2))) 0 objs)
+           max-att-lens (loop [lens   (transient (map-by-fn #(count (str %)) atts)),
+                               values (seq inz)]
+                          (if values
+                            (let [[[_ m] w] (first values),
+                                  len (count (str w))]
+                              (recur (if (> len (lens m))
+                                       (assoc! lens m len)
+                                       lens)
+                                     (next values)))
+                            (persistent! lens)))]
+       (with-str-out
+         (ensure-length "" max-obj-len " ") " |" (for [att atts]
+                                                   [(ensure-length (str att) (max-att-lens att) " ") " "])
+         "\n"
+         (ensure-length "" max-obj-len "-") "-+" (for [att atts]
+                                                   (ensure-length "" (inc (max-att-lens att)) "-"))
+         "\n"
+         (for [obj objs]
+           [(ensure-length (str obj) max-obj-len)
+            " |"
+            (for [att atts]
+              [(ensure-length (str (inz [obj att])) (max-att-lens att))
+               " "])
+            "\n"])))))
 
 (defmethod print-method Many-Valued-Context [mv-ctx out]
-  (.write out (print-mv-context mv-ctx)))
+  (.write ^java.io.Writer out ^String (mv-context-to-string mv-ctx)))
 
 ;;;
 
@@ -83,9 +83,9 @@
     (Many-Valued-Context. objs atts
                           (if (map? inz)
                             (do
-                              (when-not (forall [g objs, m atts]
-                                          (contains? inz [g m]))
-                                (illegal-argument "Incidence map for many-value-context must be total."))
+                              (when-not (= (cross-product objs atts) (set (keys inz)))
+                                (illegal-argument "Incidence map for many-value-context must be total "
+                                                  "and must not contain additional keys."))
                               inz)
                             (loop [hash  (transient {}),
                                    items inz]
@@ -138,119 +138,151 @@
 
 ;;;
 
+(defn values-of-attribute
+  "For a given many-valued context mv-ctx and a given attribute m,
+  returns the set of all values of m in mv-ctx."
+  [mv-ctx m]
+  (when-not (contains? (attributes mv-ctx) m)
+    (illegal-argument "Given element is not an attribute of the given many-valued context."))
+  (let [inz (incidence mv-ctx)]
+    (set-of (inz [g m]) [g (objects mv-ctx)])))
+
+(defn values-of-object
+  "For a given many-valued context mv-ctx and a given object g,
+  returns the set of all values of g in mv-ctx."
+  [mv-ctx g]
+  (when-not (contains? (objects mv-ctx) g)
+    (illegal-argument "Given element is not an object of the given many-valued context."))
+  (let [inz (incidence mv-ctx)]
+    (set-of (inz [g m]) [m (attributes mv-ctx)])))
+
+;;;
+
 (defn scale-mv-context
   "Scales given many-valued context mv-ctx with given scales. scales
   must be a map from attributes m to contexts K, where all possible
   values of m in mv-ctx are among the objects in K."
   [mv-ctx scales]
   (assert (map? scales))
-  (let [inz (incidence mv-ctx),
+  (let [inz  (incidence mv-ctx),
 	objs (objects mv-ctx),
 	atts (set-of [m n] [m (attributes mv-ctx)
 			    n (attributes (scales m))]),
-	inz (set-of [g [m n]] [g objs
-			       [m n] atts
-			       :let [w (inz [g m])]
-			       :when ((incidence (scales m)) [w n])])]
-    (make-context objs atts inz)))
+	inz  (set-of [g [m n]] [g objs
+                                [m n] atts
+                                :let [w (inz [g m])]
+                                :when (contains? (incidence (scales m)) [w n])])]
+    (make-context-nc objs atts inz)))
 
 (defn nominal-scale
   "Returns the nominal scale on the set base."
-  [base]
-  (diag-context base))
+  ([values]
+     (nominal-scale values values))
+  ([values others]
+     (make-context values others =)))
 
 (defn ordinal-scale
-  "Returns the ordinal scale on the set base, optionally given an
+  "Returns the ordinal scale on the set values, optionally given an
   order relation <=."
-  ([base]
-     (ordinal-scale base <=))
-  ([base <=]
-     (make-context base base <=)))
+  ([values]
+     (ordinal-scale values <=))
+  ([values <=]
+     (ordinal-scale values values <=))
+  ([values others <=]
+     (let [atts (map #(str '<= " " %) others),
+           inz  (set-of [g (str '<= " " m)] [g values,
+                                             m others
+                                             :when (<= g m)])]
+     (make-context values atts inz))))
 
 (defn interordinal-scale
   "Returns the interordinal scale on the set base, optionally given
   two order relations <= and >=."
-  ([base]
-     (interordinal-scale base <= >=))
-  ([base <= >=]
-     (let [objs base,
-	   atts-<= (map #(str "<= " %) base),
-	   atts->= (map #(str ">= " %) base),
-	   inz-<= (set-of [g (str "<= " m)]
-			  [g objs
-			   m base
+  ([values]
+     (interordinal-scale values values))
+  ([values <= >=]
+     (interordinal-scale values values <= >=))
+  ([values others <= >=]
+     (let [objs    values,
+
+	   atts-<= (map #(str '<= " " %) others),
+	   atts->= (map #(str '>= " " %) others),
+
+	   inz-<= (set-of [g (str '<= " " m)]
+			  [g objs,
+			   m others
 			   :when (<= g m)]),
-	   inz->= (set-of [g (str ">= " m)]
-			  [g objs
-			   m base
+	   inz->= (set-of [g (str '>= " " m)]
+			  [g objs,
+			   m others,
 			   :when (>= g m)])]
-       (make-context base (union atts-<= atts->=) (union inz-<= inz->=)))))
+       (make-context values (union atts-<= atts->=) (union inz-<= inz->=)))))
 
 (defn biordinal-scale
-  "Returns the biordinal scale on the sequence base, optionally given
-  two order relations <= and >=. Note that base must be
+  "Returns the biordinal scale on the sequence values, optionally given
+  two order relations <= and >=. Note that values (and others) must be
   ordered (e.g. vector or list), because otherwise the result will be
   arbitrary."
-  ([base n]
-     (biordinal-scale base n <= >=))
-  ([base n <= >=]
-     (let [first-objs (take n base),
-	   rest-objs (drop n base),
+  ([values n]
+     (biordinal-scale values values n <= >=))
+  ([values others n <= >=]
+     (let [first-objs (take n values),
+	   rest-objs  (drop n values),
 
-	   first-atts (map #(str "<= " %) first-objs),
-	   rest-atts (map #(str ">= " %) rest-objs),
+	   first-atts (map #(str '<= " " %) (take n others)),
+	   rest-atts  (map #(str '>= " " %) (drop n others)),
 
-	   first-inz (set-of [g (str "<= " m)]
-			     [g first-objs
-			      m first-objs
-			      :when (<= g m)]),
-	   rest-inz (set-of [g (str ">= " m)]
-			    [g rest-objs
-			     m rest-objs
-			     :when (>= g m)])]
-       (make-context base
+	   first-inz  (set-of [g (str '<= " " m)]
+                              [g first-objs,
+                               m first-atts,
+                               :when (<= g m)]),
+	   rest-inz   (set-of [g (str '>= " " m)]
+                              [g rest-objs,
+                               m rest-atts
+                               :when (>= g m)])]
+       (make-context values
 		     (union first-atts rest-atts)
 		     (union first-inz rest-inz)))))
 
 (defn dichotomic-scale
-  "Returns the dichotimic scale on the set base. Note that base must
+  "Returns the dichotimic scale on the set values. Note that base must
   have exactly two arguments."
-  [base]
-  (assert (= 2 (count base)))
-  (diag-context base))
+  [values]
+  (assert (= 2 (count values)))
+  (nominal-scale values))
 
 ;;;
 
-(defmacro scale-context
-  "Scales the given (many-valued) context ctx with the given
+(defmacro scale-mv-context-with
+  "Scales the given many-valued context ctx with the given
   scales. These are of the form
 
-    [att_1 att_2 ...] short_scale,
+    [att_1 att_2 ...] short-scale,
 
-  where att_i is an attribute of the given context and short_scale
-  determines a call to a known scala, without the attributes. For
-  example, you may use this macro with
+  where att_i is an attribute of the given context and short-scale
+  determines a call to a known scale, without the values. For example,
+  you may use this macro with
 
     (scale-context ctx
                    [a b c] (nominal-scale)
-                   [d]     (dichotomic-scale))
+                   [d]     (ordinal-scale <=))
 
-  Note that attributes always have to be given in a sequence, even if
-  there is only one."
+  Note that attributes of ctx always have to be given in a sequence,
+  even if there is only one."
   [ctx & scales]
-  (let [scales (partition 2 scales),
+  (let [scales     (partition 2 scales),
         given-atts (mapcat first scales)]
     (when (not= given-atts (distinct given-atts))
       (illegal-argument "Doubly given attribute."))
     `(do
-       (when-not (= (attributes ~ctx) ~(set given-atts))
+       (when-not (= (attributes ~ctx) '~(set given-atts))
          (illegal-argument "Given scalas to scale-context do not "
                            "yield the attribute set of the given context."))
        (scale-mv-context ~ctx
                          ~(into {}
                                 (for [[atts scale] scales,
                                       att atts]
-                                  `['~att ~(list* (first scale) `(attributes ~ctx) (rest scale))]))))))
+                                  `['~att ~(list* (first scale) `(values-of-attribute ~ctx '~att) (rest scale))]))))))
 
 ;;;
 
