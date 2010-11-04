@@ -81,16 +81,22 @@
   (let [objs (set objs),
         atts (set atts)]
     (Many-Valued-Context. objs atts
-                          (loop [hash {}
-                                 items inz]
-                            (if (empty? items)
-                              hash
-                              (let [[g m w] (first items)]
-                                (recur (if (and (contains? objs g)
-                                                (contains? atts m))
-                                         (assoc hash [g m] w)
-                                         hash)
-                                       (rest items))))))))
+                          (if (map? inz)
+                            (do
+                              (when-not (forall [g objs, m atts]
+                                          (contains? inz [g m]))
+                                (illegal-argument "Incidence map for many-value-context must be total."))
+                              inz)
+                            (loop [hash  (transient {}),
+                                   items inz]
+                              (if (empty? items)
+                                (persistent! hash)
+                                (let [[g m w] (first items)]
+                                  (recur (if (and (contains? objs g)
+                                                  (contains? atts m))
+                                           (assoc! hash [g m] w)
+                                           hash)
+                                         (rest items)))))))))
 
 (defmethod make-mv-context [clojure-coll clojure-coll clojure-fn]
   [objs atts inz-fn]
