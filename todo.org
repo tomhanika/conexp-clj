@@ -22,7 +22,7 @@ conexp-clj TODOs
 * For 0.0.7-alpha
 ** TODO Improve test coverage of conexp contrib
 * For 0.0.6-alpha
-** INPROGRESS Improve test coverage of conexp core [1/5]             :Daniel:
+** INPROGRESS Improve test coverage of conexp core [2/5]             :Daniel:
    - [X] conexp.base
    - [ ] conexp.fca [0/7]
      - [ ] association rules
@@ -33,6 +33,10 @@ conexp-clj TODOs
      - [ ] many-valued contexts
      - [ ] more
    - [ ] conexp.layouts
-   - [ ] conexp.io
+   - [X] conexp.io [4/4]
+     - [X] contexts
+     - [X] lattices
+     - [X] layouts
+     - [X] many-valued contexts
    - [ ] conexp.math
 ** TODO Add more example files                                    :Sebastian:

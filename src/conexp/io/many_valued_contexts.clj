@@ -101,11 +101,11 @@
                  (not= (inc (count attributes)) (first line-lengths)))
         (illegal-argument "Number of values in lines in file " file " does not match given attributes.\n"
                           "Number of values given should be equal or once more to the number of attributes."))
-      (let [lines           (if (not= (first line-lengths) (count attributes))
-                              lines
-                              (map #(cons %1 %2) (iterate inc 0) lines)),
-            objects         (map first lines),
-            object-set      (set objects)]
+      (let [lines      (if (not= (first line-lengths) (count attributes))
+                         lines
+                         (map #(cons %1 %2) (iterate inc 0) lines)),
+            objects    (map first lines),
+            object-set (set objects)]
         (when (not= (count objects) (count object-set))
           (illegal-argument "Given file " file " contains double entries for objects."))
         (let [interpretation  (into {}
@@ -114,7 +114,7 @@
                                                 values (rest line)],
                                           [m w] (map vector attributes values)]
                                       [[g m] w]))]
-        (make-mv-context object-set attributes interpretation))))))
+          (make-mv-context object-set attributes interpretation))))))
 
 ;;;
 

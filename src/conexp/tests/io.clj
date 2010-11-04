@@ -13,7 +13,8 @@
 
 (tests-to-run conexp.tests.io.contexts
               conexp.tests.io.lattices
-              conexp.tests.io.layouts)
+              conexp.tests.io.layouts
+              conexp.tests.io.many-valued-contexts)
 
 ;;;
 
