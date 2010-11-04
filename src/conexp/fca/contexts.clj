@@ -72,7 +72,7 @@
     :else
     (compare-order x y)))
 
-(defn ^String print-context
+(defn ^String context-to-string
   "Prints contexts in a human readable form."
   [ctx order-on-objects order-on-attributes]
   (let [str #(if (= % nil) "nil" (str %))
@@ -99,7 +99,7 @@
 
 (defmethod print-method Formal-Context [ctx out]
   (.write ^java.io.Writer out
-          ^String (print-context ctx sort-by-second sort-by-second)))
+          ^String (context-to-string ctx sort-by-second sort-by-second)))
 
 ;;;
 

@@ -76,7 +76,7 @@
     (context? ctx)))
 
 (deftest test-Formal-Context-toString
-  (is (= (print-context test-ctx-01 sort-by-second sort-by-second)
+  (is (= (context-to-string test-ctx-01 sort-by-second sort-by-second)
 	 (str "  |1 2 3 4 5 \n"
               "--+----------\n"
               "1 |x x x . . \n"
