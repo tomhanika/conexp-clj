@@ -46,7 +46,7 @@
 ;;;
 
 (defn make-implication
-  "Creates an implication (premise => conclusion $\\setminus$ premise)."
+  "Creates an implication (premise => conclusion \\ premise)."
   [premise conclusion]
   (let [premise (set premise)
         conclusion (set conclusion)]

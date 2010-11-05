@@ -88,7 +88,7 @@
         (clear-factors F)))))
 
 (defn- oplus-count
-  "Implements $|D\\oplus j|$. D must be subset of the attributes of
+  "Implements |D oplus j|. D must be subset of the attributes of
   context, as must #{j}."
   [context U D j]
   (let [D+j (conj D j),

@@ -40,3 +40,6 @@ conexp-clj TODOs
      - [X] many-valued contexts
    - [ ] conexp.math
 ** TODO Add more example files                                    :Sebastian:
+** DONE Detexify docstrings
+   Docstrings don't need to contain TeX, since we will not import them
+   into the documentation anymore.
