@@ -211,6 +211,12 @@
                     (contains? atts-1 m))
                (contains? (incidence ctx-2) [g m]))))))
 
+(defn restrict-concept
+  "Restricts the given concept to the given subcontext."
+  [concept subcontext]
+  [(intersection (first concept) (objects subcontext)),
+   (intersection (second concept) (attributes subcontext))])
+
 (defn object-derivation
   "Computes set of attributes common to all objects in context."
   [ctx objects]

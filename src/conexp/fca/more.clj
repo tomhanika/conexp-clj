@@ -56,12 +56,6 @@
     (for [[G-H N] (concepts compatible-ctx)]
       (make-context (difference (objects ctx) G-H) N (incidence ctx)))))
 
-(defn restrict-concept
-  "Restricts the given concept to the given subcontext."
-  [concept subcontext]
-  [(intersection (first concept) (objects subcontext)),
-   (intersection (second concept) (attributes subcontext))])
-
 ;;; Bonds
 
 (defn smallest-bond
@@ -107,8 +101,8 @@
 (defn all-bonds
   "Returns all bonds between ctx-1 and ctx-2."
   [ctx-1 ctx-2]
-  (let [G-1 (objects ctx-1),
-        M-2 (attributes ctx-2),
+  (let [G-1     (objects ctx-1),
+        M-2     (attributes ctx-2),
         impls-1 (set-of (make-implication (cross-product A #{m})
                                           (cross-product B #{m}))
                         [impl (stem-base (dual-context ctx-1)),
