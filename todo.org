@@ -14,13 +14,12 @@ conexp-clj TODOs
    The editor is there, but it has some tweaks.
 ** TODO GUI code editor
 ** TODO GUI plugin browser
-** TODO Rough Sets (?)
-   Do we need this?
 * Lattice Editor
 ** TODO Fix stupid labeling
 ** TODO Fix Neverending Rotation when switching tabs (this is a GUI problem)
 * For 0.0.7-alpha
-** TODO Improve test coverage of conexp contrib
+** TODO Improve test coverage of conexp contrib                      :Daniel:
+** TODO Make Sage interface faster                                   :Daniel:
 * For 0.0.6-alpha
 ** INPROGRESS Improve test coverage of conexp core [2/5]             :Daniel:
    - [X] conexp.base
@@ -43,6 +42,6 @@ conexp-clj TODOs
      - [ ] statistics
      - [ ] util
 ** TODO Add more example files                                    :Sebastian:
-** DONE Detexify docstrings
+** DONE Detexify docstrings                                          :Daniel:
    Docstrings don't need to contain TeX, since we will not import them
    into the documentation anymore.
