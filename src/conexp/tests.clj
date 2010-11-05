@@ -15,7 +15,7 @@
 	      conexp.tests.fca
               conexp.tests.math
               conexp.tests.io
-              conexp.tests.layout)
+              conexp.tests.layouts)
 
 ;;;
 
