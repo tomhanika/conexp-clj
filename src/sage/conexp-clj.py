@@ -148,17 +148,20 @@ class ConexpCLJElement(ExpectElement):
             other = P(other)
 
         # THIS IS DAMN WRONG! (but it works, sometimes...)
-        return int(str(P("(compare (hash %s) (hash %s))"%(self.name(), other.name()))))
+        return int(P.eval("(compare (hash %s) (hash %s))"%(self.name(), other.name())))
 
     def __eq__(self, other):
         P = self._check_valid()
         if not hasattr(other, 'parent') or P is not other.parent():
             other = P(other)
 
-        return "true" == str(P("(= %s %s)"%(self.name(), other.name())))
+        return "true" == P.eval("(= %s %s)"%(self.name(), other.name()))
 
     def _operation(self, operation, right):
         P = self._check_valid()
+        if not hasattr(right, 'parent') or P is not right.parent():
+            right = P(right)
+
         try:
             return P("(%s %s %s)"%(operation, self._name, right._name))
         except Exception, msg:
@@ -185,17 +188,17 @@ class ConexpCLJElement(ExpectElement):
         name = self._name
         val = None
 
-        if bool(P("(nil? %s)"%name)):
+        if "true" == P.eval("(nil? %s)"%name):
             val = None
-        elif bool(P("(set? %s)"%name)):
+        elif "true" == P.eval("(set? %s)"%name):
             val = frozenset(self)
-        elif bool(P("(sequential? %s)"%name)):
+        elif "true" == P.eval("(sequential? %s)"%name):
             val = list(self)
-        elif bool(P("(instance? conexp.fca.lattices.Lattice %s)"%name)):
+        elif "true" == P.eval("(instance? conexp.fca.lattices.Lattice %s)"%name):
             edges = map(lambda x: [str(x[0]), str(x[1])],
                         P("(conexp.layouts.util/edges %s)"%name))
             val = LatticePoset([[], edges])
-        elif bool(P("(map? %s)"%name)):
+        elif "true" == P.eval("(map? %s)"%name):
             dit = {}
             for pair in [x for x in self]:
                 dit[pair[0]] = pair[1]
@@ -224,7 +227,7 @@ class ConexpCLJElement(ExpectElement):
 
     def __len__(self):
         P = self._check_valid()
-        return P("(count %s)"%self._name)
+        return int(P.eval("(count %s)"%self._name))
 
     def __iter__(self):
         self_seq = self.seq()
@@ -235,7 +238,7 @@ class ConexpCLJElement(ExpectElement):
         P = self._check_valid()
         if not hasattr(x, 'parent') or P is not x.parent():
             x = P(x)
-        return P("(contains? %s %s)"%(self._name, x))
+        return "true" == P.eval("(contains? %s %s)"%(self._name, x))
 
     def __getitem__(self, key):
         P = self._check_valid()
