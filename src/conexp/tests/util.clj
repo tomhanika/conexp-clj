@@ -33,6 +33,26 @@
 	 (with-str-out
 	   "Hallo" [[[[","]] [" ich" '(" ") "bin"]] " "] "ein Test."))))
 
+(deftest test-sort-by-first
+  (are [x y] (sort-by-first x y)
+       [1 2] [2 1]
+       ['a 2] ['b 1]
+       [nil 2] [2 nil]
+       1 2)
+  (are [x y] (not (sort-by-first x y))
+       2 1
+       'a ['b 2]))
+
+(deftest test-sort-by-second
+  (are [x y] (sort-by-second x y)
+       1 2
+       [nil 1] [nil 2]
+       [2 1] [1 2])
+  (are [x y] (not (sort-by-second x y))
+       2 1
+       [nil 2] [1 nil]
+       'b 'a))
+
 (deftest test-zip
   (let [zipped (zip [1 2 3 4] '[a b c])]
     (is (= 3 (count zipped)))

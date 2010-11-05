@@ -75,8 +75,6 @@
   (with-testing-data [ctx testing-data]
     (context? ctx)))
 
-;; sort-by-first, sort-by-second
-
 (deftest test-Formal-Context-toString
   (is (= (context-to-string test-ctx-01 sort-by-second sort-by-second)
 	 (str "  |1 2 3 4 5 \n"

@@ -101,6 +101,41 @@
     (doseq [element (flatten body)]
       (print element))))
 
+(defn- compare-order
+  "Orders things for proper output of formal contexts."
+  [x y]
+  (if (and (= (class x) (class y))
+           (instance? Comparable x))
+    (> 0 (compare x y))
+    (> 0 (compare (str (class x)) (str (class y))))))
+
+(defn sort-by-second
+  "Ensures that pairs are ordered by second entry first. This gives
+  better output for context sums, products, ..."
+  [x y]
+  (cond
+    (and (vector? x)
+         (vector? y)
+         (= 2 (count x) (count y)))
+    (if (= (second x) (second y))
+      (compare-order (first x) (first y))
+      (compare-order (second x) (second y)))
+    :else
+    (compare-order x y)))
+
+(defn sort-by-first
+  "Ensures that pairs are ordered by first entry first."
+  [x y]
+  (cond
+    (and (vector? x)
+         (vector? y)
+         (= 2 (count x) (count y)))
+    (if (= (first x) (first y))
+      (compare-order (second x) (second y))
+      (compare-order (first x) (first y)))
+    :else
+    (compare-order x y)))
+
 (defn zip
   "Returns sequence of pairs [x,y] where x runs through seq-1 and
   y runs through seq-2 simultaneously. This is the same as
