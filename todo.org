@@ -38,7 +38,10 @@ conexp-clj TODOs
      - [X] lattices
      - [X] layouts
      - [X] many-valued contexts
-   - [ ] conexp.math
+   - [ ] conexp.math [0/3]
+     - [ ] optimize
+     - [ ] statistics
+     - [ ] util
 ** TODO Add more example files                                    :Sebastian:
 ** DONE Detexify docstrings
    Docstrings don't need to contain TeX, since we will not import them
