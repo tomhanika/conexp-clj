@@ -124,21 +124,21 @@ class ConexpCLJ(Expect):
 
     def _coerce_impl(self, x, **kwds):
         if x == None or x == False:
-            return self("nil")
+            return "nil"
         elif x == True:
-            return self("true")
+            return "true"
         elif isinstance(x, (set, frozenset)):
-            return self("#{%s}"%(str(map(self, x))[1:-1]))
+            return "#{" + str(map(lambda y:self._coerce_impl(y,kwds), x))[1:-1] + "}"
         elif isinstance(x, (list, tuple)):
-            return self("[%s]"%(str(map(self, x))[1:-1]))
+            return "[" + str(map(lambda y:self._coerce_impl(y,kwds), x))[1:-1] + "]"
         elif isinstance(x, dict):
             string = "{"
             for key in x:
-                string += str(self(key)) + " " + str(self(x[key])) + ", "
+                string += str(self._coerce_impl(key,kwds)) + " " + str(self._coerce_impl(x[key],kwds)) + ", "
             string += "}"
-            return self(string)
+            return string
         else:
-            return self(str(x))
+            return str(x)
 
 
 class ConexpCLJElement(ExpectElement):
@@ -148,18 +148,14 @@ class ConexpCLJElement(ExpectElement):
             other = P(other)
 
         # THIS IS DAMN WRONG! (but it works, sometimes...)
-        return P("(compare (hash %s) (hash %s))"%(self.name(), other.name()))
+        return int(str(P("(compare (hash %s) (hash %s))"%(self.name(), other.name()))))
 
     def __eq__(self, other):
         P = self._check_valid()
         if not hasattr(other, 'parent') or P is not other.parent():
             other = P(other)
 
-        return bool(P("(= %s %s)"%(self.name(), other.name())))
-
-    def _sage_doc_(self):
-        M = self._obj.parent()
-        return M.help(self._name)
+        return "true" == str(P("(= %s %s)"%(self.name(), other.name())))
 
     def _operation(self, operation, right):
         P = self._check_valid()
@@ -170,9 +166,8 @@ class ConexpCLJElement(ExpectElement):
 
     def bool(self):
         P = self.parent()
-        t = P._true_symbol()
         cmd = '(not (not %s))'%self._name
-        return P.eval(cmd) == t
+        return P.eval(cmd) == "true"
 
     def gen(self, n):
         P = self.parent()
@@ -193,14 +188,13 @@ class ConexpCLJElement(ExpectElement):
         if bool(P("(nil? %s)"%name)):
             val = None
         elif bool(P("(set? %s)"%name)):
-            val = frozenset([x for x in self])
+            val = frozenset(self)
         elif bool(P("(sequential? %s)"%name)):
-            val = [x for x in self]
+            val = list(self)
         elif bool(P("(instance? conexp.fca.lattices.Lattice %s)"%name)):
-            edges = [x for x in P("(conexp.layouts.util/edges %s)"%name)]
-            G = DiGraph()
-            G.add_edges(edges)
-            val = LatticePoset(G)
+            edges = map(lambda x: [str(x[0]), str(x[1])],
+                        P("(conexp.layouts.util/edges %s)"%name))
+            val = LatticePoset([[], edges])
         elif bool(P("(map? %s)"%name)):
             dit = {}
             for pair in [x for x in self]:
