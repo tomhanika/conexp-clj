@@ -60,7 +60,7 @@
     (compare-order x y)))
 
 (defn sort-by-first
-  "Convenience function for custom context printing."
+  "Ensures that pairs are ordered by first entry first."
   [x y]
   (cond
     (and (vector? x)
