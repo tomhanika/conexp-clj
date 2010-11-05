@@ -34,6 +34,8 @@
 
 ;;; Bonds
 
+(defvar small-contexts [test-ctx-01, test-ctx-04, test-ctx-07, test-ctx-08])
+
 (deftest test-all-bonds
   (is (= 2216 (count (all-bonds (make-context-from-matrix 5 5 [0 1 0 1 0
                                                                1 0 1 1 0
@@ -44,7 +46,43 @@
                                                                1 0 1 1 1
                                                                1 1 1 0 0
                                                                1 1 0 0 0
-                                                               0 1 1 0 0]))))))
+                                                               0 1 1 0 0])))))
+  (with-testing-data [ctx small-contexts]
+    (every? #(bond? ctx ctx %) (all-bonds ctx ctx))))
+
+(deftest test-smallest-bond
+  (with-testing-data [ctx small-contexts,
+                      :let [bonds (all-bonds ctx ctx)]
+                      rel (map (fn [_]
+                                 (incidence (rand-context (objects ctx)
+                                                          (attributes ctx)
+                                                          (rand))))
+                               (range 10))]
+    (let [smallest (smallest-bond ctx ctx rel)]
+      (and (exists [b bonds]
+             (= smallest b))
+           (forall [b bonds]
+             (=> (subset? rel (incidence b))
+                 (subset? (incidence smallest) (incidence b))))))))
+
+;;;
+
+(deftest test-all-shared-intents
+  (with-testing-data [ctx small-contexts]
+    (let [intents (context-intents ctx)]
+      (= intents (all-shared-intents ctx ctx))))
+  (with-testing-data [ctx-1 small-contexts,
+                      ctx-2 small-contexts,
+                      :when (= (attributes ctx-1) (attributes ctx-2))]
+    (= (set (all-shared-intents ctx-1 ctx-2))
+       (intersection (set (context-intents ctx-1))
+                     (set (context-intents ctx-2))))))
+
+(deftest test-all-bonds-by-shared-intents
+  (with-testing-data [ctx-1 small-contexts,
+                      ctx-2 small-contexts]
+    (= (set (all-bonds ctx-1 ctx-2))
+       (set (all-bonds-by-shared-intents ctx-1 ctx-2)))))
 
 ;;;
 

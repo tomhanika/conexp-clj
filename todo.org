@@ -24,14 +24,14 @@ conexp-clj TODOs
 * For 0.0.6-alpha
 ** INPROGRESS Improve test coverage of conexp core [2/5]             :Daniel:
    - [X] conexp.base
-   - [ ] conexp.fca [0/7]
+   - [-] conexp.fca [1/7]
      - [ ] association rules
      - [ ] contexts
      - [ ] exploration
      - [ ] implications
      - [ ] lattices
      - [ ] many-valued contexts
-     - [ ] more
+     - [X] more
    - [ ] conexp.layouts
    - [X] conexp.io [4/4]
      - [X] contexts
