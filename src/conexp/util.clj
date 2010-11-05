@@ -57,7 +57,7 @@
                                  (println "Caught exception:" e#)
                                  false))]
                  (if-not result#
-                   ~(let [vars (vec (take-nth 2 bindings))]
+                   ~(let [vars (vec (remove keyword? (take-nth 2 bindings)))]
                       `(do (println "Test failed for" '~vars "being" ~vars)
                            (is false)))
                    (is true))))
