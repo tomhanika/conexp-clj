@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.layout
+(ns conexp.tests.layouts
   (:use conexp.base))
 
 ;;;
