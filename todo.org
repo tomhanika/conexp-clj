@@ -19,7 +19,7 @@ conexp-clj TODOs
 ** TODO Fix Neverending Rotation when switching tabs (this is a GUI problem)
 * For 0.0.7-alpha
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
-** TODO Make Sage interface faster                                   :Daniel:
+** INPROGRESS Make Sage interface faster                             :Daniel:
 * For 0.0.6-alpha
 ** INPROGRESS Improve test coverage of conexp core [2/5]             :Daniel:
    - [X] conexp.base
