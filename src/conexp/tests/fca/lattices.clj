@@ -48,6 +48,8 @@
        #{1 2 3 4} =,
        (subsets #{1 2 3 4}) subset?))
 
+;; inf, sup
+
 ;;; Testing common operations for lattices
 
 (defvar- testing-data
@@ -128,7 +130,15 @@
                            ((order lattice) z y))
                       (or (= x z) (= y z)))))))))
 
+;; lattice-{upper,lower}-neighbours
+;; lattice-{,co}atoms,
+;; lattice-{inf,sup}-irreducibles
+;; lattice-irreducibles
+
 ;;; Testing FCA for lattices
+
+;; concept-lattice
+;; standard-context
 
 ;;;
 

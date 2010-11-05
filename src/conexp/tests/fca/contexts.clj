@@ -75,6 +75,8 @@
   (with-testing-data [ctx testing-data]
     (context? ctx)))
 
+;; sort-by-first, sort-by-second
+
 (deftest test-Formal-Context-toString
   (is (= (context-to-string test-ctx-01 sort-by-second sort-by-second)
 	 (str "  |1 2 3 4 5 \n"
@@ -132,10 +134,14 @@
 
 ;;;
 
+;; context-size, rename-{object,attribute}s
+
 (deftest test-subcontext?
   (with-testing-data [ctx testing-data]
     (and (subcontext? ctx ctx)
          (subcontext? empty-context ctx))))
+
+;; restrict-concept
 
 (deftest test-object-derivation
   (are [ctx objs derived-attributes]
@@ -146,6 +152,10 @@
   (are [ctx atts derived-objects]
        (= (attribute-derivation ctx atts) derived-objects)
        test-ctx-01 #{2 3} #{1 2 5}))
+
+;; concept?
+;; clarify-{object,attribute}s
+;; {object,attribute}-clarified?
 
 (deftest test-clarified?
   (is (not (clarified? test-ctx-03)))
@@ -158,6 +168,12 @@
   (with-testing-data [ctx testing-data]
     (clarified? (clarify-context ctx))))
 
+;; down-arrows
+;; up-arrows
+;; up-down-arrows
+;; reduce-clarified-context
+;; reduce-context-{object,attribute}s
+
 (deftest test-reduced?
   (is (not (reduced? test-ctx-01)))
   (is (not (reduced? test-ctx-03)))
@@ -169,6 +185,9 @@
     (subcontext? (reduce-context ctx) ctx))
   (with-testing-data [ctx testing-data]
     (reduced? (reduce-context ctx))))
+
+;; context-object-closure
+;; context-attribute-closure
 
 (deftest test-concepts
   (with-testing-data [ctx testing-data]
@@ -237,6 +256,11 @@
        #{}
        #{1 2 3 282 392 23}
        #{nil 4 * -}))
+
+;; context-{union,intersection,{comp,ap,sub}position,transitive-closure}
+;; rand-context
+;; random-contexts
+;; context-{sum,product,semiproduct,xia-product}
 
 ;;;
 
