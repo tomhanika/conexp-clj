@@ -408,12 +408,12 @@
 ;;; Common Operations with Contexts
 
 (defn dual-context
-  "Dualizes context ctx, that is $(G,M,I)$ gets $(M,G,I^{-1})$."
+  "Dualizes context ctx, that is (G,M,I) gets (M,G,I^{-1})."
   [ctx]
   (make-context-nc (attributes ctx) (objects ctx) (set-of [m g] [[g m] (incidence ctx)])))
 
 (defn invert-context
-  "Inverts context ctx, that is $(G,M,I)$ gets $(G,M,(G\\times M)\\setminus I)$."
+  "Inverts context ctx, that is (G,M,I) gets (G,M,(G x M) \\ I)."
   [ctx]
   (make-context-nc (objects ctx) (attributes ctx) (set-of [g m] [g (objects ctx)
                                                                  m (attributes ctx)
@@ -442,9 +442,9 @@
 
 (defn context-composition
   "Returns context composition of ctx-1 and ctx-2, that is
-  \\[
-      (G_1,M_1,I_1)\\circ(G_2,M_2,I_2) := (G_1,M_2,I_1\\circ I_2).
-  \\]."
+
+    (G_1,M_1,I_1) o (G_2,M_2,I_2) := (G_1,M_2,I_1 o I_2).
+  "
   [ctx-1 ctx-2]
   (make-context-nc (objects ctx-1)
                    (attributes ctx-2)
@@ -458,9 +458,9 @@
 
 (defn context-apposition
   "Returns context apposition of ctx-1 and ctx-2, that is
-  \\[
-     (G_1,M_1,I_1) | (G_1,M_2,I_2) := (G_1,M_1\\cup M_2,I_1\\cup I_2).
-  \\]"
+
+   (G_1,M_1,I_1) | (G_1,M_2,I_2) := (G_1,M_1 dunion M_2,I_1 dunion I_2).
+  "
   [ctx-1 ctx-2]
   (if (not= (objects ctx-1) (objects ctx-2))
     (illegal-argument "Cannot do context apposition, since object sets are not equal."))
@@ -472,9 +472,11 @@
 
 (defn context-subposition
   "Returns context subposition of ctx-1 and ctx-2, that is
-  \\[
-     \\frac{(G_1,M_1,I_1)}{(G_2,M_1,I_2)} := (G_1\\cup G_2,M_1,I_1\\cup I_2).
-  \\]"
+
+     (G_1,M_1,I_1)
+    --------------- := (G_1 dunion G_2, M_1, I_1 union I_2).
+     (G_2,M_1,I_2)
+  "
   [ctx-1 ctx-2]
   (if (not= (attributes ctx-1) (attributes ctx-2))
     (illegal-argument "Cannot do context subposition, since attribute sets are not equal."))
@@ -520,17 +522,17 @@
   (make-context base-set base-set =))
 
 (defn adiag-context
-  "Returns $\\neq$ on base-set as context."
+  "Returns not= on base-set as context."
   [base-set]
   (make-context base-set base-set not=))
 
 (defn context-sum
   "Computes the context sum of ctx-1 and ctx-2, that is
-  \\begin{multline}
-    (G_1,M_1,I_1) + (G_2,M_2,I_2) := \\\\
-      (G_1\\cup G_2, M_1\\cup M_2, I_1\\cup I_2
-      \\cup (G_1\\times M_2) \\cup (G_2\\times M_1)
-  \\end{multline}
+
+    (G_1,M_1,I_1) + (G_2,M_2,I_2) :=
+      (G_1 dunion G_2, M_1 dunion M_2, I_1 dunion I_2
+       dunion (G_1 x M_2) dunion (G_2 x M_1))
+
   where all set unions are disjoint set unions."
   [ctx-1 ctx-2]
   (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx-1)])
@@ -551,14 +553,14 @@
 
 (defn context-product
   "Computes the context product of ctx-1 and ctx-2, that is
-  \\[
-    (G_1,M_1,I_1) \\times (G_2,M_2,I_2) :=
-      (G_1\\times G_2, M_1\\times M_2, \\nabla)
-  \\]
+
+    (G_1,M_1,I_1) x (G_2,M_2,I_2) :=
+      (G_1 x G_2, M_1 x M_2, nabla)
+
   where
-  \\[
-    (g_1,g_2)\\nabla(m_1,m_2) \\iff g_1I_1m_1 \\text{ or } g_2I_2m_2.
-  \\]"
+
+    (g_1,g_2) nabla (m_1,m_2) <=> g_1I_1m_1 or g_2I_2m_2.
+  "
   [ctx-1 ctx-2]
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
         new-atts (cross-product (attributes ctx-1) (attributes ctx-2))
@@ -573,15 +575,15 @@
 
 (defn context-semiproduct
   "Computes the context semiproduct of ctx-1 and ctx-2, where for
-  contexts $(G_1,M_1,I_1)$ and $(G_2,M_2,I_2)$ their semidirect
-  product is defined as
-  \\[
-    (G_1\\times G_2, M_1\\cup M_2, \\nabla)
-  \\]
+  contexts (G_1,M_1,I_1) and (G_2,M_2,I_2) their semidirect product is
+  defined as
+
+    (G_1 x G_2, M_1 dunion M_2, nabla)
+
   where
-  \\[
-    (g_1,g_2)\\nabla(j,m) \\iff g_jI_jm \\qquad\\text{for $j\\in\\set{1,2}$}.
-  \\]"
+
+    (g_1,g_2) nabla (j,m) <=> g_jI_jm for j in {1,2}.
+  "
   [ctx-1 ctx-2]
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
         new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2))
@@ -594,14 +596,14 @@
 
 (defn context-xia-product
   "Computes Xia's product of ctx-1 and ctx-2, where for two contexts
-  $(G_1,M_1,I_1)$ and $(G_2,M_2,I_2)$ their Xia product is defined as
-  \\[
-    (G_1\\times G_2, M_1\\times M_2, \\tilde)
-  \\]
+  (G_1,M_1,I_1) and (G_2,M_2,I_2) their Xia product is defined as
+
+    (G_1 x G_2, M_1 x M_2, ~)
+
   where
-  \\[
-    (g_1,g_2) \\tilde (m_1,m_2) \\iff (g_1I_1m_1\\iff g_2I_2m_2).
-  \\]."
+
+    (g_1,g_2) ~ (m_1,m_2) <=> (g_1I_1m_1 <=> g_2I_2m_2).
+  "
   [ctx-1 ctx-2]
   (let [G_1 (objects ctx-1)
         G_2 (objects ctx-2)
