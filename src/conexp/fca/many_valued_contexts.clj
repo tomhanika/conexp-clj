@@ -30,7 +30,7 @@
   "Returns a string representing the given many-valued context mv-ctx
   as a value-table."
   ([mv-ctx]
-     (print-mv-context mv-ctx sort-by-first sort-by-first))
+     (mv-context-to-string mv-ctx sort-by-first sort-by-first))
   ([mv-ctx order-on-objects order-on-attributes]
      (let [objs         (sort order-on-objects (objects mv-ctx)),
            atts         (sort order-on-attributes (attributes mv-ctx)),

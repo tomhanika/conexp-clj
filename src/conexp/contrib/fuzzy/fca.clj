@@ -34,9 +34,9 @@
 (defmethod print-method Fuzzy-Context
   [ctx out]
   (.write ^java.io.Writer out
-          ^String (print-mv-context (make-mv-context (objects ctx)
-                                                     (attributes ctx)
-                                                     (fn [a b] ((incidence ctx) [a b]))))))
+          ^String (mv-context-to-string (make-mv-context (objects ctx)
+                                                         (attributes ctx)
+                                                         (fn [a b] ((incidence ctx) [a b]))))))
 
 ;;;
 
