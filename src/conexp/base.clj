@@ -177,9 +177,15 @@
   closure of the reduction may not yield the transitive closure of the
   original relation anymore, since the reduction itself can be empty."
   ([pairs]
-     (let [pairs (set pairs)]
-       (transitive-reduction (set-of x [pair pairs, x pair])
-                             #(contains? pairs [%1 %2]))))
+     (let [result (atom (transient #{}))]
+       (doseq [[x y] pairs]
+         (when (not (exists [[a b] pairs,
+                             [c d] pairs]
+                      (and (= a x)
+                           (= b c)
+                           (= d y))))
+           (swap! result conj! [x y])))
+       (persistent! @result)))
   ([base pred]
      (let [result (atom (transient #{}))]
        (doseq [x base, y base]

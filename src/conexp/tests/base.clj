@@ -138,6 +138,8 @@
   (is (= #{[1 2] [2 3]}
          (transitive-reduction #{[1 2] [2 3] [1 3]})))
   (is (empty? (transitive-reduction (cross-product [1 2 3] [1 2 3]))))
+  (is (= #{[1 2] [2 3] [3 4] [4 5]}
+         (transitive-reduction [1 2 3 4 5] <)))
   (is (let [subs   (subsets #{1 2 3 4 5}),
             reduct (transitive-reduction (subsets #{1 2 3 4 5 6 7})
                                          proper-subset?)]
