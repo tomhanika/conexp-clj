@@ -23,6 +23,8 @@ conexp-clj TODOs
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 * For 0.0.6-alpha
+** TODO Write transitive-reduction                                   :Daniel:
+   and use it for «edges» and «luxenburger-basis»
 ** INPROGRESS Improve test coverage of conexp core [2/5]             :Daniel:
    - [X] conexp.base
    - [-] conexp.fca [3/7]

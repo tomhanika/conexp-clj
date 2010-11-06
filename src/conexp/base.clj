@@ -168,6 +168,15 @@
   (transitive-closure (union (set pairs)
                              (set-of [x x] [x base-set]))))
 
+;; (defn transitive-reduction
+;;   "Returns for a set of pairs its transitive reduct. Alternatively,
+;;   the relation can be given as a base set and a predicate p which
+;;   returns true in (p x y) iff [x y] is in the relation in question."
+;;   ([pairs]
+;;      (unsupported-operation "Not yet implemented."))
+;;   ([base pred]
+;;      (unsupported-operation "Not yet implemented.")))
+
 (defn graph-of-function?
   "Returns true iff relation is the graph of a function from source to target."
   [relation source target]
