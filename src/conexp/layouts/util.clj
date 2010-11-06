@@ -91,10 +91,10 @@
   "Returns a sequence of pairs of vertices of lattice which are
   directly neighbored in lattice."
   [lattice]
-  (for [x (base-set lattice),
-	y (base-set lattice),
-	:when (directly-neighboured? lattice x y)]
-    [x y]))
+  (seq (transitive-reduction (base-set lattice)
+                             (let [<= (order lattice)]
+                               #(and (<= %1 %2)
+                                     (not= %1 %2))))))
 
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
