@@ -34,14 +34,14 @@
   (with-testing-data [ctx testing-data]
     (= (set (context-intents ctx)) (set (titanic-context-intents ctx)))))
 
-(deftest test-titanic-iceberg-intent-set
+(deftest test-titanic-iceberg-intent-seq
   (forall [minsupp [0.0 0.2 0.5 0.7 0.9 1.0]]
     (with-testing-data [ctx testing-data]
-      (= (set (iceberg-intent-set ctx minsupp))
-         (set (titanic-iceberg-intent-set ctx minsupp)))))
+      (= (set (iceberg-intent-seq ctx minsupp))
+         (set (titanic-iceberg-intent-seq ctx minsupp)))))
   (with-testing-data [ctx testing-data]
     (= (set (titanic-context-intents ctx))
-       (set (titanic-iceberg-intent-set ctx 0.0)))))
+       (set (titanic-iceberg-intent-seq ctx 0.0)))))
 
 (deftest test-titanic-keys
   (with-testing-data [ctx testing-data]

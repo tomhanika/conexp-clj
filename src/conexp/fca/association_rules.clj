@@ -31,8 +31,10 @@
   an association rule is given, returns the support of the association
   rule in its context."
   ([set ctx]
-     (/ (count (attribute-derivation ctx set))
-        (count (objects ctx))))
+     (if (empty? (objects ctx))
+       1
+       (/ (count (attribute-derivation ctx set))
+          (count (objects ctx)))))
   ([^Association-Rule ar]
      (.support ar)))
 
@@ -68,15 +70,20 @@
                        (support premise context)))]
          (make-association-rule premise (difference conclusion premise) supp conf))))
   ([premise conclusion support confidence]
-     (Association-Rule. premise conclusion support confidence)))
+     (when-not (and (<= 0 support 1)
+                    (<= 0 confidence 1))
+       (illegal-argument "Support and confidence must be numbers between 0 and 1."))
+     (when-not (and (coll? premise) (coll? conclusion))
+       (illegal-argument "Premise and conclusion must be collections."))
+     (Association-Rule. (set premise) (set conclusion) support confidence)))
 
 ;;;
 
-(defn iceberg-intent-set
+(defn iceberg-intent-seq
   "Computes in context for given minimal support minsupp the
-  corresponding iceberg intent set (i.e. the iceberg-lattice)."
+  corresponding iceberg intent seq (i.e. the iceberg-lattice)."
   [context minsupp]
-  (let [mincount (round (ceil (* minsupp (count (objects context)))))]
+  (let [mincount (* minsupp (count (objects context)))]
     (all-closed-sets-in-family (fn [intent]
                                  (>= (count (attribute-derivation context intent))
                                      mincount))
@@ -87,7 +94,7 @@
   "Computes the luxenburger-basis for context with minimal support
   minsupp and minimal confidence minconf."
   [context minsupp minconf]
-  (let [closed-intents (iceberg-intent-set context minsupp)]
+  (let [closed-intents (iceberg-intent-seq context minsupp)]
     (for [B_1 closed-intents,
           B_2 closed-intents,
           :when (and (proper-subset? B_1 B_2)

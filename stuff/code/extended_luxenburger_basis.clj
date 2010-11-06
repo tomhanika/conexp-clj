@@ -43,9 +43,9 @@
           new
           (recur new impls))))))
 
-(defn extended-iceberg-intent-set
+(defn extended-iceberg-intent-seq
   "Computes for the given closure operator for given minimal support minsupp the
-  corresponding extended iceberg intent set, which is the iceberg
+  corresponding extended iceberg intent seq, which is the iceberg
   lattice of all intents and pseudo-intents."
   [context minsupp]
   (let [mincount (round (ceil (* minsupp (count (objects context)))))]
@@ -60,7 +60,7 @@
   original one by adding all implication of the stem-base of context
   which have support greater or equal to minsupp."
   [context minsupp minconf]
-  (let [closures (extended-iceberg-intent-set context minsupp)]
+  (let [closures (extended-iceberg-intent-seq context minsupp)]
     (for [B_1 closures,
           B_2 closures,
           :when (and (proper-subset? B_1 B_2)

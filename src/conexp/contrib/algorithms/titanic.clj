@@ -144,8 +144,8 @@
            1.0
            <=))
 
-(defn titanic-iceberg-intent-set
-  "Computes the iceberg intent set for given context and minimal
+(defn titanic-iceberg-intent-seq
+  "Computes the iceberg intent seq for given context and minimal
   support minsupp via TITANIC."
   [context minsupp]
   (let [intents (titanic (attributes context)
