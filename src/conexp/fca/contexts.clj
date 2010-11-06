@@ -39,32 +39,34 @@
 
 (defn ^String context-to-string
   "Prints contexts in a human readable form."
-  [ctx order-on-objects order-on-attributes]
-  (let [str #(if (= % nil) "nil" (str %))
+  ([ctx]
+     (context-to-string ctx sort-by-second sort-by-second))
+  ([ctx order-on-objects order-on-attributes]
+     (let [str #(if (= % nil) "nil" (str %))
 
-        attributes (vec (sort order-on-objects (attributes ctx)))
-        objects    (vec (sort order-on-attributes (objects ctx)))
-        incidence  (incidence ctx)
+           attributes (vec (sort order-on-objects (attributes ctx)))
+           objects    (vec (sort order-on-attributes (objects ctx)))
+           incidence  (incidence ctx)
 
-        max-att (reduce #(max %1 (count (str %2))) 0 attributes)
-        max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
-    (with-str-out
-      (ensure-length "" max-obj " ") " |" (for [att attributes]
-                                            [(print-str att) " "]) "\n"
-      (ensure-length "" max-obj "-") "-+" (for [att attributes]
-                                            (ensure-length "" (inc (count (print-str att))) "-")) "\n"
-      (for [obj objects]
-        [(ensure-length (print-str obj) max-obj)
-         " |"
-         (for [att attributes]
-           [(ensure-length (if (incidence [obj att]) "x" ".")
-                           (count (print-str att)))
-            " "])
-         "\n"]))))
+           max-att (reduce #(max %1 (count (str %2))) 0 attributes)
+           max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
+       (with-str-out
+         (ensure-length "" max-obj " ") " |" (for [att attributes]
+                                               [(print-str att) " "]) "\n"
+         (ensure-length "" max-obj "-") "-+" (for [att attributes]
+                                               (ensure-length "" (inc (count (print-str att))) "-")) "\n"
+         (for [obj objects]
+           [(ensure-length (print-str obj) max-obj)
+            " |"
+            (for [att attributes]
+              [(ensure-length (if (incidence [obj att]) "x" ".")
+                              (count (print-str att)))
+               " "])
+            "\n"])))))
 
 (defmethod print-method Formal-Context [ctx out]
   (.write ^java.io.Writer out
-          ^String (context-to-string ctx sort-by-second sort-by-second)))
+          ^String (context-to-string ctx)))
 
 ;;;
 
