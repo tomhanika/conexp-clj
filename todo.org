@@ -17,16 +17,18 @@ conexp-clj TODOs
 * Lattice Editor
 ** TODO Fix stupid labeling
 ** TODO Fix Neverending Rotation when switching tabs (this is a GUI problem)
+* For 0.1.0-beta
+  What do we need?
 * For 0.0.7-alpha
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 * For 0.0.6-alpha
 ** INPROGRESS Improve test coverage of conexp core [2/5]             :Daniel:
    - [X] conexp.base
-   - [-] conexp.fca [1/7]
+   - [-] conexp.fca [2/7]
      - [ ] association rules
      - [ ] contexts
-     - [ ] exploration
+     - [X] exploration
      - [ ] implications
      - [ ] lattices
      - [ ] many-valued contexts

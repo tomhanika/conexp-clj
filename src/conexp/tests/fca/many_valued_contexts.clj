@@ -45,6 +45,8 @@
   (is (= (make-mv-context [1] [1] +)
          (make-mv-context [1] [1] [[1 1 2] [1 2 3] [2 3 4]]))))
 
+;;;
+
 (defvar- testing-data
   [(make-mv-context #{} #{} +),
    (make-mv-context (range 100) (range 100) *),
@@ -56,9 +58,17 @@
     (=> (= mv-ctx-1 mv-ctx-2)
         (= (hash mv-ctx-1) (hash mv-ctx-2)))))
 
+;; objects, attributes, incidence
+
 ;;;
 
-(deftest test-scale-context
+;; values-of-{attribute,object}
+
+;; {nominal,ordinal,interordinal,biordinal,dichotomic}-scale
+
+;;;
+
+(deftest test-scale-mv-context
   (let [mv-ctx (make-mv-context-from-matrix '[a b c] ['x 2 3] [true  1 4,
                                                                false 2 2,
                                                                true  3 0]),

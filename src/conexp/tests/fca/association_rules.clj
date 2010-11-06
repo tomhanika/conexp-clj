@@ -37,10 +37,14 @@
        ctx-1 '[a] #{}
        ctx-1 '[a] '[b]))
 
+;; premise, conclusion, support, confidence
+
 ;;;
 
 (deftest test-iceberg-intent-set
-  (is (= 1 (count (iceberg-intent-set (one-context [1 2 3 4]) 0.0)))))
+  (is (= 1 (count (iceberg-intent-set (one-context [1 2 3 4]) 0.0))))
+  ;; more
+  )
 
 (deftest test-luxenburger-basis
   (are [context minsupp minconf] (let [ars (luxenburger-basis context minsupp minconf)]
@@ -50,7 +54,9 @@
                                           (<= minconf (confidence ar)))))
        ctx-1 0.9 0.9
        ctx-1 0.5 0.5
-       ctx-1 0 0))
+       ctx-1 0 0)
+  ;; more
+  )
 
 ;;;
 
