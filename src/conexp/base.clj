@@ -168,14 +168,29 @@
   (transitive-closure (union (set pairs)
                              (set-of [x x] [x base-set]))))
 
-;; (defn transitive-reduction
-;;   "Returns for a set of pairs its transitive reduct. Alternatively,
-;;   the relation can be given as a base set and a predicate p which
-;;   returns true in (p x y) iff [x y] is in the relation in question."
-;;   ([pairs]
-;;      (unsupported-operation "Not yet implemented."))
-;;   ([base pred]
-;;      (unsupported-operation "Not yet implemented.")))
+(defn transitive-reduction
+  "Returns for a set of pairs its transitive reduction. Alternatively,
+  the relation can be given as a base set and a predicate p which
+  returns true in (p x y) iff [x y] is in the relation in question.
+
+  Note that if the relation given is not acyclic, the transitive
+  closure of the reduction may not yield the transitive closure of the
+  original relation anymore, since the reduction itself can be empty."
+  ([pairs]
+     (let [pairs (set pairs)]
+       (transitive-reduction (set-of x [pair pairs, x pair])
+                             #(contains? pairs [%1 %2]))))
+  ([base pred]
+     (let [result (atom (transient #{}))]
+       (doseq [x base, y base]
+         (when (and (pred x y)
+                    (not (exists [z base]
+                           (and (not= x z)
+                                (not= z y)
+                                (pred x z)
+                                (pred z y)))))
+           (swap! result conj! [x y])))
+       (persistent! @result))))
 
 (defn graph-of-function?
   "Returns true iff relation is the graph of a function from source to target."

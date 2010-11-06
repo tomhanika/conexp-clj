@@ -134,6 +134,19 @@
   (is (= #{[nil nil] ['a nil] ['a 'a]}
          (reflexive-transitive-closure [nil 'a] #{['a nil]}))))
 
+(deftest test-transitive-reduction
+  (is (= #{[1 2] [2 3]}
+         (transitive-reduction #{[1 2] [2 3] [1 3]})))
+  (is (empty? (transitive-reduction (cross-product [1 2 3] [1 2 3]))))
+  (is (let [subs   (subsets #{1 2 3 4 5}),
+            reduct (transitive-reduction (subsets #{1 2 3 4 5 6 7})
+                                         proper-subset?)]
+        (forall [[x y] reduct, z subs]
+          (not (and (not= x z)
+                    (not= z y)
+                    (proper-subset? x z)
+                    (proper-subset? z y)))))))
+
 (deftest test-graph-of-function?
   (are [rel src trg] (graph-of-function? rel src trg)
        #{[1 2] [2 1]} #{1 2} #{1 2}
