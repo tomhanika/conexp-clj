@@ -11,6 +11,7 @@
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.association-rules)
+  (:require [conexp.tests.fca.contexts :as c])
   (:use clojure.test))
 
 ;;;
@@ -37,26 +38,46 @@
        ctx-1 '[a] #{}
        ctx-1 '[a] '[b]))
 
-;; premise, conclusion, support, confidence
+(deftest test-premise-conclusion-support-confidence
+  (are [p c s k] (let [ar (make-association-rule p c s k)]
+                   (and (= (set p) (premise ar))
+                        (= (difference (set c) (set p)) (conclusion ar))
+                        (= s (support ar))
+                        (= k (confidence ar))))
+       #{} #{} 1 0
+       #{} #{} 0 1
+       #{1} #{1 2} 1/2 3/4
+       [] [] 0 0)
+  (are [p c s k] (thrown? IllegalArgumentException (make-association-rule p c s k))
+       [] [] -1 0
+       1 2 3 4)
+  ;; test support and confidence when ar is constructed from ctx
+  )
+
+(deftest test-support
+  (is (= 1 (support #{} c/empty-context)))
+  ;; more
+  )
 
 ;;;
 
-(deftest test-iceberg-intent-set
-  (is (= 1 (count (iceberg-intent-set (one-context [1 2 3 4]) 0.0))))
-  ;; more
-  )
+(deftest test-iceberg-intent-seq
+  (is (= 1 (count (iceberg-intent-seq (one-context [1 2 3 4]) 0.0))))
+  (with-testing-data [ctx [c/test-ctx-01 c/test-ctx-02 c/test-ctx-04
+                           c/test-ctx-07 c/test-ctx-08],
+                      spp [0 1/3 1/2 3/5 7/8 1]]
+    (= (set-of C [C (context-intents ctx) :when (>= (support C ctx) spp)])
+       (set (iceberg-intent-seq ctx spp)))))
 
 (deftest test-luxenburger-basis
-  (are [context minsupp minconf] (let [ars (luxenburger-basis context minsupp minconf)]
-                                   (forall [ar ars]
-                                     (and (<= minsupp (support (union (premise ar) (conclusion ar))
-                                                               context))
-                                          (<= minconf (confidence ar)))))
-       ctx-1 0.9 0.9
-       ctx-1 0.5 0.5
-       ctx-1 0 0)
-  ;; more
-  )
+  (with-testing-data [ctx [ctx-1 c/test-ctx-01 c/test-ctx-02,
+                           c/test-ctx-04 c/test-ctx-07 c/test-ctx-08]
+                      spp [0 1/2 9/10 1]
+                      cnf [0 1/2 9/10 1]]
+    (let [ars (luxenburger-basis ctx spp cnf)]
+      (forall [ar ars]
+        (and (<= spp (support ar))
+             (<= cnf (confidence ar)))))))
 
 ;;;
 

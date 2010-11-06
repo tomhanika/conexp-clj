@@ -40,8 +40,14 @@
 
 (defn confidence
   "Computes the confidence of the association rule ar."
-  [^Association-Rule ar]
-  (.confidence ar))
+  ([premise conclusion context]
+     (let [premise-support (support premise context)]
+       (if (zero? premise-support)
+         1
+         (/ (support (union premise conclusion) context)
+            premise-support))))
+  ([^Association-Rule ar]
+     (.confidence ar)))
 
 (defmethod print-method Association-Rule [ar out]
   (.write out
@@ -56,7 +62,7 @@
   conclusion. Note that if support turns out to be 0, the confidence
   of the returned association rule will be 1."
   ([context premise conclusion]
-     (let [premise (set premise)
+     (let [premise    (set premise)
            conclusion (set conclusion)]
        (when-not (and (subset? premise (attributes context))
                       (subset? conclusion (attributes context)))
@@ -64,10 +70,7 @@
                            "of the attributes of the given context when constructing an "
                            "association rule."))
        (let [supp (support (union premise conclusion) context),
-             conf (if (zero? supp)
-                    1
-                    (/ (support (union premise conclusion) context)
-                       (support premise context)))]
+             conf (confidence premise conclusion context)]
          (make-association-rule premise (difference conclusion premise) supp conf))))
   ([premise conclusion support confidence]
      (when-not (and (<= 0 support 1)
@@ -75,6 +78,20 @@
        (illegal-argument "Support and confidence must be numbers between 0 and 1."))
      (when-not (and (coll? premise) (coll? conclusion))
        (illegal-argument "Premise and conclusion must be collections."))
+     (let [premise    (set premise),
+           conclusion (difference (set conclusion) premise)]
+       (Association-Rule. (set premise) (set conclusion) support confidence))))
+
+(defn make-association-rule-nc
+  "Constructs an association rule from the given parameters, without
+  checking for anything. Use with care."
+  ([context premise conclusion]
+     (let [premise    (set premise)
+           conclusion (set conclusion)
+           supp       (support (union premise conclusion) context)
+           conf       (confidence premise conclusion context)]
+       (make-association-rule-nc premise conclusion supp conf)))
+  ([premise conclusion support confidence]
      (Association-Rule. (set premise) (set conclusion) support confidence)))
 
 ;;;
@@ -101,7 +118,7 @@
                      ;; directly neighbored in iceberg concept set
                      (forall [x (difference B_2 B_1)]
                        (= B_2 (context-attribute-closure context (conj B_1 x)))))
-          :let [ar (make-association-rule context B_1 B_2)]
+          :let [ar (make-association-rule-nc context B_1 B_2)]
           :when (>= (confidence ar) minconf)]
       ar)))
 
