@@ -111,12 +111,7 @@
   minsupp and minimal confidence minconf."
   [context minsupp minconf]
   (let [closed-intents (iceberg-intent-seq context minsupp)]
-    (for [B_1 closed-intents,
-          B_2 closed-intents,
-          :when (and (proper-subset? B_1 B_2)
-                     ;; directly neighbored in iceberg concept set
-                     (forall [x (difference B_2 B_1)]
-                       (= B_2 (context-attribute-closure context (conj B_1 x)))))
+    (for [[B_1, B_2] (transitive-reduction closed-intents proper-subset?)
           :let [ar (make-association-rule-nc context B_1 B_2)]
           :when (>= (confidence ar) minconf)]
       ar)))

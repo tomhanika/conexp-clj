@@ -96,7 +96,13 @@
     (let [ars (luxenburger-basis ctx spp cnf)]
       (forall [ar ars]
         (and (<= spp (support ar))
-             (<= cnf (confidence ar)))))))
+             (<= cnf (confidence ar))))))
+  (are [n ctx s c] (= n (count (luxenburger-basis ctx s c)))
+       58 ctx-1 0 0,
+        2 ctx-1 1/3 1/2,
+       26 ctx-1 1/5 1/2,
+        0 c/test-ctx-04 1/5 1/2,
+        1 c/test-ctx-01 1/5 1/2))
 
 ;;;
 
