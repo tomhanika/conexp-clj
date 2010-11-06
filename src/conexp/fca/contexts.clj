@@ -201,7 +201,9 @@
 (defn concept?
   "Tests whether given pair is a concept in context ctx."
   [ctx [set-of-obj set-of-att]]
-  (and (subset? set-of-obj (objects ctx))
+  (and (set? set-of-obj)
+       (set? set-of-att)
+       (subset? set-of-obj (objects ctx))
        (subset? set-of-att (attributes ctx))
        (= set-of-obj (attribute-derivation ctx set-of-att))
        (= set-of-att (object-derivation ctx set-of-obj))))
@@ -469,6 +471,9 @@
   ([base-set fill-rate]
      (rand-context base-set base-set fill-rate))
   ([objects attributes fill-rate]
+     (when-not (and (number? fill-rate)
+                    (<= 0 fill-rate 1))
+       (illegal-argument "Fill-rate must be a number between 0 and 1."))
      (make-context objects attributes (fn [_ _] (> fill-rate (rand))))))
 
 (defn random-contexts

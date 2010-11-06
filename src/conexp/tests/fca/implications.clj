@@ -59,6 +59,7 @@
 ;; clop-by-implications
 ;; follows-semantically
 ;; {minimal,sound,complete}-implication-set?
+;; equivalent-implications?
 
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
@@ -97,7 +98,21 @@
 
 ;;;
 
-;; context-from-clop
+(deftest test-context-from-clop
+  (is (let [impls #{(make-implication #{1} #{2}),
+                    (make-implication #{4} #{2 3})
+                    (make-implication #{1 3} #{4 5})}]
+        (equivalent-implications?
+         impls
+         (stem-base (context-from-clop #{1 2 3 4 5}
+                                       (clop-by-implications impls))))))
+  (is (equivalent-implications?
+       testing-data
+       (stem-base (context-from-clop (reduce (fn [set impl]
+                                               (union set (premise impl) (conclusion impl)))
+                                             #{}
+                                             testing-data)
+                                     (clop-by-implications testing-data))))))
 
 ;;;
 

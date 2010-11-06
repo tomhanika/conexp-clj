@@ -107,6 +107,12 @@
   (subset? (conclusion implication)
            (close-under-implications implications (premise implication))))
 
+(defn equivalent-implications?
+  "Returns true iff the two seqs of implications are equivalent."
+  [impls-1 impls-2]
+  (and (forall [impl impls-1] (follows-semantically? impl impls-2))
+       (forall [impl impls-2] (follows-semantically? impl impls-1))))
+
 (defn minimal-implication-set?
   "Checks whether given set of implications is minimal, i.e. no
   implication in this set follows from the others."

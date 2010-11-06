@@ -151,9 +151,21 @@
        (= (attribute-derivation ctx atts) derived-objects)
        test-ctx-01 #{2 3} #{1 2 5}))
 
-;; concept?
-;; clarify-{object,attribute}s
-;; {object,attribute}-clarified?
+(deftest test-concept?
+  (with-testing-data [A (subsets (objects test-ctx-01))]
+    (let [A-prime  (object-derivation test-ctx-01 A),
+          A-pprime (attribute-derivation test-ctx-01 A-prime)]
+      (concept? test-ctx-01 [A-pprime A-prime])))
+  (is (not (concept? test-ctx-01 [#{} #{}])))
+  (is (not (concept? test-ctx-01 [1 2]))))
+
+(deftest test-object-clarififaction
+  (with-testing-data [ctx testing-data]
+    (object-clarified? (clarify-objects ctx))))
+
+(deftest test-attribute-clarification
+  (with-testing-data [ctx testing-data]
+    (attribute-clarified? (clarify-attributes ctx))))
 
 (deftest test-clarified?
   (is (not (clarified? test-ctx-03)))
@@ -256,7 +268,14 @@
        #{nil 4 * -}))
 
 ;; context-{union,intersection,{comp,ap,sub}position,transitive-closure}
-;; rand-context
+
+(deftest test-rand-context
+  (is (context? (rand-context [1 2 3 4] 0.5)))
+  (is (= #{1 2 3 4} (objects (rand-context [1 2 3 4] 0.5))))
+  (is (= '#{a b c d} (objects (rand-context '[a b c d] 0.5))))
+  (is (= '#{x y z v} (attributes (rand-context [1 2 3 4] '[x y z v] 0.6))))
+  (is (thrown? IllegalArgumentException (rand-context [] 'a))))
+
 ;; random-contexts
 ;; context-{sum,product,semiproduct,xia-product}
 
