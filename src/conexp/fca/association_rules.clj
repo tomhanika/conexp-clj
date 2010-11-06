@@ -41,11 +41,12 @@
 (defn confidence
   "Computes the confidence of the association rule ar."
   ([premise conclusion context]
-     (let [premise-support (support premise context)]
-       (if (zero? premise-support)
+     (let [premise-count (count (attribute-derivation context premise))]
+       (if (zero? premise-count)
          1
-         (/ (support (union premise conclusion) context)
-            premise-support))))
+         (/ (count (attribute-derivation context
+                                         (union (set premise) (set conclusion))))
+            premise-count))))
   ([^Association-Rule ar]
      (.confidence ar)))
 
@@ -56,6 +57,20 @@
                ", confidence " (confidence ar) " )")))
 
 ;;;
+
+(defn make-association-rule-nc
+  "Constructs an association rule from the given parameters, without
+  checking for anything. Use with care."
+  ([context premise conclusion]
+     (let [premise    (set premise),
+           conclusion (set conclusion),
+           supp       (support (union premise conclusion) context),
+           conf       (confidence premise conclusion context)]
+       (make-association-rule-nc premise conclusion supp conf)))
+  ([premise conclusion support confidence]
+     (let [premise    (set premise),
+           conclusion (difference (set conclusion) premise)]
+       (Association-Rule. premise conclusion support confidence))))
 
 (defn make-association-rule
   "Constructs an association rule for context form premise and
@@ -69,30 +84,14 @@
          (illegal-argument "Premise and conclusion sets must be subsets "
                            "of the attributes of the given context when constructing an "
                            "association rule."))
-       (let [supp (support (union premise conclusion) context),
-             conf (confidence premise conclusion context)]
-         (make-association-rule premise (difference conclusion premise) supp conf))))
+       (make-association-rule-nc context premise conclusion)))
   ([premise conclusion support confidence]
      (when-not (and (<= 0 support 1)
                     (<= 0 confidence 1))
        (illegal-argument "Support and confidence must be numbers between 0 and 1."))
      (when-not (and (coll? premise) (coll? conclusion))
        (illegal-argument "Premise and conclusion must be collections."))
-     (let [premise    (set premise),
-           conclusion (difference (set conclusion) premise)]
-       (Association-Rule. (set premise) (set conclusion) support confidence))))
-
-(defn make-association-rule-nc
-  "Constructs an association rule from the given parameters, without
-  checking for anything. Use with care."
-  ([context premise conclusion]
-     (let [premise    (set premise)
-           conclusion (set conclusion)
-           supp       (support (union premise conclusion) context)
-           conf       (confidence premise conclusion context)]
-       (make-association-rule-nc premise conclusion supp conf)))
-  ([premise conclusion support confidence]
-     (Association-Rule. (set premise) (set conclusion) support confidence)))
+     (make-association-rule-nc premise conclusion support confidence)))
 
 ;;;
 

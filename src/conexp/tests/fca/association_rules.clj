@@ -24,6 +24,9 @@
                                [8 1] [7 1] [9 3] [7 2] [7 3] [9 5] [6 3] [3 1]
                                [6 4] [8 6] [2 0]}))
 
+(defvar- testing-data [ctx-1 c/empty-context c/test-ctx-01
+                       c/test-ctx-04 c/test-ctx-07 c/test-ctx-08])
+
 (deftest test-make-association-rule
   (are [context-1 premise-1 conclusion-1] (let [ar (make-association-rule context-1 premise-1 conclusion-1)]
                                             (and (= (premise ar) (set premise-1))
@@ -34,8 +37,8 @@
        ctx-1 [] [])
   (are [context premise conclusion] (thrown? IllegalArgumentException
                                              (make-association-rule context premise conclusion))
-       ctx-1 #{} '[a]
-       ctx-1 '[a] #{}
+       ctx-1 #{} '[a],
+       ctx-1 '[a] #{},
        ctx-1 '[a] '[b]))
 
 (deftest test-premise-conclusion-support-confidence
@@ -44,20 +47,36 @@
                         (= (difference (set c) (set p)) (conclusion ar))
                         (= s (support ar))
                         (= k (confidence ar))))
-       #{} #{} 1 0
-       #{} #{} 0 1
-       #{1} #{1 2} 1/2 3/4
+       #{} #{} 1 0,
+       #{} #{} 0 1,
+       #{1} #{1 2} 1/2 3/4,
        [] [] 0 0)
   (are [p c s k] (thrown? IllegalArgumentException (make-association-rule p c s k))
-       [] [] -1 0
+       [] [] -1 0,
        1 2 3 4)
-  ;; test support and confidence when ar is constructed from ctx
-  )
+  (are [ctx p c] (let [pr (set p)
+                       cl (set c)
+                       ar (make-association-rule ctx pr cl)]
+                   (and (= pr (premise ar))
+                        (= (difference cl pr) (conclusion ar))
+                        (= (support ar)
+                           (support (union pr cl) ctx))
+                        (= (confidence ar)
+                           (confidence pr cl ctx))))
+       ctx-1 #{} #{1},
+       ctx-1 #{} #{},
+       ctx-1 #{1 2 3} #{3 4 1 0}))
 
 (deftest test-support
   (is (= 1 (support #{} c/empty-context)))
-  ;; more
-  )
+  (with-testing-data [ctx testing-data]
+    (let [oc (count (objects ctx))]
+      (forall [x (subsets (attributes ctx))]
+        (= (* oc (support x ctx))
+           (count (attribute-derivation ctx x)))))))
+
+(deftest test-confidence
+  (is (= 1 (confidence #{} #{} c/empty-context))))
 
 ;;;
 
