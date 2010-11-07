@@ -25,7 +25,7 @@ conexp-clj TODOs
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 * For 0.0.6-alpha
-** TODO Restructure layout code                                      :Daniel:
+** INPROGRESS Restructure layout code                                :Daniel:
    Some functions (grid adjustment) may just go to util, and the
    freese layout should be in conexp.layout.freese and should provide
    two functions (freese-layout and freese-interactive-layout).

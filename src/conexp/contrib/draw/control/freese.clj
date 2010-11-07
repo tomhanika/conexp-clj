@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.control.freese
   (:use conexp.layouts.base
-        conexp.layouts.interactive.freese
+        conexp.layouts.freese
         conexp.contrib.draw.control.util
         conexp.contrib.draw.scenes
         conexp.contrib.draw.scene-layouts
@@ -23,7 +23,7 @@
   [frame scn buttons]
   (let [^JButton btn    (make-button buttons "Freese"),
         ^JSpinner spn   (make-spinner buttons 0 (* 2 Math/PI) 0 0.01),
-        layout          (freese-layout (lattice (get-layout-from-scene scn))),
+        layout          (interactive-freese-layout (lattice (get-layout-from-scene scn))),
         get-value       #(.getValue spn),
         ^JButton rotate (make-button buttons "Rotate"),
         rotate-thread   (atom nil),

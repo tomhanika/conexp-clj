@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.layouts.interactive.freese
+(ns conexp.layouts.freese
   (:use [conexp.fca.lattices :only (base-set lattice-upper-neighbours)]
         [conexp.layouts.util :only (edges)]
         [conexp.layouts.base :only (make-layout)])
@@ -14,8 +14,10 @@
 
 ;;;
 
-(defn freese-layout
-  "Returns the interactive Freese Layout of the given lattice."
+(defn interactive-freese-layout
+  "Returns the interactive Freese Layout of the given lattice. This is
+  a function of one argument (the projection angle) returning the
+  corresponding layout."
   [lattice]
   (let [nodes (seq (base-set lattice)),
         ucs   (map #(or (seq (lattice-upper-neighbours lattice %)) [])
@@ -30,6 +32,11 @@
                               [(.getUnderlyingObject (.getUnderlyingElem vertex)),
                                [(.getProjectedX vertex) (.getProjectedY vertex)]]))
                    edges))))
+
+(defn freese-layout
+  "Returns the Freese Layout of the given lattice."
+  [lattice]
+  ((interactive-freese-layout lattice) 0.0))
 
 ;;;
 
