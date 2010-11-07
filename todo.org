@@ -10,13 +10,15 @@ conexp-clj TODOs
 ** TODO Implement Chrisitans Initial Position Layout
 ** TODO Rule Exploration with Impex
 ** TODO GUI context editor
+   It's slow, make it faster. If no second operand is given, calling
+   the corresponding menu entry produces an unintuitive error.
 ** TODO GUI lattice editor
-   The editor is there, but it has some tweaks.
 ** TODO GUI code editor
 ** TODO GUI plugin browser
 * Lattice Editor
 ** TODO Fix stupid labeling
-** TODO Fix Neverending Rotation when switching tabs (this is a GUI problem)
+** TODO Fix Neverending Rotation when switching tabs
+   This is a GUI problem.
 * For 0.1.0-beta
   What do we need?
 * For 0.0.7-alpha
