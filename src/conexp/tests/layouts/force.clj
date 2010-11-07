@@ -6,17 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.layouts
-  (:use conexp.base))
+(ns conexp.tests.layouts.force)
 
 ;;;
 
-(tests-to-run conexp.tests.layouts.util
-              conexp.tests.layouts.base
-              conexp.tests.layouts.common
-              conexp.tests.layouts.layered
-              conexp.tests.layouts.force
-              conexp.tests.layouts.freese)
+;; layout-energy
+;; force-layout
 
 ;;;
 

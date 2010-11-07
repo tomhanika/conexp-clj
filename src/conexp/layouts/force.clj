@@ -45,6 +45,8 @@
        (swap! sum# + (double ~expr)))
      (double @sum#)))
 
+(alter-meta! #'sum assoc :private true)
+
 (defn- unit-vector
   "Returns unit vector between first and second point. Returns
   [0.0 0.0] when given zero vector."
