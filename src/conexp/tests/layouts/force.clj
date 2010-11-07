@@ -6,12 +6,30 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.layouts.force)
+(ns conexp.tests.layouts.force
+  (:use conexp.fca.contexts
+        conexp.fca.lattices
+        conexp.layouts.layered
+        conexp.layouts.force)
+  (:use clojure.test))
 
 ;;;
 
-;; layout-energy
-;; force-layout
+(deftest test-layout-energy
+  (is (pos? (layout-energy
+             (simple-layered-layout (concept-lattice
+                                     (rand-context [1 2 3 4] 0.5)))))))
+
+(deftest test-force-layout
+  (let [lattice (concept-lattice (make-context-from-matrix 5 5
+                                                           [0 1 1 0 0
+                                                            1 0 1 1 0
+                                                            1 1 0 1 1
+                                                            0 0 1 1 1
+                                                            0 1 1 0 0])),
+        layout  (simple-layered-layout lattice),
+        layouts (take 10 (iterate #(force-layout % 100) layout))]
+    (is (apply > (map layout-energy layouts)))))
 
 ;;;
 

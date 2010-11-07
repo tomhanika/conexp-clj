@@ -51,12 +51,12 @@ conexp-clj TODOs
    - [X] conexp.math [2/2]
      - [X] optimize
      - [X] statistics
-   - [ ] conexp.layouts [0/6]
+   - [-] conexp.layouts [1/6]
      - [ ] util
      - [ ] base
      - [ ] common
      - [ ] layered
-     - [ ] force
+     - [X] force
      - [ ] freese
 ** TODO Add more example files                                    :Sebastian:
 ** DONE Detexify docstrings                                          :Daniel:
