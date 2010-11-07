@@ -20,9 +20,15 @@ conexp-clj TODOs
 * For 0.1.0-beta
   What do we need?
 * For 0.0.7-alpha
+** TODO Rewrite to-inf-additive-layout                               :Daniel:
+   As projection into the subspace of all infimum-additive layouts.
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 * For 0.0.6-alpha
+** TODO Restructure layout code                                      :Daniel:
+   Some functions (grid adjustment) may just go to util, and the
+   freese layout should be in conexp.layout.freese and should provide
+   two functions (freese-layout and freese-interactive-layout).
 ** DONE Write transitive-reduction                                   :Daniel:
    and use it for «luxenburger-basis» and for «edges»
 ** INPROGRESS Improve test coverage of conexp core [3/5]             :Daniel:
@@ -43,7 +49,13 @@ conexp-clj TODOs
    - [X] conexp.math [2/2]
      - [X] optimize
      - [X] statistics
-   - [ ] conexp.layouts
+   - [ ] conexp.layouts [0/6]
+     - [ ] util
+     - [ ] base
+     - [ ] common
+     - [ ] layered
+     - [ ] force
+     - [ ] freese
 ** TODO Add more example files                                    :Sebastian:
 ** DONE Detexify docstrings                                          :Daniel:
    Docstrings don't need to contain TeX, since we will not import them
