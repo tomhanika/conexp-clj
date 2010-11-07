@@ -6,13 +6,15 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.math
-  (:use conexp.base))
+(ns conexp.tests.math.statistics
+  (:use conexp.math.statistics)
+  (:use clojure.test))
 
 ;;;
 
-(tests-to-run conexp.tests.math.optimize
-              conexp.tests.math.statistics)
+(deftest test-linear-regression
+  (is (= [0.0 1.0]
+         (linear-regression [[0 0] [1 1] [2 2]]))))
 
 ;;;
 

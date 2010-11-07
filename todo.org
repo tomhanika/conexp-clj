@@ -25,7 +25,7 @@ conexp-clj TODOs
 * For 0.0.6-alpha
 ** DONE Write transitive-reduction                                   :Daniel:
    and use it for «luxenburger-basis» and for «edges»
-** INPROGRESS Improve test coverage of conexp core [2/5]             :Daniel:
+** INPROGRESS Improve test coverage of conexp core [3/5]             :Daniel:
    - [X] conexp.base
    - [-] conexp.fca [3/7]
      - [X] association rules
@@ -35,16 +35,15 @@ conexp-clj TODOs
      - [ ] lattices
      - [ ] many-valued contexts
      - [X] more
-   - [ ] conexp.layouts
    - [X] conexp.io [4/4]
      - [X] contexts
      - [X] lattices
      - [X] layouts
      - [X] many-valued contexts
-   - [ ] conexp.math [0/3]
-     - [ ] optimize
-     - [ ] statistics
-     - [ ] util
+   - [X] conexp.math [2/2]
+     - [X] optimize
+     - [X] statistics
+   - [ ] conexp.layouts
 ** TODO Add more example files                                    :Sebastian:
 ** DONE Detexify docstrings                                          :Daniel:
    Docstrings don't need to contain TeX, since we will not import them

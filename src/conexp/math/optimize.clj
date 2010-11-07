@@ -17,7 +17,7 @@
 	                                                 ConjugateGradientFormula]))
 ;;;
 
-; better way to type hint without code duplication?
+;; better way to type hint without code duplication?
 
 (defn- make-direct-optimizer
   "Direct optimizer used by directly-optimize."
