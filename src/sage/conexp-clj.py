@@ -5,11 +5,8 @@
 # with some specials for conexp-clj. The copyright is held by William
 # Stein, see the corresponding files for more information.
 
-# THIS IS A PROOF OF CONCEPT IMPLEMENTATION
-
 # TODO:
 #  - conversion from clojure to python data (and vice versa) is very slow
-#  - conversion of args and keywords is not implemented
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 from sage.misc.sage_eval import sage_eval
@@ -193,9 +190,9 @@ class ConexpCLJElement(ExpectElement):
         elif "true" == P.eval("(set? %s)"%name):
             val = frozenset(self)
         elif "true" == P.eval("(sequential? %s)"%name):
-            val = list(self)
+            val = tuple(self)
         elif "true" == P.eval("(instance? conexp.fca.lattices.Lattice %s)"%name):
-            edges = map(lambda x: [str(x[0]), str(x[1])],
+            edges = map(lambda x: (str(x[0]), str(x[1])),
                         P("(conexp.layouts.util/edges %s)"%name))
             val = LatticePoset([[], edges])
         elif "true" == P.eval("(map? %s)"%name):
