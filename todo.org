@@ -59,7 +59,12 @@ conexp-clj TODOs
      - [ ] layered
      - [X] force
      - [ ] freese
-** TODO Add more example files                                    :Sebastian:
+** INPROGRESS Add more example files [0/4]                        :Sebastian:
+   - [ ] Basiszeug (Kontext erstellen, klassische Operationen mit
+         Kontexten, radom context, Kontext -> Verband)
+   - [ ] Verbandsmalerei
+   - [ ] GUI starten
+   - [ ] IO: write & read context, layout
 ** DONE Detexify docstrings                                          :Daniel:
    Docstrings don't need to contain TeX, since we will not import them
    into the documentation anymore.
