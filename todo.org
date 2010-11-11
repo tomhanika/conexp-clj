@@ -27,6 +27,10 @@ conexp-clj TODOs
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 ** TODO Lattice IO for csv and dot                                   :Daniel:
+** TODO draw-lattice and draw-lattice-in-editor                      :Daniel:
+   Make draw-lattice to return a picture of the lattice, with the
+   given layout. If one wants to have the lattice in the editor, one
+   has to use draw-lattice-in-editor
 * For 0.0.6-alpha
 ** INPROGRESS Restructure layout code                                :Daniel:
    Some functions (grid adjustment) may just go to util, and the
