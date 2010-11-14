@@ -45,6 +45,7 @@ class ConexpCLJ(Expect):
     def console(self):
         conexp_clj_console()
 
+    # from lisp interface
     def _synchronize(self):
         E = self._expect
         if E is None:
@@ -57,9 +58,32 @@ class ConexpCLJ(Expect):
         E.expect(s)
         E.expect(self._prompt)
 
-    def eval(self, code, *args, **kwds):
+    # from lisp interface
+    def eval(self, code, strip=True, **kwds):
 #        print "Evaluating %s"%code
-        return Expect.eval(self,code,args,kwds)
+        with gc_disabled():
+            self._synchronize()
+            code = str(code)
+            code = code.strip()
+            code = code.replace('\n',' ')
+            x = []
+            for L in code.split('\n'):
+                if L != '':
+                    try:
+                        s = self.__in_seq + 1
+                        M = self._eval_line(L, wait_for_prompt=self._prompt)
+                        if M.startswith(L + "\n"):
+                            M = M[len(L):]      # skip L in case it was echoed
+                        x.append(M.strip())
+                        self.__in_seq = s
+                    except KeyboardInterrupt:
+                        # DO NOT CATCH KeyboardInterrupt, as it is being caught
+                        # by _eval_line
+                        # In particular, do NOT call self._keyboard_interrupt()
+                        raise
+                    except TypeError, s:
+                        return 'error evaluating "%s":\n%s'%(code,s)
+            return '\n'.join(x)
 
     def _an_element_impl(self):
         return self(0)
