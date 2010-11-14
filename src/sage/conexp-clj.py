@@ -45,6 +45,18 @@ class ConexpCLJ(Expect):
     def console(self):
         conexp_clj_console()
 
+    def _synchronize(self):
+        E = self._expect
+        if E is None:
+            self._start()
+            E = self._expect
+        r = random.randrange(2147483647)
+        s = str(r+1)
+        cmd = "(+ 1 %s)\n"%r
+        E.sendline(cmd)
+        E.expect(s)
+        E.expect(self._prompt)
+
     def eval(self, code, *args, **kwds):
 #        print "Evaluating %s"%code
         return Expect.eval(self,code,args,kwds)
