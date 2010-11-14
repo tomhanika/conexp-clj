@@ -86,29 +86,23 @@
 
 ;;; Constructors
 
-(defmulti make-lattice
-  "Standard constructor for makeing lattice. Call with two arguments
-  [base-set order] to construct the lattice by its order
-  relation (given as a set of pairs or as a function of two
-  arguments). Call with three arguments [base-set inf sup] to
-  construct the lattice by its algebraic operations."
+(defmulti make-lattice-nc
+  "Creates a new lattice from the given arguments, without any
+  checks. Use with care."
   {:arglists '([base-set order-relation] [base-set inf sup])}
   (fn [& args] (vec (map clojure-type args))))
 
-(defmethod make-lattice [clojure-coll clojure-coll] [base-set order]
+(defmethod make-lattice-nc [clojure-coll clojure-coll] [base-set order]
   (Lattice. (set base-set) (set order) nil nil))
 
-(defmethod make-lattice [clojure-coll clojure-fn] [base-set order]
+(defmethod make-lattice-nc [clojure-coll clojure-fn] [base-set order]
   (Lattice. (set base-set) (fn [[x y]] (order x y)) nil nil))
 
-(defmethod make-lattice [clojure-coll clojure-fn clojure-fn] [base-set inf sup]
+(defmethod make-lattice-nc [clojure-coll clojure-fn clojure-fn] [base-set inf sup]
   (Lattice. (set base-set) nil inf sup))
 
-(defmethod make-lattice :default [& args]
+(defmethod make-lattice-nc :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Lattice."))
-
-
-;;; Standard Lattice Theory
 
 (defn has-lattice-order?
   "Given a lattice checks if its order is indeed a lattice order."
@@ -143,11 +137,29 @@
                                                            ((order lat) w y))
                                                       ((order lat) w z))))])))))))
 
+(defn make-lattice
+  "Standard constructor for makeing lattice. Call with two arguments
+  [base-set order] to construct the lattice by its order
+  relation (given as a set of pairs or as a function of two
+  arguments). Call with three arguments [base-set inf sup] to
+  construct the lattice by its algebraic operations.
+
+  Note: This function will test the resulting lattice for being one,
+  which may take some time. If you don't want this, use
+  make-lattice-nc."
+  [& args]
+  (let [lattice (apply make-lattice-nc args)]
+    (when-not (has-lattice-order? lattice)
+      (illegal-argument "Given arguments do not describe a lattice."))
+    lattice))
+
+;;; Standard Lattice Theory
+
 (defn dual-lattice
   "Dualizes given lattice lat."
   [lat]
   (let [order (order lat)]
-    (make-lattice (base-set lat) (fn [x y] (order [y x])))))
+    (make-lattice-nc (base-set lat) (fn [x y] (order [y x])))))
 
 (defn distributive?
   "Checks (primitively) whether given lattice lat is distributive or not."
@@ -243,9 +255,9 @@
 (defn concept-lattice
   "Returns for a given context ctx its concept lattice."
   [ctx]
-  (make-lattice (set (concepts ctx))
-		(fn [A B]
-		  (subset? (first A) (first B)))))
+  (make-lattice-nc (set (concepts ctx))
+                   (fn [A B]
+                     (subset? (first A) (first B)))))
 
 (defn standard-context
   "Returns the standard context of lattice lat."

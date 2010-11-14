@@ -17,7 +17,7 @@
 (deftest test-make-lattice
   (is (make-lattice #{1 2 3 4} <=))
   (is (make-lattice (subsets #{1 2 3 4}) subset?))
-  (is (make-lattice [1 2 3 4] [[1 2] [3 4] [5 6]]))
+  (is (make-lattice-nc [1 2 3 4] [[1 2] [3 4] [5 6]]))
   (is (thrown? IllegalArgumentException (make-lattice 1 2 3))))
 
 (deftest test-Lattice-equals
@@ -28,14 +28,14 @@
   (is (= (make-lattice [1 2 3 4] <=) (make-lattice [1 2 3 4] min max))))
 
 (deftest test-base-set
-  (are [my-set] (= (set my-set) (base-set (make-lattice my-set #{})))
+  (are [my-set] (= (set my-set) (base-set (make-lattice-nc my-set #{})))
        #{1 2 3 4}
        (subsets #{})
        [1 2 3 4]
        []))
 
 (deftest test-order
-  (are [my-set my-order] (let [lattice (make-lattice my-set my-order),
+  (are [my-set my-order] (let [lattice   (make-lattice-nc my-set my-order),
                                our-order (order lattice)]
                            (forall [x (base-set lattice),
                                     y (base-set lattice)]
@@ -67,7 +67,7 @@
 (deftest test-has-lattice-order?
   (with-testing-data [lattice testing-data]
     (has-lattice-order? lattice))
-  (are [base-set order] (not (has-lattice-order? (make-lattice base-set order)))
+  (are [base-set order] (not (has-lattice-order? (make-lattice-nc base-set order)))
     #{1} #{},
     [1 2 3 4] [[1 2] [2 3] [3 4]],
     [1 2 3 4] [[1 1] [2 2] [3 3] [4 4]
