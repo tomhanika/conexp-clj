@@ -45,14 +45,9 @@ class ConexpCLJ(Expect):
     def console(self):
         conexp_clj_console()
 
-    def eval(self, code, strip=True, **kwds):
+    def eval(self, code, *args, **kwds):
 #        print "Evaluating %s"%code
-        with gc_disabled():
-            code = str(code)
-            out = self._eval_line(code)
-            if out.find("Exception") != -1:
-                raise TypeError, "Code:\n\t%s\nconexp-clj ERROR:\n\t%s"%(code,out)
-            return out
+        return Expect.eval(self,code,args,kwds)
 
     def _an_element_impl(self):
         return self(0)
