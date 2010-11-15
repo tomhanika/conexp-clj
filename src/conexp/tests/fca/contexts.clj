@@ -132,14 +132,42 @@
 
 ;;;
 
-;; context-size, rename-{object,attribute}s
+(deftest test-context-size
+  (is (= [5 5 0.4]
+         (context-size (make-context [0 1 2 3 4]
+                                     [0 1 2 3 4]
+                                     <)))))
+
+(deftest test-rename-objects-attributes
+  (is (let [ctx (make-context [0 1 2 3] [0 1 2 3] <),
+            rct (rename-objects ctx inc)]
+        (and (= #{1 2 3 4} (objects rct))
+             (= (attributes ctx) (attributes rct))
+             (= (set-of [(inc g) m] [[g m] (incidence ctx)])
+                (incidence rct)))))
+  (is (let [ctx (make-context [0 1 2 3] [0 1 2 3] <),
+            rct (rename-attributes ctx dec)]
+        (and (= #{-1 0 1 2} (attributes rct))
+             (= (objects ctx) (objects rct))
+             (= (set-of [g (dec m)] [[g m] (incidence ctx)])
+                (incidence rct))))))
 
 (deftest test-subcontext?
   (with-testing-data [ctx testing-data]
     (and (subcontext? ctx ctx)
          (subcontext? empty-context ctx))))
 
-;; restrict-concept
+(deftest test-restrict-concept
+  (is (let [ctx-1 (make-context (set-of-range 20)
+                                (set-of-range 20)
+                                (fn [a b] (= 1 (gcd a b)))),
+            ctx-2 (make-context (set-of-range 10)
+                                (set-of-range 10)
+                                (incidence ctx-1))]
+        (forall [[A B] (concepts ctx-1)]
+          (let [[C D] (restrict-concept [A B] ctx-2)]
+            (and (= C (intersection A (objects ctx-2)))
+                 (= D (intersection B (attributes ctx-2)))))))))
 
 (deftest test-object-derivation
   (are [ctx objs derived-attributes]
@@ -196,8 +224,21 @@
   (with-testing-data [ctx testing-data]
     (reduced? (reduce-context ctx))))
 
-;; context-object-closure
-;; context-attribute-closure
+(deftest test-context-object-attribute-closure
+  (is (forall [s (subsets (objects test-ctx-01))]
+        (= (context-object-closure test-ctx-01 s)
+           (->> s
+                (object-derivation test-ctx-01)
+                (attribute-derivation test-ctx-01)))))
+  (is (forall [s (subsets (attributes test-ctx-08))]
+        (= (context-attribute-closure test-ctx-08 s)
+           (->> s
+                (attribute-derivation test-ctx-08)
+                (object-derivation test-ctx-08)))))
+  (with-testing-data [ctx [test-ctx-01 test-ctx-02 test-ctx-04 test-ctx-08]]
+    (= (set (context-intents ctx))
+       (set (all-closed-sets (attributes ctx)
+                             #(context-attribute-closure ctx %))))))
 
 (deftest test-concepts
   (with-testing-data [ctx testing-data]

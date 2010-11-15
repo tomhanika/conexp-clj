@@ -134,17 +134,17 @@
                          (double (/ inz-cnt obj-cnt att-cnt)))]))
 
 (defn rename-objects
-  "Rename objects in ctx by given hash old-to-new."
+  "Rename objects in ctx by given function old-to-new."
   [ctx old-to-new]
-  (let [objs (map old-to-new (objects ctx))
-        inz (set-of [(old-to-new g) m] [[g m] (incidence ctx)])]
+  (let [objs (map old-to-new (objects ctx)),
+        inz  (set-of [(old-to-new g) m] [[g m] (incidence ctx)])]
     (make-context-nc objs (attributes ctx) inz)))
 
 (defn rename-attributes
-  "Rename attributes in ctx by given hash old-to-new."
+  "Rename attributes in ctx by given function old-to-new."
   [ctx old-to-new]
-  (let [atts (map old-to-new (attributes ctx))
-        inz (set-of [g (old-to-new m)] [[g m] (incidence ctx)])]
+  (let [atts (map old-to-new (attributes ctx)),
+        inz  (set-of [g (old-to-new m)] [[g m] (incidence ctx)])]
     (make-context-nc (objects ctx) atts inz)))
 
 (defn make-context-from-matrix
