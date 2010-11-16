@@ -139,9 +139,11 @@ class ConexpCLJ(Expect):
     def __convert_syntactically(self, x):
         if isinstance(x, ConexpCLJElement):
             return x.name()
-        elif x == None or x == False:
+        elif x is None:
             return "nil"
-        elif x == True:
+        elif x is False:
+            return "false"
+        elif x is True:
             return "true"
         elif isinstance(x, (set, frozenset)):
             return "#{" + " ".join(map(self.__convert_syntactically, x)) + "}"
