@@ -297,7 +297,7 @@ def reduce_load_conexp_clj():
 
 import os
 def conexp_clj_console():
-    if "nt" == os.name():
+    if "nt" == os.name:
         os.system("conexp-clj.bat")
     else:
         os.system("conexp-clj.sh")
