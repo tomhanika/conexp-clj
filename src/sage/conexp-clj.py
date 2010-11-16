@@ -13,6 +13,8 @@ from sage.misc.sage_eval import sage_eval
 
 import random
 
+from sage.combinat.posets.lattices import FiniteLatticePoset
+
 ###
 
 class ConexpCLJ(Expect):
@@ -227,7 +229,8 @@ class ConexpCLJElement(ExpectElement):
             pairs = []
             while len(edges) != 1: # we have some nil at the back...
                 pairs.append((edges.pop(0), edges.pop(0)))
-            val = LatticePoset([[], pairs])
+            val = Poset([[], pairs])
+            val.__class__ = FiniteLatticePoset
         elif "1" == type_list[4]:
             dit = {}
             for pair in self:
