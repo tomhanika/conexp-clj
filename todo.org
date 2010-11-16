@@ -34,7 +34,7 @@ conexp-clj TODOs
    has to use draw-lattice-in-editor
 ** TODO (unsure) TikZ Hacker Mode                             :Daniel:Tobias:
 * For 0.0.6-alpha
-** INPROGRESS Restructure layout code                                :Daniel:
+** DONE Restructure layout code                                      :Daniel:
    Some functions (grid adjustment) may just go to util, and the
    freese layout should be in conexp.layout.freese and should provide
    two functions (freese-layout and freese-interactive-layout).

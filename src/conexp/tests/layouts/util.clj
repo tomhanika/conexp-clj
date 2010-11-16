@@ -22,4 +22,9 @@
 
 ;;;
 
+;; fit-layout-to-grid
+;; discretize-layout
+
+;;;
+
 nil

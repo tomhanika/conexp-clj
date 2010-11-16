@@ -106,6 +106,41 @@
 							  (connections layout))))))]
     (apply concat (graph/dependency-list graph))))
 
+;;; grid adjustment
+
+(defn- fit-point-to-grid
+  "Moves given point [x y] to the next point on the grid given by the
+  origin [x_origin y_origin] and the paddings x_pad and y_pad."
+  [[x_origin y_origin] x_pad y_pad [x y]]
+  [(+ x_origin (* x_pad (round (/ (- x x_origin) x_pad)))),
+   (+ y_origin (* y_pad (round (/ (- y y_origin) y_pad))))])
+
+(defn fit-layout-to-grid
+  "Specifies a grid by a origin point and paddings x_pad and y_pad
+  between two adjacent grid lines in x and y direction
+  respectively. Returns the layout resulting from adjusting the given
+  layout on this layout."
+  [layout origin x_pad y_pad]
+  (let [fit-point (partial fit-point-to-grid origin x_pad y_pad)]
+    (update-positions layout
+                      (persistent!
+                       (reduce (fn [map [name [x y]]]
+                                 (assoc! map name (fit-point [x y])))
+                               (transient {})
+                               (positions layout))))))
+
+(defn discretize-layout
+  "Adjusts the given layout to fit on a grid of x_cells cells in the x
+  coordinate and y_cells cells in the y coordinate."
+  [layout x_cells y_cells]
+  (assert (< 0 x_cells))
+  (assert (< 0 y_cells))
+  (let [[x_min y_min x_max y_max] (enclosing-rectangle (vals (positions layout))),
+        origin [x_min y_min],
+        x_pad  (/ (- x_max x_min) x_cells),
+        y_pad  (/ (- y_max y_min) y_cells)]
+    (fit-layout-to-grid layout origin x_pad y_pad)))
+
 ;;;
 
 nil
