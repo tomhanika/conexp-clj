@@ -60,11 +60,14 @@ class ConexpCLJ(Expect):
         E.expect(s)
         E.expect(self._prompt)
 
-    # from lisp interface
     def eval(self, code, strip=True, **kwds):
 #        print "Evaluating %s"%code
         code = code.replace("\n", " ")
-        return Expect.eval(self,code,strip=strip,**kwds)
+        result = Expect.eval(self,code,strip=strip,**kwds)
+        if result.find("Exception") != -1:
+            raise ValueError, "An Exception occured: %s"%result
+        else:
+            return result
 
     def _an_element_impl(self):
         return self(0)
@@ -122,28 +125,32 @@ class ConexpCLJ(Expect):
         print self.eval("(doc %s)"%str(command))
 
     def function_call(self, function, args=None, kwds=None):
-        args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
         if function[0:3] == "is_":
             function = function[3:] + "?"
         function = function.replace("_","-")
-        arg_string = " ".join([s.name() for s in args])
-        kwd_string = " ".join([":" + key + " " + value.name() for key, value in kwds.iteritems()])
+        arg_string = " ".join(map(self.__convert_syntactically, args))
+        kwd_string = " ".join([":" + key + " " + self.__convert_syntactically(value) for key, value in kwds.iteritems()])
         return self.new("(%s %s %s)"%(function,arg_string,kwd_string))
 
     def _coerce_impl(self, x, **kwds):
-        if x == None or x == False:
+        return self(self.__convert_syntactically(x))
+
+    def __convert_syntactically(self, x):
+        if isinstance(x, ConexpCLJElement):
+            return x.name()
+        elif x == None or x == False:
             return "nil"
         elif x == True:
             return "true"
         elif isinstance(x, (set, frozenset)):
-            return "#{" + str(map(lambda y:self._coerce_impl(y,kwds), x))[1:-1] + "}"
+            return "#{" + " ".join(map(self.__convert_syntactically, x)) + "}"
         elif isinstance(x, (list, tuple)):
-            return "[" + str(map(lambda y:self._coerce_impl(y,kwds), x))[1:-1] + "]"
+            return "[" + " ".join(map(self.__convert_syntactically, x)) + "]"
         elif isinstance(x, dict):
             string = "{"
             for key in x:
-                string += str(self._coerce_impl(key,kwds)) + " " + str(self._coerce_impl(x[key],kwds)) + ", "
+                string += self.__convert_syntactically(key) + " " + self.__convert_syntactically(x[key]) + ", "
             string += "}"
             return string
         else:
@@ -204,9 +211,12 @@ class ConexpCLJElement(ExpectElement):
         elif "true" == P.eval("(sequential? %s)"%name):
             val = tuple(self)
         elif "true" == P.eval("(instance? conexp.fca.lattices.Lattice %s)"%name):
-            edges = map(lambda x: (str(x[0]), str(x[1])),
-                        P("(conexp.layouts.util/edges %s)"%name))
-            val = LatticePoset([[], edges])
+            edge_string = P.eval("(doseq [[a b] (conexp.layouts.util/edges %s)] (println a) (println b))"%name)
+            edges = edge_string.split("\n")
+            pairs = []
+            while len(edges) != 1: # we have some nil at the back...
+                pairs.append((edges.pop(0), edges.pop(0)))
+            val = LatticePoset([[], pairs])
         elif "true" == P.eval("(map? %s)"%name):
             dit = {}
             for pair in [x for x in self]:
