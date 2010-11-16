@@ -101,25 +101,25 @@ class ConexpCLJ(Expect):
         return ConexpCLJFunctionElement
 
     def _true_symbol(self):
-        return "true"
+        raise NotImplementedError
 
     def _false_symbol(self):
-        return "false"
+        raise NotImplementedError
 
     def _equality_symbol(self):
-        return "="
+        raise NotImplementedError
 
     def _inequality_symbol(self):
-        return "not="
+        raise NotImplementedError
 
     def _assign_symbol(self):
         raise NotImplementedError
 
     def _left_list_delim(self):
-        return "["
+        raise NotImplementedError
 
     def _right_list_delim(self):
-        return "]"
+        raise NotImplementedError
 
     def help(self, command):
         print self.eval("(doc %s)"%str(command))
