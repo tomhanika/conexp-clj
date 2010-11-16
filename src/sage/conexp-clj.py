@@ -214,7 +214,6 @@ class ConexpCLJElement(ExpectElement):
                      #(instance? conexp.fca.lattices.Lattice %%)
                      map?))"""%name)
         type_list = type_list[1:-1].strip().split(" ")
-        print type_list
 
         if "1" == type_list[0]:
             val = None
