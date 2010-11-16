@@ -206,20 +206,30 @@ class ConexpCLJElement(ExpectElement):
         name = self._name
         val = None
 
-        if "true" == P.eval("(nil? %s)"%name):
+        type_list = P.eval("""
+          (map #(if (%% %s) 1 0)
+               (list nil?
+                     set?
+                     sequential?
+                     #(instance? conexp.fca.lattices.Lattice %%)
+                     map?))"""%name)
+        type_list = type_list[1:-1].strip().split(" ")
+        print type_list
+
+        if "1" == type_list[0]:
             val = None
-        elif "true" == P.eval("(set? %s)"%name):
+        elif "1" == type_list[1]:
             val = frozenset(self)
-        elif "true" == P.eval("(sequential? %s)"%name):
+        elif "1" == type_list[2]:
             val = tuple(self)
-        elif "true" == P.eval("(instance? conexp.fca.lattices.Lattice %s)"%name):
+        elif "1" == type_list[3]:
             edge_string = P.eval("(doseq [[a b] (conexp.layouts.util/edges %s)] (println a) (println b))"%name)
             edges = edge_string.split("\n")
             pairs = []
             while len(edges) != 1: # we have some nil at the back...
                 pairs.append((edges.pop(0), edges.pop(0)))
             val = LatticePoset([[], pairs])
-        elif "true" == P.eval("(map? %s)"%name):
+        elif "1" == type_list[4]:
             dit = {}
             for pair in [x for x in self]:
                 dit[pair[0]] = pair[1]
