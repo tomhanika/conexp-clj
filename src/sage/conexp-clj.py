@@ -230,7 +230,7 @@ class ConexpCLJElement(ExpectElement):
             val = LatticePoset([[], pairs])
         elif "1" == type_list[4]:
             dit = {}
-            for pair in [x for x in self]:
+            for pair in self:
                 dit[pair[0]] = pair[1]
             val = dit
         else:
