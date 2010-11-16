@@ -302,6 +302,6 @@ def conexp_clj_console():
         os.system("conexp-clj.sh")
 
 def conexp_clj_version():
-    return str(conexp_clj('(conexp-version)')).strip()
+    return conexp_clj.eval('(conexp-version)')).strip()
 
 ###
