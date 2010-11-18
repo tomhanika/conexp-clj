@@ -8,7 +8,7 @@
 
 (ns conexp.layouts.util
   (:use conexp.base
-	[conexp.layouts.base :only (make-layout, positions, connections)]
+	[conexp.layouts.base :only (make-layout, positions, connections, update-positions)]
 	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
   (:require [clojure.contrib.graph :as graph]))
 
