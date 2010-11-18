@@ -79,25 +79,30 @@
             G-x-G (graph-product G_T_A G_T_B),
             T_2   (description-graph->tbox G-x-G),
             [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]]))))]
-        (recur (tbox-union tbox new-tbox) (conj (vec (drop 2 concepts)) new-target))))))
+        (recur (tbox-union tbox new-tbox)
+               (conj (vec (drop 2 concepts))
+                     new-target))))))
 
 (defn EL-gfp-msc
   "Returns the model based most specific concept of objects in model."
   [model objects]
-  (if-not (empty? objects)
+  (if (not-empty objects)
     (EL-gfp-lcs (model->tbox model) objects)
     (let [language (model-language model),
-	  all (make-dl-expression language
-				  (list* 'and
-					 (concat (concept-names language)
-						 (for [r (role-names language)]
-						   (list 'exists r 'All)))))]
+	  all      (make-dl-expression language
+                                       (list* 'and
+                                              (concat (concept-names language)
+                                                      (for [r (role-names language)]
+                                                        (list 'exists r 'All)))))]
       [(make-tbox language {'All (make-dl-definition 'All all)}), 'All])))
 
 (define-msc EL-gfp
   [model objects]
-  (let [[tbox target] (normalize-EL-gfp-term
-                       (reduce-ttp (tidy-up-ttp (clarify-ttp (EL-gfp-msc model objects)))))]
+  (let [[tbox target] (-> (EL-gfp-msc model objects)
+                          clarify-ttp
+                          tidy-up-ttp
+                          reduce-ttp
+                          normalize-EL-gfp-term)]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
       (make-dl-expression (model-language model) [tbox target]))))
