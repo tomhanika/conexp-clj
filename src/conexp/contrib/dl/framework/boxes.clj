@@ -54,14 +54,14 @@
   [tbox]
   (apply union #{}
 	 (map #(role-names-in-expression (definition-expression %))
-	      (tbox-definitions tbox))))
+	      (vals (tbox-definition-map tbox)))))
 
 (defn used-concept-names
   "Returns all used concept names in tbox."
   [tbox]
   (apply union #{}
 	 (map #(concept-names-in-expression (definition-expression %))
-	      (tbox-definitions tbox))))
+              (vals (tbox-definition-map tbox)))))
 
 ;;;
 
@@ -78,7 +78,8 @@
 	 (and (vector? expr)
 	      (= 2 (count expr))
 	      (tbox? (first expr))
-	      (contains? (defined-concepts (first expr)) (second expr))))))
+	      (contains? (defined-concepts (first expr))
+                         (second expr))))))
 
 ;;;
 
@@ -116,13 +117,13 @@
   (when-not (= (tbox-language tbox-1)
                (tbox-language tbox-2))
     (illegal-argument "Cannot unify tboxes of different description logics."))
-  (TBox. (tbox-language tbox-1)
-         (merge-with (fn [old new]
-                       (if-not (= old new)
-                         (illegal-state "Cannot unify tbox with different definitions for the same target.")
-                         new))
-                     (tbox-definition-map tbox-1)
-                     (tbox-definition-map tbox-2))))
+  (make-tbox (tbox-language tbox-1)
+             (merge-with (fn [old new]
+                           (if-not (= old new)
+                             (illegal-state "Cannot unify tbox with different definitions for the same target.")
+                             new))
+                         (tbox-definition-map tbox-1)
+                         (tbox-definition-map tbox-2))))
 
 ;;;
 
@@ -130,15 +131,19 @@
   "Substitutes for every defined concept name in tbox a new, globally
   unique, concept name and finally substitutes traget with its new name."
   [[tbox target]]
-  (let [symbols     (defined-concepts tbox)]
+  (let [symbols (defined-concepts tbox)]
     (when-not (some #(= target %) symbols)
       (illegal-argument "Target given to uniquify-ttp does not occur in the defined concepts of the given tbox."))
     (let [new-symbols (map-by-fn (fn [_] (gensym)) symbols)]
       [(make-tbox (tbox-language tbox)
-                  (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
-                             [(new-symbols sym)
-                              (make-dl-definition (new-symbols sym)
-                                                  (substitute (definition-expression sym-def) new-symbols))])))
+                  (reduce! (fn [map [sym sym-def]]
+                             (assoc! map
+                                     (new-symbols sym)
+                                     (make-dl-definition (new-symbols sym)
+                                                         (substitute (definition-expression sym-def)
+                                                                     new-symbols))))
+                           {}
+                           (tbox-definition-map tbox)))
        (new-symbols target)])))
 
 (defn uniquify-tbox
@@ -157,7 +162,8 @@
   (make-directed-graph (defined-concepts tbox)
                        (fn [A]
                          (free-symbols-in-expression
-                          (definition-expression (find-definition tbox A))))))
+                          (definition-expression
+                            (find-definition tbox A))))))
 
 (defn acyclic?
   "Returns true iff tbox is acyclic."
@@ -171,26 +177,38 @@
   clarify-ttp (or reduce-ttp) afterwards to remove all unused
   definitions."
   [[tbox target]]
-  (let [reversed-map (reduce (fn [hash-map definition]
-			       (let [name (definition-target definition)]
-				 (update-in hash-map [(expression-term (definition-expression definition))]
-					    conj (definition-target definition))))
-			     {}
-			     (tbox-definitions tbox)),
-	rename-map (into {} (for [definition (tbox-definitions tbox)]
-			      [(definition-target definition),
-			       (first (sort (reversed-map (expression-term (definition-expression definition)))))])),
+  (let [reversed-map (reduce! (fn [map definition]
+                                (let [key (expression-term (definition-expression definition))]
+                                  (assoc! map key (conj (get map key)
+                                                        (definition-target definition)))))
+                              {}
+                              (tbox-definitions tbox)),
+	rename-map   (reduce! (fn [map definition]
+                                (assoc! map
+                                        (definition-target definition)
+                                        (-> definition
+                                            definition-expression
+                                            expression-term
+                                            reversed-map
+                                            ;sort
+                                            first)))
+                              {}
+                              (vals (tbox-definition-map tbox))),
 	new-tbox (make-tbox (tbox-language tbox)
-			    (into {} (for [definition (tbox-definitions tbox)]
-                                       [(definition-target definition)
-                                        (make-dl-definition (tbox-language tbox)
-                                                            (definition-target definition)
-                                                            (substitute (definition-expression definition) rename-map))])))]
+                            (reduce! (fn [map definition]
+                                       (assoc! map
+                                               (definition-target definition)
+                                               (make-dl-definition (tbox-language tbox)
+                                                                   (definition-target definition)
+                                                                   (substitute (definition-expression definition)
+                                                                               rename-map))))
+                                     {}
+                                     (vals (tbox-definition-map tbox))))]
     (if (not= tbox new-tbox)
-      (tidy-up-ttp [new-tbox target])
+      (recur [new-tbox target])
       [tbox target])))
 
-(defn collect-targets
+(defn- collect-targets
   "Collects all targets reachable in the usage graph of tbox, starting
   from targets."
   [tbox targets seen]
@@ -198,8 +216,10 @@
     seen
     (let [target  (first targets),
 	  seen    (conj seen target),
-	  targets (difference (into targets (free-symbols-in-expression
-					     (definition-expression (find-definition tbox target))))
+	  targets (difference (union targets
+                                     (set (free-symbols-in-expression
+                                           (definition-expression
+                                             (find-definition tbox target)))))
 			      seen)]
       (recur tbox targets seen))))
 
@@ -209,7 +229,8 @@
   [[tbox target]]
   (let [needed-targets (collect-targets tbox #{target} #{}),
 	new-tbox       (make-tbox (tbox-language tbox)
-                                  (select-keys (tbox-definition-map tbox) needed-targets))]
+                                  (select-keys (tbox-definition-map tbox)
+                                               needed-targets))]
     [new-tbox target]))
 
 (defn expand-ttp
@@ -221,8 +242,12 @@
     (if (empty? symbols)
       [tbox target]
       (let [target-definition     (find-definition tbox target),
-	    needed-definitions    (into {} (for [[_ sym-def] (select-keys (tbox-definition-map tbox) symbols)]
-                                             [(definition-target sym-def) (definition-expression sym-def)])),
+	    needed-definitions    (reduce! (fn [map [_ sym-def]]
+                                             (assoc! map
+                                                     (definition-target sym-def)
+                                                     (definition-expression sym-def)))
+                                           {}
+                                           (select-keys (tbox-definition-map tbox) symbols)),
 
 	    new-target-definition (make-dl-definition target
 						      (substitute (definition-expression target-definition)
