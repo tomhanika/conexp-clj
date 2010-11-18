@@ -68,7 +68,7 @@
   [tbox concepts]
   (when (empty? concepts)
     (illegal-argument "EL-gfp-lcs called with no concepts."))
-  (loop [tbox tbox,
+  (loop [tbox     tbox,
          concepts concepts]
     (if (= 1 (count concepts))
       [tbox (first concepts)]
@@ -80,7 +80,7 @@
             T_2   (description-graph->tbox G-x-G),
             [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]]))))]
         (recur (tbox-union tbox new-tbox)
-               (conj (vec (drop 2 concepts))
+               (conj (vec (nthnext concepts 2))
                      new-target))))))
 
 (defn EL-gfp-msc
