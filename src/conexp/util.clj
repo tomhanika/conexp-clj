@@ -381,6 +381,12 @@
 		  xs seen)))]
     (step sequence #{})))
 
+(defn reduce!
+  "Does the same as reduce, but calls transient on the initial value
+  and persistent! on the result."
+  [fn initial-value coll]
+  (persistent! (reduce fn (transient initial-value) coll)))
+
 (defn map-by-fn
   "Returns a hash map with the values of keys as keys and their values
   under function as values."
