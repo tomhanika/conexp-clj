@@ -74,11 +74,15 @@
         (tbox? (first term)))
    (let [[tbox target] term]
      [(make-tbox (tbox-language tbox)
-                 (into {} (for [[sym def] (tbox-definition-map tbox)]
-                            [sym (make-dl-definition
-                                  (tbox-language tbox)
-                                  (definition-target def)
-                                  (normalize-EL-gfp-term (expression-term (definition-expression def))))]))),
+                 (reduce! (fn [map [sym def]]
+                            (assoc! map
+                                    sym
+                                    (make-dl-definition
+                                     (tbox-language tbox)
+                                     (definition-target def)
+                                     (normalize-EL-gfp-term (expression-term (definition-expression def))))))
+                          {}
+                          (tbox-definition-map tbox))),
       target]),
 
    (and (seq? term)
