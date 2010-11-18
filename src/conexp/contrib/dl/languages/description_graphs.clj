@@ -76,12 +76,20 @@
   unique symbols. Returns a pair of the result and the transformation
   map used."
   [tbox-map]
-  (let [old->new  (into {} (for [A (keys tbox-map)]
-                             [A (make-dl-expression (expression-language A) (gensym))])),
-        old->new* (into {} (for [[A B] old->new]
-                             [(expression-term A) B]))]
-    [(into {} (for [[A def-A] tbox-map]
-                [(old->new A) (set (map #(substitute % old->new*) def-A))]))
+  (let [old->new  (map-by-fn (fn [A]
+                               (make-dl-expression (expression-language A) (gensym)))
+                             (keys tbox-map)),
+        old->new* (reduce! (fn [map [A B]]
+                             (assoc! map (expression-term A) B))
+                           {}
+                           old->new)]
+    [(reduce! (fn [map [A def-A]]
+                (assoc! map
+                        (old->new A)
+                        (set-of (substitute term old->new*)
+                                [term def-A])))
+              {}
+              tbox-map)
      old->new]))
 
 (defn- tbox->hash-map
@@ -89,16 +97,25 @@
   of concepts in the top-level conjunction."
   [tbox]
   (let [language (tbox-language tbox)]
-    (into {} (for [def (tbox-definitions tbox)]
-               [(make-dl-expression language (definition-target def))
-                (conjunctors (definition-expression def))]))))
+    (reduce! (fn [map def]
+               (assoc! map
+                       (make-dl-expression language (definition-target def))
+                       (conjunctors (definition-expression def))))
+             {}
+             (vals (tbox-definition-map tbox)))))
 
 (defn- hash-map->tbox
   "Transforms given hash-map to a TBox for the given language."
   [language tbox-map]
-  (let [definitions (into {} (for [[A def-A] tbox-map]
-                               [(expression-term A) (make-dl-definition language (expression-term A) (cons 'and def-A))]))]
-    (make-tbox language definitions)))
+  (make-tbox language
+             (reduce! (fn [map [A def-A]]
+                        (assoc! map
+                                (expression-term A)
+                                (make-dl-definition language
+                                                    (expression-term A)
+                                                    (cons 'and def-A))))
+                      {}
+                      tbox-map)))
 
 ;; storing names
 
@@ -131,14 +148,16 @@
   term. New definitions go into the atom new-names."
   [term goal new-names]
   (cond
-   (goal term) term
-   (tbox-target-pair? term) (let [[tbox target] (expression-term term),
-                                  [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
-                              (add-names new-names tbox-map)
-                              (trans (make-dl-expression (expression-language term) target)))
-   :else (let [new-sym (make-dl-expression (expression-language term) (gensym))]
-           (add-name new-names new-sym (conjunctors term))
-           new-sym)))
+   (goal term) term,
+   (tbox-target-pair? term)
+   (let [[tbox target] (expression-term term),
+         [tbox-map trans] (uniquify-tbox-map (tbox->hash-map tbox))]
+     (add-names new-names tbox-map)
+     (trans (make-dl-expression (expression-language term) target))),
+   :else
+   (let [new-sym (make-dl-expression (expression-language term) (gensym))]
+     (add-name new-names new-sym (conjunctors term))
+     new-sym)))
 
 (defn- normalize-term
   "Normalizes conjunctor term. New definitions go into the atom new-names."
@@ -146,11 +165,11 @@
   (if (and (compound? term)
            (= 'exists (operator term)))
     (let [[r B] (arguments term),
-          norm (normalize-for-goal B
-                                   #(and (atomic? %)
-                                         (not (tbox-target-pair? %))
-                                         (not (primitive? %)))
-                                   new-names)]
+          norm  (normalize-for-goal B
+                                    #(and (atomic? %)
+                                          (not (tbox-target-pair? %))
+                                          (not (primitive? %)))
+                                    new-names)]
       (make-dl-expression (expression-language term)
                           (list 'exists r norm)))
     (normalize-for-goal term
@@ -166,13 +185,13 @@
   [tbox-map]
   (if (empty? tbox-map)
     tbox-map
-    (let [new-names (new-names),
-          ;; doall needed to store new names in new-names!
-          normalized-map (doall
-                          (into {} (map (fn [[A def-A]]
-                                          [A (set (map #(normalize-term % new-names) def-A))])
-                                        tbox-map))),
-          new-names-map (introduce-auxiliary-definitions (get-names new-names))]
+    (let [new-names      (new-names),
+          normalized-map (reduce! (fn [map [A def-A]]
+                                    (assoc! map A (set-of (normalize-term t new-names)
+                                                          [t def-A])))
+                                  {}
+                                  tbox-map),
+          new-names-map  (introduce-auxiliary-definitions (get-names new-names))]
       (into normalized-map new-names-map))))
 
 ;; normalizing algorithm -- squeezing the concept graph
@@ -195,19 +214,28 @@
   by A."
   [tbox-map]
   (let [equivalent-concepts (scc (concept-graph tbox-map)),
-        rename-map (into {} (for [concepts equivalent-concepts
-                                  concept concepts]
-                              [concept (first concepts)])),
-        used-map (into {} (for [concepts equivalent-concepts]
-                            [(first concepts) concepts])),
-        new-tbox-map (into {} (map (fn [target]
-                                     [target
-                                      (disj (set (replace rename-map
-                                                          (mapcat tbox-map (used-map target))))
-                                            target)])
-                                   (vals rename-map)))]
-    (into {} (for [target (keys tbox-map)]
-               [target (-> target rename-map new-tbox-map)]))))
+        rename-map          (reduce! (fn [map concepts]
+                                       (let [new-concept (first concepts)]
+                                         (reduce (fn [map concept]
+                                                   (assoc! map concept new-concept))
+                                                 map
+                                                 concepts)))
+                                     {}
+                                     equivalent-concepts),
+        used-map            (reduce! (fn [map concepts]
+                                       (assoc! map (first concepts) concepts))
+                                     {}
+                                     equivalent-concepts),
+        new-tbox-map        (reduce! (fn [map target]
+                                       (assoc! map
+                                               target
+                                               (disj (set (replace rename-map
+                                                                   (mapcat tbox-map (used-map target))))
+                                                     target)))
+                                     {}
+                                     (vals rename-map))]
+    (map-by-fn (comp new-tbox-map rename-map)
+               (keys tbox-map))))
 
 (defn- replace-toplevel-concepts
   "Replaces any top-level defined concept in tbox-map by its definition."
@@ -217,13 +245,14 @@
     (if (empty? deps)
       new-tbox-map
       (let [next-concepts (first deps),
-            new-defs (into {} (for [target next-concepts]
-                                [target (reduce (fn [result next-thing]
-                                                  (if (set? next-thing)
-                                                    (into result next-thing)
-                                                    (conj result next-thing)))
+            new-defs      (map-by-fn (fn [target]
+                                       (reduce (fn [result next-thing]
+                                                 (if (set? next-thing)
+                                                   (into result next-thing)
+                                                   (conj result next-thing)))
                                                 #{}
-                                                (replace new-tbox-map (tbox-map target)))]))]
+                                                (replace new-tbox-map (tbox-map target))))
+                                     next-concepts)]
         (recur (rest deps)
                (merge new-tbox-map new-defs))))))
 
@@ -251,15 +280,13 @@
         language      (tbox-language tbox),
         vertices      (defined-concepts tbox),
         neighbours    (memo-fn _ [target]
-                        (let [def (find-definition tbox target)]
-                          (set (map #(vec (map expression-term (arguments %)))
-                                    (filter compound? ;i.e. existential restriction
-                                            (arguments (definition-expression def))))))),
+                        (set-of (vec (map expression-term (arguments t)))
+                                [t (arguments (definition-expression (find-definition tbox target)))
+                                 :when (compound? t)])),
         vertex-labels (memo-fn _ [target]
-                        (let [def (find-definition tbox target)]
-                          (set (map expression-term
-                                    (filter atomic?
-                                            (arguments (definition-expression def)))))))]
+                        (set-of (expression-term t)
+                                [t (arguments (definition-expression (find-definition tbox target)))
+                                 :when (atomic? t)]))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
 (defn description-graph->tbox
@@ -269,13 +296,15 @@
         labels      (vertex-labels description-graph),
         neighbours  (neighbours description-graph),
 
-        definitions (into {} (for [A (vertices description-graph)
-                                   :let [def-exp (make-dl-expression language
-                                                                     (list* 'and
-                                                                            (concat (labels A)
-                                                                                    (for [[r B] (neighbours A)]
-                                                                                      (list 'exists r B)))))]]
-                               [A (make-dl-definition A def-exp)]))]
+        definitions (map-by-fn (fn [A]
+                                 (make-dl-definition
+                                  A
+                                  (make-dl-expression language
+                                                      (list* 'and
+                                                             (concat (labels A)
+                                                                     (for [[r B] (neighbours A)]
+                                                                       (list 'exists r B)))))))
+                               (vertices description-graph))]
     (make-tbox language definitions)))
 
 (defn model->description-graph
@@ -304,9 +333,8 @@
   "Returns the product of the two description graphs given."
   [graph-1 graph-2]
   (let [language      (graph-language graph-1),
-        vertices      (for [a (vertices graph-1),
-                            b (vertices graph-2)]
-                        [a b])
+        vertices      (cross-product (vertices graph-1)
+                                     (vertices graph-2)),
         neighbours    (fn [[A B]]
                         (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
                                            [s D] ((neighbours graph-2) B),
@@ -321,10 +349,10 @@
 (defn- HashMap->hash-map
   "Converts a Java HashMap to a Clojure hash-map."
   [^HashMap map]
-  (reduce (fn [map, ^java.util.Map$Entry entry]
-            (conj map [(.getKey entry) (.getValue entry)]))
-          {}
-          (.entrySet map)))
+  (reduce! (fn [map, ^java.util.Map$Entry entry]
+             (assoc! map (.getKey entry) (.getValue entry)))
+           {}
+           (.entrySet map)))
 
 (defmacro- while-let
   "Runs body with binding in effect as long as x is non-nil.
@@ -343,11 +371,12 @@
   vertices (sim v) in G-2 such that there exists a simulation from v to
   every vertex in (sim v)."
   [G-1 G-2]
-  (let [label-1 (vertex-labels G-1),
-        label-2 (vertex-labels G-2),
+  (let [label-1      (vertex-labels G-1),
+        label-2      (vertex-labels G-2),
         neighbours-1 (neighbours G-1),
         neighbours-2 (neighbours G-2),
-        edge-2? (fn [v r w] (contains? (neighbours-2 v) [r w])),
+        edge-2?      (fn [v r w]
+                       (contains? (neighbours-2 v) [r w])),
 
         ^HashMap sim-sets (HashMap.)]
 
@@ -369,17 +398,17 @@
 
 ;; efficient simulator sets (by meng)
 
-(defn single-edge->double-edge-graph
+(defn- single-edge->double-edge-graph
   "Given a single-edged graph G (i.e. a graph with a neighbours
   function on it) returns a structure with a :pre and a :post function
   on it. This function is part of the implementation for
   efficient-simulator-sets."
   [G]
-  (loop [pre-map {},
+  (loop [pre-map    (transient {}),
          vertex-set (vertices G)]
-    (if-not (empty? vertex-set)
+    (if (not-empty vertex-set)
       (let [v (first vertex-set)]
-        (recur (reduce #(update-in %1 [%2] conj v)
+        (recur (reduce #(assoc! %1 %2 (conj (get %1 %2) v))
                        pre-map
                        ((neighbours G) v))
                (rest vertex-set)))
@@ -388,7 +417,7 @@
        :post     (memo-fn _ [v r]
                    (set-of w [[s w] ((neighbours G) v)
                               :when (= s r)])),
-       :pre      (fn [v r]
+       :pre      (memo-fn _ [v r]
                    (set (get pre-map [r v] nil)))})))
 
 (defn efficient-initialize
@@ -418,7 +447,7 @@
         (.put remove [v r]
               (set-of w [w base-set-2,
                          :let [post-w (post-2 w r)]
-                         :when (seq post-w) ;i.e. (not (empty? post-w))
+                         :when (not-empty post-w)
                          :let [sim-v (.get sim v)]
                          :when (forall [x post-w] (not (contains? sim-v x)))]))))
     (doseq [w base-set-2]
@@ -448,7 +477,7 @@
         pre-1      (:pre G-1)]
     (doseq [v base-set-1,
             r R,
-            :when (seq (.get remove [v r]))] ;i.e. (not (empty? (.get remove [v r])))
+            :when (not-empty (.get remove [v r]))]
       (.add non-empty-removes [v r]))
     (while-let [[v r] (first non-empty-removes)]
       (doseq [w (.get remove [v r]),
