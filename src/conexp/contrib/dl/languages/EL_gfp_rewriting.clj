@@ -105,16 +105,16 @@
   itself."
   [dl-expression]
   (if (atomic? dl-expression)
-    (set [dl-expression])
+    #{dl-expression}
     (set (arguments dl-expression))))
 
 (defn- abbreviate-expression
   "Abbreviates expression with given knowledge."
   [expression knowledge]
-  (let [language            (expression-language expression),
-        implication-closure (memoize (clop-by-implications knowledge)),
-        more-specific?      more-specific?] ;hehe...
-    (binding [more-specific? #(more-specific?
+  (let [language              (expression-language expression),
+        implication-closure   (memoize (clop-by-implications knowledge)),
+        simple-more-specific? more-specific?]
+    (binding [more-specific? #(simple-more-specific?
                                %1 %2
                                (fn [term-1 term-2]
                                  (contains? (implication-closure #{(make-dl-expression-nc language term-1)})
@@ -129,10 +129,14 @@
   (let [language        (expression-language (subsumee subsumption)),
 	premise-args    (arguments* (subsumee subsumption)),
 	conclusion-args (difference (arguments* (subsumer subsumption))
-                                    premise-args)]
-    (make-subsumption (abbreviate-expression (make-dl-expression language (cons 'and premise-args))
+                                    premise-args),
+
+        ;; we do the following to have some determinism in the order of the concepts
+        premise         (cons 'and (sort-by (comp str expression-term) premise-args)),
+        conclusion      (cons 'and (sort-by (comp str expression-term) conclusion-args))]
+    (make-subsumption (abbreviate-expression (make-dl-expression language premise)
                                              background-knowledge)
-                      (abbreviate-expression (make-dl-expression language (cons 'and conclusion-args))
+                      (abbreviate-expression (make-dl-expression language conclusion)
                                              background-knowledge))))
 
 ;;;

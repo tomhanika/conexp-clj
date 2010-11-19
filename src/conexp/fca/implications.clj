@@ -88,6 +88,7 @@
 (defn close-under-implications
   "Computes smallest superset of set being closed under given implications."
   [implications set]
+  (assert (set? set))
   (loop [set   set,
          impls implications]
     (let [[new impls] (add-immediate-elements impls set)]
