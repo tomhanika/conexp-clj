@@ -27,13 +27,13 @@ conexp-clj TODOs
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 ** TODO Lattice IO for csv and dot                                   :Daniel:
-** TODO More IO formats (see FCAStone)                               :Daniel:
+** TODO More IO formats for contexts                                 :Daniel:
    See the example files from Uta. Also include «anonymous-burmeister».
 ** TODO draw-lattice-to-file                                         :Daniel:
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
    arguments as draw-lattice.
-** TODO (unsure) TikZ Hacker Mode                             :Daniel:Tobias:
+** TODO TikZ Hacker Mode                                             :unsure:
 ** TODO Add conexp.io.string/latex                                   :Daniel:
    As a function which outputs a tex representation of a given object
 ** TODO Add support for multiple contexts/... in IO                  :Daniel:
