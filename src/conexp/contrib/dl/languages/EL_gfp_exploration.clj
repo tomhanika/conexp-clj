@@ -151,8 +151,7 @@
     (remove #(= -1 (weight-of %))
             (titanic/titanic-keys (set concepts)
                                   (fn [set-of-concept-sets]
-                                    (into {} (for [concept-set set-of-concept-sets]
-                                               [concept-set (weight-of concept-set)])))
+                                    (map-by-fn weight-of set-of-concept-sets))
                                   1.0
                                   <=))))
 
