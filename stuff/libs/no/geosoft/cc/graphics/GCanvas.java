@@ -52,7 +52,7 @@ import no.geosoft.cc.io.GifEncoder;
  *
  * @author <a href="mailto:jacob.dreyer@geosoft.no">Jacob Dreyer</a>
  */   
-class GCanvas extends JComponent
+public class GCanvas extends JComponent
   implements Printable, LayoutManager, MouseListener, MouseMotionListener,
              ComponentListener
 {

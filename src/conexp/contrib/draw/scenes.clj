@@ -168,7 +168,7 @@
   (let [cnv (scene-canvas scn),
         img (BufferedImage. (.getWidth cnv) (.getHeight cnv)
                             BufferedImage/TYPE_INT_RGB)]
-    (.print cnv (.createGraphics img))
+    (.paintComponent cnv (.createGraphics img))
     (when-not (ImageIO/write img format file)
       (illegal-argument "Format " format " not supported for saving images."))))
 
