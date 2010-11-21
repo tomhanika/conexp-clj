@@ -8,13 +8,13 @@
 
 (ns conexp.contrib.draw.scenes
   (:use conexp.base)
-  (:import [java.awt Color Canvas]
+  (:import [java.awt Color]
 	   [java.awt.event ComponentListener]
 	   [java.io File]
 	   [java.awt.image BufferedImage]
 	   [javax.imageio ImageIO]
            [javax.swing JScrollBar]
-	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent]))
+	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent GCanvas]))
 
 (ns-doc "Namespace for scene abstraction.")
 
@@ -64,11 +64,10 @@
   [^GScene scn]
   (.getWidth (.getWorldExtent scn)))
 
-(defn ^Canvas scene-canvas
+(defn ^GCanvas scene-canvas
   "Returns canvas associated with a scene."
   [^GScene scn]
-  (let [^Canvas canvas (.. scn getWindow getCanvas)]
-    canvas))
+  (.. scn getWindow getCanvas))
 
 
 ;; hooks
@@ -126,12 +125,12 @@
                                (.setAntialiased true))
   "Default GScene style.")
 
-(defn make-window
+(defn ^GWindow make-window
   "Creates default window."
   []
   (GWindow. Color/WHITE))
 
-(defn make-scene
+(defn ^GScene make-scene
   "Makes scene on given window."
   [window]
   (let [^GScene scn (GScene. window)]
@@ -141,7 +140,7 @@
       (.shouldWorldExtentFitViewport false)
       (.setStyle default-scene-style)
       (add-scene-hook :image-changed))
-    (.addComponentListener ^Canvas (.. scn getWindow getCanvas)
+    (.addComponentListener (scene-canvas scn)
                            (proxy [ComponentListener] []
                              (componentResized [comp-evt]
                                (call-scene-hook scn :image-changed))))
@@ -165,14 +164,13 @@
 
 (defn save-image
   "Saves image on scene scn in given file with given format."
-  [^GScene scn, ^File file, format]
-  (let [^Canvas cnv (.. scn getWindow getCanvas)]
-    (let [^BufferedImage image (BufferedImage. (.getWidth cnv)
-						(.getHeight cnv)
-						BufferedImage/TYPE_INT_RGB)]
-      (.print cnv (.createGraphics image))
-      (when-not (ImageIO/write image format file)
-	(illegal-argument "Format " format " not supported for saving images.")))))
+  [^GScene scn, ^File file, ^String format]
+  (let [cnv (scene-canvas scn),
+        img (BufferedImage. (.getWidth cnv) (.getHeight cnv)
+                            BufferedImage/TYPE_INT_RGB)]
+    (.print cnv (.createGraphics img))
+    (when-not (ImageIO/write img format file)
+      (illegal-argument "Format " format " not supported for saving images."))))
 
 (defn show-labels
   "Turns visibility of labels on scene on and off."

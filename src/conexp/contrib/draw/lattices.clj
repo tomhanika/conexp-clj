@@ -11,7 +11,8 @@
         [conexp.layouts                    :only (standard-layout)]
         [conexp.layouts.util               :only (scale-layout)]
         [conexp.contrib.draw.scenes        :only (scene-canvas,
-                                                  add-scrollbars)]
+                                                  add-scrollbars
+                                                  save-image)]
         [conexp.contrib.draw.scene-layouts :only (draw-on-scene,
                                                   get-layout-from-scene)]
         [conexp.contrib.draw.control util
@@ -22,7 +23,7 @@
                                      snapshots
                                      zoom-move])
   (:import [javax.swing JFrame JPanel BoxLayout JScrollBar JScrollPane]
-           [java.awt Canvas Dimension BorderLayout]))
+           [java.awt Dimension BorderLayout]))
 
 (ns-doc
  "This namespace provides a lattice editor and a convenience function
@@ -32,22 +33,22 @@
 
 (let [scenes (ref {})]
 
-  (defn make-lattice-editor
+  (defn ^JPanel make-lattice-editor
     "Creates a lattice editor with initial layout."
     [frame layout]
-    (let [layout (scale-layout [0 0] [100 100] layout),
+    (let [layout       (scale-layout [0 0] [100 100] layout),
 
-          ^JPanel main-panel (JPanel. (BorderLayout.)),
+          main-panel   (JPanel. (BorderLayout.)),
 
-          scn    (draw-on-scene layout),
-          canvas (scene-canvas scn),
+          scn          (draw-on-scene layout),
+          canvas       (scene-canvas scn),
 
-          ^JPanel canvas-panel (JPanel. (BorderLayout.)),
-          ^JScrollBar hscrollbar (JScrollBar. JScrollBar/HORIZONTAL),
-          ^JScrollBar vscrollbar (JScrollBar. JScrollBar/VERTICAL),
+          canvas-panel (JPanel. (BorderLayout.)),
+          hscrollbar   (JScrollBar. JScrollBar/HORIZONTAL),
+          vscrollbar   (JScrollBar. JScrollBar/VERTICAL),
 
-          ^JPanel buttons (JPanel.),
-          box-layout (BoxLayout. buttons BoxLayout/Y_AXIS)]
+          buttons      (JPanel.),
+          box-layout   (BoxLayout. buttons BoxLayout/Y_AXIS)]
 
       ;; save scene
       (dosync (alter scenes assoc main-panel scn))
@@ -111,14 +112,29 @@
    :layout-fn standard-layout,
    :visible true,
    :dimension [600 600]]
-  (let [^JFrame frame (JFrame. "conexp-clj Lattice"),
-        ^JPanel lattice-editor (make-lattice-editor frame (layout-fn lattice))]
+  (let [frame          (JFrame. "conexp-clj Lattice"),
+        lattice-editor (make-lattice-editor frame (layout-fn lattice))]
     (doto frame
       (.add lattice-editor)
       (.setSize (Dimension. (first dimension) (second dimension)))
       (.setVisible visible))
     {:frame frame,
      :scene (get-scene-from-panel lattice-editor)}))
+
+(defnk draw-lattice-to-file             ;does not work
+  ""
+  [lattice file-name
+   :layout-fn standard-layout,
+   :dimension [600 600]]
+  (let [frame (JFrame. "conexp-clj Lattice"),
+        scene (draw-on-scene (scale-layout [0 100] [0 100] (layout-fn lattice)))]
+    (doto frame
+      (.add (scene-canvas scene))
+      (.setPreferredSize (Dimension. (first dimension) (second dimension)))
+      (.validate)
+      (.pack))
+    (save-image scene (java.io.File. ^String file-name) "png")))
+(alter-meta! #'draw-lattice-to-file assoc :private true)
 
 ;;;
 

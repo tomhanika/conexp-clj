@@ -86,7 +86,7 @@
 (defn update-layout-of-scene
   "Updates layout according to new layout. The underlying lattice must
   not be changed."
-  [^GScene scene layout]
+  [^GScene scene, layout]
   (let [pos (positions layout)]
     (do-nodes [node scene]
       (let [[x y] (pos (get-name node))]
@@ -94,7 +94,7 @@
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
-  [^GScene scene layout]
+  [^GScene scene, layout]
   (doto scene
     (.removeAll)
     (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
@@ -103,10 +103,10 @@
 
 ;;; draw nodes with coordinates and connections on a scene
 
-(defn draw-on-scene
+(defn ^GScene draw-on-scene
   "Draws given layout on a GScene and returns it."
   [layout]
-  (let [^GWindow wnd (make-window),
+  (let [wnd (make-window),
 	scn (make-scene wnd)]
     (doto scn
       (set-layout-of-scene layout)
