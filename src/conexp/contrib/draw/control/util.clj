@@ -143,10 +143,9 @@
         (with-action-on combo-box
           (let [selected (.getSelectedItem ^JComboBox (.getSource evt)),
                 control  (get choices selected)]
-            (do-swing
              (.removeAll choice-pane)
              (control frame scene choice-pane)
-             (.validate frame))))
+             (.validate frame)))
         (.setSelectedIndex combo-box 0)))))
 
 (defmacro with-layout-modifiers
