@@ -31,71 +31,72 @@
 
 ;;; Lattice Editor
 
-(let [scenes (ref {})]
+(defprotocol WithScene
+  "Storing scene objects."
+  (^Gscene getScene [this]
+    "Returns the associated scene."))
 
-  (defn ^JPanel make-lattice-editor
-    "Creates a lattice editor with initial layout."
-    [frame layout]
-    (let [layout       (scale-layout [0 0] [100 100] layout),
+(defn ^JPanel make-lattice-editor
+  "Creates a lattice editor with initial layout."
+  [frame layout]
+  (let [layout       (scale-layout [0 0] [100 100] layout),
 
-          main-panel   (JPanel. (BorderLayout.)),
+        scn          (draw-on-scene layout),
+        canvas       (scene-canvas scn),
+        main-panel   (proxy [JPanel conexp.contrib.draw.lattices.WithScene] [(BorderLayout.)]
+                       (getScene []
+                         scn)),
 
-          scn          (draw-on-scene layout),
-          canvas       (scene-canvas scn),
+        canvas-panel (JPanel. (BorderLayout.)),
+        hscrollbar   (JScrollBar. JScrollBar/HORIZONTAL),
+        vscrollbar   (JScrollBar. JScrollBar/VERTICAL),
 
-          canvas-panel (JPanel. (BorderLayout.)),
-          hscrollbar   (JScrollBar. JScrollBar/HORIZONTAL),
-          vscrollbar   (JScrollBar. JScrollBar/VERTICAL),
+        buttons      (JPanel.),
+        box-layout   (BoxLayout. buttons BoxLayout/Y_AXIS)]
 
-          buttons      (JPanel.),
-          box-layout   (BoxLayout. buttons BoxLayout/Y_AXIS)]
+    ;; buttons
+    (.setLayout buttons box-layout)
+    (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
+    (with-layout-modifiers frame scn buttons
+      toggle-zoom-move
+      change-parameters,
+      (control-choice "Freese" freese,
+                      "Force"  improve-layout-by-force),
+      snapshot-saver,
+      export-as-file)
 
-      ;; save scene
-      (dosync (alter scenes assoc main-panel scn))
+    ;; drawing area
+    (doto canvas-panel
+      (.add canvas BorderLayout/CENTER)
+      (.add hscrollbar BorderLayout/SOUTH)
+      (.add vscrollbar BorderLayout/EAST))
+    (add-scrollbars scn hscrollbar vscrollbar)
 
-      ;; buttons
-      (.setLayout buttons box-layout)
-      (.setPreferredSize buttons (Dimension. *toolbar-width* 600))
-      (with-layout-modifiers frame scn buttons
-        toggle-zoom-move
-        change-parameters,
-        (control-choice "Freese" freese,
-                        "Force"  improve-layout-by-force),
-        snapshot-saver,
-        export-as-file)
+    ;; main panel
+    (doto main-panel
+      (.add canvas-panel BorderLayout/CENTER)
+      (.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
+                          JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
+            BorderLayout/WEST)
+      (.setMinimumSize (Dimension. 0 0)))
 
-      ;; drawing area
-      (doto canvas-panel
-        (.add canvas BorderLayout/CENTER)
-        (.add hscrollbar BorderLayout/SOUTH)
-        (.add vscrollbar BorderLayout/EAST))
-      (add-scrollbars scn hscrollbar vscrollbar)
+    ;; return main panel
+    main-panel))
 
-      ;; main panel
-      (doto main-panel
-        (.add canvas-panel BorderLayout/CENTER)
-        (.add (JScrollPane. buttons JScrollPane/VERTICAL_SCROLLBAR_ALWAYS
-                            JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
-              BorderLayout/WEST)
-        (.setMinimumSize (Dimension. 0 0)))
+(defn get-scene-from-panel
+  "If the given panel contains a lattice editor, returns the
+  corresponding scene, nil otherwise."
+  [^JPanel panel]
+  (when (instance? conexp.contrib.draw.lattices.WithScene panel)
+    (.getScene panel)))
 
-      ;; return main panel
-      main-panel))
+(defn get-layout-from-panel
+  "If the given panel contains a lattice editor, return the
+  corresponding layout and nil otherwise."
+  [panel]
+  (when-let [scn (get-scene-from-panel panel)]
+    (get-layout-from-scene scn)))
 
-  (defn get-scene-from-panel
-    "If the given panel contains a lattice editor, returns the
-    corresponding scene, nil otherwise."
-    [panel]
-    (get @scenes panel nil))
-
-  (defn get-layout-from-panel
-    "If the given panel contains a lattice editor, return the
-    corresponding layout and nil otherwise."
-    [panel]
-    (when-let [scn (get-scene-from-panel panel)]
-      (get-layout-from-scene scn)))
-
-  nil)
 
 ;;; Drawing Routine for the REPL
 
