@@ -14,14 +14,16 @@
                                                   add-scrollbars
                                                   save-image)]
         [conexp.contrib.draw.scene-layouts :only (draw-on-scene,
-                                                  get-layout-from-scene)]
+                                                  get-layout-from-scene
+                                                  fit-scene-to-layout)]
         [conexp.contrib.draw.control util
                                      parameters
                                      freese
                                      file-exporter
                                      force-layout
                                      snapshots
-                                     zoom-move])
+                                     zoom-move]
+        conexp.contrib.gui.util)
   (:import [javax.swing JFrame JPanel BoxLayout JScrollBar JScrollPane]
            [java.awt Dimension BorderLayout]))
 
@@ -127,14 +129,16 @@
   [lattice file-name
    :layout-fn standard-layout,
    :dimension [600 600]]
-  (let [frame (JFrame. "conexp-clj Lattice"),
-        scene (draw-on-scene (scale-layout [0 100] [0 100] (layout-fn lattice)))]
-    (doto frame
-      (.add (scene-canvas scene))
-      (.setPreferredSize (Dimension. (first dimension) (second dimension)))
-      (.validate)
-      (.pack))
-    (save-image scene (java.io.File. ^String file-name) "png")))
+  (do-swing-return ;prevent some nasty AWT deadlocks while experimenting
+    (let [frame (JFrame. ""),
+          panel (make-lattice-editor frame (layout-fn lattice)),
+          scene (get-scene-from-panel panel)]
+      (.setPreferredSize panel (Dimension. 600 600))
+      (.add frame panel)
+      (fit-scene-to-layout scene)
+      (.pack frame)
+      (save-image scene (java.io.File. ^String file-name) "png"))))
+
 (alter-meta! #'draw-lattice-to-file assoc :private true)
 
 ;;;
