@@ -86,9 +86,9 @@
 (defn get-scene-from-panel
   "If the given panel contains a lattice editor, returns the
   corresponding scene, nil otherwise."
-  [^JPanel panel]
+  [panel]
   (when (instance? conexp.contrib.draw.lattices.WithScene panel)
-    (.getScene panel)))
+    (.getScene ^conexp.contrib.draw.lattices.WithScene panel)))
 
 (defn get-layout-from-panel
   "If the given panel contains a lattice editor, return the
