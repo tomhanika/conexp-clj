@@ -65,7 +65,7 @@
   (.getWidth (.getWorldExtent scn)))
 
 (defn ^GCanvas scene-canvas
-  "Returns canvas associated with a scene."
+  "Returns the canvas associated with a scene."
   [^GScene scn]
   (.. scn getWindow getCanvas))
 
