@@ -28,11 +28,21 @@ conexp-clj TODOs
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 ** TODO Lattice IO for csv and dot                                   :Daniel:
 ** TODO More IO formats (see FCAStone)                               :Daniel:
-** TODO (unsure) draw-lattice and draw-lattice-in-editor             :Daniel:
-   Make draw-lattice to return a picture of the lattice, with the
-   given layout. If one wants to have the lattice in the editor, one
-   has to use draw-lattice-in-editor
+   See the example files from Uta. Also include «anonymous-burmeister».
+** TODO draw-lattice-to-file                                         :Daniel:
+   We need some function (i.e. draw-lattice-to-file) which produces a
+   file of the picture of a lattice layout, when given the same
+   arguments as draw-lattice.
 ** TODO (unsure) TikZ Hacker Mode                             :Daniel:Tobias:
+** TODO Add conexp.io.string/latex                                   :Daniel:
+   As a function which outputs a tex representation of a given object
+** TODO Add support for multiple contexts/... in IO                  :Daniel:
+   I.e. a call like
+
+     (write-context :conexp "/tmp/file" ctx-1 ctx-2 ctx-3)
+
+   should be possible. read-context then should also take an index of
+   which context to read in.
 * For 0.0.6-alpha
 ** DONE Restructure layout code                                      :Daniel:
    Some functions (grid adjustment) may just go to util, and the
