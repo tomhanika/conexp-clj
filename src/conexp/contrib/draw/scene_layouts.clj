@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.scene-layouts
-  (:use [conexp.base :only (ns-doc, illegal-argument, defvar-)]
+  (:use [conexp.base :only (ns-doc, illegal-argument, defvar-, reduce!)]
 	[conexp.layouts.base :only (make-layout, positions, connections,
                                                  nodes, update-positions, annotation)]
 	[conexp.layouts.util :only (enclosing-rectangle)]
@@ -55,10 +55,10 @@
   "Returns layout from a scene."
   [scn]
   (update-positions (get-data-from-scene scn :layout)
-		    (reduce (fn [hash node]
-			      (assoc hash (get-name node) (position node)))
-			    {}
-			    (filter node? (get-diagram-from-scene scn)))))
+		    (reduce! (fn [hash node]
+			      (assoc! hash (get-name node) (position node)))
+                             {}
+                             (filter node? (get-diagram-from-scene scn)))))
 
 (defn fit-scene-to-layout
   "Adjusts scene such that layout fits on it. Uses stored layout if
