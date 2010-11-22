@@ -130,6 +130,27 @@
   (binding [expert-refuses? (constantly false)]
     (apply explore-model model args)))
 
+(defn model-gcis-naive
+  "Naive implementation of model-gcis."
+  [model]
+  (let [language (model-language model),
+        M_i (concat (map #(make-dl-expression language %) (concept-names language))
+                    (mapcat (fn [objs]
+                              (let [msc (expression-term (most-specific-concept model objs))]
+                                (map #(make-dl-expression language (list 'exists % msc))
+                                     (role-names language))))
+                            (all-closed-sets (model-base-set model)
+                                             #(interpret model (most-specific-concept model %))))),
+        K   (induced-context M_i model),
+        S   (minimal-implication-set (make-concept-set M_i)),
+        sb  (stem-base K S),
+        su  (set-of (make-subsumption pre clc)
+                    [impl sb
+                     :let [pre (make-dl-expression language (cons 'and (premise impl))),
+                           clc (make-dl-expression language (cons 'and (conclusion impl)))]
+                     :when (not (subsumed-by? pre clc))])]
+    su))
+
 
 ;;; Experiments with TITANIC
 
