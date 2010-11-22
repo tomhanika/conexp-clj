@@ -9,7 +9,8 @@
 (ns conexp.fca.more
   (:use conexp.base
         conexp.fca.contexts
-        conexp.fca.implications)
+        conexp.fca.implications
+        conexp.fca.exploration)
   (:require [clojure.contrib.graph :as graph]))
 
 (ns-doc "More on FCA.")
@@ -166,9 +167,17 @@
 
   Note: This implementation is slow."
   [base-set clop]
-  (reduce-context-objects (make-context (all-closed-sets base-set clop)
-                                        base-set
-                                        #(contains? %1 %2))))
+  (let [clop-handler (fn [ctx _ impl]
+                       (let [A (premise impl),
+                             B (conclusion impl),
+                             C (clop A)]
+                         (when-not (subset? B C)
+                           [[(gensym) C]])))]
+    (-> (explore-attributes (make-context #{} base-set #{})
+                            :handler clop-handler)
+        :context
+        reduce-context)))
+
 ;;;
 
 nil
