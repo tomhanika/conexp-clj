@@ -68,15 +68,22 @@
 
 (defn- add-immediate-elements
   "Adds all elements which follow from implications with premises in
-  initial-set."
-  [implications initial-set]
+  initial-set. Uses subset-test to dertermine whether a given
+  implication can be used to extend a given set, i.e. an implication
+  impl can be used to extend a set s if and only if
+
+    (and (subset-test (premise impl) s)
+         (not (subset? (conclusion impl) s)))
+
+  is true."
+  [implications initial-set subset-test]
   (loop [conclusions  [],
          impls        implications,
          unused-impls []]
     (if (empty? impls)
       [(apply union initial-set conclusions) unused-impls]
       (let [impl (first impls)]
-        (if (and (subset? (premise impl) initial-set)
+        (if (and (subset-test (premise impl) initial-set)
                  (not (subset? (conclusion impl) initial-set)))
           (recur (conj conclusions (conclusion impl))
                  (rest impls)
@@ -91,7 +98,7 @@
   (assert (set? set))
   (loop [set   set,
          impls implications]
-    (let [[new impls] (add-immediate-elements impls set)]
+    (let [[new impls] (add-immediate-elements impls set subset?)]
       (if (= new set)
         new
         (recur new impls)))))
@@ -100,6 +107,24 @@
   "Returns closure operator given by implications."
   [implications]
   (partial close-under-implications implications))
+
+(defn pseudo-close-under-implications
+  "Computes smallest superset of set being pseudo-closed under given
+  implications."
+  [implications set]
+  (assert (set? set))
+  (loop [set   set,
+         impls implications]
+    (let [[new impls] (add-immediate-elements impls set proper-subset?)]
+      (if (= new set)
+        new
+        (recur new impls)))))
+
+(defn pseudo-clop-by-implications
+  "Returns for a given set of implications the corresponding closure
+  operator whose closures are all closed and pseudo-closed sets."
+  [implications]
+  (partial pseudo-close-under-implications implications))
 
 (defn follows-semantically?
   "Returns true iff implication follows semantically from given

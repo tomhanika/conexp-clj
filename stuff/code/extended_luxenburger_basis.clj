@@ -12,37 +12,6 @@
 
 ;;;
 
-(defn add-immediate-elements
-  "Adds all elements which follow from implications with premises in
-  initial-set."
-  [implications initial-set]
-  (loop [conclusions  [],
-         impls        implications,
-         unused-impls []]
-    (if (empty? impls)
-      [(apply union initial-set conclusions) unused-impls]
-      (let [impl (first impls)]
-        (if (and (proper-subset? (premise impl) initial-set)
-                 (not (subset? (conclusion impl) initial-set)))
-          (recur (conj conclusions (conclusion impl))
-                 (rest impls)
-                 unused-impls)
-          (recur conclusions
-                 (rest impls)
-                 (conj unused-impls impl)))))))
-
-(defn pseudo-clop-by-implications
-  "Returns for a given set of implications the corresponding closure
-  operator whose closures are all closed and pseudo-closed sets."
-  [implications]
-  (fn [set]
-    (loop [set   set,
-           impls implications]
-      (let [[new impls] (add-immediate-elements impls set)]
-        (if (= new set)
-          new
-          (recur new impls))))))
-
 (defn extended-iceberg-intent-seq
   "Computes for the given closure operator for given minimal support minsupp the
   corresponding extended iceberg intent seq, which is the iceberg
@@ -60,16 +29,23 @@
   original one by adding all implication of the stem-base of context
   which have support greater or equal to minsupp."
   [context minsupp minconf]
-  (let [closures (extended-iceberg-intent-seq context minsupp)]
-    (for [B_1 closures,
-          B_2 closures,
-          :when (and (proper-subset? B_1 B_2)
-                     (not (exists [C closures]
-                            (and (proper-subset? B_1 C)
-                                 (proper-subset? C B_2)))))
-          :let [ar (make-association-rule context B_1 B_2)]
-          :when (>= (confidence ar) minconf)]
-      ar)))
+  (let [closures (set (extended-iceberg-intent-seq context minsupp)),
+        LB+DG    (set-of ar
+                         [B_1 closures,
+                          B_2 closures,
+                          :when (and (proper-subset? B_1 B_2)
+                                     (not (exists [C closures]
+                                                  (and (proper-subset? B_1 C)
+                                                       (proper-subset? C B_2)))))
+                          :let [ar (make-association-rule context
+                                                          B_1
+                                                          (context-attribute-closure context B_2))]
+                          :when (>= (confidence ar) minconf)]),
+        X        (set-of (make-association-rule context C-pp C-pp)
+                         [C (difference closures
+                                        (set-of (conclusion impl) [impl LB+DG]))
+                          :let [C-pp (context-attribute-closure context C)]])]
+    (union LB+DG X)))
 
 ;;;
 

@@ -57,6 +57,8 @@
          #{1 2 3} [[#{1 2} #{4}] [#{1 4} #{5}] [#{1 6} #{7}]] #{1 2 3 4 5})))
 
 ;; clop-by-implications
+;; pseudo-close-under-implications
+;; pseudo-clop-by-implications
 ;; follows-semantically
 ;; {minimal,sound,complete}-implication-set?
 ;; equivalent-implications?
