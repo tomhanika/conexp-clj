@@ -160,4 +160,15 @@
 
 ;;;
 
+(defn context-from-clop
+  "Returns a context whose intents are exactly the closed sets of the
+  given closure operator on the given base-set.
+
+  Note: This implementation is slow."
+  [base-set clop]
+  (reduce-context-objects (make-context (all-closed-sets base-set clop)
+                                        base-set
+                                        #(contains? %1 %2))))
+;;;
+
 nil

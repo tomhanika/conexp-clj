@@ -29,7 +29,7 @@
 
 ;;;
 
-(defvar- testing-data
+(defvar testing-data
   [(make-implication [] []),
    (make-implication [1 2 3] '[a b c]),
    (make-implication [1 2 3] '[3 a b c])
@@ -97,24 +97,6 @@
                       [2 4] [2 6] [2 8] [3 1] [3 4]
                       [3 5] [3 8] [4 1] [4 3] [4 5]
                       [4 8] [5 2] [5 3] [5 5] [5 7]}))))
-
-;;;
-
-(deftest test-context-from-clop
-  (is (let [impls #{(make-implication #{1} #{2}),
-                    (make-implication #{4} #{2 3})
-                    (make-implication #{1 3} #{4 5})}]
-        (equivalent-implications?
-         impls
-         (stem-base (context-from-clop #{1 2 3 4 5}
-                                       (clop-by-implications impls))))))
-  (is (equivalent-implications?
-       testing-data
-       (stem-base (context-from-clop (reduce (fn [set impl]
-                                               (union set (premise impl) (conclusion impl)))
-                                             #{}
-                                             testing-data)
-                                     (clop-by-implications testing-data))))))
 
 ;;;
 

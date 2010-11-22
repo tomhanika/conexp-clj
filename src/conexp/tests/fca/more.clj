@@ -9,8 +9,10 @@
 (ns conexp.tests.fca.more
   (:use conexp.base
         conexp.fca.contexts
+        conexp.fca.implications
         conexp.fca.more
         conexp.tests.fca.contexts)
+  (:require [conexp.tests.fca.implications :as impls])
   (:use clojure.test))
 
 ;;; Subcontexts
@@ -83,6 +85,24 @@
                       ctx-2 small-contexts]
     (= (set (all-bonds ctx-1 ctx-2))
        (set (all-bonds-by-shared-intents ctx-1 ctx-2)))))
+
+;;;
+
+(deftest test-context-from-clop
+  (is (let [impls #{(make-implication #{1} #{2}),
+                    (make-implication #{4} #{2 3})
+                    (make-implication #{1 3} #{4 5})}]
+        (equivalent-implications?
+         impls
+         (stem-base (context-from-clop #{1 2 3 4 5}
+                                       (clop-by-implications impls))))))
+  (is (equivalent-implications?
+       impls/testing-data
+       (stem-base (context-from-clop (reduce (fn [set impl]
+                                               (union set (premise impl) (conclusion impl)))
+                                             #{}
+                                             impls/testing-data)
+                                     (clop-by-implications impls/testing-data))))))
 
 ;;;
 
