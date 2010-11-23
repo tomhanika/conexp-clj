@@ -48,7 +48,8 @@
                              "of all concept names of the language of the given model."))
 
          (loop [M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
-                Pi_k  {},
+                Pi_k  [],
+                P-map {},
                 P_k   #{},
                 model initial-model,
                 implications #{},
@@ -78,8 +79,9 @@
                    new-concepts (take (- (count (seq next-M_k)) number-of-old-concepts)
                                       (seq next-M_k)),
 
-		   next-Pi_k    (assoc Pi_k
+                   P-map        (assoc P-map
                                   P_k [all-P_k all-P_k-closure]),
+                   next-Pi_k    (conj Pi_k P_k)
 
 		   implications (if (empty? new-concepts)
                                   (let [new-impl (make-implication
@@ -89,7 +91,7 @@
                                     (if (not-empty (conclusion new-impl))
                                       (conj implications new-impl)
                                       implications))
-                                  (set-of impl | [P [_ all-P-closure]] next-Pi_k
+                                  (set-of impl | [P [_ all-P-closure]] P-map
                                                  :let [impl (make-implication
                                                              P
                                                              (set-of D | D (seq next-M_k)
@@ -101,12 +103,13 @@
 		   next-P_k     (next-closed-set (seq next-M_k)
                                                  (clop-by-implications (union implications background-knowledge))
                                                  P_k)]
-	       (recur next-M_k next-Pi_k next-P_k next-model implications background-knowledge))
+	       (recur next-M_k next-Pi_k P-map next-P_k next-model implications background-knowledge))
 
              ;; else return set of implications
              (let [implicational-knowledge (union implications background-knowledge)]
                (doall ;ensure that this sequence is evaluated with our bindings in effect
-                (for [[all-P all-P-closure] (vals Pi_k)
+                (for [P Pi_k
+                      :let [[all-P all-P-closure] (get P-map P)]
                       :when (not (subsumed-by? all-P all-P-closure))
                       :let [susu (abbreviate-subsumption (make-subsumption all-P all-P-closure)
                                                          implicational-knowledge)]
