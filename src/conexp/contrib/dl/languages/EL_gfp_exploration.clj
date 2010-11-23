@@ -81,22 +81,26 @@
 
                    P-map        (assoc P-map
                                   P_k [all-P_k all-P_k-closure]),
-                   next-Pi_k    (conj Pi_k P_k)
+                   next-Pi_k    (conj Pi_k P_k),
 
-		   implications (if (empty? new-concepts)
-                                  (let [new-impl (make-implication
-                                                  P_k
-                                                  (set-of D | D (seq M_k)
-                                                              :when (subsumed-by? all-P_k-closure D)))]
-                                    (if (not-empty (conclusion new-impl))
-                                      (conj implications new-impl)
-                                      implications))
-                                  (set-of impl | [P [_ all-P-closure]] P-map
-                                                 :let [impl (make-implication
-                                                             P
-                                                             (set-of D | D (seq next-M_k)
-                                                                         :when (subsumed-by? all-P-closure D)))]
-                                                 :when (not-empty (conclusion impl)))),
+		   implications (let [new-impl (make-implication P_k
+                                                                 (set-of D | D (seq M_k)
+                                                                             :when (subsumed-by? all-P_k-closure D))),
+                                      impls    (if (empty? new-concepts)
+                                                 implications
+                                                 (set-of impl | old-impl implications
+                                                                :let [P (premise old-impl),
+                                                                      Q (conclusion old-impl),
+                                                                      P-closure (second (get P-map P)),
+                                                                      impl (make-implication
+                                                                            P
+                                                                            (into Q
+                                                                                  (set-of D | D new-concepts
+                                                                                              :when (subsumed-by? P-closure D))))]
+                                                                :when (not-empty (conclusion impl))))]
+                                  (if (not-empty (conclusion new-impl))
+                                    (conj impls new-impl)
+                                    impls))
 		   background-knowledge
                                 (minimal-implication-set next-M_k),
 
