@@ -23,6 +23,26 @@
 
 ;;; technical helpers
 
+(defn- induced-context
+  "Returns context induced by the set of concept descriptions and the
+  given model."
+  ([descriptions model]
+     (induced-context descriptions model (make-context #{} #{} #{})))
+  ([descriptions model old-context]
+     (let [new-objects    (difference (model-base-set model)
+                                      (objects old-context)),
+           new-attributes (difference (set descriptions)
+                                      (attributes old-context)),
+           new-incidence  (union (set-of [x y] [y new-attributes,
+                                                x (interpret model y)])
+                                 (if (empty? new-objects)
+                                   (incidence old-context)
+                                   (set-of [x y] [y (attributes old-context),
+                                                  x (interpret model y)])))]
+       (make-context (union (objects old-context) new-objects)
+                     (union (attributes old-context) new-attributes)
+                     new-incidence))))
+
 (defn- obviously-true?
   "Returns true iff the given subsumption is obviously true."
   [subsumption]
@@ -59,10 +79,9 @@
              ;; then search for next implication
              (let [all-P_k      (make-dl-expression language (cons 'and P_k)),
                    next-model   (loop [model model]
-                                  (let [susu (abbreviate-subsumption
-                                              (make-subsumption all-P_k
-                                                                (model-closure model all-P_k))
-                                              (union implications background-knowledge))]
+                                  (let [susu (abbreviate-subsumption (make-subsumption all-P_k
+                                                                                       (model-closure model all-P_k))
+                                                                     (union implications background-knowledge))]
                                     (if (or (obviously-true? susu)
                                             (not (expert-refuses? susu)))
                                       model
