@@ -163,20 +163,17 @@
 
 (defn context-from-clop
   "Returns a context whose intents are exactly the closed sets of the
-  given closure operator on the given base-set.
-
-  Note: This implementation is slow."
+  given closure operator on the given base-set."
   [base-set clop]
-  (let [clop-handler (fn [ctx _ impl]
-                       (let [A (premise impl),
-                             B (conclusion impl),
-                             C (clop A)]
-                         (when-not (subset? B C)
-                           [[(gensym) C]])))]
-    (-> (explore-attributes (make-context #{} base-set #{})
-                            :handler clop-handler)
-        :context
-        reduce-context)))
+  (-> (explore-attributes (make-context #{} base-set #{})
+                          :handler (fn [_ _ impl]
+                                     (let [A (premise impl),
+                                           B (conclusion impl),
+                                           C (clop A)]
+                                       (when-not (subset? B C)
+                                         [[(gensym) C]]))))
+      :context
+      reduce-context))
 
 ;;;
 
