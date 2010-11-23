@@ -23,26 +23,6 @@
 
 ;;; technical helpers
 
-(defn- induced-context
-  "Returns context induced by the set of concept descriptions and the
-  given model."
-  ([descriptions model]
-     (induced-context descriptions model (make-context #{} #{} #{})))
-  ([descriptions model old-context]
-     (let [new-objects    (difference (model-base-set model)
-                                      (objects old-context)),
-           new-attributes (difference (set descriptions)
-                                      (attributes old-context)),
-           new-incidence  (union (set-of [x y] [y new-attributes,
-                                                x (interpret model y)])
-                                 (if (empty? new-objects)
-                                   (incidence old-context)
-                                   (set-of [x y] [y (attributes old-context),
-                                                  x (interpret model y)])))]
-       (make-context (union (objects old-context) new-objects)
-                     (union (attributes old-context) new-attributes)
-                     new-incidence))))
-
 (defn- obviously-true?
   "Returns true iff the given subsumption is obviously true."
   [subsumption]
@@ -68,58 +48,70 @@
                              "of all concept names of the language of the given model."))
 
          (loop [M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
-                K     (induced-context (seq M_k) initial-model),
-                Pi_k  [],
+                Pi_k  {},
                 P_k   #{},
                 model initial-model,
                 implications #{},
                 background-knowledge #{}]
 
-           (if (nil? P_k)
-             ;; then return set of implications
-             (let [implicational-knowledge (union implications background-knowledge)]
-               (doall                   ;ensure that this sequence is evaluated with our bindings in effect
-                (for [P Pi_k
-                      :let [all-P    (make-dl-expression language (cons 'and P)),
-                            mc-all-P (model-closure model all-P)]
-                      :when (not (subsumed-by? all-P mc-all-P))
-                      :let [susu (abbreviate-subsumption (make-subsumption all-P mc-all-P)
-                                                         implicational-knowledge)]
-                      :when (not-empty (arguments (subsumer susu)))]
-                  susu)))
+           (if P_k
+             ;; then search for next implication
+             (let [all-P_k      (make-dl-expression language (cons 'and P_k)),
+                   next-model   (loop [model model]
+                                  (let [susu (abbreviate-subsumption
+                                              (make-subsumption all-P_k
+                                                                (model-closure model all-P_k))
+                                              (union implications background-knowledge))]
+                                    (if (or (obviously-true? susu)
+                                            (not (expert-refuses? susu)))
+                                      model
+                                      (recur (extend-model-by-contradiction model susu))))),
+                   all-P_k-closure
+                                (model-closure next-model all-P_k),
 
-             ;; else search for next implication
-             (let [all-P_k    (make-dl-expression language (cons 'and P_k)),
-                   next-model (loop [model model]
-                                (let [susu (abbreviate-subsumption
-                                            (make-subsumption all-P_k
-                                                              (model-closure model all-P_k))
-                                            (union implications background-knowledge))]
-                                  (if (or (obviously-true? susu)
-                                          (not (expert-refuses? susu)))
-                                    model
-                                    (recur (extend-model-by-contradiction model susu))))),
-		   next-M_k   (apply add-concepts! M_k
-                                     (for [r (role-names language)]
-                                       (dl-expression language
-                                                      (exists r (model-closure next-model all-P_k))))),
-		   next-K     (induced-context (seq next-M_k) next-model K),
-		   next-Pi_k  (conj Pi_k P_k),
+                   number-of-old-concepts
+                                (count (seq M_k)),
+		   next-M_k     (apply add-concepts!
+                                       M_k
+                                       (for [r (role-names language)]
+                                         (dl-expression language (exists r all-P_k-closure)))),
+                   new-concepts (take (- (count (seq next-M_k)) number-of-old-concepts)
+                                      (seq next-M_k)),
 
-		   implications (if (= K next-K)
-                                  (let [new-impl (make-implication P_k (context-attribute-closure next-K P_k))]
+		   next-Pi_k    (assoc Pi_k
+                                  P_k [all-P_k all-P_k-closure]),
+
+		   implications (if (empty? new-concepts)
+                                  (let [new-impl (make-implication
+                                                  P_k
+                                                  (set-of D | D (seq M_k)
+                                                              :when (subsumed-by? all-P_k-closure D)))]
                                     (if (not-empty (conclusion new-impl))
                                       (conj implications new-impl)
                                       implications))
-                                  (set-of impl [P_l next-Pi_k
-                                                :let [impl (make-implication P_l (context-attribute-closure next-K P_l))]
-                                                :when (not-empty (conclusion impl))])),
-		   background-knowledge (minimal-implication-set next-M_k),
+                                  (set-of impl | [P [_ all-P-closure]] next-Pi_k
+                                                 :let [impl (make-implication
+                                                             P
+                                                             (set-of D | D (seq next-M_k)
+                                                                         :when (subsumed-by? all-P-closure D)))]
+                                                 :when (not-empty (conclusion impl)))),
+		   background-knowledge
+                                (minimal-implication-set next-M_k),
 
-		   next-P_k   (next-closed-set (seq next-M_k)
-					       (clop-by-implications (union implications background-knowledge))
-					       P_k)]
-	       (recur next-M_k next-K next-Pi_k next-P_k next-model implications background-knowledge))))))))
+		   next-P_k     (next-closed-set (seq next-M_k)
+                                                 (clop-by-implications (union implications background-knowledge))
+                                                 P_k)]
+	       (recur next-M_k next-Pi_k next-P_k next-model implications background-knowledge))
+
+             ;; else return set of implications
+             (let [implicational-knowledge (union implications background-knowledge)]
+               (doall ;ensure that this sequence is evaluated with our bindings in effect
+                (for [[all-P all-P-closure] (vals Pi_k)
+                      :when (not (subsumed-by? all-P all-P-closure))
+                      :let [susu (abbreviate-subsumption (make-subsumption all-P all-P-closure)
+                                                         implicational-knowledge)]
+                      :when (not-empty (arguments (subsumer susu)))]
+                  susu)))))))))
 
 ;;; gcis
 
