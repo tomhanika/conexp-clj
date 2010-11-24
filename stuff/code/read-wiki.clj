@@ -92,10 +92,10 @@
 
 ;;;
 
-(defvar *wikipedia-properties* "/users/lat/borch/wikiprops.nt"
+(defvar ^{:dynamic true} *wikipedia-properties* nil
   "File containing the properties as defined by dbpedia")
 
-(defvar *wikipedia-instances* "/users/lat/borch/wikiinstances.nt"
+(defvar ^{:dynamic true} *wikipedia-instances* nil
   "File containing the instances as defined by dbpedia")
 
 (defn- read-wiki [roles]
