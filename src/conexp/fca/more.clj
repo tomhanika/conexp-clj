@@ -161,19 +161,45 @@
 
 ;;;
 
+(defn- first-extender
+  "Finds the first element n in elts such that the set C extended by n
+  and closed under c does not contain m."
+  [c C m elts]
+  (loop [elements (seq elts)]
+    (when-let [n (first elements)]
+      (let [D (c (conj C n))]
+        (if-not (contains? D m)
+          [n D]
+          (recur (next elements)))))))
+
+(defn- maximal-counterexample
+  "For a given closure operator c on a set base-set, maximizes the set
+  C (i.e. returns a superset of C) that is not a superset of
+  B (i.e. there exists an element m in B without C that is also not in
+  the result."
+  [c base-set B C]
+  (let [m (first (difference B C))]
+    (loop [C C,
+           elts (difference (disj base-set m)
+                            C)]
+      (if-let [[next-m, D] (first-extender c C m elts)]
+        (recur D (disj elts next-m))
+        C))))
+
 (defn context-from-clop
   "Returns a context whose intents are exactly the closed sets of the
   given closure operator on the given base-set."
   [base-set clop]
-  (-> (explore-attributes (make-context #{} base-set #{})
-                          :handler (fn [_ _ impl]
-                                     (let [A (premise impl),
-                                           B (conclusion impl),
-                                           C (clop A)]
-                                       (when-not (subset? B C)
-                                         [[(gensym) C]]))))
-      :context
-      reduce-context))
+  (let [base-set (set base-set)]
+    (-> (explore-attributes (make-context #{} base-set #{})
+                            :handler (fn [_ _ impl]
+                                       (let [A (premise impl),
+                                             B (conclusion impl),
+                                             C (clop A)]
+                                         (when-not (subset? B C)
+                                           [[(gensym) (maximal-counterexample clop base-set B C)]]))))
+        :context
+        reduce-context-objects)))       ;is this still necessary?
 
 ;;;
 
