@@ -10,8 +10,7 @@
   (:require conexp.base
 	    conexp.fca
 	    conexp.io
-	    conexp.layouts)
-  (:use [clojure.contrib.ns-utils :only (immigrate)]))
+	    conexp.layouts))
 
 (conexp.base/ns-doc
  "Main namespace for conexp-clj. Immigrates all needed namespaces.")
@@ -23,7 +22,7 @@
                          conexp.io
                          conexp.layouts])
 
-(dorun (map immigrate conexp-namespaces))
+(dorun (map conexp.base/immigrate conexp-namespaces))
 
 ;;;
 

@@ -21,7 +21,6 @@
                  [org.clojure.contrib/lazy-seqs     "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/lazy-xml      "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/math          "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/ns-utils      "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/profile       "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/prxml         "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/set           "1.3.0-SNAPSHOT"]

@@ -8,7 +8,6 @@
 
 (ns conexp.io
   (:use conexp.base)
-  (:use [clojure.contrib.ns-utils :only (immigrate)])
   (:require conexp.io.contexts
 	    conexp.io.lattices
 	    conexp.io.layouts
