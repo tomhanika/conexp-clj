@@ -87,8 +87,34 @@
   (is (thrown-with-msg? IllegalStateException #"und nochmal"
         (illegal-state "und" " nochmal"))))
 
+(defvar- a 1)
+(defvar- b 2)
+
+(deftest test-with-altered-vars
+  (is (and (= 1 a) (= 2 b)))
+  (with-altered-vars [a (constantly 5)]
+    (is (and (= 5 a) (= 2 b))))
+  (is (and (= 1 a) (= 2 b))))
+
+(deftest test-with-var-bindings
+  (is (and (= 1 a) (= 2 b)))
+  (with-var-bindings [a 3]
+    (is (and (= 3 a) (= 2 b))))
+  (is (and (= 1 a) (= 2 b))))
+
+(defvar- f (fn [x] (swap! x inc)))
+
 (deftest test-with-memoized-fns
-  'todo)
+  (let [counter (atom 0)]
+    (is (= 0 @counter))
+    (f counter)
+    (is (= 1 @counter))
+    (with-memoized-fns [f]
+      (dotimes [_ 10]
+        (f counter)))
+    (is (= 2 @counter))
+    (f counter)
+    (is (= 3 @counter))))
 
 (deftest test-memo-fn
   (is (= 1 (let [counter (atom 0),

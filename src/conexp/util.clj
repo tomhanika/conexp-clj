@@ -240,6 +240,16 @@
                    `(alter-var-root (var ~thing) (constantly ~name)))
                  bind-gen))))))
 
+(defmacro with-var-bindings
+  "Executes body with the vars in bindings set to the corresponding
+  values."
+  [bindings & body]
+  (when-not (even? (count bindings))
+    (illegal-argument "Bindings must be given pairwise."))
+  `(with-altered-vars ~(vec (mapcat (fn [[a b]] `[~a (constantly ~b)])
+                                   (partition 2 bindings)))
+     ~@body))
+
 (defmacro with-memoized-fns
   "Runs code in body with all given functions memoized."
   [functions & body]
