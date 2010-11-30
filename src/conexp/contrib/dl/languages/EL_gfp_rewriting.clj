@@ -31,10 +31,9 @@
           (recur collected (rest left))
           (recur (conj (remove #(more-specific? next %) collected) next) (rest left)))))))
 
-(defn- ^{:dynamic true} more-specific?
+(defn- more-specific?
   "Returns true iff term-1 is more specific than term-2. When no tests succeeds
-  (fallback term-1 term-2) is called and its return value is then
-  returned."
+  (fallback term-1 term-2) is called and its value is returned."
   ([term-1 term-2]
      (more-specific? term-1 term-2 (constantly false)))
   ([term-1 term-2 fallback]
@@ -114,11 +113,16 @@
   (let [language              (expression-language expression),
         implication-closure   (memoize (clop-by-implications knowledge)),
         simple-more-specific? more-specific?]
-    (binding [more-specific? #(simple-more-specific?
-                               %1 %2
-                               (fn [term-1 term-2]
-                                 (contains? (implication-closure #{(make-dl-expression-nc language term-1)})
-                                            (make-dl-expression-nc language term-2))))]
+    (with-altered-vars [more-specific? (constantly
+                                        (fn spec?
+                                          ([t-1 t-2]
+                                             (simple-more-specific?
+                                              t-1
+                                              t-2
+                                              #(contains? (implication-closure #{(make-dl-expression-nc language %1)})
+                                                          (make-dl-expression-nc language %2))))
+                                          ([t-1 t-2 fallback]
+                                             (spec? t-1 t-2))))]
       (make-dl-expression-nc language (normalize-EL-gfp-term (expression-term expression))))))
 
 (defn abbreviate-subsumption
