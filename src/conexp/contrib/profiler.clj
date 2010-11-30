@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.profiler
-  (:use [conexp.base :only (ns-doc, defnk, defvar-)])
+  (:use conexp.base)
   (:use clojure.contrib.profile
         [clojure.pprint :only (pprint, cl-format)]
         [clojure.contrib.except :only (throw-if, throw-if-not)]))
@@ -231,15 +231,15 @@
   "Runs code in body with all given functions being profiled. Each
   function will be instrumentalized to measure its invocations."
   [fns & body]
-  `(binding ~(vec (apply concat
-			 (for [fn (distinct fns)]
-			   `[~fn (let [orig-fn# ~fn]
-				   (fn [& args#]
-				     (prof ~(keyword fn)
-				       (apply orig-fn# args#))))])))
+  `(with-altered-vars ~(vec (mapcat (fn [f]
+                                      `[~f (constantly
+                                            (let [orig-f# ~f]
+                                              (fn [& args#]
+                                                (prof ~(keyword f) (apply orig-f# args#)))))])
+                                    (distinct fns)))
      (let [data# (with-profile-data ~@body)]
-       (if (not (empty? data#))
-	 (print-summary (summarize data#))))))
+       (when (not-empty data#))
+	 (print-summary (summarize data#)))))
 
 ;;;
 
