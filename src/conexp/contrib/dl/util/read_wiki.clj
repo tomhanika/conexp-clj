@@ -8,19 +8,20 @@
 
 ;; A program to convert data from the dbpedia project to DL models
 
-(in-ns 'user)
+(ns conexp.contrib.dl.util.read_wiki
+  (:use [conexp.io.util :only (with-in-reader)]
+        [clojure.walk :only (walk)])
+  (:use conexp.main
+        conexp.contrib.profiler
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.semantics
+        conexp.contrib.dl.languages.EL-gfp
+        conexp.contrib.dl.languages.EL-gfp-exploration
+        conexp.contrib.dl.languages.interaction))
 
-(use '[conexp.io.util :only (with-in-reader)]
-     '[clojure.walk :only (walk)])
-
-(use 'conexp.main
-     'conexp.contrib.profiler
-     'conexp.contrib.dl.framework.syntax
-     'conexp.contrib.dl.framework.boxes
-     'conexp.contrib.dl.framework.semantics
-     'conexp.contrib.dl.languages.EL-gfp
-     'conexp.contrib.dl.languages.EL-gfp-exploration
-     'conexp.contrib.dl.languages.interaction)
+(ns-doc
+ "Utility functions to read DL models from DBpedia data files.")
 
 ;;;
 
