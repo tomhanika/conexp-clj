@@ -47,7 +47,7 @@
 					   {target (make-dl-definition target dl-expression)}),
 				target])))))
 
-(defn ^{:dynamic true} EL-expression->rooted-description-graph
+(defn EL-expression->rooted-description-graph
   "Returns for a given EL expression or a tbox-target-pair its
   description graph together with the root corresponding to the
   target."

@@ -57,7 +57,7 @@
 (defmethod compile-expression :default [dl-expression]
   (illegal-argument "Dont know how to interpret " (print-str dl-expression)))
 
-(defn ^{:dynamic true} interpret
+(defn interpret
   "Interprets given expression in given model and returns the
   corresponding extent."
   [model dl-expression]
@@ -175,7 +175,7 @@
      [~model ~objects]
      ~@body))
 
-(defn ^{:dynamic true} model-closure
+(defn model-closure
   "Return the most specific concept of the interpretation of dl-exp in
   model."
   [model dl-exp]

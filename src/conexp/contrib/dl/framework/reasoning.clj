@@ -38,7 +38,7 @@
   `(defmethod compute-subsumption (language-name ~language) [~C ~D]
      ~@body))
 
-(defn ^{:dynamic true} subsumed-by?
+(defn subsumed-by?
   "Returns true iff C is subsumed by D in the given language."
   [C D]
   (compute-subsumption C D))
