@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.fca.experimental.extended-luxenburger-basis
+(ns conexp.contrib.experimental.extended-luxenburger-basis
   (:use conexp.main))
 
 (ns-doc "Experimental implementation of extended Luxenburger basis
