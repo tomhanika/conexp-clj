@@ -215,21 +215,36 @@
   [& strings]
   (die-with-error IllegalStateException strings))
 
+(defmacro with-altered-vars
+  "Executes the code given in a dynamic environment where the var
+  roots of the given names are altered according to the given
+  bindings. The bindings have the form [name_1 f_1 name_2 f_2 ...]
+  where f_i is applied to the original value of the var associated
+  with name_i to give the new value which will be in place during
+  execution of body. The old value will be restored after execution
+  has been finished."
+  [bindings & body]
+  (when-not (even? (count bindings))
+    (illegal-argument "Bindings must be given pairwise."))
+  (let [bindings (partition 2 bindings),
+        bind-gen (for [[n _] bindings] [(gensym) n])]
+    `(let ~(vec (mapcat (fn [[name thing]] [name `(deref (var ~thing))])
+                        bind-gen))
+       (try
+         ~@(map (fn [[thing f]]
+                  `(alter-var-root (var ~thing) ~f))
+                bindings)
+         ~@body
+         (finally
+          ~@(map (fn [[name thing]]
+                   `(alter-var-root (var ~thing) (constantly ~name)))
+                 bind-gen))))))
+
 (defmacro with-memoized-fns
   "Runs code in body with all given functions memoized."
   [functions & body]
-  (let [function-gensyms (into {} (for [f functions] [(gensym) f]))]
-    `(let ~(vec (mapcat (fn [[f-name f]] [f-name `(deref (var ~f))])
-                        function-gensyms))
-       (try
-         ~@(map (fn [f]
-                  `(alter-var-root (var ~f) memoize))
-                functions)
-         ~@body
-          (finally
-           ~@(map (fn [[name-f f]]
-                    `(alter-var-root (var ~f) (constantly ~name-f)))
-                  function-gensyms))))))
+  `(with-altered-vars ~(vec (mapcat (fn [f] [f `memoize]) functions))
+     ~@body))
 
 (defmacro memo-fn
   "Defines memoized, anonymous function."
