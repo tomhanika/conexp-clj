@@ -28,7 +28,7 @@
                  [org.apache.commons/commons-math   "2.0"]
                  [jline                             "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]]
-  :aot [conexp.main]
+  :aot [conexp.main conexp.contrib.gui]
   :jar-name "conexp-clj.jar"
   :jvm-opts ["-server", "-Xmx1g"]
   :warn-on-reflection true)
