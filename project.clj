@@ -18,7 +18,6 @@
                  [org.clojure.contrib/def           "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/except        "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/graph         "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/lazy-seqs     "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/lazy-xml      "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/math          "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/profile       "1.3.0-SNAPSHOT"]

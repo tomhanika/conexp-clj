@@ -6,12 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.base
-  (:require clojure.set
-            clojure.contrib.set
-            clojure.contrib.math
-            clojure.contrib.lazy-seqs
-            clojure.contrib.def))
+(ns conexp.base)
 
 (load "util")
 

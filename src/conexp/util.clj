@@ -35,9 +35,8 @@
 
 (immigrate 'clojure.set
            'clojure.contrib.set
-           'clojure.contrib.math
-           'clojure.contrib.lazy-seqs
-           'clojure.contrib.def)
+           'clojure.contrib.def
+           'clojure.contrib.math)
 
 ;;; Namespace documentation
 
