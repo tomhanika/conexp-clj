@@ -52,7 +52,7 @@
   UnsupportedOperationException when called. The operator is meant to be
   rebound."
   [name arity]
-  `(defn ~(with-meta name {:dynamic true}) ~(vec (map (fn [_] (gensym)) (range arity)))
+  `(defn ~name ~(vec (map (fn [_] (gensym)) (range arity)))
      (unsupported-operation "You need to choose a logic with with-fuzzy-logic.")))
 
 (define-fuzzy-operator f-star 2)
@@ -66,12 +66,15 @@
   dynamic environment where the fuzzy logic for norm is in effect."
   [norm & body]
   `(let [[x# y#] (t-norm ~norm)]
-     (binding [~'f-star x#,
-               ~'f-impl y#,
-               ~'f-and (fn [x# y#] (f-star x# (f-impl x# y#))),
-               ~'f-or  (fn [x# y#] (f-and (f-impl (f-impl x# y#) y#)
-                                          (f-impl (f-impl y# x#) x#))),
-               ~'f-neg (fn [x#] (f-impl x# 0))]
+     (with-altered-vars [~'f-star (constantly x#),
+                         ~'f-impl (constantly y#),
+                         ~'f-and  (constantly
+                                   (fn [x# y#] (f-star x# (f-impl x# y#)))),
+                         ~'f-or   (constantly
+                                   (fn [x# y#] (f-and (f-impl (f-impl x# y#) y#)
+                                                      (f-impl (f-impl y# x#) x#)))),
+                         ~'f-neg  (constantly
+                                   (fn [x#] (f-impl x# 0)))]
        ~@body)))
 
 ;;;
