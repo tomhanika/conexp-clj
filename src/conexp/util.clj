@@ -216,11 +216,20 @@
   (die-with-error IllegalStateException strings))
 
 (defmacro with-memoized-fns
-  "Runs code in body with all functions in functions memoized."
+  "Runs code in body with all given functions memoized."
   [functions & body]
-  `(binding ~(vec (interleave functions
-			      (map (fn [f] `(memoize ~f)) functions)))
-     ~@body))
+  (let [function-gensyms (into {} (for [f functions] [(gensym) f]))]
+    `(let ~(vec (mapcat (fn [[f-name f]] [f-name `(deref (var ~f))])
+                        function-gensyms))
+       (try
+         ~@(map (fn [f]
+                  `(alter-var-root (var ~f) memoize))
+                functions)
+         ~@body
+          (finally
+           ~@(map (fn [[name-f f]]
+                    `(alter-var-root (var ~f) (constantly ~name-f)))
+                  function-gensyms))))))
 
 (defmacro memo-fn
   "Defines memoized, anonymous function."
