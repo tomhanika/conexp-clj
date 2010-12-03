@@ -35,7 +35,7 @@ as latex code.")
                  (println "\\[")
                  (println (str "\\begin{array}{l||*{" (count (attributes this)) "}{c|}}"))
                  (doseq [m (attributes this)]
-                   (print (str "& " m)))
+                   (print (str "& \\text{" m "}")))
                  (println "\\\\\\hline\\hline")
                  (doseq [g (objects this)]
                    (print (str g))
