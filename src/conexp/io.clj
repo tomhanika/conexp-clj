@@ -8,7 +8,8 @@
 
 (ns conexp.io
   (:use conexp.base)
-  (:require conexp.io.contexts
+  (:require conexp.io.latex
+            conexp.io.contexts
 	    conexp.io.lattices
 	    conexp.io.layouts
             conexp.io.many-valued-contexts))
@@ -18,7 +19,8 @@
 
 ;;;
 
-(immigrate 'conexp.io.contexts
+(immigrate 'conexp.io.latex
+           'conexp.io.contexts
 	   'conexp.io.lattices
 	   'conexp.io.layouts
            'conexp.io.many-valued-contexts)

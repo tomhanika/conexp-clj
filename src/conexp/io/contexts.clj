@@ -9,7 +9,8 @@
 (ns conexp.io.contexts
   (:use conexp.base
 	conexp.fca.contexts
-	conexp.io.util)
+	conexp.io.util
+        conexp.io.latex)
   (:use [clojure.contrib.lazy-xml :exclude (attributes)]
 	clojure.contrib.prxml
 	[clojure.string :only (split)])
@@ -315,18 +316,7 @@
 (define-context-output-format :tex
   [ctx file]
   (with-out-writer file
-    (println "\\[")
-    (println (str "\\begin{array}{l||*{" (count (attributes ctx)) "}{c|}}"))
-    (doseq [m (attributes ctx)]
-      (print (str "& " m)))
-    (println "\\\\\\hline\\hline")
-    (doseq [g (objects ctx)]
-      (print (str g))
-      (doseq [m (attributes ctx)]
-        (print (str "& " (if ((incidence ctx) [g m]) "\\times" "\\cdot"))))
-      (println "\\\\\\hline"))
-    (println (str "\\end{array}"))
-    (println "\\]")))
+    (println (latex ctx))))
 
 
 ;; fcalgs
