@@ -19,7 +19,7 @@ computation.")
   corresponding extended iceberg intent seq, which is the iceberg
   lattice of all intents and pseudo-intents."
   [context minsupp]
-  (let [mincount (round (ceil (* minsupp (count (objects context)))))]
+  (let [mincount (ceil (* minsupp (count (objects context))))]
     (all-closed-sets-in-family (fn [intent]
                                  (>= (count (attribute-derivation context intent))
                                      mincount))
@@ -46,7 +46,9 @@ computation.")
                           :when (>= (confidence ar) minconf)]),
         X        (set-of (make-association-rule context C-pp C-pp)
                          [C (difference closures
-                                        (set-of (conclusion impl) [impl LB+DG]))
+                                        (set-of (union (premise impl)
+                                                       (conclusion impl))
+                                                [impl LB+DG]))
                           :let [C-pp (context-attribute-closure context C)]])]
     (union LB+DG X)))
 
