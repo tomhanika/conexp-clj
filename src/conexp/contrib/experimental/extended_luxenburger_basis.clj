@@ -29,7 +29,8 @@ computation.")
 (defn extended-luxenburger-basis
   "Computes a modified luxenburger basis, which is obtained from the
   original one by adding all implication of the stem-base of context
-  which have support greater or equal to minsupp."
+  which have support greater or equal to minsupp, and additionally
+  some trivial implications of the form C ==> C."
   [context minsupp minconf]
   (let [closures (set (extended-iceberg-intent-seq context minsupp)),
         LB+DG    (set-of ar
