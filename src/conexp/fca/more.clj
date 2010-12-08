@@ -191,15 +191,14 @@
   given closure operator on the given base-set."
   [base-set clop]
   (let [base-set (set base-set)]
-    (-> (explore-attributes (make-context #{} base-set #{})
-                            :handler (fn [_ _ impl]
-                                       (let [A (premise impl),
-                                             B (conclusion impl),
-                                             C (clop A)]
-                                         (when-not (subset? B C)
-                                           [[(gensym) (maximal-counterexample clop base-set B C)]]))))
-        :context
-        reduce-context-objects)))       ;is this still necessary?
+    (:context
+     (explore-attributes (make-context #{} base-set #{})
+                         :handler (fn [_ _ impl]
+                                    (let [A (premise impl),
+                                          B (conclusion impl),
+                                          C (clop A)]
+                                      (when-not (subset? B C)
+                                        [[(gensym) (maximal-counterexample clop base-set B C)]])))))))
 
 ;;;
 
