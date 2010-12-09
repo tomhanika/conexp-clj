@@ -123,7 +123,7 @@
   containing the interpretations of roles in the data-set of dbpedia."
   [roles]
   (let [[concepts, roles] (read-wiki roles)]
-    (interpretation->model concepts roles :base-lang EL-gfp)))
+    (hash-map->interpretation concepts roles :base-lang EL-gfp)))
 
 (defn collect
   "Returns the smallest connected subrelation of relation containing start."
@@ -138,20 +138,23 @@
       (recur related relation))))
 
 (defn smallest-submodel
-  "Returns the smallest submodel of model containing the given
-  individuals."
-  [model individuals]
-  (let [relation (reduce union #{} (map #(interpret model %) (role-names (model-language model)))),
+  "Returns the smallest subinterpretation of interpretation containing
+  the given individuals."
+  [interpretation individuals]
+  (let [relation (reduce union
+                         #{}
+                         (map #(interpret interpretation %)
+                              (role-names (interpretation-language interpretation)))),
         base-set (collect (set individuals) relation),
 
-        name-int (into {} (for [name (concept-names (model-language model))]
-                            [name (intersection base-set (interpret model name))])),
+        name-int (into {} (for [name (concept-names (interpretation-language interpretation))]
+                            [name (intersection base-set (interpret interpretation name))])),
         role-int (let [base-square (cross-product base-set base-set)]
-                   (into {} (for [role (role-names (model-language model))]
-                              [role (intersection base-square (interpret model role))])))],
-    (make-model (model-language model)
-                base-set
-                (merge name-int role-int))))
+                   (into {} (for [role (role-names (interpretation-language interpretation))]
+                              [role (intersection base-square (interpret interpretation role))])))],
+    (make-interpretation (interpretation-language interpretation)
+                         base-set
+                         (merge name-int role-int))))
 
 (defn explore-wiki-model
   "Computes a basis of gcis holding in wiki-model. Returns a reference
@@ -183,23 +186,24 @@
 ;;;
 
 (defn number-of-counterexamples
-  "Returns for a model and a gci the number of counterexamples,
+  "Returns for a interpretation and a gci the number of counterexamples,
   i.e. the cardinality of the extension of the concept (and A
   (not B)), where the gci is of the form A -> B."
-  [model A B]
-  (count (interpret model (list 'and A (list 'not B)))))
+  [interpretation A B]
+  (count (interpret interpretation (list 'and A (list 'not B)))))
 
 (defn concept-support
   "Returns the support of the given concept, i.e. the cardinality of
-  its extension in model."
-  [model A]
-  (count (interpret model A)))
+  its extension in interpretation."
+  [interpretation A]
+  (count (interpret interpretation A)))
 
 (defn gci-confidence
-  "Returns some kind of confidence for the gci A -> B in model."
-  [model A B]
-  (- 1 (/ (number-of-counterexamples model A B)
-          (count (interpret model A)))))
+  "Returns some kind of confidence for the gci A -> B in
+  interpretation."
+  [interpretation A B]
+  (- 1 (/ (number-of-counterexamples interpretation A B)
+          (count (interpret interpretation A)))))
 
 (defn concept-size
   "Returns the size of an EL-gfp concept description."
@@ -216,11 +220,11 @@
 
 (defn dubiousness
   "Returns some kind of measure for the dubiousness of the gci A -> B
-  in model."
-  [model A B]
+  in interpretation."
+  [interpretation A B]
   (/ (concept-size B)
      (concept-size A)
-     (+ 1 (concept-support model A))))
+     (+ 1 (concept-support interpretation A))))
 
 ;;; How to use
 

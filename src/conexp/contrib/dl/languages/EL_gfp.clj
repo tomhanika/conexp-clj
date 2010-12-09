@@ -22,13 +22,13 @@
 (define-dl EL-gfp [] [] [exists and])
 
 (define-base-semantics EL-gfp
-  [model dl-expression]
+  [interpretation dl-expression]
   ;; quit, if dl-expression is not a tbox with target
   (when (not (tbox-target-pair? dl-expression))
     (illegal-argument "No base semantics defined for " (print-str dl-expression) "."))
   ;; compute gfp-model and interpret target
   (let [[tbox, target] (expression-term dl-expression)]
-    (EL-gfp-model-interpretation model [tbox target])))
+    (EL-gfp-model-interpretation interpretation [tbox target])))
 
 
 ;;; subsumption
@@ -87,8 +87,8 @@
   "Returns the model based most specific concept of objects in model."
   [model objects]
   (if (not-empty objects)
-    (EL-gfp-lcs (model->tbox model) objects)
-    (let [language (model-language model),
+    (EL-gfp-lcs (interpretation->tbox model) objects)
+    (let [language (interpretation-language model),
 	  all      (make-dl-expression language
                                        (list* 'and
                                               (concat (concept-names language)
@@ -105,7 +105,7 @@
                           normalize-EL-gfp-term)]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
-      (make-dl-expression (model-language model) [tbox target]))))
+      (make-dl-expression (interpretation-language model) [tbox target]))))
 
 ;;;
 

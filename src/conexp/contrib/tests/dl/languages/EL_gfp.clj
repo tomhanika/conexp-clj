@@ -19,7 +19,7 @@
 ;;;
 
 (deftest test-lcs
-  (are [model tbox targets] (let [lcs (EL-gfp-lcs tbox 'targets),
+  (are [model tbox targets] (let [lcs     (EL-gfp-lcs tbox 'targets),
 				  lcs-int (interpret model lcs)]
 			      (forall [target 'targets]
 				(subset? (interpret model [tbox target])

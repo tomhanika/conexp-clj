@@ -120,7 +120,7 @@
   (are [model gci-count] (let [gcis (model-gcis model)]
                            (and (= gci-count (count gcis))
                                 (forall [gci gcis]
-                                  (holds-in-model? model gci))))
+                                  (holds-in-interpretation? model gci))))
        some-model  9,
        riding-model 7,
        family-model 19,

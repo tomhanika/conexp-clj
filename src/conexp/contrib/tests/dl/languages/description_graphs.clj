@@ -64,7 +64,7 @@
        family-model paper-tbox 'A-3))
 
 (deftest test-simulator-sets
-  (are [model] (let [graph (model->description-graph model)]
+  (are [model] (let [graph (interpretation->description-graph model)]
                  (= (schematic-simulator-sets graph graph)
                     (efficient-simulator-sets graph graph)))
     some-model

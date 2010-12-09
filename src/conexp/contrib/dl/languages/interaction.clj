@@ -33,10 +33,12 @@
   to a connected supermodel in which the given subsumption does not
   hold."
   [model subsumption]
-  (when-not (holds-in-model? model subsumption)
-    (illegal-argument "Given subsumption " (print-str subsumption) " is already wrong in model."))
-  (let [language (model-language model),
-	old-objects (model-base-set model),
+  (when-not (holds-in-interpretation? model subsumption)
+    (illegal-argument "Given subsumption "
+                      (print-str subsumption)
+                      " is already wrong in model."))
+  (let [language    (interpretation-language model),
+	old-objects (interpretation-base-set model),
 
 	new-objects (loop []
 		      (println "Please enter your new objects:")
@@ -52,6 +54,7 @@
 			      (println (str "New objects need to start with a capital letter."))
 			      (recur))
 			    new-objects)))),
+        
 	interpretation (loop [objects (seq new-objects),
 			      attributes {}]
 			 (if (empty? objects)
@@ -83,8 +86,9 @@
 					 new-attributes))))]
 			     (recur (rest objects)
 				    (assoc attributes next-object new-attributes))))),
-	new-att-map (loop [pairs interpretation,
-			   att-map (model-interpretation model)]
+        
+	new-att-map (loop [pairs   interpretation,
+			   att-map (interpretation-function model)]
 		      (if (empty? pairs)
 			att-map
 			(let [[object attributes] (first pairs)]
@@ -95,8 +99,9 @@
                                              (update-in att-map [(first att)] conj [object (second att)])))
                                          att-map
                                          attributes))))),
-	new-model (make-model language (union old-objects new-objects) new-att-map)]
-    (if (holds-in-model? new-model subsumption)
+        
+	new-model (make-interpretation language (union old-objects new-objects) new-att-map)]
+    (if (holds-in-interpretation? new-model subsumption)
       (do
 	(println (str "New model does not contradict subsumption " (print-str subsumption) ", restarting."))
 	(recur model subsumption))

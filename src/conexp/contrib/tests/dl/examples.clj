@@ -31,19 +31,19 @@
 
 (with-dl SimpleDL
 
-  (def some-model (model #{John Marry Peter Jana}
-                         Mother #{Marry},
-                         Father #{John, Peter},
-                         Male   #{John, Peter},
-                         Female #{Marry, Jana},
-                         HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
+  (def some-model (interpretation #{John Marry Peter Jana}
+                                  Mother #{Marry},
+                                  Father #{John, Peter},
+                                  Male   #{John, Peter},
+                                  Female #{Marry, Jana},
+                                  HasChild #{[John Peter], [Marry Peter], [Peter Jana]}))
 
-  (def empty-model (model #{}
-                          Mother #{}
-                          Father #{}
-                          Male   #{}
-                          Female #{}
-                          HasChild #{}))
+  (def empty-model (interpretation #{}
+                                   Mother #{}
+                                   Father #{}
+                                   Male   #{}
+                                   Female #{}
+                                   HasChild #{}))
 
   (def some-tbox (tbox Grandfather (and Male (exists HasChild (exists HasChild (and))))
                        Grandmother (and Female (exists HasChild (exists HasChild (and))))))
@@ -59,20 +59,20 @@
   (def ext-dl-exp (dl-expression [some-tbox, Grandfather]))
   (def ext-dl-exp-2 (dl-expression (and [some-tbox, Grandfather])))
 
-  (def paper-model (model [John Michelle Mackenzie Paul Linda James]
-                          Male   #{John Paul James}
-                          Female #{Michelle Mackenzie Linda}
-                          Father #{John Paul}
-                          Mother #{Michelle Linda}
-                          HasChild #{[John Mackenzie] [Michelle Mackenzie]
-                                     [Paul James] [Linda James]}))
+  (def paper-model (interpretation [John Michelle Mackenzie Paul Linda James]
+                                   Male   #{John Paul James}
+                                   Female #{Michelle Mackenzie Linda}
+                                   Father #{John Paul}
+                                   Mother #{Michelle Linda}
+                                   HasChild #{[John Mackenzie] [Michelle Mackenzie]
+                                              [Paul James] [Linda James]}))
 
-  (def small-model (model [John Michelle Mackenzie]
-                          Male   #{John}
-                          Female #{Michelle Mackenzie}
-                          Mother #{Michelle}
-                          Father #{John}
-                          HasChild #{[John Mackenzie] [Michelle Mackenzie]}))
+  (def small-model (interpretation [John Michelle Mackenzie]
+                                   Male   #{John}
+                                   Female #{Michelle Mackenzie}
+                                   Mother #{Michelle}
+                                   Father #{John}
+                                   HasChild #{[John Mackenzie] [Michelle Mackenzie]}))
 
   nil)
 
@@ -81,16 +81,16 @@
 (define-dl RidingDL [Fahrzeug, Fahrrad, Rad, Auto] [HatKomponente] []
   :extends EL-gfp)
 
-(def riding-model (model RidingDL
-			 [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto,
-			  LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
-			 Fahrzeug #{MeinFahrrad, FranzSeinAuto},
-			 Fahrrad  #{MeinFahrrad},
-			 Auto     #{FranzSeinAuto},
-			 Rad      #{Hinterrad, Vorderrad, LinkesHinterrad, LinkesVorderrad, RechtesHinterrad, RechtesVorderrad},
-			 HatKomponente #{[MeinFahrrad Hinterrad] [MeinFahrrad Vorderrad]
-					 [FranzSeinAuto LinkesVorderrad] [FranzSeinAuto LinkesHinterrad]
-					 [FranzSeinAuto RechtesVorderrad] [FranzSeinAuto RechtesHinterrad]}))
+(def riding-model (interpretation RidingDL
+                                  [MeinFahrrad, Hinterrad, Vorderrad, FranzSeinAuto,
+                                   LinkesHinterrad, RechtesHinterrad, LinkesVorderrad, RechtesVorderrad]
+                                  Fahrzeug #{MeinFahrrad, FranzSeinAuto},
+                                  Fahrrad  #{MeinFahrrad},
+                                  Auto     #{FranzSeinAuto},
+                                  Rad      #{Hinterrad, Vorderrad, LinkesHinterrad, LinkesVorderrad, RechtesHinterrad, RechtesVorderrad},
+                                  HatKomponente #{[MeinFahrrad Hinterrad] [MeinFahrrad Vorderrad]
+                                                  [FranzSeinAuto LinkesVorderrad] [FranzSeinAuto LinkesHinterrad]
+                                                  [FranzSeinAuto RechtesVorderrad] [FranzSeinAuto RechtesHinterrad]}))
 
 ;;; Cyclic Example
 
@@ -107,44 +107,44 @@
 		  Partner (and (exists HasChild Child) (exists MarriedTo Self)),
 		  Self (and (exists HasChild Child) (exists MarriedTo Partner))))
 
-(def family-model (model FamilyDL
-			 [John Michelle Mackenzie Paul Linda James]
-			 Male   #{John Paul James}
-			 Female #{Michelle Mackenzie Linda}
-			 Father #{John Paul}
-			 Mother #{Michelle Linda}
-			 HasChild  #{[John Mackenzie] [Michelle Mackenzie]
-				     [Paul James] [Linda James]}
-			 MarriedTo #{[Paul Linda] [Linda Paul]
-				     [John Michelle] [Michelle John]}))
+(def family-model (interpretation FamilyDL
+                                  [John Michelle Mackenzie Paul Linda James]
+                                  Male   #{John Paul James}
+                                  Female #{Michelle Mackenzie Linda}
+                                  Father #{John Paul}
+                                  Mother #{Michelle Linda}
+                                  HasChild  #{[John Mackenzie] [Michelle Mackenzie]
+                                              [Paul James] [Linda James]}
+                                  MarriedTo #{[Paul Linda] [Linda Paul]
+                                              [John Michelle] [Michelle John]}))
 
-(def more-family-model (model FamilyDL
-			      [Jana Paul Tom Martin Kathrin Thomas Clarissa Jean Elisabeth Andrea]
-			      Female #{Jana Kathrin Clarissa Elisabeth Andrea}
-			      Male   #{Paul Tom Martin Thomas Jean}
-			      Mother #{Jana Kathrin Elisabeth}
-			      Father #{Paul Martin Jean}
-			      HasChild  #{[Jana Tom]       [Paul Tom]
-					  [Martin Thomas]  [Martin Clarissa]
-					  [Kathrin Thomas] [Kathrin Clarissa]
-					  [Jean Andrea]    [Elisabeth Andrea]}
-			      MarriedTo #{[Jana Paul]      [Paul Jana]
-					  [Martin Kathrin] [Kathrin Martin]
-					  [Jean Elisabeth] [Elisabeth Jean]}))
+(def more-family-model (interpretation FamilyDL
+                                       [Jana Paul Tom Martin Kathrin Thomas Clarissa Jean Elisabeth Andrea]
+                                       Female #{Jana Kathrin Clarissa Elisabeth Andrea}
+                                       Male   #{Paul Tom Martin Thomas Jean}
+                                       Mother #{Jana Kathrin Elisabeth}
+                                       Father #{Paul Martin Jean}
+                                       HasChild  #{[Jana Tom]       [Paul Tom]
+                                                   [Martin Thomas]  [Martin Clarissa]
+                                                   [Kathrin Thomas] [Kathrin Clarissa]
+                                                   [Jean Andrea]    [Elisabeth Andrea]}
+                                       MarriedTo #{[Jana Paul]      [Paul Jana]
+                                                   [Martin Kathrin] [Kathrin Martin]
+                                                   [Jean Elisabeth] [Elisabeth Jean]}))
 
-(def grandparent-model (model FamilyDL
-			      [A B C D E F G H]
-			      Female #{A C E G}
-			      Male   #{B D F H}
-			      Mother #{A C E}
-			      Father #{B D F}
-			      HasChild  #{[A E] [B E]
-					  [C F] [D F]
-					  [E G] [F G]
-					  [E H] [F H]}
-			      MarriedTo #{[A B] [B A]
-					  [C D] [D C]
-					  [E F] [F E]}))
+(def grandparent-model (interpretation FamilyDL
+                                       [A B C D E F G H]
+                                       Female #{A C E G}
+                                       Male   #{B D F H}
+                                       Mother #{A C E}
+                                       Father #{B D F}
+                                       HasChild  #{[A E] [B E]
+                                                   [C F] [D F]
+                                                   [E G] [F G]
+                                                   [E H] [F H]}
+                                       MarriedTo #{[A B] [B A]
+                                                   [C D] [D C]
+                                                   [E F] [F E]}))
 
 ;;;
 

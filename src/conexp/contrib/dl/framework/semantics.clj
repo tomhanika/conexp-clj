@@ -13,35 +13,35 @@
 
 (ns-doc "Defines basic notions for semantics of description logics.")
 
-;;; Model definition
+;;; interpretation definition
 
-(defrecord Model [language base-set interpretation])
+(defrecord Interpretation [language base-set function])
 
-(defn model-base-set
-  "Returns base set of a given model."
-  [model]
-  (:base-set model))
+(defn interpretation-base-set
+  "Returns base set of a given interpretation."
+  [^Interpretation interpretation]
+  (.base-set interpretation))
 
-(defn model-language
-  "Returns language of the given model."
-  [model]
-  (:language model))
+(defn interpretation-language
+  "Returns language of the given interpretation."
+  [^Interpretation interpretation]
+  (.language interpretation))
 
-(defn model-interpretation
-  "Returns interpretation function of given model."
-  [model]
-  (:interpretation model))
+(defn interpretation-function
+  "Returns the interpretation function of given interpretation."
+  [^Interpretation interpretation]
+  (.function interpretation))
 
-(defn make-model
-  "Returns a model for a given DL language on the given base set."
-  [language base-set interpretation]
-  (Model. language base-set interpretation))
+(defn make-interpretation
+  "Returns an interpretation for a given DL language on the given base set."
+  [language base-set interpretation-function]
+  (Interpretation. language base-set interpretation-function))
 
-(defmethod print-method Model [model out]
-  (let [^String output (with-out-str (print (list 'Model
-                                                  (model-language model)
-                                                  (model-base-set model)
-                                                  (model-interpretation model))))]
+(defmethod print-method Interpretation [interpretation out]
+  (let [^String output (with-out-str (print (list 'Interpretation
+                                                  (interpretation-language interpretation)
+                                                  (interpretation-base-set interpretation)
+                                                  (interpretation-function interpretation))))]
     (.write out (.trim output))))
 
 ;;; Interpretations
@@ -58,17 +58,17 @@
   (illegal-argument "Dont know how to interpret " (print-str dl-expression)))
 
 (defn interpret
-  "Interprets given expression in given model and returns the
+  "Interprets given expression in given interpretation and returns the
   corresponding extent."
-  [model dl-expression]
+  [interpretation dl-expression]
   ((compile-expression (if (dl-expression? dl-expression)
                         dl-expression
-                        (make-dl-expression (model-language model) dl-expression)))
-   model))
+                        (make-dl-expression (interpretation-language interpretation) dl-expression)))
+   interpretation))
 
 (defmethod compile-expression ::base-case [dl-expression]
-  (fn [model]
-    (let [result ((model-interpretation model) (expression-term dl-expression))]
+  (fn [interpretation]
+    (let [result ((interpretation-function interpretation) (expression-term dl-expression))]
       (if (nil? result)
 	(let [base-semantics (get-method compile-expression
 					 [(language-name (expression-language dl-expression)) ::base-semantics]),
@@ -76,7 +76,7 @@
 					 :default)]
 	  (when (= base-semantics default)
 	    (throw (IllegalStateException. (str "Cannot interpret " (print-str dl-expression) "."))))
-	  ((base-semantics dl-expression) model))
+	  ((base-semantics dl-expression) interpretation))
 	result))))
 
 ;;; base semantics (i.e. what to do if nothing else applies)
@@ -84,9 +84,9 @@
 (defmacro define-base-semantics
   "Define how to interpret an expression which is neither compound nor
   a primitive concept, i.e. TBox-ABox pairs and the like."
-  [language [model dl-expression] & body]
+  [language [interpretation dl-expression] & body]
   `(defmethod compile-expression [(language-name ~language) ::base-semantics] [~dl-expression]
-     (fn [~model]
+     (fn [~interpretation]
        ~@body)))
 
 
@@ -94,78 +94,81 @@
 
 (defmacro define-constructor
   "Defines a new constructor for description logics. Captures the
-  variables «model» and «dl-exp» for representing the model and the
-  dl-expression used."
+  variables «interpretation» and «dl-exp» for representing the
+  interpretation and the dl-expression used."
   [name & body]
   `(do
      (defmethod compile-expression '~name [~'dl-exp]
-       (fn [~'model]
+       (fn [~'interpretation]
          ~@body))
      (add-common-constructor! '~name)))
 
 (define-constructor and
-  (reduce intersection (model-base-set model)
-          (map #(interpret model %) (arguments dl-exp))))
+  (reduce intersection (interpretation-base-set interpretation)
+          (map #(interpret interpretation %) (arguments dl-exp))))
 
 (define-constructor or
   (reduce union #{}
-          (map #(interpret model %) (arguments dl-exp))))
+          (map #(interpret interpretation %) (arguments dl-exp))))
 
 (define-constructor not
-  (difference (model-base-set model)
-              (interpret model (first (arguments dl-exp)))))
+  (difference (interpretation-base-set interpretation)
+              (interpret interpretation (first (arguments dl-exp)))))
 
 (define-constructor exists
-  (let [r-I (interpret model (first (arguments dl-exp))),
-        C-I (interpret model (second (arguments dl-exp)))]
+  (let [r-I (interpret interpretation (first (arguments dl-exp))),
+        C-I (interpret interpretation (second (arguments dl-exp)))]
     (set-of x [[x y] r-I
                :when (contains? C-I y)])))
 
 (define-constructor forall
-  (let [r-I (interpret model (first (arguments dl-exp))),
-        C-I (interpret model (second (arguments dl-exp)))]
+  (let [r-I (interpret interpretation (first (arguments dl-exp))),
+        C-I (interpret interpretation (second (arguments dl-exp)))]
     ;; interpreting Delta\(exists r. not C)
-    (difference (model-base-set model)
+    (difference (interpretation-base-set interpretation)
                 (set-of x [[x y] r-I
                            :when (not (contains? C-I y))]))))
 
 (define-constructor inverse
-  (let [r-I (interpret model (first (arguments dl-exp)))]
+  (let [r-I (interpret interpretation (first (arguments dl-exp)))]
     (set-of [y x] [[x y] r-I])))
 
-;;; Model Syntax
+;;; interpretation syntax
 
-(defmacro model
-  "Defines model for language on base-set: interpretation maps atomic
-  expressions to their extents."
-  [language base-set & interpretation]
-  `(let [interpretation-map# '~(apply hash-map interpretation),
-	 defined-symbols# (keys interpretation-map#),
-	 undefined-symbols# (difference (union (concept-names ~language)
-					       (role-names ~language))
-					(set defined-symbols#))]
+(defmacro interpretation
+  "Defines an interpretation for language on base-set: interpretations
+  maps atomic expressions to their extents."
+  [language base-set & interpretations]
+  `(let [interpretation-map# '~(apply hash-map interpretations),
+	 defined-symbols#    (keys interpretation-map#),
+	 undefined-symbols#  (difference (union (concept-names ~language)
+                                                (role-names ~language))
+                                         (set defined-symbols#))]
      (when (not (empty? undefined-symbols#))
        (illegal-argument "Definition of model is incomplete. The symbols "
 			 undefined-symbols# " are missing."))
-     (make-model ~language (set '~base-set) interpretation-map#)))
+     (make-interpretation ~language (set '~base-set) interpretation-map#)))
 
-(add-dl-syntax! 'model)
+(add-dl-syntax! 'interpretation)
 
-(defmacro define-model
-  "Globally defines model with name for language on base-set:
-  interpretation maps atomic expressions to their extents."
-  [name language base-set & interpretation]
-  `(def ~name (model ~language ~base-set ~@interpretation)))
+(defmacro define-interpretation
+  "Globally defines an interpretation with name for language on
+  base-set: interpretations maps atomic expressions to their extents."
+  [name language base-set & interpretations]
+  `(def ~name (interpretation ~language ~base-set ~@interpretations)))
 
 ;;; Most Specific Concepts
 
 (defmulti most-specific-concept
   "Computes the model based most specific concept of a set of objects
-  in a given model."
-  (fn [model dl-exp] (language-name (model-language model))))
+  in a given interpretation."
+  (fn [model dl-exp]
+    (language-name (interpretation-language model))))
 
 (defmethod most-specific-concept :default [model _]
-  (illegal-argument "Language " (print-str (model-language model)) " does not provide msc."))
+  (illegal-argument "Language "
+                    (print-str (interpretation-language model))
+                    " does not provide msc."))
 
 (defmacro define-msc
   "Defines model based most specific concepts for a language, a model
@@ -183,24 +186,24 @@
 
 ;;;
 
-(defn extend-model
-  "Extends model by given interpretation function i. i should return
-  nil if it doesn't change a value of model's original interpretion,
-  where then the original interpretation is used."
-  [model i]
-  (make-model (model-language model)
-	      (model-base-set model)
-	      (fn [A]
-		(or (i A)
-		    ((model-interpretation model) A)))))
+(defn extend-interpretation
+  "Extends interpretation by the given interpretation function i. i
+  should return nil if it doesn't change a value of model's original
+  interpretion, where then the original interpretation is used."
+  [interpretation i]
+  (make-interpretation (interpretation-language interpretation)
+                       (interpretation-base-set interpretation)
+                       (fn [A]
+                         (or (i A)
+                             ((interpretation-function interpretation) A)))))
 
-(defn holds-in-model?
-  "Returns true iff subsumption holds in given model."
-  [model subsumption]
-  (subset? (interpret model (subsumee subsumption))
-	   (interpret model (subsumer subsumption))))
+(defn holds-in-interpretation?
+  "Returns true iff subsumption holds in given interpretation."
+  [interpretation subsumption]
+  (subset? (interpret interpretation (subsumee subsumption))
+	   (interpret interpretation (subsumer subsumption))))
 
-(defnk interpretation->model
+(defnk hash-map->interpretation
   "Given concepts as a hash-map from symbols to sets and roles as a
   hash-map from symbols to sets of pairs returns a model containing
   the hash-maps as interpretation. If parameter :base-lang is given
@@ -219,7 +222,7 @@
                              (set-of x [[role extension] roles,
                                         pair extension,
                                         x pair]))]
-    (make-model language base-set (merge concepts roles))))
+    (make-interpretation language base-set (merge concepts roles))))
 
 
 ;;; TBox interpretations
@@ -236,11 +239,12 @@
 
 (defn- next-tbox-interpretation
   "Defines a new interpretation on the defined concepts of tbox in
-  model through an interpretation i of the defined concepts of tbox."
-  [model tbox i]
-  (let [new-model (extend-model model i)]
+  interpretation through an interpretation i of the defined concepts
+  of tbox."
+  [interpretation tbox i]
+  (let [new-interpretation (extend-interpretation interpretation i)]
     (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
-               [sym (interpret new-model (definition-expression sym-def))]))))
+               [sym (interpret new-interpretation (definition-expression sym-def))]))))
 
 (defn- constant-tbox-interpretation
   "Returns an interpretation on the defined concepts of tbox,
@@ -250,18 +254,21 @@
              [concept value])))
 
 (defn gfp-model
-  "Returns the gfp-model of tbox in model."
-  [tbox model]
-  (extend-model model
-                (fixed-point (fn [i] (next-tbox-interpretation model tbox i))
-                             (constant-tbox-interpretation tbox (model-base-set model)))))
+  "Returns the gfp-model of tbox in interpretation."
+  [tbox interpretation]
+  (extend-interpretation
+   interpretation
+   (fixed-point (fn [i] (next-tbox-interpretation interpretation tbox i))
+                (constant-tbox-interpretation tbox
+                                              (interpretation-base-set interpretation)))))
 
 (defn lfp-model
-  "Returns the lfp-model of tbox in model."
-  [tbox model]
-  (extend-model model
-                (fixed-point (fn [i] (next-tbox-interpretation model tbox i))
-                             (constant-tbox-interpretation tbox #{}))))
+  "Returns the lfp-model of tbox in interpretation."
+  [tbox interpretation]
+  (extend-interpretation
+   interpretation
+   (fixed-point (fn [i] (next-tbox-interpretation interpretation tbox i))
+                (constant-tbox-interpretation tbox #{}))))
 
 ;;;
 

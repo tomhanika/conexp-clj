@@ -307,25 +307,25 @@
                                (vertices description-graph))]
     (make-tbox language definitions)))
 
-(defn model->description-graph
-  "Converts given model to a description graph."
-  [model]
-  (let [language            (model-language model),
-        interpretation      (model-interpretation model),
-
-        vertices            (model-base-set model),
-        neighbours          (memo-fn _ [x]
-                              (set-of [r y] [r (role-names language),
-                                             [_ y] (filter #(= (first %) x) (interpretation r))])),
-        vertex-labels       (memo-fn _ [x]
-                              (set-of P [P (concept-names language),
-                                         :when (contains? (interpretation P) x)]))]
+(defn interpretation->description-graph
+  "Converts given interpretation to a description graph."
+  [interpretation]
+  (let [language      (interpretation-language interpretation),
+        int-func      (interpretation-function interpretation),
+        vertices      (interpretation-base-set interpretation),
+        
+        neighbours    (memo-fn _ [x]
+                        (set-of [r y] [r (role-names language),
+                                       [_ y] (filter #(= (first %) x) (int-func r))])),
+        vertex-labels (memo-fn _ [x]
+                        (set-of P [P (concept-names language),
+                                   :when (contains? (int-func P) x)]))]
     (make-description-graph language vertices neighbours vertex-labels)))
 
-(defn model->tbox
-  "Converts a given model to its corresponding tbox."
-  [model]
-  (description-graph->tbox (model->description-graph model)))
+(defn interpretation->tbox
+  "Converts a given interpretation to its corresponding tbox."
+  [interpretation]
+  (description-graph->tbox (interpretation->description-graph interpretation)))
 
 ;;;
 
@@ -512,10 +512,10 @@
 (defn EL-gfp-model-interpretation
   "For a given tbox-target-pair returns the interpretation of the
   target in the gfp-model of tbox in model."
-  [model [tbox target]]
-  (let [tbox-graph (tbox->description-graph tbox),
-        model-graph (model->description-graph model)]
-    ((efficient-simulator-sets tbox-graph model-graph) target)))
+  [interpretation [tbox target]]
+  (let [tbox-graph  (tbox->description-graph tbox),
+        inter-graph (interpretation->description-graph interpretation)]
+    ((efficient-simulator-sets tbox-graph inter-graph) target)))
 
 ;;;
 

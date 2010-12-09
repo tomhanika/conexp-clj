@@ -29,7 +29,7 @@
   ([descriptions model]
      (induced-context descriptions model (make-context #{} #{} #{})))
   ([descriptions model old-context]
-     (let [new-objects    (difference (model-base-set model)
+     (let [new-objects    (difference (interpretation-base-set model)
                                       (objects old-context)),
            new-attributes (difference (set descriptions)
                                       (attributes old-context)),
@@ -53,21 +53,22 @@
 (defn explore-model
   "Model exploration algorithm."
   ([initial-model]
-     (explore-model initial-model (concept-names (model-language initial-model))))
+     (explore-model initial-model (concept-names (interpretation-language initial-model))))
   ([initial-model initial-ordering]
      (with-memoized-fns [EL-expression->rooted-description-graph,
                          interpret,
                          model-closure,
                          subsumed-by?,
-                         model->tbox]
-       (let [language (model-language initial-model)]
+                         interpretation->tbox]
+       (let [language (interpretation-language initial-model)]
 
          (when (and (not= (set initial-ordering) (concept-names language))
                     (not= (count initial-ordering) (count (concept-names language))))
            (illegal-argument "Given initial-ordering for explore-model must consist "
                              "of all concept names of the language of the given model."))
 
-         (loop [M_k   (make-concept-set (map #(dl-expression language %) initial-ordering)),
+         (loop [M_k   (make-concept-set (map #(dl-expression language %)
+                                             initial-ordering)),
                 Pi_k  [],
                 P-map {},
                 P_k   #{},
@@ -151,13 +152,14 @@
 (defn model-gcis-naive
   "Naive implementation of model-gcis."
   [model]
-  (let [language (model-language model),
-        M_i (concat (map #(make-dl-expression language %) (concept-names language))
+  (let [language    (interpretation-language model),
+        M_i (concat (map #(make-dl-expression language %)
+                         (concept-names language))
                     (mapcat (fn [objs]
                               (let [msc (expression-term (most-specific-concept model objs))]
                                 (map #(make-dl-expression language (list 'exists % msc))
                                      (role-names language))))
-                            (all-closed-sets (model-base-set model)
+                            (all-closed-sets (interpretation-base-set model)
                                              #(interpret model (most-specific-concept model %))))),
         K   (induced-context M_i model),
         S   (minimal-implication-set (make-concept-set M_i)),
@@ -180,7 +182,7 @@
   equal minsupp."
   [model concepts minsupp]
   (assert (every? dl-expression? concepts))
-  (let [model-count (count (model-base-set model)),
+  (let [model-count (count (interpretation-base-set model)),
         weight-of   (fn [concept-set]
                       (let [supp (/ (count (interpret model (cons 'and concept-set)))
                                     model-count)]
@@ -201,13 +203,13 @@
   (assert (every? dl-expression? all-keys))
   (let [key-candidates (set key-candidates),
         all-keys       (set all-keys),
-        lang           (model-language model),
+        lang           (interpretation-language model),
         roles          (role-names lang)]
     (set-of exists-r-X [X key-candidates,
                         r roles,
                         :let [exists-r-X   (make-dl-expression lang (list 'exists r X)),
                               exists-r-X-i (interpret model exists-r-X)]
-                        :when (and (not= (model-base-set model) exists-r-X-i)
+                        :when (and (not= (interpretation-base-set model) exists-r-X-i)
                                    (forall [Y (disj all-keys X)]
                                      (=> (subsumed-by? X Y)
                                          (not= (interpret model (make-dl-expression lang (list 'exists r Y)))
@@ -217,7 +219,7 @@
   "Returns subsumptions with minimal premises, that have support
   greater or equal minsupp."
   [model minsupp]
-  (let [language (model-language model),
+  (let [language (interpretation-language model),
         oplus    (fn [M_1 M_2]
                    (set-of (union A B)
                            [A M_1,
@@ -240,7 +242,7 @@
 
             A      (set-of (set-of C [C E :when (subsumed-by? D C)])
                            [D E
-                            :when (<= (* minsupp (count (model-base-set model)))
+                            :when (<= (* minsupp (count (interpretation-base-set model)))
                                       (count (interpret model D)))]),
 
             A      (group-by count A),
@@ -257,7 +259,7 @@
                            K-i (union (set (A i))
                                       (set-of K [K C
                                                  :let [extent (interpret model (cons 'and K))]
-                                                 :when (and (<= (* minsupp (count (model-base-set model)))
+                                                 :when (and (<= (* minsupp (count (interpretation-base-set model)))
                                                                 (count extent))
                                                             (forall [x K]
                                                               (not= extent (interpret model (cons 'and (disj K x))))))]))]

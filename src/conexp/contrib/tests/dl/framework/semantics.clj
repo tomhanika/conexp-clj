@@ -22,7 +22,8 @@
 (deftest test-interpret
   (are [expected testing-model expr] (= 'expected
 					(interpret testing-model
-						   (dl-expression (model-language testing-model) expr)))
+						   (dl-expression (interpretation-language testing-model)
+                                                                  expr)))
        #{} some-model all-cpt,
        #{John} some-model [some-tbox Grandfather],
        #{Marry} some-model [some-tbox Grandmother],
@@ -35,10 +36,10 @@
        #{John Marry} some-model dl-exp
        #{John} some-model ext-dl-exp
        #{John} some-model ext-dl-exp-2
-       #{John Mackenzie Michelle} small-model [(tbox (model-language small-model)
+       #{John Mackenzie Michelle} small-model [(tbox (interpretation-language small-model)
                                                      A A),
                                                A]
-       #{John Mackenzie Michelle} small-model [(tbox (model-language small-model)
+       #{John Mackenzie Michelle} small-model [(tbox (interpretation-language small-model)
                                                      A B,
                                                      B C,
                                                      C D,
