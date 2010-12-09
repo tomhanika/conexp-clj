@@ -42,7 +42,7 @@
                                                   (interpretation-language interpretation)
                                                   (interpretation-base-set interpretation)
                                                   (interpretation-function interpretation))))]
-    (.write out (.trim output))))
+    (.write ^java.io.Writer out (.trim output))))
 
 ;;; Interpretations
 
@@ -63,7 +63,8 @@
   [interpretation dl-expression]
   ((compile-expression (if (dl-expression? dl-expression)
                         dl-expression
-                        (make-dl-expression (interpretation-language interpretation) dl-expression)))
+                        (make-dl-expression (interpretation-language interpretation)
+                                            dl-expression)))
    interpretation))
 
 (defmethod compile-expression ::base-case [dl-expression]
@@ -78,6 +79,7 @@
 	    (throw (IllegalStateException. (str "Cannot interpret " (print-str dl-expression) "."))))
 	  ((base-semantics dl-expression) interpretation))
 	result))))
+
 
 ;;; base semantics (i.e. what to do if nothing else applies)
 
@@ -133,6 +135,7 @@
   (let [r-I (interpret interpretation (first (arguments dl-exp)))]
     (set-of [y x] [[x y] r-I])))
 
+
 ;;; interpretation syntax
 
 (defmacro interpretation
@@ -157,7 +160,8 @@
   [name language base-set & interpretations]
   `(def ~name (interpretation ~language ~base-set ~@interpretations)))
 
-;;; Most Specific Concepts
+
+;;; most specific concepts
 
 (defmulti most-specific-concept
   "Computes the model based most specific concept of a set of objects
@@ -238,27 +242,31 @@
     (runner data)))
 
 (defn- next-tbox-interpretation
-  "Defines a new interpretation on the defined concepts of tbox in
-  interpretation through an interpretation i of the defined concepts
-  of tbox."
+  "Defines a new interpretation function on the defined concepts of
+  tbox in interpretation through an interpretation i of the defined
+  concepts of tbox."
   [interpretation tbox i]
   (let [new-interpretation (extend-interpretation interpretation i)]
-    (into {} (for [[sym sym-def] (tbox-definition-map tbox)]
-               [sym (interpret new-interpretation (definition-expression sym-def))]))))
+    (reduce! (fn [map [sym sym-def]]
+               (assoc! map sym (interpret new-interpretation
+                                          (definition-expression sym-def))))
+             {}
+             (tbox-definition-map tbox))))
 
 (defn- constant-tbox-interpretation
-  "Returns an interpretation on the defined concepts of tbox,
+  "Returns an interpretation function on the defined concepts of tbox,
   constantly returning value."
   [tbox value]
-  (into {} (for [concept (defined-concepts tbox)]
-             [concept value])))
+  (map-by-fn (constantly value)
+             (defined-concepts tbox)))
 
 (defn gfp-model
   "Returns the gfp-model of tbox in interpretation."
   [tbox interpretation]
   (extend-interpretation
    interpretation
-   (fixed-point (fn [i] (next-tbox-interpretation interpretation tbox i))
+   (fixed-point (fn [i]
+                  (next-tbox-interpretation interpretation tbox i))
                 (constant-tbox-interpretation tbox
                                               (interpretation-base-set interpretation)))))
 
@@ -267,7 +275,8 @@
   [tbox interpretation]
   (extend-interpretation
    interpretation
-   (fixed-point (fn [i] (next-tbox-interpretation interpretation tbox i))
+   (fixed-point (fn [i]
+                  (next-tbox-interpretation interpretation tbox i))
                 (constant-tbox-interpretation tbox #{}))))
 
 ;;;
