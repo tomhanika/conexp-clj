@@ -297,20 +297,28 @@
 
 (defn ask
   "Performs simple quering. prompt is printed first and then the user
-  is asked for an answer (via read). If this answer does not satisfy
-  pred, fail-message is printed and the user is asked again, until the
-  given answer fulfills pred."
-  [prompt read pred fail-message]
-  (let [sentinel (Object.),
-        read-fn  #(try (read) (catch Throwable _ sentinel))]
+  is asked for an answer (via read). The other arguments are
+  predicates with corresponding error messages. If a given answer does
+  not satisfy some predicate pred, it's associated error message is
+  printed and the user is asked again, until the given answer fulfills
+  all given predicates."
+  [prompt read & preds-and-fail-messages]
+  (when-not (even? (count preds-and-fail-messages))
+    (illegal-argument "Every predicate needs to have a corresponding error message."))
+  (let [predicates (partition 2 preds-and-fail-messages),
+        sentinel   (Object.),
+        read-fn    #(try (read) (catch Throwable _ sentinel))]
     (do
       (print prompt)
       (flush)
       (loop [answer (read-fn)]
-        (if (or (identical? answer sentinel)
-                (not (pred answer)))
+        (if-let [fail (if (identical? answer sentinel)
+                        "An error occured while reading.\n",
+                        (first-non-nil (map #(when-not ((first %) answer)
+                                               (second %))
+                                            predicates)))]
           (do
-            (print fail-message)
+            (print fail)
             (flush)
             (recur (read-fn)))
           answer)))))
