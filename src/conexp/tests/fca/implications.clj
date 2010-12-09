@@ -41,27 +41,109 @@
     (=> (= impl-1 impl-2)
         (= (hash impl-1) (hash impl-2)))))
 
-;; premise, conclusion
+(deftest test-premise-conclusion
+  (are [p c pre clc] (let [impl (make-implication p c)]
+                       (and (= pre (premise impl))
+                            (= clc (conclusion impl))))
+       #{1 2 3} #{3 4 5} #{1 2 3} #{4 5},
+       #{} #{} #{} #{},
+       #{1 2 3} #{1 2 3} #{1 2 3} #{},
+       #{nil} #{true} #{nil} #{true}))
 
 ;;;
 
-;; holds?
-;; respects?
-;; add-immediate-elements (private)
+(deftest test-respects?
+  (is (respects? #{1 2 3} (make-implication #{1} #{2})))
+  (is (not (respects? #{1 2 3} (make-implication #{1} #{4}))))
+  (is (respects? #{} (make-implication '#{some} '#{thing nil}))))
+
+(deftest test-holds?
+  (is (holds? (make-implication #{1} #{2})
+              (make-context [1 2] [1 2] <=)))
+  (is (not (holds? (make-implication #{1} #{2})
+                   (make-context [1 2] [1 2] >=)))))
+
+;; add-immediate-elements (private) not considered
 
 (deftest test-close-under-implications
-  (let [cbi @#'conexp.fca.implications/close-under-implications]
-    (are [start impls result] (= result (cbi (map (partial apply make-implication) impls) start))
-         #{} [[#{} #{1}]] #{1},
-         #{1} [[#{1} #{2}] [#{2} #{3}] [#{3} #{4}] [#{4} #{5}]] #{1 2 3 4 5},
-         #{1 2 3} [[#{1 2} #{4}] [#{1 4} #{5}] [#{1 6} #{7}]] #{1 2 3 4 5})))
+  (are [start impls result] (= result (close-under-implications (map (partial apply make-implication) impls) start))
+       #{} [[#{} #{1}]] #{1},
+       #{1} [[#{1} #{2}] [#{2} #{3}] [#{3} #{4}] [#{4} #{5}]] #{1 2 3 4 5},
+       #{1 2 3} [[#{1 2} #{4}] [#{1 4} #{5}] [#{1 6} #{7}]] #{1 2 3 4 5}))
 
-;; clop-by-implications
-;; pseudo-close-under-implications
-;; pseudo-clop-by-implications
-;; follows-semantically
-;; {minimal,sound,complete}-implication-set?
-;; equivalent-implications?
+(deftest test-clop-by-implications
+  (let [clop (clop-by-implications #{(make-implication #{1} #{2}),
+                                     (make-implication #{3} #{4}),
+                                     (make-implication #{} #{1})})]
+    (is (= #{1 2} (clop #{1}) (clop #{2}) (clop #{})))
+    (is (= #{1 2 3 4} (clop #{3})))
+    (is (= #{1 2 4} (clop #{4})))
+    (is (= #{#{1 2} #{1 2 4} #{1 2 3 4}} (set (all-closed-sets [1 2 3 4] clop))))
+    (is (not= #{1 2 3 4} (clop #{1 2 4})))))
+
+(deftest test-pseudo-close-under-implications
+  (are [start impls result] (= result
+                               (pseudo-close-under-implications
+                                (map (partial apply make-implication) impls)
+                                start))
+       #{} [[#{} #{1}]] #{},
+       #{1} [[#{1} #{2}] [#{2} #{3}] [#{3} #{4}] [#{4} #{5}]] #{1},
+       #{1 2 3} [[#{1 2} #{4}] [#{1 4} #{5}] [#{1 6} #{7}]] #{1 2 3 4 5}))
+
+(deftest test-pseudo-clop-by-implications
+  (let [pclop (pseudo-clop-by-implications #{(make-implication #{1} #{2}),
+                                            (make-implication #{3} #{4}),
+                                            (make-implication #{} #{1})})]
+    (is (= #{#{} #{1} #{1 2} #{1 2 4} #{1 2 3 4}} (set (all-closed-sets [1 2 3 4] pclop))))
+    (is (= #{1 2 4} (pclop #{1 2 4})))
+    (is (= #{} (pclop #{})))
+    (is (= #{1 2 3 4} (pclop #{1 3})))
+    (is (= #{1 2} (pclop #{2})))
+    (is (not= #{1 2} (pclop #{1})))))
+
+(deftest test-follows-semantically?
+  (let [impls #{(make-implication #{1} #{2})
+                (make-implication #{2} #{4})
+                (make-implication #{} #{5})}]
+    (is (follows-semantically? (make-implication #{1 2} #{4 5}) impls))
+    (is (not (follows-semantically? (make-implication #{1} #{3}) impls)))
+    (is (follows-semantically? (make-implication #{1} #{4}) impls))
+    (is (follows-semantically? (make-implication #{} #{5}) impls))))
+
+(deftest test-minimal-implication-set?
+  (is (minimal-implication-set? #{(make-implication #{1 2} #{3}),
+                                  (make-implication #{1 3} #{2})}))
+  (is (not (minimal-implication-set? #{(make-implication #{1 2} #{3}),
+                                       (make-implication #{1 3} #{2}),
+                                       (make-implication #{1} #{2})}))))
+
+(deftest test-sound-implication-set?
+  (is (sound-implication-set? (make-context-from-matrix 3 3 [0 1 0
+                                                             0 0 1
+                                                             1 0 1])
+                              #{(make-implication #{0} #{2}),
+                                (make-implication #{0 1} #{2})}))
+  (is (not (sound-implication-set? (make-context [0 1 2] [0 1 2] =)
+                                   #{(make-implication #{0} #{1})}))))
+
+(deftest test-complete-implication-set?
+  (is (complete-implication-set? (diag-context [0 1])
+                                 #{}))
+  (is (complete-implication-set? (diag-context [0 1 2])
+                                 #{(make-implication #{0 1} #{2}),
+                                   (make-implication #{1 2} #{0}),
+                                   (make-implication #{2 0} #{1})}))
+  (is (not (complete-implication-set? (diag-context [0 1 2])
+                                      #{(make-implication #{0 1} #{2}),
+                                        (make-implication #{1 2} #{0}),
+                                        (make-implication #{2 0} #{3})}))))
+
+(deftest test-equivalent-implications?
+  (is (equivalent-implications? #{(make-implication #{1} #{2}),
+                                  (make-implication #{1} #{3})}
+                                #{(make-implication #{1} #{2 3})}))
+  (is (not (equivalent-implications? #{(make-implication #{1} #{2})}
+                                     #{(make-implication #{2} #{1})}))))
 
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))

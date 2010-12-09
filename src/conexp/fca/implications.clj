@@ -158,9 +158,12 @@
   "Checks wheter given set of implications is complete in context
   ctx."
   [ctx impl-set]
-  (forall [A (subsets (attributes ctx))]
-    (=> (forall [impl impl-set] (respects? A impl))
-        (= A (context-attribute-closure ctx A)))))
+  (and (forall [impl impl-set]
+         (and (subset? (premise impl) (attributes ctx))
+              (subset? (conclusion impl) (attributes ctx))))
+       (forall [A (subsets (attributes ctx))]
+         (=> (forall [impl impl-set] (respects? A impl))
+             (= A (context-attribute-closure ctx A))))))
 
 ;; Stem Base
 
