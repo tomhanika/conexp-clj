@@ -40,18 +40,18 @@
   (let [language    (interpretation-language model),
         old-objects (interpretation-base-set model),
 
-        new-objects (ask "Please enter your new objects:"
-                         #(read-string (str "#{" (read-line) "}"))
-                         empty?
+        new-objects (ask "Please enter your new objects: "
+                         #(read-string (str "#{" (first (drop-while nil? (repeatedly read-line))) "}"))
+                         not-empty
                          "Please specify at least one new object.\n",
-                         #(not-empty (intersection old-objects %))
-                         #(str "The objects"
-                               (difference % old-objects)
-                               " are already defined. Please use other names."),
-                         #(some (fn [s]
-                                  (not (Character/isUpperCase ^Character (first (str s))))
-                                 %))
-                         (str "New objects need to start with a capital letter.")),
+                         #(empty? (intersection old-objects %))
+                         #(str "The objects "
+                               (intersection % old-objects)
+                               " are already defined. Please use other names.\n"),
+                         #(every? (fn [s]
+                                    (Character/isUpperCase ^Character (first (str s))))
+                                  %)
+                         (str "New objects need to start with a capital letter.\n")),
         
         interfun    (loop [objects    (seq new-objects),
                            attributes {}]
