@@ -27,6 +27,7 @@
                  [jline                             "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]]
   :aot [conexp.main conexp.contrib.gui]
+  :keep-non-project-classes true
   :jar-name "conexp-clj.jar"
   :jvm-opts ["-server", "-Xmx1g"]
   :warn-on-reflection true)
