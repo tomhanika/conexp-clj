@@ -78,8 +78,10 @@
    coll))
 
 (defn- prepare-for-conexp [hash-map]
-  (into {} (for [[k v] (symbolify hash-map)]
-             [k (set v)])))
+  (reduce! (fn [map [k v]]
+             (assoc! map k (set v)))
+           {}
+           (symbolify hash-map)))
 
 (defn- role-map->concept-map [role-map]
   (assert (= 1 (count role-map)))
@@ -147,11 +149,11 @@
                               (role-names (interpretation-language interpretation)))),
         base-set (collect (set individuals) relation),
 
-        name-int (into {} (for [name (concept-names (interpretation-language interpretation))]
-                            [name (intersection base-set (interpret interpretation name))])),
+        name-int (map-by-fn #(intersection base-set (interpret interpretation %))
+                            (concept-names (interpretation-language interpretation))),
         role-int (let [base-square (cross-product base-set base-set)]
-                   (into {} (for [role (role-names (interpretation-language interpretation))]
-                              [role (intersection base-square (interpret interpretation role))])))],
+                   (map-by-fn #(intersection base-square (interpret interpretation %))
+                              (role-names (interpretation-language interpretation))))]
     (make-interpretation (interpretation-language interpretation)
                          base-set
                          (merge name-int role-int))))
