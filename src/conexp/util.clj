@@ -300,8 +300,10 @@
   is asked for an answer (via read). The other arguments are
   predicates with corresponding error messages. If a given answer does
   not satisfy some predicate pred, it's associated error message is
-  printed and the user is asked again, until the given answer fulfills
-  all given predicates."
+  printed (if it is a string) or it is assumed to be a function of one
+  argument, whereupon it is called with the invalid answer and the
+  result is printed. In any case, the user is asked again, until the
+  given answer fulfills all given predicates."
   [prompt read & preds-and-fail-messages]
   (when-not (even? (count preds-and-fail-messages))
     (illegal-argument "Every predicate needs to have a corresponding error message."))
@@ -318,7 +320,9 @@
                                                (second %))
                                             predicates)))]
           (do
-            (print fail)
+            (if (string? fail)
+              (print fail)
+              (print (fail answer)))
             (flush)
             (recur (read-fn)))
           answer)))))

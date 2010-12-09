@@ -40,27 +40,21 @@
   (let [language    (interpretation-language model),
         old-objects (interpretation-base-set model),
 
-        new-objects (loop []
-                      (println "Please enter your new objects:")
-                      (let [new-objects (read-string (str "#{" (first (drop-while empty? (repeatedly read-line))) "}"))]
-                        (cond
-                         (not-empty (intersection old-objects new-objects))
-                         (do
-                           (println "The objects " (difference new-objects old-objects)
-                                    " are already definied in the given model. Please use other names.")
-                           (recur)),
-
-                         (some #(not (Character/isUpperCase ^Character (first (str %))))
-                                 new-objects)
-                         (do
-                           (println (str "New objects need to start with a capital letter."))
-                           (recur)),
-
-                         :else
-                         new-objects))),
+        new-objects (ask "Please enter your new objects:"
+                         #(read-string (str "#{" (read-line) "}"))
+                         empty?
+                         "Please specify at least one new object.\n",
+                         #(not-empty (intersection old-objects %))
+                         #(str "The objects"
+                               (difference % old-objects)
+                               " are already defined. Please use other names."),
+                         #(some (fn [s]
+                                  (not (Character/isUpperCase ^Character (first (str s))))
+                                 %))
+                         (str "New objects need to start with a capital letter.")),
         
-        interpretation (loop [objects (seq new-objects),
-                              attributes {}]
+        interfun    (loop [objects    (seq new-objects),
+                           attributes {}]
                          (if (empty? objects)
                            attributes
                            (let [next-object (first objects),
@@ -84,16 +78,16 @@
                                          (do
                                            (if (symbol? invalid)
                                              (println (str invalid
-                                                           " is not a valid concept name"))
+                                                           " is not a valid concept name."))
                                              (println (str invalid
                                                            " does not contain a valid role name or has an invalid object\n"
-                                                           "(note that you can only use new objects in role specifications.")))
+                                                           "(note that you can only use new objects in role specifications.)")))
                                            (recur))
                                          new-attributes))))]
                              (recur (rest objects)
                                     (assoc attributes next-object new-attributes))))),
         
-        new-att-map (loop [pairs   interpretation,
+        new-att-map (loop [pairs   interfun,
                            att-map (interpretation-function model)]
                       (if (empty? pairs)
                         att-map
