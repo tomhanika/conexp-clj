@@ -44,6 +44,8 @@ conexp-clj TODOs
    should be possible. read-context then should also take an index of
    which context to read in.
 * For 0.0.6-alpha
+** TODO Check function names for DL contrib                          :Daniel:
+   They mix «interpretation» and «model» in arbitrary ways
 ** DONE Restructure layout code                                      :Daniel:
    Some functions (grid adjustment) may just go to util, and the
    freese layout should be in conexp.layout.freese and should provide
