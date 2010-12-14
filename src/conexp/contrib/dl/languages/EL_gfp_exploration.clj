@@ -90,8 +90,8 @@
                    all-P_k-closure
                                 (model-closure next-model all-P_k),
 
-                   new-concepts (if (forall [[_ Q-closure] (vals P-map)]
-                                      (not (equivalent? all-P_k-closure Q-closure))),
+                   new-concepts (when (forall [[_ Q-closure] (vals P-map)]
+                                        (not (equivalent? all-P_k-closure Q-closure))),
                                   (for [r (role-names language)]
                                     (dl-expression language (exists r all-P_k-closure)))),
 		   next-M_k     (apply add-concepts! M_k new-concepts),
@@ -117,7 +117,8 @@
                                                                 :when (not-empty (conclusion impl))))]
                                   (if (not-empty (conclusion new-impl))
                                     (conj impls new-impl)
-                                    impls))
+                                    impls)),
+
 		   background-knowledge
                                 (minimal-implication-set next-M_k),
 
