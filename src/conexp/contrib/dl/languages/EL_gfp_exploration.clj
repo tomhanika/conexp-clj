@@ -67,12 +67,12 @@
            (illegal-argument "Given initial-ordering for explore-model must consist "
                              "of all concept names of the language of the given model."))
 
-         (loop [M_k   (make-concept-set (map #(dl-expression language %)
+         (loop [M_k   (make-concept-set (map #(dl-expression language %) ;the set of constructed concepts
                                              initial-ordering)),
-                Pi_k  [],
-                P-map {},
-                P_k   #{},
-                model initial-model,
+                Pi_k  [],               ;the sequence of pseudo-intents found
+                P-map {},               ;a map mapping pseudo-intents P to [all-P, all-P-closure]
+                P_k   #{},              ;the current pseudo-intent
+                model initial-model,    ;working model
                 implications #{},
                 background-knowledge #{}]
 
@@ -90,14 +90,11 @@
                    all-P_k-closure
                                 (model-closure next-model all-P_k),
 
-                   number-of-old-concepts
-                                (count (seq M_k)),
-		   next-M_k     (apply add-concepts!
-                                       M_k
-                                       (for [r (role-names language)]
-                                         (dl-expression language (exists r all-P_k-closure)))),
-                   new-concepts (take (- (count (seq next-M_k)) number-of-old-concepts)
-                                      (seq next-M_k)),
+                   new-concepts (if (forall [[_ Q-closure] (vals P-map)]
+                                      (not (equivalent? all-P_k-closure Q-closure))),
+                                  (for [r (role-names language)]
+                                    (dl-expression language (exists r all-P_k-closure)))),
+		   next-M_k     (apply add-concepts! M_k new-concepts),
 
                    P-map        (assoc P-map
                                   P_k [all-P_k all-P_k-closure]),
@@ -106,7 +103,7 @@
 		   implications (let [new-impl (make-implication P_k
                                                                  (set-of D | D (seq M_k)
                                                                              :when (subsumed-by? all-P_k-closure D))),
-                                      impls    (if (empty? new-concepts)
+                                      impls    (if-not new-concepts
                                                  implications
                                                  (set-of impl | old-impl implications
                                                                 :let [P (premise old-impl),
