@@ -8,16 +8,16 @@
 
 (ns conexp.contrib.gui.base
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem JToolBar JPanel
-	                JButton JSeparator JTabbedPane JSplitPane
-	                JLabel JTextArea JScrollPane]
-	   [java.awt GridLayout BorderLayout Dimension])
+                        JButton JSeparator JTabbedPane JSplitPane
+                        JLabel JTextArea JScrollPane]
+           [java.awt GridLayout BorderLayout Dimension])
   (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc)]
         conexp.contrib.gui.util
-	conexp.contrib.gui.repl
-	conexp.contrib.gui.plugins
-	[conexp.contrib.gui.plugins.base :only (load-plugin)]
-	[conexp.contrib.gui.editors.contexts :only (context-editor)]
-	[conexp.contrib.gui.editors.lattices :only (lattice-editor)]
+        conexp.contrib.gui.repl
+        conexp.contrib.gui.plugins
+        [conexp.contrib.gui.plugins.base :only (load-plugin)]
+        [conexp.contrib.gui.editors.contexts :only (context-editor)]
+        [conexp.contrib.gui.editors.lattices :only (lattice-editor)]
         [conexp.contrib.gui.editors.code :only (code-editor)]))
 
 
@@ -31,16 +31,16 @@
                                :handler (fn [^JFrame frame]
                                           (condp = (.getDefaultCloseOperation frame)
                                               JFrame/DISPOSE_ON_CLOSE    (.dispose frame),
-					      JFrame/EXIT_ON_CLOSE       (System/exit 0),
-					      JFrame/HIDE_ON_CLOSE       (.hide frame),
-					      JFrame/DO_NOTHING_ON_CLOSE nil,
-					      (illegal-state "Unknown default close operation for given frame.")))}]}
+                                              JFrame/EXIT_ON_CLOSE       (System/exit 0),
+                                              JFrame/HIDE_ON_CLOSE       (.hide frame),
+                                              JFrame/DO_NOTHING_ON_CLOSE nil,
+                                              (illegal-state "Unknown default close operation for given frame.")))}]}
   "Main menu for conexp-clj standard GUI.")
 
 (defvar- help-menu {:name "Help",
-		      :content [{:name "License"}
-				---
-				{:name "About"}]}
+                      :content [{:name "License"}
+                                ---
+                                {:name "About"}]}
   "Help menu for conexp-clj standard GUI.")
 
 (defvar- standard-menus [main-menu === help-menu]
@@ -64,15 +64,15 @@
 
     ;; tabbed-pane setup
     (let [tabbed-pane (JTabbedPane.),
-	  clj-repl    (make-repl main-frame),
-	  split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
+          clj-repl    (make-repl main-frame),
+          split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
       (doto split-pane
-	(.setTopComponent tabbed-pane)
-	(.setBottomComponent clj-repl)
-	(.setOneTouchExpandable true)
-	(.setResizeWeight 1.0))
+        (.setTopComponent tabbed-pane)
+        (.setBottomComponent clj-repl)
+        (.setOneTouchExpandable true)
+        (.setResizeWeight 1.0))
       (doto (.getContentPane main-frame)
-	(.add split-pane BorderLayout/CENTER)))
+        (.add split-pane BorderLayout/CENTER)))
 
     ;; standard plugins
     (let [pm (get-plugin-manager main-frame)]

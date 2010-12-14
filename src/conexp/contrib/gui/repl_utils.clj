@@ -10,8 +10,8 @@
   (:require [conexp.contrib.gui.util :as util]
             [conexp.contrib.gui.editors.context-editor.context-editor :as context-editor])
   (:use conexp.base
-	conexp.layouts
-	conexp.contrib.draw.lattices))
+        conexp.layouts
+        conexp.contrib.draw.lattices))
 
 ;;;
 
@@ -88,8 +88,8 @@
   "Starts lattice editor with given lattice."
   [lattice]
   (add-tab (make-lattice-editor (get-main-frame)
-				(standard-layout lattice))
-	   "Lattice"))
+                                (standard-layout lattice))
+           "Lattice"))
 
 ;;;
 

@@ -8,8 +8,8 @@
 
 (ns conexp.fca.exploration.repl
   (:use conexp.base
-	conexp.fca.contexts
-	conexp.fca.implications
+        conexp.fca.contexts
+        conexp.fca.implications
         conexp.fca.exploration.util))
 
 (ns-doc

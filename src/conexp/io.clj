@@ -10,8 +10,8 @@
   (:use conexp.base)
   (:require conexp.io.latex
             conexp.io.contexts
-	    conexp.io.lattices
-	    conexp.io.layouts
+            conexp.io.lattices
+            conexp.io.layouts
             conexp.io.many-valued-contexts))
 
 (ns-doc
@@ -21,8 +21,8 @@
 
 (immigrate 'conexp.io.latex
            'conexp.io.contexts
-	   'conexp.io.lattices
-	   'conexp.io.layouts
+           'conexp.io.lattices
+           'conexp.io.layouts
            'conexp.io.many-valued-contexts)
 
 ;;;

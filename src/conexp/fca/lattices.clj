@@ -8,7 +8,7 @@
 
 (ns conexp.fca.lattices
   (:use conexp.base
-	conexp.fca.contexts))
+        conexp.fca.contexts))
 
 (ns-doc "Basis datastructure and definitions for abstract lattices.")
 
@@ -21,12 +21,12 @@
   (equals [this other]
     (and (= (class this) (class other))
          (= (.base-set this) (.base-set ^Lattice other))
-	 (let [order-this (order this),
-	       order-other (order other)]
-	   (forall [x (.base-set this)
-		    y (.base-set this)]
-	     (<=> (order-this [x y])
-		  (order-other [x y]))))))
+         (let [order-this (order this),
+               order-other (order other)]
+           (forall [x (.base-set this)
+                    y (.base-set this)]
+             (<=> (order-this [x y])
+                  (order-other [x y]))))))
   (hashCode [this]
     (hash-combine-hash Lattice base-set)))
 
@@ -54,34 +54,34 @@
   [^Lattice lattice]
   (or (.inf lattice)
       (let [order (order lattice)
-	    base  (base-set lattice)]
-	(memo-fn _ [x y]
-	  (first (for [z base
-		       :when (and (order [z x])
-				  (order [z y])
-				  (forall [a base]
-					  (=> (and (order [a x]) (order [a y]))
-					      (order [a z]))))]
-		   z))))))
+            base  (base-set lattice)]
+        (memo-fn _ [x y]
+          (first (for [z base
+                       :when (and (order [z x])
+                                  (order [z y])
+                                  (forall [a base]
+                                          (=> (and (order [a x]) (order [a y]))
+                                              (order [a z]))))]
+                   z))))))
 
 (defn sup
   "Returns a function computing the supremum in lattice."
   [^Lattice lattice]
   (or (.sup lattice)
       (let [order (order lattice)
-	    base  (base-set lattice)]
-	(memo-fn _ [x y]
-	  (first (for [z base
-		       :when (and (order [x z])
-				  (order [y z])
-				  (forall [a base]
-					  (=> (and (order [x a]) (order [y a]))
-					      (order [z a]))))]
-		   z))))))
+            base  (base-set lattice)]
+        (memo-fn _ [x y]
+          (first (for [z base
+                       :when (and (order [x z])
+                                  (order [y z])
+                                  (forall [a base]
+                                          (=> (and (order [x a]) (order [y a]))
+                                              (order [z a]))))]
+                   z))))))
 
 (defmethod print-method Lattice [^Lattice lattice out]
   (.write ^java.io.Writer out
-	  ^String (str "Lattice on " (count (base-set lattice)) " elements.")))
+          ^String (str "Lattice on " (count (base-set lattice)) " elements.")))
 
 
 ;;; Constructors
@@ -165,53 +165,53 @@
   "Checks (primitively) whether given lattice lat is distributive or not."
   [lat]
   (let [inf  (inf lat),
-	sup  (sup lat),
-	base (base-set lat)]
+        sup  (sup lat),
+        base (base-set lat)]
     (forall [x base,
-	     y base,
-	     z base]
+             y base,
+             z base]
       (= (sup x (inf y z))
-	 (inf (sup x y) (sup x z))))))
+         (inf (sup x y) (sup x z))))))
 
 (defn modular?
   "Checks (primitively) whether given lattice lat is modular or not."
   [lat]
   (let [inf  (inf lat)
-	sup  (sup lat)
-	base (base-set lat)
-	ordr (order lat)]
+        sup  (sup lat)
+        base (base-set lat)
+        ordr (order lat)]
     (forall [x base
-	     y base
-	     z base]
+             y base
+             z base]
       (=> (ordr [x z])
-	  (= (sup x (inf y z))
-	     (inf (sup x y) z))))))
+          (= (sup x (inf y z))
+             (inf (sup x y) z))))))
 
 (defn lattice-one
   "Returns the one element of lattice lat."
   [lat]
   (let [order (order lat)
-	base  (base-set lat)]
+        base  (base-set lat)]
     (first (set-of x [x base :when (forall [y base] (order [y x]))]))))
 
 (defn lattice-zero
   "Returns the zero element of lattice lat."
   [lat]
   (let [order (order lat)
-	base  (base-set lat)]
+        base  (base-set lat)]
     (first (set-of x [x base :when (forall [y base] (order [x y]))]))))
 
 (defn directly-neighboured?
   "Checks whether x is direct lower neighbour of y in lattice lat."
   [lat x y]
   (let [order (order lat)
-	base  (base-set lat)]
+        base  (base-set lat)]
     (and (not= x y)
-	 (order [x y])
-	 (forall [z base]
-	   (=> (and (not= z x) (not= z y))
-	       (not (and (order [x z])
-			 (order [z y]))))))))
+         (order [x y])
+         (forall [z base]
+           (=> (and (not= z x) (not= z y))
+               (not (and (order [x z])
+                         (order [z y]))))))))
 
 (defn lattice-upper-neighbours
   "Returns all direct upper neighbours of x in lattice lat."
@@ -247,7 +247,7 @@
   "Returns all (i.e. sup or inf) irreducible elements of lattice lat."
   [lat]
   (intersection (lattice-sup-irreducibles lat)
-		(lattice-inf-irreducibles lat)))
+                (lattice-inf-irreducibles lat)))
 
 
 ;;; FCA
@@ -263,9 +263,9 @@
   "Returns the standard context of lattice lat."
   [lat]
   (make-context (lattice-sup-irreducibles lat)
-		(lattice-inf-irreducibles lat)
-		(fn [x y]
-		  ((order lat) [x y]))))
+                (lattice-inf-irreducibles lat)
+                (fn [x y]
+                  ((order lat) [x y]))))
 
 ;;;
 

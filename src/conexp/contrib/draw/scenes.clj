@@ -9,12 +9,12 @@
 (ns conexp.contrib.draw.scenes
   (:use conexp.base)
   (:import [java.awt Color]
-	   [java.awt.event ComponentListener]
-	   [java.io File]
-	   [java.awt.image BufferedImage]
-	   [javax.imageio ImageIO]
+           [java.awt.event ComponentListener]
+           [java.io File]
+           [java.awt.image BufferedImage]
+           [javax.imageio ImageIO]
            [javax.swing JScrollBar]
-	   [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent GCanvas]))
+           [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent GCanvas]))
 
 (ns-doc "Namespace for scene abstraction.")
 
@@ -158,7 +158,7 @@
   "Returns zoom factors for height and width of given scene."
   [^GScene scn]
   (let [^GWorldExtent current-world-extent (.getWorldExtent scn),
-	^GWorldExtent initial-world-extent (.getInitialWorldExtent scn)]
+        ^GWorldExtent initial-world-extent (.getInitialWorldExtent scn)]
     [(/ (.getHeight current-world-extent) (.getHeight initial-world-extent)),
      (/ (.getWidth current-world-extent) (.getWidth initial-world-extent))]))
 
@@ -176,8 +176,8 @@
   "Turns visibility of labels on scene on and off."
   [^GScene scn, toggle]
   (.setVisibility scn (if toggle
-			GScene/ANNOTATION_VISIBLE
-			GScene/ANNOTATION_INVISIBLE)))
+                        GScene/ANNOTATION_VISIBLE
+                        GScene/ANNOTATION_INVISIBLE)))
 
 (defn add-scrollbars
   "Adds given scrollbars for scene."
@@ -190,14 +190,14 @@
   "Transforms a device coordinate pair [x y] to a world coordinate pair for the given scene."
   [^GScene scn x y]
   (let [trf (.getTransformer scn)
-	ptn (.deviceToWorld trf x y)]
+        ptn (.deviceToWorld trf x y)]
     [(aget ptn 0) (aget ptn 1)]))
 
 (defn world-to-device
   "Transforms a world coordinate pair [x y] of the given scene to a device coordinate pair."
   [^GScene scn x y]
   (let [trf (.getTransformer scn)
-	ptn (.worldToDevice trf x y)]
+        ptn (.worldToDevice trf x y)]
     [(aget ptn 0) (aget ptn 1)]))
 
 (defn origin

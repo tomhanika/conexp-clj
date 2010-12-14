@@ -8,8 +8,8 @@
 
 (ns conexp.layouts.base
   (:use conexp.base
-	[conexp.fca.lattices :only (make-lattice-nc, standard-context)]
-	clojure.pprint))
+        [conexp.fca.lattices :only (make-lattice-nc, standard-context)]
+        clojure.pprint))
 
 (ns-doc "Basic definition of layout datatype")
 
@@ -53,7 +53,7 @@
 (defmethod print-method Layout
   [layout out]
   (.write ^java.io.Writer out
-	  ^String (with-out-str
+          ^String (with-out-str
                     (println "Layout")
                     (println "Positions")
                     (pprint (positions layout))
@@ -76,34 +76,34 @@
   `(defn ~name ~doc-string [~layout ~@args]
      (let [result# (get @(information ~layout) (keyword '~name))]
        (if (not (nil? result#))
-	 result#
-	 (dosync
-	  (let [new-result# (do ~@body)]
-	    (alter (information ~layout) assoc (keyword '~name) new-result#)
-	    new-result#))))))
+         result#
+         (dosync
+          (let [new-result# (do ~@body)]
+            (alter (information ~layout) assoc (keyword '~name) new-result#)
+            new-result#))))))
 
 (def-layout-fn upper-neighbours
   "Returns hash-map mapping node names to sets of their upper neighbours."
   [layout]
   (let [uppers (loop [uppers {},
-		      connections (seq (connections layout))]
-		 (if (empty? connections)
-		   uppers
-		   (let [[a b] (first connections)]
-		     (recur (update-in uppers [a] conj b)
-			    (rest connections)))))]
+                      connections (seq (connections layout))]
+                 (if (empty? connections)
+                   uppers
+                   (let [[a b] (first connections)]
+                     (recur (update-in uppers [a] conj b)
+                            (rest connections)))))]
     uppers))
 
 (def-layout-fn lower-neighbours
   "Returns hash-map mapping node names to sets of their upper neighbours."
   [layout]
   (let [lowers (loop [lowers {},
-		      connections (seq (connections layout))]
-		 (if (empty? connections)
-		   lowers
-		   (let [[a b] (first connections)]
-		     (recur (update-in lowers [b] conj a)
-			    (rest connections)))))]
+                      connections (seq (connections layout))]
+                 (if (empty? connections)
+                   lowers
+                   (let [[a b] (first connections)]
+                     (recur (update-in lowers [b] conj a)
+                            (rest connections)))))]
     lowers))
 
 (def-layout-fn upper-neighbours-of-inf-irreducibles
@@ -111,14 +111,14 @@
   upper neighbours."
   [layout]
   (loop [inf-uppers (transient {}),
-	 all-uppers (seq (upper-neighbours layout))]
+         all-uppers (seq (upper-neighbours layout))]
     (if (empty? all-uppers)
       (persistent! inf-uppers)
       (let [[x upper-x] (first all-uppers)]
-	(recur (if (= 1 (count upper-x))
-		 (assoc! inf-uppers x (first upper-x))
-		 inf-uppers)
-	       (rest all-uppers))))))
+        (recur (if (= 1 (count upper-x))
+                 (assoc! inf-uppers x (first upper-x))
+                 inf-uppers)
+               (rest all-uppers))))))
 
 (def-layout-fn inf-irreducibles
   "Returns the set of infimum irreducible elements of layout."
@@ -152,15 +152,15 @@
   "Tests whether layout comes from a concept lattice."
   [layout]
   (and (forall [node (nodes layout)]
-	 (and (vector? node)
-	      (= 2 (count node))
-	      (set? (first node))
-	      (set? (second node))))
+         (and (vector? node)
+              (= 2 (count node))
+              (set? (first node))
+              (set? (second node))))
        (forall [node-1 (nodes layout),
-		node-2 (nodes layout)]
-	 (=> ((order layout) [node-1 node-2])
-	     (and (subset? (first node-1) (first node-2))
-		  (superset? (second node-1) (second node-2)))))))
+                node-2 (nodes layout)]
+         (=> ((order layout) [node-1 node-2])
+             (and (subset? (first node-1) (first node-2))
+                  (superset? (second node-1) (second node-2)))))))
 
 (defn- set-to-label
   "Converts set of elements to a label."
@@ -175,7 +175,7 @@
   (if-not (concept-lattice-layout? layout)
     (map-by-fn (fn [x] [x ""]) (nodes layout))
     (let [uppers (upper-neighbours layout),
-	  lowers (lower-neighbours layout)]
+          lowers (lower-neighbours layout)]
       (into {} (for [node (nodes layout)]
                  [node
                   [(set-to-label

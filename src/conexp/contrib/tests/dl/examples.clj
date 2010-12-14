@@ -8,13 +8,13 @@
 
 (ns conexp.contrib.tests.dl.examples
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.semantics
-	conexp.contrib.dl.languages.description-graphs
-	conexp.contrib.dl.languages.EL-gfp
-	conexp.contrib.dl.languages.EL-gfp-exploration
-	conexp.contrib.dl.languages.interaction)
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.semantics
+        conexp.contrib.dl.languages.description-graphs
+        conexp.contrib.dl.languages.EL-gfp
+        conexp.contrib.dl.languages.EL-gfp-exploration
+        conexp.contrib.dl.languages.interaction)
   (:use clojure.test))
 
 (ns-doc
@@ -98,14 +98,14 @@
   :extends EL-gfp)
 
 (def family-all-cpt (dl-expression FamilyDL
-				   [(tbox FamilyDL
-					  All (and Father Male Mother Female (exists HasChild All))),
-				    All]))
+                                   [(tbox FamilyDL
+                                          All (and Father Male Mother Female (exists HasChild All))),
+                                    All]))
 
 (def parent (tbox FamilyDL
-		  Child (and),
-		  Partner (and (exists HasChild Child) (exists MarriedTo Self)),
-		  Self (and (exists HasChild Child) (exists MarriedTo Partner))))
+                  Child (and),
+                  Partner (and (exists HasChild Child) (exists MarriedTo Self)),
+                  Self (and (exists HasChild Child) (exists MarriedTo Partner))))
 
 (def family-model (interpretation FamilyDL
                                   [John Michelle Mackenzie Paul Linda James]

@@ -8,12 +8,12 @@
 
 (ns conexp.contrib.gui.repl
   (:import [javax.swing.text PlainDocument]
-	   [java.io PushbackReader StringReader PipedWriter PipedReader
-	            PrintWriter CharArrayWriter]
-	   [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
-	   [java.awt Font Color])
+           [java.io PushbackReader StringReader PipedWriter PipedReader
+                    PrintWriter CharArrayWriter]
+           [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
+           [java.awt Font Color])
   (:use [conexp.base :only (defvar-)]
-	conexp.contrib.gui.util)
+        conexp.contrib.gui.util)
   (:require [conexp.contrib.gui.repl-utils :as repl-utils])
   (:require clojure.main))
 
@@ -29,7 +29,7 @@
   (and (not (instance? clojure.lang.Compiler$CompilerException throwable))
        (.getMessage throwable)
        (or (re-matches #".*EOF while reading.*" (.getMessage throwable))
-	   (re-matches #".*Write end dead.*" (.getMessage throwable)))))
+           (re-matches #".*Write end dead.*" (.getMessage throwable)))))
 
 (defn- create-clojure-repl-process
   "This function creates an instance of clojure repl using piped in and out.
@@ -54,39 +54,39 @@
         piped-in   (clojure.lang.LineNumberingPushbackReader. (PipedReader. cmd-wtr))
         piped-out  (PrintWriter. (PipedWriter. result-rdr))
         repl-thread-fn #(clojure.main/with-bindings
-			  (binding [*print-stack-trace-on-error* *print-stack-trace-on-error*,
-				    *in* piped-in,
-				    *out* piped-out,
-				    *err* (PrintWriter. *out*),
-				    repl-utils/*main-frame* frame]
-			    (try
-			     (clojure.main/repl
+                          (binding [*print-stack-trace-on-error* *print-stack-trace-on-error*,
+                                    *in* piped-in,
+                                    *out* piped-out,
+                                    *err* (PrintWriter. *out*),
+                                    repl-utils/*main-frame* frame]
+                            (try
+                             (clojure.main/repl
                               :init (fn []
-				      (in-ns 'user)
-				      (use 'conexp.main)
-				      (require '[conexp.contrib.gui.repl-utils :as gui]))
+                                      (in-ns 'user)
+                                      (use 'conexp.main)
+                                      (require '[conexp.contrib.gui.repl-utils :as gui]))
                               :caught (fn [e]
-					(if *print-stack-trace-on-error*
+                                        (if *print-stack-trace-on-error*
                                           (.printStackTrace e *out*)
                                           (prn (clojure.main/repl-exception e)))
-					(when (eof-ex? e)
-					  (throw e))
-					(flush))
+                                        (when (eof-ex? e)
+                                          (throw e))
+                                        (flush))
                               :need-prompt (constantly true))
                             (catch Exception ex
                               (prn "REPL closing")))))
-	repl-thread (Thread. repl-thread-fn)]
+        repl-thread (Thread. repl-thread-fn)]
     (.start repl-thread)
     {:repl-thread repl-thread
      :repl-fn (fn [cmd]
-		(.write cmd-wtr ^String cmd)
-		(.flush cmd-wtr))
+                (.write cmd-wtr ^String cmd)
+                (.flush cmd-wtr))
      :result-fn (fn []
-		  (loop [^CharArrayWriter wtr (CharArrayWriter.)]
-		    (.write wtr (.read result-rdr))
-		    (if (.ready result-rdr)
-		      (recur wtr)
-		      (.toString wtr))))}))
+                  (loop [^CharArrayWriter wtr (CharArrayWriter.)]
+                    (.write wtr (.read result-rdr))
+                    (if (.ready result-rdr)
+                      (recur wtr)
+                      (.toString wtr))))}))
 
 (defn repl-in
   "Sends string to given repl with a newline appended."
@@ -124,10 +124,10 @@
        (= 0 paran-count)
        :else
        (recur (rest string)
-	      (cond
-		(= \( (first string)) (inc paran-count)
-		(= \) (first string)) (dec paran-count)
-		:else paran-count)))))
+              (cond
+                (= \( (first string)) (inc paran-count)
+                (= \) (first string)) (dec paran-count)
+                :else paran-count)))))
 
 (defprotocol ReplProcess
   (getReplThreadMap [frame] "Returns the repl thread map of the given frame."))
@@ -138,17 +138,17 @@
   output-thread has to be started manually afterwards."
   [frame]
   (let [last-pos (ref 0),
-	repl-thread (create-clojure-repl-process frame),
+        repl-thread (create-clojure-repl-process frame),
 
-	^PlainDocument
-	repl-container (proxy [PlainDocument conexp.contrib.gui.repl.ReplProcess] []
+        ^PlainDocument
+        repl-container (proxy [PlainDocument conexp.contrib.gui.repl.ReplProcess] []
                          (getReplThreadMap []
                            repl-thread)
-			 (remove [off len]
+                         (remove [off len]
                            (when (>= (- off len -1) @last-pos)
                              (let [^PlainDocument this this]
                                (proxy-super remove off len))))
-			 (insertString [off string attr-set]
+                         (insertString [off string attr-set]
                            (when (>= off @last-pos)
                              (let [^PlainDocument this this]
                                (proxy-super insertString off string attr-set)
@@ -160,18 +160,18 @@
                                                        (- (-> this .getEndPosition .getOffset) @last-pos 1))]
                                    (when (balanced? input)
                                      (repl-in repl-thread input))))))))
-	insert-result (fn [result]
-			(.insertString repl-container
-				       (.getLength repl-container)
-				       result
-				       nil)
-			(dosync
-			 (ref-set last-pos (.getLength repl-container))))
-	output-thread (Thread. (fn []
-				 (while (repl-alive? repl-thread)
-				   (let [result (repl-out repl-thread)]
-				     (do-swing
-				      (insert-result result))))))]
+        insert-result (fn [result]
+                        (.insertString repl-container
+                                       (.getLength repl-container)
+                                       result
+                                       nil)
+                        (dosync
+                         (ref-set last-pos (.getLength repl-container))))
+        output-thread (Thread. (fn []
+                                 (while (repl-alive? repl-thread)
+                                   (let [result (repl-out repl-thread)]
+                                     (do-swing
+                                      (insert-result result))))))]
     [repl-container repl-thread output-thread]))
 
 ;;;
@@ -211,7 +211,7 @@
   thread."
   [frame]
   (let [[repl-container repl-thread output-thread] (make-clojure-repl frame),
-	rpl (into-text-area repl-container repl-thread)]
+        rpl (into-text-area repl-container repl-thread)]
     (doto rpl
       (.setFont (Font. "Monospaced" Font/PLAIN 16))
       (.setBackground Color/BLACK)

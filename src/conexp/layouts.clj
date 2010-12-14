@@ -8,8 +8,8 @@
 
 (ns conexp.layouts
   (:use conexp.base
-	conexp.layouts.layered
-	conexp.layouts.common))
+        conexp.layouts.layered
+        conexp.layouts.common))
 
 ;;;
 

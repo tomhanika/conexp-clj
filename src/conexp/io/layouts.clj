@@ -8,9 +8,9 @@
 
 (ns conexp.io.layouts
   (:use conexp.base
-	conexp.io.util
+        conexp.io.util
         conexp.io.latex
-	conexp.layouts.base)
+        conexp.layouts.base)
   (:require clojure.string)
   (:import [java.io PushbackReader]))
 
@@ -26,25 +26,25 @@
 ;; Simple conexp-clj Format for Layout
 
 (add-layout-input-format :simple
-			 (fn [rdr]
-			   (= "conexp-clj simple" (.readLine rdr))))
+                         (fn [rdr]
+                           (= "conexp-clj simple" (.readLine rdr))))
 
 (define-layout-output-format :simple
   [layout file]
   (with-out-writer file
     (println "conexp-clj simple")
     (prn {:layout [(positions layout)
-		   (connections layout)]})))
+                   (connections layout)]})))
 
 (define-layout-input-format :simple
   [file]
   (with-in-reader file
     (let [_        (get-line),
-	  hash-map (binding [*in* (PushbackReader. *in*)]
-		     (read)),
-	  layout   (:layout hash-map)]
+          hash-map (binding [*in* (PushbackReader. *in*)]
+                     (read)),
+          layout   (:layout hash-map)]
       (when-not layout
-	(illegal-argument "File " file " does not contain a layout."))
+        (illegal-argument "File " file " does not contain a layout."))
       (apply make-layout layout))))
 
 ;;; ConExp Layout format

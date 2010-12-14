@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.dl.languages.EL-gfp-rewriting
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.syntax
         conexp.contrib.dl.framework.boxes
         conexp.contrib.dl.languages.description-graphs)
   (:use [clojure.walk :only (walk)]))
@@ -131,8 +131,8 @@
   present in the subsumee is removed."
   [subsumption background-knowledge]
   (let [language        (expression-language (subsumee subsumption)),
-	premise-args    (arguments* (subsumee subsumption)),
-	conclusion-args (difference (arguments* (subsumer subsumption))
+        premise-args    (arguments* (subsumee subsumption)),
+        conclusion-args (difference (arguments* (subsumer subsumption))
                                     premise-args),
 
         ;; we do the following to have some determinism in the order of the concepts

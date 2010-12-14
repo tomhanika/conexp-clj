@@ -8,10 +8,10 @@
 
 (ns conexp.layouts.common
   (:use conexp.base
-	conexp.fca.lattices
-	conexp.layouts.util
-	conexp.layouts.layered
-	[conexp.layouts.base :exclude (order)]))
+        conexp.fca.lattices
+        conexp.layouts.util
+        conexp.layouts.layered
+        [conexp.layouts.base :exclude (order)]))
 
 (ns-doc "Implements common layout algorithm.")
 
@@ -22,15 +22,15 @@
   initial nodes. Top element will be at top."
   [lattice top placement]
   (let [pos (fn pos [v]
-	      (get placement v
-		   (reduce (fn [p w]
-			     (if ((order lattice) [v w])
+              (get placement v
+                   (reduce (fn [p w]
+                             (if ((order lattice) [v w])
                                (let [p-w (placement w)]
                                  [(+ (first p) (- (first p-w) (first top))),
                                   (+ (second p) (- (second p-w) (second top)))])
-			       p))
-			   top
-			   (keys placement))))]
+                               p))
+                           top
+                           (keys placement))))]
     (map-by-fn pos (base-set lattice))))
 
 (defn to-inf-additive-layout
@@ -40,27 +40,27 @@
   ;; this is stupid, do it better!
   [lattice layout]
   (let [old-positions (positions layout),
-	top-pos       (old-positions (lattice-one lattice)),
-	inf-irr       (set (inf-irreducibles layout)),
-	elements      (filter inf-irr (top-down-elements-in-layout layout))]
+        top-pos       (old-positions (lattice-one lattice)),
+        inf-irr       (set (inf-irreducibles layout)),
+        elements      (filter inf-irr (top-down-elements-in-layout layout))]
     (loop [positions (select-keys old-positions inf-irr),
-	   nodes     elements]
+           nodes     elements]
       (if (empty? nodes)
-	(update-positions layout (placement-by-initials lattice top-pos positions))
-	(let [next          (first nodes),
-	      [x-old y-old] (positions next),
-	      [x-new y-new] (reduce (fn [p w]
-				      (if (and ((order lattice) [next w])
-					       (not= next w))
+        (update-positions layout (placement-by-initials lattice top-pos positions))
+        (let [next          (first nodes),
+              [x-old y-old] (positions next),
+              [x-new y-new] (reduce (fn [p w]
+                                      (if (and ((order lattice) [next w])
+                                               (not= next w))
                                         (let [p-w (positions w)]
                                           [(+ (first p) (- (first p-w) (first top-pos))),
                                            (+ (second p) (- (second p-w) (second top-pos)))])
-					p))
-				    top-pos
-				    (keys positions))]
-	  (recur (assoc positions next
-			[x-old (min y-old y-new)])
-		 (rest nodes)))))))
+                                        p))
+                                    top-pos
+                                    (keys positions))]
+          (recur (assoc positions next
+                        [x-old (min y-old y-new)])
+                 (rest nodes)))))))
 
 ;;;
 

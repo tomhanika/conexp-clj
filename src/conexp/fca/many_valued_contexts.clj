@@ -8,7 +8,7 @@
 
 (ns conexp.fca.many-valued-contexts
   (:use conexp.base
-	conexp.fca.contexts))
+        conexp.fca.contexts))
 
 (ns-doc "Many-Valued-Contexts and some functions for scaling.")
 
@@ -107,10 +107,10 @@
 
 (defmethod make-mv-context :default [objs atts inz]
   (illegal-argument "No method defined for types "
-		    (clojure-type objs) ", "
-		    (clojure-type atts) ", "
-		    (clojure-type vals) ", "
-		    (clojure-type inz) "."))
+                    (clojure-type objs) ", "
+                    (clojure-type atts) ", "
+                    (clojure-type vals) ", "
+                    (clojure-type inz) "."))
 
 (defn make-mv-context-from-matrix
   "Creates a many-valued context from a given matrix of
@@ -165,10 +165,10 @@
   [mv-ctx scales]
   (assert (map? scales))
   (let [inz  (incidence mv-ctx),
-	objs (objects mv-ctx),
-	atts (set-of [m n] [m (attributes mv-ctx)
-			    n (attributes (scales m))]),
-	inz  (set-of [g [m n]] [g objs
+        objs (objects mv-ctx),
+        atts (set-of [m n] [m (attributes mv-ctx)
+                            n (attributes (scales m))]),
+        inz  (set-of [g [m n]] [g objs
                                 [m n] atts
                                 :let [w (inz [g m])]
                                 :when (contains? (incidence (scales m)) [w n])])]
@@ -205,17 +205,17 @@
   ([values others <= >=]
      (let [objs    values,
 
-	   atts-<= (map #(str '<= " " %) others),
-	   atts->= (map #(str '>= " " %) others),
+           atts-<= (map #(str '<= " " %) others),
+           atts->= (map #(str '>= " " %) others),
 
-	   inz-<= (set-of [g (str '<= " " m)]
-			  [g objs,
-			   m others
-			   :when (<= g m)]),
-	   inz->= (set-of [g (str '>= " " m)]
-			  [g objs,
-			   m others,
-			   :when (>= g m)])]
+           inz-<= (set-of [g (str '<= " " m)]
+                          [g objs,
+                           m others
+                           :when (<= g m)]),
+           inz->= (set-of [g (str '>= " " m)]
+                          [g objs,
+                           m others,
+                           :when (>= g m)])]
        (make-context values (union atts-<= atts->=) (union inz-<= inz->=)))))
 
 (defn biordinal-scale
@@ -227,22 +227,22 @@
      (biordinal-scale values values n <= >=))
   ([values others n <= >=]
      (let [first-objs (take n values),
-	   rest-objs  (drop n values),
+           rest-objs  (drop n values),
 
-	   first-atts (map #(str '<= " " %) (take n others)),
-	   rest-atts  (map #(str '>= " " %) (drop n others)),
+           first-atts (map #(str '<= " " %) (take n others)),
+           rest-atts  (map #(str '>= " " %) (drop n others)),
 
-	   first-inz  (set-of [g (str '<= " " m)]
+           first-inz  (set-of [g (str '<= " " m)]
                               [g first-objs,
                                m first-atts,
                                :when (<= g m)]),
-	   rest-inz   (set-of [g (str '>= " " m)]
+           rest-inz   (set-of [g (str '>= " " m)]
                               [g rest-objs,
                                m rest-atts
                                :when (>= g m)])]
        (make-context values
-		     (union first-atts rest-atts)
-		     (union first-inz rest-inz)))))
+                     (union first-atts rest-atts)
+                     (union first-inz rest-inz)))))
 
 (defn dichotomic-scale
   "Returns the dichotimic scale on the set values. Note that base must

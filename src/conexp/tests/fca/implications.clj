@@ -9,8 +9,8 @@
 (ns conexp.tests.fca.implications
   (:use clojure.test)
   (:use conexp.base
-	conexp.fca.contexts
-	conexp.fca.implications)
+        conexp.fca.contexts
+        conexp.fca.implications)
   (:require [conexp.tests.fca.contexts :as contexts]))
 
 ;;;

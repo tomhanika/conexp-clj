@@ -35,9 +35,9 @@
     (if (not (contains? hooks :load-hook))
       (illegal-argument "Plugin has to provide a load-hook."))
     `(def ~name (with-meta
-		  (struct plugin ~(:load-hook hooks) ~(:unload-hook hooks))
-		  {:conexp-gui-plugin true,
-		   :description ~description}))))
+                  (struct plugin ~(:load-hook hooks) ~(:unload-hook hooks))
+                  {:conexp-gui-plugin true,
+                   :description ~description}))))
 
 
 ;;; Plugin Manager for managing plugins
@@ -111,17 +111,17 @@
   "Returns all plugins defined in namespace ns."
   [ns]
   (filter (fn [var]
-	    (try
-	     (:conexp-gui-plugin (meta (deref var)))
-	     (catch Exception _ false)))
-	  (map second
-	       (ns-publics (find-ns ns)))))
+            (try
+             (:conexp-gui-plugin (meta (deref var)))
+             (catch Exception _ false)))
+          (map second
+               (ns-publics (find-ns ns)))))
 
 (defn plugins-from-loaded-libs
   "Returns all plugins defined in all loaded libraries."
   []
   (for [ns (loaded-libs),
-	plugins (plugins-from-namespace ns)]
+        plugins (plugins-from-namespace ns)]
     plugins))
 
 (defn plugins-from-file
@@ -130,7 +130,7 @@
   (let [absolute-path (.getAbsolutePath (java.io.File. file-name))]
     (load-file absolute-path)
     (filter #(= (:file (meta %)) absolute-path)
-	    (plugins-from-loaded-libs))))
+            (plugins-from-loaded-libs))))
 
 ;;;
 

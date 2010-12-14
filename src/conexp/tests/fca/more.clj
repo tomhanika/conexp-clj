@@ -24,15 +24,15 @@
 
 (deftest test-compatible-subcontexts
   (are [ctx] (let [ctx (reduce-context ctx)]
-	       (every? #(compatible-subcontext? % ctx)
-		       (compatible-subcontexts ctx)))
+               (every? #(compatible-subcontext? % ctx)
+                       (compatible-subcontexts ctx)))
        test-ctx-01
        test-ctx-04
        test-ctx-06
        test-ctx-07
        test-ctx-08)
   (is (let [some-context (make-context #{1 2 3} '#{c d e} '#{[1 c] [2 c] [2 e] [3 e]})]
-	(some #(= some-context %) (compatible-subcontexts test-ctx-08)))))
+        (some #(= some-context %) (compatible-subcontexts test-ctx-08)))))
 
 ;;; Bonds
 

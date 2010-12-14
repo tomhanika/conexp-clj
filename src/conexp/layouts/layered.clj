@@ -8,9 +8,9 @@
 
 (ns conexp.layouts.layered
   (:use conexp.base
-	conexp.layouts.util
-	[conexp.layouts.base :only (make-layout)]
-	[conexp.fca.lattices :only (base-set order)]))
+        conexp.layouts.util
+        [conexp.layouts.base :only (make-layout)]
+        [conexp.fca.lattices :only (base-set order)]))
 
 (ns-doc "Layered lattice layouts.")
 
@@ -23,8 +23,8 @@
   (let [start  (double (- (/ (- (count layer) 1) 2))),
         number (double number)]
     (interleave layer
-		(map #(vector % number)
-		     (iterate inc start)))))
+                (map #(vector % number)
+                     (iterate inc start)))))
 
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."

@@ -10,7 +10,7 @@
   (:import [javax.swing UIManager JFrame])
   (:use conexp.base
         [conexp.contrib.gui.util :only (do-swing-return)]
-	conexp.contrib.gui.base))
+        conexp.contrib.gui.base))
 
 (ns-doc "Provides standard gui for conexp-clj.")
 

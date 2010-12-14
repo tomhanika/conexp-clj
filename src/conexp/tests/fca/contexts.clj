@@ -7,8 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.tests.fca.contexts
-  (:use	conexp.base
-	conexp.fca.contexts)
+  (:use conexp.base
+        conexp.fca.contexts)
   (:use clojure.test))
 
 ;;;
@@ -77,7 +77,7 @@
 
 (deftest test-Formal-Context-toString
   (is (= (context-to-string test-ctx-01 sort-by-second sort-by-second)
-	 (str "  |1 2 3 4 5 \n"
+         (str "  |1 2 3 4 5 \n"
               "--+----------\n"
               "1 |x x x . . \n"
               "2 |. x x . . \n"
@@ -90,12 +90,12 @@
   (is (not= (make-context #{} #{} #{}) nil))
   (is (not= (Object.) (make-context #{} #{} #{})))
   (are [objs atts inz] (= (make-context objs atts inz)
-			  (make-context objs atts inz))
+                          (make-context objs atts inz))
        #{1 2 3} #{'a 'b 'c} #{[1 'a] [1 'b] [3 'b] [3 'c]}
        #{} #{2} #{})
   (are [objs-1 atts-1 inzs-1 objs-2 atts-2 inzs-2]
        (not= (make-context objs-1 atts-1 inzs-1)
-	     (make-context objs-2 atts-2 inzs-2))
+             (make-context objs-2 atts-2 inzs-2))
        #{1 2 3} #{1 2 3}   =  #{1 2 3} #{1 2 3} not=
        #{1 2 3} #{1 2 3 4} =  #{1 2 3} #{1 2 3} =
        #{'a 'b 'c} #{1 2}  =  #{'a 'b} #{1 2}   =))
@@ -272,8 +272,8 @@
 
 (deftest test-one-context
   (are [base-set] (let [ctx (one-context base-set)]
-		    (and (= (cross-product base-set base-set) (incidence ctx))
-			 (= base-set (objects ctx) (attributes ctx))))
+                    (and (= (cross-product base-set base-set) (incidence ctx))
+                         (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2 3}
        #{3 2 1}
@@ -282,16 +282,16 @@
 
 (deftest test-null-context
   (are [base-set] (let [ctx (null-context base-set)]
-		    (and (= #{} (incidence ctx))
-			 (= base-set (objects ctx) (attributes ctx))))
+                    (and (= #{} (incidence ctx))
+                         (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2}
        #{'a * nil + 34}))
 
 (deftest test-diag-context
   (are [base-set] (let [ctx (diag-context base-set)]
-		    (and (= (set-of [x x] [x base-set]) (incidence ctx))
-			 (= base-set (objects ctx) (attributes ctx))))
+                    (and (= (set-of [x x] [x base-set]) (incidence ctx))
+                         (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2 3 4 5 6 7 8 9 10}
        #{'a 'b *}
@@ -299,11 +299,11 @@
 
 (deftest test-adiag-context
   (are [base-set] (let [ctx (adiag-context base-set)]
-		    (and (= (set-of [x y] [x base-set
-					   y base-set
-					   :when (not= x y)])
-			    (incidence ctx))
-			 (= base-set (objects ctx) (attributes ctx))))
+                    (and (= (set-of [x y] [x base-set
+                                           y base-set
+                                           :when (not= x y)])
+                            (incidence ctx))
+                         (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2 3 282 392 23}
        #{nil 4 * -}))

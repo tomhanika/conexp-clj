@@ -8,8 +8,8 @@
 
 (ns conexp.layouts.util
   (:use conexp.base
-	[conexp.layouts.base :only (make-layout, positions, connections, update-positions)]
-	[conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
+        [conexp.layouts.base :only (make-layout, positions, connections, update-positions)]
+        [conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
   (:require [clojure.contrib.graph :as graph]))
 
 (ns-doc
@@ -25,19 +25,19 @@
   (when (empty? points)
     (illegal-argument (str "Cannot scale empty sequence of points.")))
   (let [[x0 y0] (first points),
-	[x_min y_min x_max y_max] (loop [x_min x0
-					 y_min y0
-					 x_max x0
-					 y_max y0
-					 points (rest points)]
-				    (if (empty? points)
-				      [x_min y_min x_max y_max]
-				      (let [[x y] (first points)]
-					(recur (min x x_min)
-					       (min y y_min)
-					       (max x x_max)
-					       (max y y_max)
-					       (rest points)))))]
+        [x_min y_min x_max y_max] (loop [x_min x0
+                                         y_min y0
+                                         x_max x0
+                                         y_max y0
+                                         points (rest points)]
+                                    (if (empty? points)
+                                      [x_min y_min x_max y_max]
+                                      (let [[x y] (first points)]
+                                        (recur (min x x_min)
+                                               (min y y_min)
+                                               (max x x_max)
+                                               (max y y_max)
+                                               (rest points)))))]
     [x_min y_min x_max y_max]))
 
 (defn- scale-points-to-rectangle
@@ -45,27 +45,27 @@
   rectangle given by [x1 y1] and [x2 y2]."
   [[x1 y1] [x2 y2] points]
   (let [[x_min y_min x_max y_max] (enclosing-rectangle points),
-	[a_x, b_x] (if (= x_min x_max)
+        [a_x, b_x] (if (= x_min x_max)
                      [0, (/ (+ x1 x2) 2)]
                      (let [slope (/ (- x1 x2) (- x_min x_max))]
                        [slope, (- x1 (* slope x_min))])),
-	[a_y, b_y] (if (= y_min y_max)
+        [a_y, b_y] (if (= y_min y_max)
                      [0, (/ (+ y1 y2) 2)]
                      (let [slope (/ (- y1 y2) (- y_min y_max))]
                        [slope, (- y1 (* slope y_min))]))]
     (map (fn [[x y]]
-	   [(+ (* a_x x) b_x), (+ (* a_y y) b_y)])
-	 points)))
+           [(+ (* a_x x) b_x), (+ (* a_y y) b_y)])
+         points)))
 
 (defn scale-layout
   "Scales given layout to rectangle [x1 y1], [x2 y2]."
   [[x1 y1] [x2 y2] layout]
   (let [points (seq (positions layout))]
     (make-layout (apply hash-map
-			(interleave (map first points)
-				    (scale-points-to-rectangle [x1 y1] [x2 y2]
-							       (map second points))))
-		 (connections layout))))
+                        (interleave (map first points)
+                                    (scale-points-to-rectangle [x1 y1] [x2 y2]
+                                                               (map second points))))
+                 (connections layout))))
 
 ;;;
 
@@ -77,9 +77,9 @@
    (struct-map graph/directed-graph
      :nodes (base-set lattice)
      :neighbors (memoize
-		 (fn [x]
-		   (let [order (order lattice)]
-		     (filter #(order [x %]) (base-set lattice))))))))
+                 (fn [x]
+                   (let [order (order lattice)]
+                     (filter #(order [x %]) (base-set lattice))))))))
 
 (defn layers
   "Returns the layers of the given lattice, that is sequence of points
@@ -100,10 +100,10 @@
   "Returns the elements in layout ordered top down."
   [layout]
   (let [graph (struct-map graph/directed-graph
-		:nodes (keys (positions layout))
-		:neighbors (memoize (fn [x]
-				      (map second (filter (fn [[a b]] (= a x))
-							  (connections layout))))))]
+                :nodes (keys (positions layout))
+                :neighbors (memoize (fn [x]
+                                      (map second (filter (fn [[a b]] (= a x))
+                                                          (connections layout))))))]
     (apply concat (graph/dependency-list graph))))
 
 ;;; grid adjustment

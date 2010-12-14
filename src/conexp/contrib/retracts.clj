@@ -44,13 +44,13 @@
   "Computes all endofunctions (as a hash) in endo-hash."
   [endo-hash]
   (let [runner (fn runner [func rem]
-		 (if (empty? rem)
-		   [func]
-		   (let [[preimg imgs] (first rem)]
-		     (for [img imgs,
-			   fun (runner (assoc func preimg img)
-				       (rest rem))]
-		       fun))))]
+                 (if (empty? rem)
+                   [func]
+                   (let [[preimg imgs] (first rem)]
+                     (for [img imgs,
+                           fun (runner (assoc func preimg img)
+                                       (rest rem))]
+                       fun))))]
     (runner {} (seq endo-hash))))
 
 (defn- endofunctions-by-homomorphism ; name is misleading
@@ -63,19 +63,19 @@
   retract of context or not."
   [context endo]
   (let [zero-concept [(objects context),
-		      (object-derivation context (objects context))]
-	one-concept  [(attribute-derivation context (attributes context)),
-		      (attributes context)]]
+                      (object-derivation context (objects context))]
+        one-concept  [(attribute-derivation context (attributes context)),
+                      (attributes context)]]
     (and (= zero-concept (endo zero-concept))
-	 (= one-concept (endo one-concept))
-	 (let [imgs    (vals endo)
-	       img-ctx (make-context (objects context)
-				     (attributes context)
-				     (set-of [g m] [[objs atts] imgs,
-						    g objs,
-						    m atts]))]
-	   (= (count (distinct imgs))
-	      (count (context-intents img-ctx)))))))
+         (= one-concept (endo one-concept))
+         (let [imgs    (vals endo)
+               img-ctx (make-context (objects context)
+                                     (attributes context)
+                                     (set-of [g m] [[objs atts] imgs,
+                                                    g objs,
+                                                    m atts]))]
+           (= (count (distinct imgs))
+              (count (context-intents img-ctx)))))))
 
 (defn retracts
   "Returns all retracts of context as computed by the algorithm of
@@ -95,14 +95,14 @@
   "Returns a string for pretty printing a retract of a context."
   [retract]
   (let [key-value-pairs (sort (fn [[[A_1, _] _] [[A_2, _] _]]
-				(< 0 (compare (vec A_1) (vec A_2))))
-			      (seq retract)),
-	string-pairs    (map #(map str %) key-value-pairs),
-	max-key         (reduce max 0 (map (comp count first) string-pairs)),
-	max-val         (reduce max 0 (map (comp count second) string-pairs))]
+                                (< 0 (compare (vec A_1) (vec A_2))))
+                              (seq retract)),
+        string-pairs    (map #(map str %) key-value-pairs),
+        max-key         (reduce max 0 (map (comp count first) string-pairs)),
+        max-val         (reduce max 0 (map (comp count second) string-pairs))]
     (map (fn [[k v]]
-	   (cl-format nil (str "~" max-key "@A  +->  ~" max-val "@A") k v))
-	 string-pairs)))
+           (cl-format nil (str "~" max-key "@A  +->  ~" max-val "@A") k v))
+         string-pairs)))
 
 (defn pprint-retracts
   "Pretty prints retracts of context"

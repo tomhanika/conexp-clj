@@ -23,11 +23,11 @@
   [ctx-1 ctx-2]
   (and (subcontext? ctx-1 ctx-2)
        (forall [[h m] (up-arrows ctx-2)]
-	 (=> (contains? (objects ctx-1) h)
-	     (contains? (attributes ctx-1) m)))
+         (=> (contains? (objects ctx-1) h)
+             (contains? (attributes ctx-1) m)))
        (forall [[g n] (down-arrows ctx-2)]
          (=> (contains? (attributes ctx-1) n)
-	     (contains? (objects ctx-1) g)))))
+             (contains? (objects ctx-1) g)))))
 
 (defn compatible-subcontexts
   "Returns all compatible subcontexts of ctx. ctx has to be reduced."
@@ -35,25 +35,25 @@
   (if (not (reduced? ctx))
     (illegal-argument "Context given to compatible-subcontexts has to be reduced."))
   (let [up-arrows        (up-arrows ctx)
-	down-arrows      (down-arrows ctx)
-	subcontext-graph (graph/transitive-closure
-			  (struct graph/directed-graph
-				  (disjoint-union (objects ctx) (attributes ctx))
-				  (fn [[x idx]]
-				    (condp = idx
-				      0 (for [[g m] up-arrows
-					      :when (= g x)]
-					  [m 1])
-				      1 (for [[g m] down-arrows
-					      :when (= m x)]
-					  [g 0])))))
-	down-down        (set-of [g m] [m (attributes ctx)
-					[g idx] (graph/get-neighbors subcontext-graph [m 1])
-					:when (= idx 0)])
-	compatible-ctx   (make-context (objects ctx)
-				       (attributes ctx)
-				       (fn [g m]
-					 (not (contains? down-down [g m]))))]
+        down-arrows      (down-arrows ctx)
+        subcontext-graph (graph/transitive-closure
+                          (struct graph/directed-graph
+                                  (disjoint-union (objects ctx) (attributes ctx))
+                                  (fn [[x idx]]
+                                    (condp = idx
+                                      0 (for [[g m] up-arrows
+                                              :when (= g x)]
+                                          [m 1])
+                                      1 (for [[g m] down-arrows
+                                              :when (= m x)]
+                                          [g 0])))))
+        down-down        (set-of [g m] [m (attributes ctx)
+                                        [g idx] (graph/get-neighbors subcontext-graph [m 1])
+                                        :when (= idx 0)])
+        compatible-ctx   (make-context (objects ctx)
+                                       (attributes ctx)
+                                       (fn [g m]
+                                         (not (contains? down-down [g m]))))]
     (for [[G-H N] (concepts compatible-ctx)]
       (make-context (difference (objects ctx) G-H) N (incidence ctx)))))
 

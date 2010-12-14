@@ -8,8 +8,8 @@
 
 (ns conexp.io.lattices
   (:use conexp.base
-	conexp.fca.lattices
-	conexp.io.util)
+        conexp.fca.lattices
+        conexp.io.util)
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
@@ -22,28 +22,28 @@
 ;; Simple conexp-clj Format
 
 (add-lattice-input-format :simple
-			  (fn [rdr]
-			    (= "conexp-clj simple" (.readLine rdr))))
+                          (fn [rdr]
+                            (= "conexp-clj simple" (.readLine rdr))))
 
 (define-lattice-output-format :simple
   [lat file]
   (with-out-writer file
     (println "conexp-clj simple")
     (prn {:lattice [(base-set lat)
-		    (set-of [x y]
-			    [x (base-set lat)
-			     y (base-set lat)
-			     :when ((order lat) [x y])])]})))
+                    (set-of [x y]
+                            [x (base-set lat)
+                             y (base-set lat)
+                             :when ((order lat) [x y])])]})))
 
 (define-lattice-input-format :simple
   [file]
   (with-in-reader file
     (let [_        (get-line),
-	  hash-map (binding [*in* (PushbackReader. *in*)]
-		     (read)),
-	  lattice  (:lattice hash-map)]
+          hash-map (binding [*in* (PushbackReader. *in*)]
+                     (read)),
+          lattice  (:lattice hash-map)]
       (when-not lattice
-	(illegal-argument "File " file " does not contain a lattice."))
+        (illegal-argument "File " file " does not contain a lattice."))
       (apply make-lattice lattice))))
 
 ;;; ConExp lattice format

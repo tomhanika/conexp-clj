@@ -70,11 +70,11 @@
   `(do
      (let [known-input-formats# (ref {})]
        (defn- ~add [name# predicate#]
-	 (dosync
-	  (alter known-input-formats# assoc name# predicate#)))
+         (dosync
+          (alter known-input-formats# assoc name# predicate#)))
 
        (defn- ~get []
-	 (keys @known-input-formats#))
+         (keys @known-input-formats#))
 
        (defn- ~find
          ([file#]
@@ -89,28 +89,28 @@
 
      (let [default-write-format# (atom nil)]
        (defn ~get-default-write
-	 ~(str "Returns default write format for " name "s.")
-	 []
-	 (when (nil? @default-write-format#)
-	   (illegal-state "No default write format specified for " ~name "."))
-	 @default-write-format#)
+         ~(str "Returns default write format for " name "s.")
+         []
+         (when (nil? @default-write-format#)
+           (illegal-state "No default write format specified for " ~name "."))
+         @default-write-format#)
 
        (defn ~set-default-write
-	 ~(str "Sets default write format for " name "s to format.")
-	 [format#]
-	 (reset! default-write-format# format#))
+         ~(str "Sets default write format for " name "s to format.")
+         [format#]
+         (reset! default-write-format# format#))
 
        nil)
 
      (defmulti ~write
        ~(str "Writes " name " to file using format.")
        {:arglists (list [(symbol "format") (symbol ~name) (symbol "file")]
-			[(symbol ~name) (symbol "file")])}
+                        [(symbol ~name) (symbol "file")])}
        (fn [& args#]
-	 (cond
-	  (= 2 (count args#)) ::default-write
-	  (= 3 (count args#)) (first args#)
-	  :else (illegal-argument "Invalid number of arguments in call to " ~write "."))))
+         (cond
+          (= 2 (count args#)) ::default-write
+          (= 3 (count args#)) (first args#)
+          :else (illegal-argument "Invalid number of arguments in call to " ~write "."))))
      (defmethod ~write :default [format# _# _#]
        (illegal-argument "Format " format# " for " ~name " output is not known."))
      (defmethod ~write ::default-write [ctx# file#]

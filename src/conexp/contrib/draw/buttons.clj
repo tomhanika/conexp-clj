@@ -11,7 +11,7 @@
   (:import [javax.swing JPanel JButton JTextField JLabel
                         JSeparator SwingConstants Box JComboBox
                         JSlider SpinnerNumberModel JSpinner]
-	   [java.awt Dimension Component]))
+           [java.awt Dimension Component]))
 
 (ns-doc
  "Provides simple helper functions to create the buttons of the
@@ -64,8 +64,8 @@
   "Uniformly creates a text field for lattice editor."
   [buttons label text]
   (let [^JTextField text-field (JTextField. text),
-	^JLabel label (JLabel. label),
-	^JPanel panel (JPanel.)]
+        ^JLabel label (JLabel. label),
+        ^JPanel panel (JPanel.)]
     (doto panel
       (.add label)
       (.add text-field)

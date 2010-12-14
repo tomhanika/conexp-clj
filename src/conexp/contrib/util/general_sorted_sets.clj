@@ -31,22 +31,22 @@
   ([order-fn coll]
      (let [gss (General-Sorted-Set. order-fn (ref #{}) (ref #{}))]
        (doseq [elt coll]
-	 (add-to-gss! gss elt))
+         (add-to-gss! gss elt))
        gss)))
 
 (defn- sort-gss
   "Does topological sort on a given gss."
   [^General-Sorted-Set gss]
   (let [runner (fn runner [have]
-		 (let [next-have (distinct (for [x have,
-						 y @(:uppers x),
-						 :when (and (not (some #(= y %) have))
-							    (forall [z @(:lowers y)]
-								    (some #(= z %) have)))]
-					     y))]
-		   (if (empty? next-have)
-		     have
-		     (recur (concat have next-have)))))]
+                 (let [next-have (distinct (for [x have,
+                                                 y @(:uppers x),
+                                                 :when (and (not (some #(= y %) have))
+                                                            (forall [z @(:lowers y)]
+                                                                    (some #(= z %) have)))]
+                                             y))]
+                   (if (empty? next-have)
+                     have
+                     (recur (concat have next-have)))))]
     (runner (vec @(.minimal-elements gss)))))
 
 (defmethod print-method General-Sorted-Set
@@ -69,34 +69,34 @@
   to be expensive."
   [gss test-fn neigh-fn nodes]
   (loop [fluids (filter test-fn nodes),
-	 fixed  #{}]
+         fixed  #{}]
     (if (empty? fluids)
       fixed
       (let [next (first fluids),
-	    next-neighs (filter (fn [x] (and (not (contains? fixed x))
-					     (test-fn x)))
-				(neigh-fn next))]
-	(if (empty? next-neighs)
-	  (if (some fixed (neigh-fn next))
-	    (recur (rest fluids) fixed)
-	    (recur (rest fluids) (conj fixed next)))
-	  (recur (into (rest fluids) next-neighs) fixed))))))
+            next-neighs (filter (fn [x] (and (not (contains? fixed x))
+                                             (test-fn x)))
+                                (neigh-fn next))]
+        (if (empty? next-neighs)
+          (if (some fixed (neigh-fn next))
+            (recur (rest fluids) fixed)
+            (recur (rest fluids) (conj fixed next)))
+          (recur (into (rest fluids) next-neighs) fixed))))))
 
 (defn- find-upper-neighbours
   "Finds all upper neighbours of x in gss."
   [^General-Sorted-Set gss, x]
   (find-neighbours gss
-		   #((.order-fn gss) x (:node %))
-		   (comp deref :lowers)
-		   @(.maximal-elements gss)))
+                   #((.order-fn gss) x (:node %))
+                   (comp deref :lowers)
+                   @(.maximal-elements gss)))
 
 (defn- find-lower-neighbours
   "Finds all lower neighbours of x in gss."
   [^General-Sorted-Set gss, x]
   (find-neighbours gss
-		   #((.order-fn gss) (:node %) x)
-		   (comp deref :uppers)
-		   @(.minimal-elements gss)))
+                   #((.order-fn gss) (:node %) x)
+                   (comp deref :uppers)
+                   @(.minimal-elements gss)))
 
 (defn add-to-gss!
   "Adds the element elt to the general sorted set gss returning the
@@ -104,37 +104,37 @@
   [^General-Sorted-Set gss, elt]
   (dosync
    (let [order-fn (.order-fn gss),
-	 uppers (find-upper-neighbours gss elt)]
+         uppers (find-upper-neighbours gss elt)]
 
      ;; check if element is already there
      (when-not (and (= 1 (count uppers))
-		    (order-fn (:node (first uppers)) elt))
+                    (order-fn (:node (first uppers)) elt))
 
        (let [lowers (find-lower-neighbours gss elt),
-	     new-elt {:node elt,
-		      :uppers (ref uppers),
-		      :lowers (ref lowers)}]
+             new-elt {:node elt,
+                      :uppers (ref uppers),
+                      :lowers (ref lowers)}]
 
-	 ;; update neighbours
-	 (doseq [u uppers]
-	   (alter (:lowers u) conj new-elt))
-	 (doseq [l lowers]
-	   (alter (:uppers l) conj new-elt))
+         ;; update neighbours
+         (doseq [u uppers]
+           (alter (:lowers u) conj new-elt))
+         (doseq [l lowers]
+           (alter (:uppers l) conj new-elt))
 
-	 ;; remove redundant edges
-	 (doseq [u uppers,
-		 l lowers]
-	   (when (contains? @(:uppers l) u)
-	     (alter (:uppers l) disj u)
-	     (alter (:lowers u) disj l)))
+         ;; remove redundant edges
+         (doseq [u uppers,
+                 l lowers]
+           (when (contains? @(:uppers l) u)
+             (alter (:uppers l) disj u)
+             (alter (:lowers u) disj l)))
 
-	 ;; update maximal and minimal elements
-	 (ref-set (.maximal-elements gss)
-		  (set-of x [x (conj @(.maximal-elements gss) new-elt)
-			     :when (empty? @(:uppers x))]))
-	 (ref-set (.minimal-elements gss)
-		  (set-of x [x (conj @(.minimal-elements gss) new-elt)
-			     :when (empty? @(:lowers x))]))))
+         ;; update maximal and minimal elements
+         (ref-set (.maximal-elements gss)
+                  (set-of x [x (conj @(.maximal-elements gss) new-elt)
+                             :when (empty? @(:uppers x))]))
+         (ref-set (.minimal-elements gss)
+                  (set-of x [x (conj @(.minimal-elements gss) new-elt)
+                             :when (empty? @(:lowers x))]))))
 
      gss)))
 
@@ -151,17 +151,17 @@
   the sense of the underlying order relation) to elt."
   [^General-Sorted-Set gss, elt]
   (let [order-fn (.order-fn gss),
-	uppers (find-upper-neighbours gss elt)]
+        uppers (find-upper-neighbours gss elt)]
     (and (= 1 (count uppers))
-	 (order-fn (:node (first uppers)) elt))))
+         (order-fn (:node (first uppers)) elt))))
 
 (defn hasse-graph
   "Returns the Hasse Graph of the general sorted set gss."
   [^General-Sorted-Set gss]
   (let [edges (fn edges [x]
-		(concat (for [y @(:lowers x)]
-			  [(:node y) (:node x)])
-			(mapcat edges @(:lowers x))))]
+                (concat (for [y @(:lowers x)]
+                          [(:node y) (:node x)])
+                        (mapcat edges @(:lowers x))))]
     (mapcat edges @(.maximal-elements gss))))
 
 (defn directly-below-in-gss

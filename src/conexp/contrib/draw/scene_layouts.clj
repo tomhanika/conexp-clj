@@ -8,15 +8,15 @@
 
 (ns conexp.contrib.draw.scene-layouts
   (:use [conexp.base :only (ns-doc, illegal-argument, defvar-, reduce!)]
-	[conexp.layouts.base :only (make-layout, positions, connections,
+        [conexp.layouts.base :only (make-layout, positions, connections,
                                                  nodes, update-positions, annotation)]
-	[conexp.layouts.util :only (enclosing-rectangle)]
-	conexp.contrib.draw.nodes-and-connections
-	conexp.contrib.draw.scenes
+        [conexp.layouts.util :only (enclosing-rectangle)]
+        conexp.contrib.draw.nodes-and-connections
+        conexp.contrib.draw.scenes
         conexp.contrib.gui.util)
   (:import [javax.swing JFrame JButton JPanel JLabel]
-	   [java.awt Dimension BorderLayout Color]
-	   [no.geosoft.cc.graphics GWindow GScene GStyle]))
+           [java.awt Dimension BorderLayout Color]
+           [no.geosoft.cc.graphics GWindow GScene GStyle]))
 
 (ns-doc
  "Basic namespace for drawing lattice.")
@@ -55,8 +55,8 @@
   "Returns layout from a scene."
   [scn]
   (update-positions (get-data-from-scene scn :layout)
-		    (reduce! (fn [hash node]
-			      (assoc! hash (get-name node) (position node)))
+                    (reduce! (fn [hash node]
+                              (assoc! hash (get-name node) (position node)))
                              {}
                              (filter node? (get-diagram-from-scene scn)))))
 
@@ -107,7 +107,7 @@
   "Draws given layout on a GScene and returns it."
   [layout]
   (let [wnd (make-window),
-	scn (make-scene wnd)]
+        scn (make-scene wnd)]
     (doto scn
       (set-layout-of-scene layout)
       (fit-scene-to-layout layout))

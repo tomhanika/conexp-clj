@@ -8,9 +8,9 @@
 
 (ns conexp.contrib.dl.util.concept-sets
   (:use conexp.main
-	conexp.contrib.util.general-sorted-sets
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.reasoning))
+        conexp.contrib.util.general-sorted-sets
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.reasoning))
 
 (ns-doc
  "Implements a orderd set type for concepts with no two elements of
@@ -40,13 +40,13 @@
   [coll]
   (let [gss (make-general-sorted-set subsumed-by?)]
     (loop [coll coll,
-	   inserted ()]
+           inserted ()]
       (cond
        (empty? coll) (Concept-Set. gss (ref inserted)),
        (contained-in-gss? gss (first coll)) (recur (rest coll) inserted),
        :else (do
-	       (add-to-gss! gss (first coll))
-	       (recur (rest coll) (conj inserted (first coll))))))))
+               (add-to-gss! gss (first coll))
+               (recur (rest coll) (conj inserted (first coll))))))))
 
 (defmethod print-method Concept-Set [concept-set out]
   (print-method (seq concept-set) out))
@@ -73,7 +73,7 @@
   in concept-set."
   [concept-set]
   (set-of (make-implication #{C} #{D})
-	  [[C D] (hasse-graph (gss-of-concept-set concept-set))]))
+          [[C D] (hasse-graph (gss-of-concept-set concept-set))]))
 
 ;;;
 

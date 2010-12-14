@@ -8,11 +8,11 @@
 
 (ns conexp.contrib.tests.dl.languages.EL-gfp-exploration
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.boxes
         conexp.contrib.dl.framework.semantics
-	conexp.contrib.dl.languages.EL-gfp-exploration
-	conexp.contrib.tests.dl.examples)
+        conexp.contrib.dl.languages.EL-gfp-exploration
+        conexp.contrib.tests.dl.examples)
   (:use clojure.test))
 
 ;;;

@@ -8,13 +8,13 @@
 
 (ns conexp.math.optimize
   (:use conexp.math.util
-	conexp.base)
+        conexp.base)
   (:import [org.apache.commons.math.optimization RealPointValuePair GoalType
-	                                         DifferentiableMultivariateRealOptimizer
-	                                         RealConvergenceChecker]
-	   [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead MultiDirectional]
-	   [org.apache.commons.math.optimization.general NonLinearConjugateGradientOptimizer
-	                                                 ConjugateGradientFormula]))
+                                                 DifferentiableMultivariateRealOptimizer
+                                                 RealConvergenceChecker]
+           [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead MultiDirectional]
+           [org.apache.commons.math.optimization.general NonLinearConjugateGradientOptimizer
+                                                         ConjugateGradientFormula]))
 ;;;
 
 ;; better way to type hint without code duplication?
@@ -57,9 +57,9 @@
   fn must be suitable for as-multivariate-fn."
   [fn starting-point goal options]
   (let [point-value-pair (.optimize ^DirectSearchOptimizer (make-direct-optimizer options)
-				    (as-multivariate-real-fn fn)
-				    goal
-				    (into-array Double/TYPE starting-point))]
+                                    (as-multivariate-real-fn fn)
+                                    goal
+                                    (into-array Double/TYPE starting-point))]
     (point-value-pair-to-vector point-value-pair)))
 
 (defn- differentially-optimize
@@ -70,12 +70,12 @@
   suitable for as-differentiable-multivariate-real-fn."
   [fn partial-derivatives starting-point goal options]
   (let [point-value-pair (.optimize ^DifferentiableMultivariateRealOptimizer (make-differential-optimizer options)
-				    (as-differentiable-multivariate-real-fn
-				     fn
-				     (count starting-point)
-				     partial-derivatives)
-				    goal
-				    (into-array Double/TYPE starting-point))]
+                                    (as-differentiable-multivariate-real-fn
+                                     fn
+                                     (count starting-point)
+                                     partial-derivatives)
+                                    goal
+                                    (into-array Double/TYPE starting-point))]
     (point-value-pair-to-vector point-value-pair)))
 
 (defn minimize

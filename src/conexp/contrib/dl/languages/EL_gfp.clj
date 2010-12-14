@@ -8,11 +8,11 @@
 
 (ns conexp.contrib.dl.languages.EL-gfp
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.semantics
-	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.reasoning
-	conexp.contrib.dl.languages.description-graphs
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.semantics
+        conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.reasoning
+        conexp.contrib.dl.languages.description-graphs
         conexp.contrib.dl.languages.EL-gfp-rewriting))
 
 (ns-doc "Defines EL-gfp with lcs, msc and subsumption.")
@@ -38,14 +38,14 @@
   [dl-expression]
   (let [expr (expression-term dl-expression)]
     (if (and (vector? expr)
-	     (= 2 (count expr)))
+             (= 2 (count expr)))
       dl-expression
       (let [language (expression-language dl-expression),
-	    target   (gensym)]
-	(make-dl-expression-nc language
-			       [(make-tbox language
-					   {target (make-dl-definition target dl-expression)}),
-				target])))))
+            target   (gensym)]
+        (make-dl-expression-nc language
+                               [(make-tbox language
+                                           {target (make-dl-definition target dl-expression)}),
+                                target])))))
 
 (defn EL-expression->rooted-description-graph
   "Returns for a given EL expression or a tbox-target-pair its
@@ -58,7 +58,7 @@
 (define-subsumption EL-gfp
   [C D]
   (let [[G-C C-target] (EL-expression->rooted-description-graph C)
-	[G-D D-target] (EL-expression->rooted-description-graph D)]
+        [G-D D-target] (EL-expression->rooted-description-graph D)]
     (simulates? G-D G-C D-target C-target)))
 
 ;;; lcs and msc
@@ -89,7 +89,7 @@
   (if (not-empty objects)
     (EL-gfp-lcs (interpretation->tbox model) objects)
     (let [language (interpretation-language model),
-	  all      (make-dl-expression language
+          all      (make-dl-expression language
                                        (list* 'and
                                               (concat (concept-names language)
                                                       (for [r (role-names language)]

@@ -13,7 +13,7 @@
                         JSeparator SwingConstants Box JComboBox
                         JSlider SpinnerNumberModel JSpinner
                         BoxLayout]
-	   [java.awt Dimension Component]))
+           [java.awt Dimension Component]))
 
 ;;;
 
@@ -64,8 +64,8 @@
   "Uniformly creates a text field for lattice editor."
   [buttons label text]
   (let [^JTextField text-field (JTextField. text),
-	^JLabel label (JLabel. label),
-	^JPanel panel (JPanel.)]
+        ^JLabel label (JLabel. label),
+        ^JPanel panel (JPanel.)]
     (doto panel
       (.setLayout (BoxLayout. panel BoxLayout/X_AXIS))
       (.add label)

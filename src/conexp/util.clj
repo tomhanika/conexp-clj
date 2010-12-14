@@ -44,8 +44,8 @@
   "Updates meta hash of given namespace with given description."
   [ns & key-value-description]
   `(alter-meta! (find-ns '~ns)
-		(fn [meta-hash#]
-		  (merge meta-hash# ~(apply hash-map key-value-description)))))
+                (fn [meta-hash#]
+                  (merge meta-hash# ~(apply hash-map key-value-description)))))
 
 (defmacro ns-doc
   "Sets the documentation of the current namespace to be doc."
@@ -177,9 +177,9 @@
   The first element satisfing predicate will be in the second sequence."
   [predicate sequence]
   (let [index (or (first-non-nil
-		   (map #(if (predicate %1) %2)
-			sequence (iterate inc 0)))
-		  (count sequence))]
+                   (map #(if (predicate %1) %2)
+                        sequence (iterate inc 0)))
+                  (count sequence))]
     (split-at index sequence)))
 
 (defn split-at-last
@@ -187,9 +187,9 @@
   The last element satisfing predicate will be in the first sequence."
   [predicate sequence]
   (let [index (or (first-non-nil
-		   (map #(if (predicate %1) %2)
-			(reverse sequence) (range (count sequence) 0 -1)))
-		  0)]
+                   (map #(if (predicate %1) %2)
+                        (reverse sequence) (range (count sequence) 0 -1)))
+                  0)]
     (split-at index sequence)))
 
 (defn die-with-error
@@ -197,8 +197,8 @@
   [^Class error, strings]
   (assert (isa? error Throwable))
   (throw (.. error
-	     (getConstructor (into-array Class [String]))
-	     (newInstance (into-array Object [(apply str strings)])))))
+             (getConstructor (into-array Class [String]))
+             (newInstance (into-array Object [(apply str strings)])))))
 
 (defn illegal-argument
   "Throws IllegalArgumentException with given strings as message."
@@ -262,30 +262,30 @@
   `(let [cache# (atom {})]
      (fn ~name ~args
        (if (contains? @cache# ~args)
-	 (@cache# ~args)
-	 (let [rslt# (do ~@body)]
-	   (swap! cache# assoc ~args rslt#)
-	   rslt#)))))
+         (@cache# ~args)
+         (let [rslt# (do ~@body)]
+           (swap! cache# assoc ~args rslt#)
+           rslt#)))))
 
 (defn inits
   "Returns a lazy sequence of the beginnings of sqn."
   [sqn]
   (let [runner (fn runner [init rest]
-		 (if (not rest)
-		   [init]
-		   (lazy-seq
-		     (cons init (runner (conj init (first rest))
-					(next rest))))))]
+                 (if (not rest)
+                   [init]
+                   (lazy-seq
+                     (cons init (runner (conj init (first rest))
+                                        (next rest))))))]
     (runner [] (seq sqn))))
 
 (defn tails
   "Returns a lazy sequence of the tails of sqn."
   [sqn]
   (let [runner (fn runner [rest]
-		 (if (not rest)
-		   [[]]
-		   (lazy-seq
-		     (cons (vec rest) (runner (next rest))))))]
+                 (if (not rest)
+                   [[]]
+                   (lazy-seq
+                     (cons (vec rest) (runner (next rest))))))]
     (runner (seq sqn))))
 
 (defn now
@@ -437,15 +437,15 @@
   This function is copied from clojure.core/distinct and adapted for using a key function."
   [sequence key]
   (let [step (fn step [xs seen]
-	       (lazy-seq
-		 ((fn [xs seen]
-		    (when-let [s (seq xs)]
-		      (let [f     (first xs)
-			    key-f (key f)]
-			(if (contains? seen key-f)
-			  (recur (rest s) seen)
-			  (cons f (step (rest s) (conj seen key-f)))))))
-		  xs seen)))]
+               (lazy-seq
+                 ((fn [xs seen]
+                    (when-let [s (seq xs)]
+                      (let [f     (first xs)
+                            key-f (key f)]
+                        (if (contains? seen key-f)
+                          (recur (rest s) seen)
+                          (cons f (step (rest s) (conj seen key-f)))))))
+                  xs seen)))]
     (step sequence #{})))
 
 (defn reduce!
@@ -467,7 +467,7 @@
   "Prints string followed by result, returning it."
   [string & body]
   `(let [result# (do
-		   ~@body)]
+                   ~@body)]
      (println ~string result#)
      result#))
 

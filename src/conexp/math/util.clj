@@ -8,8 +8,8 @@
 
 (ns conexp.math.util
   (:import [org.apache.commons.math.analysis MultivariateRealFunction
-	                                     DifferentiableMultivariateRealFunction
-	                                     MultivariateVectorialFunction]))
+                                             DifferentiableMultivariateRealFunction
+                                             MultivariateVectorialFunction]))
 
 ;;; Interfacing Apache Math
 
@@ -46,8 +46,8 @@
         (as-multivariate-real-fn (nth partials k)))
       (gradient []
         (as-multivariate-vectorial-fn
-	 (fn [& args]
-	   (map #(apply % args) partials)))))))
+         (fn [& args]
+           (map #(apply % args) partials)))))))
 
 ;;; Types
 
@@ -55,8 +55,8 @@
   "Defines all vars to be double valued in the evaluation of body."
   [vars & body]
   `(let ~(vec (mapcat (fn [var]
-			`[~var (double ~var)])
-		      vars))
+                        `[~var (double ~var)])
+                      vars))
      ~@body))
 
 ;;; Dirty Math Tricks
@@ -69,14 +69,14 @@
   be aware of every anomaly which may occur."
   [f precision]
   (let [advance-coord-by (fn [values index h]
-			   (assoc values index
-				  (+ (nth values index) h)))]
+                           (assoc values index
+                                  (+ (nth values index) h)))]
     (fn [n]
       (fn [& args]
-	(let [args (vec args)]
-	  (/ (- (apply f (advance-coord-by args n precision))
-		(apply f (advance-coord-by args n (- precision))))
-	     (* 2 precision)))))))
+        (let [args (vec args)]
+          (/ (- (apply f (advance-coord-by args n precision))
+                (apply f (advance-coord-by args n (- precision))))
+             (* 2 precision)))))))
 
 ;;;
 

@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.dl.framework.reasoning
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax))
+        conexp.contrib.dl.framework.syntax))
 
 ;;;
 
@@ -17,10 +17,10 @@
   if existent. Otherwise raises an error."
   [C D]
   (when (or (not (dl-expression? C))
-	    (not (dl-expression? D)))
+            (not (dl-expression? D)))
     (illegal-argument "Arguments to subsumption must be dl-expressions."))
   (let [C-language (expression-language C),
-	D-language (expression-language D)]
+        D-language (expression-language D)]
     (when (not= C-language D-language)
       (illegal-argument "For subsumption the expression must be formulated in the same language."))
     (language-name C-language)))

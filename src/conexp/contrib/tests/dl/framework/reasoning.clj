@@ -8,10 +8,10 @@
 
 (ns conexp.contrib.tests.dl.framework.reasoning
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.reasoning
-	conexp.contrib.tests.dl.examples)
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.reasoning
+        conexp.contrib.tests.dl.examples)
   (:use clojure.test))
 
 ;;;
@@ -30,22 +30,22 @@
        SimpleDL (exists HasChild (and)) (exists HasChild Female)
        FamilyDL (exists HasChild (and)) (exists MarriedTo (and))
        FamilyDL (and (exists MarriedTo (and))
-		     (exists HasChild (and Female))
-		     (exists MarriedTo [(tbox FamilyDL
-					      [[[Mackenzie James] Mackenzie] James] (and),
-					      [[[John Linda] Michelle] Paul] (and (exists MarriedTo [[[Michelle Paul] John] Linda])
-										  (exists HasChild [[[Mackenzie James] Mackenzie] James])),
-					      [[[Michelle Paul] John] Linda] (and (exists MarriedTo [[[John Linda] Michelle] Paul])
-										  (exists HasChild [[[Mackenzie James] Mackenzie] James]))),
-					[[[John Linda] Michelle] Paul]])
-		     (exists HasChild (and)))
+                     (exists HasChild (and Female))
+                     (exists MarriedTo [(tbox FamilyDL
+                                              [[[Mackenzie James] Mackenzie] James] (and),
+                                              [[[John Linda] Michelle] Paul] (and (exists MarriedTo [[[Michelle Paul] John] Linda])
+                                                                                  (exists HasChild [[[Mackenzie James] Mackenzie] James])),
+                                              [[[Michelle Paul] John] Linda] (and (exists MarriedTo [[[John Linda] Michelle] Paul])
+                                                                                  (exists HasChild [[[Mackenzie James] Mackenzie] James]))),
+                                        [[[John Linda] Michelle] Paul]])
+                     (exists HasChild (and)))
                 [(tbox FamilyDL
-		    [Michelle John] (and (exists MarriedTo [John Michelle])
-					 (exists HasChild [Mackenzie Mackenzie])),
-		    [John Michelle] (and (exists HasChild [Mackenzie Mackenzie])
-					 (exists MarriedTo [Michelle John]))
-		    [Mackenzie Mackenzie] (and Female)),
-		 [John Michelle]]))
+                    [Michelle John] (and (exists MarriedTo [John Michelle])
+                                         (exists HasChild [Mackenzie Mackenzie])),
+                    [John Michelle] (and (exists HasChild [Mackenzie Mackenzie])
+                                         (exists MarriedTo [Michelle John]))
+                    [Mackenzie Mackenzie] (and Female)),
+                 [John Michelle]]))
 
 ;;;
 

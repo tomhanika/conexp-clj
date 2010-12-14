@@ -30,8 +30,8 @@
 
 (deftest test-with-str-out
   (is (= "Hallo, ich bin ein Test."
-	 (with-str-out
-	   "Hallo" [[[[","]] [" ich" '(" ") "bin"]] " "] "ein Test."))))
+         (with-str-out
+           "Hallo" [[[[","]] [" ich" '(" ") "bin"]] " "] "ein Test."))))
 
 (deftest test-sort-by-first
   (are [x y] (sort-by-first x y)
@@ -150,7 +150,7 @@
 
 (deftest test-forall
   (is (not (forall [x (iterate inc 0)]
-	     (even? x))))
+             (even? x))))
   (is (forall [x (range 100)]
         (< x 100)))
   (is (forall [x []] false))
@@ -160,9 +160,9 @@
 
 (deftest test-exists
   (is (exists [x (iterate inc 0)]
-	(even? x)))
+        (even? x)))
   (is (not (exists [x (range 100)]
-	     (>= x 100))))
+             (>= x 100))))
   (is (not (exists [x []] true)))
   (is (exists [x [1 2 3 4],
                y [5 6 7 8]]

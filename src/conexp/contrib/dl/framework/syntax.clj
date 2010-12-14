@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.dl.framework.syntax
   (:use conexp.main)
-  (:use	[clojure.walk :only (walk)]))
+  (:use [clojure.walk :only (walk)]))
 
 (ns-doc
  "Provides basic syntax definitions for DL expressions and the like.")
@@ -90,9 +90,9 @@
 
 (defmethod print-method DL-expression [dl-exp out]
   (let [^String output (with-out-str
-			  (if *print-with-dl-type*
-			    (print (list 'DL-expr (expression-term dl-exp)))
-			    (print (expression-term dl-exp))))]
+                          (if *print-with-dl-type*
+                            (print (list 'DL-expr (expression-term dl-exp)))
+                            (print (expression-term dl-exp))))]
     (.write out (.trim output))))
 
 ;;;
@@ -189,19 +189,19 @@
     - symbols in (get-common-constructors) being the first element of a sequence are quoted."
   [language expression]
   (let [transform-symbol (fn [symbol]
-			   (if (Character/isUpperCase ^Character (first (str symbol)))
-			     (list 'quote symbol)
-			     symbol)),
-	transform (fn transform [sexp]
-		    (cond
-		     (seq? sexp)        (cond
-					 (empty? sexp) sexp,
-					 (contains? (get-common-constructors) (first sexp))
-					 (list* 'list (list 'quote (first sexp)) (walk transform identity (rest sexp))),
-					 :else sexp),
-		     (sequential? sexp) (walk transform identity sexp),
-		     (symbol? sexp)     (transform-symbol sexp),
-		     :else              sexp))]
+                           (if (Character/isUpperCase ^Character (first (str symbol)))
+                             (list 'quote symbol)
+                             symbol)),
+        transform (fn transform [sexp]
+                    (cond
+                     (seq? sexp)        (cond
+                                         (empty? sexp) sexp,
+                                         (contains? (get-common-constructors) (first sexp))
+                                         (list* 'list (list 'quote (first sexp)) (walk transform identity (rest sexp))),
+                                         :else sexp),
+                     (sequential? sexp) (walk transform identity sexp),
+                     (symbol? sexp)     (transform-symbol sexp),
+                     :else              sexp))]
     `(make-dl-expression ~language ~(transform expression))))
 
 (add-dl-syntax! 'dl-expression)
@@ -260,9 +260,9 @@
   [dl-expression]
   (and (atomic? dl-expression)
        (or (contains? (concept-names (expression-language dl-expression))
-		      (expression-term dl-expression))
-	   (contains? (role-names (expression-language dl-expression))
-		      (expression-term dl-expression)))))
+                      (expression-term dl-expression))
+           (contains? (role-names (expression-language dl-expression))
+                      (expression-term dl-expression)))))
 
 (defn operator
   "Returns the operator of the expression."
@@ -277,8 +277,8 @@
   (when-not (compound? dl-expression)
     (illegal-argument "Given expression is atomic and has no arguments."))
   (map #(if-not (dl-expression? %)
-	  (make-dl-expression-nc (expression-language dl-expression) %)
-	  %)
+          (make-dl-expression-nc (expression-language dl-expression) %)
+          %)
        (rest (expression-term dl-expression))))
 
 ;;;
@@ -287,39 +287,39 @@
   "Returns all symbols used in expressions."
   [dl-expression]
   (let [collector (fn collector [expr]
-		    (cond
-		     (seq? expr) (vec (reduce concat (map collector (rest expr)))),
-		     (dl-expression? expr) (collector (expression-term expr)),
-		     :else [expr]))]
+                    (cond
+                     (seq? expr) (vec (reduce concat (map collector (rest expr)))),
+                     (dl-expression? expr) (collector (expression-term expr)),
+                     :else [expr]))]
     (set (collector (expression-term dl-expression)))))
 
 (defn role-names-in-expression
   "Returns all role names used in the given expression."
   [dl-expression]
   (intersection (role-names (expression-language dl-expression))
-		(symbols-in-expression dl-expression)))
+                (symbols-in-expression dl-expression)))
 
 (defn concept-names-in-expression
   "Returns all concept names used in the given expression."
   [dl-expression]
   (intersection (concept-names (expression-language dl-expression))
-		(symbols-in-expression dl-expression)))
+                (symbols-in-expression dl-expression)))
 
 (defn free-symbols-in-expression
   "Returns all free symbols in the given expression."
   [dl-expression]
   (difference (symbols-in-expression dl-expression)
-	      (union (role-names-in-expression dl-expression)
-		     (concept-names-in-expression dl-expression))))
+              (union (role-names-in-expression dl-expression)
+                     (concept-names-in-expression dl-expression))))
 
 (defn- substitute-syntax
   "Substitues in sexp-1 every occurence of a key in names by its value."
   [sexp-1 names]
   (cond
    (some #{sexp-1} (keys names)) (let [new (names sexp-1)]
-				   (if (dl-expression? new)
-				     (expression-term new)
-				     new)),
+                                   (if (dl-expression? new)
+                                     (expression-term new)
+                                     new)),
    (sequential? sexp-1) (walk #(substitute-syntax % names) identity sexp-1),
    :else sexp-1))
 
@@ -346,9 +346,9 @@
 
 (defmethod print-method DL-definition [definition out]
   (.write out (with-out-str
-		(print (definition-target definition))
-		(print " := ")
-		(print (definition-expression definition)))))
+                (print (definition-target definition))
+                (print " := ")
+                (print (definition-expression definition)))))
 
 (defn make-dl-definition
   "Creates and returns a DL definition."
@@ -388,7 +388,7 @@
 
 (defmethod print-method DL-subsumption [susu out]
   (let [^String output (with-out-str
-			  (print (list (subsumee susu)
+                          (print (list (subsumee susu)
                                        '==>
                                        (subsumer susu))))]
     (.write out (.trim output))))
@@ -397,7 +397,7 @@
   "Defines a subsumption."
   [DL sexp-for-subsumee sexp-for-subsumer]
   `(make-subsumption (dl-expression ~DL ~sexp-for-subsumee)
-		     (dl-expression ~DL ~sexp-for-subsumer)))
+                     (dl-expression ~DL ~sexp-for-subsumer)))
 
 (add-dl-syntax! 'subsumption)
 

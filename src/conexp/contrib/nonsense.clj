@@ -18,9 +18,9 @@
   "Returns the doomsday of the year given."
   [year]
   (mod (+ 2 year
-	  (floor (/ year 4))
-	  (- (floor (/ year 100)))
-	  (floor (/ year 400)))
+          (floor (/ year 4))
+          (- (floor (/ year 100)))
+          (floor (/ year 400)))
        7))
 
 (defn- leap-year?
@@ -28,7 +28,7 @@
   [year]
   (or (zero? (mod year 400))
       (and (zero? (mod year 4))
-	   (not (zero? (mod year 100))))))
+           (not (zero? (mod year 100))))))
 
 (defn- doomsday-in-month
   "Returns number of day in month doomsday occurs on."
@@ -64,7 +64,7 @@
   "Returns the day of week of the given date, in Gregorian calendar."
   [year month day]
   (let [doomsday (doomsday-of-year year),
-	doomsday-in-month (doomsday-in-month year month)]
+        doomsday-in-month (doomsday-in-month year month)]
     (number->weekday (+ doomsday (- day doomsday-in-month)))))
 
 ;;;
@@ -73,8 +73,8 @@
   "Returns true iff n is prime with a certainty of (- 1 (/ 1 (expt 2 1000)))"
   [n]
   (let [actual-number (if (instance? BigInteger n)
-			n
-			(BigInteger. (str n)))]
+                        n
+                        (BigInteger. (str n)))]
     (.isProbablePrime ^java.math.BigInteger actual-number 1000)))
 
 (defn crossfoot

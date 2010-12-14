@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.dl.framework.boxes
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.syntax
         conexp.contrib.dl.util.graphs))
 
 ;;; TBox definitions
@@ -53,14 +53,14 @@
   "Returns all used role names in tbox."
   [tbox]
   (apply union #{}
-	 (map #(role-names-in-expression (definition-expression %))
-	      (vals (tbox-definition-map tbox)))))
+         (map #(role-names-in-expression (definition-expression %))
+              (vals (tbox-definition-map tbox)))))
 
 (defn used-concept-names
   "Returns all used concept names in tbox."
   [tbox]
   (apply union #{}
-	 (map #(concept-names-in-expression (definition-expression %))
+         (map #(concept-names-in-expression (definition-expression %))
               (vals (tbox-definition-map tbox)))))
 
 ;;;
@@ -75,10 +75,10 @@
   [dl-expr]
   (and (dl-expression? dl-expr)
        (let [expr (expression-term dl-expr)]
-	 (and (vector? expr)
-	      (= 2 (count expr))
-	      (tbox? (first expr))
-	      (contains? (defined-concepts (first expr))
+         (and (vector? expr)
+              (= 2 (count expr))
+              (tbox? (first expr))
+              (contains? (defined-concepts (first expr))
                          (second expr))))))
 
 ;;;
@@ -183,7 +183,7 @@
                                                         (definition-target definition)))))
                               {}
                               (tbox-definitions tbox)),
-	rename-map   (reduce! (fn [map definition]
+        rename-map   (reduce! (fn [map definition]
                                 (assoc! map
                                         (definition-target definition)
                                         (-> definition
@@ -194,7 +194,7 @@
                                             first)))
                               {}
                               (vals (tbox-definition-map tbox))),
-	new-tbox (make-tbox (tbox-language tbox)
+        new-tbox (make-tbox (tbox-language tbox)
                             (reduce! (fn [map definition]
                                        (assoc! map
                                                (definition-target definition)
@@ -215,12 +215,12 @@
   (if (empty? targets)
     seen
     (let [target  (first targets),
-	  seen    (conj seen target),
-	  targets (difference (union targets
+          seen    (conj seen target),
+          targets (difference (union targets
                                      (set (free-symbols-in-expression
                                            (definition-expression
                                              (find-definition tbox target)))))
-			      seen)]
+                              seen)]
       (recur tbox targets seen))))
 
 (defn clarify-ttp
@@ -228,7 +228,7 @@
   from tbox which are not needed to define target."
   [[tbox target]]
   (let [needed-targets (collect-targets tbox #{target} #{}),
-	new-tbox       (make-tbox (tbox-language tbox)
+        new-tbox       (make-tbox (tbox-language tbox)
                                   (select-keys (tbox-definition-map tbox)
                                                needed-targets))]
     [new-tbox target]))
@@ -242,22 +242,22 @@
     (if (empty? symbols)
       [tbox target]
       (let [target-definition     (find-definition tbox target),
-	    needed-definitions    (reduce! (fn [map [_ sym-def]]
+            needed-definitions    (reduce! (fn [map [_ sym-def]]
                                              (assoc! map
                                                      (definition-target sym-def)
                                                      (definition-expression sym-def)))
                                            {}
                                            (select-keys (tbox-definition-map tbox) symbols)),
 
-	    new-target-definition (make-dl-definition target
-						      (substitute (definition-expression target-definition)
-								  needed-definitions)),
+            new-target-definition (make-dl-definition target
+                                                      (substitute (definition-expression target-definition)
+                                                                  needed-definitions)),
 
-	    [new-tbox target]     (clarify-ttp [(make-tbox (tbox-language tbox)
+            [new-tbox target]     (clarify-ttp [(make-tbox (tbox-language tbox)
                                                            (assoc (tbox-definition-map tbox)
                                                              target new-target-definition))
                                                 target])]
-	(recur [new-tbox target])))))
+        (recur [new-tbox target])))))
 
 (defn reduce-ttp
   "Reduces tbox-target-pair for target as much as possible, returning

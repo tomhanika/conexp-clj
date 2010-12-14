@@ -8,14 +8,14 @@
 
 (ns conexp.contrib.dl.languages.EL-gfp-exploration
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.semantics
-	conexp.contrib.dl.framework.reasoning
-	conexp.contrib.dl.languages.interaction
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.semantics
+        conexp.contrib.dl.framework.reasoning
+        conexp.contrib.dl.languages.interaction
         conexp.contrib.dl.languages.description-graphs
-	conexp.contrib.dl.languages.EL-gfp
-	conexp.contrib.dl.languages.EL-gfp-rewriting
-	conexp.contrib.dl.util.concept-sets))
+        conexp.contrib.dl.languages.EL-gfp
+        conexp.contrib.dl.languages.EL-gfp-rewriting
+        conexp.contrib.dl.util.concept-sets))
 
 (ns-doc
  "Implements exploration for description logics EL and EL-gfp.")
@@ -94,13 +94,13 @@
                                         (not (equivalent? all-P_k-closure Q-closure))),
                                   (for [r (role-names language)]
                                     (dl-expression language (exists r all-P_k-closure)))),
-		   next-M_k     (apply add-concepts! M_k new-concepts),
+                   next-M_k     (apply add-concepts! M_k new-concepts),
 
                    P-map        (assoc P-map
                                   P_k [all-P_k all-P_k-closure]),
                    next-Pi_k    (conj Pi_k P_k),
 
-		   implications (let [new-impl (make-implication P_k
+                   implications (let [new-impl (make-implication P_k
                                                                  (set-of D | D (seq M_k)
                                                                              :when (subsumed-by? all-P_k-closure D))),
                                       impls    (if-not new-concepts
@@ -119,13 +119,13 @@
                                     (conj impls new-impl)
                                     impls)),
 
-		   background-knowledge
+                   background-knowledge
                                 (minimal-implication-set next-M_k),
 
-		   next-P_k     (next-closed-set (seq next-M_k)
+                   next-P_k     (next-closed-set (seq next-M_k)
                                                  (clop-by-implications (union implications background-knowledge))
                                                  P_k)]
-	       (recur next-M_k next-Pi_k P-map next-P_k next-model implications background-knowledge))
+               (recur next-M_k next-Pi_k P-map next-P_k next-model implications background-knowledge))
 
              ;; else return set of implications
              (let [implicational-knowledge (union implications background-knowledge)]

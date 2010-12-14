@@ -239,7 +239,7 @@
                                     (distinct fns)))
      (let [data# (with-profile-data ~@body)]
        (when (not-empty data#))
-	 (print-summary (summarize data#)))))
+         (print-summary (summarize data#)))))
 
 ;;;
 

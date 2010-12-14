@@ -9,10 +9,10 @@
 (ns conexp.layouts.force
   (:use conexp.base
         [conexp.fca.lattices :exclude (order)]
-	conexp.layouts.base
-	conexp.layouts.common
-	conexp.math.util
-	conexp.math.optimize))
+        conexp.layouts.base
+        conexp.layouts.common
+        conexp.math.util
+        conexp.math.optimize))
 
 (ns-doc "Force layout as described by C. Zschalig.")
 
@@ -54,8 +54,8 @@
   (with-doubles [x_1 y_1 x_2 y_2]
     (let [length (distance [x_1 y_1] [x_2 y_2])]
       (if (zero? length)
-	[0.0 0.0]
-	[(/ (- x_2 x_1) length), (/ (- y_2 y_1) length)]))))
+        [0.0 0.0]
+        [(/ (- x_2 x_1) length), (/ (- y_2 y_1) length)]))))
 
 
 ;; Repulsive Energy
@@ -68,29 +68,29 @@
     (if (and (= x_1 x_2) (= y_1 y_2))
       (distance [x, y] [x_1, y_1])
       (let [;; position of projection of [x y] onto the line, single coordinate
-	    r (/ (+ (* (- x x_1)
-		       (- x_2 x_1))
-		    (* (- y y_1)
-		       (- y_2 y_1)))
-		 (+ (square (- x_2 x_1))
-		    (square (- y_2 y_1)))),
-	    r (min (max r 0) 1)]
-	(distance [x, y] [(+ x_1 (* r (- x_2 x_1))),
-			  (+ y_1 (* r (- y_2 y_1)))])))))
+            r (/ (+ (* (- x x_1)
+                       (- x_2 x_1))
+                    (* (- y y_1)
+                       (- y_2 y_1)))
+                 (+ (square (- x_2 x_1))
+                    (square (- y_2 y_1)))),
+            r (min (max r 0) 1)]
+        (distance [x, y] [(+ x_1 (* r (- x_2 x_1))),
+                          (+ y_1 (* r (- y_2 y_1)))])))))
 
 (defn- repulsive-energy
   "Computes the repulsive energy of the given layout."
   [layout]
   (let [node-positions   (positions layout),
-	node-connections (connections layout)]
+        node-connections (connections layout)]
     (try
      (let [edges (map (fn [[x y]]
-			[x y (get node-positions x) (get node-positions y)])
-		      node-connections)]
+                        [x y (get node-positions x) (get node-positions y)])
+                      node-connections)]
        (sum [[v pos-v] node-positions,
-	     [x y pos-x pos-y] edges,
-	     :when (not (#{x y} v))]
-	    (/ (node-line-distance pos-v pos-x pos-y))))
+             [x y pos-x pos-y] edges,
+             :when (not (#{x y} v))]
+            (/ (node-line-distance pos-v pos-x pos-y))))
      (catch Exception e
        Double/MAX_VALUE))))
 
@@ -101,9 +101,9 @@
   "Computes the attractive energy of the given layout."
   [layout]
   (let [node-positions (positions layout),
-	node-connections (connections layout)]
+        node-connections (connections layout)]
     (sum [[x y] node-connections]
-	 (line-length-squared (node-positions x) (node-positions y)))))
+         (line-length-squared (node-positions x) (node-positions y)))))
 
 
 ;; Gravitative Energy
@@ -120,20 +120,20 @@
   "Returns the gravitative energy of the given layout."
   [layout]
   (let [node-positions   (positions layout),
-	node-connections (connections layout),
-	inf-irrs         (inf-irreducibles layout),
-	upper-neighbours (upper-neighbours-of-inf-irreducibles layout),
-	E_0              (double (- (/ Math/PI 2.0)))]
+        node-connections (connections layout),
+        inf-irrs         (inf-irreducibles layout),
+        upper-neighbours (upper-neighbours-of-inf-irreducibles layout),
+        E_0              (double (- (/ Math/PI 2.0)))]
     (try
      (sum [n inf-irrs,
-	   :let [phi_n (double (phi (node-positions n)
-				    (node-positions (upper-neighbours n))))]]
+           :let [phi_n (double (phi (node-positions n)
+                                    (node-positions (upper-neighbours n))))]]
        (* (if (<= phi_n (/ Math/PI 2.0))
-	    1
-	    -1)
-	  (+ phi_n
-	     (/ (Math/tan phi_n))
-	     E_0)))
+            1
+            -1)
+          (+ phi_n
+             (/ (Math/tan phi_n))
+             E_0)))
      (catch Exception e
        Double/MAX_VALUE))))
 
@@ -158,15 +158,15 @@
   partial derivative when given index n."
   [layout seq-of-inf-irrs]
   (let [lattice  (lattice layout),
-	top-pos  ((positions layout) (lattice-one lattice)),
-	energy   (fn [point-coordinates]
-		   (let [points            (partition 2 point-coordinates),
-			 inf-irr-placement (apply hash-map
-						  (interleave seq-of-inf-irrs
-							      points))]
-		     (layout-energy
-		      (update-positions layout
-					(placement-by-initials lattice top-pos inf-irr-placement)))))]
+        top-pos  ((positions layout) (lattice-one lattice)),
+        energy   (fn [point-coordinates]
+                   (let [points            (partition 2 point-coordinates),
+                         inf-irr-placement (apply hash-map
+                                                  (interleave seq-of-inf-irrs
+                                                              points))]
+                     (layout-energy
+                      (update-positions layout
+                                        (placement-by-initials lattice top-pos inf-irr-placement)))))]
     energy))
 
 
@@ -178,24 +178,24 @@
      (force-layout layout nil))
   ([layout iterations]
      (let [;; compute lattice from layout and ensure proper starting layout
-	   lattice             (lattice layout),
-	   layout              (to-inf-additive-layout lattice layout),
+           lattice             (lattice layout),
+           layout              (to-inf-additive-layout lattice layout),
 
-	   ;; get positions of inf-irreducibles from layout as starting point
-	   inf-irrs            (inf-irreducibles layout),
-	   node-positions      (positions layout),
-	   inf-irr-points      (map node-positions inf-irrs),
-	   top-pos             (node-positions (lattice-one lattice)),
+           ;; get positions of inf-irreducibles from layout as starting point
+           inf-irrs            (inf-irreducibles layout),
+           node-positions      (positions layout),
+           inf-irr-points      (map node-positions inf-irrs),
+           top-pos             (node-positions (lattice-one lattice)),
 
-	   ;; minimize layout energy with above placement as initial value
-	   energy              (energy-by-inf-irr-positions layout inf-irrs),
-	   [new-points, value] (minimize energy
-					 (apply concat inf-irr-points)
-					 {:iterations iterations}),
+           ;; minimize layout energy with above placement as initial value
+           energy              (energy-by-inf-irr-positions layout inf-irrs),
+           [new-points, value] (minimize energy
+                                         (apply concat inf-irr-points)
+                                         {:iterations iterations}),
 
-	   ;; make hash
-	   point-hash          (apply hash-map (interleave inf-irrs
-							   (partition 2 new-points)))]
+           ;; make hash
+           point-hash          (apply hash-map (interleave inf-irrs
+                                                           (partition 2 new-points)))]
 
        ;; final layout
        (layout-by-placement lattice top-pos point-hash))))

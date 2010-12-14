@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.dl.framework.semantics
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.syntax
         conexp.contrib.dl.framework.boxes))
 
 (ns-doc "Defines basic notions for semantics of description logics.")
@@ -71,14 +71,14 @@
   (fn [interpretation]
     (let [result ((interpretation-function interpretation) (expression-term dl-expression))]
       (if (nil? result)
-	(let [base-semantics (get-method compile-expression
-					 [(language-name (expression-language dl-expression)) ::base-semantics]),
-	      default        (get-method compile-expression
-					 :default)]
-	  (when (= base-semantics default)
-	    (throw (IllegalStateException. (str "Cannot interpret " (print-str dl-expression) "."))))
-	  ((base-semantics dl-expression) interpretation))
-	result))))
+        (let [base-semantics (get-method compile-expression
+                                         [(language-name (expression-language dl-expression)) ::base-semantics]),
+              default        (get-method compile-expression
+                                         :default)]
+          (when (= base-semantics default)
+            (throw (IllegalStateException. (str "Cannot interpret " (print-str dl-expression) "."))))
+          ((base-semantics dl-expression) interpretation))
+        result))))
 
 
 ;;; base semantics (i.e. what to do if nothing else applies)
@@ -143,13 +143,13 @@
   maps atomic expressions to their extents."
   [language base-set & interpretations]
   `(let [interpretation-map# '~(apply hash-map interpretations),
-	 defined-symbols#    (keys interpretation-map#),
-	 undefined-symbols#  (difference (union (concept-names ~language)
+         defined-symbols#    (keys interpretation-map#),
+         undefined-symbols#  (difference (union (concept-names ~language)
                                                 (role-names ~language))
                                          (set defined-symbols#))]
      (when (not (empty? undefined-symbols#))
        (illegal-argument "Definition of model is incomplete. The symbols "
-			 undefined-symbols# " are missing."))
+                         undefined-symbols# " are missing."))
      (make-interpretation ~language (set '~base-set) interpretation-map#)))
 
 (add-dl-syntax! 'interpretation)
@@ -205,7 +205,7 @@
   "Returns true iff subsumption holds in given interpretation."
   [interpretation subsumption]
   (subset? (interpret interpretation (subsumee subsumption))
-	   (interpret interpretation (subsumer subsumption))))
+           (interpret interpretation (subsumer subsumption))))
 
 (defnk hash-map->interpretation
   "Given concepts as a hash-map from symbols to sets and roles as a
@@ -235,10 +235,10 @@
   "Apply f to data until (= old-data new-data)."
   [f data]
   (let [runner (fn runner [old-data]
-		 (let [new-data (f old-data)]
-		   (if (= new-data old-data)
-		     new-data
-		     (recur new-data))))]
+                 (let [new-data (f old-data)]
+                   (if (= new-data old-data)
+                     new-data
+                     (recur new-data))))]
     (runner data)))
 
 (defn- next-tbox-interpretation

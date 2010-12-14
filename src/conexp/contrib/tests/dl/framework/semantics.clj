@@ -8,10 +8,10 @@
 
 (ns conexp.contrib.tests.dl.framework.semantics
   (:use conexp.main
-	conexp.contrib.dl.framework.syntax
-	conexp.contrib.dl.framework.boxes
-	conexp.contrib.dl.framework.semantics
-	conexp.contrib.tests.dl.examples)
+        conexp.contrib.dl.framework.syntax
+        conexp.contrib.dl.framework.boxes
+        conexp.contrib.dl.framework.semantics
+        conexp.contrib.tests.dl.examples)
   (:use clojure.test))
 
 ;;;
@@ -21,8 +21,8 @@
 
 (deftest test-interpret
   (are [expected testing-model expr] (= 'expected
-					(interpret testing-model
-						   (dl-expression (interpretation-language testing-model)
+                                        (interpret testing-model
+                                                   (dl-expression (interpretation-language testing-model)
                                                                   expr)))
        #{} some-model all-cpt,
        #{John} some-model [some-tbox Grandfather],

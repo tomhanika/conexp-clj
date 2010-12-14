@@ -8,9 +8,9 @@
 
 (ns conexp.main
   (:require conexp.base
-	    conexp.fca
-	    conexp.io
-	    conexp.layouts))
+            conexp.fca
+            conexp.io
+            conexp.layouts))
 
 (conexp.base/ns-doc
  "Main namespace for conexp-clj. Immigrates all needed namespaces.")
@@ -59,11 +59,11 @@
   (assert (and my-major my-minor my-patch))
   (let [{:keys [major, minor, patch]} conexp-version-map]
     (or (and (< my-major major))
-	(and (= my-major major)
-	     (< my-minor minor))
-	(and (= my-major major)
-	     (= my-minor minor)
-	     (< my-patch patch)))))
+        (and (= my-major major)
+             (< my-minor minor))
+        (and (= my-major major)
+             (= my-minor minor)
+             (< my-patch patch)))))
 
 (defn test-conexp
   "Runs tests for conexp. If with-contrib? is given and true, tests

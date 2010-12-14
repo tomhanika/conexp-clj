@@ -8,15 +8,15 @@
 
 (ns conexp.contrib.gui.editors.lattices
   (:use conexp.base
-	conexp.fca.contexts
-	conexp.fca.lattices
-	conexp.io
-	conexp.layouts
-	[conexp.layouts.base :only (lattice)]
-	conexp.contrib.draw.lattices
-	conexp.contrib.gui.util
+        conexp.fca.contexts
+        conexp.fca.lattices
+        conexp.io
+        conexp.layouts
+        [conexp.layouts.base :only (lattice)]
+        conexp.contrib.draw.lattices
+        conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.context-editor
-	conexp.contrib.gui.plugins.base)
+        conexp.contrib.gui.plugins.base)
   (:import [java.io File]))
 
 (ns-doc
@@ -41,9 +41,9 @@
   (when-let [^File file (choose-open-file frame)]
     (let [thing (loader (.getPath file))]
       (add-tab frame
-	       (make-lattice-editor frame
-				    (transformer thing))
-	       "Lattice"))))
+               (make-lattice-editor frame
+                                    (transformer thing))
+               "Lattice"))))
 
 (defn- save-layout
   "Tries to store the result of applying transformer to the currently
@@ -53,8 +53,8 @@
     (if (nil? layout)
       (illegal-argument "Current tab does not contain a lattice editor.")
       (write format
-	     (transformer layout)
-	     (.getPath ^File (choose-save-file frame))))))
+             (transformer layout)
+             (.getPath ^File (choose-save-file frame))))))
 
 (defn- edit-standard-context
   "Opens a context-editor with the standard context of the lattice
@@ -72,22 +72,22 @@
 (defvar- *lattice-menu*
   {:name "Lattice",
    :content [{:name "Load Lattice",
-	      :handler #(load-lattice-and-go % read-lattice standard-layout)}
-	     {:name "Load Lattice from Context"
-	      :handler #(load-lattice-and-go % read-context
-					     (comp standard-layout concept-lattice))}
-	     {:name "Load Layout"
-	      :handler #(load-lattice-and-go % read-layout identity)}
-	     {}
-	     {:name "Save Lattice",
-	      :content [{:name "Format conexp-clj simple",
-			 :handler #(save-layout % lattice write-lattice :simple)}]}
-	     {:name "Save Layout",
-	      :content [{:name "Format conexp-clj simple",
-			 :handler #(save-layout % identity write-layout :simple)}]}
-	     {}
-	     {:name "Edit Standard Context",
-	      :handler edit-standard-context}]}
+              :handler #(load-lattice-and-go % read-lattice standard-layout)}
+             {:name "Load Lattice from Context"
+              :handler #(load-lattice-and-go % read-context
+                                             (comp standard-layout concept-lattice))}
+             {:name "Load Layout"
+              :handler #(load-lattice-and-go % read-layout identity)}
+             {}
+             {:name "Save Lattice",
+              :content [{:name "Format conexp-clj simple",
+                         :handler #(save-layout % lattice write-lattice :simple)}]}
+             {:name "Save Layout",
+              :content [{:name "Format conexp-clj simple",
+                         :handler #(save-layout % identity write-layout :simple)}]}
+             {}
+             {:name "Edit Standard Context",
+              :handler edit-standard-context}]}
   "Menu for lattice editor.")
 
 (let [menu-hash (ref {})]
@@ -97,7 +97,7 @@
     [frame]
     (dosync
      (alter menu-hash
-	    assoc frame (add-menus frame [*lattice-menu*]))))
+            assoc frame (add-menus frame [*lattice-menu*]))))
 
   (defn- unload-lattice-editor
     "Unloads the lattice-editor plugin from frame."

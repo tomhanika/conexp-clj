@@ -8,7 +8,7 @@
 
 (ns conexp.math.statistics
   (:use conexp.base
-	conexp.math.util)
+        conexp.math.util)
   (:import [org.apache.commons.math.stat.regression SimpleRegression]))
 
 ;;;

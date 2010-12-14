@@ -10,15 +10,15 @@
 
 (ns conexp.contrib.gui.editors.contexts
   (:use conexp.base
-	conexp.fca.contexts
-	conexp.fca.lattices
+        conexp.fca.contexts
+        conexp.fca.lattices
         conexp.io
-	conexp.layouts
-	[conexp.layouts.base :only (lattice)]
-	conexp.contrib.draw.lattices
-	conexp.contrib.gui.util
+        conexp.layouts
+        [conexp.layouts.base :only (lattice)]
+        conexp.contrib.draw.lattices
+        conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.context-editor
-	conexp.contrib.gui.plugins.base)
+        conexp.contrib.gui.plugins.base)
   (:use [clojure.string :only (replace)
                         :rename {replace replace-str}])
   (:import [java.io File]))
@@ -45,8 +45,8 @@
     (let [path (.getPath file),
           thing (loader path)]
       (add-tab frame
-	       (make-context-editor thing)
-	       (str "Context " path)))))
+               (make-context-editor thing)
+               (str "Context " path)))))
 
 (defn- clone-context-and-go
   "Loads context with given loader and adds a new tab with a context-editor."
@@ -93,7 +93,7 @@
 (defvar- *context-menu*
   {:name "Context",
    :content [{:name "Load Context",
-	      :handler #(load-context-and-go % read-context)},
+              :handler #(load-context-and-go % read-context)},
              {:name "Random Context",
               :handler random-context-and-go},
              {:name "Second Operand Context",
