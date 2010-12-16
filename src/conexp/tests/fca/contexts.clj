@@ -346,8 +346,40 @@
        #{1 2 3 282 392 23}
        #{nil 4 * -}))
 
-;; context-union
-;; context-intersection
+(deftest test-context-union
+  (with-testing-data [ctx-1 testing-data,
+                      ctx-2 testing-data]
+    (let [uctx   (context-union ctx-1 ctx-2),
+          union? (fn [access]
+                   (= (access uctx) (union (access ctx-1) (access ctx-2))))]
+      (and (union? objects)
+           (union? attributes)
+           (union? incidence)))))
+
+(deftest test-context-disjoint-union
+  (with-testing-data [ctx-1 testing-data,
+                      ctx-2 testing-data]
+    (let [uctx   (context-disjoint-union ctx-1 ctx-2),
+          union? (fn [access]
+                   (= (access uctx) (disjoint-union (access ctx-1) (access ctx-2))))]
+      (and (union? objects)
+           (union? attributes)
+           (= (incidence uctx)
+              (set-of [[g i] [m j]] | [g i] (objects uctx)
+                                      [m j] (attributes uctx)
+                                      :when (or (contains? (incidence ctx-1) [g m])
+                                                (contains? (incidence ctx-2) [g m]))))))))
+
+(deftest test-context-intersection
+  (with-testing-data [ctx-1 testing-data,
+                      ctx-2 testing-data]
+    (let [uctx          (context-intersection ctx-1 ctx-2),
+          intersection? (fn [access]
+                          (= (access uctx) (intersection (access ctx-1) (access ctx-2))))]
+      (and (intersection? objects)
+           (intersection? attributes)
+           (intersection? incidence)))))
+
 ;; context-composition
 ;; context-apposition
 ;; context-subposition

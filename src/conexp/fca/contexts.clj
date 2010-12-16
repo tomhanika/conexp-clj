@@ -395,17 +395,25 @@
                                                                  :when (not ((incidence ctx) [g m]))])))
 
 (defn context-union
-  "Returns context union of ctx1 and ctx2."
-  [ctx1 ctx2]
-  (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx1)])
-                        (set-of [g_2 2] [g_2 (objects ctx2)]))
-        new-atts (union (set-of [m_1 1] [m_1 (attributes ctx1)])
-                        (set-of [m_2 2] [m_2 (attributes ctx2)]))
+  "Returns the union of ctx-1 and ctx-2. Note that this union is
+  inclusive, use context-disjoint-union if this is not what you want."
+  [ctx-1 ctx-2]
+  (make-context-nc (union (objects ctx-1) (objects ctx-2))
+                   (union (attributes ctx-1) (attributes ctx-2))
+                   (union (incidence ctx-1) (incidence ctx-2))))
+
+(defn context-disjoint-union
+  "Returns the disjoint union of ctx-1 and ctx-2."
+  [ctx-1 ctx-2]
+  (let [new-objs (disjoint-union (objects ctx-1)
+                                 (objects ctx-2)),
+        new-atts (disjoint-union (attributes ctx-1)
+                                 (attributes ctx-2))
         new-inz  (set-of [[g idx-g] [m idx-m]]
                          [[g idx-g] new-objs
                           [m idx-m] new-atts
-                          :when (or ((incidence ctx1) [g m])
-                                    ((incidence ctx2) [g m]))])]
+                          :when (or ((incidence ctx-1) [g m])
+                                    ((incidence ctx-2) [g m]))])]
     (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-intersection
