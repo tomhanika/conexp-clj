@@ -206,11 +206,49 @@
   (with-testing-data [ctx testing-data]
     (clarified? (clarify-context ctx))))
 
-;; down-arrows
-;; up-arrows
-;; up-down-arrows
-;; reduce-clarified-context
-;; reduce-context-{object,attribute}s
+(deftest test-down-arrows
+  (with-testing-data [ctx testing-data]
+    (forall [[g m] (down-arrows ctx)]
+      (and (not (contains? (incidence ctx) [g m]))
+           (forall [h (objects ctx)]
+             (=> (proper-subset? (object-derivation ctx #{g})
+                                 (object-derivation ctx #{h}))
+                 (contains? (incidence ctx) [h m])))))))
+
+(deftest test-up-arrows
+  (with-testing-data [ctx testing-data]
+    (forall [[g m] (up-arrows ctx)]
+      (and (not (contains? (incidence ctx) [g m]))
+           (forall [n (attributes ctx)]
+             (=> (proper-subset? (attribute-derivation ctx #{m})
+                                 (attribute-derivation ctx #{n}))
+                 (contains? (incidence ctx) [g n])))))))
+
+(deftest test-up-down-arrows
+  (with-testing-data [ctx testing-data]
+    (= (up-down-arrows ctx)
+       (intersection (up-arrows ctx)
+                     (down-arrows ctx)))))
+
+(deftest test-reduce-clarified-context
+  (with-testing-data [ctx testing-data]
+    (=> (clarified? ctx)
+        (let [rctx (reduce-clarified-context ctx),
+              arrs (up-down-arrows rctx)]
+          (and (= (objects rctx) (set-of g | [g _] arrs))
+               (= (attributes rctx) (set-of m | [_ m] arrs)))))))
+    
+(deftest test-reduce-context-objects
+  (with-testing-data [ctx testing-data]
+    (let [rctx (reduce-context-objects ctx),
+          arrs (down-arrows rctx)]
+      (= (objects rctx) (set-of g | [g _] arrs)))))
+
+(deftest test-reduce-context-attributes
+  (with-testing-data [ctx testing-data]
+    (let [rctx (reduce-context-attributes ctx),
+          arrs (up-arrows rctx)]
+      (= (attributes rctx) (set-of m | [_ m] arrs)))))
 
 (deftest test-reduced?
   (is (not (reduced? test-ctx-01)))
@@ -308,7 +346,12 @@
        #{1 2 3 282 392 23}
        #{nil 4 * -}))
 
-;; context-{union,intersection,{comp,ap,sub}position,transitive-closure}
+;; context-union
+;; context-intersection
+;; context-composition
+;; context-apposition
+;; context-subposition
+;; context-transitive-closure
 
 (deftest test-rand-context
   (is (context? (rand-context [1 2 3 4] 0.5)))
@@ -317,8 +360,15 @@
   (is (= '#{x y z v} (attributes (rand-context [1 2 3 4] '[x y z v] 0.6))))
   (is (thrown? IllegalArgumentException (rand-context [] 'a))))
 
-;; random-contexts
-;; context-{sum,product,semiproduct,xia-product}
+(deftest test-random-contexts
+  (with-testing-data [ctx (random-contexts 11 23)]
+    (and (<= (count (objects ctx)) 23)
+         (<= (count (attributes ctx)) 23))))
+  
+;; context-sum
+;; context-product
+;; context-semiproduct
+;; context-xia-product
 
 ;;;
 
