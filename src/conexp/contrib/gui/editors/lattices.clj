@@ -69,7 +69,7 @@
 
 ;;; The Hooks
 
-(defvar- *lattice-menu*
+(defvar- lattice-menu
   {:name "Lattice",
    :content [{:name "Load Lattice",
               :handler #(load-lattice-and-go % read-lattice standard-layout)}
@@ -97,7 +97,7 @@
     [frame]
     (dosync
      (alter menu-hash
-            assoc frame (add-menus frame [*lattice-menu*]))))
+            assoc frame (add-menus frame [lattice-menu]))))
 
   (defn- unload-lattice-editor
     "Unloads the lattice-editor plugin from frame."

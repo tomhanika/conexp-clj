@@ -19,7 +19,7 @@
 
 ;;; REPL Process
 
-(defvar- *print-stack-trace-on-error* false
+(defvar- ^:dynamic *print-stack-trace-on-error* false
   "Controls whether the REPL prints a full stack strace or not.")
 
 (defn- eof-ex?

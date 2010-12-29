@@ -15,16 +15,17 @@
 
 ;;; Plugin Managers for Frames
 
-(let [*plugin-managers* (atom {})]      ;memory leak possible?
+(let [plugin-managers (atom {})]      ;memory leak possible!
+
   (defn- save-pm-for-frame
     "Saves given plugin manager pm for frame for later retrival."
     [frame pm]
-    (swap! *plugin-managers* assoc frame pm))
+    (swap! plugin-managers assoc frame pm))
 
   (defn get-plugin-manager
     "Returns the plugin manager of a given frame."
     [frame]
-    (get @*plugin-managers* frame))
+    (get @plugin-managers frame))
 
   nil)
 

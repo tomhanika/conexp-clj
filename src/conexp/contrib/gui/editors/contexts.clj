@@ -90,7 +90,7 @@
 
 ;;; The Hooks
 
-(defvar- *context-menu*
+(defvar- context-menu
   {:name "Context",
    :content [{:name "Load Context",
               :handler #(load-context-and-go % read-context)},
@@ -121,7 +121,7 @@
     "Loads the context-editor plugin in frame."
     [frame]
     (swap! menu-hash
-           assoc frame (add-menus frame [*context-menu*])))
+           assoc frame (add-menus frame [context-menu])))
 
   (defn- unload-context-editor
     "Unloads the context-editor plugin from frame."

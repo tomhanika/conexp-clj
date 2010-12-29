@@ -33,7 +33,7 @@
     (when-let [file (choose-open-file frame ["clojure files" "clj"])]
       (repl-in repl-process (str "(do (load-file \"" (.getAbsolutePath ^java.io.File file) "\") nil)")))))
 
-(defvar- *code-menu*
+(defvar- code-menu
   {:name "Code",
    :content [{:name "Load into REPL",
               :handler get-file-and-go}]})
@@ -43,7 +43,7 @@
 (defn- load-code-editor
   "Loads the code editor plugin."
   [frame]
-  (add-menus frame [*code-menu*]))
+  (add-menus frame [code-menu]))
 
 (defn- unload-code-editor
   "Unloads the code editor plugin."
