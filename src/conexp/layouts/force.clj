@@ -18,18 +18,14 @@
 
 ;; Helpers
 
-(defn- square
-  "Squares."
-  [x]
-  (with-doubles [x]
-    (* x x)))
+(defn- ^double square [^double x]
+  (* x x))
 
 (defn- line-length-squared
   "Returns the square of the length of the line between [x_1, y_1] and [x_2, y_2]."
-  [[x_1, y_1] [x_2, y_2]]
-  (with-doubles [x_1, y_1, x_2, y_2]
-    (+ (square (- x_1 x_2))
-       (square (- y_1 y_2)))))
+  [[x_1, y_1], [x_2, y_2]]
+  (+ (square (- x_1 x_2))
+     (square (- y_1 y_2))))
 
 (defn- distance
   "Returns distance of two points."
@@ -37,25 +33,13 @@
   (with-doubles [x_1 y_1 x_2 y_2]
     (Math/sqrt (+ (square (- x_1 x_2)) (square (- y_1 y_2))))))
 
-(defmacro sum
+(defmacro- sum
   "Sums up all values of bindings obtained with expr. See doseq."
   [bindings expr]
   `(let [sum# (atom (double 0))]
      (doseq ~bindings
        (swap! sum# + (double ~expr)))
      (double @sum#)))
-
-(alter-meta! #'sum assoc :private true)
-
-(defn- unit-vector
-  "Returns unit vector between first and second point. Returns
-  [0.0 0.0] when given zero vector."
-  [[x_1 y_1] [x_2 y_2]]
-  (with-doubles [x_1 y_1 x_2 y_2]
-    (let [length (distance [x_1 y_1] [x_2 y_2])]
-      (if (zero? length)
-        [0.0 0.0]
-        [(/ (- x_2 x_1) length), (/ (- y_2 y_1) length)]))))
 
 
 ;; Repulsive Energy
@@ -103,7 +87,8 @@
   (let [node-positions (positions layout),
         node-connections (connections layout)]
     (sum [[x y] node-connections]
-         (line-length-squared (node-positions x) (node-positions y)))))
+         (line-length-squared (node-positions x)
+                              (node-positions y)))))
 
 
 ;; Gravitative Energy
