@@ -22,7 +22,7 @@
 
 ;;; Context editor control
 
-(defwidget context-editor-widget [conexp.contrib.gui.editors.context-editor.widgets.widget]
+(defwidget context-editor-widget [conexp.contrib.gui.editors.context_editor.widgets.widget]
   [widget table toolbar e-ctx])
 
 (defmethod get-table (class-to-keyword context-editor-widget)
@@ -159,8 +159,8 @@
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context."
   [e-ctx editor]
-  (assert (keyword-isa? e-ctx conexp.contrib.gui.editors.context-editor.editable-contexts.editable-context))
-  (assert (keyword-isa? editor conexp.contrib.gui.editors.context-editor.widgets.widget))
+  (assert (keyword-isa? e-ctx conexp.contrib.gui.editors.context_editor.editable_contexts.editable-context))
+  (assert (keyword-isa? editor conexp.contrib.gui.editors.context_editor.widgets.widget))
   (let [ctx (get-context e-ctx),
         att-cols (:attr-cols e-ctx),
         obj-rows (:obj-rows e-ctx),

@@ -90,7 +90,7 @@
 
 ;;;  Table
 
-(defwidget table-control [conexp.contrib.gui.editors.context-editor.widgets.control,
+(defwidget table-control [conexp.contrib.gui.editors.context_editor.widgets.control,
                           conexp.contrib.gui.util.hookable.hookable]
   [widget control hooks model row-permutator])
 ;; row-permutator is a ref to an two-element vector of functions, 

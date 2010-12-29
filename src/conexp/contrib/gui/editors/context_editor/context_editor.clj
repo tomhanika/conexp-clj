@@ -19,7 +19,7 @@
   (:import [javax.swing JRootPane KeyStroke Box JFrame]
            [java.awt BorderLayout]
            [java.awt.event KeyEvent ActionEvent])
-  (:import conexp.contrib.gui.editors.context-editor.context-editor-control.context-editor-widget))
+  (:import conexp.contrib.gui.editors.context_editor.context_editor_control.context-editor-widget))
 
 
 ;;; Functions implementing button actions
@@ -111,7 +111,7 @@
 (defn-swing fill-selection-with-X
   "Fills the selected cells from the table widget with 'X's"
   [obj]
-  (assert (keyword-isa? obj conexp.contrib.gui.editors.context-editor.table-control.table-control))
+  (assert (keyword-isa? obj conexp.contrib.gui.editors.context_editor.table_control.table-control))
   (let [control     (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
