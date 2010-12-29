@@ -447,10 +447,9 @@
   [ctx-1 ctx-2]
   (if (not= (objects ctx-1) (objects ctx-2))
     (illegal-argument "Cannot do context apposition, since object sets are not equal."))
-  (let [new-atts (union (set-of [m 1] [m (attributes ctx-1)])
-                        (set-of [m 2] [m (attributes ctx-2)]))
-        new-inz  (union (set-of [g [m 1]] [[g m] (incidence ctx-1)])
-                        (set-of [g [m 2]] [[g m] (incidence ctx-2)]))]
+  (let [new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2)),
+        new-inz  (union (set-of [g [m 0]] [[g m] (incidence ctx-1)])
+                        (set-of [g [m 1]] [[g m] (incidence ctx-2)]))]
     (make-context-nc (objects ctx-1) new-atts new-inz)))
 
 (defn context-subposition
@@ -463,10 +462,9 @@
   [ctx-1 ctx-2]
   (if (not= (attributes ctx-1) (attributes ctx-2))
     (illegal-argument "Cannot do context subposition, since attribute sets are not equal."))
-  (let [new-objs (union (set-of [g 1] [g (objects ctx-1)])
-                        (set-of [g 2] [g (objects ctx-2)]))
-        new-inz  (union (set-of [[g 1] m] [[g m] (incidence ctx-1)])
-                        (set-of [[g 2] m] [[g m] (incidence ctx-2)]))]
+  (let [new-objs (disjoint-union (objects ctx-1) (objects ctx-2))
+        new-inz  (union (set-of [[g 0] m] [[g m] (incidence ctx-1)])
+                        (set-of [[g 1] m] [[g m] (incidence ctx-2)]))]
     (make-context-nc new-objs (attributes ctx-1) new-inz)))
 
 (defn context-transitive-closure
@@ -521,18 +519,16 @@
 
   where all set unions are disjoint set unions."
   [ctx-1 ctx-2]
-  (let [new-objs (union (set-of [g_1 1] [g_1 (objects ctx-1)])
-                        (set-of [g_2 2] [g_2 (objects ctx-2)]))
-        new-atts (union (set-of [m_1 1] [m_1 (attributes ctx-1)])
-                        (set-of [m_2 2] [m_2 (attributes ctx-2)]))
-        new-inz  (union (set-of [[g_1 1] [m_1 1]]
+  (let [new-objs (disjoint-union (objects ctx-1) (objects ctx-2)),
+        new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2)),
+        new-inz  (union (set-of [[g_1 0] [m_1 0]]
                                 [[g_1 m_1] (incidence ctx-1)])
-                        (set-of [[g_2 2] [m_2 2]]
+                        (set-of [[g_2 1] [m_2 1]]
                                 [[g_2 m_2] (incidence ctx-2)])
-                        (set-of [[g_1 1] [m_2 2]]
+                        (set-of [[g_1 0] [m_2 1]]
                                 [g_1 (objects ctx-1)
                                  m_2 (attributes ctx-2)])
-                        (set-of [[g_2 2] [m_1 1]]
+                        (set-of [[g_2 1] [m_1 0]]
                                 [g_2 (objects ctx-2)
                                  m_1 (attributes ctx-1)]))]
     (make-context-nc new-objs new-atts new-inz)))

@@ -380,10 +380,67 @@
            (intersection? attributes)
            (intersection? incidence)))))
 
-;; context-composition
-;; context-apposition
-;; context-subposition
-;; context-transitive-closure
+(deftest test-context-composition
+  (is (= (context-composition (make-context-from-matrix 3 3 [1 1 0
+                                                             0 1 0
+                                                             0 0 0])
+                              (make-context-from-matrix 3 3 [1 1 1
+                                                             0 0 1
+                                                             0 1 1]))
+         (make-context-from-matrix 3 3 [1 1 1
+                                        0 0 1
+                                        0 0 0]))))
+
+(deftest test-context-apposition
+  (let [ctx-1 (make-context-from-matrix 3 3 [1 1 0
+                                             0 1 1
+                                             0 0 1]),
+        ctx-2 (make-context-from-matrix 3 4 [0 1 1 1
+                                             1 0 0 0
+                                             0 1 1 0]),
+        ctx-3 (make-context-from-matrix 3
+                                        [[0 0] [1 0] [2 0] [0 1] [1 1] [2 1] [3 1]]
+                                        [1 1 0 0 1 1 1
+                                         0 1 1 1 0 0 0
+                                         0 0 1 0 1 1 0])]
+    (is (= (context-apposition ctx-1 ctx-2) ctx-3))
+    (is (thrown? IllegalArgumentException
+                 (context-apposition ctx-1 (dual-context ctx-2))))))
+
+(deftest test-context-subposition
+  (let [ctx-1 (make-context-from-matrix 3 3 [1 1 0
+                                             0 1 1
+                                             0 0 1]),
+        ctx-2 (make-context-from-matrix 4 3 [0 1 1
+                                             1 0 0
+                                             0 1 1
+                                             0 0 1]),
+        ctx-3 (make-context-from-matrix [[0 0] [1 0] [2 0] [0 1] [1 1] [2 1] [3 1]]
+                                        3
+                                        [1 1 0
+                                         0 1 1
+                                         0 0 1
+                                         0 1 1
+                                         1 0 0
+                                         0 1 1
+                                         0 0 1])]
+    (is (= (context-subposition ctx-1 ctx-2) ctx-3))
+    (is (thrown? IllegalArgumentException
+                 (context-subposition ctx-1 (dual-context ctx-2))))))
+  
+(deftest test-context-transitive-closure
+  (is (= (context-transitive-closure (make-context-from-matrix 3 3 [0 1 1
+                                                                    1 0 1
+                                                                    1 0 0]))
+         (make-context-from-matrix 3 3 [1 1 1
+                                        1 1 1
+                                        1 1 1])))
+  (is (= (context-transitive-closure (make-context-from-matrix 3 3 [1 1 0
+                                                                    0 1 0
+                                                                    0 0 1]))
+         (make-context-from-matrix 3 3 [1 1 0
+                                        0 1 0
+                                        0 0 1]))))
 
 (deftest test-rand-context
   (is (context? (rand-context [1 2 3 4] 0.5)))
@@ -397,10 +454,63 @@
     (and (<= (count (objects ctx)) 23)
          (<= (count (attributes ctx)) 23))))
   
-;; context-sum
-;; context-product
-;; context-semiproduct
-;; context-xia-product
+(deftest test-context-sum
+  (let [ctx-1 (make-context-from-matrix 3 3 [1 1 0
+                                             0 1 0
+                                             0 0 1]),
+        ctx-2 (make-context-from-matrix 2 2 [1 1
+                                             0 1]),
+        ctx-3 (make-context-from-matrix [[0 0] [1 0] [2 0] [0 1] [1 1]]
+                                        [[0 0] [1 0] [2 0] [0 1] [1 1]]
+                                        [1 1 0 1 1
+                                         0 1 0 1 1
+                                         0 0 1 1 1
+                                         1 1 1 1 1
+                                         1 1 1 0 1])]
+    (is (= (context-sum ctx-1 ctx-2)
+           ctx-3))))
+
+(deftest test-context-product
+  (let [ctx-1 (make-context-from-matrix 2 2 [1 1
+                                             0 1]),
+        ctx-2 (make-context-from-matrix 2 2 [0 1
+                                             1 0]),
+        ctx-3 (make-context-from-matrix [[0 0] [1 0] [0 1] [1 1]]
+                                        [[0 0] [1 0] [0 1] [1 1]]
+                                        [1 1 1 1
+                                         0 1 1 1
+                                         1 1 1 1
+                                         1 1 0 1])]
+    (is (= (context-product ctx-1 ctx-2)
+           ctx-3))))
+
+(deftest test-context-semiproduct
+  (let [ctx-1 (make-context-from-matrix 2 2 [1 1
+                                             0 1]),
+        ctx-2 (make-context-from-matrix 2 2 [0 1
+                                             1 0]),
+        ctx-3 (make-context-from-matrix [[0 0] [1 0] [0 1] [1 1]]
+                                        [[0 0] [1 0] [0 1] [1 1]]
+                                        [1 1 0 1
+                                         0 1 0 1
+                                         1 1 1 0
+                                         0 1 1 0])]
+    (is (= (context-semiproduct ctx-1 ctx-2)
+           ctx-3))))
+
+(deftest test-context-xia-product
+    (let [ctx-1 (make-context-from-matrix 2 2 [1 1
+                                             0 1]),
+        ctx-2 (make-context-from-matrix 2 2 [0 1
+                                             1 0]),
+        ctx-3 (make-context-from-matrix [[0 0] [1 0] [0 1] [1 1]]
+                                        [[0 0] [1 0] [0 1] [1 1]]
+                                        [0 0 1 1
+                                         1 0 0 1
+                                         1 1 0 0
+                                         0 1 1 0])]
+    (is (= (context-xia-product ctx-1 ctx-2)
+           ctx-3))))
 
 ;;;
 
