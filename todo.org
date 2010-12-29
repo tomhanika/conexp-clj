@@ -1,13 +1,13 @@
 # -*- mode: org -*-
-# +startup: overview
-# +startup: hidestars
-# +TODO: TODO INPROGRESS | DONE
+#+startup: overview
+#+startup: hidestars
+#+TODO: TODO INPROGRESS | DONE CANCELLED
 
 conexp-clj TODOs
 
 * Overall
 ** TODO Implement Christians Force Layout with derivations
-** TODO Implement Chrisitans Initial Position Layout
+** TODO Implement Christians Initial Position Layout
 ** TODO Rule Exploration with Impex
 ** TODO GUI context editor
    It's slow, make it faster. If no second operand is given, calling
@@ -27,14 +27,26 @@ conexp-clj TODOs
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** INPROGRESS Make Sage interface faster                             :Daniel:
 ** TODO Lattice IO for csv and dot                                   :Daniel:
+   That should be simple for output, but non-trivial for input.
 ** TODO More IO formats for contexts                                 :Daniel:
    See the example files from Uta. Also include «anonymous-burmeister».
-** TODO draw-lattice-to-file                                         :Daniel:
+** INPROGRESS draw-lattice-to-file                                   :Daniel:
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
    arguments as draw-lattice.
-** TODO TikZ Hacker Mode                                             :unsure:
-** TODO Add conexp.io.string/latex                                   :Daniel:
+
+   Note that this is not that simple, given Java as background
+   language. When we want to export an image of a rendered canvas
+   without showing it, it is not clear how to tell Java how big image
+   is.
+   
+** CANCELLED TikZ Hacker Mode                                        :unsure:
+   CLOSED: [2010-12-29 Mi 20:53]
+   - CLOSING NOTE [2010-12-29 Mi 20:53] \\
+     This is not of importance right now.
+** DONE Add conexp.io.latex                                          :Daniel:
+   CLOSED: [2010-12-29 Mi 20:54]
+   - CLOSING NOTE [2010-12-29 Mi 20:54]
    As a function which outputs a tex representation of a given object
 ** TODO Add support for multiple contexts/... in IO                  :Daniel:
    I.e. a call like
@@ -43,7 +55,7 @@ conexp-clj TODOs
 
    should be possible. read-context then should also take an index of
    which context to read in.
-* For 0.0.6-alpha*
+* For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
 ** DONE Restructure layout code                                      :Daniel:
