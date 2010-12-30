@@ -72,13 +72,13 @@
   "Converts given lattice to it's corresponding graph with loops
   removed."
   [lattice]
-  (graph/remove-loops
-   (struct-map graph/directed-graph
-     :nodes (base-set lattice)
-     :neighbors (memoize
-                 (fn [x]
-                   (let [order (order lattice)]
-                     (filter #(order [x %]) (base-set lattice))))))))
+  (-> (struct-map graph/directed-graph
+        :nodes (base-set lattice)
+        :neighbors (memoize
+                    (fn [x]
+                      (let [order (order lattice)]
+                        (filter #(order [x %]) (base-set lattice))))))
+      graph/remove-loops))
 
 (defn layers
   "Returns the layers of the given lattice, that is sequence of points
