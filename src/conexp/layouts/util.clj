@@ -61,15 +61,14 @@
   "Scales given layout to rectangle [x1 y1], [x2 y2]."
   [[x1 y1] [x2 y2] layout]
   (let [points (seq (positions layout))]
-    (make-layout (apply hash-map
-                        (interleave (map first points)
-                                    (scale-points-to-rectangle [x1 y1] [x2 y2]
-                                                               (map second points))))
+    (make-layout (zipmap (map first points)
+                         (scale-points-to-rectangle [x1 y1] [x2 y2]
+                                                    (map second points)))
                  (connections layout))))
 
 ;;;
 
-(defn lattice->graph
+(defn- lattice->graph
   "Converts given lattice to it's corresponding graph with loops
   removed."
   [lattice]

@@ -256,8 +256,12 @@
   "Returns for a given context ctx its concept lattice."
   [ctx]
   (make-lattice-nc (set (concepts ctx))
-                   (fn [A B]
-                     (subset? (first A) (first B)))))
+                   (fn inf [[A _] [C _]]
+                     (let [A+C (intersection A C)]
+                       [A+C (object-derivation ctx A+C)]))
+                   (fn sup [[_ B] [_ D]]
+                     (let [B+D (intersection B D)]
+                       [(attribute-derivation ctx B+D) B+D]))))
 
 (defn standard-context
   "Returns the standard context of lattice lat."
