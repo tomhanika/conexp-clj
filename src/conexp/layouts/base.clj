@@ -161,8 +161,7 @@
   the layout repects the subset relation in the first component and
   the superset relation in the second component of every node."
   [layout]
-  (let [lattice (lattice layout),
-        <=      (order lattice)]
+  (let [lattice (lattice layout)]
     (and (forall [x (base-set lattice)]
            (and (vector? x)
                 (= 2 (count x))
