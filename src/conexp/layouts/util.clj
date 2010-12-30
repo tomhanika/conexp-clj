@@ -9,7 +9,7 @@
 (ns conexp.layouts.util
   (:use conexp.base
         [conexp.layouts.base :only (make-layout, positions, connections, update-positions)]
-        [conexp.fca.lattices :only (base-set, directly-neighboured?, order)])
+        conexp.fca.lattices)
   (:require [clojure.contrib.graph :as graph]))
 
 (ns-doc
@@ -90,10 +90,9 @@
   "Returns a sequence of pairs of vertices of lattice which are
   directly neighbored in lattice."
   [lattice]
-  (seq (transitive-reduction (base-set lattice)
-                             (let [<= (order lattice)]
-                               #(and (<= %1 %2)
-                                     (not= %1 %2))))))
+  (set-of [x y] [x (base-set lattice),
+                 y (base-set lattice),
+                 :when (directly-neighboured? lattice x y)]))
 
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
