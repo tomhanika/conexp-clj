@@ -9,8 +9,8 @@
 (ns conexp.layouts.layered
   (:use conexp.base
         conexp.layouts.util
-        [conexp.layouts.base :only (make-layout)]
-        [conexp.fca.lattices :only (base-set order)]))
+        conexp.layouts.base
+        conexp.fca.lattices))
 
 (ns-doc "Layered lattice layouts.")
 
@@ -29,7 +29,8 @@
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."
   [lattice]
-  (make-layout (apply hash-map
+  (make-layout lattice
+               (apply hash-map
                       (mapcat layer-coordinates
                               (iterate inc 0)
                               (layers lattice)))
@@ -38,7 +39,8 @@
 (defn as-chain
   "Returns the layout of lattice as a simple chain."
   [lattice]
-  (make-layout (into {}
+  (make-layout lattice
+               (into {}
                      (mapcat (fn [i layer]
                                (map (fn [x] [x [0, i]])
                                     layer))
@@ -47,6 +49,5 @@
                (edges lattice)))
 
 ;;;
-
 
 nil

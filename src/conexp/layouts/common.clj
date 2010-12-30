@@ -11,7 +11,7 @@
         conexp.fca.lattices
         conexp.layouts.util
         conexp.layouts.layered
-        [conexp.layouts.base :exclude (order)]))
+        conexp.layouts.base))
 
 (ns-doc "Implements common layout algorithm.")
 
@@ -70,7 +70,9 @@
   corresponding keys. Top element will be at [0,0], if not explicitly
   given."
   [lattice top placement]
-  (make-layout (placement-by-initials lattice top placement) (edges lattice)))
+  (make-layout lattice
+               (placement-by-initials lattice top placement)
+               (edges lattice)))
 
 ;;;
 

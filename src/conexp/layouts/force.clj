@@ -8,7 +8,7 @@
 
 (ns conexp.layouts.force
   (:use conexp.base
-        [conexp.fca.lattices :exclude (order)]
+        conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.common
         conexp.math.util

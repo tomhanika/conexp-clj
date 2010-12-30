@@ -8,7 +8,7 @@
 
 (ns conexp.layouts.base
   (:use conexp.base
-        [conexp.fca.lattices :only (make-lattice-nc, standard-context)]
+        conexp.fca.lattices
         clojure.pprint))
 
 (ns-doc "Basic definition of layout datatype")
@@ -26,8 +26,10 @@
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout."
-  [positions connections]
-  (Layout. positions (set connections) (ref {})))
+  ([lattice positions connections]
+     (Layout. positions (set connections) (ref {:lattice lattice})))
+  ([positions connections]
+     (Layout. positions (set connections) (ref {}))))
 
 (defn positions
   "Return positions map of layout."
@@ -77,8 +79,8 @@
      (let [result# (get @(information ~layout) (keyword '~name))]
        (if (not (nil? result#))
          result#
-         (dosync
-          (let [new-result# (do ~@body)]
+         (let [new-result# (do ~@body)]
+           (dosync
             (alter (information ~layout) assoc (keyword '~name) new-result#)
             new-result#))))))
 
@@ -132,7 +134,7 @@
   (set-of v [[v lowers] (lower-neighbours layout),
              :when (singleton? lowers)]))
 
-(def-layout-fn order
+(def-layout-fn full-order-relation
   "Returns underlying order relation of layout. This operation may be
   very costly."
   [layout]
@@ -141,7 +143,11 @@
 (def-layout-fn lattice
   "Returns lattice represented by layout."
   [layout]
-  (make-lattice-nc (nodes layout) (order layout)))
+  (let [uppers (upper-neighbours layout),
+        order  (fn order [x y]
+                 (or (= x y)
+                     (exists [z (uppers x)] (order z y))))]
+    (make-lattice-nc (nodes layout) order)))
 
 (def-layout-fn context
   "Returns a context whose lattice is represented by this layout."
@@ -149,18 +155,22 @@
   (standard-context (lattice layout)))
 
 (defn concept-lattice-layout?
-  "Tests whether layout comes from a concept lattice."
+  "Tests whether layout comes from a concept lattice.
+
+  Note: This implementation is not correct, as it only tests whether
+  the layout repects the subset relation in the first component and
+  the superset relation in the second component of every node."
   [layout]
-  (and (forall [node (nodes layout)]
-         (and (vector? node)
-              (= 2 (count node))
-              (set? (first node))
-              (set? (second node))))
-       (forall [node-1 (nodes layout),
-                node-2 (nodes layout)]
-         (=> ((order layout) [node-1 node-2])
-             (and (subset? (first node-1) (first node-2))
-                  (superset? (second node-1) (second node-2)))))))
+  (let [lattice (lattice layout),
+        <=      (order lattice)]
+    (and (forall [x (base-set lattice)]
+           (and (vector? x)
+                (= 2 (count x))
+                (set? (first x))
+                (set? (second x))))
+         (forall [[x y] (connections layout)]
+           (and (subset? (first x) (first y))
+                (superset? (second x) (second y)))))))
 
 (defn- set-to-label
   "Converts set of elements to a label."
@@ -176,12 +186,12 @@
     (map-by-fn (fn [x] [x ""]) (nodes layout))
     (let [uppers (upper-neighbours layout),
           lowers (lower-neighbours layout)]
-      (into {} (for [node (nodes layout)]
-                 [node
-                  [(set-to-label
-                    (apply difference (second node) (map second (uppers node))))
-                   (set-to-label
-                    (apply difference (first node) (map first (lowers node))))]])))))
+      (map-by-fn (fn [node]
+                   [node [(set-to-label
+                           (apply difference (second node) (map second (uppers node))))
+                          (set-to-label
+                           (apply difference (first node) (map first (lowers node))))]])
+                 (nodes layout)))))
 
 ;;;
 

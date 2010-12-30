@@ -28,7 +28,8 @@
     (.improve diag)
     (fn [angle]
       (.project2d diag ^double angle)
-      (make-layout (into {} (for [^Vertex vertex (.getVertices diag)]
+      (make-layout lattice
+                   (into {} (for [^Vertex vertex (.getVertices diag)]
                               [(.getUnderlyingObject (.getUnderlyingElem vertex)),
                                [(.getProjectedX vertex) (.getProjectedY vertex)]]))
                    edges))))

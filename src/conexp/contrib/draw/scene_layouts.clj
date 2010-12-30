@@ -8,8 +8,8 @@
 
 (ns conexp.contrib.draw.scene-layouts
   (:use [conexp.base :only (ns-doc, illegal-argument, defvar-, reduce!)]
-        [conexp.layouts.base :only (make-layout, positions, connections,
-                                                 nodes, update-positions, annotation)]
+        [conexp.layouts.base :only (positions, connections,
+                                    nodes, update-positions, annotation)]
         [conexp.layouts.util :only (enclosing-rectangle)]
         conexp.contrib.draw.nodes-and-connections
         conexp.contrib.draw.scenes
