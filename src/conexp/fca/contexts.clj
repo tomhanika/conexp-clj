@@ -473,14 +473,19 @@
   (make-context-nc (objects ctx) (attributes ctx) (transitive-closure (incidence ctx))))
 
 (defn rand-context
-  "Randomly fills context on base-sets with crosses and propability fill-rate."
+  "Randomly fills context on base-set (or on objects and attributes)
+  with crosses and propability fill-rate. If given numbers instead of
+  collections uses (range base-set) (and likewise for objects and
+  attributes) instead."
   ([base-set fill-rate]
      (rand-context base-set base-set fill-rate))
   ([objects attributes fill-rate]
      (when-not (and (number? fill-rate)
                     (<= 0 fill-rate 1))
        (illegal-argument "Fill-rate must be a number between 0 and 1."))
-     (make-context objects attributes (fn [_ _] (> fill-rate (rand))))))
+     (make-context (if (number? objects) (range objects) objects)
+                   (if (number? attributes) (range attributes) attributes)
+                   (fn [_ _] (> fill-rate (rand))))))
 
 (defn random-contexts
   "Returns a sequence of number contexts, with random fill rate and random
