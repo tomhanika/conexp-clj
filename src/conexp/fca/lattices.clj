@@ -16,17 +16,18 @@
 
 (declare order)
 
-(deftype Lattice [base-set order-relation inf sup]
+(deftype Lattice [base-set order-function inf sup]
   Object
   (equals [this other]
     (and (= (class this) (class other))
          (= (.base-set this) (.base-set ^Lattice other))
          (let [order-this (order this),
                order-other (order other)]
-           (forall [x (.base-set this)
-                    y (.base-set this)]
-             (<=> (order-this [x y])
-                  (order-other [x y]))))))
+           (or (= order-this order-other)
+               (forall [x (.base-set this)
+                        y (.base-set this)]
+                 (<=> (order-this x y)
+                      (order-other x y)))))))
   (hashCode [this]
     (hash-combine-hash Lattice base-set)))
 
@@ -40,47 +41,23 @@
   relation. If called with one argument it is assumed that this
   argument is a pair of elements."
   [^Lattice lattice]
-  (if-let [order-relation (.order-relation lattice)]
+  (let [order-function (.order-function lattice)]
     (fn order-fn
-      ([pair] (order-relation pair))
-      ([x y] (order-relation [x y])))
-    (let [sup (.sup lattice)]
-      (fn order-fn
-        ([[x y]] (= y (sup x y)))
-        ([x y] (= y (sup x y)))))))
+      ([pair] (order-function (first pair) (second pair)))
+      ([x y] (order-function x y)))))
 
 (defn inf
   "Returns a function computing the infimum in lattice."
   [^Lattice lattice]
-  (or (.inf lattice)
-      (let [order (order lattice)
-            base  (base-set lattice)]
-        (memo-fn _ [x y]
-          (first (for [z base
-                       :when (and (order [z x])
-                                  (order [z y])
-                                  (forall [a base]
-                                          (=> (and (order [a x]) (order [a y]))
-                                              (order [a z]))))]
-                   z))))))
+  (.inf lattice))
 
 (defn sup
   "Returns a function computing the supremum in lattice."
   [^Lattice lattice]
-  (or (.sup lattice)
-      (let [order (order lattice)
-            base  (base-set lattice)]
-        (memo-fn _ [x y]
-          (first (for [z base
-                       :when (and (order [x z])
-                                  (order [y z])
-                                  (forall [a base]
-                                          (=> (and (order [x a]) (order [y a]))
-                                              (order [z a]))))]
-                   z))))))
+  (.sup lattice))
 
-(defmethod print-method Lattice [^Lattice lattice out]
-  (.write ^java.io.Writer out
+(defmethod print-method Lattice [^Lattice lattice, ^java.io.Writer out]
+  (.write out
           ^String (str "Lattice on " (count (base-set lattice)) " elements.")))
 
 
@@ -89,17 +66,37 @@
 (defmulti make-lattice-nc
   "Creates a new lattice from the given arguments, without any
   checks. Use with care."
-  {:arglists '([base-set order-relation] [base-set inf sup])}
+  {:arglists '([base-set order-function] [base-set inf sup])}
   (fn [& args] (vec (map clojure-type args))))
 
 (defmethod make-lattice-nc [clojure-coll clojure-coll] [base-set order]
-  (Lattice. (set base-set) (set order) nil nil))
+  (let [order (set order)]
+    (make-lattice-nc (set base-set) (fn [x y] (contains? order [x y])))))
 
 (defmethod make-lattice-nc [clojure-coll clojure-fn] [base-set order]
-  (Lattice. (set base-set) (fn [[x y]] (order x y)) nil nil))
+  (let [inf (memoize (fn inf [x y]
+                       (first (for [z base-set
+                                    :when (and (order [z x])
+                                               (order [z y])
+                                               (forall [a base-set]
+                                                 (=> (and (order [a x]) (order [a y]))
+                                                     (order [a z]))))]
+                                z)))),
+        sup (memoize (fn sup [x y]
+                       (first (for [z base-set
+                                    :when (and (order [x z])
+                                               (order [y z])
+                                               (forall [a base-set]
+                                                 (=> (and (order [x a]) (order [y a]))
+                                                     (order [z a]))))]
+                                z))))]
+    (Lattice. (set base-set) order inf sup)))
 
 (defmethod make-lattice-nc [clojure-coll clojure-fn clojure-fn] [base-set inf sup]
-  (Lattice. (set base-set) nil inf sup))
+  (Lattice. (set base-set)
+            (fn [x y] (= y (sup x y)))
+            inf
+            sup))
 
 (defmethod make-lattice-nc :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Lattice."))
