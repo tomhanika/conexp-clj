@@ -267,25 +267,6 @@
   (intersection (lattice-sup-irreducibles lat)
                 (lattice-inf-irreducibles lat)))
 
-(defn lattice-heights
-  "Returns a function giving for every element in the base-set of the
-  given lattice its height."
-  [lat]
-  (let [zero (lattice-zero lat),
-        maxi (count (base-set lat)),
-        heig (memo-fn h [x]
-               (if (= x zero)
-                 0
-                 (inc (reduce (fn [mi a]
-                                (if (directly-neighboured? lat a x)
-                                  (min mi (h a))
-                                  mi))
-                              maxi
-                              (disj (base-set lat) x)))))]
-    (fn [x]
-      (when-not (contains? (base-set lat) x)
-        (illegal-argument "Given element is not contained in lattice."))
-      (heig x))))
 
 ;;; FCA
 
