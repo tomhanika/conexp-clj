@@ -40,10 +40,10 @@
 
 (defn- load-context-and-go
   "Loads context with given loader and adds a new tab with a context-editor."
-  [frame loader]
+  [frame]
   (when-let [^File file (choose-open-file frame)]
     (let [path (.getPath file),
-          thing (loader path)]
+          thing (read-context path)]
       (add-tab frame
                (make-context-editor thing)
                (str "Context " path)))))
@@ -55,13 +55,12 @@
     (clone-context-view-from-panel (current-tab frame))
     (str (current-tab-title frame) "*")))
 
-(defn- random-context-and-go
-  "Creates a random context and adds a new tab with a context-editor."
-  [frame]
-  (let [thing (rand-context #{"a" "b" "c" "d" "e" "f"} #{1 2 3 4 5 6} 0.4)]
-    (add-tab frame
-             (make-context-editor thing)
-             "Context")))
+(defn- context-and-go
+  "Opens given context in a new context editor tab."
+  [frame context]
+  (add-tab frame
+           (make-context-editor context)
+           "Context"))
 
 (defn- second-op-context-and-go
   "Show the current second operand context in a new tab."
@@ -92,10 +91,14 @@
 
 (defvar- context-menu
   {:name "Context",
-   :content [{:name "Load Context",
-              :handler #(load-context-and-go % read-context)},
+   :content [{:name "New Context",
+              :handler #(context-and-go % (make-context (set-of-range 10)
+                                                        (set-of-range 10)
+                                                        #{}))},
+             {:name "Load Context",
+              :handler load-context-and-go},
              {:name "Random Context",
-              :handler random-context-and-go},
+              :handler #(context-and-go % (rand-context 5 5 0.4))},
              {:name "Second Operand Context",
               :handler second-op-context-and-go},
              {}
