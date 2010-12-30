@@ -115,15 +115,17 @@
 
 (deftest test-lattice-one
   (with-testing-data [lattice testing-data]
-    (let [one (lattice-one lattice)]
-      (forall [x (base-set lattice)]
-        ((order lattice) x one)))))
+    (=> (not-empty (base-set lattice))
+        (let [one (lattice-one lattice)]
+          (forall [x (base-set lattice)]
+                  ((order lattice) x one))))))
 
 (deftest test-lattice-zero
   (with-testing-data [lattice testing-data]
-    (let [zero (lattice-zero lattice)]
-      (forall [x (base-set lattice)]
-        ((order lattice) zero x)))))
+    (=> (not-empty (base-set lattice))
+        (let [zero (lattice-zero lattice)]
+          (forall [x (base-set lattice)]
+                  ((order lattice) zero x))))))
 
 (deftest test-directly-neighboured?
   (with-testing-data [lattice testing-data]
