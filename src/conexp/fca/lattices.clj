@@ -71,26 +71,31 @@
 
 (defmethod make-lattice-nc [clojure-coll clojure-coll] [base-set order]
   (let [order (set order)]
-    (make-lattice-nc (set base-set) (fn [x y] (contains? order [x y])))))
+    (make-lattice-nc base-set (fn [x y] (contains? order [x y])))))
 
 (defmethod make-lattice-nc [clojure-coll clojure-fn] [base-set order]
-  (let [inf (memoize (fn inf [x y]
-                       (first (for [z base-set
-                                    :when (and (order [z x])
-                                               (order [z y])
-                                               (forall [a base-set]
-                                                 (=> (and (order [a x]) (order [a y]))
-                                                     (order [a z]))))]
-                                z)))),
-        sup (memoize (fn sup [x y]
-                       (first (for [z base-set
-                                    :when (and (order [x z])
-                                               (order [y z])
-                                               (forall [a base-set]
-                                                 (=> (and (order [x a]) (order [y a]))
-                                                     (order [z a]))))]
-                                z))))]
-    (Lattice. (set base-set) order inf sup)))
+  (let [base-set (set base-set),
+        inf      (memoize (fn inf [x y]
+                            (loop [elements base-set]
+                              (let [z (first elements)]
+                                (if (and (order z x)
+                                         (order z y)
+                                         (forall [a base-set]
+                                           (=> (and (order a x) (order a y))
+                                               (order a z))))
+                                  z
+                                  (recur (rest elements))))))),
+        sup      (memoize (fn sup [x y]
+                            (loop [elements base-set]
+                              (let [z (first elements)]
+                                (if (and (order x z)
+                                         (order y z)
+                                         (forall [a base-set]
+                                           (=> (and (order x a) (order y a))
+                                               (order z a))))
+                                  z
+                                  (recur (rest elements)))))))]
+    (Lattice. base-set order inf sup)))
 
 (defmethod make-lattice-nc [clojure-coll clojure-fn clojure-fn] [base-set inf sup]
   (Lattice. (set base-set)
@@ -104,35 +109,38 @@
 (defn has-lattice-order?
   "Given a lattice checks if its order is indeed a lattice order."
   [lat]
-  (and (forall [x (base-set lat)]
-         ((order lat) x x))
-       (forall [x (base-set lat),
-                y (base-set lat)]
-         (=> (and ((order lat) x y)
-                  ((order lat) y x))
-             (= x y)))
-       (forall [x (base-set lat),
-                y (base-set lat),
-                z (base-set lat)]
-         (=> (and ((order lat) x y)
-                  ((order lat) y z))
-             ((order lat) x z)))
-       (forall [x (base-set lat),
-                y (base-set lat)]
-         (and (= 1 (count (set-of z [z (base-set lat)
-                                     :when (and ((order lat) x z)
-                                                ((order lat) y z)
-                                                (forall [w (base-set lat)]
-                                                  (=> (and ((order lat) x w)
-                                                           ((order lat) y w))
-                                                      ((order lat) w z))))])))
-              (= 1 (count (set-of z [z (base-set lat)
-                                     :when (and ((order lat) z x)
-                                                ((order lat) z y)
-                                                (forall [w (base-set lat)]
-                                                  (=> (and ((order lat) w x)
-                                                           ((order lat) w y))
-                                                      ((order lat) w z))))])))))))
+  (let [<= (order lat)]
+    (and (forall [x (base-set lat)]
+           (<= x x))
+         (forall [x (base-set lat),
+                  y (base-set lat)]
+           (=> (and (<= x y)
+                    (<= y x))
+               (= x y)))
+         (forall [x (base-set lat),
+                  y (base-set lat),
+                  z (base-set lat)]
+           (=> (and (<= x y)
+                    (<= y z))
+               (<= x z)))
+         (forall [x (base-set lat),
+                  y (base-set lat)]
+           (and (singleton? (for [z (base-set lat)
+                                  :when (and (<= x z)
+                                             (<= y z)
+                                             (forall [w (base-set lat)]
+                                               (=> (and (<= x w)
+                                                        (<= y w))
+                                                   (<= w z))))]
+                              z))
+                (singleton? (for [z (base-set lat)
+                                  :when (and (<= z x)
+                                             (<= z y)
+                                             (forall [w (base-set lat)]
+                                               (=> (and (<= w x)
+                                                        (<= w y))
+                                                   (<= w z))))]
+                              z)))))))
 
 (defn make-lattice
   "Standard constructor for makeing lattice. Call with two arguments

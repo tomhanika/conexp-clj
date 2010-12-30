@@ -64,6 +64,13 @@
    (concept-lattice (rand-context (set-of-range 7) 0.1)),
    (concept-lattice (rand-context (set-of-range 5) 0.9))])
 
+(deftest test-lattice-construction
+  (let [lat-1 (make-lattice-nc [1 2 3 4 5 6] min max),
+        lat-2 (make-lattice-nc [1 2 3 4 5 6] <=)]
+    (is (= lat-1 lat-2))
+    (is (= 2 ((sup lat-1) 1 2)))
+    (is (= 1 ((inf lat-2) 1 2)))))
+
 (deftest test-has-lattice-order?
   (with-testing-data [lattice testing-data]
     (has-lattice-order? lattice))
