@@ -66,7 +66,9 @@
 (defmulti make-lattice-nc
   "Creates a new lattice from the given arguments, without any
   checks. Use with care."
-  {:arglists '([base-set order-function] [base-set inf sup])}
+  {:arglists '([base-set order-function]
+               [base-set inf sup]
+               [base-set order-function inf sup])}
   (fn [& args] (vec (map clojure-type args))))
 
 (defmethod make-lattice-nc [clojure-coll clojure-coll] [base-set order]
@@ -74,34 +76,37 @@
     (make-lattice-nc base-set (fn [x y] (contains? order [x y])))))
 
 (defmethod make-lattice-nc [clojure-coll clojure-fn] [base-set order]
-  (let [base-set (set base-set),
-        inf      (memoize (fn inf [x y]
-                            (loop [elements base-set]
-                              (let [z (first elements)]
-                                (if (and (order z x)
-                                         (order z y)
-                                         (forall [a base-set]
-                                           (=> (and (order a x) (order a y))
-                                               (order a z))))
-                                  z
-                                  (recur (rest elements))))))),
-        sup      (memoize (fn sup [x y]
-                            (loop [elements base-set]
-                              (let [z (first elements)]
-                                (if (and (order x z)
-                                         (order y z)
-                                         (forall [a base-set]
-                                           (=> (and (order x a) (order y a))
-                                               (order z a))))
-                                  z
-                                  (recur (rest elements)))))))]
-    (Lattice. base-set order inf sup)))
+  (let [inf (memoize (fn inf [x y]
+                       (loop [elements base-set]
+                         (let [z (first elements)]
+                           (if (and (order z x)
+                                    (order z y)
+                                    (forall [a base-set]
+                                      (=> (and (order a x) (order a y))
+                                          (order a z))))
+                             z
+                             (recur (rest elements))))))),
+        sup (memoize (fn sup [x y]
+                       (loop [elements base-set]
+                         (let [z (first elements)]
+                           (if (and (order x z)
+                                    (order y z)
+                                    (forall [a base-set]
+                                      (=> (and (order x a) (order y a))
+                                          (order z a))))
+                             z
+                             (recur (rest elements)))))))]
+    (make-lattice-nc base-set order inf sup)))
 
 (defmethod make-lattice-nc [clojure-coll clojure-fn clojure-fn] [base-set inf sup]
-  (Lattice. (set base-set)
-            (fn [x y] (= y (sup x y)))
-            inf
-            sup))
+  (make-lattice-nc base-set
+                   (fn [x y] (= y (sup x y)))
+                   inf
+                   sup))
+
+(defmethod make-lattice-nc [clojure-coll clojure-fn clojure-fn clojure-fn]
+  [base-set order inf sup]
+  (Lattice. (set base-set) order inf sup))
 
 (defmethod make-lattice-nc :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Lattice."))
@@ -164,7 +169,7 @@
   "Dualizes given lattice lat."
   [lat]
   (let [order (order lat)]
-    (make-lattice-nc (base-set lat) (fn [x y] (order [y x])))))
+    (make-lattice-nc (base-set lat) (fn [x y] (order y x)))))
 
 (defn distributive?
   "Checks (primitively) whether given lattice lat is distributive or not."
@@ -181,52 +186,58 @@
 (defn modular?
   "Checks (primitively) whether given lattice lat is modular or not."
   [lat]
-  (let [inf  (inf lat)
-        sup  (sup lat)
-        base (base-set lat)
+  (let [inf  (inf lat),
+        sup  (sup lat),
+        base (base-set lat),
         ordr (order lat)]
-    (forall [x base
-             y base
+    (forall [x base,
+             y base,
              z base]
-      (=> (ordr [x z])
+      (=> (ordr x z)
           (= (sup x (inf y z))
              (inf (sup x y) z))))))
 
 (defn lattice-one
   "Returns the one element of lattice lat."
   [lat]
-  (let [order (order lat)
-        base  (base-set lat)]
-    (first (set-of x [x base :when (forall [y base] (order [y x]))]))))
+  (when (empty? (base-set lat))
+    (illegal-argument "The lattice is empty and therefore cannot have a maximal element."))
+  (let [order (order lat)]
+    (reduce (fn [x a]
+              (if (order x a) a x))
+            (base-set lat))))
 
 (defn lattice-zero
   "Returns the zero element of lattice lat."
   [lat]
-  (let [order (order lat)
-        base  (base-set lat)]
-    (first (set-of x [x base :when (forall [y base] (order [x y]))]))))
+  (when (empty? (base-set lat))
+    (illegal-argument "The lattice is empty and therefore cannot have a minimal element."))
+  (let [order (order lat)]
+    (reduce (fn [x a]
+              (if (order a x) a x))
+            (base-set lat))))
 
 (defn directly-neighboured?
   "Checks whether x is direct lower neighbour of y in lattice lat."
   [lat x y]
-  (let [order (order lat)
-        base  (base-set lat)]
+  (let [order (order lat)]
     (and (not= x y)
-         (order [x y])
-         (forall [z base]
-           (=> (and (not= z x) (not= z y))
-               (not (and (order [x z])
-                         (order [z y]))))))))
+         (order x y)
+         (let [base  (disj (base-set lat) x y)]
+           (forall [z base]
+             (not (and (order x z) (order z y))))))))
 
 (defn lattice-upper-neighbours
   "Returns all direct upper neighbours of x in lattice lat."
   [lat x]
-  (set-of y [y (base-set lat) :when (directly-neighboured? lat x y)]))
+  (set-of y [y (base-set lat)
+             :when (directly-neighboured? lat x y)]))
 
 (defn lattice-lower-neighbours
   "Returns all direct lower neighbours of y in lattice lat."
   [lat y]
-  (set-of x [x (base-set lat) :when (directly-neighboured? lat x y)]))
+  (set-of x [x (base-set lat)
+             :when (directly-neighboured? lat x y)]))
 
 (defn lattice-atoms
   "Returns the lattice atoms of lat."
@@ -241,12 +252,14 @@
 (defn lattice-sup-irreducibles
   "Returns the sup-irreducible elements of lattice lat."
   [lat]
-  (set-of y [y (base-set lat) :when (= 1 (count (lattice-lower-neighbours lat y)))]))
+  (set-of y [y (base-set lat)
+             :when (= 1 (count (lattice-lower-neighbours lat y)))]))
 
 (defn lattice-inf-irreducibles
   "Returns the inf-irreducible elements of lattice lat."
   [lat]
-  (set-of x [x (base-set lat) :when (= 1 (count (lattice-upper-neighbours lat x)))]))
+  (set-of x [x (base-set lat)
+             :when (= 1 (count (lattice-upper-neighbours lat x)))]))
 
 (defn lattice-irreducibles
   "Returns all (i.e. sup or inf) irreducible elements of lattice lat."
@@ -254,6 +267,25 @@
   (intersection (lattice-sup-irreducibles lat)
                 (lattice-inf-irreducibles lat)))
 
+(defn lattice-heights
+  "Returns a function giving for every element in the base-set of the
+  given lattice its height."
+  [lat]
+  (let [zero (lattice-zero lat),
+        maxi (count (base-set lat)),
+        heig (memo-fn h [x]
+               (if (= x zero)
+                 0
+                 (inc (reduce (fn [mi a]
+                                (if (directly-neighboured? lat a x)
+                                  (min mi (h a))
+                                  mi))
+                              maxi
+                              (disj (base-set lat) x)))))]
+    (fn [x]
+      (when-not (contains? (base-set lat) x)
+        (illegal-argument "Given element is not contained in lattice."))
+      (heig x))))
 
 ;;; FCA
 
@@ -261,6 +293,8 @@
   "Returns for a given context ctx its concept lattice."
   [ctx]
   (make-lattice-nc (set (concepts ctx))
+                   (fn <= [[A _] [C _]]
+                     (subset? A C))
                    (fn inf [[A _] [C _]]
                      (let [A+C (intersection A C)]
                        [A+C (object-derivation ctx A+C)]))
