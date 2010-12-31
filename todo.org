@@ -55,6 +55,7 @@ conexp-clj TODOs
 
    should be possible. read-context then should also take an index of
    which context to read in.
+** TODO Write short documentation                                    :Daniel:
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
