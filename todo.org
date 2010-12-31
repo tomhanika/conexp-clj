@@ -67,12 +67,12 @@ conexp-clj TODOs
    and use it for «luxenburger-basis» and for «edges»
 ** INPROGRESS Improve test coverage of conexp core [3/5]             :Daniel:
    - [X] conexp.base
-   - [-] conexp.fca [5/7]
+   - [-] conexp.fca [6/7]
      - [X] association rules
      - [X] contexts
      - [X] exploration
      - [X] implications
-     - [ ] lattices
+     - [X] lattices
      - [ ] many-valued contexts
      - [X] more
    - [X] conexp.io [4/4]

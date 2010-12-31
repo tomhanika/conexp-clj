@@ -261,8 +261,8 @@
   (set-of x [x (base-set lat)
              :when (= 1 (count (lattice-upper-neighbours lat x)))]))
 
-(defn lattice-irreducibles
-  "Returns all (i.e. sup or inf) irreducible elements of lattice lat."
+(defn lattice-doubly-irreducibles
+  "Returns all (i.e. sup and inf) irreducible elements of lattice lat."
   [lat]
   (intersection (lattice-sup-irreducibles lat)
                 (lattice-inf-irreducibles lat)))

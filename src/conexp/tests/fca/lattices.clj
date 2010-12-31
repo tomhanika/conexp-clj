@@ -18,7 +18,8 @@
   (is (make-lattice #{1 2 3 4} <=))
   (is (make-lattice (subsets #{1 2 3 4}) subset?))
   (is (make-lattice-nc [1 2 3 4] [[1 2] [3 4] [5 6]]))
-  (is (thrown? IllegalArgumentException (make-lattice 1 2 3))))
+  (is (thrown? IllegalArgumentException (make-lattice 1 2 3)))
+  (is (thrown? IllegalArgumentException (make-lattice [1 2 3] <))))
 
 (deftest test-Lattice-equals
   (is (= (make-lattice #{} #{}) (make-lattice #{} #{})))
@@ -48,7 +49,16 @@
        #{1 2 3 4} =,
        (subsets #{1 2 3 4}) subset?))
 
-;; inf, sup
+(deftest test-inf-and-sup
+  (let [lat (make-lattice [1 2 3 4 5] min max)]
+    (is (= 2 ((sup lat) 1 2)))
+    (is (= 1 ((inf lat) 1 2)))
+    (is ((order lat) 1 2)))
+  (let [lat (make-lattice (subsets [1 2 3]) subset?)]
+    (is (= #{1} ((inf lat) #{1 2} #{1 3})))
+    (is (= #{1 2 3} ((sup lat) #{1 2} #{1 3})))
+    (is ((order lat) #{1} #{1 2}))
+    (is (not ((order lat) #{1 2 3} #{1 3 4})))))
 
 ;;; Testing common operations for lattices
 
@@ -62,7 +72,8 @@
                                 [1 1] [2 2] [3 3] [4 4]}),
    (concept-lattice (rand-context (set-of-range 7) 0.4)),
    (concept-lattice (rand-context (set-of-range 7) 0.1)),
-   (concept-lattice (rand-context (set-of-range 5) 0.9))])
+   (concept-lattice (rand-context (set-of-range 5) 0.9)),
+   (make-lattice (subsets #{1 2 3}) subset?)])
 
 (deftest test-lattice-construction
   (let [lat-1 (make-lattice-nc [1 2 3 4 5 6] min max),
@@ -139,15 +150,85 @@
                            ((order lattice) z y))
                       (or (= x z) (= y z)))))))))
 
-;; lattice-{upper,lower}-neighbours
-;; lattice-{,co}atoms,
-;; lattice-{inf,sup}-irreducibles
-;; lattice-irreducibles
+(deftest test-lattice-upper-neighbours
+  (with-testing-data [lat testing-data]
+    (forall [x (base-set lat)]
+      (let [xs (set (lattice-upper-neighbours lat x))]
+        (forall [y (base-set lat)]
+          (<=> (directly-neighboured? lat x y)
+               (contains? xs y)))))))
+
+(deftest test-lattice-lower-neighbours
+  (with-testing-data [lat testing-data]
+    (forall [x (base-set lat)]
+      (let [xs (set (lattice-lower-neighbours lat x))]
+        (forall [y (base-set lat)]
+          (<=> (directly-neighboured? lat y x)
+               (contains? xs y)))))))
+
+(deftest test-lattice-atoms
+  (with-testing-data [lat testing-data]
+    (=> (not-empty (base-set lat))
+        (= (lattice-atoms lat)
+           (lattice-upper-neighbours lat (lattice-zero lat))))))
+
+(deftest test-lattice-coatoms
+  (with-testing-data [lat testing-data]
+    (=> (not-empty (base-set lat))
+        (= (lattice-coatoms lat)
+           (lattice-lower-neighbours lat (lattice-one lat))))))
+
+(deftest test-lattice-inf-irreducibles
+  (with-testing-data [lat testing-data]
+    (let [inf-irr (lattice-inf-irreducibles lat)]
+      (forall [x (base-set lat)]
+        (<=> (contains? inf-irr x)
+             (and (not= x (lattice-one lat))
+                  (forall [a (disj (base-set lat) x),
+                           b (disj (base-set lat) x)]
+                    (not= x ((inf lat) a b)))))))))
+
+(deftest test-lattice-sup-irreducibles
+  (with-testing-data [lat testing-data]
+    (let [sup-irr (lattice-sup-irreducibles lat)]
+      (forall [x (base-set lat)]
+        (<=> (contains? sup-irr x)
+             (and (not= x (lattice-zero lat))
+                  (forall [a (disj (base-set lat) x),
+                           b (disj (base-set lat) x)]
+                    (not= x ((sup lat) a b)))))))))
+
+(deftest test-lattice-doubly-irreducibles
+  (with-testing-data [lat testing-data]
+    (= (lattice-doubly-irreducibles lat)
+       (intersection (lattice-inf-irreducibles lat)
+                     (lattice-sup-irreducibles lat)))))
 
 ;;; Testing FCA for lattices
 
-;; concept-lattice
-;; standard-context
+(deftest test-concept-lattice
+  (let [ctx (make-context-from-matrix 7 7 [0 1 1 0 0 1 1
+                                           0 0 1 0 1 0 0
+                                           1 0 0 0 1 1 0
+                                           1 1 1 0 0 0 1
+                                           1 1 0 0 1 1 1
+                                           1 1 1 0 1 0 0
+                                           0 0 1 0 0 1 1])]
+    (is (= (concept-lattice ctx)
+           (make-lattice (concepts ctx)
+                         (fn [[A _] [C _]]
+                           (subset? A C)))))))
+
+(deftest test-standard-context
+  (with-testing-data [lat testing-data]
+    (=> (not-empty (base-set lat))
+        (let [ctx (standard-context lat)]
+          (and (= (count (base-set lat))
+                  (count (concepts ctx)))
+               (= (objects ctx)
+                  (lattice-sup-irreducibles lat))
+               (= (attributes ctx)
+                  (lattice-inf-irreducibles lat)))))))
 
 ;;;
 
