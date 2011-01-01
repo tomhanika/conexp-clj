@@ -199,7 +199,7 @@
   "Returns the interordinal scale on the set base, optionally given
   two order relations <= and >=."
   ([values]
-     (interordinal-scale values values))
+     (interordinal-scale values <= >=))
   ([values <= >=]
      (interordinal-scale values values <= >=))
   ([values others <= >=]
@@ -229,8 +229,8 @@
      (let [first-objs (take n values),
            rest-objs  (drop n values),
 
-           first-atts (map #(str '<= " " %) (take n others)),
-           rest-atts  (map #(str '>= " " %) (drop n others)),
+           first-atts (take n others),
+           rest-atts  (drop n others),
 
            first-inz  (set-of [g (str '<= " " m)]
                               [g first-objs,
@@ -239,7 +239,10 @@
            rest-inz   (set-of [g (str '>= " " m)]
                               [g rest-objs,
                                m rest-atts
-                               :when (>= g m)])]
+                               :when (>= g m)]),
+
+           first-atts (map #(str '<= " " %) first-atts),
+           rest-atts  (map #(str '>= " " %) rest-atts)]
        (make-context values
                      (union first-atts rest-atts)
                      (union first-inz rest-inz)))))

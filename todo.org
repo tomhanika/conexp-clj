@@ -40,7 +40,7 @@ conexp-clj TODOs
    without showing it, it is not clear how to tell Java how big image
    is.
    
-** CANCELLED TikZ Hacker Mode                                        :unsure:
+** CANCELLED TikZ Hacker Mode
    CLOSED: [2010-12-29 Mi 20:53]
    - CLOSING NOTE [2010-12-29 Mi 20:53] \\
      This is not of importance right now.
@@ -56,6 +56,9 @@ conexp-clj TODOs
    should be possible. read-context then should also take an index of
    which context to read in.
 ** TODO Write short documentation                                    :Daniel:
+** TODO Change attribute names for mv-context scales                 :Daniel:
+   They are somewhat arbitrary and may also be misleading. Don't
+   forget to adjust the tests for them after finishing.
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
@@ -65,15 +68,15 @@ conexp-clj TODOs
    two functions (freese-layout and freese-interactive-layout).
 ** DONE Write transitive-reduction                                   :Daniel:
    and use it for «luxenburger-basis» and for «edges»
-** INPROGRESS Improve test coverage of conexp core [3/5]             :Daniel:
+** INPROGRESS Improve test coverage of conexp core [4/5]             :Daniel:
    - [X] conexp.base
-   - [-] conexp.fca [6/7]
+   - [X] conexp.fca [7/7]
      - [X] association rules
      - [X] contexts
      - [X] exploration
      - [X] implications
      - [X] lattices
-     - [ ] many-valued contexts
+     - [X] many-valued contexts
      - [X] more
    - [X] conexp.io [4/4]
      - [X] contexts

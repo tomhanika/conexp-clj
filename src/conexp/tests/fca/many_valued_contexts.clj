@@ -49,6 +49,7 @@
 
 (defvar- testing-data
   [(make-mv-context #{} #{} +),
+   (make-mv-context [1 2 3] [1 2 3] =),
    (make-mv-context (range 100) (range 100) *),
    (make-mv-context (range 100) (range 100) (fn [& _] (rand)))])
 
@@ -58,20 +59,91 @@
     (=> (= mv-ctx-1 mv-ctx-2)
         (= (hash mv-ctx-1) (hash mv-ctx-2)))))
 
-;; objects
-;; attributes
-;; incidence
+(deftest test-mv-context-getter
+  (is (let [mv-context (make-mv-context [1 2 3] '[a b c] #(str %1 %2))]
+        (and (= (objects mv-context) #{1 2 3})
+             (= (attributes mv-context) '#{a b c})
+             (= (incidence mv-context)
+                {[1 'a] "1a",
+                 [1 'b] "1b",
+                 [1 'c] "1c",
+                 [2 'a] "2a",
+                 [2 'b] "2b",
+                 [2 'c] "2c",
+                 [3 'a] "3a",
+                 [3 'b] "3b",
+                 [3 'c] "3c"}))))
+  (is (let [mv-context (make-mv-context-from-matrix [1 2] [1 2] [true 1
+                                                                 nil "Hallo"])]
+        (and (= (objects mv-context) (attributes mv-context) #{1 2})
+             (= (incidence mv-context)
+                {[1 1] true,
+                 [1 2] 1,
+                 [2 1] nil,
+                 [2 2] "Hallo"})))))
 
 ;;;
 
-;; values-of-attribute
-;; values-of-object
+(deftest test-values-of-attribute
+  (with-testing-data [mv-ctx testing-data]
+    (forall [m (attributes mv-ctx)]
+      (= (set (values-of-attribute mv-ctx m))
+         (set (map #(get (incidence mv-ctx) %)
+                   (map #(vector % m) (objects mv-ctx))))))))
 
-;; nominal-scale
-;; ordinal-scale
-;; interordinal-scale
-;; biordinal-scale
-;; dichotomic-scale
+(deftest test-values-of-object
+  (with-testing-data [mv-ctx testing-data]
+    (forall [g (objects mv-ctx)]
+      (= (set (values-of-object mv-ctx g))
+         (set (map #(get (incidence mv-ctx) %)
+                   (map #(vector g %) (attributes mv-ctx))))))))
+
+(deftest test-nominal-scale
+  (is (= (nominal-scale (range 10))
+         (make-context (range 10) (range 10) =)))
+  (is (= (nominal-scale (range 10) (range 5))
+         (make-context (range 10) (range 5) =))))
+
+(deftest test-ordinal-scale
+  (is (= (ordinal-scale [1 2])
+         (make-context-from-matrix [1 2] ["<= 1" "<= 2"] [1 1 0 1])))
+  (is (= (ordinal-scale [1 2] >=)
+         (make-context-from-matrix [1 2] ["<= 1" "<= 2"] [1 0 1 1])))
+  (is (= (ordinal-scale [1 2] [2 3] >=)
+         (make-context-from-matrix [1 2] ["<= 2" "<= 3"] [0 0 1 0]))))
+
+(deftest test-interordinal-scale
+  (is (= (interordinal-scale [1 2])
+         (make-context-from-matrix [1 2]
+                                   ["<= 1" "<= 2" ">= 1" ">= 2"]
+                                   [1 1 1 0 0 1 1 1])))
+  (is (= (interordinal-scale [1 2])
+         (interordinal-scale [1 2] <= >=)))
+  (is (= (interordinal-scale [1 2] [2 3] > <)
+         (make-context-from-matrix [1 2]
+                                   ["<= 2" "<= 3" ">= 2" ">= 3"]
+                                   [0 0 1 1
+                                    0 0 0 1]))))
+
+(deftest test-biordinal-scale
+  (is (= (biordinal-scale [1 2] 1)
+         (make-context-from-matrix [1 2]
+                                   ["<= 1" ">= 2"]
+                                   [1 0 0 1])))
+  (is (= (biordinal-scale [1 2] 2)
+         (ordinal-scale [1 2])))
+  (is (= (biordinal-scale [1 2] [2 3] 1 >= <=)
+         (make-context-from-matrix [1 2]
+                                   ["<= 2" ">= 3"]
+                                   [0 0 0 1]))))
+
+(deftest test-dichotomic-scale
+  (is (= (dichotomic-scale [1 2])
+         (make-context [1 2] [1 2] =)))
+  (is (thrown? AssertionError
+               (dichotomic-scale [1 2 3])))
+  (is (thrown? AssertionError
+               (dichotomic-scale [1]))))
 
 ;;;
 
