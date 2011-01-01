@@ -58,13 +58,20 @@
     (=> (= mv-ctx-1 mv-ctx-2)
         (= (hash mv-ctx-1) (hash mv-ctx-2)))))
 
-;; objects, attributes, incidence
+;; objects
+;; attributes
+;; incidence
 
 ;;;
 
-;; values-of-{attribute,object}
+;; values-of-attribute
+;; values-of-object
 
-;; {nominal,ordinal,interordinal,biordinal,dichotomic}-scale
+;; nominal-scale
+;; ordinal-scale
+;; interordinal-scale
+;; biordinal-scale
+;; dichotomic-scale
 
 ;;;
 
