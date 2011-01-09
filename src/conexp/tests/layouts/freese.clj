@@ -6,12 +6,19 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.layouts.freese)
+(ns conexp.tests.layouts.freese
+  (:use conexp.fca.contexts
+        conexp.fca.lattices
+        conexp.layouts.base
+        conexp.layouts.freese)
+  (:use clojure.test))
 
 ;;;
 
-;; interactive-freese-layout
-;; freese-layout
+(deftest test-freese
+  (let [lat (concept-lattice (rand-context 10 10 0.5))]
+    (layout? (freese-layout lat))
+    (layout? ((interactive-freese-layout lat) 0.0))))
 
 ;;;
 

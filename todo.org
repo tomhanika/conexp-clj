@@ -35,11 +35,9 @@ conexp-clj TODOs
    file of the picture of a lattice layout, when given the same
    arguments as draw-lattice.
 
-   Note that this is not that simple, given Java as background
-   language. When we want to export an image of a rendered canvas
-   without showing it, it is not clear how to tell Java how big image
-   is.
-   
+   For this we need some abstrace picture-drawing facility, which can
+   produce pictures without showing them. For that we could use svg
+   (also as output format for layouts) and simply write it to a file.
 ** CANCELLED TikZ Hacker Mode
    CLOSED: [2010-12-29 Mi 20:53]
    - CLOSING NOTE [2010-12-29 Mi 20:53] \\
@@ -86,13 +84,13 @@ conexp-clj TODOs
    - [X] conexp.math [2/2]
      - [X] optimize
      - [X] statistics
-   - [-] conexp.layouts [1/6]
+   - [-] conexp.layouts [2/6]
      - [ ] util
      - [ ] base
      - [ ] common
      - [ ] layered
      - [X] force
-     - [ ] freese
+     - [X] freese
 ** INPROGRESS Add more example files [0/4]                        :Sebastian:
    - [ ] Basiszeug (Kontext erstellen, klassische Operationen mit
          Kontexten, radom context, Kontext -> Verband)

@@ -22,6 +22,11 @@
   (hashCode [this]
     (hash-combine-hash Layout positions connections)))
 
+(defn layout?
+  "Returns true iff thing is a layout."
+  [thing]
+  (instance? Layout thing))
+
 (defn make-layout
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
