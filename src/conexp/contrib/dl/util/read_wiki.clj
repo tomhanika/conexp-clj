@@ -8,7 +8,7 @@
 
 ;; A program to convert data from the dbpedia project to DL models
 
-(ns conexp.contrib.dl.util.read_wiki
+(ns conexp.contrib.dl.util.read-wiki
   (:use [conexp.io.util :only (with-in-reader)]
         [clojure.walk :only (walk)])
   (:use conexp.main
@@ -111,11 +111,11 @@
                                         (constantly true)
                                         (constantly true)),
         instances (set (flatten (vals relations))),
-        concepts (role-map->concept-map
-                  (read-lines-from-file *wikipedia-instances*
-                                        (constantly true)
-                                        #(contains? instances %)
-                                        #(not (re-find #"owl#Thing" %))))]
+        concepts  (role-map->concept-map
+                   (read-lines-from-file *wikipedia-instances*
+                                         (constantly true)
+                                         #(contains? instances %)
+                                         #(not (re-find #"owl#Thing" %))))]
     [(prepare-for-conexp concepts), (prepare-for-conexp relations)]))
 
 ;;;
