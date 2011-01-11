@@ -1,7 +1,7 @@
 # -*- mode: org -*-
 #+startup: overview
 #+startup: hidestars
-#+TODO: TODO INPROGRESS | DONE CANCELLED
+#+TODO: TODO INPROGRESS UNCERTAIN | DONE CANCELLED
 
 conexp-clj TODOs
 
@@ -30,7 +30,8 @@ conexp-clj TODOs
    That should be simple for output, but non-trivial for input.
 ** TODO More IO formats for contexts                                 :Daniel:
    See the example files from Uta. Also include «anonymous-burmeister».
-** TODO Add svg export facilities                                    :Daniel:
+** TODO Add more layout output                                       :Daniel:
+   svg and povray
 ** INPROGRESS draw-lattice-to-file                                   :Daniel:
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
@@ -39,10 +40,6 @@ conexp-clj TODOs
    For this we need some abstrace picture-drawing facility, which can
    produce pictures without showing them. For that we could use svg
    (also as output format for layouts) and simply write it to a file.
-** CANCELLED TikZ Hacker Mode
-   CLOSED: [2010-12-29 Mi 20:53]
-   - CLOSING NOTE [2010-12-29 Mi 20:53] \\
-     This is not of importance right now.
 ** DONE Add conexp.io.latex                                          :Daniel:
    CLOSED: [2010-12-29 Mi 20:54]
    - CLOSING NOTE [2010-12-29 Mi 20:54]
@@ -94,7 +91,7 @@ conexp-clj TODOs
      - [X] freese
 ** INPROGRESS Add more example files [0/4]                        :Sebastian:
    - [ ] Basiszeug (Kontext erstellen, klassische Operationen mit
-         Kontexten, radom context, Kontext -> Verband)
+         Kontexten, random context, Kontext -> Verband)
    - [ ] Verbandsmalerei
    - [ ] GUI starten
    - [ ] IO: write & read context, layout
