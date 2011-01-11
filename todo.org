@@ -89,11 +89,11 @@ conexp-clj TODOs
      - [ ] layered
      - [X] force
      - [X] freese
-** INPROGRESS Add more example files [0/4]                        :Sebastian:
-   - [ ] Basiszeug (Kontext erstellen, klassische Operationen mit
-         Kontexten, random context, Kontext -> Verband)
-   - [ ] Verbandsmalerei
-   - [ ] GUI starten
+** INPROGRESS Add more example files [2/5]                        :Sebastian:
+   - [X] basic usage
+   - [X] working with contexts
+   - [ ] lattices
+   - [ ] working with the GUI
    - [ ] IO: write & read context, layout
 ** DONE Detexify docstrings                                          :Daniel:
    Docstrings don't need to contain TeX, since we will not import them
