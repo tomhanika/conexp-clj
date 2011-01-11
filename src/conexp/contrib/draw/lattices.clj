@@ -102,27 +102,33 @@
 
 ;;; Drawing Routine for the REPL
 
-(defnk draw-lattice
-  "Draws given lattice with given layout-function on a canvas. Returns
-  the frame and the scene (as map). The following options are allowed,
-  their default values are given in parantheses:
+(defnk draw-layout
+  "Draws given layout on a canvas. Returns the frame and the scene (as
+  map). The following options are allowed, their default values are
+  given in parantheses:
 
-    - layout-fn (standard-layout)
     - visible (true)
     - dimension [600 600]
   "
-  [lattice
-   :layout-fn standard-layout,
-   :visible true,
+  [layout
+   :visible true
    :dimension [600 600]]
   (let [frame          (JFrame. "conexp-clj Lattice"),
-        lattice-editor (make-lattice-editor frame (layout-fn lattice))]
+        lattice-editor (make-lattice-editor frame layout)]
     (doto frame
       (.add lattice-editor)
       (.setSize (Dimension. (first dimension) (second dimension)))
       (.setVisible visible))
     {:frame frame,
      :scene (get-scene-from-panel lattice-editor)}))
+
+(defn draw-lattice
+  "Draws lattice with given layout. Passes all other parameters to
+  draw-layout."
+  [lattice & args]
+  (let [map       (apply hash-map args),
+        layout-fn (get map :layout-fn standard-layout)]
+    (apply draw-layout (layout-fn lattice) map)))
 
 (defnk draw-lattice-to-file             ;does not work
   ""
