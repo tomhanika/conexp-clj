@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.freese
-  (:use [conexp.fca.lattices :only (base-set lattice-upper-neighbours)]
+  (:use conexp.base
+        [conexp.fca.lattices :only (base-set lattice-upper-neighbours)]
         [conexp.layouts.util :only (edges)]
         [conexp.layouts.base :only (make-layout)])
   (:import [org.latdraw.diagram Diagram Vertex]))
@@ -29,9 +30,12 @@
     (fn [angle]
       (.project2d diag ^double angle)
       (make-layout lattice
-                   (into {} (for [^Vertex vertex (.getVertices diag)]
-                              [(.getUnderlyingObject (.getUnderlyingElem vertex)),
-                               [(.getProjectedX vertex) (.getProjectedY vertex)]]))
+                   (reduce! (fn [map, ^Vertex vertex]
+                              (assoc! map
+                                      (.. vertex getUnderlyingElem getUnderlyingObject)
+                                      [(.getProjectedX vertex) (.getProjectedY vertex)]))
+                            {}
+                            (.getVertices diag))
                    edges))))
 
 (defn freese-layout
