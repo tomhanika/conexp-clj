@@ -191,10 +191,10 @@
     (let [uppers (upper-neighbours layout),
           lowers (lower-neighbours layout)]
       (map-by-fn (fn [node]
-                   [node [(set-to-label
-                           (apply difference (second node) (map second (uppers node))))
-                          (set-to-label
-                           (apply difference (first node) (map first (lowers node))))]])
+                   [(set-to-label
+                     (apply difference (second node) (map second (uppers node))))
+                    (set-to-label
+                     (apply difference (first node) (map first (lowers node))))])
                  (nodes layout)))))
 
 ;;;
