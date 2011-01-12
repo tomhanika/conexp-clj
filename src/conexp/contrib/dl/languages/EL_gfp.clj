@@ -21,6 +21,14 @@
 
 (define-dl EL-gfp [] [] [exists and])
 
+(defn EL-gfp-model-interpretation
+  "For a given tbox-target-pair returns the interpretation of the
+  target in the gfp-model of tbox in model."
+  [interpretation [tbox target]]
+  (let [tbox-graph  (tbox->description-graph tbox),
+        inter-graph (interpretation->description-graph interpretation)]
+    ((efficient-simulator-sets tbox-graph inter-graph) target)))
+
 (define-base-semantics EL-gfp
   [interpretation dl-expression]
   ;; quit, if dl-expression is not a tbox with target

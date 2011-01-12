@@ -506,17 +506,6 @@
   (let [sim-sets (efficient-simulator-sets G-1 G-2)]
     (contains? (get sim-sets v) w)))
 
-
-;;; gfp models
-
-(defn EL-gfp-model-interpretation
-  "For a given tbox-target-pair returns the interpretation of the
-  target in the gfp-model of tbox in model."
-  [interpretation [tbox target]]
-  (let [tbox-graph  (tbox->description-graph tbox),
-        inter-graph (interpretation->description-graph interpretation)]
-    ((efficient-simulator-sets tbox-graph inter-graph) target)))
-
 ;;;
 
 nil
