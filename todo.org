@@ -5,7 +5,7 @@
 
 conexp-clj TODOs
 
-* Overall
+* For 1.0.0
 ** TODO Implement Christians Force Layout with derivations
 ** TODO Implement Christians Initial Position Layout
 ** TODO Rule Exploration with Impex
@@ -15,12 +15,11 @@ conexp-clj TODOs
 ** TODO GUI lattice editor
 ** TODO GUI code editor
 ** TODO GUI plugin browser
-* Lattice Editor
 ** TODO Fix stupid labeling
 ** TODO Fix Neverending Rotation when switching tabs
    This is a GUI problem.
 * For 0.1.0-beta
-  What do we need?
+** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * For 0.0.7-alpha
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
