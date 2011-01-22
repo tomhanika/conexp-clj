@@ -20,9 +20,11 @@
 
 ;; test memoization of layout functions
 
-;; {upper,lower}-neighbours
+;; upper-neighbours
+;; lower-neighbours
 ;; upper-neighbours-of-inf-irreducibles
-;; {inf,sup}-irreducibles
+;; inf-irreducibles
+;; sup-irreducibles
 ;; order
 ;; lattice
 ;; context

@@ -86,11 +86,11 @@ conexp-clj TODOs
    - [X] conexp.math [2/2]
      - [X] optimize
      - [X] statistics
-   - [-] conexp.layouts [3/6]
+   - [-] conexp.layouts [4/6]
      - [X] util
      - [ ] base
      - [ ] common
-     - [ ] layered
+     - [X] layered
      - [X] force
      - [X] freese
 ** INPROGRESS Add more example files [2/5]                        :Sebastian:

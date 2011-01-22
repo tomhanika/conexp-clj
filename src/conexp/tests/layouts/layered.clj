@@ -6,12 +6,46 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.layouts.layered)
+(ns conexp.tests.layouts.layered
+  (:use conexp.base
+        conexp.fca.lattices
+        conexp.layouts.base
+        conexp.layouts.util
+        conexp.layouts.layered
+        conexp.tests.layouts.util)
+  (:use clojure.test))
 
 ;;;
 
-;; simple-layered-layout
-;; as-chain
+(deftest test-simple-layered-layout
+  (with-testing-data [lattice test-lattices]
+    (let [simply-layered (simple-layered-layout lattice),
+          layers         (layers lattice),
+          simple-layers  (sort-by first
+                                  (reduce! (fn [map [a [x y]]]
+                                    (assoc! map y (conj (get map y) x)))
+                                           {}
+                                           (positions simply-layered)))]
+      (and (layout? simply-layered)
+           (= (count layers)
+              (count simple-layers))
+           (= (map count layers)
+              (map (comp count second) simple-layers))
+           (forall [[_ coords] simple-layers]
+             (forall [x coords]
+               (exists [y coords]
+                 (= x (- y)))))))))
+
+(deftest test-as-chain
+  (with-testing-data [lattice test-lattices]
+    (let [chain (as-chain lattice)]
+      (and (layout? chain)
+           (>= 1 (count (set-of a | [a _] (vals (positions chain)))))
+           (forall [[x [_ b]] (positions chain),
+                    [y [_ d]] (positions chain)]
+             (=> (and ((order lattice) x y)
+                      (not= x y))
+                 (< b d)))))))
 
 ;;;
 
