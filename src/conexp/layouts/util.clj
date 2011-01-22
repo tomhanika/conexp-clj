@@ -24,21 +24,20 @@
   [points]
   (when (empty? points)
     (illegal-argument (str "Cannot scale empty sequence of points.")))
-  (let [[x0 y0] (first points),
-        [x_min y_min x_max y_max] (loop [x_min x0
-                                         y_min y0
-                                         x_max x0
-                                         y_max y0
-                                         points (rest points)]
-                                    (if (empty? points)
-                                      [x_min y_min x_max y_max]
-                                      (let [[x y] (first points)]
-                                        (recur (min x x_min)
-                                               (min y y_min)
-                                               (max x x_max)
-                                               (max y y_max)
-                                               (rest points)))))]
-    [x_min y_min x_max y_max]))
+  (let [[x0 y0] (first points)]
+    (loop [x_min  x0,
+           y_min  y0,
+           x_max  x0,
+           y_max  y0,
+           points (next points)]
+      (if points
+        (let [[x y] (first points)]
+          (recur (min x x_min)
+                 (min y y_min)
+                 (max x x_max)
+                 (max y y_max)
+                 (next points)))
+        [x_min y_min x_max y_max]))))
 
 (defn- scale-points-to-rectangle
   "Scales the collection of points such that they fit in the
@@ -111,8 +110,8 @@
   "Moves given point [x y] to the next point on the grid given by the
   origin [x_origin y_origin] and the paddings x_pad and y_pad."
   [[x_origin y_origin] x_pad y_pad [x y]]
-  [(+ x_origin (* x_pad (round (/ (- x x_origin) x_pad)))),
-   (+ y_origin (* y_pad (round (/ (- y y_origin) y_pad))))])
+  [(+ x_origin (* x_pad (Math/round (double (/ (- x x_origin) x_pad))))),
+   (+ y_origin (* y_pad (Math/round (double (/ (- y y_origin) y_pad)))))])
 
 (defn fit-layout-to-grid
   "Specifies a grid by a origin point and paddings x_pad and y_pad

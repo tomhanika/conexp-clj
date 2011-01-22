@@ -84,8 +84,8 @@ conexp-clj TODOs
    - [X] conexp.math [2/2]
      - [X] optimize
      - [X] statistics
-   - [-] conexp.layouts [2/6]
-     - [ ] util
+   - [-] conexp.layouts [3/6]
+     - [X] util
      - [ ] base
      - [ ] common
      - [ ] layered

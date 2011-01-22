@@ -11,8 +11,8 @@
 
 ;;;
 
-(tests-to-run conexp.tests.layouts.util
-              conexp.tests.layouts.base
+(tests-to-run conexp.tests.layouts.base
+              conexp.tests.layouts.util
               conexp.tests.layouts.common
               conexp.tests.layouts.layered
               conexp.tests.layouts.force
