@@ -30,7 +30,7 @@
 (defn make-layout
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
-  names denoting edges in the layout."
+  names denoting edges in the layout. Does not do any error checking."
   ([lattice positions connections]
      (Layout. positions (set connections) (ref {:lattice lattice})))
   ([positions connections]
