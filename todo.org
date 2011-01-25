@@ -32,6 +32,7 @@ conexp-clj TODOs
    See the example files from Uta. Also include «anonymous-burmeister».
 ** TODO Add more layout output                                       :Daniel:
    svg and povray
+** TODO Text Layout IO should use shortened annotation               :Daniel:
 ** INPROGRESS draw-lattice-to-file                                   :Daniel:
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
