@@ -27,7 +27,7 @@
 
 (add-layout-input-format :simple
                          (fn [rdr]
-                           (= "conexp-clj simple" (.readLine rdr))))
+                           (= "conexp-clj simple" (read-line))))
 
 (define-layout-output-format :simple
   [layout file]
@@ -71,7 +71,8 @@
     (illegal-argument "Cannot store layout in :text format which does "
                       "not come from a concept lattice."))
   (let [nodes       (vec (keys (positions layout))),
-        node-number (comp inc (seq-positions nodes))]
+        node-number (comp inc (seq-positions nodes)),
+        annotation  (annotation layout)]
     (with-out-writer file
       ;; Node
       (doseq [n nodes]
@@ -82,11 +83,13 @@
         (println (str "Edge: " (node-number x) ", " (node-number y))))
       ;; Object
       (doseq [n nodes,
-              g (first n)]
+              g (clojure.string/split (second (annotation n)) #", ")
+              :when (not-empty g)]
         (println (str "Object: " (node-number n) ", " g)))
       ;; Attribute
       (doseq [n nodes,
-              m (second n)]
+              m (clojure.string/split (first (annotation n)) #", ")
+              :when (not-empty m)]
         (println (str "Attribute: " (node-number n) ", " m)))
       (println "EOF"))))
 
@@ -102,6 +105,7 @@
 
 (define-layout-input-format :text
   [file]
+  (unsupported-operation "Not available.")
   (let [lines (partition-by #(second (re-matches #"^([^:]*): .*$" %))
                             (line-seq (reader file)))]
     (when-not (<= (count lines) 5)
