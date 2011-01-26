@@ -52,9 +52,10 @@
   (let [layout (get-layout-from-panel (current-tab frame))]
     (if (nil? layout)
       (illegal-argument "Current tab does not contain a lattice editor.")
-      (write format
-             (transformer layout)
-             (.getPath ^File (choose-save-file frame))))))
+      (when-let [^File file (choose-save-file frame)]
+        (write format
+               (transformer layout)
+               (.getPath file))))))
 
 (defn- edit-standard-context
   "Opens a context-editor with the standard context of the lattice
@@ -80,11 +81,15 @@
               :handler #(load-lattice-and-go % read-layout identity)}
              {}
              {:name "Save Lattice",
-              :content [{:name "Format conexp-clj simple",
-                         :handler #(save-layout % lattice write-lattice :simple)}]}
+              :content (map (fn [format]
+                              (hash-map :name (str "Format " (name format)),
+                                        :handler #(save-layout % lattice write-lattice format)))
+                            (list-lattice-output-formats))},
              {:name "Save Layout",
-              :content [{:name "Format conexp-clj simple",
-                         :handler #(save-layout % identity write-layout :simple)}]}
+              :content (map (fn [format]
+                              (hash-map :name (str "Format " (name format)),
+                                        :handler #(save-layout % identity write-layout format)))
+                            (list-layout-output-formats))}
              {}
              {:name "Edit Standard Context",
               :handler edit-standard-context}]}
