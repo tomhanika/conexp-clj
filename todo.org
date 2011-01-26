@@ -87,10 +87,10 @@ conexp-clj TODOs
    - [X] conexp.math [2/2]
      - [X] optimize
      - [X] statistics
-   - [-] conexp.layouts [4/6]
+   - [-] conexp.layouts [5/6]
      - [X] util
      - [ ] base
-     - [ ] common
+     - [X] common
      - [X] layered
      - [X] force
      - [X] freese

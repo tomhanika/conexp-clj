@@ -18,13 +18,14 @@
 ;;; inf-irreducible additive layout
 
 (defn placement-by-initials
-  "Computes placement for all elements by of some positions of some
-  initial nodes. Top element will be at top."
+  "Computes placement for all elements by positions of some initial
+  nodes. Top element will be at top."
   [lattice top placement]
-  (let [pos (fn pos [v]
+  (let [ord (order lattice),
+        pos (fn pos [v]
               (get placement v
                    (reduce (fn [p w]
-                             (if ((order lattice) [v w])
+                             (if (ord v w)
                                (let [p-w (placement w)]
                                  [(+ (first p) (- (first p-w) (first top))),
                                   (+ (second p) (- (second p-w) (second top)))])
@@ -38,8 +39,9 @@
   positions of the infimum irreducible elements as initial positions for
   the resulting additive layout."
   ;; this is stupid, do it better!
-  [lattice layout]
-  (let [old-positions (positions layout),
+  [layout]
+  (let [lattice       (lattice layout),
+        old-positions (positions layout),
         top-pos       (old-positions (lattice-one lattice)),
         inf-irr       (set (inf-irreducibles layout)),
         elements      (filter inf-irr (top-down-elements-in-layout layout))]
@@ -67,8 +69,7 @@
 (defn layout-by-placement
   "Computes additive layout of lattice by given positions of the keys
   of placement. The values of placement should be the positions of the
-  corresponding keys. Top element will be at [0,0], if not explicitly
-  given."
+  corresponding keys. Top element will be at top."
   [lattice top placement]
   (make-layout lattice
                (placement-by-initials lattice top placement)

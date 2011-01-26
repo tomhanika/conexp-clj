@@ -6,13 +6,74 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.layouts.common)
+(ns conexp.tests.layouts.common
+  (:use conexp.base
+        conexp.fca.lattices
+        conexp.layouts.base
+        conexp.layouts.common)
+  (:use clojure.test))
 
 ;;;
 
-;; placement-by-initials
-;; to-inf-additive-layout
-;; layout-by-placement
+(deftest test-placement-by-initials
+  (let [placement (placement-by-initials (make-lattice (subsets #{1 2 3})
+                                                       subset?)
+                                         [1 1]
+                                         {#{1 2} [-2 0], #{1 3} [0 0], #{2 3} [2 0]})]
+    (is (= placement
+           {#{} [-2 -2],
+            #{1} [-3 -1],
+            #{2} [-1 -1],
+            #{3} [1 -1],
+            #{1 2} [-2 0],
+            #{1 3} [0 0],
+            #{2 3} [2 0],
+            #{1 2 3} [1 1]}))))
+
+(defvar- test-lattice (make-lattice (subsets #{1 2 3})
+                                     subset?))
+
+(defvar- test-layout (make-layout {#{} [-2 -6],
+                                   #{1} [-5 -1],
+                                   #{2} [-1 -1],
+                                   #{3} [0 -1],
+                                   #{1 2} [-2 0],
+                                   #{1 3} [0 0],
+                                   #{2 3} [2 0],
+                                   #{1 2 3} [1 1]}
+                                  [[#{} #{1}], [#{} #{2}], [#{} #{3}],
+                                   [#{1} #{1 2}], [#{1} #{1 3}],
+                                   [#{2} #{1 2}], [#{2} #{2 3}],
+                                   [#{3} #{1 3}], [#{3} #{2 3}],
+                                   [#{1 2} #{1 2 3}],
+                                   [#{1 3} #{1 2 3}],
+                                   [#{2 3} #{1 2 3}]]))
+
+(deftest test-to-inf-additive-layout
+  (is (= (positions (to-inf-additive-layout test-layout))
+         {#{} [-2 -2],
+          #{1} [-3 -1],
+          #{2} [-1 -1],
+          #{3} [1 -1],
+          #{1 2} [-2 0],
+          #{1 3} [0 0],
+          #{2 3} [2 0],
+          #{1 2 3} [1 1]})))
+
+(deftest test-layout-by-placement
+  (is (= (positions (layout-by-placement (make-lattice (subsets #{1 2 3})
+                                                       subset?)
+                                         [1 1]
+                                         {#{1 2} [-2 0], #{1 3} [0 0], #{2 3} [2 0]}))
+         {#{} [-2 -2],
+          #{1} [-3 -1],
+          #{2} [-1 -1],
+          #{3} [1 -1],
+          #{1 2} [-2 0],
+          #{1 3} [0 0],
+          #{2 3} [2 0],
+          #{1 2 3} [1 1]})))
+
 
 ;;;
 

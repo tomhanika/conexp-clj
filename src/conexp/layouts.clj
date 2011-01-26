@@ -19,7 +19,7 @@
 (defn inf-additive-layout
   "Returns an infimum additive layout for lattice."
   [lattice]
-  (to-inf-additive-layout lattice (standard-layout lattice)))
+  (to-inf-additive-layout (standard-layout lattice)))
 
 ;;;
 
