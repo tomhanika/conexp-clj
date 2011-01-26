@@ -15,6 +15,11 @@
 
 (defrecord TBox [language definition-map])
 
+(defn tbox?
+  "Returns true iff thing is a TBox."
+  [thing]
+  (instance? TBox thing))
+
 (defn tbox-language
   "Returns language for which tbox is a tbox."
   [^TBox tbox]
