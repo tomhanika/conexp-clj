@@ -81,12 +81,12 @@
   a value and stores it."
   [name doc-string [layout & args] & body]
   `(defn ~name ~doc-string [~layout ~@args]
-     (let [result# (get @(information ~layout) (keyword '~name))]
+     (let [result# (get @(information ~layout) ~(keyword name))]
        (if (not (nil? result#))
          result#
          (let [new-result# (do ~@body)]
            (dosync
-            (alter (information ~layout) assoc (keyword '~name) new-result#)
+            (alter (information ~layout) assoc ~(keyword name) new-result#)
             new-result#))))))
 
 (def-layout-fn upper-neighbours

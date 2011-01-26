@@ -10,6 +10,7 @@
   (:use conexp.base
         conexp.io.util
         conexp.io.latex
+        conexp.layouts.util
         conexp.layouts.base)
   (:require clojure.string)
   (:import [java.io PushbackReader]))
@@ -105,7 +106,6 @@
 
 (define-layout-input-format :text
   [file]
-  (unsupported-operation "Not available.")
   (let [lines (partition-by #(second (re-matches #"^([^:]*): .*$" %))
                             (line-seq (reader file)))]
     (when-not (<= (count lines) 5)
@@ -127,6 +127,8 @@
                          (conj set (get-arguments line "Edge")))
                        #{}
                        (entries "Edge")),
+          ;; Compute lower and upper elements
+          [below,above] (compute-below-above conn),
           ;; Object
           objs (reduce (fn [map line]
                          (let [[node obj] (get-arguments line "Object")]
@@ -141,7 +143,8 @@
                        (entries "Attribute")),
           ;; Layout construction
           nodes (map-by-fn (fn [node]
-                             [(set (objs node)), (set (atts node))])
+                             [(set (mapcat objs (below node))),
+                              (set (mapcat atts (above node)))])
                            (keys pos))]
       (make-layout (into {} (for [[number, coord] pos]
                               [(nodes number), coord]))

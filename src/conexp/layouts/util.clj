@@ -141,4 +141,42 @@
 
 ;;;
 
+(defn compute-below-above
+  "Computes maps mapping endpoints of edges to all elements above and
+  below it. Returns [below,above]."
+  [edges]
+  (loop [above (transient {}),
+         below (transient {}),
+         edges edges]
+    (if (empty? edges)
+      [(persistent! below), (persistent! above)]
+      (let [[a b]   (first edges),
+            above   (assoc! above a
+                            (conj (get above a #{}) a b)),
+            above   (assoc! above b
+                            (conj (get above b #{}) b)),
+            below   (assoc! below b
+                            (conj (get below b #{}) b a)),
+            below   (assoc! below a
+                            (conj (get below a #{}) a)),
+            above-b (above b),
+            below-a (below a),
+            above   (reduce (fn [above x]
+                              (assoc! above x
+                                      (into (above x) above-b)))
+                            above
+                            below-a),
+            above   (assoc! above a
+                            (into (above a) (above b))),
+            below   (reduce (fn [below x]
+                              (assoc! below x
+                                      (into (below x) below-a)))
+                            below
+                            above-b),
+            below   (assoc! below b
+                            (into (below b) (below a)))]
+        (recur above below (rest edges))))))
+
+;;;
+
 nil
