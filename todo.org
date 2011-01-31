@@ -1,7 +1,7 @@
 # -*- mode: org -*-
 #+startup: overview
 #+startup: hidestars
-#+TODO: TODO INPROGRESS UNCERTAIN | DONE CANCELLED
+#+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
 
 conexp-clj TODOs
 
@@ -101,13 +101,9 @@ conexp-clj TODOs
    into the documentation anymore.
 ** DONE Add conexp.io.latex                                          :Daniel:
    CLOSED: [2010-12-29 Mi 20:54]
-   - CLOSING NOTE [2010-12-29 Mi 20:54]
    As a function which outputs a tex representation of a given object
-
-
 ** DONE Text Layout IO should use shortened annotation               :Daniel:
    CLOSED: [2011-01-26 Mi 23:17]
-
 ** DONE Let make-layout do error checking                            :Daniel:
    CLOSED: [2011-01-31 Mo 21:59]
    And introduce make-layout-nc.
