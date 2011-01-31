@@ -95,10 +95,10 @@ conexp-clj TODOs
      - [X] layered
      - [X] force
      - [X] freese
-** INPROGRESS Add more example files [2/5]                        :Sebastian:
+** INPROGRESS Add more example files [3/5]                        :Sebastian:
    - [X] basic usage
    - [X] working with contexts
-   - [ ] lattices
+   - [X] lattices
    - [ ] working with the GUI
    - [ ] IO: write & read context, layout
 ** DONE Detexify docstrings                                          :Daniel:

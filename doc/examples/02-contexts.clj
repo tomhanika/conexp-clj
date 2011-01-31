@@ -1,6 +1,8 @@
 ;; Sebastian Böhm, Daniel Borchmann, 2010
 ;; This file is in the public domain
 
+(use 'conexp.main)
+
 ;; Working with Formal Contexts
 
 ;; Now we want to work with a given context. In the following we want
@@ -41,6 +43,8 @@
 (reduce-clarified-context ctx-3)
 
 ;; Now let's take the Chevron from the basics part again as ctx-1.
+(defvar ctx-1 (make-context [1 2 3] [1 2 3] <=))
+
 ;; We can compute all intents and extents via
 (context-extents ctx-1)
 (context-intents ctx-1)

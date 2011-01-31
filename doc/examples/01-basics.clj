@@ -1,5 +1,7 @@
-﻿;; Sebastian Böhm, Daniel Borchmann, 2010
+;; Sebastian Böhm, Daniel Borchmann, 2010
 ;; This file is in the public domain
+
+(use 'conexp.main)
 
 ;; How to create a context?
 
@@ -70,7 +72,7 @@
 (concepts ctx-1)
 
 ;; To see how many formal concepts you get, you can write:
-(count(concepts ctx-1))
+(count (concepts ctx-1))
 
 ;; You can compute the concept lattice via
 (concept-lattice ctx-1) 
