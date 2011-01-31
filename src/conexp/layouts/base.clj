@@ -40,6 +40,10 @@
   [positions connections]
   (when-not (map? positions)
     (illegal-argument "Positions must be a map."))
+  (when-not (every? #(and (vector? %)
+                          (= 2 (count %)))
+                    (vals positions))
+    (illegal-argument "Points must be positioned with pairs."))
   (when-not (and (coll? connections)
                  (every? #(and (vector? %)
                           (= 2 (count %)))
@@ -49,23 +53,25 @@
                      (set (keys positions)))
     (illegal-argument "Connections must be given between positioned points."))
   ;; checking for cycles, copied from «upper-neighbours»
-  (let [uppers (loop [uppers {},
-                      connections connections]
-                 (if (empty? connections)
-                   uppers
-                   (let [[a b] (first connections)]
-                     (recur (update-in uppers [a] conj b)
-                            (rest connections))))),
-        neighs (fn neighs [node collected]
-                 (let [next (difference (set (uppers node))
-                                        collected)]
-                   (if (empty? next)
-                     collected
-                     (let [new-collected (into collected next)]
-                       (apply union (map #(neighs % new-collected)
-                                         next))))))]
-    (when-not (forall [x (keys positions)]
-                (not (contains? (neighs x #{}) x)))
+  (let [uppers  (loop [uppers {},
+                       connections connections]
+                  (if (empty? connections)
+                    (map-by-fn (fn [x] (set (uppers x)))
+                               (keys uppers))
+                    (let [[a b] (first connections)]
+                      (recur (update-in uppers [a] conj b)
+                             (rest connections))))),
+        cycles? (fn cycles? [node]
+                  (let [equals-some-seen (fn equals-some-seen [current seen]
+                                            (let [next (uppers current)]
+                                              (cond
+                                               (empty? next) false,
+                                               (not-empty (intersection seen next)) true,
+                                               :else
+                                               (let [seen (into seen next)]
+                                                 (some #(equals-some-seen % seen) next)))))]
+                    (equals-some-seen node #{})))]
+    (when (exists [x (keys positions)] (cycles? x))
       (illegal-argument "Given set of edges is cyclic.")))
   nil)
 
@@ -74,7 +80,7 @@
   (verify-positions-connections
    positions connections)
   (when-not (= (base-set lattice)
-               (keys positions))
+               (set (keys positions)))
     (illegal-argument "Positioned points must be the elements of the given lattice."))
   (when-not (forall [x (base-set lattice),
                      y (base-set lattice)]

@@ -20,23 +20,37 @@
   (is (layout? (make-layout {} [])))
   (is (layout? (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
                             #{[1 2] [2 3]})))
-  (is (thrown? IllegalArgumentException
-               (make-layout 1 2)))
-  (is (thrown? IllegalArgumentException
-               (make-layout {} 1)))
-  (is (thrown? IllegalArgumentException
-               (make-layout {1 [0,0]} [[1 2]])))
-  (is (thrown? IllegalArgumentException
-               (make-layout (make-lattice-nc [1 2 3] <)
-                            {}
-                            [])))
-  (is (thrown? IllegalArgumentException
-               (make-layout (make-lattice-nc [1 2 3] <)
-                            {1 [0 0] 2 [1 1] 3 [2 2]}
-                            [])))
-  (is (thrown? IllegalArgumentException
-               (make-layout {1 [0 0] 2 [1 1] 3 [2 2]}
-                            [[1 2] [2 3] [3 1]]))))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Positions must be a map."
+        (make-layout 1 2)))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Connections must be given as a collection of pairs."
+        (make-layout {} 1)))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Points must be positioned with pairs."
+        (make-layout {1 2 3 4}
+                     [])))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Connections must be given between positioned points."
+        (make-layout {1 [0,0]} [[1 2]])))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Positioned points must be the elements of the given lattice."
+        (make-layout (make-lattice-nc [1 2 3] <)
+                     {}
+                     [])))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"The given connections must represent the edges of the given lattice."
+        (make-layout (make-lattice-nc [1 2 3] <)
+                     {1 [0 0] 2 [1 1] 3 [2 2]}
+                     [])))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Given set of edges is cyclic."
+        (make-layout {1 [0 0] 2 [1 1] 3 [2 2]}
+                     [[1 2] [2 3] [3 1]])))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Given set of edges is cyclic."
+        (make-layout {1 [0 0] 2 [0 0] 3 [0 0] 4 [0 0] 5 [0 0]}
+                     [[1 2] [2 3] [2 4] [4 5] [3 2]]))))
 
 (deftest test-positions-and-connections
   (let [pos {1 [0,0], 2 [1,1], 3 [2,2]},

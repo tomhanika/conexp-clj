@@ -108,5 +108,6 @@ conexp-clj TODOs
 ** DONE Text Layout IO should use shortened annotation               :Daniel:
    CLOSED: [2011-01-26 Mi 23:17]
 
-** TODO Let make-layout do error checking                            :Daniel:
+** DONE Let make-layout do error checking                            :Daniel:
+   CLOSED: [2011-01-31 Mo 21:59]
    And introduce make-layout-nc.
