@@ -29,24 +29,24 @@
 (defn simple-layered-layout
   "Simple layered layout for lattice visualization."
   [lattice]
-  (make-layout lattice
-               (apply hash-map
-                      (mapcat layer-coordinates
-                              (iterate inc 0)
-                              (layers lattice)))
-               (edges lattice)))
+  (make-layout-nc lattice
+                  (apply hash-map
+                         (mapcat layer-coordinates
+                                 (iterate inc 0)
+                                 (layers lattice)))
+                  (edges lattice)))
 
 (defn as-chain
   "Returns the layout of lattice as a simple chain."
   [lattice]
-  (make-layout lattice
-               (into {}
-                     (mapcat (fn [i layer]
-                               (map (fn [x] [x [0, i]])
-                                    layer))
-                             (iterate inc 0)
-                             (layers lattice)))
-               (edges lattice)))
+  (make-layout-nc lattice
+                  (into {}
+                        (mapcat (fn [i layer]
+                                  (map (fn [x] [x [0, i]])
+                                       layer))
+                                (iterate inc 0)
+                                (layers lattice)))
+                  (edges lattice)))
 
 ;;;
 

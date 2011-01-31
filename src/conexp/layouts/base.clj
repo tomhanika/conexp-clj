@@ -27,7 +27,7 @@
   [thing]
   (instance? Layout thing))
 
-(defn make-layout
+(defn make-layout-nc
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout. Does not do any error checking."
@@ -35,6 +35,66 @@
      (Layout. positions (set connections) (ref {:lattice lattice})))
   ([positions connections]
      (Layout. positions (set connections) (ref {}))))
+
+(defn- verify-positions-connections
+  [positions connections]
+  (when-not (map? positions)
+    (illegal-argument "Positions must be a map."))
+  (when-not (and (coll? connections)
+                 (every? #(and (vector? %)
+                          (= 2 (count %)))
+                    connections))
+    (illegal-argument "Connections must be given as a collection of pairs."))
+  (when-not (subset? (set-of x | pair connections, x pair)
+                     (set (keys positions)))
+    (illegal-argument "Connections must be given between positioned points."))
+  ;; checking for cycles, copied from «upper-neighbours»
+  (let [uppers (loop [uppers {},
+                      connections connections]
+                 (if (empty? connections)
+                   uppers
+                   (let [[a b] (first connections)]
+                     (recur (update-in uppers [a] conj b)
+                            (rest connections))))),
+        neighs (fn neighs [node collected]
+                 (let [next (difference (set (uppers node))
+                                        collected)]
+                   (if (empty? next)
+                     collected
+                     (let [new-collected (into collected next)]
+                       (apply union (map #(neighs % new-collected)
+                                         next))))))]
+    (when-not (forall [x (keys positions)]
+                (not (contains? (neighs x #{}) x)))
+      (illegal-argument "Given set of edges is cyclic.")))
+  nil)
+
+(defn- verify-lattice-positions-connections
+  [lattice positions connections]
+  (verify-positions-connections
+   positions connections)
+  (when-not (= (base-set lattice)
+               (keys positions))
+    (illegal-argument "Positioned points must be the elements of the given lattice."))
+  (when-not (forall [x (base-set lattice),
+                     y (base-set lattice)]
+              (<=> (contains? connections [x y])
+                   (directly-neighboured? lattice x y)))
+    (illegal-argument "The given connections must represent the edges of the given lattice."))
+  nil)
+
+(defn make-layout
+  "Creates layout datatype from given positions hash-map, mapping node
+  names to coordinate pairs, and connections, a set of pairs of node
+  names denoting edges in the layout."
+  ([lattice positions connections]
+     (verify-lattice-positions-connections
+      lattice positions connections)
+     (make-layout-nc lattice positions connections))
+  ([positions connections]
+     (verify-positions-connections
+      positions connections)
+     (make-layout-nc positions connections)))
 
 (defn positions
   "Return positions map of layout."
@@ -59,12 +119,13 @@
 
 (defmethod print-method Layout
   [layout, ^java.io.Writer out]
-  (.write out (with-out-str
-                (println "Layout")
-                (println "Positions")
-                (pprint (positions layout))
-                (println "Connections")
-                (pprint (connections layout)))))
+  (let [^String str (with-out-str
+                      (println "Layout")
+                      (println "Positions")
+                      (pprint (positions layout))
+                      (println "Connections")
+                      (pprint (connections layout)))]
+    (.write out str)))
 
 (defn nodes
   "Returns all nodes of a given layout."

@@ -71,9 +71,9 @@
   of placement. The values of placement should be the positions of the
   corresponding keys. Top element will be at top."
   [lattice top placement]
-  (make-layout lattice
-               (placement-by-initials lattice top placement)
-               (edges lattice)))
+  (make-layout-nc lattice
+                  (placement-by-initials lattice top placement)
+                  (edges lattice)))
 
 ;;;
 

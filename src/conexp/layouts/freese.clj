@@ -10,7 +10,7 @@
   (:use conexp.base
         [conexp.fca.lattices :only (base-set lattice-upper-neighbours)]
         [conexp.layouts.util :only (edges)]
-        [conexp.layouts.base :only (make-layout)])
+        [conexp.layouts.base :only (make-layout-nc)])
   (:import [org.latdraw.diagram Diagram Vertex]))
 
 ;;;
@@ -29,14 +29,14 @@
     (.improve diag)
     (fn [angle]
       (.project2d diag ^double angle)
-      (make-layout lattice
-                   (reduce! (fn [map, ^Vertex vertex]
-                              (assoc! map
-                                      (.. vertex getUnderlyingElem getUnderlyingObject)
-                                      [(.getProjectedX vertex) (.getProjectedY vertex)]))
-                            {}
-                            (.getVertices diag))
-                   edges))))
+      (make-layout-nc lattice
+                      (reduce! (fn [map, ^Vertex vertex]
+                                 (assoc! map
+                                         (.. vertex getUnderlyingElem getUnderlyingObject)
+                                         [(.getProjectedX vertex) (.getProjectedY vertex)]))
+                               {}
+                               (.getVertices diag))
+                      edges))))
 
 (defn freese-layout
   "Returns the Freese Layout of the given lattice."

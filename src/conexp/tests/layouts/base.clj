@@ -17,9 +17,26 @@
 ;;;
 
 (deftest test-make-layout
-  (is (layout? (make-layout [] [])))
+  (is (layout? (make-layout {} [])))
   (is (layout? (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
-                            #{[1 2] [2 3]}))))
+                            #{[1 2] [2 3]})))
+  (is (thrown? IllegalArgumentException
+               (make-layout 1 2)))
+  (is (thrown? IllegalArgumentException
+               (make-layout {} 1)))
+  (is (thrown? IllegalArgumentException
+               (make-layout {1 [0,0]} [[1 2]])))
+  (is (thrown? IllegalArgumentException
+               (make-layout (make-lattice-nc [1 2 3] <)
+                            {}
+                            [])))
+  (is (thrown? IllegalArgumentException
+               (make-layout (make-lattice-nc [1 2 3] <)
+                            {1 [0 0] 2 [1 1] 3 [2 2]}
+                            [])))
+  (is (thrown? IllegalArgumentException
+               (make-layout {1 [0 0] 2 [1 1] 3 [2 2]}
+                            [[1 2] [2 3] [3 1]]))))
 
 (deftest test-positions-and-connections
   (let [pos {1 [0,0], 2 [1,1], 3 [2,2]},
@@ -67,8 +84,8 @@
 
 (deftest test-layout-memoization
   (with-testing-data [lay testing-layouts]
-    (let [layout  (make-layout (positions lay) ;get fresh layout
-                               (connections lay)),
+    (let [layout  (make-layout-nc (positions lay) ;get fresh layout
+                                  (connections lay)),
           counter (atom 0),
           old-con connections]
       ;;we hook up «connections» to see how often it is called
