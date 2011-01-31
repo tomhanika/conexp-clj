@@ -61,6 +61,8 @@ conexp-clj TODOs
 ** TODO Make output of TBoxes readable                               :Daniel:
 ** TODO Automatically convert DL expressions to LaTeX                :Daniel:
 ** TODO Remove reflection warnings from GUI                          :Daniel:
+** TODO Let make-layout do error checking                            :Daniel:
+   And introduce make-layout-nc.
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
@@ -70,7 +72,8 @@ conexp-clj TODOs
    two functions (freese-layout and freese-interactive-layout).
 ** DONE Write transitive-reduction                                   :Daniel:
    and use it for «luxenburger-basis» and for «edges»
-** INPROGRESS Improve test coverage of conexp core [4/5]             :Daniel:
+** DONE Improve test coverage of conexp core [5/5]                   :Daniel:
+   CLOSED: [2011-01-31 Mo 20:50]
    - [X] conexp.base
    - [X] conexp.fca [7/7]
      - [X] association rules
@@ -88,9 +91,9 @@ conexp-clj TODOs
    - [X] conexp.math [2/2]
      - [X] optimize
      - [X] statistics
-   - [-] conexp.layouts [5/6]
+   - [X] conexp.layouts [6/6]
      - [X] util
-     - [ ] base
+     - [X] base
      - [X] common
      - [X] layered
      - [X] force

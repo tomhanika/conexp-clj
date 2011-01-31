@@ -58,14 +58,13 @@
   (Layout. new-positions (connections layout) (information layout)))
 
 (defmethod print-method Layout
-  [layout out]
-  (.write ^java.io.Writer out
-          ^String (with-out-str
-                    (println "Layout")
-                    (println "Positions")
-                    (pprint (positions layout))
-                    (println "Connections")
-                    (pprint (connections layout)))))
+  [layout, ^java.io.Writer out]
+  (.write out (with-out-str
+                (println "Layout")
+                (println "Positions")
+                (pprint (positions layout))
+                (println "Connections")
+                (pprint (connections layout)))))
 
 (defn nodes
   "Returns all nodes of a given layout."
@@ -149,9 +148,10 @@
   "Returns lattice represented by layout."
   [layout]
   (let [uppers (upper-neighbours layout),
-        order  (fn order [x y]
+        order  (memo-fn order [x y]
                  (or (= x y)
-                     (exists [z (uppers x)] (order z y))))]
+                     (exists [z (uppers x)]
+                       (order z y))))]
     (make-lattice-nc (nodes layout) order)))
 
 (def-layout-fn context
