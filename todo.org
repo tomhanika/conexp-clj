@@ -94,8 +94,8 @@ conexp-clj TODOs
    - [X] basic usage
    - [X] working with contexts
    - [X] lattices
-   - [ ] working with the GUI
-   - [ ] IO: write & read context, layout
+   - [ ] implications
+   - [ ] IO
 ** DONE Detexify docstrings                                          :Daniel:
    Docstrings don't need to contain TeX, since we will not import them
    into the documentation anymore.
