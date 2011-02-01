@@ -14,6 +14,7 @@
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
   :dependencies [[org.clojure/clojure               "1.3.0-master-SNAPSHOT"]
                  [org.clojure.contrib/combinatorics "1.3.0-SNAPSHOT"]
+                 [org.clojure.contrib/command-line  "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/core          "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/def           "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/except        "1.3.0-SNAPSHOT"]
