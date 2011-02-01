@@ -55,6 +55,9 @@ conexp-clj TODOs
 ** TODO Make output of TBoxes readable                               :Daniel:
 ** TODO Automatically convert DL expressions to LaTeX                :Daniel:
 ** TODO Remove reflection warnings from GUI                          :Daniel:
+** TODO Make conexp-clj.sh script more sophisticated                 :Daniel:
+   For example, it would be nice if we could execute scripts given as
+   arguments.
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
