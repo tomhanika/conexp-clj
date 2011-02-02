@@ -24,6 +24,7 @@
                                 (@(ns-resolve 'conexp.contrib.gui 'gui)
                                  :default-close-operation javax.swing.JFrame/EXIT_ON_CLOSE))))
   (when load
+    (use 'conexp.main)
     (load-file load))
   (when-not (or load gui?)
     (clojure.main/repl :init #(use 'conexp.main))))
