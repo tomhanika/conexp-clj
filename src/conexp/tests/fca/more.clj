@@ -102,7 +102,19 @@
                                                (union set (premise impl) (conclusion impl)))
                                              #{}
                                              impls/testing-data)
-                                     (clop-by-implications impls/testing-data))))))
+                                     (clop-by-implications impls/testing-data)))))
+  (with-testing-data [ctx (random-contexts 20 10)]
+    (let [ctx (clarify-objects (reduce-context-objects ctx)),
+          cct (context-from-clop (attributes ctx)
+                                  #(context-attribute-closure ctx %))]
+      (and (= (count (objects ctx))
+              (count (objects cct)))
+           (= (attributes ctx)
+              (attributes cct))
+           (forall [g (objects ctx)]
+             (exists [h (objects cct)]
+               (= (object-derivation ctx #{g})
+                  (object-derivation cct #{h}))))))))
 
 ;;;
 
