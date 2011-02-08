@@ -188,6 +188,12 @@
            (recur implications next)
            (difference implications background-knowledge))))))
 
+(defn pseudo-intents
+  "Returns the pseudo intents of the given context ctx."
+  [ctx]
+  (map premise (stem-base ctx)))
+
+
 ;;; Proper Premises
 
 (defn- A-dot

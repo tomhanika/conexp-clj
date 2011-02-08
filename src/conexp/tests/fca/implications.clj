@@ -156,6 +156,11 @@
     contexts/test-ctx-07,
     contexts/test-ctx-08))
 
+(deftest test-pseudo-intents
+  (with-testing-data [ctx (random-contexts 10 20)]
+    (= (set (pseudo-intents ctx))
+       (set (map premise (stem-base ctx))))))
+
 (deftest test-minimal-intersection-sets
   (let [minimal-intersection-sets @#'conexp.fca.implications/minimal-intersection-sets]
     (are [sets minimal-sets] (= (set minimal-sets) (set (minimal-intersection-sets sets)))
