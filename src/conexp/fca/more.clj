@@ -161,17 +161,6 @@
 
 ;;;
 
-(defn- first-extender
-  "Finds the first element n in elts such that the set C extended by n
-  and closed under c does not contain m."
-  [c C m elts]
-  (loop [elements (seq elts)]
-    (when-let [n (first elements)]
-      (let [D (c (conj C n))]
-        (if-not (contains? D m)
-          [n D]
-          (recur (next elements)))))))
-
 (defn- maximal-counterexample
   "For a given closure operator c on a set base-set, maximizes the set
   C (i.e. returns a superset of C) that is not a superset of
@@ -182,9 +171,13 @@
     (loop [C C,
            elts (difference (disj base-set m)
                             C)]
-      (if-let [[next-m, D] (first-extender c C m elts)]
-        (recur D (disj elts next-m))
-        C))))
+      (if (empty? elts)
+        C
+        (let [n (first elts),
+              new-C (c (conj C n))]
+          (if (contains? new-C m)
+            (recur C (rest elts))
+            (recur new-C (rest elts))))))))
 
 (defn context-from-clop
   "Returns a context whose intents are exactly the closed sets of the
