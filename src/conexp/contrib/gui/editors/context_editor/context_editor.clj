@@ -260,10 +260,10 @@
                         {:spacer 3}
                         {:name reduce-attribute-img,
                          :tip "Reduce the attribute columns of the context",
-                         :f (cc-1 reduce-context-attributes)}
+                         :f (cc-1 reduce-attributes)}
                         {:name reduce-object-img,
                          :tip "Reduce the object rows of the context",
-                         :f (cc-1 reduce-context-objects)}
+                         :f (cc-1 reduce-objects)}
                         {:name reduce-both-img,
                          :tip "Reduce both objects and attributes of the context",
                          :f (cc-1 reduce-context)})

@@ -238,17 +238,25 @@
           (and (= (objects rctx) (set-of g | [g _] arrs))
                (= (attributes rctx) (set-of m | [_ m] arrs)))))))
     
-(deftest test-reduce-context-objects
+(deftest test-reduce-objects
   (with-testing-data [ctx testing-data]
-    (let [rctx (reduce-context-objects ctx),
+    (let [rctx (reduce-objects ctx),
           arrs (down-arrows rctx)]
       (= (objects rctx) (set-of g | [g _] arrs)))))
 
-(deftest test-reduce-context-attributes
+(deftest test-reduce-attributes
   (with-testing-data [ctx testing-data]
-    (let [rctx (reduce-context-attributes ctx),
+    (let [rctx (reduce-attributes ctx),
           arrs (up-arrows rctx)]
       (= (attributes rctx) (set-of m | [_ m] arrs)))))
+
+(deftest test-object-reduced?
+  (with-testing-data [ctx testing-data]
+    (is (object-reduced? (reduce-objects ctx)))))
+
+(deftest test-attribute-reduced?
+  (with-testing-data [ctx testing-data]
+    (is (attribute-reduced? (reduce-attributes ctx)))))
 
 (deftest test-reduced?
   (is (not (reduced? test-ctx-01)))

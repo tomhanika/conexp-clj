@@ -292,19 +292,22 @@
         new-att (set-of m [[_ m] uda])]
     (make-context-nc new-obj new-att (incidence ctx))))
 
-(defn reduce-context-objects
-  "Object reduction for ctx."
+(defn reduce-objects
+  "Object reduction for ctx. Performs object clarification as well."
   [ctx]
-  (make-context-nc (set-of g [[g _] (down-arrows ctx)])
-                   (attributes ctx)
-                   (incidence ctx)))
+  (let [ctx (clarify-objects ctx)]
+    (make-context-nc (set-of g [[g _] (down-arrows ctx)])
+                     (attributes ctx)
+                     (incidence ctx))))
 
-(defn reduce-context-attributes
-  "Attribute reduction for ctx."
+(defn reduce-attributes
+  "Attribute reduction for ctx. Performs attribute clarification as
+  well."
   [ctx]
-  (make-context-nc (objects ctx)
-                   (set-of m [[_ m] (up-arrows ctx)])
-                   (incidence ctx)))
+  (let [ctx (clarify-attributes ctx)]
+    (make-context-nc (objects ctx)
+                     (set-of m [[_ m] (up-arrows ctx)])
+                     (incidence ctx))))
 
 (defn reduce-context
   "Reduces context ctx."
@@ -313,19 +316,29 @@
     (reduce-clarified-context ctx)
     (reduce-clarified-context (clarify-context ctx))))
 
+(defn object-reduced?
+  "Tests whether given context ctx is object-reduced or not."
+  [ctx]
+  (and (object-clarified? ctx)
+       (let [da (down-arrows ctx)]
+         (forall [g (objects ctx)]
+           (exists [[h _] da]
+             (= g h))))))
+
+(defn attribute-reduced?
+  "Tests whether given context ctx is attribute-reduced or not."
+  [ctx]
+  (and (attribute-clarified? ctx)
+       (let [ua (up-arrows ctx)]
+         (forall [m (attributes ctx)]
+           (exists [[_ n] ua]
+             (= m n))))))
+
 (defn reduced?
   "Tests whether given context ctx is reduced or not."
   [ctx]
-  (and (clarified? ctx)
-       (let [obj (objects ctx),
-             att (attributes ctx),
-             uda (up-down-arrows ctx)]
-         (and (forall [g obj]
-                (exists [[h _] uda]
-                  (= g h)))
-              (forall [m att]
-                (exists [[_ n] uda]
-                  (= m n)))))))
+  (and (object-reduced? ctx)
+       (attribute-reduced? ctx)))
 
 (defn context-object-closure
   "Computes double prime in context ctx for the given set-of-objects."
