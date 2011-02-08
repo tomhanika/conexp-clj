@@ -281,13 +281,13 @@ class ConexpCLJElement(ExpectElement):
 
 class ConexpCLJFunction(ExpectFunction):
     def _sage_doc_(self):
-        M = self._obj.parent()
+        M = self._parent
         return M.help(self._name)
 
 
 class ConexpCLJFunctionElement(FunctionElement):
     def _sage_doc_(self):
-        M = self._obj.parent()
+        M = self._parent
         return M.help(self._name)
 
 ###
