@@ -85,11 +85,14 @@
            start#)
         1000.0)))
 
-(defn test-context-for-clop-versions [number-of-contexts size-limit]
+(defn test-context-for-clop-versions [number-of-contexts size-of-base-set]
   (doseq [ctx  (take number-of-contexts
                      (remove #(or (empty? (objects %))
                                   (empty? (attributes %)))
-                             (repeatedly #(rand-context size-limit size-limit (rand 1.0)))))]
+                             (repeatedly #(reduce-context
+                                           (rand-context (rand-int (expt 2 size-of-base-set))
+                                                         size-of-base-set
+                                                         (rand 1.0))))))]
     (let [cntr   (atom 0)
           clop   #(do (swap! cntr inc)
                       (context-attribute-closure ctx %)),
@@ -99,7 +102,9 @@
                      (reset! atom 0)
                      val))]
       (cl-format *out*
-                 "~5d ~5d | ~7,3f ~5d | ~7,3f ~5d | ~7,3f ~5d | ~7,3f ~5d~%"
+                 "~5d ~5d ~5d ~5d ~8,3f ~5d ~8,3f ~5d ~8,3f ~5d ~8,3f ~5d~%"
+                 (count (objects ctx))
+                 (count (attributes ctx))
                  (count (concepts ctx))
                  (count (pseudo-intents ctx))
                  (time* (context-for-clop-v0 clop M))
