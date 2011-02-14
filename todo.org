@@ -90,11 +90,12 @@ conexp-clj TODOs
      - [X] layered
      - [X] force
      - [X] freese
-** INPROGRESS Add more example files [4/5]                        :Sebastian:
+** DONE Add more example files [5/5]                              :Sebastian:
+   CLOSED: [2011-02-14 Mo 19:57]
    - [X] basic usage
    - [X] working with contexts
    - [X] lattices
-   - [ ] implications
+   - [X] implications
    - [X] IO
 ** DONE Detexify docstrings                                          :Daniel:
    Docstrings don't need to contain TeX, since we will not import them

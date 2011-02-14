@@ -8,12 +8,23 @@
 ;; A context (G,M,I) consists of two sets G and M and an incidence
 ;; realtion I between G and M.  G is a set of objects, M is a set of
 ;; attributes and gIm can be read as g has the attribute m.  To create
-;; a context you only have to define these sets. There a two options:
+;; a context you only have to define these sets. There a (at least)
+;; three options:
 
 ;; 1. By using a defined relation:
 (defvar ctx-1 (make-context [1 2 3] [1 2 3] <=))
 
 ;; 2. By defining all sets explicitly:
+
+;; This is the ordinale scale for the Chevron
+;;
+;;       5     6
+;;       | \ / |
+;;       |  4  |
+;;       2     3
+;;         \ /
+;;          1
+;;
 (defvar ctx-2 (make-context #{1 2 3 4 5 6}
                             #{1 2 3 4 5 6}
                             #{[1 1] [1 2] [1 3] [1 5]
@@ -26,20 +37,11 @@
                                          1 0 1
                                          1 1 0]))
 
+;; 3. By using a custom function
 (defvar ctx-4 (make-context [1 2 3 4 5 6]
                             [1 2 3 4 5 6]
                             (fn [x y]
                               (= 1 (gcd x y)))))
-
-;; This is the ordinale scale for the Chevron
-;;
-;;       5     6
-;;       | \ / |
-;;       |  4  |
-;;       2     3
-;;         \ /
-;;          1
-;;
 
 ;; If you want to use a random context you can use rand-context
 (rand-context #{1 2 3} 0.5)
@@ -87,4 +89,5 @@
 (stem-base ctx-1)
 
 ;;
+
 nil
