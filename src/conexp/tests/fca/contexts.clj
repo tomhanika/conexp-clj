@@ -299,11 +299,11 @@
         (= (set (context-intents ctx))
            (set-of B [[_ B] (concepts ctx)])))))
 
-(deftest test-context-extents
+(deftest test-extents
   (with-testing-data [ctx testing-data]
     (=> (and (<= (count (objects ctx)) 15)
              (<= (count (attributes ctx)) 15))
-        (= (set (context-extents ctx))
+        (= (set (extents ctx))
            (set-of A [[A _] (concepts ctx)])))))
 
 ;;;

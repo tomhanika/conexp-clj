@@ -46,7 +46,7 @@
 (defvar ctx-1 (make-context [1 2 3] [1 2 3] <=))
 
 ;; We can compute all intents and extents via
-(context-extents ctx-1)
+(extents ctx-1)
 (context-intents ctx-1)
 
 ;; Now I want to get all objects, which attribute a and b have in

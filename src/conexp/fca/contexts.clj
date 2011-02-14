@@ -345,7 +345,7 @@
   [ctx set-of-objects]
   (attribute-derivation ctx (object-derivation ctx set-of-objects)))
 
-(defn context-extents
+(defn extents
   "Computes a sequence of all extents of ctx."
   [ctx]
   (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
