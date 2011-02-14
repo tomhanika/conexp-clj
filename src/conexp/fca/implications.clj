@@ -63,7 +63,7 @@
 (defn holds?
   "Returns true iff impl holds in given context ctx."
   [impl ctx]
-  (forall [intent (context-intents ctx)]
+  (forall [intent (intents ctx)]
     (respects? intent impl)))
 
 (defn- add-immediate-elements

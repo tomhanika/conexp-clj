@@ -199,10 +199,10 @@
   [_ context]
   (map #(vector (attribute-derivation context %) ;this is slow
                 %)
-       (cbo/parallel-context-intents (* 2 (.availableProcessors (Runtime/getRuntime)))
-                                     3
-                                     0
-                                     context)))
+       (cbo/parallel-intents (* 2 (.availableProcessors (Runtime/getRuntime)))
+                             3
+                             0
+                             context)))
 
 ;;; Fast Close-by-One (:fcbo)
 
@@ -210,7 +210,7 @@
   [_ context]
   (map #(vector (attribute-derivation context %) ;this is slow
                 %)
-       (cbo/fast-context-intents 0 context)))
+       (cbo/fast-intents 0 context)))
 
 ;;;
 

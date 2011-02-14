@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.close-by-one
-  (:use [conexp.main :exclude (context-intents)]
+  (:use conexp.main
         conexp.contrib.exec
         [conexp.io.util :only (tmpfile)]
         [conexp.contrib.algorithms.util :only (string-to-ints)])
@@ -56,7 +56,7 @@ intents in parallel.")
                    context (.getAbsolutePath output-file))
     output-file))
 
-(defn parallel-context-intents
+(defn parallel-intents
   "Computes the intents of context using parallel close-by-one (PCbO)."
   [threads depth min-support context]
   (let [[ctx _ att-vec] (to-fcalgs-context context),
@@ -67,7 +67,7 @@ intents in parallel.")
       (cons #{} (map transform-back (rest intents)))
       (map transform-back intents))))
 
-(defn parallel-count-context-intents
+(defn parallel-count-intents
   "Counts the intents of context using parallel close-by-one (PCbO)."
   [threads depth min-support context]
   (-> (pcbo threads depth min-support 1 (first (to-fcalgs-context context)))
@@ -91,7 +91,7 @@ intents in parallel.")
                    context (.getAbsolutePath output-file))
     output-file))
 
-(defn fast-context-intents
+(defn fast-intents
   "Computes the intents of context using fast close-by-one (FCbO)."
   [min-support context]
   (let [[ctx _ att-vec] (to-fcalgs-context context),
@@ -102,7 +102,7 @@ intents in parallel.")
       (cons #{} (map transform-back (rest intents)))
       (map transform-back intents))))
 
-(defn fast-count-context-intents
+(defn fast-count-intents
   "Counts the intents of context using parallel close-by-one (CbO)."
   [min-support context]
   (-> (fcbo min-support 1 (first (to-fcalgs-context context)))

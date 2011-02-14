@@ -282,7 +282,7 @@
                 (attribute-derivation test-ctx-08)
                 (object-derivation test-ctx-08)))))
   (with-testing-data [ctx [test-ctx-01 test-ctx-02 test-ctx-04 test-ctx-08]]
-    (= (set (context-intents ctx))
+    (= (set (intents ctx))
        (set (all-closed-sets (attributes ctx)
                              #(context-attribute-closure ctx %))))))
 
@@ -292,11 +292,11 @@
              (<= (count (attributes ctx)) 15))
         (every? #(concept? ctx %) (concepts ctx)))))
 
-(deftest test-context-intents
+(deftest test-intents
   (with-testing-data [ctx testing-data]
     (=> (and (<= (count (objects ctx)) 15)
              (<= (count (attributes ctx)) 15))
-        (= (set (context-intents ctx))
+        (= (set (intents ctx))
            (set-of B [[_ B] (concepts ctx)])))))
 
 (deftest test-extents

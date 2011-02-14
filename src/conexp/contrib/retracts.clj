@@ -75,7 +75,7 @@
                                                     g objs,
                                                     m atts]))]
            (= (count (distinct imgs))
-              (count (context-intents img-ctx)))))))
+              (count (intents img-ctx)))))))
 
 (defn retracts
   "Returns all retracts of context as computed by the algorithm of

@@ -136,7 +136,7 @@
              -1)))
        att-sets))))
 
-(defn titanic-context-intents
+(defn titanic-intents
   "Computes the intents of the given context via TITANIC."
   [context]
   (titanic (attributes context)

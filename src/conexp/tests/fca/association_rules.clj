@@ -85,7 +85,7 @@
   (with-testing-data [ctx [c/test-ctx-01 c/test-ctx-02 c/test-ctx-04
                            c/test-ctx-07 c/test-ctx-08],
                       spp [0 1/3 1/2 3/5 7/8 1]]
-    (= (set-of C [C (context-intents ctx) :when (>= (support C ctx) spp)])
+    (= (set-of C [C (intents ctx) :when (>= (support C ctx) spp)])
        (set (iceberg-intent-seq ctx spp)))))
 
 (deftest test-luxenburger-basis

@@ -71,14 +71,14 @@
 
 (deftest test-all-shared-intents
   (with-testing-data [ctx small-contexts]
-    (let [intents (context-intents ctx)]
+    (let [intents (intents ctx)]
       (= intents (all-shared-intents ctx ctx))))
   (with-testing-data [ctx-1 small-contexts,
                       ctx-2 small-contexts,
                       :when (= (attributes ctx-1) (attributes ctx-2))]
     (= (set (all-shared-intents ctx-1 ctx-2))
-       (intersection (set (context-intents ctx-1))
-                     (set (context-intents ctx-2))))))
+       (intersection (set (intents ctx-1))
+                     (set (intents ctx-2))))))
 
 (deftest test-all-bonds-by-shared-intents
   (with-testing-data [ctx-1 small-contexts,

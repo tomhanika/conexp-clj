@@ -47,7 +47,7 @@
 
 ;; We can compute all intents and extents via
 (extents ctx-1)
-(context-intents ctx-1)
+(intents ctx-1)
 
 ;; Now I want to get all objects, which attribute a and b have in
 ;; common

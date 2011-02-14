@@ -355,7 +355,7 @@
   [ctx set-of-attributes]
   (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
 
-(defn context-intents
+(defn intents
   "Computes a sequence of all intents of ctx."
   [ctx]
   (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
