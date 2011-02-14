@@ -159,7 +159,9 @@
 (deftest test-pseudo-intents
   (with-testing-data [ctx (random-contexts 10 20)]
     (= (set (pseudo-intents ctx))
-       (set (map premise (stem-base ctx))))))
+       (set (map premise (stem-base ctx)))))
+  (is (empty? (pseudo-intents (adiag-context [0 1 2 3]))))
+  (is (empty? (pseudo-intents (adiag-context [nil true adiag-context])))))
 
 (deftest test-minimal-intersection-sets
   (let [minimal-intersection-sets @#'conexp.fca.implications/minimal-intersection-sets]
