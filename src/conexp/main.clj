@@ -30,7 +30,7 @@
   (.trim #=(slurp "VERSION")))
 
 (defvar- conexp-version-map
-  (let [[_ major minor patch qualifier] (re-find #"(\d+).(\d+).(\d+)-(\w+)" internal-version-string)]
+  (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)-(.+)" internal-version-string)]
     {:major (Integer/parseInt major),
      :minor (Integer/parseInt minor),
      :patch (Integer/parseInt patch),
