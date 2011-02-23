@@ -310,7 +310,7 @@
                      (incidence ctx))))
 
 (defn reduce-context
-  "Reduces context ctx."
+  "Reduces context ctx. Performs clarification as well."
   [ctx]
   (if (clarified? ctx)
     (reduce-clarified-context ctx)
