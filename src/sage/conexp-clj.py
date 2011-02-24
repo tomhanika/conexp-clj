@@ -7,6 +7,8 @@
 
 # TODO:
 #  - conversion from clojure to python data (and vice versa) is very slow
+#  - convenience functions are needed
+#  - implement callbacks from conexp-clj to sage
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 from sage.misc.sage_eval import sage_eval
@@ -198,6 +200,9 @@ class ConexpCLJElement(ExpectElement):
 
     def _sage_repr(self):
         raise NotImplementedError
+
+    def _latex_(self):
+        return sage_eval(str(self.latex()))
 
     def sage(self):
         P = self._check_valid()

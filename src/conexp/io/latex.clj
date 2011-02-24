@@ -22,6 +22,16 @@ as latex code.")
   "Implements conversion to latex code."
   (latex [this] [this choice] "Returns a string representation of this."))
 
+;;; Default
+
+(extend-type Object
+  LaTeX
+  (latex
+   ([this]
+      (.toString this))
+   ([this choice]
+      (.toString this))))
+
 ;;; Contexts
 
 (extend-type conexp.fca.contexts.Context
@@ -32,7 +42,6 @@ as latex code.")
    ([this choice]
       (case choice
         :plain (with-out-str
-                 (println "\\[")
                  (println (str "\\begin{array}{l||*{" (count (attributes this)) "}{c|}}"))
                  (doseq [m (attributes this)]
                    (print (str "& \\text{" m "}")))
@@ -42,8 +51,7 @@ as latex code.")
                    (doseq [m (attributes this)]
                      (print (str "& " (if ((incidence this) [g m]) "\\times" "\\cdot"))))
                    (println "\\\\\\hline"))
-                 (println (str "\\end{array}"))
-                 (println "\\]"))
+                 (println (str "\\end{array}")))
         true   (illegal-argument "Unsupported latex format " choice " for contexts.")))))
 
 
