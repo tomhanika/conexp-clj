@@ -75,7 +75,7 @@
   (with-testing-data [ctx testing-data]
     (context? ctx)))
 
-(deftest test-Formal-Context-toString
+(deftest test-context-to-string
   (is (= (context-to-string test-ctx-01 sort-by-second sort-by-second)
          (str "  |1 2 3 4 5 \n"
               "--+----------\n"
@@ -83,7 +83,33 @@
               "2 |. x x . . \n"
               "3 |. . . . x \n"
               "4 |. . . . . \n"
-              "5 |. x x x . \n"))))
+              "5 |. x x x . \n")))
+  (is (= (context-to-string test-ctx-01 < >)
+         (str "  |5 4 3 2 1 \n"
+              "--+----------\n"
+              "1 |. . x x x \n"
+              "2 |. . x x . \n"
+              "3 |x . . . . \n"
+              "4 |. . . . . \n"
+              "5 |. x x x . \n")))
+  (is (= (context-to-string test-ctx-01 [1 3 5 4 2] [4 5 1 3 2])
+         (str "  |4 5 1 3 2 \n"
+              "--+----------\n"
+              "1 |. . x x x \n"
+              "3 |. x . . . \n"
+              "5 |x . . x x \n"
+              "4 |. . . . . \n"
+              "2 |. . . x x \n")))
+  (is (= (context-to-string test-ctx-01 [1 3 5 4] [4 5 1 3])
+         (context-to-string test-ctx-01 [1 3 5 4 2] [4 5 1 3 2])))
+  (is (= (context-to-string test-ctx-01 [0 1 3 5 4] ['a 4 5 1 3])
+         (str "  |4 5 1 3 2 \n"
+              "--+----------\n"
+              "1 |. . x x x \n"
+              "3 |. x . . . \n"
+              "5 |x . . x x \n"
+              "4 |. . . . . \n"
+              "2 |. . . x x \n"))))
 
 (deftest test-Formal-Context-equals
   (is (not= nil (make-context #{} #{} #{})))

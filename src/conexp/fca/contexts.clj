@@ -38,18 +38,35 @@
   (instance? Formal-Context thing))
 
 (defn ^String context-to-string
-  "Prints contexts in a human readable form."
+  "Prints contexts in a human readable form. Orderings can be given as
+  sequences or as functions. If given as sequence, the corresponding
+  elements will be ordered that way, with all remaining elements at
+  the end. If given as function, sort the corresponding elements with
+  that function. If no ordering is given for objects and attributes,
+  sort-by-second is used. "
   ([ctx]
      (context-to-string ctx sort-by-second sort-by-second))
   ([ctx order-on-objects order-on-attributes]
-     (let [str #(if (= % nil) "nil" (str %))
+     (let [str         #(if (= % nil) "nil" (str %)),
 
-           attributes (vec (sort order-on-objects (attributes ctx)))
-           objects    (vec (sort order-on-attributes (objects ctx)))
-           incidence  (incidence ctx)
+           sort-things (fn [things order-on-things]
+                         (cond
+                          (sequential? order-on-things)
+                          (let [order-on-things (filter (things ctx) order-on-things)]
+                            (concat order-on-things
+                                    (difference (things ctx)
+                                                (set order-on-things)))),
+                          (fn? order-on-things)
+                          (vec (sort order-on-things (things ctx))),
+                          :otherwise
+                          (illegal-argument "Ordering given to context-to-string must "
+                                            "be either a sequence or a function."))),
+           attributes  (sort-things attributes order-on-attributes),
+           objects     (sort-things objects order-on-objects),
+           incidence   (incidence ctx),
 
-           max-att (reduce #(max %1 (count (str %2))) 0 attributes)
-           max-obj (reduce #(max %1 (count (str %2))) 0 objects)]
+           max-att     (reduce #(max %1 (count (str %2))) 0 attributes)
+           max-obj     (reduce #(max %1 (count (str %2))) 0 objects)]
        (with-str-out
          (ensure-length "" max-obj " ") " |" (for [att attributes]
                                                [(print-str att) " "]) "\n"
@@ -63,6 +80,12 @@
                               (count (print-str att)))
                " "])
             "\n"])))))
+
+(defn print-context
+  "Prints the result of applying context-to-string to the given
+  arguments."
+  [ctx & args]
+  (print (apply context-to-string ctx args)))
 
 (defmethod print-method Formal-Context [ctx out]
   (.write ^java.io.Writer out
