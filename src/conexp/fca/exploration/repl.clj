@@ -211,7 +211,8 @@
 (define-repl-fn help
   "Prints help."
   (let [commands (suitable-repl-commands "")]
-    (println "Any command can be abbreviated, as long as this is unambigious.")
+    (println "Type «abort» to abort exploration.")
+    (println "Any other command can be abbreviated, as long as this is unambigious.")
     (doseq [cmd commands]
       (println (str "  " cmd))
       (println (str "    -> " (help-repl-command cmd))))
