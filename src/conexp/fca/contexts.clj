@@ -93,6 +93,21 @@
 
 ;;;
 
+(defmulti make-context-nc
+  "Context constructor similar to make-context, but does not do any
+  safety checking and is therefore faster. Use with care."
+  {:arglists '([objects attributes incidence])}
+  (fn [& args] (vec (map clojure-type args))))
+
+(defmethod make-context-nc [clojure-coll clojure-coll clojure-coll]
+  [objects attributes incidence]
+  (Formal-Context. (to-set objects)
+                   (to-set attributes)
+                   (set incidence)))
+
+(defmethod make-context-nc :default [obj att inz]
+  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a formal context."))
+
 (defmulti make-context
   "Standard constructor for contexts. Takes a sequence of objects,
   a sequence of attributes and either a set of pairs or function of
@@ -105,43 +120,32 @@
   (fn [& args]
     (vec (map clojure-type args))))
 
-(defmethod make-context [clojure-coll clojure-coll clojure-coll]
+(defmethod make-context [Object Object clojure-coll]
   [objects attributes incidence]
   (when-not (and (not (map? objects)) (not (map? attributes)))
     (illegal-argument "Objects and attributes should not be given as a map."))
-  (let [objs (set objects)
-        atts (set attributes)
+  (let [objs (to-set objects)
+        atts (to-set attributes)
         inz  (set-of [g m] [[g m] incidence
                             :when (and (contains? objs g)
                                        (contains? atts m))])]
     (Formal-Context. objs atts inz)))
 
-(defmethod make-context [clojure-coll clojure-coll clojure-fn]
+(defmethod make-context [Object Object clojure-fn]
   [objects attributes incidence]
   (when-not (and (not (map? objects)) (not (map? attributes)))
     (illegal-argument "Objects and attributes should not be given as a map."))
-  (Formal-Context. (set objects)
-                   (set attributes)
-                   (set-of [x y] [x objects
-                                  y attributes
-                                  :when (incidence x y)])))
+  (let [objects    (to-set objects),
+        attributes (to-set attributes)]
+    (Formal-Context. objects
+                     attributes
+                     (set-of [x y] [x objects
+                                    y attributes
+                                    :when (incidence x y)]))))
 
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a formal context."))
 
-(defmulti make-context-nc
-  "Context constructor similar to make-context, but does not restrict
-  incidence to the crossproduct of object and attribute set and is
-  therefore faster. Use with care."
-  {:arglists '([objects attributes incidence])}
-  (fn [& args] (vec (map clojure-type args))))
-
-(defmethod make-context-nc [clojure-coll clojure-coll clojure-coll]
-  [objects attributes incidence]
-  (Formal-Context. (set objects) (set attributes) (set incidence)))
-
-(defmethod make-context-nc :default [obj att inz]
-  (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a formal context."))
 
 ;;; Common Operations in Contexts
 
@@ -175,8 +179,8 @@
   the corresponding context. G and M may also be numbers where they
   represent (range G) and (range M) respectively."
   [G M bits]
-  (let [G (if (number? G) (range G) G),
-        M (if (number? M) (range M) M),
+  (let [G (if (sequential? G) G (range G)),
+        M (if (sequential? M) M (range M)),
         m (count G),
         n (count M)]
     (assert (= (* m n) (count bits)))
@@ -519,8 +523,8 @@
      (when-not (and (number? fill-rate)
                     (<= 0 fill-rate 1))
        (illegal-argument "Fill-rate must be a number between 0 and 1."))
-     (make-context (if (number? objects) (range objects) objects)
-                   (if (number? attributes) (range attributes) attributes)
+     (make-context (to-set objects)
+                   (to-set attributes)
                    (fn [_ _] (> fill-rate (rand))))))
 
 (defn random-contexts

@@ -19,6 +19,8 @@
   (is (make-context #{1 2 3} #{1 2 3} <))
   (is (make-context #{1 2 3} #{1 2 3} not=))
   (is (make-context [1 2 3] '(a d g) not=))
+  (is (make-context 10 10 <=))
+  (is (make-context 10 [1 2 4 5 6] not=))
   (is (= (make-context-from-matrix 4 3
                                    [0 0 0,
                                     0 1 0
@@ -27,7 +29,8 @@
          (make-context [0 1 2 3]
                        [0 1 2]
                        #{[1 1], [2 0], [2 1]})))
-  (is (thrown? IllegalArgumentException (make-context 1 2 3))))
+  (is (thrown? IllegalArgumentException (make-context 1 2 3)))
+  (is (thrown? IllegalArgumentException (make-context 'a 0 >))))
 
 ;;;
 
@@ -140,7 +143,13 @@
   (is (= (objects (make-context [nil 'a +] [] []))
          #{nil 'a +}))
   (is (= (attributes (make-context [1] [nil nil '+ *] [[1 nil]]))
-         #{nil '+ *})))
+         #{nil '+ *}))
+  (is (= (objects (make-context 10 10 <))
+         (set-of-range 10)))
+  (is (= (attributes (make-context 10 10 <))
+         (set-of-range 10)))
+  (is (= (objects (make-context -10 -10 <))
+         #{})))
 
 (deftest test-make-context-from-matrix
   (is (= (incidence (make-context-from-matrix 2 2

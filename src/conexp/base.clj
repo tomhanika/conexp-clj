@@ -38,6 +38,16 @@
   ([start end step]
      (set (range start end step))))
 
+(defn to-set
+  "Converts given argument «thing» to a set. If it is a number,
+  returns the set {0, ..., thing-1}. If it is a collection,
+  returns (set thing). Otherwise raises an error."
+  [thing]
+  (cond
+   (integer? thing) (set-of-range thing),
+   (coll? thing)    (set thing),
+   :else            (illegal-argument "Cannot create set from " thing)))
+
 
 ;;; Next Closure
 

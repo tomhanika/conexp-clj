@@ -38,6 +38,11 @@
   (is (= (set (range 0 10 2)) (set-of-range 0 10 2)))
   (is (= #{} (set-of-range 23 11))))
 
+(deftest test-to-set
+  (is (= (to-set 2) #{0 1}))
+  (is (= (to-set ['a 'b]) '#{a b}))
+  (is (thrown? IllegalArgumentException (to-set 'a))))
+
 (deftest test-lectic-<_i
   (is (lectic-<_i [5 7 3 2 1] 2 #{5 3 1} #{5 3 2 1}))
   (is (lectic-<_i [5 7 3 2 1] 5 #{3} #{5 7}))

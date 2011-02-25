@@ -471,7 +471,6 @@
      (println ~string result#)
      result#))
 
-
 ;;;
 
 nil

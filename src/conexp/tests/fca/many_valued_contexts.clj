@@ -18,13 +18,15 @@
   (is (make-mv-context #{1 2 3 4} #{1 2 3 4} +))
   (is (make-mv-context #{} #{} (constantly true)))
   (is (make-mv-context [1 2 3] [4 5 6] /))
+  (is (make-mv-context 10 10 +))
   (is (thrown? IllegalArgumentException (make-mv-context 1 2 3)))
   (is (make-mv-context [1] '#{a} (constantly false)))
   (is (= {[1 1] 2, [1 2] 3, [2 1] 3, [2 2] 4}
          (incidence (make-mv-context [1 2] [1 2]
                                      {[1 1] 2, [1 2] 3, [2 1] 3, [2 2] 4}))))
   (is (thrown? IllegalArgumentException
-               (make-mv-context [] [] {[1 1] 2}))))
+               (make-mv-context [] [] {[1 1] 2})))
+  (is (make-mv-context-nc 2 2 {[0 0] 0, [0 1] 1, [1 0] 0, [1 1] 1})))
 
 (deftest test-make-mv-context-from-matrix
   (is (let [mv-ctx (make-mv-context-from-matrix 2 2 [1 2 nil 3])]
@@ -80,7 +82,25 @@
                 {[1 1] true,
                  [1 2] 1,
                  [2 1] nil,
-                 [2 2] "Hallo"})))))
+                 [2 2] "Hallo"}))))
+  (is (let [mv-context (make-mv-context 10 10 +)]
+        (and (= (objects mv-context) (set-of-range 10))
+             (= (attributes mv-context) (set-of-range 10))
+             (= 100 (count (incidence mv-context)))
+             (forall [a (range 10), b (range 10)]
+               (= (+ a b)
+                  (get (incidence mv-context) [a b]))))))
+  (is (let [mv-context (make-mv-context-nc 2
+                                           2
+                                           (map-by-fn identity
+                                                      (cross-product [0 1] [0 1])))]
+        (and (= (objects mv-context) #{0 1})
+             (= (attributes mv-context) #{0 1})
+             (= (incidence mv-context)
+                {[0 0] [0 0],
+                 [1 0] [1 0],
+                 [0 1] [0 1],
+                 [1 1] [1 1]})))))
 
 ;;;
 
