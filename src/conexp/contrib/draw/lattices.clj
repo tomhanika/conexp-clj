@@ -8,6 +8,7 @@
 
 (ns conexp.contrib.draw.lattices
   (:use [conexp.base                       :only (ns-doc, defnk)]
+        [conexp.fca.lattices               :only (concept-lattice)]
         [conexp.layouts                    :only (standard-layout)]
         [conexp.layouts.util               :only (scale-layout)]
         [conexp.contrib.draw.scenes        :only (scene-canvas,
@@ -129,6 +130,14 @@
   (let [map       (apply hash-map args),
         layout-fn (get map :layout-fn standard-layout)]
     (apply draw-layout (layout-fn lattice) map)))
+
+(defn draw-concept-lattice
+  "Draws the concept lattice of a given context, passing all remaining
+  args to draw-lattice."
+  [ctx & args]
+  (apply draw-lattice (concept-lattice ctx) args))
+
+;;;
 
 (defnk draw-lattice-to-file             ;does not work
   ""
