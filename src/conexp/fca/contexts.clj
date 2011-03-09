@@ -527,6 +527,8 @@
                    (to-set attributes)
                    (fn [_ _] (> fill-rate (rand))))))
 
+(defalias random-context rand-context)
+
 (defn random-contexts
   "Returns a sequence of number contexts, with random fill rate and random
   size between 0 and upper-limit."
