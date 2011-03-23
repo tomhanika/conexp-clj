@@ -15,12 +15,27 @@
 
 ;;;
 
-(defn cover [base-set candidates m extent]
-  (apply partial-min
-         subset?
-         (set-of X [X (subsets candidates),
-                    :when (subset? (reduce intersection base-set (map extent X))
-                                   (extent m))])))
+(defn- minimal-covers [base-set sets]
+  (let [covers (if (subset? base-set (reduce union sets))
+                 [sets]
+                 [])]
+    (loop [covers         covers,
+           minimal-covers []]
+      (if (empty? covers)
+        minimal-covers
+        (let [next-cover     (first covers),
+              smaller-covers (filter #(subset? base-set (reduce union %))
+                                     (map #(disj next-cover %) next-cover))]
+          (if (not-empty smaller-covers)
+            (recur (concat smaller-covers (rest covers))
+                   minimal-covers)
+            (recur (rest covers)
+                   (conj minimal-covers next-cover))))))))
+
+(defn- cover [base-set candidates m extent]
+  (minimal-covers (difference base-set (extent m))
+                  (map #(difference base-set (extent %))
+                       candidates)))
 
 (defn ryssel-base
   "Returns the set of implications computed by Ryssels Algorithm."
