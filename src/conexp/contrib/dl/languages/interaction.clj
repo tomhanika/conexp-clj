@@ -60,7 +60,7 @@
                            (let [next-object (first objects),
                                  new-attributes
                                  (loop []
-                                   (println (str "Please enter concept- and role-names which are satisfied by " next-object ":"))
+                                   (println (str "Please enter concept-names and role-relations which are satisfied by " next-object ":"))
                                    (let [new-attributes (read-string (str "(" (read-line) ")"))]
                                      (if-let [invalid (first (filter #(not (or (symbol? %)
                                                                                (and (seq? %) (= 2 (count %)))))
