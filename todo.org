@@ -24,7 +24,7 @@ conexp-clj TODOs
 * For 0.0.7-alpha
 ** DONE Make Sage interface faster                                   :Daniel:
    CLOSED: [2011-01-22 Sa 20:47]
-** TODO Add more layout output                                       :Daniel:
+** INPROGRESS Add more layout output                                 :Daniel:
    svg and povray
 ** INPROGRESS draw-lattice-to-file                                   :Daniel:
    We need some function (i.e. draw-lattice-to-file) which produces a
