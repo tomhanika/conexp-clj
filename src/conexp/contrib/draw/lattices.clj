@@ -11,6 +11,7 @@
         [conexp.fca.lattices               :only (concept-lattice)]
         [conexp.layouts                    :only (standard-layout)]
         [conexp.layouts.util               :only (scale-layout)]
+        [conexp.io.layouts                 :only (write-layout)]
         [conexp.contrib.draw.scenes        :only (scene-canvas,
                                                   add-scrollbars
                                                   save-image)]
@@ -139,23 +140,13 @@
 
 ;;;
 
-(defnk draw-lattice-to-file             ;does not work
-  ""
+(defnk draw-lattice-to-file
+  "Exports layout of given lattice to the given file."
   [lattice file-name
    :layout-fn standard-layout,
    :dimension [600 600]]
-  (do-swing-return ;prevent some nasty AWT deadlocks while experimenting
-    (let [frame (JFrame. ""),
-          panel (make-lattice-editor frame (layout-fn lattice)),
-          scene (get-scene-from-panel panel)]
-      (.setPreferredSize panel (Dimension. 600 600))
-      (.add frame panel)
-      (fit-scene-to-layout scene)
-      (.pack frame)
-      (save-image scene (java.io.File. ^String file-name) "png"))))
-
-(alter-meta! #'draw-lattice-to-file assoc :private true)
-
+  (write-layout :svg (layout-fn lattice) file-name))
+  
 ;;;
 
 nil
