@@ -15,27 +15,42 @@
 
 ;;;
 
-(defn- minimal-covers [base-set sets]
-  (let [covers (if (subset? base-set (reduce union sets))
-                 [sets]
-                 [])]
+(defn- covers? [base-set sets]
+  (subset? base-set (reduce union sets)))
+
+(defn- minimum-covers [base-set sets]
+  (let [covers (if (covers? base-set sets)
+                 #{sets}
+                 #{})]
     (loop [covers         covers,
-           minimal-covers []]
+           minimum-covers #{}]
       (if (empty? covers)
-        minimal-covers
+        minimum-covers
         (let [next-cover     (first covers),
-              smaller-covers (filter #(subset? base-set (reduce union %))
+              smaller-covers (filter #(covers? base-set %)                                      
                                      (map #(disj next-cover %) next-cover))]
           (if (not-empty smaller-covers)
-            (recur (concat smaller-covers (rest covers))
-                   minimal-covers)
-            (recur (rest covers)
-                   (conj minimal-covers next-cover))))))))
+            (recur (into (disj covers next-cover)
+                         smaller-covers)
+                   minimum-covers)
+            (let [covers (disj covers next-cover),
+                  covers (set (mapcat #(if (subset? next-cover %)
+                                         (filter (fn [X]
+                                                   (covers? base-set X))
+                                                 (map (fn [x] (disj % x))
+                                                      next-cover))
+                                         (list %))
+                                      covers))]
+              (recur covers
+                     (conj minimum-covers next-cover)))))))))
 
-(defn- cover [base-set candidates m extent]
-  (minimal-covers (difference base-set (extent m))
-                  (map #(difference base-set (extent %))
-                       candidates)))
+(defn- cover [ctx candidates m]
+  (let [base-set      (objects ctx),
+        object-covers (minimum-covers (difference base-set (attribute-derivation ctx #{m}))
+                                      (set-of (difference base-set (attribute-derivation ctx #{n}))
+                                              [n candidates]))]
+    (map #(apply union (map (fn [X] (object-derivation ctx (difference base-set X))) %))
+         object-covers)))
 
 (defn ryssel-base
   "Returns the set of implications computed by Ryssels Algorithm."
@@ -60,7 +75,7 @@
                                                       (proper-subset? (attribute-extent p)
                                                                       (attribute-extent m)))))]),
               candidates   (disj candidates (attribute-extent m)),
-              covers       (cover (objects ctx) candidates m attribute-extent),
+              covers       (cover ctx candidates m),
               implications (union implications
                                   (set-of (make-implication X #{m})
                                           [X covers
