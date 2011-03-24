@@ -22,15 +22,8 @@ conexp-clj TODOs
 * For 0.1.0-beta
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * For 0.0.7-alpha
-** TODO Rewrite to-inf-additive-layout                               :Daniel:
-   As projection into the subspace of all infimum-additive layouts.
-** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** DONE Make Sage interface faster                                   :Daniel:
    CLOSED: [2011-01-22 Sa 20:47]
-** TODO Lattice IO for csv and dot                                   :Daniel:
-   That should be simple for output, but non-trivial for input.
-** TODO More IO formats for contexts                                 :Daniel:
-   See the example files from Uta. Also include «anonymous-burmeister».
 ** TODO Add more layout output                                       :Daniel:
    svg and povray
 ** INPROGRESS draw-lattice-to-file                                   :Daniel:
@@ -41,6 +34,13 @@ conexp-clj TODOs
    For this we need some abstrace picture-drawing facility, which can
    produce pictures without showing them. For that we could use svg
    (also as output format for layouts) and simply write it to a file.
+** TODO Rewrite to-inf-additive-layout                               :Daniel:
+   As projection into the subspace of all infimum-additive layouts.
+** TODO Improve test coverage of conexp contrib                      :Daniel:
+** TODO Lattice IO for csv and dot                                   :Daniel:
+   That should be simple for output, but non-trivial for input.
+** TODO More IO formats for contexts                                 :Daniel:
+   See the example files from Uta. Also include «anonymous-burmeister».
 ** TODO Add support for multiple contexts/... in IO                  :Daniel:
    I.e. a call like
 
