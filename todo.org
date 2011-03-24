@@ -34,6 +34,8 @@ conexp-clj TODOs
    For this we need some abstrace picture-drawing facility, which can
    produce pictures without showing them. For that we could use svg
    (also as output format for layouts) and simply write it to a file.
+** INPROGRESS Allow additional arguments to write-context            :Daniel:
+   depending on the current layout.
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Improve test coverage of conexp contrib                      :Daniel:

@@ -109,9 +109,9 @@
        (fn [& args#]
          (cond
           (= 2 (count args#)) ::default-write
-          (= 3 (count args#)) (first args#)
+          (>= 3 (count args#)) (first args#)
           :else (illegal-argument "Invalid number of arguments in call to " ~write "."))))
-     (defmethod ~write :default [format# _# _#]
+     (defmethod ~write :default [format# & _#]
        (illegal-argument "Format " format# " for " ~name " output is not known."))
      (defmethod ~write ::default-write [ctx# file#]
        (~write (~get-default-write) ctx# file#))
