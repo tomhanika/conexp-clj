@@ -44,43 +44,49 @@
               (recur covers
                      (conj minimum-covers next-cover)))))))))
 
-(defn- cover [ctx candidates m]
+(defn- cover [ctx candidates A]
   (let [base-set      (objects ctx),
-        object-covers (minimum-covers (difference base-set (attribute-derivation ctx #{m}))
-                                      (set-of (difference base-set (attribute-derivation ctx #{n}))
-                                              [n candidates]))]
-    (map #(apply union (map (fn [X] (object-derivation ctx (difference base-set X))) %))
+        object-covers (minimum-covers (difference base-set A)
+                                      (set-of (difference base-set N) | N candidates))]
+    (map (fn [cover]
+           (map #(difference base-set %) cover))
          object-covers)))
 
 (defn ryssel-base
   "Returns the set of implications computed by Ryssels Algorithm."
   [ctx]
-  (let [attribute-extent (memoize #(attribute-derivation ctx #{%}))]
+  (let [oprime (memoize #(object-derivation ctx %)),
+        gens   (reduce! (fn [map x]
+                          (let [extent (attribute-derivation ctx #{x})]
+                            (assoc! map extent
+                                    (conj (get map extent #{}) x))))
+                        {}
+                        (attributes ctx)),
+        M      (set (keys gens))]
     (loop [implications #{},
-           atts         (attributes ctx)]
-      (if (empty? atts)
+           extents      M]
+      (if (empty? extents)
         implications
-        (let [m            (first atts),
+        (let [A            (first extents),
+              B            (oprime A),
+              implications (into implications
+                                 (set-of (make-implication #{m} (oprime N))
+                                         [N (disj M A)
+                                          :when (subset? A N),
+                                          m (gens A)])),
+              candidates   (set-of U
+                                   [U M,
+                                    :when (not (exists [V M]
+                                                 (and (subset? (intersection U A) V)
+                                                      (proper-subset? V A))))]),
+              candidates   (disj candidates A),
+              covers       (cover ctx candidates A),
               implications (union implications
-                                  (set-of (make-implication #{m} #{n})
-                                          [n (disj (attributes ctx) m)
-                                           :when (subset? (attribute-extent m)
-                                                          (attribute-extent n))])),
-              candidates   (set-of n
-                                   [n (attributes ctx)
-                                    :when (not (exists [p (attributes ctx)]
-                                                 (and (subset? (intersection (attribute-extent n)
-                                                                             (attribute-extent m))
-                                                               (attribute-extent p))
-                                                      (proper-subset? (attribute-extent p)
-                                                                      (attribute-extent m)))))]),
-              candidates   (disj candidates (attribute-extent m)),
-              covers       (cover ctx candidates m),
-              implications (union implications
-                                  (set-of (make-implication X #{m})
-                                          [X covers
-                                           :when (not (contains? X m))]))]
-          (recur implications (rest atts)))))))          
+                                  (set-of (make-implication premise B)
+                                          [X covers,
+                                           :let [premise (set-of m | Y X, m (gens Y))]
+                                           :when (not (subset? B premise))]))]
+          (recur implications (rest extents)))))))
 
 ;;;
 
