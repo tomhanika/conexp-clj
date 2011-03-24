@@ -18,6 +18,7 @@ conexp-clj TODOs
 ** TODO Fix stupid labeling
 ** TODO Fix Neverending Rotation when switching tabs
    This is a GUI problem.
+** TODO Undo for GUI
 * For 0.1.0-beta
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * For 0.0.7-alpha
