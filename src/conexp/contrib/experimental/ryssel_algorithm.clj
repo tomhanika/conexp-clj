@@ -6,63 +6,54 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.experimental.ryssel_algorithm
+(ns conexp.contrib.experimental.ryssel-algorithm
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications))
 
 (ns-doc "An implementation of Ryssels Algorithm")
 
-;;;
+;;; Searching for minimum covers
 
 (defn- covers? [base-set sets]
-  (loop [rest (transient base-set),
-         sets sets]
-    (if-not sets
-      false
-      (let [new-rest (reduce disj! rest (first sets))]
-        (if (zero? (count new-rest))
-          true
-          (recur new-rest (next sets)))))))
+  (if (empty? base-set)
+    true
+    (loop [rest (transient base-set),
+           sets (seq sets)]
+      (if-not sets
+        false
+        (let [new-rest (reduce disj! rest (first sets))]
+          (if (zero? (count new-rest))
+            true
+            (recur new-rest (next sets))))))))
 
 (defn- redundant? [cover]
   (exists [set cover]
     (covers? set (disj cover set))))
 
 (defn- minimum-covers [base-set sets]
-  (if-not (covers? base-set sets)
-    []
-    (let [drop   (memoize drop),
-          sets   (vec (sort #(>= (count %1) (count %2)) sets)),
-          result (atom (transient [])),
-          search (fn search [rest-base-set current-cover i]
-                   (cond
-                    (redundant? current-cover)
-                    nil,
-                    (covers? base-set current-cover)
-                    (swap! result conj! current-cover),
-                    (>= i (count sets))
-                    nil,
-                    :else (do
-                            (search (difference base-set (sets i))
+  (let [drop   (memoize drop),
+        sets   (vec (sort #(>= (count %1) (count %2)) sets)),
+        result (atom (transient [])),
+        search (fn search [rest-base-set current-cover i]
+                 (cond
+                  (redundant? current-cover)
+                  nil,
+                  (empty? rest-base-set)
+                  (swap! result conj! current-cover),
+                  (>= i (count sets))
+                  nil,
+                  :else (do
+                          (when (covers? rest-base-set (drop i sets))
+                            (search (difference rest-base-set (sets i))
                                     (conj current-cover (sets i))
                                     (inc i))
-                            (when (covers? rest-base-set (drop (inc i) sets))
-                              (search rest-base-set current-cover (inc i))))))]
-      (search base-set #{} 0)
-      (persistent! @result))))
-    
-(defn- cover [ctx candidates A]
-  (let [base-set      (objects ctx),
-        candidates    (difference candidates
-                                  (set-of (intersection X Y) | X candidates, Y candidates
-                                                               :when (and (not (subset? X Y))
-                                                                          (not (subset? Y X))))),
-        object-covers (minimum-covers (difference base-set A)
-                                      (set-of (difference base-set N) | N candidates))]
-    (map (fn [cover]
-           (map #(difference base-set %) cover))
-         object-covers)))
+                            (search rest-base-set current-cover (inc i))))))]
+    (search base-set #{} 0)
+    (persistent! @result)))
+
+
+;;; Collapsing implications with equal premise
 
 (defn- collapse-equal-premises [implications]
   (let [impl-map (reduce! (fn [map implication]
@@ -73,40 +64,55 @@
                           implications)]
     (set-of (make-implication (pair 0) (pair 1)) | pair impl-map)))
 
+
+;;; The actual algorithm
+
+(defn- cover [base-set candidates A]
+  (let [candidates    (difference candidates
+                                  (set-of (intersection X Y) | X candidates, Y candidates
+                                                               :when (and (not (subset? X Y))
+                                                                          (not (subset? Y X))))),
+        object-covers (minimum-covers (difference base-set A)
+                                      (set-of (difference base-set N) | N candidates))]
+    (map (fn [cover]
+           (map #(difference base-set %) cover))
+         object-covers)))
+
 (defn ryssel-base
   "Returns the set of implications computed by Ryssels Algorithm."
   [ctx]
   (let [oprime (memoize #(object-derivation ctx %)),
-        gens   (reduce! (fn [map x]
+        gens   (reduce! (fn [map x]     ;generating elements of attribute extents
                           (let [extent (attribute-derivation ctx #{x})]
                             (assoc! map extent
                                     (conj (get map extent #{}) x))))
                         {}
                         (attributes ctx)),
-        M      (set (keys gens))]
+        M      (set (keys gens))]       ;all attribute extents
     (loop [implications #{},
            extents      M]
       (if (empty? extents)
         (collapse-equal-premises implications)
         (let [A            (first extents),
-              B            (oprime A),
               implications (into implications
-                                 (set-of (make-implication #{m} (oprime N))
-                                         [N (disj M A)
+                                 (set-of (make-implication #{m} #{n})
+                                         [N M
                                           :when (subset? A N),
-                                          m (gens A)])),
+                                          m (gens A),
+                                          n (gens N),
+                                          :when (not= m n)])),
               candidates   (set-of U
                                    [U M,
                                     :when (not (exists [V M]
                                                  (and (subset? (intersection U A) V)
                                                       (proper-subset? V A))))]),
               candidates   (disj candidates A),
-              covers       (cover ctx candidates A),
+              covers       (cover (objects ctx) candidates A),
+              B            (oprime A),
               implications (union implications
                                   (set-of (make-implication premise B)
                                           [X covers,
-                                           :let [premise (set-of m | Y X, m (gens Y))]
-                                           :when (not (subset? B premise))]))]
+                                           :let [premise (set-of m | Y X, m (gens Y))]]))]
           (recur implications (rest extents)))))))
 
 ;;;
