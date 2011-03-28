@@ -16,41 +16,54 @@
 ;;;
 
 (defn- covers? [base-set sets]
-  (subset? base-set (reduce union sets)))
+  (subset? base-set (reduce union #{} sets)))
+
+(defn- redundant? [cover]
+  (exists [set cover]
+    (covers? set (disj cover set))))
 
 (defn- minimum-covers [base-set sets]
-  (let [covers (if (covers? base-set sets)
-                 #{sets}
-                 #{})]
-    (loop [covers         covers,
-           minimum-covers #{}]
-      (if (empty? covers)
-        minimum-covers
-        (let [next-cover     (first covers),
-              smaller-covers (filter #(covers? base-set %)                                      
-                                     (map #(disj next-cover %) next-cover))]
-          (if (not-empty smaller-covers)
-            (recur (into (disj covers next-cover)
-                         smaller-covers)
-                   minimum-covers)
-            (let [covers (disj covers next-cover),
-                  covers (set (mapcat #(if (subset? next-cover %)
-                                         (filter (fn [X]
-                                                   (covers? base-set X))
-                                                 (map (fn [x] (disj % x))
-                                                      next-cover))
-                                         (list %))
-                                      covers))]
-              (recur covers
-                     (conj minimum-covers next-cover)))))))))
-
+  (if-not (covers? base-set sets)
+    []
+    (let [sets   (vec (sort #(>= (count %1) (count %2)) sets)),
+          result (atom (transient [])),
+          search (fn search [rest-base-set current-cover i]
+                   (cond
+                    (redundant? current-cover)
+                    nil,
+                    (covers? base-set current-cover)
+                    (swap! result conj! current-cover),
+                    (>= i (count sets))
+                    nil,
+                    :else (do
+                            (search (difference base-set (sets i))
+                                    (conj current-cover (sets i))
+                                    (inc i))
+                            (when (covers? rest-base-set (drop (inc i) sets))
+                              (search rest-base-set current-cover (inc i))))))]
+      (search base-set #{} 0)
+      (persistent! @result))))
+    
 (defn- cover [ctx candidates A]
   (let [base-set      (objects ctx),
+        candidates    (difference candidates
+                                  (set-of (intersection X Y) | X candidates, Y candidates
+                                                               :when (and (not (subset? X Y))
+                                                                          (not (subset? Y X))))),
         object-covers (minimum-covers (difference base-set A)
                                       (set-of (difference base-set N) | N candidates))]
     (map (fn [cover]
            (map #(difference base-set %) cover))
          object-covers)))
+
+(defn- collapse-equal-premises [implications]
+  (let [impl-map (reduce! (fn [map implication]
+                            (assoc! map (premise implication)
+                                    (into (get map (premise implication) #{})
+                                          (conclusion implication))))
+                          {}
+                          implications)]
+    (set-of (make-implication (pair 0) (pair 1)) | pair impl-map)))
 
 (defn ryssel-base
   "Returns the set of implications computed by Ryssels Algorithm."
@@ -66,7 +79,7 @@
     (loop [implications #{},
            extents      M]
       (if (empty? extents)
-        implications
+        (collapse-equal-premises implications)
         (let [A            (first extents),
               B            (oprime A),
               implications (into implications
