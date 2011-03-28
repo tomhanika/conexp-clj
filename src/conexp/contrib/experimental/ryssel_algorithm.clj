@@ -16,7 +16,11 @@
 ;;;
 
 (defn- covers? [base-set sets]
-  (subset? base-set (reduce union #{} sets)))
+  (let [all-set (reduce! (fn [all set]
+                           (reduce conj! all set))
+                         #{}
+                         sets)]
+    (subset? base-set all-set)))
 
 (defn- redundant? [cover]
   (exists [set cover]
@@ -25,7 +29,8 @@
 (defn- minimum-covers [base-set sets]
   (if-not (covers? base-set sets)
     []
-    (let [sets   (vec (sort #(>= (count %1) (count %2)) sets)),
+    (let [drop   (memoize drop),
+          sets   (vec (sort #(>= (count %1) (count %2)) sets)),
           result (atom (transient [])),
           search (fn search [rest-base-set current-cover i]
                    (cond
