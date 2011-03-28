@@ -16,11 +16,14 @@
 ;;;
 
 (defn- covers? [base-set sets]
-  (let [all-set (reduce! (fn [all set]
-                           (reduce conj! all set))
-                         #{}
-                         sets)]
-    (subset? base-set all-set)))
+  (loop [rest (transient base-set),
+         sets sets]
+    (if-not sets
+      false
+      (let [new-rest (reduce disj! rest (first sets))]
+        (if (zero? (count new-rest))
+          true
+          (recur new-rest (next sets)))))))
 
 (defn- redundant? [cover]
   (exists [set cover]
