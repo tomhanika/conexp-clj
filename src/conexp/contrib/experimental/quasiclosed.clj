@@ -22,8 +22,8 @@ context")
   [ctx initial-set]
   (let [elements (vec initial-set),
         intent   (context-attribute-closure ctx initial-set),
-        result   (atom []),
-        search   (fn search [current i] ;this yields more than the direct generators
+        maximals (atom []),
+        search   (fn search [current i]
                    ;; invariant: current is always a set with the same
                    ;; intent as initial-set
                    (if (>= i (count elements))
@@ -31,11 +31,15 @@ context")
                      (let [next (disj current (elements i))]
                        (if (not= (context-attribute-closure ctx next)
                                  intent)
-                         (swap! result conj next)
+                         (when (forall [x elements]
+                                 (=> (not (contains? next x))
+                                     (= intent
+                                        (context-attribute-closure ctx (conj next x)))))
+                           (swap! maximals conj next))
                          (search next (inc i)))
                        (search current (inc i)))))]
     (search initial-set 0)
-    @result))
+    @maximals))
 
 (defn context-attribute-quasiclosure
   "Computes the quasiclosure of set in context ctx."
@@ -49,6 +53,13 @@ context")
       set
       (recur ctx quasiclosure))))
 
+(defn quasi-intents
+  "Returns the quasi-closed sets of attributes of the given context
+  ctx."
+  [ctx]
+  (all-closed-sets (attributes ctx)
+                   #(context-attribute-quasiclosure ctx %)))
+
 (defn quasi-stem-base
   "Returns the base of implications with quasiclosed premise."
   [ctx]
@@ -59,51 +70,7 @@ context")
                       (make-implication set
                                         (context-attribute-closure ctx set)))))
            #{}
-           (all-closed-sets (attributes ctx)
-                            #(context-attribute-quasiclosure ctx %))))
-
-;;;
-
-;; (defn- context-attribute-pseudoclosure  ;this is wrong
-;;   "Returns the pseudoclosure of initial-set in context ctx."
-;;   [ctx initial-set]
-;;   (let [elements (vec initial-set),
-;;         intent   (context-attribute-closure ctx initial-set),
-;;         minimal-nongens (atom []),
-;;         search   (fn search [current i]
-;;                    (if (not= (context-attribute-closure ctx current)
-;;                              intent)
-;;                      nil
-;;                      (let [old @minimal-nongens]
-;;                        (doseq [j (range 0 (count elements))]
-;;                          (let [next (disj current (elements j))]
-;;                            (when (not= next current)
-;;                              (search next (inc j)))))
-;;                        (when (= old @minimal-nongens)
-;;                          (swap! minimal-nongens conj current)))))]
-;;     (search initial-set 0)
-;;     (println @minimal-nongens)
-;;     (if (empty? @minimal-nongens)
-;;       initial-set
-;;       (let [quasiclosed (map #(context-attribute-quasiclosure ctx %)
-;;                              @minimal-nongens)]
-;;         (println quasiclosed)
-;;         (if (not (exists [set quasiclosed] (proper-subset? set initial-set)))
-;;           (context-attribute-quasiclosure ctx initial-set)
-;;           intent)))))
-
-;; (defn pseudo-stem-base
-;;   "Returns the base of implications with pseudoclosed premise."
-;;   [ctx]
-;;   (reduce! (fn [impls set]
-;;              (if (= set (context-attribute-closure ctx set))
-;;                impls
-;;                (conj! impls
-;;                       (make-implication set
-;;                                         (context-attribute-closure ctx set)))))
-;;            #{}
-;;            (all-closed-sets (attributes ctx)
-;;                             #(context-attribute-pseudoclosure ctx %))))
+           (quasi-intents ctx)))
 
 ;;;
 
