@@ -262,4 +262,28 @@
 
 ;;;
 
+(defn stem-base-from-base
+  "For a given set of implications returns its stem-base."
+  [implications]
+  (loop [stem-base    #{},
+         implications (map #(make-implication (premise %)
+                                              (close-under-implications implications
+                                                                        (union (premise %)
+                                                                               (conclusion %))))
+                           implications)]
+    (if (empty? implications)
+      stem-base
+      (let [A->B         (first implications),
+            implications (rest implications),
+            A*           (close-under-implications (into stem-base implications)
+                                                   (premise A->B)),
+            new-impl     (make-implication A* (conclusion A->B))]
+        (recur (if (not-empty (conclusion new-impl))
+                 (conj stem-base
+                       (make-implication A* (conclusion A->B)))
+                 stem-base)
+               implications)))))
+
+;;;
+
 nil

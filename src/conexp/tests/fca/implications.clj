@@ -187,6 +187,11 @@
                       [3 5] [3 8] [4 1] [4 3] [4 5]
                       [4 8] [5 2] [5 3] [5 5] [5 7]}))))
 
+(deftest test-stem-base-from-base
+  (with-testing-data [ctx (random-contexts 10 20)]
+    (= (stem-base ctx)
+       (stem-base-from-base (proper-premise-implications ctx)))))
+
 ;;;
 
 nil
