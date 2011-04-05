@@ -218,12 +218,16 @@
         atts (attributes ctx)]
     (set-of m [m atts :when (forall [g objects] (inz [g m]))])))
 
+(defalias oprime object-derivation)
+
 (defn attribute-derivation
   "Computes set of objects common to all attributes in context."
   [ctx attributes]
   (let [inz  (incidence ctx),
         objs (objects ctx)]
     (set-of g [g objs :when (forall [m attributes] (inz [g m]))])))
+
+(defalias aprime attribute-derivation)
 
 (defn concept?
   "Tests whether given pair is a concept in context ctx."
