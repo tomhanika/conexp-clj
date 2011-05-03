@@ -15,7 +15,16 @@
 
 ;;;
 
-(deftype Layout [positions connections information]
+(deftype Layout [lattice                ;the underlying lattice
+                 positions              ;fn mapping nodes to $\RR^2$
+                 annotation-label       ;fn mapping nodes and #{'lower,'upper}
+                                        ;to their labels
+                 annotation-position    ;fn mapping nodes and #{'lower,'upper}
+                                        ;to the position of the corresponding
+                                        ;label
+                 information]           ;ref for technicals
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HERE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   Object
   (equals [this other]
     (generic-equals [this other] Layout [positions connections]))
