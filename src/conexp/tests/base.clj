@@ -179,12 +179,12 @@
     [#{3 4 5} #{2 4 5} #{2 3 5} #{2 3 4} #{1 4 5} #{1 3 5} #{1 3 4} #{1 2 5} #{1 2 4} #{1 2 3}]))
 
 (deftest test-partial-min
-  (are [order seq minimals] (= (set minimals) (set (apply partial-min order seq)))
+  (are [order seq minimals] (= (set minimals) (set (partial-min order seq)))
     <= [1 2 3 4] [1],
     subset? [#{1 2 3} #{1 2} #{1 3}] [#{1 2} #{1 3}]))
 
 (deftest test-partial-max
-  (are [order seq minimals] (= (set minimals) (set (apply partial-max order seq)))
+  (are [order seq minimals] (= (set minimals) (set (partial-max order seq)))
     <= [1 2 3 4] [4],
     subset? [#{1 2 3} #{1 2} #{1 3}] [#{1 2 3}],
     subset? [#{2 3 4} #{1 2 3} #{1 2} #{1}] [#{2 3 4} #{1 2 3}]))

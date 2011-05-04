@@ -221,12 +221,12 @@
    (empty? set-sqn) (list #{}),
    (empty? (first set-sqn)) (),
    :else (let [next-set (first set-sqn)]
-           (apply partial-min subset?
-                  (mapcat (fn [set]
-                            (if-not (empty? (intersection set next-set))
-                              (list set)
-                              (map #(conj set %) next-set)))
-                          (minimal-intersection-sets (rest set-sqn)))))))
+           (partial-min subset?
+                        (mapcat (fn [set]
+                                  (if-not (empty? (intersection set next-set))
+                                    (list set)
+                                    (map #(conj set %) next-set)))
+                                (minimal-intersection-sets (rest set-sqn)))))))
 
 (defn- proper-premises-for-attribute
   "Returns in context ctx for the attribute m and the objects in objs,

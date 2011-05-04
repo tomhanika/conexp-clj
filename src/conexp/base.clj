@@ -226,7 +226,7 @@
 (defn partial-min
   "For a given partial order <= and given elements returns the minimal
   among them."
-  [<= & xs]
+  [<= xs]
   (let [runner (fn runner [left minimals]
                  (if (empty? left)
                    minimals
@@ -242,8 +242,8 @@
 (defn partial-max
   "For a given partial order <= and given elements returns the maximal
   among them."
-  [<= & xs]
-  (apply partial-min #(<= %2 %1) xs))
+  [<= xs]
+  (partial-min #(<= %2 %1) xs))
 
 ;;;
 
