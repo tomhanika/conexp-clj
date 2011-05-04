@@ -94,6 +94,30 @@
                  y (base-set lattice),
                  :when (directly-neighboured? lattice x y)]))
 
+(defn- edges-by-border
+  "Computes edges of a lattice by a border algorithm as given by José
+  L. Balcázar and Cristina Tîrnǎucǎ."
+  [lattice]
+  (let [sup (sup lattice)
+        L   (reverse (topological-sort (order lattice) (base-set lattice))),
+        B   #{}
+        H   #{}]
+    (loop [L L, B B, H H]
+      (if (not-empty L)
+        (let [x     (first L),
+              cover (partial-min (order lattice)
+                                 (map #(sup x %) B))]
+          (recur (rest L)
+                 (reduce! (fn [set y]
+                            (disj! set y))
+                          (conj B x)
+                          cover)
+                 (reduce! (fn [set z]
+                            (conj! set [x z]))
+                          H
+                          cover)))
+        H))))
+
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
   [layout]
