@@ -484,6 +484,15 @@
    :otherwise
    (illegal-argument "Cannot generate meaningful sequence from " x ".")))
 
+(defn topological-sort                  ;TODO: Write Test
+  "Returns a linear extension of the given collection coll and the
+  supplied comparator comp. If the comparator is not given, < is
+  used."
+  ([coll]
+     (topological-sort < coll))
+  ([comp coll]
+     (sort comp coll)))                 ;is this correct?
+
 ;;;
 
 nil
