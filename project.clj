@@ -12,7 +12,8 @@
   :min-lein-version "1.3.0"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
-  :dependencies [[org.clojure/clojure               "1.3.0-master-20101213.040202-3"]
+  :repositories {"sonatype" "https://oss.sonatype.org/content/repositories/snapshots/"}
+  :dependencies [[org.clojure/clojure               "1.3.0-master-SNAPSHOT"]
                  [org.clojure.contrib/combinatorics "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/command-line  "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/core          "1.3.0-SNAPSHOT"]
