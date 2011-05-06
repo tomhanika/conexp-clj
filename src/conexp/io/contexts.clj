@@ -195,7 +195,7 @@
 
         atts-vector (sort #(< (atts %1) (atts %2)) (attributes ctx))
         objs-vector (sort #(< (objs %1) (objs %2)) (objects ctx))]
-    (binding [clojure.contrib.prxml/*prxml-indent* 2]
+    (binding [*prxml-indent* 2]
       (with-out-writer file
         (prxml [:decl! {:vecsion "1.0"}])
         (prxml [:Galicia_Document
