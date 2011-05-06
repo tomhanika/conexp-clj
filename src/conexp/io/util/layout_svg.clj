@@ -7,11 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.util.layout-svg
-  (:use conexp.base
+  (:use conexp.util.xml
+        conexp.base
         conexp.layouts.base
         conexp.layouts.util)
-  (:use clojure.contrib.prxml
-        clojure.java.io))
+  (:use clojure.java.io))
 
 (ns-doc
  "A small library for dumping layouts into the SVG format.")

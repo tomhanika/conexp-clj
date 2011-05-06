@@ -7,12 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.contexts
-  (:use conexp.base
+  (:use conexp.util.xml
+        conexp.base
         conexp.fca.contexts
         conexp.io.util
         conexp.io.latex)
   (:use [clojure.contrib.lazy-xml :exclude (attributes)]
-        clojure.contrib.prxml
         [clojure.string :only (split)])
   (:import [java.io PushbackReader]))
 

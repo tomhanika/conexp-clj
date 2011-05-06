@@ -23,7 +23,6 @@
                  [org.clojure.contrib/lazy-xml      "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/math          "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/profile       "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/prxml         "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/set           "1.3.0-SNAPSHOT"]
                  [org.apache.commons/commons-math   "2.0"]
                  [jline                             "0.9.94"]]
