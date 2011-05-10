@@ -62,8 +62,8 @@
                        (first arglist-split)))
              (conj (vec (map (constantly 'Object)
                              (first arglist-split)))
-                   'objects))
-           return])))))          
+                   "[Ljava.lang.Object;"))
+           return])))))
 
 (defn- generate-definition
   "Generates function definition with name new-name, calling orig-name
@@ -84,30 +84,32 @@
   that file. After this has been compiled it can be used to call
   conexp-clj functions from Java."
   [file-name]
-  (with-open [out (writer file-name)]
-    (binding [*out* out]
-      (clojure.pprint/pprint
-       `(do
-          (ns ~'conexp.contrib.JavaInterface
-            (:require conexp.main)
-            (:gen-class
-             :prefix ~'conexp-clj-
-             :methods ~(map #(with-meta % {:static true})
-                            (mapcat #(apply function-signatures %)
-                                    conexp-functions))))
+  (let [methods (mapcat #(apply function-signatures %)
+                        conexp-functions)
+        methods (mapcat #(list (symbol "^{:static true}") %) methods)]
+    (with-open [out (writer file-name)]
+      (binding [*print-meta* true
+                *out* out]
+        (clojure.pprint/pprint
+         `(do
+            (ns ~'conexp.contrib.JavaInterface
+              (:require conexp.main)
+              (:gen-class
+               :prefix ~'conexp-clj-
+               :methods ~methods))
 
-          (import 'conexp.fca.contexts.Context)
-          (import 'conexp.fca.lattices.Lattice)
-          (import 'conexp.fca.association_rules.Association-Rule)
+            (import 'conexp.fca.contexts.Context)
+            (import 'conexp.fca.lattices.Lattice)
+            (import 'conexp.fca.association_rules.Association-Rule)
 
-          ~@(for [[new-name, ^clojure.lang.Var var] conexp-functions]
-              (let [orig-name (symbol (str (.ns var)) (str (.sym var))),
-                    arglists  (:arglists (meta var))]
-                (apply generate-definition
-                       "conexp-clj-"
-                       new-name
-                       orig-name
-                       arglists))))))))
+            ~@(for [[new-name, ^clojure.lang.Var var] conexp-functions]
+                (let [orig-name (symbol (str (.ns var)) (str (.sym var))),
+                      arglists  (:arglists (meta var))]
+                  (apply generate-definition
+                         "conexp-clj-"
+                         new-name
+                         orig-name
+                         arglists)))))))))
 
 ;;;
 

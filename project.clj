@@ -12,7 +12,8 @@
   :min-lein-version "1.3.0"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
-  :repositories {"sonatype" "https://oss.sonatype.org/content/repositories/snapshots/"}
+  :repositories {"sonatype" "https://oss.sonatype.org/content/repositories/snapshots/",
+                 "releases" "https://oss.sonatype.org/content/repositories/releases/"}
   :dependencies [[org.clojure/clojure               "1.3.0-master-SNAPSHOT"]
                  [org.clojure.contrib/combinatorics "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/command-line  "1.3.0-SNAPSHOT"]
@@ -27,7 +28,7 @@
                  [org.apache.commons/commons-math   "2.0"]
                  [jline                             "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.0"]]
-  :aot [conexp.main conexp.contrib.gui]
+  :aot [conexp.main conexp.contrib.gui conexp.contrib.JavaInterface]
   :keep-non-project-classes true
   :jar-name "conexp-clj.jar"
   :jvm-opts ["-server", "-Xmx1g"]
@@ -40,7 +41,7 @@
 (defn copy-file [name]
   (let [source (java.io.File. (str "stuff/libs/" name)),
         target (java.io.File. (str "lib/" name))]
-    (when (not (.exists target))
+    (when-not (.exists target)
       (println (str "Copying " name " to lib"))
       (clojure.java.io/copy source target))))
 
