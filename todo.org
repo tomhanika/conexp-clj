@@ -37,8 +37,6 @@ conexp-clj TODOs
 ** INPROGRESS Allow additional arguments to write-context            :Daniel:
    depending on the current layout.
 ** INPROGRESS Java Interface                                         :Daniel:
-   How can we automatically generate the JavaInterface from Leiningen?
-
    Add type hints for automatically generated Java interface functions.
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
