@@ -34,22 +34,36 @@
   :jvm-opts ["-server", "-Xmx1g"]
   :warn-on-reflection true)
 
-(require 'clojure.java.io
-         'robert.hooke
-         'leiningen.deps)
+;;;
+
+(use '[leiningen.core     :only (prepend-tasks)]
+     '[clojure.java.io    :only (copy)]
+     '[clojure.java.shell :only (sh)]
+     '[robert.hooke       :only (add-hook)])
+
+(require 'leiningen.deps
+         'leiningen.compile)
 
 (defn copy-file [name]
   (let [source (java.io.File. (str "stuff/libs/" name)),
         target (java.io.File. (str "lib/" name))]
     (when-not (.exists target)
       (println (str "Copying " name " to lib"))
-      (clojure.java.io/copy source target))))
+      (copy source target))))
 
-(robert.hooke/add-hook #'leiningen.deps/deps
-                       (fn [f & args]
-                         (apply f args)
-                         (copy-file "G.jar")
-                         (copy-file "LatDraw.jar")))
+(add-hook #'leiningen.deps/deps
+          (fn [f & args]
+            (apply f args)
+            (copy-file "G.jar")
+            (copy-file "LatDraw.jar")))
+
+(prepend-tasks #'leiningen.compile/compile
+               (fn [_]
+                 (println "Generating Java Interface")
+                 (sh "java"
+                     "-cp" "./lib/*:./src/"
+                     "clojure.main" "-e"
+                     "(do (require 'conexp.contrib.java) (conexp.contrib.java/generate-java-interface \"src/conexp/contrib/JavaInterface.clj\"))")))
 
 ;;;
 
