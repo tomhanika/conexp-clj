@@ -21,15 +21,11 @@
                      (.replaceAll "-" "_")
                      (.replaceAll " " "_")
                      (.replaceAll "!" "")
+                     (.replaceAll "\\?" "")
                      (.replaceAll "<" "_lt_")
                      (.replaceAll ">" "_gt_")
                      (.replaceAll "=" "_eq_"))]
-    (symbol
-     (if (.endsWith new-name "?")
-       (if-not (.startsWith new-name "has")
-         (str "is_" (subs new-name 0 (dec (count new-name))))
-         (subs new-name 0 (dec (count new-name))))
-       new-name))))
+    (symbol new-name)))
 
 (defvar- conexp-functions
   (let [public-map (ns-publics 'conexp.main)]
