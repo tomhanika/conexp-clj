@@ -64,7 +64,7 @@
   [thing & body]
   `(.addActionListener ~thing
                        (proxy [ActionListener] []
-                         (actionPerformed [^ActionEvent ~'evt]
+                         (actionPerformed [~(vary-meta 'evt assoc :tag java.awt.event.ActionEvent)]
                           (do-swing ~@body)))))
 
 (defmacro with-change-on

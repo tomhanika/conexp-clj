@@ -12,8 +12,8 @@
   (:import [javax.swing JPanel JButton JTextField JLabel
                         JSeparator SwingConstants Box JComboBox
                         JSlider SpinnerNumberModel JSpinner
-                        BoxLayout]
-           [java.awt Dimension Component]))
+                        BoxLayout JFrame JComponent]
+           [java.awt Dimension Component event.ActionEvent]))
 
 ;;;
 
@@ -30,12 +30,12 @@
 
 (defn make-padding
   "Adds a padding to buttons."
-  [buttons]
+  [^JComponent buttons]
   (.add buttons (Box/createRigidArea (Dimension. 0 2))))
 
 (defn make-separator
   "Adds a separator to buttons."
-  [buttons]
+  [^JComponent buttons]
   (let [sep (JSeparator. SwingConstants/HORIZONTAL)]
     (.setMaximumSize sep (Dimension. *item-width* 1))
     (.add buttons sep)
@@ -43,7 +43,7 @@
 
 (defn make-button
   "Uniformly creates buttons for lattice editor."
-  [buttons text]
+  [^JComponent buttons, ^String text]
   (let [button (JButton. text)]
     (.add buttons button)
     (.setAlignmentX button Component/CENTER_ALIGNMENT)
@@ -52,7 +52,7 @@
 
 (defn make-label
   "Uniformly creates labels for lattice editor."
-  [buttons text]
+  [^JComponent buttons, ^String text]
   (let [label (JLabel. text)]
     (.add buttons label)
     (.setMaximumSize label (Dimension. *item-width* *item-height*))
@@ -62,7 +62,7 @@
 
 (defn make-labeled-text-field
   "Uniformly creates a text field for lattice editor."
-  [buttons label text]
+  [^JComponent buttons, ^String label, ^String text]
   (let [^JTextField text-field (JTextField. text),
         ^JLabel label (JLabel. label),
         ^JPanel panel (JPanel.)]
@@ -79,8 +79,8 @@
 (defn make-combo-box
   "Uniformly creates a combo box from the given choices. First item is
   selected by default."
-  [buttons choices]
-  (let [^JComboBox combo-box (JComboBox. (into-array String choices))]
+  [^JComponent buttons, choices]
+  (let [^JComboBox combo-box (JComboBox. ^"[Ljava.lang.String;" (into-array String choices))]
     (doto combo-box
       (.setMaximumSize (Dimension. *item-width* *item-height*)))
     (.add buttons combo-box)
@@ -88,7 +88,7 @@
 
 (defn make-slider
   "Uniformly creates a slider."
-  [buttons min max init]
+  [^JComponent buttons, min max init]
   (let [^JSlider slider (JSlider. JSlider/HORIZONTAL (int min) (int max) (int init))]
     (.setMaximumSize slider (Dimension. *item-width* *item-height*))
     (.add buttons slider)
@@ -96,7 +96,7 @@
 
 (defn make-spinner
   "Uniformly creates a spinner."
-  [buttons min max init step]
+  [^JComponent buttons, min max init step]
   (let [^SpinnerNumberModel
         model (SpinnerNumberModel. (double init)
                                    (double min)
@@ -110,7 +110,7 @@
 
 (defn make-panel
   "Uniformly creates a panel."
-  [buttons]
+  [^JComponent buttons]
   (let [^JPanel panel (JPanel.)]
     (.setMaximumSize panel (Dimension. *item-width* *item-height*))
     (.add buttons panel)
@@ -128,7 +128,7 @@
   (assert (second choices))
   (assert (even? (count choices)))
   (let [choices (apply hash-map choices)]
-    (fn [frame scene buttons]
+    (fn [^JFrame frame, scene buttons]
       (let [^JPanel
             base-pane   (make-panel buttons),
             _           (.setLayout base-pane (BoxLayout. base-pane BoxLayout/Y_AXIS)),
@@ -141,7 +141,7 @@
         (.setMaximumSize base-pane nil)
         (.setMaximumSize choice-pane nil)
         (with-action-on combo-box
-          (let [selected (.getSelectedItem ^JComboBox (.getSource evt)),
+          (let [selected (.getSelectedItem ^JComboBox (.getSource ^ActionEvent evt)),
                 control  (get choices selected)]
              (.removeAll choice-pane)
              (control frame scene choice-pane)
