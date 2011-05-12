@@ -38,6 +38,7 @@ conexp-clj TODOs
    depending on the current layout.
 ** INPROGRESS Java Interface                                         :Daniel:
    Add type hints for automatically generated Java interface functions.
+** INPROGRESS Remove reflection warnings from GUI                    :Daniel:
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
@@ -59,7 +60,6 @@ conexp-clj TODOs
 ** TODO Allow nominals in DL extension                               :Daniel:
 ** TODO Make output of TBoxes readable                               :Daniel:
 ** TODO Automatically convert DL expressions to LaTeX                :Daniel:
-** TODO Remove reflection warnings from GUI                          :Daniel:
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
