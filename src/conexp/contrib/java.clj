@@ -47,17 +47,24 @@
   gen-class."
   [new-name, ^clojure.lang.Var var]
   (let [arglists (:arglists (meta var)),
-        return   (or (:tag (meta var)) 'Object)]
+        return   (or (:tag (meta var)) 'Object),
+        tag      (fn [x]
+                   (let [tag (:tag (meta x))]
+                     (if-not tag
+                       'Object
+                       (case tag
+                         Lattice conexp.fca.lattices.Lattice
+                         Context conexp.fca.contexts.Context
+                         Association-Rule conexp.fca.association_rules.Association-Rule
+                         tag))))]
     (if-not arglists
       nil
       (for [arglist arglists]
         (let [arglist-split (dissect-arglist arglist)]
           [new-name
            (if (empty? (second arglist-split))
-             (vec (map (constantly 'Object)
-                       (first arglist-split)))
-             (conj (vec (map (constantly 'Object)
-                             (first arglist-split)))
+             (vec (map tag (first arglist-split)))
+             (conj (vec (map tag (first arglist-split)))
                    "[Ljava.lang.Object;"))
            return])))))
 
