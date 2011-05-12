@@ -9,8 +9,9 @@
 (ns conexp.contrib.gui.repl
   (:import [javax.swing.text PlainDocument]
            [java.io PushbackReader StringReader PipedWriter PipedReader
-                    PrintWriter CharArrayWriter]
-           [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame]
+                    PrintWriter CharArrayWriter PrintStream]
+           [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame
+                        JComponent]
            [java.awt Font Color])
   (:use [conexp.base :only (defvar-)]
         conexp.contrib.gui.util)
@@ -65,9 +66,9 @@
                                       (in-ns 'user)
                                       (use 'conexp.main)
                                       (require '[conexp.contrib.gui.repl-utils :as gui]))
-                              :caught (fn [e]
+                              :caught (fn [^Throwable e]
                                         (if *print-stack-trace-on-error*
-                                          (.printStackTrace e *out*)
+                                          (.printStackTrace e ^PrintStream *out*)
                                           (prn (clojure.main/repl-exception e)))
                                         (when (eof-ex? e)
                                           (throw e))
@@ -180,19 +181,19 @@
   "Adds a given input-event for the given key-sequence to
   component. key-sequence must be a string describing a valid key
   sequence and input-event must be a string."
-  [component key-sequence input-event]
+  [^JComponent component, ^String key-sequence, ^String input-event]
   (.. component getInputMap (put (KeyStroke/getKeyStroke key-sequence) input-event)))
 
 (defn- add-action-event
   "Adds to component for a given input-event the callback to be called
   when input-event is triggered. input must be a string describing an
   input event and callback must be a function of no arguments."
-  [component input-event callback]
+  [^JComponent component, ^String input-event, callback]
   (.. component getActionMap (put input-event (proxy [AbstractAction] []
                                                 (actionPerformed [_]
                                                   (callback))))))
 
-(defn- into-text-area
+(defn- ^JTextArea into-text-area
   "Puts repl-container (a PlainDocument) into a JTextArea adding some hotkeys."
   [repl-container repl-thread]
   (let [^JTextArea repl-window (JTextArea. ^javax.swing.text.Document repl-container)]
@@ -210,7 +211,7 @@
   embedded REPL (in a JScrollPane) and the corresponding output
   thread."
   [frame]
-  (let [[repl-container repl-thread output-thread] (make-clojure-repl frame),
+  (let [[repl-container, ^Thread repl-thread, ^Thread output-thread] (make-clojure-repl frame),
         rpl (into-text-area repl-container repl-thread)]
     (doto rpl
       (.setFont (Font. "Monospaced" Font/PLAIN 16))
@@ -223,11 +224,12 @@
 (defn get-repl-thread
   "Returns for a given frame its corresponding repl-thread, if existent."
   [frame]
-  (let [repl-container (get-component frame
-                                      (fn [thing]
-                                        (and (= (class thing) JTextArea)
-                                             (implements-interface? (class (.getDocument thing))
-                                                                    conexp.contrib.gui.repl.ReplProcess))))]
+  (let [^JTextArea repl-container (get-component
+                                   frame
+                                   (fn [thing]
+                                     (and (= (class thing) JTextArea)
+                                          (implements-interface? (class (.getDocument ^JTextArea thing))
+                                                                 conexp.contrib.gui.repl.ReplProcess))))]
     (when repl-container
       (.. repl-container getDocument getReplThreadMap))))
 
