@@ -313,7 +313,21 @@
 (defn up-down-arrows
   "Returns up-down-arrow relation of ctx."
   [ctx]
-  (intersection (up-arrows ctx) (down-arrows ctx)))
+  (let [objs   (objects ctx),
+        atts   (attributes ctx),
+        inz    (incidence ctx),
+        oprime (map-by-fn #(object-derivation ctx #{%}) objs),
+        aprime (map-by-fn #(attribute-derivation ctx #{%}) atts)]
+    (set-of [g m]
+            [g objs
+             m atts
+             :when (and (not (inz [g m]))
+                        (forall [h objs]
+                          (=> (proper-subset? (oprime g) (oprime h))
+                              (inz [h m])))
+                        (forall [n atts]
+                          (=> (proper-subset? (aprime m) (aprime n))
+                              (inz [g n]))))])))
 
 (defn reduce-clarified-context
   "Reduces context ctx assuming it is clarified."
