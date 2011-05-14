@@ -50,7 +50,7 @@
   ([^Association-Rule ar]
      (.confidence ar)))
 
-(defmethod print-method Association-Rule [ar out]
+(defmethod print-method Association-Rule [ar, ^java.io.Writer out]
   (.write out
           (str "( " (premise ar) " ==> " (conclusion ar)
                "; support " (support ar)
