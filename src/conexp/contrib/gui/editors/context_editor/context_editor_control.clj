@@ -17,7 +17,7 @@
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts)
   (:import [java.awt Color Font]
-    [javax.swing JLabel SwingConstants]))
+           [javax.swing JLabel SwingConstants JTable JComponent]))
 
 
 ;;; Context editor control
@@ -56,7 +56,7 @@
   (assert (instance? context-editor-widget widget))
   (let [table (get-table widget),
         view  (get-row-index-permutator table),
-        sel   (seq (.getSelectedRows (get-control table))),
+        sel   (seq (.getSelectedRows ^JTable (get-control table))),
         ectx  (get-ectx widget),
         names (deref (:obj-rows ectx)),
         fltr  #(filter (fn [x]
@@ -71,7 +71,7 @@
   (assert (instance? context-editor-widget widget))
   (let [table (get-table widget),
         view  (get-column-index-permutator table),
-        sel   (seq (.getSelectedColumns (get-control table))),
+        sel   (seq (.getSelectedColumns ^JTable (get-control table))),
         ectx  (get-ectx widget),
         names (deref (:attr-cols ectx)),
         fltr  #(filter (fn [x]
@@ -118,7 +118,7 @@
   (defn- context-cell-renderer-hook
     "Returns the component given as first parameter, optionally changes 
      attributes of it depending on the cell"
-    [table component view-row view-col is-selected has-focus value]
+    [^JTable table, ^JComponent component, view-row view-col is-selected has-focus value]
     (let [row (get-row-index table view-row),
           col (get-column-index table view-col) ]
       (cond
@@ -151,7 +151,7 @@
           (.setForeground selected-foreground)
           (.setBackground selected-background)))
       (if (instance? JLabel component)
-        (.setHorizontalAlignment component SwingConstants/CENTER))
+        (.setHorizontalAlignment ^JLabel component SwingConstants/CENTER))
       component)))
             
 
@@ -219,11 +219,8 @@
 
 (defn- string-to-cross
   "Takes a string and decides, whether it should be a cross or not."
-  [s]
-  (let [trimmed (.trim s)]
-    (if (re-matches #"0*[,.]?0*" trimmed)
-      false
-      true)))
+  [^String s]
+  (boolean (re-matches #"0*[,.]?0*" (.trim s))))
 
 (defn- ectx-cell-value-hook
   [ectx row column contents]
