@@ -39,6 +39,9 @@ conexp-clj TODOs
 ** INPROGRESS Java Interface                                         :Daniel:
    Add type hints for automatically generated Java interface functions.
 ** INPROGRESS Remove reflection warnings from GUI                    :Daniel:
+   There are some things missing:
+     - with-action-on does not provide type hint for captured variable
+     - type hints on variables in let seem to be ignored
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
