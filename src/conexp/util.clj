@@ -471,6 +471,19 @@
      (println ~string result#)
      result#))
 
+(defn ensure-seq
+  "Given anything that can be made a sequence from, returns that
+  sequence. If given a number x, returns (range x)."
+  [x]
+  (cond
+   (number? x) (range x),
+   (or (nil? x)
+       (instance? java.util.Collection x)
+       (.isArray ^Class (class x)))
+   (or (seq x) ())
+   :otherwise
+   (illegal-argument "Cannot generate meaningful sequence from " x ".")))
+
 ;;;
 
 nil

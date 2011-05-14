@@ -179,11 +179,14 @@
   the corresponding context. G and M may also be numbers where they
   represent (range G) and (range M) respectively."
   [G M bits]
-  (let [G (if (sequential? G) G (range G)),
-        M (if (sequential? M) M (range M)),
+  (assert (forall [x bits] (or (= 1 x) (= 0 x)))
+          "All entries given must be either 0 or 1.")
+  (let [G (ensure-seq G),
+        M (ensure-seq M),
         m (count G),
         n (count M)]
-    (assert (= (* m n) (count bits)))
+    (assert (= (* m n) (count bits))
+            "Number of objects and attributes does not match the number of entries.")
     (make-context-nc G M
                      (set-of [a b] [i (range (count G)),
                                     j (range (count M)),

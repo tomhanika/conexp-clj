@@ -197,6 +197,13 @@
              (inc 1)))
          "Result: 2\n")))
 
+(deftest test-ensure-seq
+  (is (= () (ensure-seq nil)))
+  (is (= '(1 2 3)) (ensure-seq [1 2 3]))
+  (is (= '(0 1 2) (ensure-seq 3)))
+  (is (thrown? IllegalArgumentException
+               (ensure-seq 'a))))
+
 ;;;
 
 nil

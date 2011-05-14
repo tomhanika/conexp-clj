@@ -123,8 +123,8 @@
   respectively, or as collections. The number of entries in values
   must match the number of objects times the number of attributes."
   [objects attributes values]
-  (let [objects    (if (sequential? objects) objects (range objects)),
-        attributes (if (sequential? attributes) attributes (range attributes)),
+  (let [objects    (ensure-seq objects),
+        attributes (ensure-seq attributes),
         m          (count objects),
         n          (count attributes)]
     (assert (= (* m n) (count values)))
