@@ -28,7 +28,7 @@
 
 (add-context-input-format :simple
                           (fn [rdr]
-                            (= "conexp-clj simple" (.readLine rdr))))
+                            (= "conexp-clj simple" (read-line))))
 
 (define-context-output-format :simple
   [ctx file]
@@ -54,7 +54,7 @@
 
 (add-context-input-format :burmeister
                           (fn [rdr]
-                            (= "B" (.readLine rdr))))
+                            (= "B" (read-line))))
 
 (define-context-output-format :burmeister
   [ctx file]
@@ -105,7 +105,7 @@
 (defn- find-tag [seq-of-hashes tag]
   (first (find-tags seq-of-hashes tag)))
 
-(defn- trim [str]
+(defn- trim [^String str]
   (.trim str))
 
 (defn- hash-from-pairs [pairs]
@@ -264,20 +264,20 @@
 
 (define-context-input-format :colibri
   [file]
-  (loop [in (reader file)
-         objs #{}
-         inz #{}]
-    (let [line (.readLine in)]
-      (cond
-        (not line)
-        (make-context-nc objs (set-of m [[g m] inz]) inz),
-        (or (re-matches #"^\s*$" line)     ; blank
-            (re-matches #"^\s*#.*$" line)) ; comment
-        (recur in objs inz),
-        :else
-        (let [[_ g atts] (re-matches #"^\s*(.+)\s*:\s*(.+)?\s*;\s*(?:#.*)?$" line)
-              atts (and atts (split atts #"\s+"))]
-          (recur in (conj objs g) (union inz (set-of [g m] [m atts]))))))))
+  (with-in-reader file
+    (loop [objs #{},
+           inz  #{}]
+      (let [line (read-line)]
+        (cond
+         (not line)
+         (make-context-nc objs (set-of m [[g m] inz]) inz),
+         (or (re-matches #"^\s*$" line)     ; blank
+             (re-matches #"^\s*#.*$" line)) ; comment
+         (recur objs inz),
+         :else
+         (let [[_ g atts] (re-matches #"^\s*(.+)\s*:\s*(.+)?\s*;\s*(?:#.*)?$" line)
+               atts (and atts (split atts #"\s+"))]
+           (recur (conj objs g) (union inz (set-of [g m] [m atts])))))))))
 
 
 ;; Comma Seperated Values (.csv)
@@ -285,14 +285,14 @@
 (add-context-input-format :csv
                           (fn [rdr]
                             (try
-                             (re-matches #"^[^,]+,[^,]+$" (.readLine rdr))
+                             (re-matches #"^[^,]+,[^,]+$" (read-line))
                              (catch Exception _))))
 
 (define-context-input-format :csv
   [file]
-  (let [in (reader file)]
+  (with-in-reader file
     (loop [inz #{}]
-      (let [line (.readLine in)]
+      (let [line (read-line)]
         (if (not line)
           (make-context-nc (set-of g [[g m] inz])
                            (set-of m [[g m] inz])
