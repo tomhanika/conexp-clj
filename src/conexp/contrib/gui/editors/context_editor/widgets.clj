@@ -9,7 +9,8 @@
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
 (ns conexp.contrib.gui.editors.context-editor.widgets
-  (:import [javax.swing JSplitPane JScrollPane JOptionPane JToolBar JButton]
+  (:import [javax.swing JSplitPane JScrollPane JOptionPane JToolBar JButton
+                        JComponent]
            [java.awt Toolkit Dimension Insets FlowLayout]
            [java.awt.event ActionListener]
            [java.awt.datatransfer DataFlavor StringSelection])
@@ -53,7 +54,7 @@
            (contains? thing :managed-by-conexp-gui-editors-util))
       (keyword-isa? thing widget)))
 
-(defn-swing get-widget
+(defn-swing ^JComponent get-widget
   "Returns the appropriate java root widget for managed java code or
    just the input parameter for other objects."
   [obj]
@@ -61,7 +62,7 @@
     (:widget obj)
     obj))
 
-(defn-swing get-control
+(defn-swing ^JComponent get-control
   "Returns the appropriate java control widget for managed java code or
    just the input parameter for other objects."
   [obj]
@@ -74,7 +75,7 @@
   "Returns the size of the given widget."
   [obj]
   (assert (keyword-isa? obj widget))
-  (bean (.getSize (get-widget obj))))
+  (bean (.getSize ^JComponent (get-widget obj))))
 
 (defn-swing set-size
   "Sets the size of the given widget obj."
@@ -113,15 +114,12 @@
   function of no arguments."
   [obutton handler]
   (assert (keyword-isa? obutton button))
-  (let [button (get-widget obutton),
+  (let [^JButton button  (get-widget obutton),
         current-handlers (.getActionListeners button),
-        listeners (seq current-handlers)]
+        listeners        (seq current-handlers)]
     (doseq [l listeners]
-      (.removeActionListener button l))
-    (let [action (proxy [ActionListener] []
-                   (actionPerformed [event]
-                     (do-swing (handler))))]
-      (.addActionListener button action))))
+      (.removeActionListener button ^ActionListener l))
+    (with-action-on button (handler))))
 
 (defn-swing make-button
   "Creates a managed button object."
@@ -133,7 +131,7 @@
 
 (defn-swing make-tooltip-button
   "Creates a managed button object with tooltip."
-  [tooltip name]
+  [tooltip, name]
   (let [jbutton (JButton. name),
         widget  (button. jbutton)]
     (doto jbutton
@@ -146,11 +144,10 @@
 (defwidget split-pane [widget] [widget])
 
 (defn-swing set-divider-location
-  "Sets the location of the divider."
+  "Sets the location of the divider; location is given as int."
   [osplit-pane location]
   (assert (keyword-isa? osplit-pane split-pane))
-  (let [split-pane (get-widget osplit-pane)]
-    (.setDividerLocation split-pane location)))
+  (.setDividerLocation ^JSplitPane (get-widget osplit-pane) (int location)))
 
 (defn-swing make-split-pane
   "Creates a managed split pane object. direction is either :horiz
@@ -174,40 +171,40 @@
   or :vert."
   [otoolbar orientation]
   (assert (keyword-isa? otoolbar toolbar-control))
-  (.setOrientation (get-control otoolbar)
-                   ({:horiz JToolBar/HORIZONTAL
-                     :vert JToolBar/VERTICAL}
-                    orientation)))
+  (.setOrientation ^JToolBar (get-control otoolbar)
+                   (int ({:horiz JToolBar/HORIZONTAL
+                          :vert JToolBar/VERTICAL}
+                         orientation))))
 
 (defn-swing add-button
   "Adds a button (or any other component) to the toolbar."
   [otoolbar button]
   (assert (keyword-isa? otoolbar toolbar-control))
-  (.add (get-control otoolbar)
-        (get-widget button)))
+  (.add ^JToolBar (get-control otoolbar)
+        ^JComponent (get-widget button)))
 
 (defn-swing add-separator
   "Adds a separator space to the toolbar."
   [otoolbar]
   (assert (keyword-isa? otoolbar toolbar-control))
-  (.addSeparator (get-control otoolbar)))
+  (.addSeparator ^JToolBar (get-control otoolbar)))
 
 (defn-swing set-floatable
   "Sets the floatable mode of the toolbar control."
   [otoolbar floatable]
   (assert (keyword-isa? otoolbar toolbar-control))
-  (.setFloatable (get-control otoolbar)
+  (.setFloatable ^JToolBar (get-control otoolbar)
                  (boolean floatable)))
 
 (defn-swing make-toolbar-control
   "Creates a toolbar control in Java."
   [orientation]
-  (let [toolbar    (JToolBar. ({:horiz JToolBar/HORIZONTAL
-                                :vert JToolBar/VERTICAL}
-                               orientation)),
+  (let [toolbar (JToolBar. (int ({:horiz JToolBar/HORIZONTAL
+                                  :vert JToolBar/VERTICAL}
+                                 orientation))),
         
-        widget     (toolbar-control. toolbar toolbar)
-        layout     (FlowLayout. FlowLayout/LEFT 5 3)]
+        widget  (toolbar-control. toolbar toolbar)
+        layout  (FlowLayout. FlowLayout/LEFT 5 3)]
     (.setLayout toolbar layout)
     widget))
 
