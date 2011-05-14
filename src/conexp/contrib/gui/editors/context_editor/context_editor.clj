@@ -16,7 +16,7 @@
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts
         conexp.contrib.gui.editors.context-editor.context-editor-control)
-  (:import [javax.swing JRootPane KeyStroke Box JFrame]
+  (:import [javax.swing JRootPane KeyStroke Box JFrame JTable JComponent]
            [java.awt BorderLayout]
            [java.awt.event KeyEvent ActionEvent])
   (:import conexp.contrib.gui.editors.context_editor.context_editor_control.context-editor-widget))
@@ -112,7 +112,7 @@
   "Fills the selected cells from the table widget with 'X's"
   [obj]
   (assert (keyword-isa? obj conexp.contrib.gui.editors.context_editor.table_control.table-control))
-  (let [control     (get-control obj),
+  (let [^JTable control (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
         sel-pairs   (map (fn [y]
@@ -203,8 +203,8 @@
                                                      (set-context @ectx ((:f button) widget))))]
                                    (set-handler bctrl handler)
                                    ;;(add-button toolbar bctrl)))
-                                   (.add box (get-widget bctrl)))))
-                             (.add (get-control toolbar) box)))]
+                                   (.add box ^JComponent (get-widget bctrl)))))
+                             (.add ^JComponent (get-control toolbar) box)))]
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
       (add-widget e-ctx widget)
       (doto toolbar
