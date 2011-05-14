@@ -16,7 +16,7 @@
   (:use [clojure.string :only (join split-lines split)])
   (:import [javax.swing JComponent AbstractAction JTable
                         JScrollPane KeyStroke DefaultCellEditor JTextField]
-           [javax.swing.event TableModelListener]
+           [javax.swing.event TableModelListener TableModelEvent]
            [java.awt.event ActionListener KeyEvent ActionEvent MouseEvent
              InputEvent]
            [javax.swing.event MouseInputAdapter]
@@ -65,7 +65,7 @@
                                  (union (when-mask m InputEvent/BUTTON1_DOWN_MASK #{1})
                                         (when-mask m InputEvent/BUTTON2_DOWN_MASK #{2})
                                         (when-mask m InputEvent/BUTTON3_DOWN_MASK #{3})))
-        translate-event (fn [event]
+        translate-event (fn [^MouseEvent event]
                           {:button (translate-button (.getButton event))
                            :modifiers (translate-modifier (.getModifiersEx event))
                            :position [(.getX event) (.getY event)]
@@ -113,13 +113,13 @@
   "Returns the number of rows of the table control."
   [otable-control]
   (assert (keyword-isa? otable-control table-control))
-  (.getRowCount (get-control otable-control)))
+  (.getRowCount ^JTable (get-control otable-control)))
 
 (defn-swing get-column-count
   "Returns the number of columns of the table control."
   [otable-control]
   (assert (keyword-isa? otable-control table-control))
-  (.getColumnCount (get-control otable-control)))
+  (.getColumnCount ^JTable (get-control otable-control)))
 
 (declare get-column-index-permutator set-column-index-permutator)
 
@@ -128,7 +128,7 @@
   [otable-control column-count]
   (assert (keyword-isa? otable-control table-control))
   (let [p (get-column-index-permutator otable-control)]
-    (.setColumnCount (:model otable-control) column-count)
+    (.setColumnCount ^DefaultTableModel (:model otable-control) column-count)
     (set-column-index-permutator otable-control p)))
 
 (declare get-row-index-permutator set-row-index-permutator)
@@ -139,7 +139,7 @@
   (assert (keyword-isa? otable-control table-control))
   (let [p (get-row-index-permutator otable-control)]
     (set-row-index-permutator otable-control identity)
-    (.setRowCount (:model otable-control) row-count)
+    (.setRowCount ^DefaultTableModel (:model otable-control) row-count)
     (set-row-index-permutator otable-control p)))
 
 (defn-swing register-keyboard-action
@@ -175,7 +175,7 @@
   view."
   [otable column]
   (assert (keyword-isa? otable table-control))
-  (let [table     (get-control otable),
+  (let [^JTable table (get-control otable),
         col-count (.getColumnCount table)]
     (if (>= column col-count)
       column
@@ -188,7 +188,7 @@
   table model index."
   [otable index]
   (assert (keyword-isa? otable table-control))
-  (let [table     (get-control otable),
+  (let [^JTable table (get-control otable),
         col-model (.getColumnModel table),
         cols      (range (.getColumnCount col-model)),
         matching  (filter #(= index
@@ -225,7 +225,7 @@
     columns to the according index values."
   [otable]
   (assert (keyword-isa? otable table-control))
-  (let [table     (get-control otable),
+  (let [^JTable table (get-control otable),
         col-count (.getColumnCount table),
         col-range (range col-count),
         col-model (.getColumnModel table),
@@ -241,8 +241,7 @@
   "Returns the value of the cell at specified position in view."
   [otable row column]
   (assert (keyword-isa? otable table-control))
-  (let [table (get-control otable)]
-    (.getValueAt table row column)))
+  (.getValueAt ^JTable (get-control otable) row column))
 
 (defn-swing get-value-at-index
   "Returns the value of the cell at specified position in the table
@@ -258,7 +257,7 @@
   of :all, :last, :next, :off, or :subseq"
   [otable mode]
   (assert (keyword-isa? otable table-control))
-  (.setAutoResizeMode (get-control otable)
+  (.setAutoResizeMode ^JTable (get-control otable)
                       ({:all JTable/AUTO_RESIZE_ALL_COLUMNS
                         :last JTable/AUTO_RESIZE_LAST_COLUMN
                         :next JTable/AUTO_RESIZE_NEXT_COLUMN
@@ -271,7 +270,7 @@
   of :none, :rows, :columns or :cells"
   [otable mode]
   (assert (keyword-isa? otable table-control))
-  (let [table (get-control otable)]
+  (let [^JTable table (get-control otable)]
     (condp = mode
      :none    (.setCellSelectionEnabled table false)
      :rows    (doto table
@@ -286,19 +285,19 @@
   "Selects a single cell given as view-coordinates in the given table control"
   [otable row column]
   (assert (keyword-isa? otable table-control))
-  (.changeSelection (get-control otable) row column false false))
+  (.changeSelection ^JTable (get-control otable) row column false false))
 
 (defn-swing set-value-at-view
   "Sets the value of a cell in the table according to a view position."
   [otable row column contents]
   (assert (keyword-isa? otable table-control))
   (let [columns (get-column-count otable),
-        rows  (get-row-count otable)]
+        rows    (get-row-count otable)]
     (if (>= column columns)
       (call-hook otable "extend-columns-to" (+ 1 column)))
     (if (>= row rows)
       (call-hook otable "extend-rows-to" (+ 1 row)))
-    (.setValueAt (get-control otable) (str contents) row column)))
+    (.setValueAt ^JTable  (get-control otable) (str contents) row column)))
 
 (defn set-value-at-index
   "Sets the value of a cell in the table according to the model
@@ -321,7 +320,7 @@
   "Pastes the current system clipboard contents into the table."
   [obj]
   (assert (keyword-isa? obj table-control))
-  (let [control     (get-control obj),
+  (let [^JTable control (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
         col-index   (get-column-index-permutator obj),
@@ -346,7 +345,7 @@
    clipboard."
   [obj]
   (assert (keyword-isa? obj table-control))
-  (let [control     (get-control obj),
+  (let [^JTable control (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
         sel-pairs   (map (fn [y]
@@ -368,7 +367,7 @@
    clipboard and afterwards empties the contents"
   [obj]
   (assert (keyword-isa? obj table-control))
-  (let [control     (get-control obj),
+  (let [^JTable control (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),
         sel-pairs   (map (fn [y]
@@ -396,16 +395,16 @@
   (assert (keyword-isa? otable table-control))
   (let [x (first position),
         y (second position)]
-    [(.rowAtPoint (get-control otable) (Point. x y)),
-     (.columnAtPoint (get-control otable) (Point. x y))]))
+    [(.rowAtPoint ^JTable (get-control otable) (Point. x y)),
+     (.columnAtPoint ^JTable (get-control otable) (Point. x y))]))
 
 (defn-swing move-column
   "Moves the column at view index old-view to be viewed at view index
    new-view."
   [otable old-view new-view]
   (assert (keyword-isa? otable table-control))
-  (let [ control (get-control otable) 
-         col-model (.getColumnModel control) ]
+  (let [^JTable control (get-control otable) 
+        col-model (.getColumnModel control) ]
     (.moveColumn col-model old-view new-view)))
 
 (defn-swing set-column-index-permutator
@@ -423,10 +422,10 @@
    coordinates is selected"
   [obj view-row view-col]
   (assert (keyword-isa? obj table-control))
-  (let [ control     (get-control obj),
-         sel-columns (-> control .getSelectedColumns seq),
-         sel-rows    (-> control .getSelectedRows seq),
-         sel-pairs   (map (fn [y]
+  (let [^JTable control (get-control obj),
+        sel-columns (-> control .getSelectedColumns seq),
+        sel-rows    (-> control .getSelectedRows seq),
+        sel-pairs   (map (fn [y]
                            (map (fn [x]
                                   (list y x)) sel-columns))
                          sel-rows)]
@@ -557,15 +556,15 @@
         widget          (table-control. pane table hooks model 
                           (ref [identity identity])),
         cell-editor (proxy [DefaultCellEditor] [(JTextField.)]
-                      (isCellEditable [event] 
+                      (isCellEditable [event]
                         (if (isa? (type event) MouseEvent)
                           (do-swing-return
-                            (let [ pt (.getPoint event)
-                                   col (.columnAtPoint table pt)
-                                   row (.rowAtPoint table pt)
-                                   result (call-hook widget
-                                            "mouse-click-cell-editable-hook"
-                                            row col)]
+                            (let [pt     (.getPoint ^MouseEvent event)
+                                  col    (.columnAtPoint table pt)
+                                  row    (.rowAtPoint table pt)
+                                  result (call-hook widget
+                                                    "mouse-click-cell-editable-hook"
+                                                    row col)]
                               result))
                           true))),
         cell-renderer (proxy [DefaultTableCellRenderer] []
@@ -573,14 +572,14 @@
                           [jtable value is-selected has-focus row column]
                           (do-swing-return
                             (let [component (proxy-super
-                                              getTableCellRendererComponent
-                                              jtable value is-selected
-                                              has-focus row column)]
+                                             getTableCellRendererComponent
+                                             jtable value is-selected
+                                             has-focus row column)]
                               (call-hook widget "cell-renderer-hook"
                                 component row column is-selected has-focus
                                 value))))),
         change-listener (proxy [TableModelListener] []
-                          (tableChanged [event]
+                          (tableChanged [^TableModelEvent event]
                             (do-swing
                               (let [column (.getColumn event),
                                     first  (.getFirstRow event),
