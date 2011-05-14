@@ -23,7 +23,7 @@
 
 (add-lattice-input-format :simple
                           (fn [rdr]
-                            (= "conexp-clj simple" (.readLine rdr))))
+                            (= "conexp-clj simple" (read-line))))
 
 (define-lattice-output-format :simple
   [lat file]

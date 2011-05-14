@@ -26,7 +26,7 @@
 
 (add-mv-context-input-format :simple
                              (fn [rdr]
-                               (= "conexp-clj simple" (.readLine rdr))))
+                               (= "conexp-clj simple" (read-line))))
 
 (define-mv-context-output-format :simple
   [mv-context file]
@@ -63,7 +63,7 @@
 (add-mv-context-input-format :data-table
                              (fn [rdr]
                                (try
-                                (re-matches #"^[^,]+,[^,]+.*$" (.readLine rdr))
+                                (re-matches #"^[^,]+,[^,]+.*$" (read-line))
                                 (catch Exception _))))
 
 (define-mv-context-output-format :data-table
