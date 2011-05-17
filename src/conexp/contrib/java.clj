@@ -116,4 +116,9 @@
 
 ;;;
 
+(generate-java-interface "src/conexp/contrib/JavaInterface.clj")
+(compile 'conexp.contrib.JavaInterface)
+
+;;;
+
 nil

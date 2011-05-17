@@ -28,9 +28,10 @@
                  [org.apache.commons/commons-math   "2.0"]
                  [jline                             "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.0"]]
-  :aot [conexp.main conexp.contrib.gui conexp.contrib.JavaInterface]
+  :aot [conexp.main
+        conexp.contrib.gui
+        conexp.contrib.java]
   :keep-non-project-classes true
-  :omit-source true
   :jar-name "conexp-clj.jar"
   :jvm-opts ["-server", "-Xmx1g"]
   :warn-on-reflection true)
@@ -42,8 +43,7 @@
      '[clojure.java.shell :only (sh)]
      '[robert.hooke       :only (add-hook)])
 
-(require 'leiningen.deps
-         'leiningen.compile)
+(require 'leiningen.deps)
 
 (defn copy-file [name]
   (let [source (java.io.File. (str "stuff/libs/" name)),
@@ -57,14 +57,6 @@
             (apply f args)
             (copy-file "G.jar")
             (copy-file "LatDraw.jar")))
-
-(prepend-tasks #'leiningen.compile/compile
-               (fn [_]
-                 (println "Generating Java Interface")
-                 (sh "java"
-                     "-cp" "./lib/*:./src/"
-                     "clojure.main" "-e"
-                     "(do (require 'conexp.contrib.java) (conexp.contrib.java/generate-java-interface \"src/conexp/contrib/JavaInterface.clj\"))")))
 
 ;;;
 
