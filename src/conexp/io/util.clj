@@ -70,6 +70,7 @@
   `(do
      (let [known-input-formats# (ref {})]
        (defn- ~add [name# predicate#]
+         "Adds a new file format predicate under the given name."
          (dosync
           (alter known-input-formats# assoc name# predicate#)))
 
@@ -77,13 +78,14 @@
          (keys @known-input-formats#))
 
        (defn- ~find
+         "Tries to determine the format used in file."
          ([file#]
             (first (for [[name# predicate#] @known-input-formats#
                          :when (with-in-reader file#
                                  (predicate# *in*))]
                      name#)))
          ([file# format#]
-            format#))
+            (keyword format#)))
 
        nil)
 
@@ -109,7 +111,7 @@
        (fn [& args#]
          (cond
           (= 2 (count args#)) ::default-write
-          (>= 3 (count args#)) (first args#)
+          (>= 3 (count args#)) (keyword (first args#))
           :else (illegal-argument "Invalid number of arguments in call to " ~write "."))))
      (defmethod ~write :default [format# & _#]
        (illegal-argument "Format " format# " for " ~name " output is not known."))
