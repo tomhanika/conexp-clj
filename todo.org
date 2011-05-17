@@ -24,8 +24,9 @@ conexp-clj TODOs
 * For 0.0.7-alpha
 ** DONE Make Sage interface faster                                   :Daniel:
    CLOSED: [2011-01-22 Sa 20:47]
-** INPROGRESS Add more layout output                                 :Daniel:
-   svg and povray
+** INPROGRESS Add more layout output [0/2]                           :Daniel:
+   - [ ] svg
+   - [ ] povray
 ** INPROGRESS draw-lattice-to-file                                   :Daniel:
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
@@ -36,19 +37,26 @@ conexp-clj TODOs
    (also as output format for layouts) and simply write it to a file.
 ** INPROGRESS Allow additional arguments to write-context            :Daniel:
    depending on the current layout.
-** INPROGRESS Java Interface                                         :Daniel:
-   Add type hints for automatically generated Java interface functions.
+** INPROGRESS Java Interface [0/2]                                   :Daniel:
+   - [ ] Add type hints for automatically generated Java interface functions.
+   - [ ] Include conexp.contrib namespaces
 ** INPROGRESS Remove reflection warnings from GUI                    :Daniel:
    There are some things missing:
      - with-action-on does not provide type hint for captured variable
      - type hints on variables in let seem to be ignored
+** TODO Add tests for explicit IO formats                            :Daniel:
+   given as keywords or strings.
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** TODO Lattice IO for csv and dot                                   :Daniel:
    That should be simple for output, but non-trivial for input.
-** TODO More IO formats for contexts                                 :Daniel:
-   See the example files from Uta. Also include «anonymous-burmeister».
+** TODO More IO formats for contexts [0/4]                           :Daniel:
+   - [ ] anonymous burmeister (without names for objects and
+     attributes)
+   - [ ] csc
+   - [ ] slf
+   - [ ] csx
 ** TODO Add support for multiple contexts/... in IO                  :Daniel:
    I.e. a call like
 
