@@ -1,0 +1,18 @@
+%
+%
+%
+
+
+chmod:		change file mode	permission ;
+chown:		change file group	owner;
+fstat:		get file		status ;
+fork:		create new		process ;
+chdir:		change directory ;
+mkdir:		create directory new ;
+open:		create file		open read write;
+read:		file input		read ;
+rmdir:		directory file		remove ;
+write:		file output		write ;
+creat:		create file new ;
+access:		access check file ;
+
