@@ -169,8 +169,8 @@
 
 (deftest test-incident?
   (with-testing-data [ctx testing-data]
-    (is (forall [[g m] (incidence ctx)]
-         (incident? ctx g m))))
+    (forall [[g m] (incidence ctx)]
+      (incident? ctx g m)))
   (is (not (incident? (make-context [1] [1] [[1 1]])
                       1
                       2)))
@@ -234,6 +234,18 @@
       (concept? test-ctx-01 [A-pprime A-prime])))
   (is (not (concept? test-ctx-01 [#{} #{}])))
   (is (not (concept? test-ctx-01 [1 2]))))
+
+(deftest test-object-concept
+  (with-testing-data [ctx testing-data]
+    (forall [g (objects ctx)]
+      (and (concept? ctx (object-concept ctx g))
+           (contains? (first (object-concept ctx g)) g)))))
+
+(deftest test-attribute-concept
+  (with-testing-data [ctx testing-data]
+    (forall [m (attributes ctx)]
+      (and (concept? ctx (attribute-concept ctx m))
+           (contains? (second (attribute-concept ctx m)) m)))))
 
 (deftest test-object-clarififaction
   (with-testing-data [ctx testing-data]

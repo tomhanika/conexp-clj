@@ -249,6 +249,23 @@
        (= set-of-obj (attribute-derivation ctx set-of-att))
        (= set-of-att (object-derivation ctx set-of-obj))))
 
+(defn object-concept
+  "Returns the object concept of the given object g in context ctx."
+  [ctx g]
+  (assert (contains? (objects ctx) g)
+          "Cannot make object concept of a non-object.")
+  (let [atts (oprime ctx #{g})]
+    [(aprime ctx atts) atts]))
+
+(defn attribute-concept
+  "Returns the attribute concept of the given attribute m in context
+  ctx."
+  [ctx m]
+  (assert (contains? (attributes ctx) m)
+          "Cannot make attribute concept of a non-attribute.")
+  (let [objs (aprime ctx #{m})]
+    [objs (oprime ctx objs)]))
+
 (defn clarify-objects
   "Clarifies objects in context ctx."
   [ctx]
