@@ -167,6 +167,19 @@
 
 ;;;
 
+(deftest test-incident?
+  (with-testing-data [ctx testing-data]
+    (is (forall [[g m] (incidence ctx)]
+         (incident? ctx g m))))
+  (is (not (incident? (make-context [1] [1] [[1 1]])
+                      1
+                      2)))
+  (let [ctx (make-context (subsets #{1 2 3 4})
+                          (subsets #{1 2 3 4})
+                          subset?)]
+    (is (forall [x (subsets #{1 2 3 4})]
+          (incident? ctx x x)))))
+
 (deftest test-context-size
   (is (= [5 5 0.4]
          (context-size (make-context [0 1 2 3 4]

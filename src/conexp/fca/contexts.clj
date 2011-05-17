@@ -149,6 +149,13 @@
 
 ;;; Common Operations in Contexts
 
+(defn incident?
+  "Returns true if and only if in context ctx, the object g is
+  incident with the attribute m."
+  [ctx g m]
+  ;; note that the incidence of ctx contains only valid crosses
+  ((incidence ctx) [g m]))
+
 (defn context-size
   "Returns tuple of number of objects, number of attributes and fill rate."
   [ctx]
