@@ -17,15 +17,21 @@
 (defn- to-valid-Java-name
   "Convert old-name to a valid Java variable name."
   [old-name]
-  (let [new-name (-> (str old-name)
-                     (.replaceAll "-" "_")
-                     (.replaceAll " " "_")
-                     (.replaceAll "!" "_f")   ;assume ! only at end
-                     (.replaceAll "\\?" "_p") ;assume ? only at end
-                     (.replaceAll "<" "_lt_")
-                     (.replaceAll ">" "_gt_")
-                     (.replaceAll "=" "_eq_"))]
-    (symbol new-name)))
+  (let [old-name (str old-name),
+        length   (count old-name)]
+    (when (<= 0 (.indexOf old-name "!") (- length 2))
+      (illegal-argument "Name has exclamation mark not as last symbol."))
+    (when (<= 0 (.indexOf old-name "?") (- length 2))
+      (illegal-argument "Name has question mark not as last symbol."))
+    (-> old-name
+        (.replace "-" "_")
+        (.replace " " "_")
+        (.replace "!" "_f")             ;assume ! only at end
+        (.replace "?" "_p")             ;assume ? only at end
+        (.replace "<" "_lt_")
+        (.replace ">" "_gt_")
+        (.replace "=" "_eq_")
+        symbol)))
 
 (defn- conexp-functions
   "Returns a hash-map of function names to vars of ns. The function
