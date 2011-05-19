@@ -123,7 +123,8 @@
                               start))))))
 
 (defn next-closed-set
-  "Computes next closed set with the Next Closure Algorithm. The order of elements in base,
+  "Computes next closed set of the closure operator clop after A with
+  the Next Closure algorithm. The order of elements in base,
   interpreted as increasing, is taken to be the basic order of the
   elements."
   [base clop A]
