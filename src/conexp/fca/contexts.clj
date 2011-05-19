@@ -418,7 +418,7 @@
   (attribute-derivation ctx (object-derivation ctx set-of-objects)))
 
 (defn extents
-  "Computes a sequence of all extents of ctx."
+  "Computes a sequence of all extents of ctx, in a lectic order."
   [ctx]
   (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
 
@@ -428,7 +428,7 @@
   (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
 
 (defn intents
-  "Computes a sequence of all intents of ctx."
+  "Computes a sequence of all intents of ctx, in a lectic order."
   [ctx]
   (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
 
