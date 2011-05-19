@@ -20,4 +20,4 @@ lib
 resources
 classes
 pom.xml
-src/conexp/contrib/JavaInterface.clj
+src/conexp/contrib/java/*.clj

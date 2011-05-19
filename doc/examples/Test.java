@@ -1,4 +1,4 @@
-import static conexp.contrib.JavaInterface.*;
+import static conexp.contrib.java.Main.*;
 
 public class Test {
   public static void main(String... args) {

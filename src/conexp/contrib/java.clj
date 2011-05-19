@@ -27,15 +27,17 @@
                      (.replaceAll "=" "_eq_"))]
     (symbol new-name)))
 
-(defvar- conexp-functions
-  (let [public-map (ns-publics 'conexp.main)]
+(defn- conexp-functions
+  "Returns a hash-map of function names to vars of ns. The function
+  names are converted by to-valid-Java-name."
+  [ns]
+  (let [public-map (ns-publics ns)]
     (reduce! (fn [map [sym, ^clojure.lang.Var var]]
                (if-not (.isMacro var)
                  (conj! map [(to-valid-Java-name sym) var])
                  map))
              {}
-             public-map))
-  "All functions exported by conexp-clj, as a set of Vars.")
+             public-map)))
 
 (defn- dissect-arglist
   [arglist]
@@ -86,16 +88,16 @@
   "Given a name of a file generates the code for the Java interface in
   that file. After this has been compiled it can be used to call
   conexp-clj functions from Java."
-  [file-name]
+  [orig-ns new-ns file-name]
   (let [methods (mapcat #(apply function-signatures %)
-                        conexp-functions)
+                        (conexp-functions orig-ns)),
         methods (mapcat #(list (symbol "^{:static true}") %) methods)]
     (with-open [out (writer file-name)]
       (binding [*print-meta* true
                 *out* out]
         (clojure.pprint/pprint
          `(do
-            (ns ~'conexp.contrib.JavaInterface
+            (ns ~new-ns
               (:require conexp.main)
               (:gen-class
                :prefix ~'conexp-clj-
@@ -105,19 +107,21 @@
             (import 'conexp.fca.lattices.Lattice)
             (import 'conexp.fca.association_rules.Association-Rule)
 
-            ~@(for [[new-name, ^clojure.lang.Var var] conexp-functions]
+            ~@(for [[new-name, ^clojure.lang.Var var] (conexp-functions orig-ns)]
                 (let [orig-name (symbol (str (.ns var)) (str (.sym var))),
                       arglists  (:arglists (meta var))]
                   (apply generate-definition
                          "conexp-clj-"
                          new-name
                          orig-name
-                         arglists)))))))))
+                         arglists)))))))
+    (compile new-ns)))
 
 ;;;
 
-(generate-java-interface "src/conexp/contrib/JavaInterface.clj")
-(compile 'conexp.contrib.JavaInterface)
+(generate-java-interface 'conexp.main
+                         'conexp.contrib.java.Main
+                         "src/conexp/contrib/java/Main.clj")
 
 ;;;
 
