@@ -20,8 +20,8 @@
   (let [new-name (-> (str old-name)
                      (.replaceAll "-" "_")
                      (.replaceAll " " "_")
-                     (.replaceAll "!" "")
-                     (.replaceAll "\\?" "")
+                     (.replaceAll "!" "_f")   ;assume ! only at end
+                     (.replaceAll "\\?" "_p") ;assume ? only at end
                      (.replaceAll "<" "_lt_")
                      (.replaceAll ">" "_gt_")
                      (.replaceAll "=" "_eq_"))]
