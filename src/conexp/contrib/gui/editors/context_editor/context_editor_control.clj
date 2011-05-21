@@ -185,7 +185,7 @@
     (doseq [a att o obj]
       (set-value-at-index table (obj-rows o) (att-cols a)
                           (get-cross o a)))
-    (set-value-at-index table 0 0 "⇊objects⇊")
+    (set-value-at-index table 0 0 "context")
     (set-hook table "extend-rows-to"
       #(ectx-extend-rows-hook e-ctx %))
     (set-hook table "extend-columns-to"
@@ -218,9 +218,8 @@
 
 (defn- ectx-get-cell-value
   [ectx row column]
-  (println "GET-CELL-VALUE" row column)
   (cond
-   (= column row 0) "⇊objects⇊",
+   (= column row 0) "context",
    (= row 0)        (let [attrib-cols @(:attr-cols ectx)]
                       (attrib-cols column)),
    (= column 0)     (let [object-rows @(:obj-rows ectx)]
@@ -234,9 +233,8 @@
 
 (defn- ectx-set-cell-value
   [ectx row column contents]
-  (println "SET-CELL-VALUE" row column contents)
   (cond
-   (= column row 0) "⇊objects⇊",
+   (= column row 0) "context",
    (= row 0)        (let [attrib-cols  @(:attr-cols ectx),
                           current-name (attrib-cols column)]
                       (if (= contents current-name)

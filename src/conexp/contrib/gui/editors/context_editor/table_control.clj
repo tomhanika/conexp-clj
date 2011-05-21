@@ -432,7 +432,6 @@
                                   (list y x)) sel-columns))
                          sel-rows)]
     (if (filter (fn [x] (= x (list view-row view-col))) sel-pairs) true false)))
-        
 
 (defn-swing move-row
   "Moves the row at view index old-view to be viewed at view index
@@ -470,7 +469,6 @@
               grab-list          (range old-view (+ 1 new-view)),
               put-list           (apply conj [new-view] (range old-view new-view)),
               old-table-change-hook (get-hook-function otable "table-changed")]
-;;          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
           (dorun (for [put-data 
                         (doall (zip put-list 
                            (for [r grab-list] 
@@ -540,7 +538,6 @@
           current-value (get-value-at-index otable first-row column),
           good-value    (call-hook otable "get-cell-value"
                           first-row column)]
-      (prn "TABLE-CHANGE" current-value good-value)
       (when (not= current-value good-value)
         (call-hook otable "set-cell-value"
           first-row column good-value)))))
@@ -659,6 +656,7 @@
                                             drag-motion-event)]
     (.addTableModelListener model change-listener)
     (doto table
+      (.setTableHeader nil)
       (.setCellEditor cell-editor)
       (.setDefaultEditor java.lang.Object cell-editor)
       (.setDefaultRenderer java.lang.Object cell-renderer))    
