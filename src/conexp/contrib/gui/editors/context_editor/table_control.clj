@@ -405,8 +405,8 @@
    new-view."
   [otable old-view new-view]
   (assert (keyword-isa? otable table-control))
-  (let [^JTable control (get-control otable) 
-        col-model (.getColumnModel control) ]
+  (let [^JTable control (get-control otable),
+        col-model (.getColumnModel control)]
     (.moveColumn col-model old-view new-view)))
 
 (defn-swing set-column-index-permutator
@@ -414,7 +414,7 @@
   rearranges the columns accordingly."
   [otable col-idx]
   (assert (keyword-isa? otable table-control))
-  (let [ col-count (get-column-count otable) ]
+  (let [col-count (get-column-count otable)]
     (doseq [col (range col-count)]
       (let [at-view (get-index-column otable (col-idx col))]
         (move-column otable at-view col)))))
@@ -438,26 +438,26 @@
    new-view."
   [otable old-view new-view]
   (assert (keyword-isa? otable table-control))
-  (let [ view-to-index (get-row-index-permutator otable)
-         row-count (get-row-count otable)
-         col-indices (range (get-column-count otable))]
+  (let [view-to-index (get-row-index-permutator otable),
+        row-count     (get-row-count otable),
+        col-indices   (range (get-column-count otable))]
     (if (and (>= new-view 0)
-         (< new-view row-count)
-          (not= old-view new-view))
+             (< new-view row-count)
+             (not= old-view new-view))
       (if (< old-view new-view)
-        (let [ new-view-to-index-map 
-               (apply conj (for [r (range row-count)]
-                             (cond (< r old-view) {r (view-to-index r)}
-                               (= r old-view) {new-view (view-to-index old-view)}
-                               (<= r new-view) {(- r 1) (view-to-index r)}
-                               :otherwise {r (view-to-index r)}))),
+        (let [new-view-to-index-map 
+              (apply conj (for [r (range row-count)]
+                            (cond (< r old-view) {r (view-to-index r)}
+                                  (= r old-view) {new-view (view-to-index old-view)}
+                                  (<= r new-view) {(- r 1) (view-to-index r)}
+                                  :otherwise {r (view-to-index r)}))),
               
-               new-index-to-view-map 
-               (apply conj (for [r (range row-count)]
-                             (cond (< r old-view) {(view-to-index r) r}
-                               (= r old-view) {(view-to-index old-view) new-view}
-                               (<= r new-view) {(view-to-index r) (- r 1)}
-                               :otherwise {(view-to-index r) r}))),
+              new-index-to-view-map
+              (apply conj (for [r (range row-count)]
+                            (cond (< r old-view) {(view-to-index r) r}
+                                  (= r old-view) {(view-to-index old-view) new-view}
+                                  (<= r new-view) {(view-to-index r) (- r 1)}
+                                  :otherwise {(view-to-index r) r}))),
               
               new-view-to-index  (fn [x]
                                    (if (and (>= x 0) (< x row-count)) 
@@ -469,6 +469,7 @@
               grab-list          (range old-view (+ 1 new-view)),
               put-list           (apply conj [new-view] (range old-view new-view)),
               old-table-change-hook (get-hook-function otable "table-changed")]
+          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
           (dorun (for [put-data 
                         (doall (zip put-list 
                            (for [r grab-list] 
