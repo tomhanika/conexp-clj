@@ -204,6 +204,15 @@
   (is (thrown? IllegalArgumentException
                (ensure-seq 'a))))
 
+(deftest test-topological-sort
+  (let [sorted (topological-sort subset?
+                                 [#{2} #{2 3 4} #{1 2 3} #{2 3} #{1 4}
+                                  #{1 2 3 4} #{1 3 4} #{3 4} #{4} #{1}
+                                  #{1 3} #{2 4} #{3} #{} #{1 2 4} #{1 2}])]
+    (is (forall [tail (tails sorted),
+                 x    (rest tail)]
+          (not (superset? (first tail) x))))))
+
 ;;;
 
 nil

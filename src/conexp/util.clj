@@ -484,14 +484,33 @@
    :otherwise
    (illegal-argument "Cannot generate meaningful sequence from " x ".")))
 
-(defn topological-sort                  ;TODO: Write Test
+(defn topological-sort
   "Returns a linear extension of the given collection coll and the
   supplied comparator comp. If the comparator is not given, < is
   used."
   ([coll]
      (topological-sort < coll))
   ([comp coll]
-     (sort comp coll)))                 ;is this correct?
+     (let [dependencies (map-by-fn (fn [x]
+                                     (set (filter #(and (comp % x)
+                                                        (not= % x))
+                                                  coll)))
+                                   coll)]
+       (loop [dependencies dependencies,
+              sorted       []]
+         (if (empty? dependencies)
+           sorted
+           (let [nexts (set (filter #(empty? (dependencies %))
+                                    (keys dependencies)))]
+             (if (empty? nexts)
+               (illegal-argument "Cyclic comparator given.")
+               (recur (reduce (fn [map x]
+                                (if (contains? nexts x)
+                                  (dissoc map x)
+                                  (update-in map [x] difference nexts)))
+                              dependencies
+                              (keys dependencies))
+                      (into sorted nexts)))))))))
 
 ;;;
 
