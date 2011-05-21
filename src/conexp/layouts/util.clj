@@ -86,14 +86,6 @@
   [lattice]
   (reverse (graph/dependency-list (lattice->graph lattice))))
 
-(defn edges
-  "Returns a sequence of pairs of vertices of lattice which are
-  directly neighbored in lattice."
-  [lattice]
-  (set-of [x y] [x (base-set lattice),
-                 y (base-set lattice),
-                 :when (directly-neighboured? lattice x y)]))
-
 (defn- edges-by-border
   "Computes edges of a lattice by a border algorithm as given by José
   L. Balcázar and Cristina Tîrnǎucǎ."
@@ -117,6 +109,12 @@
                           H
                           cover)))
         H))))
+
+(defn edges
+  "Returns a sequence of pairs of vertices of lattice which are
+  directly neighbored in lattice."
+  [lattice]
+  (edges-by-border lattice))
 
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
