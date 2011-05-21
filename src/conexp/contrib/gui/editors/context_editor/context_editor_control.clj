@@ -80,7 +80,10 @@
                        %)]
     (set (fltr (map #(names (view %)) sel)))))
 
-(declare ectx-cell-value-hook ectx-extend-rows-hook ectx-extend-columns-hook)
+(declare ectx-set-cell-value
+         ectx-get-cell-value
+         ectx-extend-rows-hook
+         ectx-extend-columns-hook)
 
 (defn- mouse-click-cell-edtble
   "Returns true if the cell clicked on given in the view coordinates
@@ -164,14 +167,9 @@
      (alter (:widgets current-ectx) del editor)
      (set-ectx editor e-ctx)
      (alter (:widgets e-ctx) add editor))
-    (set-hook table "cell-value"
-      (fn [row column]
-        (let [obj-name      (@(:obj-rows e-ctx) row),
-              attr-name     (@(:attr-cols e-ctx) column),
-              fca-ctx       (get-context e-ctx),
-              inc           (incidence fca-ctx),
-              current-state (contains? inc [obj-name attr-name])]
-          (if current-state "X" ""))))
+    (set-hook table "get-cell-value"
+      (fn [r c]
+        (ectx-get-cell-value e-ctx r c)))
     (set-hook table "mouse-click-cell-editable-hook" 
       (fn [r c]
         (mouse-click-cell-edtble table r c)))
@@ -189,12 +187,12 @@
                           (get-cross o a)))
     (set-value-at-index table 0 0 "⇊objects⇊")
     (set-hook table "extend-rows-to"
-              #(ectx-extend-rows-hook e-ctx %))
+      #(ectx-extend-rows-hook e-ctx %))
     (set-hook table "extend-columns-to"
-              #(ectx-extend-columns-hook e-ctx %))
-    (add-hook table "set-cell-value"
-              (fn [r c s]
-                (ectx-cell-value-hook e-ctx r c s)))))
+      #(ectx-extend-columns-hook e-ctx %))
+    (set-hook table "set-cell-value"
+      (fn [r c s]
+        (ectx-set-cell-value e-ctx r c s)))))
 
 (defn set-context-keep-order
   "Sets the bound fca-context of an editable context object to ctx."
@@ -218,8 +216,25 @@
   [^String s]
   (boolean (re-matches #"0*[,.]?0*" (.trim s))))
 
-(defn- ectx-cell-value-hook
+(defn- ectx-get-cell-value
+  [ectx row column]
+  (println "GET-CELL-VALUE" row column)
+  (cond
+   (= column row 0) "⇊objects⇊",
+   (= row 0)        (let [attrib-cols @(:attr-cols ectx)]
+                      (attrib-cols column)),
+   (= column 0)     (let [object-rows @(:obj-rows ectx)]
+                      (object-rows row)),
+   :else            (let [obj-name  (@(:obj-rows ectx) row),
+                          attr-name (@(:attr-cols ectx) column),
+                          fca-ctx   (get-context ectx),
+                          inc       (incidence fca-ctx),
+                          cross     (contains? inc [obj-name attr-name])]
+                      (if cross "X" ""))))
+
+(defn- ectx-set-cell-value
   [ectx row column contents]
+  (println "SET-CELL-VALUE" row column contents)
   (cond
    (= column row 0) "⇊objects⇊",
    (= row 0)        (let [attrib-cols  @(:attr-cols ectx),

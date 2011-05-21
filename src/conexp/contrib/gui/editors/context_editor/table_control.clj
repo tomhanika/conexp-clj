@@ -538,7 +538,7 @@
            (= first-row-in-view last-row-in-view))
     (let [first-row     (get-row-index otable first-row-in-view),
           current-value (get-value-at-index otable first-row column),
-          good-value    (call-hook otable "cell-value"
+          good-value    (call-hook otable "get-cell-value"
                           first-row column)]
       (prn "TABLE-CHANGE" current-value good-value)
       (when (not= current-value good-value)
@@ -599,9 +599,7 @@
                                   column first last type))))),
 
         ignore-event      (fn [x] nil),
-        show-data         (fn [x] (message-box (str x))),
         drag-start        (ref nil),
-
         button-down-event (fn [x]
                             (if (and (= (:button x) 1)
                                      (= (:modifiers x) #{:alt}))
@@ -669,8 +667,8 @@
                                          (table-change-hook widget c f l t)))
       (add-hook "extend-columns-to"    #(set-column-count widget %))
       (add-hook "extend-rows-to"       #(set-row-count widget %))
-      (add-hook "cell-value"           (fn [x y] ""))
-      (add-hook "set-cell-value"       (fn [x y z] ""))
+      (add-hook "get-cell-value"       (fn [x y] ","))
+      (add-hook "set-cell-value"       (fn [x y z] "."))
       (add-hook "mouse-click-cell-editable-hook"
                                        (constantly false))
       (add-hook "cell-renderer-hook"   (fn [component view-row view-col is-selected has-focus value] 
