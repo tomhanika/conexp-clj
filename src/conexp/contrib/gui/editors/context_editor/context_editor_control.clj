@@ -83,38 +83,28 @@
 (declare ectx-cell-value-hook ectx-extend-rows-hook ectx-extend-columns-hook)
 
 (defn- mouse-click-cell-edtble
-  "Returns true if the cell clicked on given in the view coordinates is editable
-   as text control, i.e. if it is an attribute or object name"
-  [table last-ref view-row view-col]
-  (let [ row (get-row-index table view-row),
-         col (get-column-index table view-col),
-         last (deref last-ref),
-         coord-list (list view-row view-col)]
-    (dosync (ref-set last-ref coord-list))
-    (if (and (or (and (= 0 row) (> col 0))
-               (and (= 0 col) (> row 0)))
-          (= coord-list last)) 
-      true
-      (if (and (> row 0) (> col 0) (= coord-list last))
-        (let [current-value  (get-value-at-view table view-row view-col),
-              inverted-value (if (= " " current-value) "X" "")]
-          (set-value-at-view table view-row view-col inverted-value)
-          false)
-        false))))
+  "Returns true if the cell clicked on given in the view coordinates
+   is editable as text control, i.e. if it is an attribute or object
+   name."
+  [table view-row view-col]
+  (let [row (get-row-index table view-row),
+        col (get-column-index table view-col)]
+    (or (and (= 0 row) (> col 0))
+        (and (= 0 col) (> row 0)))))
 
-(let [ attr-obj-font (Font. "SansSerif" Font/BOLD 12),
-       plain-font (Font. "SansSerif" Font/PLAIN 12),
-       header-foreground (Color. 96 96 96),
-       header-background (Color. 255 255 255),
-       attr-obj-foreground (Color. 0 0 0),
-       attr-obj-background (Color. 255 255 0),
-       selected-foreground (Color. 255 255 255),
-       selected-background (Color. 48 110 255),
-       plain-background-11 (Color. 255 255 255),
-       plain-background-01 (Color. 255 255 192),
-       plain-background-10 (Color. 255 255 192),
-       plain-background-00 (Color. 255 255 128),
-       plain-foreground (Color. 0 0 0)]
+(let [attr-obj-font       (Font. "SansSerif" Font/BOLD 12),
+      plain-font          (Font. "SansSerif" Font/PLAIN 12),
+      header-foreground   (Color. 96 96 96),
+      header-background   (Color. 255 255 255),
+      attr-obj-foreground (Color. 0 0 0),
+      attr-obj-background (Color. 255 255 0),
+      selected-foreground (Color. 255 255 255),
+      selected-background (Color. 48 110 255),
+      plain-background-11 (Color. 255 255 255),
+      plain-background-01 (Color. 255 255 192),
+      plain-background-10 (Color. 255 255 192),
+      plain-background-00 (Color. 255 255 128),
+      plain-foreground    (Color. 0 0 0)]
   (defn- context-cell-renderer-hook
     "Returns the component given as first parameter, optionally changes 
      attributes of it depending on the cell"
@@ -153,7 +143,6 @@
       (if (instance? JLabel component)
         (.setHorizontalAlignment ^JLabel component SwingConstants/CENTER))
       component)))
-            
 
 (defn add-widget
   "Adds a context-editor-widget to an editable context, and sets the
@@ -161,27 +150,34 @@
   [e-ctx editor]
   (assert (keyword-isa? e-ctx conexp.contrib.gui.editors.context_editor.editable_contexts.editable-context))
   (assert (keyword-isa? editor conexp.contrib.gui.editors.context_editor.widgets.widget))
-  (let [ctx (get-context e-ctx),
-        att-cols (:attr-cols e-ctx),
-        obj-rows (:obj-rows e-ctx),
-        att (attributes ctx),
-        obj (objects ctx),
-        inc (incidence ctx),
-        get-cross (fn [obj att]
-                    (if (contains? inc [obj att]) "X" " "))
-        table (get-table editor),
+  (let [ctx          (get-context e-ctx),
+        att-cols     (:attr-cols e-ctx),
+        obj-rows     (:obj-rows e-ctx),
+        att          (attributes ctx),
+        obj          (objects ctx),
+        inc          (incidence ctx),
+        get-cross    (fn [obj att]
+                       (if (contains? inc [obj att]) "X" ""))
+        table        (get-table editor),
         current-ectx (get-ectx editor)]
     (dosync
      (alter (:widgets current-ectx) del editor)
      (set-ectx editor e-ctx)
      (alter (:widgets e-ctx) add editor))
-    (set-hook table "cell-value" (fn [_ _ x] x))
+    (set-hook table "cell-value"
+      (fn [row column]
+        (let [obj-name      (@(:obj-rows e-ctx) row),
+              attr-name     (@(:attr-cols e-ctx) column),
+              fca-ctx       (get-context e-ctx),
+              inc           (incidence fca-ctx),
+              current-state (contains? inc [obj-name attr-name])]
+          (if current-state "X" ""))))
     (set-hook table "mouse-click-cell-editable-hook" 
-      (let [last-ref (ref nil)]
-        (fn [r c] (mouse-click-cell-edtble table last-ref r c))))
-    (set-hook table "cell-renderer-hook" (fn [com r c s f v] 
-                                           (context-cell-renderer-hook table
-                                             com r c s f v)))
+      (fn [r c]
+        (mouse-click-cell-edtble table r c)))
+    (set-hook table "cell-renderer-hook"
+      (fn [com r c s f v] 
+        (context-cell-renderer-hook table com r c s f v)))
     (set-column-count table (+ 1 (count att)))
     (set-row-count table (+ 1 (count obj)))
     (doseq [a att]
@@ -196,7 +192,7 @@
               #(ectx-extend-rows-hook e-ctx %))
     (set-hook table "extend-columns-to"
               #(ectx-extend-columns-hook e-ctx %))
-    (set-hook table "cell-value"
+    (add-hook table "set-cell-value"
               (fn [r c s]
                 (ectx-cell-value-hook e-ctx r c s)))))
 
@@ -244,7 +240,7 @@
                           current-state (contains? inc [obj-name attr-name])]
                       (if (not= current-state cross)
                         (change-incidence-cross ectx obj-name attr-name cross))
-                      (if cross "X" " "))))
+                      (if cross "X" ""))))
 
 (defn- ectx-extend-rows-hook
   [ectx rows]

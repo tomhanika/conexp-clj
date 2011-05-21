@@ -9,7 +9,7 @@
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
 (ns conexp.contrib.gui.editors.context-editor.table-control
-  (:use [conexp.base :only (zip union defmacro- illegal-argument)]
+  (:use [conexp.base :only (zip union defmacro- illegal-argument unsupported-operation)]
         conexp.contrib.gui.util
         conexp.contrib.gui.util.hookable
         conexp.contrib.gui.editors.context-editor.widgets)
@@ -248,7 +248,7 @@
   model."
   [otable row column]
   (assert (keyword-isa? otable table-control))
-  (let [irow (get-index-row otable row),
+  (let [irow    (get-index-row otable row),
         icolumn (get-index-column otable column)]
     (get-value-at-view otable irow icolumn)))
 
@@ -297,15 +297,20 @@
       (call-hook otable "extend-columns-to" (+ 1 column)))
     (if (>= row rows)
       (call-hook otable "extend-rows-to" (+ 1 row)))
-    (.setValueAt ^JTable  (get-control otable) (str contents) row column)))
+    (.setValueAt ^JTable (get-control otable)
+                 (str contents)
+                 row
+                 column)))
 
 (defn set-value-at-index
   "Sets the value of a cell in the table according to the model
    index."
   [otable row column contents]
   (assert (keyword-isa? otable table-control))
-  (set-value-at-view otable (get-index-row otable row)
-    (get-index-column otable column) contents))
+  (set-value-at-view otable
+                     (get-index-row otable row)
+                     (get-index-column otable column)
+                     contents))
 
 (defn update-value-at-index
   "Sets the value of a cell in the table according to the model index,
@@ -387,16 +392,13 @@
       (doseq [p lines]
         (set-value-at-view obj (first p) (second p) "")))))
 
-
 (defn-swing get-view-coordinates-at-point
   "Returns the current view coordinates as [row column] for the given
    point."
-  [otable position]
+  [otable [x y]]
   (assert (keyword-isa? otable table-control))
-  (let [x (first position),
-        y (second position)]
-    [(.rowAtPoint ^JTable (get-control otable) (Point. x y)),
-     (.columnAtPoint ^JTable (get-control otable) (Point. x y))]))
+  [(.rowAtPoint    ^JTable (get-control otable) (Point. x y)),
+   (.columnAtPoint ^JTable (get-control otable) (Point. x y))])
 
 (defn-swing move-column
   "Moves the column at view index old-view to be viewed at view index
@@ -449,22 +451,26 @@
                              (cond (< r old-view) {r (view-to-index r)}
                                (= r old-view) {new-view (view-to-index old-view)}
                                (<= r new-view) {(- r 1) (view-to-index r)}
-                               :otherwise {r (view-to-index r)})))
+                               :otherwise {r (view-to-index r)}))),
+              
                new-index-to-view-map 
                (apply conj (for [r (range row-count)]
                              (cond (< r old-view) {(view-to-index r) r}
                                (= r old-view) {(view-to-index old-view) new-view}
                                (<= r new-view) {(view-to-index r) (- r 1)}
-                               :otherwise {(view-to-index r) r})))
-               new-view-to-index (fn [x] (if (and (>= x 0) (< x row-count)) 
-                                           (new-view-to-index-map x) x))
-               new-index-to-view (fn [x] (if (and (>= x 0) (< x row-count)) 
-                                           (new-index-to-view-map x) x))
-               new-row-permutator [new-view-to-index new-index-to-view]
-               grab-list (range old-view (+ 1 new-view))
-               put-list (apply conj [new-view] (range old-view new-view))
-               old-table-change-hook (get-hook-function otable "table-changed")]
-          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
+                               :otherwise {(view-to-index r) r}))),
+              
+              new-view-to-index  (fn [x]
+                                   (if (and (>= x 0) (< x row-count)) 
+                                     (new-view-to-index-map x) x)),
+              new-index-to-view  (fn [x]
+                                   (if (and (>= x 0) (< x row-count)) 
+                                     (new-index-to-view-map x) x)),
+              new-row-permutator [new-view-to-index new-index-to-view],
+              grab-list          (range old-view (+ 1 new-view)),
+              put-list           (apply conj [new-view] (range old-view new-view)),
+              old-table-change-hook (get-hook-function otable "table-changed")]
+;;          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
           (dorun (for [put-data 
                         (doall (zip put-list 
                            (for [r grab-list] 
@@ -525,26 +531,29 @@
     column   _the column index of the changed area
     first    _the first row *view* of the changed area
     last     _the last row *view* of the changed area
-    type     _(-1,0, or 1) delete, update, insert"
+    type     _TableModelEvent/{DELETE,INSERT,UPDATE}"
   [otable column first-row-in-view last-row-in-view type]
-  (if (and (= 0 type)
+  (if (and (= TableModelEvent/UPDATE type)
            (<= 0 (min column first-row-in-view last-row-in-view))
            (= first-row-in-view last-row-in-view))
     (let [first-row     (get-row-index otable first-row-in-view),
           current-value (get-value-at-index otable first-row column),
-          good-value    (call-hook otable "cell-value" first-row column
-                                   current-value)]
+          good-value    (call-hook otable "cell-value"
+                          first-row column)]
+      (prn "TABLE-CHANGE" current-value good-value)
       (when (not= current-value good-value)
-        (set-value-at-index otable first-row column good-value)))))
+        (call-hook otable "set-cell-value"
+          first-row column good-value)))))
 
 (defn-swing make-table-control
   "Creates a table control in Java."
   []
-  (let [model (DefaultTableModel.),
-        table (JTable. model),
-        pane  (JScrollPane. table
-                            JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED
-                            JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
+  (let [model           (DefaultTableModel.),
+        table           (JTable. model),
+        pane            (JScrollPane. table
+                                      JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED
+                                      JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
+        
         keystroke-copy  (KeyStroke/getKeyStroke KeyEvent/VK_C
                                                 ActionEvent/CTRL_MASK false),
         keystroke-cut   (KeyStroke/getKeyStroke KeyEvent/VK_X
@@ -554,30 +563,31 @@
 
         hooks           (:hooks (make-hookable)),
         widget          (table-control. pane table hooks model 
-                          (ref [identity identity])),
-        cell-editor (proxy [DefaultCellEditor] [(JTextField.)]
-                      (isCellEditable [event]
-                        (if (isa? (type event) MouseEvent)
-                          (do-swing-return
-                            (let [pt     (.getPoint ^MouseEvent event)
-                                  col    (.columnAtPoint table pt)
-                                  row    (.rowAtPoint table pt)
-                                  result (call-hook widget
-                                                    "mouse-click-cell-editable-hook"
-                                                    row col)]
-                              result))
-                          true))),
+                                        (ref [identity identity])),
+
+        cell-editor     (proxy [DefaultCellEditor] [(JTextField.)]
+                          (isCellEditable [event]
+                            (if (isa? (type event) MouseEvent)
+                              (do-swing-return
+                               (let [pt     (.getPoint ^MouseEvent event)
+                                     col    (.columnAtPoint table pt)
+                                     row    (.rowAtPoint table pt)
+                                     result (call-hook widget "mouse-click-cell-editable-hook"
+                                              row col)]
+                                 result))
+                              true))),
+
         cell-renderer (proxy [DefaultTableCellRenderer] []
                         (getTableCellRendererComponent
                           [jtable value is-selected has-focus row column]
                           (do-swing-return
-                            (let [component (proxy-super
-                                             getTableCellRendererComponent
-                                             jtable value is-selected
-                                             has-focus row column)]
+                            (let [component (proxy-super getTableCellRendererComponent
+                                                         jtable value is-selected
+                                                         has-focus row column)]
                               (call-hook widget "cell-renderer-hook"
-                                component row column is-selected has-focus
-                                value))))),
+                                component row column is-selected
+                                has-focus value))))),
+
         change-listener (proxy [TableModelListener] []
                           (tableChanged [^TableModelEvent event]
                             (do-swing
@@ -586,11 +596,12 @@
                                     last   (.getLastRow event),
                                     type   (.getType event)]
                                 (call-hook widget "table-changed"
-                                           column first last type))))),
+                                  column first last type))))),
 
         ignore-event      (fn [x] nil),
         show-data         (fn [x] (message-box (str x))),
         drag-start        (ref nil),
+
         button-down-event (fn [x]
                             (if (and (= (:button x) 1)
                                      (= (:modifiers x) #{:alt}))
@@ -599,6 +610,7 @@
                                         (get-view-coordinates-at-point
                                          widget (:position x))))
                               (dosync (ref-set drag-start nil)))),
+
         button-up-event (fn [x]
                           (if (and (= (:button x) 1)
                                    (= (:modifiers x) #{:alt})
@@ -615,6 +627,7 @@
                                 (move-column widget start-col end-col))
                               (if (not= start-row end-row)
                                 (move-row widget start-row end-row))))),
+
         drag-motion-event (fn [x]
                              (if (not= (deref drag-start) nil)
                                (let [start     (deref drag-start),
@@ -635,7 +648,15 @@
                                             button-up-event
                                             ignore-event
                                             ignore-event
-                                            ignore-event
+                                            (fn [x]
+                                              (let [[r c] (get-view-coordinates-at-point widget (:position x)),
+                                                    r     (get-row-index widget r),
+                                                    c     (get-column-index widget c),
+                                                    val   (get-value-at-view widget r c)]
+                                                (when (and (< 0 r) (< 0 c))
+                                                  (set-value-at-view widget r c (cond (= val "X") ""
+                                                                                      (= val "") "X"
+                                                                                      :else val)))))
                                             ignore-event
                                             drag-motion-event)]
     (.addTableModelListener model change-listener)
@@ -644,19 +665,20 @@
       (.setDefaultEditor java.lang.Object cell-editor)
       (.setDefaultRenderer java.lang.Object cell-renderer))    
     (doto widget
-      (add-hook "table-changed"     (fn [c f l t]
-                                      (table-change-hook widget c f l t)))
-      (add-hook "extend-columns-to" #(set-column-count widget %))
-      (add-hook "extend-rows-to"    #(set-row-count widget %))
-      (add-hook "cell-value"        (fn [_ _ contents] contents))
-      (add-hook "mouse-click-cell-editable-hook" (fn [view-row view-col] true))
-      (add-hook "cell-renderer-hook" 
-        (fn [component view-row view-col is-selected has-focus value] 
-          component))
+      (add-hook "table-changed"        (fn [c f l t]
+                                         (table-change-hook widget c f l t)))
+      (add-hook "extend-columns-to"    #(set-column-count widget %))
+      (add-hook "extend-rows-to"       #(set-row-count widget %))
+      (add-hook "cell-value"           (fn [x y] ""))
+      (add-hook "set-cell-value"       (fn [x y z] ""))
+      (add-hook "mouse-click-cell-editable-hook"
+                                       (constantly false))
+      (add-hook "cell-renderer-hook"   (fn [component view-row view-col is-selected has-focus value] 
+                                         component))
       (set-resize-mode :off)
       (set-cell-selection-mode :cells)
-      (register-keyboard-action copy-to-clipboard "Copy" keystroke-copy :focus)
-      (register-keyboard-action cut-to-clipboard "Cut" keystroke-cut :focus)
+      (register-keyboard-action copy-to-clipboard    "Copy"  keystroke-copy  :focus)
+      (register-keyboard-action cut-to-clipboard     "Cut"   keystroke-cut   :focus)
       (register-keyboard-action paste-from-clipboard "Paste" keystroke-paste :focus)
       (add-control-mouse-listener cell-permutor))
     widget))

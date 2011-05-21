@@ -91,8 +91,8 @@
   :default nil)
 
 (defmethod get-context (class-to-keyword editable-context)
-  [ctx]
-  (deref (:context ctx)))
+  [ectx]
+  (deref (:context ectx)))
 
 (defmethod get-context :conexp.fca.contexts/Formal-Context
   [x] x)
@@ -196,6 +196,7 @@
   editable-context."
   [ectx obj att cross]
   (assert (instance? editable-context ectx))
+  (println "CHANGE" obj att cross)
   (let [ostr (if (= (type obj) String)
                obj
                (@(:obj-rows ectx) obj)),
@@ -218,7 +219,7 @@
                    (update-value-at-index (get-table w)
                                           row
                                           col
-                                          (if cross "X" " ")))))))
+                                          (if cross "X" "")))))))
 
 (defn change-attribute-name
   "Changes the attributes name of given to requested, if requested is
