@@ -441,9 +441,9 @@
   (let [view-to-index (get-row-index-permutator otable),
         row-count     (get-row-count otable),
         col-indices   (range (get-column-count otable))]
-    (if (and (>= new-view 0)
-             (< new-view row-count)
-             (not= old-view new-view))
+    (when (and (>= new-view 0)
+               (< new-view row-count)
+               (not= old-view new-view))
       (if (< old-view new-view)
         (let [new-view-to-index-map 
               (apply conj (for [r (range row-count)]
@@ -648,11 +648,11 @@
                                               (let [[r c] (get-view-coordinates-at-point widget (:position x)),
                                                     r     (get-row-index widget r),
                                                     c     (get-column-index widget c),
-                                                    val   (get-value-at-view widget r c)]
+                                                    val   (get-value-at-index widget r c)]
                                                 (when (and (< 0 r) (< 0 c))
-                                                  (set-value-at-view widget r c (cond (= val "X") ""
-                                                                                      (= val "") "X"
-                                                                                      :else val)))))
+                                                  (set-value-at-index widget r c (cond (= val "X") ""
+                                                                                       (= val "") "X"
+                                                                                       :else val)))))
                                             ignore-event
                                             drag-motion-event)]
     (.addTableModelListener model change-listener)
