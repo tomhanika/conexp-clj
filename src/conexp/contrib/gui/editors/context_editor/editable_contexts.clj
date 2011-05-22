@@ -196,7 +196,6 @@
   editable-context."
   [ectx obj att cross]
   (assert (instance? editable-context ectx))
-  (println "CHANGE" obj att cross)
   (let [ostr (if (= (type obj) String)
                obj
                (@(:obj-rows ectx) obj)),
