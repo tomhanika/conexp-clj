@@ -406,8 +406,13 @@
   [otable old-view new-view]
   (assert (keyword-isa? otable table-control))
   (let [^JTable control (get-control otable),
+        col-count (get-column-count otable)
         col-model (.getColumnModel control)]
-    (.moveColumn col-model old-view new-view)))
+    (when (and (<= 0 old-view)
+               (<= 0 new-view)
+               (< old-view col-count)
+               (< new-view col-count))
+      (.moveColumn col-model old-view new-view))))
 
 (defn-swing set-column-index-permutator
   "Takes a table object and a column-index permutator and
