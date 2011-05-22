@@ -9,7 +9,7 @@
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
 (ns conexp.contrib.gui.editors.context-editor.table-control
-  (:use [conexp.base :only (zip union defmacro- illegal-argument unsupported-operation)]
+  (:use [conexp.base :exclude (join)]
         conexp.contrib.gui.util
         conexp.contrib.gui.util.hookable
         conexp.contrib.gui.editors.context-editor.widgets)
@@ -419,8 +419,8 @@
       (let [at-view (get-index-column otable (col-idx col))]
         (move-column otable at-view col)))))
 
-(defn-swing is-view-cell-selected
-  "Returns true, if the given cell of the table control in view
+(defn-swing view-cell-selected?
+  "Returns true if the given cell of the table control in view
    coordinates is selected"
   [obj view-row view-col]
   (assert (keyword-isa? obj table-control))
@@ -429,9 +429,10 @@
         sel-rows    (-> control .getSelectedRows seq),
         sel-pairs   (map (fn [y]
                            (map (fn [x]
-                                  (list y x)) sel-columns))
+                                  (list y x))
+                                sel-columns))
                          sel-rows)]
-    (if (filter (fn [x] (= x (list view-row view-col))) sel-pairs) true false)))
+    (boolean (some #(= % (list view-row view-col)) sel-pairs))))
 
 (defn-swing move-row
   "Moves the row at view index old-view to be viewed at view index
@@ -444,74 +445,43 @@
     (when (and (>= new-view 0)
                (< new-view row-count)
                (not= old-view new-view))
-      (if (< old-view new-view)
-        (let [new-view-to-index-map 
-              (apply conj (for [r (range row-count)]
-                            (cond (< r old-view) {r (view-to-index r)}
-                                  (= r old-view) {new-view (view-to-index old-view)}
-                                  (<= r new-view) {(- r 1) (view-to-index r)}
-                                  :otherwise {r (view-to-index r)}))),
-              
-              new-index-to-view-map
-              (apply conj (for [r (range row-count)]
-                            (cond (< r old-view) {(view-to-index r) r}
-                                  (= r old-view) {(view-to-index old-view) new-view}
-                                  (<= r new-view) {(view-to-index r) (- r 1)}
-                                  :otherwise {(view-to-index r) r}))),
-              
-              new-view-to-index  (fn [x]
-                                   (if (and (>= x 0) (< x row-count)) 
-                                     (new-view-to-index-map x) x)),
-              new-index-to-view  (fn [x]
-                                   (if (and (>= x 0) (< x row-count)) 
-                                     (new-index-to-view-map x) x)),
-              new-row-permutator [new-view-to-index new-index-to-view],
-              grab-list          (range old-view (+ 1 new-view)),
-              put-list           (apply conj [new-view] (range old-view new-view)),
-              old-table-change-hook (get-hook-function otable "table-changed")]
-          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
-          (dorun (for [put-data 
-                        (doall (zip put-list 
-                           (for [r grab-list] 
-                             (doall (for [c col-indices] 
-                                      (get-value-at-view otable r c))))))]
-            (doseq [put-cell (zip col-indices (second put-data))]
-              (set-value-at-view otable (first put-data) 
-                (first put-cell) (second put-cell)))))
-          (dosync (ref-set (:row-permutator otable) new-row-permutator))
-          (set-hook otable "table-changed" old-table-change-hook))
+      (let [grab-list             (vec (if (< old-view new-view)
+                                         (range old-view (+ 1 new-view))
+                                         (range new-view (+ 1 old-view)))),
+                                  
+            put-list              (if (< old-view new-view)
+                                    (into [new-view] (range old-view new-view))
+                                    (conj (vec (range (+ 1 new-view) (+ 1 old-view))) new-view)),
 
-        (let [ new-view-to-index-map 
-               (apply conj (for [r (range row-count)]
-                             (cond (< r new-view) {r (view-to-index r)}
-                               (= r old-view) {new-view (view-to-index old-view)}
-                               (< r old-view) {(+ r 1) (view-to-index r)}
-                               :otherwise {r (view-to-index r)})))
-               new-index-to-view-map 
-               (apply conj (for [r (range row-count)]
-                             (cond (< r new-view) {(view-to-index r) r}
-                               (= r old-view) {(view-to-index old-view) new-view}
-                               (< r old-view) {(view-to-index r) (+ r 1)}
-                               :otherwise {(view-to-index r) r})))
-               new-view-to-index (fn [x] (if (and (>= x 0) (< x row-count)) 
-                                           (new-view-to-index-map x) x))
-               new-index-to-view (fn [x] (if (and (>= x 0) (< x row-count)) 
-                                           (new-index-to-view-map x) x))
-               new-row-permutator [new-view-to-index new-index-to-view]
-               grab-list (range new-view (+ 1 old-view))
-               put-list (conj (vec (range (+ 1 new-view) (+ 1 old-view))) new-view)
-               old-table-change-hook (get-hook-function otable "table-changed")]
-          (set-hook otable "table-changed" (fn [_ _ _ _] nil))
-          (dorun (for [put-data 
-                        (doall (zip put-list 
-                           (for [r grab-list] 
-                             (doall (for [c col-indices] 
-                                      (get-value-at-view otable r c))))))]
-            (doseq [put-cell (zip col-indices (second put-data))]
-              (set-value-at-view otable (first put-data) 
-                (first put-cell) (second put-cell)))))
-          (dosync (ref-set (:row-permutator otable) new-row-permutator))
-          (set-hook otable "table-changed" old-table-change-hook))))))
+            new-view-to-index-map (reduce! (fn [map i]
+                                             (assoc! map (put-list i) (view-to-index (grab-list i))))
+                                           (map-by-fn view-to-index (range row-count))
+                                           (range (count grab-list))),
+
+            new-index-to-view-map (map-invert new-view-to-index-map)
+              
+            new-view-to-index     (fn [x]
+                                    (if (and (>= x 0) (< x row-count)) 
+                                      (new-view-to-index-map x)
+                                      x)),
+            new-index-to-view     (fn [x]
+                                    (if (and (>= x 0) (< x row-count)) 
+                                      (new-index-to-view-map x)
+                                      x)),
+            new-row-permutator    [new-view-to-index new-index-to-view],
+            old-table-change-hook (get-hook-function otable "table-changed")]
+        (try
+          (do
+            (set-hook otable "table-changed" (constantly nil))
+            (doseq [[r row] (zip put-list
+                                 (for [r grab-list]
+                                   (doall (for [c col-indices]
+                                            (get-value-at-view otable r c))))),
+                    [c x]   (zip col-indices row)]
+              (set-value-at-view otable r c x))
+            (dosync (ref-set (:row-permutator otable) new-row-permutator)))
+          (finally
+           (set-hook otable "table-changed" old-table-change-hook)))))))
 
 (defn-swing set-row-index-permutator
   "Takes a table object and a row-index permutator and
