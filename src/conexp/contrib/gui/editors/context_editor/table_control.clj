@@ -515,63 +515,11 @@
           good-value    (call-hook otable "get-cell-value"
                           first-row column)]
       (when (not= current-value good-value)
-        (call-hook otable "set-cell-value"
-          first-row column good-value)))))
+        (call-hook otable "set-cell-value" first-row column good-value)))))
 
-(defn-swing make-table-control
-  "Creates a table control in Java."
-  []
-  (let [model           (DefaultTableModel.),
-        table           (JTable. model),
-        pane            (JScrollPane. table
-                                      JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED
-                                      JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
-        
-        keystroke-copy  (KeyStroke/getKeyStroke KeyEvent/VK_C
-                                                ActionEvent/CTRL_MASK false),
-        keystroke-cut   (KeyStroke/getKeyStroke KeyEvent/VK_X
-                                                ActionEvent/CTRL_MASK false),
-        keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
-                                                ActionEvent/CTRL_MASK false),
-
-        hooks           (:hooks (make-hookable)),
-        widget          (table-control. pane table hooks model 
-                                        (ref [identity identity])),
-
-        cell-editor     (proxy [DefaultCellEditor] [(JTextField.)]
-                          (isCellEditable [event]
-                            (if (isa? (type event) MouseEvent)
-                              (do-swing-return
-                               (let [pt     (.getPoint ^MouseEvent event)
-                                     col    (.columnAtPoint table pt)
-                                     row    (.rowAtPoint table pt)
-                                     result (call-hook widget "mouse-click-cell-editable-hook"
-                                              row col)]
-                                 result))
-                              true))),
-
-        cell-renderer (proxy [DefaultTableCellRenderer] []
-                        (getTableCellRendererComponent
-                          [jtable value is-selected has-focus row column]
-                          (do-swing-return
-                            (let [component (proxy-super getTableCellRendererComponent
-                                                         jtable value is-selected
-                                                         has-focus row column)]
-                              (call-hook widget "cell-renderer-hook"
-                                component row column is-selected
-                                has-focus value))))),
-
-        change-listener (proxy [TableModelListener] []
-                          (tableChanged [^TableModelEvent event]
-                            (do-swing
-                              (let [column (.getColumn event),
-                                    first  (.getFirstRow event),
-                                    last   (.getLastRow event),
-                                    type   (.getType event)]
-                                (call-hook widget "table-changed"
-                                  column first last type))))),
-
-        ignore-event      (fn [x] nil),
+(defn- make-table-mouse-listener
+  [widget]
+  (let [ignore-event      (fn [x] nil),
         drag-start        (ref nil),
         button-down-event (fn [x]
                             (if (and (= (:button x) 1)
@@ -613,23 +561,75 @@
                                  (if (not= start-col end-col)
                                    (move-column widget start-col end-col))
                                  (if (not= start-row end-row)
-                                   (move-row widget start-row end-row))))),
+                                   (move-row widget start-row end-row)))))]
+    (proxy-mouse-listener button-down-event
+                          button-up-event
+                          ignore-event
+                          ignore-event
+                          (fn [x]
+                            (let [[r c] (get-view-coordinates-at-point widget (:position x)),
+                                  r     (get-row-index widget r),
+                                  c     (get-column-index widget c),
+                                  val   (get-value-at-index widget r c)]
+                              (when (and (< 0 r) (< 0 c))
+                                (set-value-at-index widget r c (cond (= val "X") ""
+                                                                     (= val "") "X"
+                                                                     :else val)))))
+                          ignore-event
+                          drag-motion-event)))
 
-        cell-permutor (proxy-mouse-listener button-down-event
-                                            button-up-event
-                                            ignore-event
-                                            ignore-event
-                                            (fn [x]
-                                              (let [[r c] (get-view-coordinates-at-point widget (:position x)),
-                                                    r     (get-row-index widget r),
-                                                    c     (get-column-index widget c),
-                                                    val   (get-value-at-index widget r c)]
-                                                (when (and (< 0 r) (< 0 c))
-                                                  (set-value-at-index widget r c (cond (= val "X") ""
-                                                                                       (= val "") "X"
-                                                                                       :else val)))))
-                                            ignore-event
-                                            drag-motion-event)]
+(defn-swing make-table-control
+  "Creates a table control in Java."
+  []
+  (let [model           (DefaultTableModel.),
+        table           (JTable. model),
+        pane            (JScrollPane. table
+                                      JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED
+                                      JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
+        
+        keystroke-copy  (KeyStroke/getKeyStroke KeyEvent/VK_C
+                                                ActionEvent/CTRL_MASK false),
+        keystroke-cut   (KeyStroke/getKeyStroke KeyEvent/VK_X
+                                                ActionEvent/CTRL_MASK false),
+        keystroke-paste (KeyStroke/getKeyStroke KeyEvent/VK_V
+                                                ActionEvent/CTRL_MASK false),
+
+        hooks           (:hooks (make-hookable)),
+        widget          (table-control. pane table hooks model 
+                                        (ref [identity identity])),
+
+        cell-editor     (proxy [DefaultCellEditor] [(JTextField.)]
+                          (isCellEditable [event]
+                            (if (isa? (type event) MouseEvent)
+                              (do-swing-return
+                               (let [pt     (.getPoint ^MouseEvent event)
+                                     col    (.columnAtPoint table pt)
+                                     row    (.rowAtPoint table pt)
+                                     result (call-hook widget "mouse-click-cell-editable-hook"
+                                              row col)]
+                                 result))
+                              true))),
+
+        cell-renderer   (proxy [DefaultTableCellRenderer] []
+                          (getTableCellRendererComponent
+                           [jtable value is-selected has-focus row column]
+                           (do-swing-return
+                            (let [component (proxy-super getTableCellRendererComponent
+                                                         jtable value is-selected
+                                                         has-focus row column)]
+                              (call-hook widget "cell-renderer-hook"
+                                component row column is-selected
+                                has-focus value))))),
+
+        change-listener (proxy [TableModelListener] []
+                          (tableChanged [^TableModelEvent event]
+                            (do-swing
+                              (let [column (.getColumn event),
+                                    first  (.getFirstRow event),
+                                    last   (.getLastRow event),
+                                    type   (.getType event)]
+                                (call-hook widget "table-changed"
+                                  column first last type)))))]
     (.addTableModelListener model change-listener)
     (doto table
       (.setTableHeader nil)
@@ -652,7 +652,7 @@
       (register-keyboard-action copy-to-clipboard    "Copy"  keystroke-copy  :focus)
       (register-keyboard-action cut-to-clipboard     "Cut"   keystroke-cut   :focus)
       (register-keyboard-action paste-from-clipboard "Paste" keystroke-paste :focus)
-      (add-control-mouse-listener cell-permutor))
+      (add-control-mouse-listener (make-table-mouse-listener widget)))
     widget))
 
 ;;;
