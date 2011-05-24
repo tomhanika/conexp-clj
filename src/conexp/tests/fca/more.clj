@@ -116,6 +116,26 @@
                (= (object-derivation ctx #{g})
                   (object-derivation cct #{h}))))))))
 
+;;; Neighbours
+
+(deftest test-direct-upper-concepts
+  (with-testing-data [ctx (random-contexts 10 15)]
+    (let [concepts (concepts ctx)]
+      (forall [[X Y] concepts]
+        (let [uppers (direct-upper-concepts ctx [X Y])]
+          (and (forall [[A B] uppers]
+                 (subset? X A))
+               (forall [[A B] uppers]
+                 (not (exists [[C D] concepts]
+                        (and (proper-subset? X C)
+                             (proper-subset? C A)))))))))))
+
+(deftest test-direct-lower-concepts
+  (with-testing-data [ctx (random-contexts 10 15)]
+    (forall [[X Y] (concepts ctx)]
+      (= (direct-lower-concepts ctx [X Y])
+         (set-of [B A] | [A B] (direct-upper-concepts (dual-context ctx) [Y X]))))))
+
 ;;;
 
 nil

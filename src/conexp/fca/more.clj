@@ -193,6 +193,56 @@
                                       (when-not (subset? B C)
                                         [[(gensym) (maximal-counterexample clop base-set B C)]])))))))
 
+;;; Neighbours in the concept lattice with Lindig's Algorithm
+
+(defn direct-upper-concepts
+  "Computes the set of direct upper neighbours of the concept [A B] in
+  the concept lattice of ctx. Uses Lindig's Algorithm for that."
+  [ctx [A B]]
+  (assert (concept? ctx [A B])
+          "Given pair must a concept in the given context")
+  (loop [objs        (difference (objects ctx) A),
+         min-objects (difference (objects ctx) A),
+         neighbours  (transient #{})]
+    (if (empty? objs)
+      (persistent! neighbours)
+      (let [g   (first objs),
+            M_1 (oprime ctx (conj A g)),
+            G_1 (aprime ctx M_1)]
+        (if (empty? (intersection min-objects
+                                  (difference (disj G_1 g)
+                                              A)))
+          (recur (rest objs)
+                 min-objects
+                 (conj! neighbours [G_1 M_1]))
+          (recur (rest objs)
+                 (disj min-objects g)
+                 neighbours))))))
+
+(defn direct-lower-concepts
+  "Computes the set of direct upper neighbours of the concept [A B] in
+  the concept lattice of ctx. Uses Lindig's Algorithm for that."
+  [ctx [A B]]
+  (assert (concept? ctx [A B])
+          "Given pair must a concept in the given context")
+    (loop [atts        (difference (attributes ctx) B),
+           min-attrs   (difference (attributes ctx) B),
+           neighbours  (transient #{})]
+      (if (empty? atts)
+        (persistent! neighbours)
+        (let [m   (first atts),
+              G_1 (aprime ctx (conj B m)),
+              M_1 (oprime ctx G_1)]
+          (if (empty? (intersection min-attrs
+                                    (difference (disj M_1 m)
+                                                B)))
+            (recur (rest atts)
+                   min-attrs
+                   (conj! neighbours [G_1 M_1]))
+            (recur (rest atts)
+                   (disj min-attrs m)
+                   neighbours))))))
+
 ;;;
 
 nil
