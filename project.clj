@@ -38,8 +38,7 @@
 
 ;;;
 
-(use '[leiningen.core     :only (prepend-tasks)]
-     '[clojure.java.io    :only (copy)]
+(use '[clojure.java.io    :only (copy)]
      '[clojure.java.shell :only (sh)]
      '[robert.hooke       :only (add-hook)])
 
