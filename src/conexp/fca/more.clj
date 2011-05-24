@@ -243,6 +243,23 @@
                    (disj min-attrs m)
                    neighbours))))))
 
+;;; Certain contexts
+
+(defn implication-context
+  "Returns a context for a non-negative number n which has as it's
+  extents the closure systems on the set {0 .. (n-1)} and as it's
+  intents the corresponding implicational theory."
+  [n]
+  (assert (and (number? n) (<= 0 n))
+          "Must be given a non-negative number.")
+  (let [base-set  (set-of-range 0 n)
+        base-sets (subsets base-set)]
+    (make-context base-sets
+                  (set-of (make-implication A #{x}) |
+                          A base-sets
+                          x (difference base-set base-sets))
+                  respects?)))
+
 ;;;
 
 nil
