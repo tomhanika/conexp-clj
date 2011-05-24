@@ -25,7 +25,7 @@
                  [org.clojure.contrib/math          "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/profile       "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/set           "1.3.0-SNAPSHOT"]
-                 [org.apache.commons/commons-math   "2.0"]
+                 [org.apache.commons/commons-math   "2.1"]
                  [jline                             "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.0"]]
   :aot [conexp.main
