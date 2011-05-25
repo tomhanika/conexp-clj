@@ -430,6 +430,26 @@
          (swap! result# conj! ~thing))
        (persistent! @result#))))
 
+(defmacro sum
+  "Computes the sum of expr for indices from start to end, named as
+  index."
+  [index start end & expr]
+  `(reduce (fn [sum# ~index]
+             (+ sum#
+                (do ~@expr)))
+           0N
+           (range ~start (inc ~end))))
+
+(defmacro prod
+  "Computes the product of expr for indices from start to end, named
+  as index."
+  [index start end & expr]
+  `(reduce (fn [prod# ~index]
+             (* prod#
+                (do ~@expr)))
+           1N
+           (range ~start (inc ~end))))
+
 (defn div
   "Integer division."
   [a b]

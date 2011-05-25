@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.force
-  (:use conexp.base
+  (:use [conexp.base :exclude (sum)]
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.common
@@ -110,15 +110,15 @@
         upper-neighbours (upper-neighbours-of-inf-irreducibles layout),
         E_0              (double (- (/ Math/PI 2.0)))]
     (try
-     (sum [n inf-irrs,
-           :let [phi_n (double (phi (node-positions n)
-                                    (node-positions (upper-neighbours n))))]]
-       (* (if (<= phi_n (/ Math/PI 2.0))
-            1
-            -1)
-          (+ phi_n
-             (/ (Math/tan phi_n))
-             E_0)))
+      (sum [n inf-irrs,
+            :let [phi_n (double (phi (node-positions n)
+                                     (node-positions (upper-neighbours n))))]]
+           (* (if (<= phi_n (/ Math/PI 2.0))
+                1
+                -1)
+              (+ phi_n
+                 (/ (Math/tan phi_n))
+                 E_0)))
      (catch Exception e
        Double/MAX_VALUE))))
 

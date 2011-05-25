@@ -180,6 +180,14 @@
                                               :when (forall [y (range 1 x)]
                                                       (= 1 (gcd x y)))))))
 
+(deftest test-sum
+  (is (= 55 (sum i 0 10 i)))
+  (is (= 0 (sum i 10 0 i))))
+
+(deftest test-prod
+  (is (= 720 (prod i 1 6 i)))
+  (is (= 1 (prod i 6 1 i))))
+
 (deftest test-div
   (is (= 1 (div 3 2)))
   (is (= 0 (div 1 2)))
