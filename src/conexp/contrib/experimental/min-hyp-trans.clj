@@ -51,20 +51,17 @@
 (defn mean-minhypt-sum$ [n k j p]
   (if (>= j k)
     (let [p (conj p (+ n 1.0))]
-      (reduce *
-              (expt 0.5 (* k k))
-              (map #(expt (- 1.0
-                             (* (+ 1.0 k (- %))
-                                (expt 0.5 k)))
-                          (- (nth p (+ % 1))
-                             (nth p %)
-                             1.0))
-                   (range 0.0 (+ k 1.0)))))
-    (reduce +
-            0.0
-            (map #(mean-minhypt-sum$ n k (inc j) (conj p %))
-                 (range (+ 1.0 (nth p j))
-                        (+ n (- k) (+ j 1.0) 1.0))))))
+      (* (expt 0.5 (* k k))
+         (prod i 0 k
+           (expt (- 1.0
+                    (* (+ 1.0 k (- i))
+                       (expt 0.5 k)))
+                 (- (nth p (+ i 1))
+                    (nth p i)
+                    1.0)))))
+    (sum i (+ 1.0 (nth p j))
+           (+ n (- k) j 1.0)
+      (mean-minhypt-sum$ n k (inc j) (conj p i)))))
 
 (defn mean-minhypt-sum [n m k]
   (* (reduce * 1.0 (range 1.0 (+ 1.0 k)))
@@ -72,16 +69,16 @@
 
 (defn binomial [n k]
   (prod i 1 k
-        (/ (- n (- k i))
-           i)))
+    (/ (- n (- k i))
+       i)))
 
 (defn expected-number-of-proper-premises [n m]
   (* (expt 0.5 n)
      (sum k 0 m
-          (* (binomial (- m 1) k)
-             (sum l 0 n
-                  (* (binomial n l)
-                     (mean-minhypt-sum l (- m 1) k)))))))
+       (* (binomial (- m 1) k)
+          (sum l 0 n
+            (* (binomial n l)
+               (mean-minhypt-sum l (- m 1) k)))))))
 
 ;;;
 
