@@ -210,6 +210,12 @@
   [& strings]
   (die-with-error UnsupportedOperationException strings))
 
+(defn not-yet-implemented
+  "Throws UnsupportedOperationException with \"Not yet implemented\"
+  message."
+  []
+  (unsupported-operation "Not yet implemented"))
+
 (defn illegal-state
   "Throws IllegalStateException with given strings as message."
   [& strings]
@@ -427,7 +433,30 @@
 (defn div
   "Integer division."
   [a b]
-  (round (Math/floor (/ a b))))
+  (/ (- a (mod a b)) b))
+
+(defn expt
+  "Exponentiation of arguments. Is exact if given arguments are exact
+  and returns double otherwise."
+  [a b]
+  (cond
+   (not (and (integer? a) (integer? b)))
+   (clojure.contrib.math/expt a b),
+
+   (< b 0)
+   (/ (expt a (- b))),
+
+   :else
+   (loop [result 1N,
+          aktpot (bigint a),
+          power  (bigint b)]
+     (if (zero? power)
+       result
+       (recur (if (zero? (mod power 2))
+                result
+                (* result aktpot))
+              (* aktpot aktpot)
+              (div power 2))))))
 
 (defn distinct-by-key
   "Returns a sequence of all elements of the given sequence with distinct key values,

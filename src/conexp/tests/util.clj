@@ -83,6 +83,10 @@
   (is (thrown-with-msg? UnsupportedOperationException #"Und wieder eine Testnachricht."
         (unsupported-operation "Und" " wieder " "eine" " Testnachricht."))))
 
+(deftest test-not-yet-implemented
+  (is (thrown-with-msg? UnsupportedOperationException #"Not yet implemented"
+        (not-yet-implemented))))
+
 (deftest test-illegal-state
   (is (thrown-with-msg? IllegalStateException #"und nochmal"
         (illegal-state "und" " nochmal"))))
@@ -179,7 +183,17 @@
 (deftest test-div
   (is (= 1 (div 3 2)))
   (is (= 0 (div 1 2)))
-  (is (= 2 (div 4 2))))
+  (is (= 2 (div 4 2)))
+  (is (= (div 1000000000000000000000000000000000000000000000000000000000000000 3)
+         333333333333333333333333333333333333333333333333333333333333333N)))
+
+(deftest test-expt
+  (is (= (expt 123131231231231212387123781263871263876123 2)
+         15161300104518928707165873054809555514386223330959122109726946661708534874289511129N))
+  (is (= (expt 1.0 2.0) 1.0))
+  (is (= (expt 1.0 -2.0) 1.0))
+  (is (= (expt 2.0 -2.0) 0.25))
+  (is (= (expt 2 -2) 1/4)))
 
 (deftest test-distinct-by-key
   (are [sqn key rslt] (= (distinct-by-key sqn key) rslt)
