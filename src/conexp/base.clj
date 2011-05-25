@@ -119,7 +119,8 @@
                        initial
                        (next-closed-set-in-family predicate base clop initial))]
          (take-while #(not (nil? %))
-                     (iterate (partial next-closed-set-in-family predicate base clop)
+                     (iterate (fn [X]
+                                (next-closed-set-in-family predicate base clop X))
                               start))))))
 
 (defn next-closed-set
