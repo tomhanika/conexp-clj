@@ -19,7 +19,7 @@
   (if (empty? base-set)
     true
     (loop [rest (transient base-set),
-           sets (seq sets)]
+           sets sets]
       (if-not sets
         false
         (let [new-rest (reduce disj! rest (first sets))]
@@ -29,26 +29,28 @@
 
 (defn- redundant? [cover]
   (exists [set cover]
-    (covers? set (disj cover set))))
+    (forall [x set]
+      (exists [other-set (disj cover set)]
+        (contains? other-set x)))))
 
 (defn- minimum-covers [base-set sets]
-  (let [drop   (memoize drop),
-        sets   (vec (sort #(>= (count %1) (count %2)) sets)),
-        result (atom (transient [])),
-        search (fn search [rest-base-set current-cover i]
-                 (cond
-                  (redundant? current-cover)
-                  nil,
-                  (empty? rest-base-set)
-                  (swap! result conj! current-cover),
-                  (>= i (count sets))
-                  nil,
-                  :else (do
-                          (when (covers? rest-base-set (drop i sets))
-                            (search (difference rest-base-set (sets i))
-                                    (conj current-cover (sets i))
-                                    (inc i))
-                            (search rest-base-set current-cover (inc i))))))]
+  (let [drop    (memoize drop),
+        sets    (vec (sort #(>= (count %1) (count %2)) sets)),
+        nr-sets (count sets),
+        result  (atom (transient [])),
+        search  (fn search [rest-base-set current-cover i]
+                  (cond
+                   (redundant? current-cover)  nil,
+                   (empty? rest-base-set)      (swap! result conj! current-cover),
+                   (>= i nr-sets)              nil,
+                   :else
+                   (when (covers? rest-base-set (drop i sets))
+                     (when (exists [x (sets i)]
+                             (contains? rest-base-set x))
+                       (search (difference rest-base-set (sets i))
+                               (conj current-cover (sets i))
+                               (inc i)))
+                     (search rest-base-set current-cover (inc i)))))]
     (search base-set #{} 0)
     (persistent! @result)))
 
