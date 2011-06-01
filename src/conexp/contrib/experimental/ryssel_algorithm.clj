@@ -70,11 +70,7 @@
 ;;; The actual algorithm
 
 (defn- cover [base-set candidates A]
-  (let [candidates    (difference candidates
-                                  (set-of (intersection X Y) | X candidates, Y candidates
-                                                               :when (and (not (subset? X Y))
-                                                                          (not (subset? Y X))))),
-        object-covers (minimum-covers (difference base-set A)
+  (let [object-covers (minimum-covers (difference base-set A)
                                       (set-of (difference base-set N) | N candidates))]
     (map (fn [cover]
            (map #(difference base-set %) cover))
@@ -104,17 +100,19 @@
                                           n (gens N),
                                           :when (not= m n)])),
               candidates   (set-of U
-                                   [U M,
+                                   [U (disj M A),
                                     :when (not (exists [V M]
                                                  (and (subset? (intersection U A) V)
                                                       (proper-subset? V A))))]),
-              candidates   (disj candidates A),
+              candidates   (difference candidates
+                                       (set-of (intersection X Y) | X candidates, Y candidates
+                                                                    :when (and (not (subset? X Y))
+                                                                               (not (subset? Y X))))),
               covers       (cover (objects ctx) candidates A),
               B            (oprime A),
               implications (union implications
-                                  (set-of (make-implication premise B)
-                                          [X covers,
-                                           :let [premise (set-of m | Y X, m (gens Y))]]))]
+                                  (set-of (make-implication (set-of m | Y X, m (gens Y)) B)
+                                          | X covers))]
           (recur implications (rest extents)))))))
 
 ;;;
