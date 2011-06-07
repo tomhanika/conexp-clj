@@ -240,16 +240,17 @@
                     (intersection-set? current set-sqn)
                     (swap! result conj current),
                     :else
-                    (let [next-elements (remove (fn [x]
-                                                  (not (exists [set rest-sets]
-                                                         (contains? set x))))
-                                                rest-elements)]
-                      (doseq [x next-elements]
+                    (when-let [x (first rest-elements)]
+                      (when (exists [set rest-sets]
+                              (contains? set x))
                         (search (remove #(contains? % x) rest-sets)
                                 (conj current x)
-                                (rest next-elements))))))]
+                                (rest rest-elements)))
+                      (search rest-sets
+                              current
+                              (rest rest-elements)))))]
     (search set-sqn #{} elements)
-    (vec (distinct @result))))
+    @result))
 
 (defn- proper-premises-for-attribute
   "Returns in context ctx for the attribute m and the objects in objs,
