@@ -311,6 +311,47 @@
       (println (str g "," m)))))
 
 
+;; Binary CSV (:binary-csv)
+
+(add-context-input-format :binary-csv
+                          (fn [rdr]
+                            (try
+                              (re-matches #"^[01](,[01])*$" (read-line))
+                              (catch Exception _))))
+
+(define-context-input-format :binary-csv
+  [file]
+  (with-in-reader file
+    (let [first-line (split (read-line) #",")
+          atts       (range (count first-line))]
+      (loop [objs      #{0},
+             incidence (set-of [0 n] | n atts, :when (= (nth first-line n) "1"))]
+        (if-let [line (read-line)]
+          (let [line (split line #","),
+                i    (count objs)]
+            (recur (conj objs i)
+                   (into incidence
+                         (set-of [i n] | n atts :when (= (nth line n) "1")))))
+          (make-context objs atts incidence))))))
+
+(define-context-output-format :binary-csv
+  [ctx file]
+  (when (or (empty? (objects ctx))
+            (empty? (attributes ctx)))
+    (unsupported-operation "Cannot export empty context in binary-csv format"))
+  (with-out-writer file
+    (doseq [g (objects ctx)]
+      (loop [atts (attributes ctx)]
+        (when-let [m (first atts)]
+          (print (if (incident? ctx g m)
+                   "1"
+                   "0"))
+          (when (next atts)
+            (print ","))
+          (recur (rest atts))))
+      (println))))
+
+
 ;; output as tex array
 
 (define-context-output-format :tex
