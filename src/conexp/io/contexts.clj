@@ -315,13 +315,12 @@
 
 (add-context-input-format :binary-csv
                           (fn [rdr]
-                            (try
-                              (re-matches #"^[01](,[01])*$" (read-line))
-                              (catch Exception _))))
+                            (= "binary CSV" (read-line))))
 
 (define-context-input-format :binary-csv
   [file]
   (with-in-reader file
+    (read-line)
     (let [first-line (split (read-line) #",")
           atts       (range (count first-line))]
       (loop [objs      #{0},
@@ -339,17 +338,20 @@
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
     (unsupported-operation "Cannot export empty context in binary-csv format"))
-  (with-out-writer file
-    (doseq [g (objects ctx)]
-      (loop [atts (attributes ctx)]
-        (when-let [m (first atts)]
-          (print (if (incident? ctx g m)
-                   "1"
-                   "0"))
-          (when (next atts)
-            (print ","))
-          (recur (rest atts))))
-      (println))))
+  (let [objs (sort (objects ctx)),
+        atts (sort (attributes ctx))]
+    (with-out-writer file
+      (println "binary CSV")
+      (doseq [g objs]
+        (loop [atts atts]
+          (when-let [m (first atts)]
+            (print (if (incident? ctx g m)
+                     "1"
+                     "0"))
+            (when (next atts)
+              (print ","))
+            (recur (rest atts))))
+        (println)))))
 
 
 ;; output as tex array

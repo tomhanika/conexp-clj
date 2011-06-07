@@ -25,7 +25,8 @@
 
 (deftest test-context-out-in
   (with-testing-data [ctx contexts-oi,
-                      fmt (list-context-formats)]
+                      fmt (remove #{:binary-csv}
+                                  (list-context-formats))]
     (try (= ctx (out-in ctx 'context fmt))
          (catch UnsupportedOperationException _ true))))
 
