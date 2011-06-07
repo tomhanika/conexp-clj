@@ -97,6 +97,46 @@
                                   [idx-m (range number-of-attributes)
                                    :when (#{\X,\x} (nth line idx-m))])))))))))
 
+
+;; Anonymous Burmeister, aka Burmeister Format without names
+
+(add-context-input-format :anonymous-burmeister
+                          (fn [rdr]
+                            (= "A" (read-line))))
+
+(define-context-output-format :anonymous-burmeister
+  [ctx file]
+  (with-out-writer file
+    (println \A)
+    (println (count objects))
+    (println (count attributes))
+    (let [inz (incidence ctx)]
+      (doseq [g (objects ctx)]
+        (doseq [m (attributes ctx)]
+          (print (if (inz [g m]) "X" ".")))
+        (println)))))
+
+(define-context-input-format :anonymous-burmeister
+  [file]
+  (with-in-reader file
+    (let [_                    (get-lines 1),    ; "A\n"
+          number-of-objects    (Integer/parseInt (get-line)),
+          number-of-attributes (Integer/parseInt (get-line)),
+          seq-of-objects       (range number-of-objects),
+          seq-of-attributes    (range number-of-attributes)]
+      (loop [objs seq-of-objects
+             incidence #{}]
+        (if (empty? objs)
+          (make-context-nc (set seq-of-objects)
+                           (set seq-of-attributes)
+                           incidence)
+          (let [line (get-line)]
+            (recur (rest objs)
+                   (union incidence
+                          (set-of [(first objs) (nth seq-of-attributes idx-m)]
+                                  [idx-m (range number-of-attributes)
+                                   :when (#{\X,\x} (nth line idx-m))])))))))))
+
 ;; XML helpers
 
 (defn- find-tags [seq-of-hashes tag]

@@ -44,8 +44,8 @@ conexp-clj TODOs
    There are some things missing:
      - with-action-on does not provide type hint for captured variable
      - type hints on variables in let seem to be ignored
-** INPROGRESS More IO formats for contexts [1/5]                     :Daniel:
-   - [ ] anonymous burmeister (without names for objects and
+** INPROGRESS More IO formats for contexts [2/5]                     :Daniel:
+   - [X] anonymous burmeister (without names for objects and
      attributes)
    - [ ] csc
    - [ ] slf
