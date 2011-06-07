@@ -15,7 +15,7 @@
 
 ;;; Searching for minimum covers
 
-(defn- covers? [base-set sets]
+(defn- covers? [sets base-set]
   (if (empty? base-set)
     true
     (loop [rest (transient base-set),
@@ -27,32 +27,48 @@
             true
             (recur new-rest (next sets))))))))
 
-(defn- redundant? [cover]
+(defn- redundant? [base-set cover count]
   (exists [set cover]
     (forall [x set]
-      (exists [other-set (disj cover set)]
-        (contains? other-set x)))))
+      (=> (contains? base-set x)
+          (<= 2 (get count x))))))
 
 (defn- minimum-covers [base-set sets]
-  (let [drop    (memoize drop),
-        sets    (vec (sort #(>= (count %1) (count %2)) sets)),
-        nr-sets (count sets),
-        result  (atom (transient [])),
-        search  (fn search [rest-base-set current-cover i]
+  (let [sets    (sort #(>= (count %1) (count %2)) sets),
+        result  (atom []),
+        search  (fn search [rest-base-set current-cover cover-count sets]
                   (cond
-                   (redundant? current-cover)  nil,
-                   (empty? rest-base-set)      (swap! result conj! current-cover),
-                   (>= i nr-sets)              nil,
+                   (redundant? base-set current-cover cover-count)
+                   nil,
+
+                   (empty? rest-base-set)
+                   (swap! result conj current-cover),
+
+                   (empty? sets)
+                   nil,
+
                    :else
-                   (when (covers? rest-base-set (drop i sets))
-                     (when (exists [x (sets i)]
+                   (when (covers? sets rest-base-set)
+                     (when (exists [x (first sets)]
                              (contains? rest-base-set x))
-                       (search (difference rest-base-set (sets i))
-                               (conj current-cover (sets i))
-                               (inc i)))
-                     (search rest-base-set current-cover (inc i)))))]
-    (search base-set #{} 0)
-    (persistent! @result)))
+                       (search (difference rest-base-set (first sets))
+                               (conj current-cover (first sets))
+                               (reduce! (fn [map x]
+                                          (if (contains? base-set x)
+                                            (assoc! map x (inc (get map x)))
+                                            map))
+                                        cover-count
+                                        (first sets))
+                               (rest sets)))
+                     (search rest-base-set
+                             current-cover
+                             cover-count
+                             (rest sets)))))]
+    (search base-set
+            #{}
+            (map-by-fn (constantly 0) base-set)
+            sets)
+    @result))
 
 
 ;;; Collapsing implications with equal premise
@@ -79,9 +95,9 @@
 (defn ryssel-base
   "Returns the set of implications computed by Ryssels Algorithm."
   [ctx]
-  (let [oprime (memoize #(object-derivation ctx %)),
+  (let [oprime (memoize #(oprime ctx %)),
         gens   (reduce! (fn [map x]     ;generating elements of attribute extents
-                          (let [extent (attribute-derivation ctx #{x})]
+                          (let [extent (aprime ctx #{x})]
                             (assoc! map extent
                                     (conj (get map extent #{}) x))))
                         {}
