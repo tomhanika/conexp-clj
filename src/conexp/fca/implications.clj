@@ -217,14 +217,20 @@
   [set sets]
   (boolean
    (forall [other-set sets]
-     (not-empty (intersection set other-set)))))
+     (exists [x set]
+       (contains? other-set x)))))
 
 (defn- minimal-intersection-sets
   "Returns for a sequence set-sqn of sets all sets which have
   non-empty intersection with all sets in set-sqn and are minimal with
   this property."
-  [set-sqn]
-  (let [elements (reduce union set-sqn),
+  [base-set set-sqn]
+  (let [cards    (map-by-fn (fn [x]
+                              (count (set-of X | X set-sqn :when (contains? X x))))
+                            base-set),
+        elements (sort (fn [x y]
+                         (>= (cards x) (cards y)))
+                       base-set),
         result   (atom []),
         search   (fn search [rest-sets current rest-elements]
                    (cond
@@ -253,6 +259,7 @@
   (let [M (attributes ctx)]
     (remove #(contains? % m)
             (minimal-intersection-sets
+             (attributes ctx)
              (set-of (difference M (oprime ctx #{g})) | g objs)))))
 
 (defn proper-premises
