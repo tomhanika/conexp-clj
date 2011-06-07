@@ -212,44 +212,59 @@
   (and (subset? A (attributes ctx))
        (not (empty? (A-dot ctx A)))))
 
+(defn- intersection-set?
+  "Tests whether set has non-empty intersection with every set in sets."
+  [set sets]
+  (boolean
+   (forall [other-set sets]
+     (not-empty (intersection set other-set)))))
+
 (defn- minimal-intersection-sets
   "Returns for a sequence set-sqn of sets all sets which have
   non-empty intersection with all sets in set-sqn and are minimal with
-  that."
+  this property."
   [set-sqn]
-  (cond
-   (empty? set-sqn) (list #{}),
-   (empty? (first set-sqn)) (),
-   :else (let [next-set (first set-sqn)]
-           (partial-min subset?
-                        (mapcat (fn [set]
-                                  (if-not (empty? (intersection set next-set))
-                                    (list set)
-                                    (map #(conj set %) next-set)))
-                                (minimal-intersection-sets (rest set-sqn)))))))
+  (let [elements (reduce union set-sqn),
+        result   (atom []),
+        search   (fn search [rest-sets current rest-elements]
+                   (cond
+                    (exists [x current]
+                      (intersection-set? (disj current x) set-sqn))
+                    nil,
+                    (intersection-set? current set-sqn)
+                    (swap! result conj current),
+                    :else
+                    (let [next-elements (remove (fn [x]
+                                                  (not (exists [set rest-sets]
+                                                         (contains? set x))))
+                                                rest-elements)]
+                      (doseq [x next-elements]
+                        (search (remove #(contains? % x) rest-sets)
+                                (conj current x)
+                                (rest next-elements))))))]
+    (search set-sqn #{} elements)
+    (vec (distinct @result))))
 
 (defn- proper-premises-for-attribute
   "Returns in context ctx for the attribute m and the objects in objs,
   which must contain all objects g in ctx such that [g m] are in the
   downarrow relation, the proper premises for m."
   [ctx m objs]
-  (let [M (attributes ctx),
-        I (incidence ctx)]
+  (let [M (attributes ctx)]
     (remove #(contains? % m)
             (minimal-intersection-sets
-             (for [g objs] (set-of n [n M :when (not (contains? I [g n]))]))))))
+             (set-of (difference M (oprime ctx #{g})) | g objs)))))
 
 (defn proper-premises
   "Returns the proper premises of the given context ctx as a lazy
   sequence."
   [ctx]
-  (let [down-arrow-map (loop [arrows (down-arrows ctx),
+  (let [down-arrow-map (loop [arrows    (down-arrows ctx),
                               arrow-map {}]
-                         (if (empty? arrows)
-                           arrow-map
-                           (let [[g m] (first arrows)]
-                             (recur (rest arrows)
-                                    (update-in arrow-map [m] conj g)))))]
+                         (if-let [[g m] (first arrows)]
+                           (recur (rest arrows)
+                                  (update-in arrow-map [m] conj g))
+                           arrow-map))]
     (distinct (mapcat #(proper-premises-for-attribute ctx % (get down-arrow-map %))
                       (attributes ctx)))))
 
