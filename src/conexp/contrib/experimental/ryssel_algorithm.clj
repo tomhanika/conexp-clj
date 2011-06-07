@@ -49,17 +49,15 @@
 
                    :else
                    (when (covers? sets rest-base-set)
-                     (when (exists [x (first sets)]
-                             (contains? rest-base-set x))
-                       (search (difference rest-base-set (first sets))
-                               (conj current-cover (first sets))
-                               (reduce! (fn [map x]
-                                          (if (contains? base-set x)
-                                            (assoc! map x (inc (get map x)))
-                                            map))
-                                        cover-count
-                                        (first sets))
-                               (rest sets)))
+                     (search (difference rest-base-set (first sets))
+                             (conj current-cover (first sets))
+                             (reduce! (fn [map x]
+                                        (if (contains? base-set x)
+                                          (assoc! map x (inc (get map x)))
+                                          map))
+                                      cover-count
+                                      (first sets))
+                             (rest sets))
                      (search rest-base-set
                              current-cover
                              cover-count
