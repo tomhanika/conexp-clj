@@ -107,26 +107,25 @@
         (collapse-equal-premises implications)
         (let [A            (first extents),
               implications (into implications
-                                 (set-of (make-implication #{m} #{n})
-                                         [N M
-                                          :when (subset? A N),
-                                          m (gens A),
-                                          n (gens N),
-                                          :when (not= m n)])),
-              candidates   (set-of U
-                                   [U (disj M A),
-                                    :when (not (exists [V M]
-                                                 (and (subset? (intersection U A) V)
-                                                      (proper-subset? V A))))]),
+                                 (for [N M
+                                       :when (subset? A N),
+                                       m (gens A),
+                                       n (gens N),
+                                       :when (not= m n)]
+                                   (make-implication #{m} #{n}))),
+              M-down-A     (set-of V | V M :when (proper-subset? V A)),
+              candidates   (set-of U | U (disj M A),
+                                       :when (not (exists [V M-down-A]
+                                                    (subset? (intersection U A) V)))),
               candidates   (difference candidates
                                        (set-of (intersection X Y) | X candidates, Y candidates
                                                                     :when (and (not (subset? X Y))
                                                                                (not (subset? Y X))))),
               covers       (cover (objects ctx) candidates A),
               B            (oprime A),
-              implications (union implications
-                                  (set-of (make-implication (set-of m | Y X, m (gens Y)) B)
-                                          | X covers))]
+              implications (into implications
+                                 (for [X covers]
+                                   (make-implication (set-of m | Y X, m (gens Y)) B)))]
           (recur implications (rest extents)))))))
 
 ;;;
