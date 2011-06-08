@@ -34,8 +34,7 @@
           (<= 2 (get count x))))))
 
 (defn- minimum-covers [base-set sets]
-  (let [sets    (sort #(>= (count %1) (count %2)) sets),
-        result  (atom []),
+  (let [result  (atom []),
         search  (fn search [rest-base-set current-cover cover-count sets]
                   (cond
                    (redundant? base-set current-cover cover-count)
@@ -49,19 +48,23 @@
 
                    :else
                    (when (covers? sets rest-base-set)
-                     (search (difference rest-base-set (first sets))
-                             (conj current-cover (first sets))
-                             (reduce! (fn [map x]
-                                        (if (contains? base-set x)
-                                          (assoc! map x (inc (get map x)))
-                                          map))
-                                      cover-count
-                                      (first sets))
-                             (rest sets))
-                     (search rest-base-set
-                             current-cover
-                             cover-count
-                             (rest sets)))))]
+                     (let [counts (map-by-fn #(count (intersection rest-base-set %))
+                                             sets),
+                           sets   (sort #(>= (counts %1) (counts %2))
+                                        sets)],
+                       (search (difference rest-base-set (first sets))
+                               (conj current-cover (first sets))
+                               (reduce! (fn [map x]
+                                          (if (contains? base-set x)
+                                            (assoc! map x (inc (get map x)))
+                                            map))
+                                        cover-count
+                                        (first sets))
+                               (rest sets))
+                       (search rest-base-set
+                               current-cover
+                               cover-count
+                               (rest sets))))))]
     (search base-set
             #{}
             (map-by-fn (constantly 0) base-set)
@@ -110,13 +113,13 @@
                                  (for [N M
                                        :when (subset? A N),
                                        m (gens A),
-                                       n (gens N),
-                                       :when (not= m n)]
-                                   (make-implication #{m} #{n}))),
-              M-down-A     (set-of V | V M :when (proper-subset? V A)),
+                                       :when (not= (gens N) #{m})]
+                                   (make-implication #{m} (gens N)))),
               candidates   (set-of U | U (disj M A),
-                                       :when (not (exists [V M-down-A]
-                                                    (subset? (intersection U A) V)))),
+                                       :let [UcapA (intersection U A)]
+                                       :when (not (exists [V M]
+                                                    (and (proper-subset? V A)
+                                                         (subset? UcapA V))))),
               candidates   (difference candidates
                                        (set-of (intersection X Y) | X candidates, Y candidates
                                                                     :when (and (not (subset? X Y))
