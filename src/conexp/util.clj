@@ -507,10 +507,10 @@
   "Returns a hash map with the values of keys as keys and their values
   under function as values."
   [function keys]
-  (persistent! (reduce (fn [map k]
-                         (assoc! map k (function k)))
-                       (transient {})
-                       keys)))
+  (reduce! (fn [map k]
+             (assoc! map k (function k)))
+           {}
+           keys))
 
 (defmacro with-printed-result
   "Prints string followed by result, returning it."
