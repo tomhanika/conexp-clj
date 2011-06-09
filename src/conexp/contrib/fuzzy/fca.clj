@@ -86,6 +86,8 @@
                                          (objects context)))
                                (attributes context)))))
 
+(defalias fuzzy-oprime fuzzy-object-derivation)
+
 (defn fuzzy-attribute-derivation
   "Computes the fuzzy derivation of the fuzzy set D of attributes in
   the given context."
@@ -98,6 +100,8 @@
                                          1
                                          (attributes context)))
                                (objects context)))))
+
+(defalias fuzzy-aprime fuzzy-attribute-derivation)
 
 (defn doubly-scale-fuzzy-context
   "Returns the doubly scaled formal context for the given fuzzy
@@ -129,13 +133,14 @@
   "Returns the degree to which the implication A ==> B is true in the
   given fuzzy-context. A and B are fuzzy subsets of the attributes of
   fuzzy-context."
-  [fuzzy-context A B]
-  (subsethood (make-fuzzy-set B)
-              (fuzzy-object-derivation
-                 fuzzy-context
-                 (fuzzy-attribute-derivation
-                  fuzzy-context
-                  (make-fuzzy-set A)))))
+  ([fuzzy-context A B]
+     (validity fuzzy-context A B identity))
+  ([fuzzy-context A B hedge]
+     (subsethood (make-fuzzy-set B)
+                 (fuzzy-oprime fuzzy-context
+                               (fuzzy-aprime fuzzy-context
+                                             (make-fuzzy-set A)))
+                 hedge)))
 
 ;;;
 
@@ -144,5 +149,7 @@
 ;;;  - attribute exploration?
 ;;;  - non-redundant basis of implications
 ;;;  - glinclosure
+
+;;;
 
 nil

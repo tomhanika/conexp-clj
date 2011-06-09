@@ -164,16 +164,17 @@
     (<= (fuzzy-set-1 k)
         (fuzzy-set-2 k))))
 
-;;;
-
 (defn subsethood
-  "Returns the degree to which fuzzy-set-1 is a subset of
-  fuzzy-set-2."
-  [fuzzy-set-1 fuzzy-set-2]
-  (reduce (fn [result element]
-            (f-and result (f-impl (fuzzy-set-1 element) (fuzzy-set-2 element))))
-          1
-          (keys (fuzzy-set-as-hashmap fuzzy-set-1))))
+  "Returns the degree to which fuzzy-set-1 is a subset of fuzzy-set-2. Applies hedge to the truth
+  value of an element being in fuzzy-set-1, if given."
+  ([fuzzy-set-1 fuzzy-set-2]
+     (subsethood fuzzy-set-1 fuzzy-set-2 identity))
+  ([fuzzy-set-1 fuzzy-set-2 hedge]
+     (reduce (fn [result element]
+               (f-and result (f-impl (hedge (fuzzy-set-1 element))
+                                     (fuzzy-set-2 element))))
+             1
+             (keys (fuzzy-set-as-hashmap fuzzy-set-1)))))
 
 ;;;
 
