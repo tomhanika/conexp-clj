@@ -16,7 +16,7 @@
 (defmulti t-norm
   "Returns the t-norm and it's residuum corresponding to the name given."
   {:arglists '[(t-norm-name)]}
-  identity)
+  first)
 
 (defmethod t-norm :default
   [norm]
