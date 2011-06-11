@@ -225,12 +225,7 @@
   non-empty intersection with all sets in set-sqn and are minimal with
   this property."
   [base-set set-sqn]
-  (let [cards    (map-by-fn (fn [x]
-                              (count (set-of X | X set-sqn :when (contains? X x))))
-                            base-set),
-        elements (sort (fn [x y]
-                         (>= (cards x) (cards y)))
-                       base-set),
+  (let [elements (seq base-set),
         result   (atom []),
         search   (fn search [rest-sets current rest-elements]
                    (cond
