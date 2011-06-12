@@ -113,15 +113,17 @@
   ([predicate base clop]
      (all-closed-sets-in-family predicate base clop #{}))
   ([predicate base clop initial]
-     (let [base (if (set? base) (improve-basic-order base clop) base)]
-       (let [initial (clop initial),
-             start   (if (predicate initial)
-                       initial
-                       (next-closed-set-in-family predicate base clop initial))]
-         (take-while #(not (nil? %))
-                     (iterate (fn [X]
-                                (next-closed-set-in-family predicate base clop X))
-                              start))))))
+     (let [base (if (set? base) (improve-basic-order base clop) base),
+           initial (clop initial),
+           start   (if (predicate initial)
+                     initial
+                     (next-closed-set-in-family predicate base clop initial)),
+           runner  (fn runner [X]
+                     (lazy-seq
+                      (if (nil? X)
+                        nil
+                        (cons X (runner (next-closed-set-in-family predicate base clop X))))))]
+         (runner initial))))
 
 (defn next-closed-set
   "Computes next closed set of the closure operator clop after A with
