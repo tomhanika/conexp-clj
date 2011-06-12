@@ -258,7 +258,7 @@
   "Returns the proper premises of the given context ctx as a lazy sequence."
   [ctx]
   (let [down-arrow-map (loop [arrows    (down-arrows ctx),
-                              arrow-map {}]
+                              arrow-map (map-by-fn (constantly #{}) (attributes ctx))]
                          (if-let [[g m] (first arrows)]
                            (recur (rest arrows)
                                   (update-in arrow-map [m] conj g))
