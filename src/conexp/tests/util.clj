@@ -237,4 +237,20 @@
 
 ;;;
 
+(deftest test-minimum-set-covers
+  (are [n k] (= k (count (minimum-set-covers (set-of-range n)
+                                             (subsets (set-of-range n)))))
+    1 1
+    2 2
+    3 8
+    4 49
+    5 462
+    6 6424
+    ;; 7 129425
+    )
+  (is (= (set (minimum-set-covers #{1 2 3 4} [#{1 2 3} #{2 3 4} #{1 0} #{5 6 7} #{1 2 3 4 5 6 7 8}]))
+         (set [#{#{1 2 3 4 5 6 7 8}} #{#{1 2 3} #{2 3 4}} #{#{0 1} #{2 3 4}}]))))
+
+;;;
+
 nil

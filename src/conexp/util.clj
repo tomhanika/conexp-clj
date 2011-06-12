@@ -558,6 +558,67 @@
                            (keys dependencies))
                    (reduce conj! sorted nexts))))))))
 
+
+;;; Searching for minimum covers
+
+(defn- covers? [sets base-set]
+  (if (empty? base-set)
+    true
+    (loop [rest (transient base-set),
+           sets sets]
+      (if-not sets
+        false
+        (let [new-rest (reduce disj! rest (first sets))]
+          (if (zero? (count new-rest))
+            true
+            (recur new-rest (next sets))))))))
+
+(defn- redundant? [base-set cover count]
+  (exists [set cover]
+    (forall [x set]
+      (=> (contains? base-set x)
+          (<= 2 (get count x))))))
+
+(defn minimum-set-covers [base-set sets]
+  "For a given set base-set and a collection of sets returns all subcollections of sets such that
+  the union of the contained sets cover base-set and that are minimal with that property."
+  (let [result  (atom []),
+        search  (fn search [rest-base-set current-cover cover-count sets]
+                  (cond
+                   (redundant? base-set current-cover cover-count)
+                   nil,
+
+                   (empty? rest-base-set)
+                   (swap! result conj current-cover),
+
+                   (empty? sets)
+                   nil,
+
+                   :else
+                   (when (covers? sets rest-base-set)
+                     (let [counts (map-by-fn #(count (intersection rest-base-set %))
+                                             sets),
+                           sets   (sort #(>= (counts %1) (counts %2))
+                                        sets)],
+                       (search (difference rest-base-set (first sets))
+                               (conj current-cover (first sets))
+                               (reduce! (fn [map x]
+                                          (if (contains? base-set x)
+                                            (assoc! map x (inc (get map x)))
+                                            map))
+                                        cover-count
+                                        (first sets))
+                               (rest sets))
+                       (search rest-base-set
+                               current-cover
+                               cover-count
+                               (rest sets))))))]
+    (search base-set
+            #{}
+            (map-by-fn (constantly 0) base-set)
+            sets)
+    @result))
+
 ;;;
 
 nil
