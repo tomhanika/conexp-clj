@@ -170,24 +170,23 @@
       [#{1 2 3} #{2 3 4} #{2 3 5}] [#{1 4 5} #{2} #{3}])))
 
 (deftest test-proper-premises
-  (let [A-dot @#'conexp.fca.implications/A-dot]
-    (are [ctx] (and (is (= (set (proper-premises ctx))
-                           (set-of A | A (subsets (attributes ctx))
-                                       :when (not-empty (A-dot ctx A)))))
-                    (let [pp-impls (proper-premise-implications ctx)]
-                      (is (sound-implication-set? ctx pp-impls))
-                      (is (complete-implication-set? ctx pp-impls))
-                      (is (forall [impl pp-impls]
-                            (not (empty? (conclusion impl)))))))
-      contexts/test-ctx-01,
-      contexts/test-ctx-04,
-      contexts/test-ctx-07,
-      contexts/test-ctx-08
-      (make-context #{1 2 3 4 5} #{1 2 3 4 5 6 7 8}
-                    #{[1 1] [1 3] [1 6] [1 7] [2 1]
-                      [2 4] [2 6] [2 8] [3 1] [3 4]
-                      [3 5] [3 8] [4 1] [4 3] [4 5]
-                      [4 8] [5 2] [5 3] [5 5] [5 7]}))))
+  (are [ctx] (and (is (= (set (proper-premises ctx))
+                         (set-of A | A (subsets (attributes ctx))
+                                     :when (proper-premise? ctx A))))
+                  (let [pp-impls (proper-premise-implications ctx)]
+                    (is (sound-implication-set? ctx pp-impls))
+                    (is (complete-implication-set? ctx pp-impls))
+                    (is (forall [impl pp-impls]
+                          (not (empty? (conclusion impl)))))))
+    contexts/test-ctx-01,
+    contexts/test-ctx-04,
+    contexts/test-ctx-07,
+    contexts/test-ctx-08
+    (make-context #{1 2 3 4 5} #{1 2 3 4 5 6 7 8}
+                  #{[1 1] [1 3] [1 6] [1 7] [2 1]
+                    [2 4] [2 6] [2 8] [3 1] [3 4]
+                    [3 5] [3 8] [4 1] [4 3] [4 5]
+                    [4 8] [5 2] [5 3] [5 5] [5 7]})))
 
 (deftest test-stem-base-from-base
   (with-testing-data [ctx (random-contexts 10 20)]

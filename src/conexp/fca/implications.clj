@@ -200,7 +200,7 @@
   "Returns A-dot as in the definition of proper premises."
   [ctx A]
   (difference (context-attribute-closure ctx A)
-              (reduce union
+              (reduce into
                       A
                       (map #(context-attribute-closure ctx (disj A %))
                            A))))
@@ -221,9 +221,8 @@
        (contains? other-set x)))))
 
 (defn- minimal-intersection-sets
-  "Returns for a sequence set-sqn of sets all sets which have
-  non-empty intersection with all sets in set-sqn and are minimal with
-  this property."
+  "Returns for a sequence set-sqn of sets all subsets of base-set which have non-empty intersection
+  with all sets in set-sqn and are minimal with this property."
   [base-set set-sqn]
   (let [elements (seq base-set),
         result   (atom []),
@@ -248,19 +247,15 @@
     @result))
 
 (defn- proper-premises-for-attribute
-  "Returns in context ctx for the attribute m and the objects in objs,
-  which must contain all objects g in ctx such that [g m] are in the
-  downarrow relation, the proper premises for m."
-  [ctx m objs]
-  (let [M (attributes ctx)]
-    (remove #(contains? % m)
-            (minimal-intersection-sets
-             (attributes ctx)
-             (set-of (difference M (oprime ctx #{g})) | g objs)))))
+  "Technical Helper. Returns in context ctx for the attribute m and the objects in objs,
+  which must contain all objects g in ctx such that [g m] are in the downarrow relation, the proper
+  premises for m."
+  [ctx [m objs]]
+  (minimal-intersection-sets (disj (attributes ctx) m)
+                             (set-of (difference (attributes ctx) (oprime ctx #{g})) | g objs)))
 
 (defn proper-premises
-  "Returns the proper premises of the given context ctx as a lazy
-  sequence."
+  "Returns the proper premises of the given context ctx as a lazy sequence."
   [ctx]
   (let [down-arrow-map (loop [arrows    (down-arrows ctx),
                               arrow-map {}]
@@ -268,14 +263,14 @@
                            (recur (rest arrows)
                                   (update-in arrow-map [m] conj g))
                            arrow-map))]
-    (distinct (mapcat #(proper-premises-for-attribute ctx % (get down-arrow-map %))
-                      (attributes ctx)))))
+    (distinct
+     (mapcat #(proper-premises-for-attribute ctx %) down-arrow-map))))
 
 (defn proper-premise-implications
   "Returns all implications based on the proper premises of the
   context ctx."
   [ctx]
-  (set-of (make-implication A (A-dot ctx A))
+  (set-of (make-implication A (context-attribute-closure ctx A))
           [A (proper-premises ctx)]))
 
 ;;;
