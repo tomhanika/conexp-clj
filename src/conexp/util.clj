@@ -387,17 +387,17 @@
 
 (defmacro forall
   "Implements logical forall quantor. Bindings is of the form [var-1
-  seq-1 var-2 seq-2 ...]."
+  seq-1 var-2 seq-2 ...]. Returns boolean value."
   [bindings condition]
   (when-not (let [c (count bindings)]
               (and (<= 0 c)
                    (zero? (mod c 2))))
     (illegal-argument "forall requires even number of bindings."))
-  (expand-bindings (map vec (partition 2 bindings)) condition))
+  `(boolean ~(expand-bindings (map vec (partition 2 bindings)) condition)))
 
 (defmacro exists
   "Implements logical exists quantor. Bindings is of the form [var-1
-  seq-1 var-2 seq-2 ...]."
+  seq-1 var-2 seq-2 ...]. Returns boolean value."
   [bindings condition]
   (when-not (let [c (count bindings)]
               (and (<= 0 c)
