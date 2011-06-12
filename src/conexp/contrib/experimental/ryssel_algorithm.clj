@@ -13,65 +13,6 @@
 
 (ns-doc "An implementation of Ryssels Algorithm")
 
-;;; Searching for minimum covers
-
-(defn- covers? [sets base-set]
-  (if (empty? base-set)
-    true
-    (loop [rest (transient base-set),
-           sets sets]
-      (if-not sets
-        false
-        (let [new-rest (reduce disj! rest (first sets))]
-          (if (zero? (count new-rest))
-            true
-            (recur new-rest (next sets))))))))
-
-(defn- redundant? [base-set cover count]
-  (exists [set cover]
-    (forall [x set]
-      (=> (contains? base-set x)
-          (<= 2 (get count x))))))
-
-(defn- minimum-covers [base-set sets]
-  (let [result  (atom []),
-        search  (fn search [rest-base-set current-cover cover-count sets]
-                  (cond
-                   (redundant? base-set current-cover cover-count)
-                   nil,
-
-                   (empty? rest-base-set)
-                   (swap! result conj current-cover),
-
-                   (empty? sets)
-                   nil,
-
-                   :else
-                   (when (covers? sets rest-base-set)
-                     (let [counts (map-by-fn #(count (intersection rest-base-set %))
-                                             sets),
-                           sets   (sort #(>= (counts %1) (counts %2))
-                                        sets)],
-                       (search (difference rest-base-set (first sets))
-                               (conj current-cover (first sets))
-                               (reduce! (fn [map x]
-                                          (if (contains? base-set x)
-                                            (assoc! map x (inc (get map x)))
-                                            map))
-                                        cover-count
-                                        (first sets))
-                               (rest sets))
-                       (search rest-base-set
-                               current-cover
-                               cover-count
-                               (rest sets))))))]
-    (search base-set
-            #{}
-            (map-by-fn (constantly 0) base-set)
-            sets)
-    @result))
-
-
 ;;; Collapsing implications with equal premise
 
 (defn- collapse-equal-premises [implications]
@@ -87,8 +28,9 @@
 ;;; The actual algorithm
 
 (defn- cover [base-set candidates A]
-  (let [object-covers (minimum-covers (difference base-set A)
-                                      (set-of (difference base-set N) | N candidates))]
+  (let [object-covers (minimum-set-covers
+                       (difference base-set A)
+                       (set-of (difference base-set N) | N candidates))]
     (map (fn [cover]
            (map #(difference base-set %) cover))
          object-covers)))
