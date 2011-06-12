@@ -561,7 +561,9 @@
 
 ;;; Searching for minimum covers
 
-(defn- covers? [sets base-set]
+(defn- covers?
+  "Technical Helper. Tests wheterh all elements in base-set are contained at least one set in sets."
+  [sets base-set]
   (if (empty? base-set)
     true
     (loop [rest (transient base-set),
@@ -573,15 +575,20 @@
             true
             (recur new-rest (next sets))))))))
 
-(defn- redundant? [base-set cover count]
+(defn- redundant?
+  "Technical Helper. For a given set base-set, a collection cover of sets and a map mapping elements
+  from base-set to the number of times they occur in sets in cover, tests whether the cover is
+  redundant or not, i.e. if a proper subcollection of cover is already a cover or not."
+  [base-set cover count]
   (exists [set cover]
     (forall [x set]
       (=> (contains? base-set x)
           (<= 2 (get count x))))))
 
-(defn minimum-set-covers [base-set sets]
+(defn minimum-set-covers
   "For a given set base-set and a collection of sets returns all subcollections of sets such that
   the union of the contained sets cover base-set and that are minimal with that property."
+  [base-set sets]
   (let [result  (atom []),
         search  (fn search [rest-base-set current-cover cover-count sets]
                   (cond
