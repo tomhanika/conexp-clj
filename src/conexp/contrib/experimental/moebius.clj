@@ -38,4 +38,31 @@
 
 ;;;
 
+(defn egen-unit-element
+  [ctx]
+  (let [ctx     (make-context (objects ctx)
+                              (difference (attributes ctx)
+                                          (set-of m | m (attributes ctx)
+                                                      :when (< 1 (count (context-attribute-closure ctx #{m}))))
+                                          (context-attribute-closure ctx #{}))
+                              (incidence ctx)),
+        intents (intents ctx)]
+    (loop [µ       {(first intents) 1},
+           intents (rest intents)]
+      (if-let [A (first intents)]
+        (let [µ (assoc µ A 0)]
+          (recur (reduce (fn [µ X]
+                           (assoc µ A (- (µ A) (µ X))))
+                         µ
+                         (all-closed-sets-in-family #(proper-subset? % A)
+                                                    (attributes ctx)
+                                                    #(context-attribute-closure ctx %)))
+                 (rest intents)))
+        (reduce (fn [sum [A µ-A]]
+                  (+ sum (* µ-A (expt 2 (count (aprime ctx A))))))
+                0
+                µ)))))
+
+;;;
+
 nil
