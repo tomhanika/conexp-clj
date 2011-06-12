@@ -171,8 +171,9 @@
 
 (deftest test-proper-premises
   (let [A-dot @#'conexp.fca.implications/A-dot]
-    (are [ctx] (and (is (forall [A (proper-premises ctx)]
-                          (proper-premise? ctx A)))
+    (are [ctx] (and (is (= (set (proper-premises ctx))
+                           (set-of A | A (subsets (attributes ctx))
+                                       :when (not-empty (A-dot ctx A)))))
                     (let [pp-impls (proper-premise-implications ctx)]
                       (is (sound-implication-set? ctx pp-impls))
                       (is (complete-implication-set? ctx pp-impls))
