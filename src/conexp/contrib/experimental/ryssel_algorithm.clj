@@ -46,32 +46,29 @@
                         {}
                         (attributes ctx)),
         M      (set (keys gens))]       ;all attribute extents
-    (loop [implications #{},
-           extents      M]
-      (if (empty? extents)
-        (collapse-equal-premises implications)
-        (let [A            (first extents),
-              implications (into implications
-                                 (for [N M
-                                       :when (subset? A N),
-                                       m (gens A),
-                                       :when (not= (gens N) #{m})]
-                                   (make-implication #{m} (gens N)))),
-              candidates   (set-of U | U (disj M A),
-                                       :let [UcapA (intersection U A)]
-                                       :when (not (exists [V M]
-                                                    (and (proper-subset? V A)
-                                                         (subset? UcapA V))))),
-              candidates   (difference candidates
-                                       (set-of (intersection X Y) | X candidates, Y candidates
-                                                                    :when (and (not (subset? X Y))
-                                                                               (not (subset? Y X))))),
-              covers       (cover (objects ctx) candidates A),
-              B            (oprime A),
-              implications (into implications
-                                 (for [X covers]
-                                   (make-implication (set-of m | Y X, m (gens Y)) B)))]
-          (recur implications (rest extents)))))))
+    (collapse-equal-premises
+     (reduce into
+             #{}
+             (pmap (fn [A]
+                     (let [candidates (set-of U | U (disj M A),
+                                                  :let [U-cap-A (intersection U A)]
+                                                  :when (not (exists [V M]
+                                                               (and (proper-subset? V A)
+                                                                    (subset? U-cap-A V))))),
+                           candidates (difference candidates
+                                                  (set-of (intersection X Y) | X candidates, Y candidates
+                                                                              :when (and (not (subset? X Y))
+                                                                                         (not (subset? Y X))))),
+                           covers     (cover (objects ctx) candidates A),
+                           B          (oprime A)]
+                      (concat (for [N M
+                                    :when (subset? A N),
+                                    m (gens A),
+                                    :when (not= (gens N) #{m})]
+                                (make-implication #{m} (gens N)))
+                              (for [X covers]
+                                (make-implication (set-of m | Y X, m (gens Y)) B)))))
+                  M)))))
 
 ;;;
 
