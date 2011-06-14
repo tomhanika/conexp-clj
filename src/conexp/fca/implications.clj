@@ -264,7 +264,9 @@
                                   (update-in arrow-map [m] conj g))
                            arrow-map))]
     (distinct
-     (mapcat #(proper-premises-for-attribute ctx %) down-arrow-map))))
+     (reduce concat
+             (pmap #(proper-premises-for-attribute ctx %)
+                   down-arrow-map)))))
 
 (defn proper-premise-implications
   "Returns all implications based on the proper premises of the
