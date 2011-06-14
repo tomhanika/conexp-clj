@@ -13,19 +13,7 @@
 
 (ns-doc "An implementation of Ryssels Algorithm")
 
-;;; Collapsing implications with equal premise
-
-(defn- collapse-equal-premises [implications]
-  (let [impl-map (reduce! (fn [map implication]
-                            (assoc! map (premise implication)
-                                    (into (get map (premise implication) #{})
-                                          (conclusion implication))))
-                          {}
-                          implications)]
-    (set-of (make-implication (pair 0) (pair 1)) | pair impl-map)))
-
-
-;;; The actual algorithm
+;;;
 
 (defn- cover [base-set candidates A]
   (let [object-covers (minimum-set-covers
@@ -36,39 +24,38 @@
          object-covers)))
 
 (defn ryssel-base
-  "Returns the set of implications computed by Ryssels Algorithm."
+  "Returns the implications computed by Ryssels Algorithm, as a lazy sequence."
   [ctx]
-  (let [oprime (memoize #(oprime ctx %)),
-        gens   (reduce! (fn [map x]     ;generating elements of attribute extents
-                          (let [extent (aprime ctx #{x})]
-                            (assoc! map extent
-                                    (conj (get map extent #{}) x))))
-                        {}
-                        (attributes ctx)),
-        M      (set (keys gens))]       ;all attribute extents
-    (collapse-equal-premises
-     (reduce into
-             #{}
-             (pmap (fn [A]
-                     (let [candidates (set-of U | U (disj M A),
-                                                  :let [U-cap-A (intersection U A)]
-                                                  :when (not (exists [V M]
-                                                               (and (proper-subset? V A)
-                                                                    (subset? U-cap-A V))))),
-                           candidates (difference candidates
-                                                  (set-of (intersection X Y) | X candidates, Y candidates
-                                                                              :when (and (not (subset? X Y))
-                                                                                         (not (subset? Y X))))),
-                           covers     (cover (objects ctx) candidates A),
-                           B          (oprime A)]
-                      (concat (for [N M
-                                    :when (subset? A N),
-                                    m (gens A),
-                                    :when (not= (gens N) #{m})]
-                                (make-implication #{m} (gens N)))
-                              (for [X covers]
-                                (make-implication (set-of m | Y X, m (gens Y)) B)))))
-                  M)))))
+  (let [gens (reduce! (fn [map x]     ;generating elements of attribute extents
+                        (let [extent (aprime ctx #{x})]
+                          (assoc! map extent
+                            (conj (get map extent #{}) x))))
+                      {}
+                      (attributes ctx)),
+        M    (set (keys gens))]       ;all attribute extents
+    (->> (reduce into
+                 ()
+                 (pmap (fn [A]
+                         (let [candidates (set-of U | U (disj M A),
+                                                      :let [U-cap-A (intersection U A)]
+                                                      :when (not (exists [V M]
+                                                                   (and (proper-subset? V A)
+                                                                        (subset? U-cap-A V))))),
+                               candidates (difference candidates
+                                                      (set-of (intersection X Y) | X candidates, Y candidates
+                                                                                   :when (and (not (subset? X Y))
+                                                                                              (not (subset? Y X))))),
+                               covers     (cover (objects ctx) candidates A)]
+                           (concat (for [m (gens A)
+                                         :when (exists [N M]
+                                                 (and (subset? A N)
+                                                      (not= (gens N) #{m})))]
+                                     #{m})
+                                   (for [X covers]
+                                     (set-of m | Y X, m (gens Y))))))
+                       M))
+         distinct
+         (map #(make-implication % (context-attribute-closure ctx %))))))
 
 ;;;
 
