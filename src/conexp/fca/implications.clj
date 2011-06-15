@@ -279,23 +279,26 @@
   "For a given set of implications returns its stem-base."
   [implications]
   (loop [stem-base    #{},
-         implications (map #(make-implication (premise %)
-                                              (close-under-implications implications
-                                                                        (union (premise %)
-                                                                               (conclusion %))))
-                           implications)]
+         implications (pmap #(make-implication (premise %)
+                                               (close-under-implications implications
+                                                                         (union (premise %)
+                                                                                (conclusion %))))
+                            implications),
+         all          (vec implications)]
     (if (empty? implications)
       stem-base
       (let [A->B         (first implications),
             implications (rest implications),
-            A*           (close-under-implications (into stem-base implications)
-                                                   (premise A->B)),
-            new-impl     (make-implication A* (conclusion A->B))]
-        (recur (if (not-empty (conclusion new-impl))
-                 (conj stem-base
-                       (make-implication A* (conclusion A->B)))
-                 stem-base)
-               implications)))))
+            all          (subvec all 1)
+            A*           (close-under-implications all (premise A->B)),
+            A*->B        (make-implication A* (conclusion A->B))]
+        (if (not-empty (conclusion A*->B))
+          (recur (conj stem-base A*->B)
+                 implications
+                 (conj all A*->B))
+          (recur stem-base
+                 implications
+                 all))))))
 
 ;;;
 
