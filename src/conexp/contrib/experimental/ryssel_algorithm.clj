@@ -59,4 +59,27 @@
 
 ;;;
 
+(defn stem-base-from-base*
+  "For a given set of implications returns its stem-base."
+  [implications]
+  (loop [stem-base    #{},
+         implications implications,
+         all          (vec implications)]
+    (if (empty? implications)
+      stem-base
+      (let [A->B         (first implications),
+            implications (rest implications),
+            all          (subvec all 1)
+            A*           (close-under-implications all (premise A->B)),
+            A*->B        (make-implication A* (conclusion A->B))]
+        (if (not-empty (conclusion A*->B))
+          (recur (conj stem-base A*->B)
+                 implications
+                 (conj all A*->B))
+          (recur stem-base
+                 implications
+                 all))))))
+
+;;;
+
 nil
