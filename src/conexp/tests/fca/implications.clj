@@ -63,8 +63,6 @@
   (is (not (holds? (make-implication #{1} #{2})
                    (make-context [1 2] [1 2] >=)))))
 
-;; add-immediate-elements (private) not considered
-
 (deftest test-close-under-implications
   (are [start impls result] (= result (close-under-implications (map (partial apply make-implication) impls) start))
        #{} [[#{} #{1}]] #{1},

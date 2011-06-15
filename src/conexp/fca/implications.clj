@@ -67,30 +67,28 @@
     (respects? intent impl)))
 
 (defn- add-immediate-elements
-  "Adds all elements which follow from implications with premises in
-  initial-set. Uses subset-test to dertermine whether a given
-  implication can be used to extend a given set, i.e. an implication
+  "Adds all elements which follow from implications with premises in initial-set. Uses subset-test
+  to dertermine whether a given implication can be used to extend a given set, i.e. an implication
   impl can be used to extend a set s if and only if
 
-    (and (subset-test (premise impl) s)
-         (not (subset? (conclusion impl) s)))
+    (subset-test (premise impl) s)
 
-  is true."
+  is true. Note that if (conclusion impl) is already a subset of s, then s is obviously not
+  extended."
   [implications initial-set subset-test]
-  (loop [conclusions  [],
+  (loop [conclusions  (transient initial-set),
          impls        implications,
-         unused-impls []]
-    (if (empty? impls)
-      [(apply union initial-set conclusions) unused-impls]
-      (let [impl (first impls)]
-        (if (and (subset-test (premise impl) initial-set)
-                 (not (subset? (conclusion impl) initial-set)))
-          (recur (conj conclusions (conclusion impl))
-                 (rest impls)
-                 unused-impls)
-          (recur conclusions
-                 (rest impls)
-                 (conj unused-impls impl)))))))
+         unused-impls (transient [])]
+    (if-let [impl (first impls)]
+      (if (subset-test (premise impl) initial-set)
+        (recur (reduce conj! conclusions (conclusion impl))
+               (rest impls)
+               unused-impls)
+        (recur conclusions
+               (rest impls)
+               (conj! unused-impls impl)))
+      [(persistent! conclusions)
+       (persistent! unused-impls)])))
 
 (defn close-under-implications
   "Computes smallest superset of set being closed under given implications."
