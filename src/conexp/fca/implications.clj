@@ -213,10 +213,9 @@
 (defn- intersection-set?
   "Tests whether set has non-empty intersection with every set in sets."
   [set sets]
-  (boolean
-   (forall [other-set sets]
-     (exists [x set]
-       (contains? other-set x)))))
+  (forall [other-set sets]
+    (exists [x set]
+      (contains? other-set x))))
 
 (defn- minimal-intersection-sets
   "Returns for a sequence set-sqn of sets all subsets of base-set which have non-empty intersection
