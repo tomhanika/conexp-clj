@@ -285,8 +285,7 @@
   (loop [stem-base    #{},
          implications (pmap #(make-implication (premise %)
                                                (close-under-implications implications
-                                                                         (union (premise %)
-                                                                                (conclusion %))))
+                                                                         (into (premise %) (conclusion %))))
                             implications),
          all          (vec implications)]
     (if (empty? implications)
