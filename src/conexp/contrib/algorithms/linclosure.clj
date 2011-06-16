@@ -41,6 +41,48 @@
               (.add update x))))))
     (set newdep)))
 
+(defn close-under-implications*  ;; this is LinClosure
+  "Computes smallest superset of start being closed under given implications."
+  [implications start]
+  (let [[counts list newdep] (loop [implications implications,
+                                    counts       {},
+                                    list         {},
+                                    newdep       (set start)]
+                               (if-let [impl (first implications)]
+                                 (let [impl-count (count (premise impl))]
+                                   (recur (rest implications)
+                                          (if (zero? impl-count)
+                                            counts
+                                            (assoc counts impl impl-count))
+                                          (if (zero? impl-count)
+                                            list
+                                            (reduce (fn [list a]
+                                                      (assoc list a (conj (get list a) impl)))
+                                                    list
+                                                    (premise impl)))
+                                          (if (zero? impl-count)
+                                            (into newdep (conclusion impl))
+                                            newdep)))
+                                 [counts list newdep]))]
+    (loop [counts counts,
+           update (seq newdep),
+           newdep newdep]
+      (if (empty? update)
+        newdep
+        (let [a      (first update),
+              update (rest update),
+              counts (reduce (fn [counts impl]
+                               (assoc counts impl (dec (get counts impl))))
+                             counts
+                             (get list a)),
+              newdep (reduce (fn [newdep impl]
+                               (if (zero? (counts impl))
+                                 (into newdep (conclusion impl))
+                                 newdep))
+                             newdep
+                             (get list a))]
+          (recur counts update newdep))))))
+
 ;;;
 
 (comment
@@ -48,11 +90,13 @@
   (use '[clojure.contrib.def :only (defvar-)])
   (require '[conexp.main :as cm])
 
-  (defvar- impls (cm/set-of (cm/make-implication A B)
-                            [A (cm/subsets #{1 2 3 4 5 6 7 8 9 10}),
-                             B (cm/subsets #{1 2 3 4 5 6 7 8 9 10})]))
+  (let [subsets-10 (cm/subsets #{1 2 3 4 5 6 7 8 9 10})]
+    (defvar- impls (cm/set-of (cm/make-implication A B)
+                              [A subsets-10
+                               B subsets-10])))
 
   (time (close-under-implications impls #{}))
+  (time (close-under-implications* impls #{}))
   (time (cm/close-under-implications impls #{}))
 
   nil)
