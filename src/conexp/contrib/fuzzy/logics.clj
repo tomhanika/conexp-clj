@@ -15,8 +15,11 @@
 
 (defmulti t-norm
   "Returns the t-norm and it's residuum corresponding to the name given."
-  {:arglists '[(t-norm-name)]}
-  first)
+  {:arglists '([(t-norm-name)])}
+  (fn [x & args]
+    (if args
+      (illegal-argument "Wrong number of arguments given.")
+      x)))
 
 (defmethod t-norm :default
   [norm]
