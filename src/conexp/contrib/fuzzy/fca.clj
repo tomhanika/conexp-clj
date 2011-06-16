@@ -74,23 +74,24 @@
 ;;;
 
 (defn fuzzy-object-derivation
-  "Computes the fuzzy derivation of the fuzzy set C of objects in
-  the given context."
-  [context C]
-  (let [inz (incidence context),
-        C   (make-fuzzy-set C)]
-    (make-fuzzy-set (map-by-fn (fn [m]
-                                 (reduce (fn [a g]
-                                           (f-and a (f-impl (C g) (inz [g m]))))
-                                         1
-                                         (objects context)))
-                               (attributes context)))))
+  "Computes the fuzzy derivation of the fuzzy set C of objects in the given context, using hedge if
+  given."
+  ([context C]
+     (fuzzy-object-derivation context C identity))
+  ([context C hedge]
+     (let [inz (incidence context),
+           C   (make-fuzzy-set C)]
+       (make-fuzzy-set (map-by-fn (fn [m]
+                                    (reduce (fn [a g]
+                                              (f-and a (f-impl (hedge (C g)) (inz [g m]))))
+                                            1
+                                            (objects context)))
+                                  (attributes context))))))
 
 (defalias fuzzy-oprime fuzzy-object-derivation)
 
 (defn fuzzy-attribute-derivation
-  "Computes the fuzzy derivation of the fuzzy set D of attributes in
-  the given context."
+  "Computes the fuzzy derivation of the fuzzy set D of attributes in the given context."
   [context D]
   (let [inz (incidence context),
         D   (make-fuzzy-set D)]
@@ -139,8 +140,8 @@
      (subsethood (make-fuzzy-set B)
                  (fuzzy-oprime fuzzy-context
                                (fuzzy-aprime fuzzy-context
-                                             (make-fuzzy-set A)))
-                 hedge)))
+                                             (make-fuzzy-set A))
+                               hedge))))
 
 ;;;
 
