@@ -7,81 +7,76 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.linclosure
-  (:use [conexp.fca.implications :only (premise conclusion)])
-  (:import [java.util HashMap HashSet]))
+  (:use [conexp.base :only (difference)]
+        [conexp.fca.implications :only (premise conclusion make-implication)]))
 
 ;;;
 
-(defn close-under-implications
-  "Computes smallest superset of start being closed under given implications."
-  [implications start]
-  ;; this is LinClosure
-  (let [^HashMap counts (HashMap.),
-        ^HashMap list   (HashMap.),
-        ^HashSet update (HashSet. ^java.util.Collection start),
-        ^HashSet newdep (HashSet. ^java.util.Collection start)]
-    (doseq [impl implications,
-            :let [impl-count (count (premise impl))]]
-      (.put counts impl impl-count)
-      (if (zero? impl-count)
-        (do (.addAll update (conclusion impl))
-            (.addAll newdep (conclusion impl)))
-        (doseq [a (premise impl)]
-          (.put list a (conj (.get list a) impl)))))
-    (while (not (.isEmpty update))
-      (let [a (first update)]
-        (.remove update a)
-        (doseq [impl (.get list a)
-                :let [impl-count (.get counts impl)]]
-          (.put counts impl (dec impl-count))
-          (when (zero? (dec impl-count))
-            (doseq [x (conclusion impl)
-                    :when (not (.contains newdep x))]
-              (.add newdep x)
-              (.add update x))))))
-    (set newdep)))
-
-(defn close-under-implications*  ;; this is LinClosure
+(defn close-under-implications  ;; this is LinClosure
   "Computes smallest superset of start being closed under given implications."
   [implications start]
   (let [[counts list newdep] (loop [implications implications,
-                                    counts       {},
-                                    list         {},
+                                    counts       (transient {}),
+                                    list         (transient {}),
                                     newdep       (set start)]
                                (if-let [impl (first implications)]
                                  (let [impl-count (count (premise impl))]
-                                   (recur (rest implications)
-                                          (if (zero? impl-count)
+                                   (if (zero? impl-count)
+                                     (recur (rest implications)
                                             counts
-                                            (assoc counts impl impl-count))
-                                          (if (zero? impl-count)
                                             list
+                                            (into newdep (conclusion impl)))
+                                     (recur (rest implications)
+                                            (assoc! counts impl impl-count)
                                             (reduce (fn [list a]
-                                                      (assoc list a (conj (get list a) impl)))
+                                                      (assoc! list a (conj (get list a) impl)))
                                                     list
-                                                    (premise impl)))
-                                          (if (zero? impl-count)
-                                            (into newdep (conclusion impl))
+                                                    (premise impl))
                                             newdep)))
                                  [counts list newdep]))]
-    (loop [counts counts,
-           update (seq newdep),
+    (loop [counts (persistent! counts)
+           update newdep,
            newdep newdep]
       (if (empty? update)
         newdep
-        (let [a      (first update),
-              update (rest update),
-              counts (reduce (fn [counts impl]
-                               (assoc counts impl (dec (get counts impl))))
-                             counts
-                             (get list a)),
-              newdep (reduce (fn [newdep impl]
-                               (if (zero? (counts impl))
-                                 (into newdep (conclusion impl))
-                                 newdep))
-                             newdep
-                             (get list a))]
+        (let [a (first update),
+              [counts newdep update]
+                (reduce (fn [[counts newdep update] impl]
+                          (let [cnt (dec (get counts impl))]
+                            (if (zero? cnt)
+                              [(assoc counts impl cnt)
+                               (into newdep (conclusion impl))
+                               (into update (difference (conclusion impl) newdep))]
+                              [(assoc counts impl cnt)
+                               newdep
+                               update])))
+                        [counts newdep (disj update a)]
+                        (get list a))]
           (recur counts update newdep))))))
+
+(defn stem-base-from-base
+  "For a given set of implications returns its stem-base."
+  [implications]
+  (loop [stem-base    #{},
+         implications (pmap #(make-implication (premise %)
+                                               (close-under-implications implications
+                                                                         (into (premise %) (conclusion %))))
+                            implications),
+         all          (vec implications)]
+    (if (empty? implications)
+      stem-base
+      (let [A->B         (first implications),
+            implications (rest implications),
+            all          (subvec all 1)
+            A*           (close-under-implications all (premise A->B)),
+            A*->B        (make-implication A* (conclusion A->B))]
+        (if (not-empty (conclusion A*->B))
+          (recur (conj stem-base A*->B)
+                 implications
+                 (conj all A*->B))
+          (recur stem-base
+                 implications
+                 all))))))
 
 ;;;
 
@@ -96,7 +91,6 @@
                                B subsets-10])))
 
   (time (close-under-implications impls #{}))
-  (time (close-under-implications* impls #{}))
   (time (cm/close-under-implications impls #{}))
 
   nil)
