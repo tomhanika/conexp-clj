@@ -163,20 +163,27 @@
 ;;;
 
 (defn scale-mv-context
-  "Scales given many-valued context mv-ctx with given scales. scales
-  must be a map from attributes m to contexts K, where all possible
-  values of m in mv-ctx are among the objects in K."
-  [mv-ctx scales]
-  (assert (map? scales))
-  (let [inz  (incidence mv-ctx),
-        objs (objects mv-ctx),
-        atts (set-of [m n] [m (attributes mv-ctx)
-                            n (attributes (scales m))]),
-        inz  (set-of [g [m n]] [g objs
-                                [m n] atts
-                                :let [w (inz [g m])]
-                                :when (contains? (incidence (scales m)) [w n])])]
-    (make-context-nc objs atts inz)))
+  "Scales given many-valued context mv-ctx with given scales. scales must be a map from attributes m
+  to contexts K, where all possible values of m in mv-ctx are among the objects in K. If a scale for
+  an attribute is given, the default scale is used, where default should be a function returning a
+  scale for the supplied attribute. If no default scale is given, an error is thrown if an attribute
+  is missing."
+  ([mv-ctx scales]
+     (scale-mv-context mv-ctx scales #(illegal-argument "No scale given for attribute " % ".")))
+  ([mv-ctx scales default]
+     (assert (map? scales))
+     (let [scales (into scales (for [m (difference (attributes mv-ctx)
+                                                   (set (keys scales)))]
+                                 [m (default m)])),
+           inz    (incidence mv-ctx),
+           objs   (objects mv-ctx),
+           atts   (set-of [m n] [m (attributes mv-ctx)
+                                 n (attributes (scales m))]),
+           inz    (set-of [g [m n]] [g objs
+                                     [m n] atts
+                                     :let [w (inz [g m])]
+                                     :when (contains? (incidence (scales m)) [w n])])]
+       (make-context-nc objs atts inz))))
 
 (defn nominal-scale
   "Returns the nominal scale on the set base."
@@ -261,38 +268,43 @@
 ;;;
 
 (defmacro scale-mv-context-with
-  "Scales the given many-valued context ctx with the given
-  scales. These are of the form
+  "Scales the given many-valued context ctx with the given scales. These are of the form
 
     [att_1 att_2 ...] scale,
 
-  where att_i is an attribute of the given context and scale
-  determines a call to a known scale. The variable values will be
-  bound to the corresponding values of each attribute and may be used
-  when constructing the scale. For example, you may use this macro
-  with
+  where att_i is an attribute of the given context and scale determines a call to a known scale. The
+  variable values will be bound to the corresponding values of each attribute and may be used when
+  constructing the scale. For example, you may use this macro with
 
-    (scale-context ctx
-                   [a b c] (nominal-scale values)
-                   [d]     (ordinal-scale values <=))
+    (scale-mv-context-with ctx
+      [a b c]  (nominal-scale values)
+      [d]      (ordinal-scale values <=)
+      (nominal-scale values))
 
-  Note that attributes of ctx always have to be given in a sequence,
-  even if there is only one."
+  where the last entry (without any associated attribute) is the default scale.  Note that
+  attributes of ctx always have to be given in a sequence, even if there is only one."
   [ctx & scales]
-  (let [scales     (partition 2 scales),
-        given-atts (mapcat first scales)]
+  (let [default      (if (odd? (count scales))
+                       (last scales)
+                       nil),
+        scales       (partition 2 (if default (butlast scales) scales)),
+        given-atts   (mapcat first scales)]
     (when (not= given-atts (distinct given-atts))
       (illegal-argument "Doubly given attribute."))
     `(do
-       (when-not (= (attributes ~ctx) '~(set given-atts))
-         (illegal-argument "Given scalas to scale-context do not "
-                           "yield the attribute set of the given context."))
+       ~(when-not default
+          `(when-not (= (attributes ~ctx) '~(set given-atts))
+             (illegal-argument "Given scales to scale-context do not "
+                               "yield the attribute set of the given context.")))
        (scale-mv-context ~ctx
                          ~(into {}
                                 (for [[atts scale] scales,
                                       att atts]
                                   `['~att (let [~'values (values-of-attribute ~ctx '~att)]
-                                            ~scale)]))))))
+                                            ~scale)]))
+                         (fn [x#]
+                           (let [~'values (values-of-attribute ~ctx x#)]
+                             ~default))))))
 
 ;;;
 

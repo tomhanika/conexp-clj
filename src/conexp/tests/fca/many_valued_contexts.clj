@@ -186,11 +186,16 @@
                                          [0 1 1 1 1 0 0 1 1 1 1,
                                           1 0 0 1 1 0 1 1 1 1 0,
                                           0 1 0 0 1 1 1 1 1 0 0])]
-    (= (scale-mv-context-with mv-ctx
-                              [x] (nominal-scale values),
-                              [2] (ordinal-scale values <=),
-                              [3] (interordinal-scale values <= >=))
-       sc-ctx)))
+    (is (= (scale-mv-context-with mv-ctx
+                                  [x] (nominal-scale values),
+                                  [2] (ordinal-scale values <=),
+                                  [3] (interordinal-scale values <= >=))
+           sc-ctx))
+    (is (= (scale-mv-context-with mv-ctx
+                                  [2] (ordinal-scale values <=),
+                                  [3] (interordinal-scale values <= >=)
+                                  (nominal-scale values)) ;default scale
+           sc-ctx))))
 
 ;;;
 
