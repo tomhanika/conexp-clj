@@ -194,8 +194,9 @@
 
 ;;; Proper Premises
 
-(defn- A-dot
-  "Returns A-dot as in the definition of proper premises."
+(defn proper-conclusion
+  "Returns all elements which are implied in context ctx by A but are neither contained in A or
+  follow from a strict subsets of A."
   [ctx A]
   (difference (context-attribute-closure ctx A)
               (reduce into
@@ -208,7 +209,7 @@
   and is a proper premise in ctx."
   [ctx A]
   (and (subset? A (attributes ctx))
-       (not (empty? (A-dot ctx A)))))
+       (not (empty? (proper-conclusion ctx A)))))
 
 (defn- intersection-set?
   "Tests whether set has non-empty intersection with every set in sets."

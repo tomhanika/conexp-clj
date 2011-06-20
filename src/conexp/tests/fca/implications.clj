@@ -162,6 +162,25 @@
   (is (empty? (pseudo-intents (adiag-context [0 1 2 3]))))
   (is (empty? (pseudo-intents (adiag-context [nil true adiag-context])))))
 
+(deftest test-proper-conclusion
+  (let [diag (diag-context [0 1 2 3 4])]
+    (is (forall [x (attributes diag)]
+          (empty? (proper-conclusion diag #{x})))))
+  (let [ctx (make-context-from-matrix 3 2 [1 1 1 1 0 0])]
+    (is (= #{0} (proper-conclusion ctx #{1}))))
+  (let [ctx (make-context-from-matrix 2 2 [1 1 1 1])]
+    (is (= #{} (proper-conclusion ctx #{1})))))
+
+(deftest test-proper-premise?
+  (with-testing-data [ctx [contexts/test-ctx-01,
+                           contexts/test-ctx-04,
+                           contexts/test-ctx-07,
+                           contexts/test-ctx-08]]
+    (is (forall [P (subsets (attributes ctx))]
+          (<=> (proper-premise? ctx P)
+               (not (empty? (proper-conclusion ctx P))))))))
+
+
 (deftest test-minimal-intersection-sets
   (let [minimal-intersection-sets @#'conexp.fca.implications/minimal-intersection-sets]
     (are [sets minimal-sets] (= (set minimal-sets) (set (minimal-intersection-sets (reduce union sets) sets)))
