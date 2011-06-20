@@ -417,6 +417,8 @@
   [ctx set-of-objects]
   (attribute-derivation ctx (object-derivation ctx set-of-objects)))
 
+(defalias odprime context-object-closure)
+
 (defn extents
   "Computes a sequence of all extents of ctx, in a lectic order."
   [ctx]
@@ -426,6 +428,8 @@
   "Computes double prime in context ctx for the given set-of-attributes."
   [ctx set-of-attributes]
   (object-derivation ctx (attribute-derivation ctx set-of-attributes)))
+
+(defalias adprime context-attribute-closure)
 
 (defn intents
   "Computes a sequence of all intents of ctx, in a lectic order."
