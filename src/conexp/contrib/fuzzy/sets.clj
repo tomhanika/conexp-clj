@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.fuzzy.sets
   (:use conexp.main
-        conexp.contrib.fuzzy.logics))
+        conexp.contrib.fuzzy.logics)
+  (:require [clojure.contrib.combinatorics :as comb]))
 
 (ns-doc "Basic definitions for fuzzy sets")
 
@@ -156,6 +157,18 @@
   "Difference of fuzzy set."
   (fn [first & rest]
     (max 0 (apply - first rest))))
+
+(defn fuzzy-subsets
+  "Returns all fuzzy subsets of the given fuzzy set base-set with given fuzzy values."
+  [values base-set]
+  (let [values     (sort values),
+        base-set   (seq (make-fuzzy-set base-set)),
+        max-values (vec (map second base-set)),
+        crisp-base (map first base-set)]
+    (map #(make-fuzzy-set (zipmap crisp-base %))
+         (apply comb/cartesian-product
+                (for [i (range (count base-set))]
+                  (take-while #(<= % (nth max-values i)) values))))))
 
 (defn fuzzy-subset?
   "Returns true iff fuzzy-set-1 is a subset of fuzzy-set-2."
