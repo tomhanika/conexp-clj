@@ -6,14 +6,16 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests.fuzzy
-  (:use conexp.main))
+(ns conexp.contrib.tests.fuzzy.logics
+  (:use conexp.main
+        conexp.contrib.fuzzy.logics)
+  (:use clojure.test))
 
 ;;;
 
-(tests-to-run conexp.contrib.tests.fuzzy.logics
-              conexp.contrib.tests.fuzzy.sets
-              conexp.contrib.tests.fuzzy.fca)
+;; t-norm
+;; f-star, f-impl, f-and, f-or, f-neg
+;; with-fuzzy-logic
 
 ;;;
 

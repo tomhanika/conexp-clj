@@ -24,4 +24,18 @@
 
 ;;;
 
+;; Fuzzy-Context
+;; make-fuzzy-context
+;; make-fuzzy-context-from-matrix
+
+;;;
+
+;; fuzzy-object-derivation
+;; fuzzy-attribute-derivation
+;; doubly-scale-fuzzy-context
+;; globalization
+;; validity
+
+;;;
+
 nil
