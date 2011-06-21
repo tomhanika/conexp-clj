@@ -51,11 +51,27 @@ conexp-clj TODOs
    - [ ] slf
    - [ ] csx
    - [X] binary csv
+** INPROGRESS Improve test coverage of conexp contrib [0/12]         :Daniel:
+   - [ ] algorithms
+   - [ ] concept approximation
+   - [ ] DL
+   - [ ] draw (?)
+   - [ ] exec
+   - [ ] experimental
+   - [ ] factor analysis
+   - [ ] fuzzy [0/3]
+     - [ ] logics
+     - [ ] sets
+     - [ ] fca
+   - [ ] GUI (?)
+   - [ ] Java
+   - [ ] retracts
+   - [ ] util [0/1]
+     - [ ] general sorted sets
 ** TODO Add tests for explicit IO formats                            :Daniel:
    given as keywords or strings.
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
-** TODO Improve test coverage of conexp contrib                      :Daniel:
 ** TODO Lattice IO for csv and dot                                   :Daniel:
    That should be simple for output, but non-trivial for input.
 ** TODO Add support for multiple contexts/... in IO                  :Daniel:
