@@ -152,15 +152,15 @@
     (holds? impl ctx)))
 
 (defn complete-implication-set?
-  "Checks wheter given set of implications is complete in context
-  ctx."
+  "Checks wheter given set of implications is complete in context ctx. This is a very costly
+  computation."
   [ctx impl-set]
   (and (forall [impl impl-set]
          (and (subset? (premise impl) (attributes ctx))
               (subset? (conclusion impl) (attributes ctx))))
        (forall [A (subsets (attributes ctx))]
-         (=> (forall [impl impl-set] (respects? A impl))
-             (= A (context-attribute-closure ctx A))))))
+         (subset? (adprime ctx A)
+                  (close-under-implications impl-set A)))))
 
 ;; Stem Base
 

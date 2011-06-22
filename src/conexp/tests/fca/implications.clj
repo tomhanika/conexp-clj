@@ -135,7 +135,9 @@
   (is (not (complete-implication-set? (diag-context [0 1 2])
                                       #{(make-implication #{0 1} #{2}),
                                         (make-implication #{1 2} #{0}),
-                                        (make-implication #{2 0} #{3})}))))
+                                        (make-implication #{2 0} #{3})})))
+  (is (complete-implication-set? (diag-context [0 1 2])
+                                 #{(make-implication #{} #{0 1 2})})))
 
 (deftest test-equivalent-implications?
   (is (equivalent-implications? #{(make-implication #{1} #{2}),
