@@ -26,13 +26,15 @@
 (defn ryssel-base
   "Returns the implications computed by Ryssels Algorithm, as a lazy sequence."
   [ctx]
-  (let [gens        (reduce! (fn [map x]     ;generating elements of attribute extents
+  (let [gens        (reduce! (fn [map x]      ;generating elements of attribute extents
                                (let [extent (aprime ctx #{x})]
                                  (assoc! map extent
                                          (conj (get map extent #{}) x))))
                              {}
                              (attributes ctx)),
-        M           (set (keys gens)),       ;all attribute extents
+        all-extents (set (keys gens)),        ;all attribute extents
+        irr-extents (set-of (aprime ctx #{m}) ;attribute extents of irreducible attributes
+                            | m (attributes (reduce-attributes ctx))),
         empty-prime (adprime ctx #{})]
     (->> (reduce into
                  (for [m (attributes ctx)
@@ -40,19 +42,15 @@
                                    (conj empty-prime m))]
                    #{m})
                  (pmap (fn [A]
-                         (let [candidates (set-of U | U (disj M A),
+                         (let [candidates (set-of U | U (disj irr-extents A),
                                                       :let [U-cap-A (intersection U A)]
-                                                      :when (not (exists [V M]
+                                                      :when (not (exists [V all-extents]
                                                                    (and (proper-subset? V A)
                                                                         (subset? U-cap-A V))))),
-                               candidates (difference candidates
-                                                      (set-of (intersection X Y) | X candidates, Y candidates
-                                                                                   :when (and (not (subset? X Y))
-                                                                                              (not (subset? Y X))))),
                                covers     (cover (objects ctx) candidates A)]
                            (for [X covers]
                              (set-of m | Y X, m (gens Y)))))
-                       M))
+                       all-extents))
          distinct
          (map #(make-implication % (adprime ctx %))))))
 
