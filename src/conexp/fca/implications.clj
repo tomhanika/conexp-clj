@@ -63,8 +63,7 @@
 (defn holds?
   "Returns true iff impl holds in given context ctx."
   [impl ctx]
-  (forall [intent (intents ctx)]
-    (respects? intent impl)))
+  (subset? (conclusion impl) (adprime ctx (premise impl))))
 
 (defn- add-immediate-elements
   "Adds all elements which follow from implications with premises in initial-set. Uses subset-test
