@@ -510,12 +510,11 @@
   (if (and (= TableModelEvent/UPDATE type)
            (<= 0 (min column first-row-in-view last-row-in-view))
            (= first-row-in-view last-row-in-view))
-    (let [first-row     (get-row-index otable first-row-in-view),
-          current-value (get-value-at-index otable first-row column),
-          good-value    (call-hook otable "get-cell-value"
-                          first-row column)]
-      (when (not= current-value good-value)
-        (call-hook otable "set-cell-value" first-row column good-value)))))
+    (let [first-row  (get-row-index otable first-row-in-view),
+          new-value  (get-value-at-index otable first-row column),
+          old-value  (call-hook otable "get-cell-value" first-row column)]
+      (when (not= old-value new-value)
+        (call-hook otable "set-cell-value" first-row column new-value)))))
 
 (defn- make-table-mouse-listener
   [widget]

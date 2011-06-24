@@ -214,7 +214,7 @@
 (defn- string-to-cross
   "Takes a string and decides, whether it should be a cross or not."
   [^String s]
-  (boolean (re-matches #"0*[,.]?0*" (.trim s))))
+  (boolean (re-matches #"\s*[xX]\s*" (.trim s))))
 
 (defn- ectx-get-cell-value
   [ectx row column]
@@ -251,7 +251,7 @@
                           fca-ctx       (get-context ectx),
                           inc           (incidence fca-ctx),
                           current-state (contains? inc [obj-name attr-name])]
-                      (if (not= current-state cross)
+                      (when (not= current-state cross)
                         (change-incidence-cross ectx obj-name attr-name cross))
                       (if cross "X" ""))))
 
