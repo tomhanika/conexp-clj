@@ -12,9 +12,29 @@
 
 ;;;
 
+(defn binomial [n k]
+  (prod i 1 k
+    (/ (- n (- k i))
+       i)))
+
 (defn all-contexts-by-type [p q]
   (let [bits (selections [0 1] (* p q))]
     (map #(make-context-from-matrix p q %) bits)))
+
+;;;
+
+(defn E-int [n m]
+  (sum q 0 m
+       (* (binomial m q)
+          (sum r 0 n
+               (* (binomial n r)
+                  (expt 2 (- (* r q)))
+                  (expt (- 1 (expt 2 (- r)))
+                        (- m q))
+                  (expt (- 1 (expt 2 (- q)))
+                        (- n r)))))))
+
+;;;
 
 (defn min-hypergraph-transversal? [ctx Q]
   (boolean
@@ -38,22 +58,22 @@
   (if (>= j k)
     (let [p (conj p (+ n 1))]
       (reduce *
-              1N
-              (map #(expt (- (expt 2N k) 1N k (- %))
+              1.0
+              (map #(expt (- (expt 2.0 k) 1.0 k (- %))
                           (- (nth p (+ % 1))
                              (nth p %)
-                             1N))
+                             1.0))
                    (range 0 (+ k 1)))))
     (reduce +
-            0N
+            0.0
             (map #(minhypt-sum$ n k (inc j) (conj p %))
                  (range (+ 1 (nth p j))
                         (+ n (- k) (+ j 1) 1))))))
 
 (defn minhypt-sum [n m k]
   (let [sums (minhypt-sum$ n k 0 [0])]
-    (* (reduce * 1N (range 1N (+ 1 k)))
-       (expt 2N (* n (- m k)))
+    (* (reduce * 1.0 (range 1.0 (+ 1 k)))
+       (expt 2.0 (* n (- m k)))
        sums)))
 
 (defn mean-minhypt-sum$ [n k j p]
@@ -75,12 +95,7 @@
   (* (reduce * 1.0 (range 1.0 (+ 1.0 k)))
      (mean-minhypt-sum$ n k 0.0 [0.0])))
 
-(defn binomial [n k]
-  (prod i 1 k
-    (/ (- n (- k i))
-       i)))
-
-(defn expected-number-of-proper-premises [n m]
+(defn E-pp [n m]
   (* (expt 0.5 n)
      (sum k 0 m
        (* (binomial (- m 1) k)
