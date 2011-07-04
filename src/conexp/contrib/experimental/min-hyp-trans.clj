@@ -105,4 +105,10 @@
 
 ;;;
 
+(defn print-data [number ratio]
+  (doseq [m (range 1 number)]
+    (println m (float (E-int (* ratio m) m)) (* m (E-pp (* ratio m) m)))))
+
+;;;
+
 nil
