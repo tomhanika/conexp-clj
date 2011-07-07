@@ -95,37 +95,58 @@
 
 ;;;
 
-(defvar ^{:dynamic true} *wikipedia-properties* nil
+(defvar ^{:dynamic true} *properties* nil
   "File containing the properties as defined by dbpedia")
 
-(defvar ^{:dynamic true} *wikipedia-instances* nil
+(defvar ^{:dynamic true} *instances* nil
   "File containing the instances as defined by dbpedia")
 
-(defn- read-wiki [roles]
+(defn- read-wiki [prefix roles]
   "Reads model from wikipedia entries. roles can be any quoted
   sequence of child, father, mother, influenced, influencedBy, relation,
   relative, spouse, partner, opponent, ..."
-  (let [relations (read-lines-from-file *wikipedia-properties*
-                                        (set-of (str "http://dbpedia.org/ontology/" role)
+  (let [relations (read-lines-from-file *properties*
+                                        (set-of (str prefix role)
                                                 [role roles])
                                         (constantly true)
                                         (constantly true)),
         instances (set (flatten (vals relations))),
         concepts  (role-map->concept-map
-                   (read-lines-from-file *wikipedia-instances*
+                   (read-lines-from-file *instances*
                                          (constantly true)
                                          #(contains? instances %)
                                          #(not (re-find #"owl#Thing" %))))]
     [(prepare-for-conexp concepts), (prepare-for-conexp relations)]))
+
+(defn- role-support
+  "From *instances* reads in all RDF triples and returns for every role occuring the number of times
+  it occured."
+  []
+  (with-in-reader *properties*
+    (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
+      (loop [map {},
+             line-count 0]
+        (if-let [line (read-line)]
+          (do
+            (when (zero? (mod line-count 10000))
+              (println line-count))
+            (let [[role _] (line-to-pair line)]
+              (recur (assoc map role (inc (get map role 0)))
+                     (inc line-count))))
+          (do
+            (println line-count)
+            map))))))
 
 ;;;
 
 (defn read-wiki-model
   "For the given set of roles (as symbols) returns the smallest model
   containing the interpretations of roles in the data-set of dbpedia."
-  [roles]
-  (let [[concepts, roles] (read-wiki roles)]
-    (hash-map->interpretation concepts roles :base-lang EL-gfp)))
+  ([roles]
+     (read-wiki-model "http://dbpedia.org/ontology/" roles))
+  ([prefix roles]
+     (let [[concepts, roles] (read-wiki prefix roles)]
+       (hash-map->interpretation concepts roles :base-lang EL-gfp))))
 
 (defn collect
   "Returns the smallest connected subrelation of relation containing start."
