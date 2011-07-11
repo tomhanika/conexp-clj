@@ -36,25 +36,29 @@
   [hash-map]
   (reduce + (map #(count (get hash-map %)) (keys hash-map))))
 
-(defn- read-lines-from-file [file interesting-role? interesting-A? interesting-B?]
-  (with-in-reader file
-    (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
-      (loop [map {},
-             line-count 0]
-        (if-let [line (read-line)]
-          (do
-            (when (zero? (mod line-count 10000))
-              (println line-count (map-count map)))
-            (let [[role [A B]] (line-to-pair line)]
-              (recur (if (and (interesting-role? role)
-                              (interesting-A? A)
-                              (interesting-B? B))
-                       (update-in map [role] conj [A B])
-                       map)
-                     (inc line-count))))
-          (do
-            (println line-count)
-            map))))))
+(defn- read-lines-from-file
+  ([file]
+     (read-lines-from-file file (constantly true) (constantly true) (constantly true)))
+  ([file interesting-role? interesting-A? interesting-B?]
+     (with-in-reader file
+       (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
+         (loop [map        {},
+                line-count 0]
+           (if-let [line (read-line)]
+             (do
+               (when (zero? (mod line-count 10000))
+                 (println line-count (map-count map)))
+               (let [[role [A B]] (line-to-pair line)]
+                 (recur (if (and role A B
+                                 (interesting-role? role)
+                                 (interesting-A? A)
+                                 (interesting-B? B))
+                          (update-in map [role] conj [A B])
+                          map)
+                        (inc line-count))))
+             (do
+               (println line-count)
+               map)))))))
 
 (defn- capitalize
   "Capitalizes word."
@@ -78,10 +82,7 @@
    coll))
 
 (defn- prepare-for-conexp [hash-map]
-  (reduce! (fn [map [k v]]
-             (assoc! map k (set v)))
-           {}
-           (symbolify hash-map)))
+  (symbolify hash-map))
 
 (defn- role-map->concept-map [role-map]
   (assert (= 1 (count role-map)))
@@ -257,6 +258,64 @@
   (explore-wiki-model mymodel)
 
   )
+
+;;; Drug Model
+
+(defn- role-to-concept
+  ([map role triples]
+     (role-to-concept map role triples (fn [x y] (str x "-" y))))
+  ([map role triples modifier]
+     (reduce (fn [map [A B]]
+               (assoc map B (conj (get map B) (modifier role A))))
+             map
+             (get triples role))))
+
+(defn read-drug-model [file]
+  (let [triples  (read-lines-from-file file),
+        roles    (reduce (fn [map [r pairs]]
+                           (if (re-find #"(drugbank/(target|enzyme|possibleDiseaseTarget|interactionDrug)|diseasome/diseaseSubtypeOf)" r)
+                             (assoc map r pairs)
+                             map))
+                         {}
+                         triples),
+        roles    (let [interactions (merge-with vector
+                                                (into {} (get roles "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug1"))
+                                                (into {} (get roles "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug2")))]
+                   (assoc (dissoc roles
+                                  "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug1"
+                                  "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug2")
+                     "interacts-with" (vals interactions))),
+        roles    (rename-keys roles
+                              {"http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/possibleDiseaseTarget" "Possible-disease-target",
+                               "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/enzyme"                "Has-enzyme",
+                               "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/target"                "Has-target",
+                               "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/diseaseSubtypeOf"    "Disease-subtype-of"}),
+
+        concepts (-> {}
+                     (role-to-concept "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                                      triples
+                                      (fn [x y] y))
+                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugCategory"
+                                      triples
+                                      (fn [x y] y))
+                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugType"
+                                      triples
+                                      (fn [x y] y))
+                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/dosageForm"
+                                      triples
+                                      (fn [x y] y))
+                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/associatedGene"
+                                      triples
+                                      (fn [x y] y))
+                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/class"
+                                      triples
+                                      (fn [x y] y))),
+
+        roles    (prepare-for-conexp roles),
+        concepts (prepare-for-conexp concepts)]
+    (hash-map->interpretation concepts
+                              roles
+                              :base-lang EL-gfp)))
 
 ;;;
 
