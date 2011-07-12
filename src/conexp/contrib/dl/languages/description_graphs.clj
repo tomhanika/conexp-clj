@@ -330,19 +330,59 @@
 ;;;
 
 (defn graph-product
-  "Returns the product of the two description graphs given."
-  [graph-1 graph-2]
-  (let [language      (graph-language graph-1),
-        vertices      (cross-product (vertices graph-1)
-                                     (vertices graph-2)),
-        neighbours    (fn [[A B]]
-                        (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
-                                           [s D] ((neighbours graph-2) B),
-                                           :when (= r s)])),
-        vertex-labels (fn [[A B]]
-                        (intersection ((vertex-labels graph-1) A)
-                                      ((vertex-labels graph-2) B)))]
- (make-description-graph language vertices neighbours vertex-labels)))
+  "Returns the product of the two description graphs given. Returns the directed connected component
+  of the graph product containing node, if given."
+  ([graph-1 graph-2]
+     (let [language      (graph-language graph-1),
+           vertices      (cross-product (vertices graph-1)
+                                        (vertices graph-2)),
+           _ (println "GP " (count vertices))
+           neighbours    (fn [[A B]]
+                           (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
+                                              [s D] ((neighbours graph-2) B),
+                                              :when (= r s)])),
+           vertex-labels (fn [[A B]]
+                           (intersection ((vertex-labels graph-1) A)
+                                         ((vertex-labels graph-2) B)))]
+       (make-description-graph language vertices neighbours vertex-labels)))
+  ([graph-1 graph-2 node]
+     (let [language      (graph-language graph-1),
+           vertices      (loop [verts #{node},
+                                newvs #{node}]
+                           (println "GPC* " (count verts))
+                           (if (empty? newvs)
+                             verts
+                             (let [nextvs (set-of [v w] | [x y] newvs
+                                                          [r v] ((neighbours graph-1) x)
+                                                          [s w] ((neighbours graph-2) y)
+                                                          :when (= r s))]
+                               (recur (into verts nextvs)
+                                      (difference nextvs verts))))),
+
+           _ (println "GPC " (count vertices))
+           neighbours    (fn [[A B]]
+                           (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
+                                              [s D] ((neighbours graph-2) B),
+                                              :when (= r s)])),
+           vertex-labels (fn [[A B]]
+                           (intersection ((vertex-labels graph-1) A)
+                                         ((vertex-labels graph-2) B)))]
+       (make-description-graph language vertices neighbours vertex-labels))))
+
+(defn description-graph-component
+  "Returns the directed connected component of desgraph containing node."
+  [desgraph node]
+  (let [new-vertices (loop [verts #{node},
+                            newvs #{node}]
+                       (if (empty? newvs)
+                         verts
+                         (let [nextvs (set-of v | w newvs [_ v] ((neighbours desgraph) w))]
+                           (recur (into verts nextvs)
+                                  (difference nextvs verts)))))]
+    (make-description-graph (graph-language desgraph)
+                            new-vertices
+                            (neighbours desgraph)
+                            (vertex-labels desgraph))))
 
 ;;; simulations
 

@@ -76,22 +76,24 @@
   [tbox concepts]
   (when (empty? concepts)
     (illegal-argument "EL-gfp-lcs called with no concepts."))
-  (loop [new-tbox tbox,
-         concepts concepts]
-    (if (= 1 (count concepts))
-      [new-tbox (first concepts)]
-      (let [A     (first concepts),
-            B     (second concepts),
-            G_T_A (tbox->description-graph (first (clarify-ttp [new-tbox, A]))),
-            G_T_B (tbox->description-graph (first (clarify-ttp [tbox, B]))),
-            G-x-G (graph-product G_T_A G_T_B),
-            _ (println "LCS CHECK 2")
-            T_2   (description-graph->tbox G-x-G),
-            _ (println "LCS CHECK 3")
-            [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]]))))]
-        (recur new-tbox
-               (conj (nthnext concepts 2)
-                     new-target))))))
+  (let [G_T-tbox (tbox->description-graph tbox)]
+    (loop [new-tbox tbox,
+           concepts concepts]
+      (if (= 1 (count concepts))
+        (let [new-tbox (description-graph->tbox (tbox->description-graph new-tbox))]
+          (println (find-definition new-tbox (first concepts)))
+          (clarify-ttp [new-tbox (first concepts)]))
+        (let [A     (first concepts),
+              B     (second concepts),
+              G_T_A (description-graph-component (tbox->description-graph new-tbox) A),
+              G_T_B (description-graph-component G_T-tbox B)
+              G-x-G (graph-product G_T_A G_T-tbox [A,B]),
+              _ (println "CHECK 1" (count concepts))_(flush)
+              T_2   (description-graph->tbox G-x-G),
+              _ (println "CHECK 2")_(flush)
+              [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp [T_2, [A,B]])))]
+          (recur new-tbox
+                 (conj (nthnext concepts 2) new-target)))))))
 
 (defn EL-gfp-msc
   "Returns the model based most specific concept of objects in model."
@@ -113,9 +115,10 @@
                           tidy-up-ttp
                           reduce-ttp
                           normalize-EL-gfp-term)]
+    (println "CHECK 3")(flush)
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
-      (make-dl-expression (interpretation-language model) [tbox target]))))
+      (make-dl-expression-nc (interpretation-language model) [tbox target]))))
 
 ;;;
 
