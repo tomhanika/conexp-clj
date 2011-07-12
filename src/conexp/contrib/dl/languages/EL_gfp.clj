@@ -78,7 +78,9 @@
     (illegal-argument "EL-gfp-lcs called with no concepts."))
   (let [G_T-tbox (tbox->description-graph tbox)]
     (loop [new-tbox tbox,
-           concepts concepts]
+           concepts (sort-by #(let [dl-expr (definition-expression (find-definition tbox %))]
+                                (count (filter compound? (arguments dl-expr))))
+                             concepts)]
       (if (= 1 (count concepts))
         (let [new-tbox (description-graph->tbox (tbox->description-graph new-tbox))]
           (println (find-definition new-tbox (first concepts)))
@@ -92,8 +94,10 @@
               T_2   (description-graph->tbox G-x-G),
               _ (println "CHECK 2")_(flush)
               [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp [T_2, [A,B]])))]
-          (recur new-tbox
-                 (conj (nthnext concepts 2) new-target)))))))
+          (if (empty? (arguments (definition-expression (find-definition new-tbox new-target))))
+            [new-tbox new-target]
+            (recur new-tbox
+                   (conj (nthnext concepts 2) new-target))))))))
 
 (defn EL-gfp-msc
   "Returns the model based most specific concept of objects in model."
