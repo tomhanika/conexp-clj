@@ -25,7 +25,7 @@
 
 ;;;
 
-(defn- line-to-pair
+(defn- rdf-line-to-pair
   "Converts RDF line to a pair [role [First Second]]."
   [line]
   (let [[A to B] (rest (re-find #"<(.*)> <(.*)> <(.*)>" line))]
@@ -36,9 +36,10 @@
   [hash-map]
   (reduce + (map #(count (get hash-map %)) (keys hash-map))))
 
-(defn- read-lines-from-file
+(defn- read-rdf-lines-from-file
+  "From the given file reads in RDF triples and returns a map mapping relation-names to relations."
   ([file]
-     (read-lines-from-file file (constantly true) (constantly true) (constantly true)))
+     (read-rdf-lines-from-file file (constantly true) (constantly true) (constantly true)))
   ([file interesting-role? interesting-A? interesting-B?]
      (with-in-reader file
        (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
@@ -48,7 +49,7 @@
              (do
                (when (zero? (mod line-count 10000))
                  (println line-count (map-count map)))
-               (let [[role [A B]] (line-to-pair line)]
+               (let [[role [A B]] (rdf-line-to-pair line)]
                  (recur (if (and role A B
                                  (interesting-role? role)
                                  (interesting-A? A)
@@ -68,8 +69,8 @@
     (apply str (Character/toUpperCase ^Character (first word)) (rest word))))
 
 (defn- symbolify
-  "Transforms every string in coll to a symbol, walking through
-  sequential collectiones recursively."
+  "Transforms every string in coll to a symbol, walking through sequential collectiones
+  recursively."
   [coll]
   ((fn transform [thing]
      (cond
@@ -81,8 +82,13 @@
       :else thing))
    coll))
 
-(defn- prepare-for-conexp [hash-map]
-  (symbolify hash-map))
+(defn- prepare-for-conexp
+  "Returns the given hash-map with modifications to be a valid for DL interpretations."
+  [hash-map]
+  (reduce! (fn [map [k v]]
+             (assoc! map k (set v)))
+           {}
+           (symbolify hash-map)))
 
 (defn- role-map->concept-map [role-map]
   (assert (= 1 (count role-map)))
@@ -94,76 +100,21 @@
         (recur (update-in concept-map [B] conj A)
                (rest is-as))))))
 
-;;;
-
-(defvar ^{:dynamic true} *properties* nil
-  "File containing the properties as defined by dbpedia")
-
-(defvar ^{:dynamic true} *instances* nil
-  "File containing the instances as defined by dbpedia")
-
-(defn- read-wiki [prefix roles]
-  "Reads model from wikipedia entries. roles can be any quoted
-  sequence of child, father, mother, influenced, influencedBy, relation,
-  relative, spouse, partner, opponent, ..."
-  (let [relations (read-lines-from-file *properties*
-                                        (set-of (str prefix role)
-                                                [role roles])
-                                        (constantly true)
-                                        (constantly true)),
-        instances (set (flatten (vals relations))),
-        concepts  (role-map->concept-map
-                   (read-lines-from-file *instances*
-                                         (constantly true)
-                                         #(contains? instances %)
-                                         #(not (re-find #"owl#Thing" %))))]
-    [(prepare-for-conexp concepts), (prepare-for-conexp relations)]))
-
-(defn- role-support
-  "From *instances* reads in all RDF triples and returns for every role occuring the number of times
-  it occured."
-  []
-  (with-in-reader *properties*
-    (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
-      (loop [map {},
-             line-count 0]
-        (if-let [line (read-line)]
-          (do
-            (when (zero? (mod line-count 10000))
-              (println line-count))
-            (let [[role _] (line-to-pair line)]
-              (recur (assoc map role (inc (get map role 0)))
-                     (inc line-count))))
-          (do
-            (println line-count)
-            map))))))
-
-;;;
-
-(defn read-wiki-model
-  "For the given set of roles (as symbols) returns the smallest model
-  containing the interpretations of roles in the data-set of dbpedia."
-  ([roles]
-     (read-wiki-model "http://dbpedia.org/ontology/" roles))
-  ([prefix roles]
-     (let [[concepts, roles] (read-wiki prefix roles)]
-       (hash-map->interpretation concepts roles :base-lang EL-gfp))))
-
-(defn collect
+(defn- collect
   "Returns the smallest connected subrelation of relation containing start."
   [start relation]
-  (let [related (set (for [[x y] relation,
+  (let [start   (set start),
+        related (set (for [[x y] relation,
                            :when (or (contains? start x)
                                      (contains? start y)),
                            z [x y]]
                        z))]
-    (if (= start related)
+    (if (superset? start related)
       start
       (recur related relation))))
 
-(defn smallest-submodel
-  "Returns the smallest subinterpretation of interpretation containing
-  the given individuals."
+(defn smallest-subinterpretation
+  "Returns the smallest subinterpretation of interpretation containing the given individuals."
   [interpretation individuals]
   (let [relation (reduce union
                          #{}
@@ -173,14 +124,26 @@
 
         name-int (map-by-fn #(intersection base-set (interpret interpretation %))
                             (concept-names (interpretation-language interpretation))),
-        role-int (let [base-square (cross-product base-set base-set)]
-                   (map-by-fn #(intersection base-square (interpret interpretation %))
-                              (role-names (interpretation-language interpretation))))]
-    (make-interpretation (interpretation-language interpretation)
-                         base-set
-                         (merge name-int role-int))))
+        role-int (map-by-fn #(set-of [x y] | [x y] (interpret interpretation %)
+                                             :when (and (contains? base-set x)
+                                                        (contains? base-set y)))
+                            (role-names (interpretation-language interpretation))),
+        interpr  (let [interpretation (merge name-int role-int)]
+                   (select-keys interpretation
+                                (remove #(empty? (interpretation %))
+                                        (keys interpretation)))),
 
-(defn explore-wiki-model
+        concs    (intersection (concept-names (interpretation-language interpretation))
+                               (set (keys interpr)))
+        roles    (intersection (role-names (interpretation-language interpretation))
+                               (set (keys interpr)))]
+    (make-interpretation (restrict-language (interpretation-language interpretation)
+                                            concs
+                                            roles)
+                         base-set
+                         interpr)))
+
+(defn explore-verbosely
   "Computes a basis of gcis holding in wiki-model. Returns a reference
   to the gcis collected so far, a reference to the gcis returned so
   far and the thread where the computation is done."
@@ -207,7 +170,8 @@
     (start-profiling :thread thread)
     [collected-gcis, resulting-gcis, thread]))
 
-;;;
+
+;;; Exploration Utilities
 
 (defn number-of-counterexamples
   "Returns for a interpretation and a gci the number of counterexamples,
@@ -250,20 +214,66 @@
      (concept-size A)
      (+ 1 (concept-support interpretation A))))
 
-;;; How to use
 
-(comment
+;;; DBpedia Model
 
-  (defvar- mymodel (read-wiki-model '[child]))
-  (explore-wiki-model mymodel)
+(defvar ^{:dynamic true} *properties* nil
+  "File containing the properties as defined by dbpedia")
 
-  )
+(defvar ^{:dynamic true} *instances* nil
+  "File containing the instances as defined by dbpedia")
+
+(defn- read-wiki [prefix roles]
+  "Reads model from wikipedia entries. roles can be any quoted
+  sequence of child, father, mother, influenced, influencedBy, relation,
+  relative, spouse, partner, opponent, ..."
+  (let [relations (read-rdf-lines-from-file *properties*
+                                            (set-of (str prefix role)
+                                                    [role roles])
+                                            (constantly true)
+                                            (constantly true)),
+        instances (set (flatten (vals relations))),
+        concepts  (role-map->concept-map
+                   (read-rdf-lines-from-file *instances*
+                                             (constantly true)
+                                             #(contains? instances %)
+                                             #(not (re-find #"owl#Thing" %))))]
+    [(prepare-for-conexp concepts), (prepare-for-conexp relations)]))
+
+(defn- role-support
+  "From *instances* reads in all RDF triples and returns for every role occuring the number of times
+  it occured."
+  []
+  (with-in-reader *properties*
+    (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
+      (loop [map {},
+             line-count 0]
+        (if-let [line (read-line)]
+          (do
+            (when (zero? (mod line-count 10000))
+              (println line-count))
+            (let [[role _] (rdf-line-to-pair line)]
+              (recur (assoc map role (inc (get map role 0)))
+                     (inc line-count))))
+          (do
+            (println line-count)
+            map))))))
+
+(defn read-wiki-model
+  "For the given set of roles (as symbols) returns the smallest model
+  containing the interpretations of roles in the data-set of dbpedia."
+  ([roles]
+     (read-wiki-model "http://dbpedia.org/ontology/" roles))
+  ([prefix roles]
+     (let [[concepts, roles] (read-wiki prefix roles)]
+       (hash-map->interpretation concepts roles :base-lang EL-gfp))))
+
 
 ;;; Drug Model
 
 (defn- role-to-concept
   ([map role triples]
-     (role-to-concept map role triples (fn [x y] (str x "-" y))))
+     (role-to-concept map role triples (fn [x y] y)))
   ([map role triples modifier]
      (reduce (fn [map [A B]]
                (assoc map B (conj (get map B) (modifier role A))))
@@ -271,9 +281,9 @@
              (get triples role))))
 
 (defn read-drug-model [file]
-  (let [triples  (read-lines-from-file file),
+  (let [triples  (read-rdf-lines-from-file file),
         roles    (reduce (fn [map [r pairs]]
-                           (if (re-find #"(drugbank/(target|enzyme|possibleDiseaseTarget|interactionDrug)|diseasome/diseaseSubtypeOf)" r)
+                           (if (re-find #"(possibleDiseaseTarget|interactionDrug)" r)
                              (assoc map r pairs)
                              map))
                          {}
@@ -286,30 +296,16 @@
                                   "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug2")
                      "interacts-with" (vals interactions))),
         roles    (rename-keys roles
-                              {"http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/possibleDiseaseTarget" "Possible-disease-target",
-                               "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/enzyme"                "Has-enzyme",
-                               "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/target"                "Has-target",
-                               "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/diseaseSubtypeOf"    "Disease-subtype-of"}),
+                              {"http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/possibleDiseaseTarget"
+                               "Possible-disease-target",
+                               "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/target"
+                               "Has-target"}),
 
         concepts (-> {}
-                     (role-to-concept "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-                                      triples
-                                      (fn [x y] y))
                      (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugCategory"
-                                      triples
-                                      (fn [x y] y))
-                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugType"
-                                      triples
-                                      (fn [x y] y))
-                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/dosageForm"
-                                      triples
-                                      (fn [x y] y))
-                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/associatedGene"
-                                      triples
-                                      (fn [x y] y))
+                                      triples)
                      (role-to-concept "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/class"
-                                      triples
-                                      (fn [x y] y))),
+                                      triples)),
 
         roles    (prepare-for-conexp roles),
         concepts (prepare-for-conexp concepts)]

@@ -59,6 +59,14 @@
        (set role-names)
        (set constructors)))
 
+(defn restrict-language
+  "Restricts the given DL to the given concept- and role-names."
+  [^DL dl concept-names role-names]
+  (DL. (.name dl)
+       (set concept-names)
+       (set role-names)
+       (constructors dl)))
+
 ;;;
 
 (deftype DL-expression [language sexp hash-cache]
