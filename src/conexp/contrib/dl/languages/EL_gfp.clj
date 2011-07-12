@@ -76,19 +76,21 @@
   [tbox concepts]
   (when (empty? concepts)
     (illegal-argument "EL-gfp-lcs called with no concepts."))
-  (loop [tbox     tbox,
+  (loop [new-tbox tbox,
          concepts concepts]
     (if (= 1 (count concepts))
-      [tbox (first concepts)]
+      [new-tbox (first concepts)]
       (let [A     (first concepts),
             B     (second concepts),
-            G_T_A (tbox->description-graph (first (clarify-ttp [tbox, A])))
-            G_T_B (tbox->description-graph (first (clarify-ttp [tbox, B])))
+            G_T_A (tbox->description-graph (first (clarify-ttp [new-tbox, A]))),
+            G_T_B (tbox->description-graph (first (clarify-ttp [tbox, B]))),
             G-x-G (graph-product G_T_A G_T_B),
+            _ (println "LCS CHECK 2")
             T_2   (description-graph->tbox G-x-G),
+            _ (println "LCS CHECK 3")
             [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]]))))]
-        (recur (tbox-union tbox new-tbox)
-               (conj (vec (nthnext concepts 2))
+        (recur new-tbox
+               (conj (nthnext concepts 2)
                      new-target))))))
 
 (defn EL-gfp-msc
