@@ -76,43 +76,37 @@
   [tbox concepts]
   (when (empty? concepts)
     (illegal-argument "EL-gfp-lcs called with no concepts."))
-  (if (= 1 (count concepts))
-    [tbox (first concepts)]
-    (let [G_T-tbox (tbox->description-graph tbox),
-          concepts (sort-by #(let [dl-expr (definition-expression (find-definition tbox %))]
-                               (count (filter compound? (arguments dl-expr))))
-                            concepts)]
-      (loop [G_T      (description-graph-component G_T-tbox (first concepts))
-             concepts concepts]
-        (if (= 1 (count concepts))
-          (let [new-tbox              (description-graph->tbox G_T),
-                new-target            (first concepts)
-                [new-tbox new-target] (clarify-ttp (uniquify-ttp [new-tbox new-target]))]
-            (println "LCS CHECK 2")
-            (println (find-definition new-tbox new-target))
-            [new-tbox new-target])
-          (let [A     (first concepts),
-                B     (second concepts),
-                G_T_A G_T,
-                G_T_B (description-graph-component G_T-tbox B)
-                _ (println "LCS CHECK 3" (count concepts))_(flush)
-                _ (if (>= 4 (count concepts)) (println concepts))
-                G-x-G (graph-product G_T_A G_T_B [A,B]),
-
-                [tbox target] (tidy-up-ttp (uniquify-ttp [(description-graph->tbox G-x-G) [A,B]]))]
-            (println "LCS CHECK 1")
-            (flush)
-            (if (and (singleton? (vertices G-x-G))
-                     (empty? ((vertex-labels G-x-G) [A,B])))
-              [(conexp.contrib.dl.framework.boxes/tbox (tbox-language tbox) A (and)) 'A]
-              (recur (tbox->description-graph tbox)
-                     (conj (nthnext concepts 2) target)))))))))
+  (loop [new-tbox tbox,
+         concepts (sort-by #(let [dl-expr (definition-expression (find-definition tbox %))]
+                              (count (filter compound? (arguments dl-expr))))
+                           concepts)]
+    (if (= 1 (count concepts))
+      [new-tbox (first concepts)]
+      (let [_ (println "LCS CHECK 1" (count concepts))
+            A          (first concepts),
+            B          (second concepts),
+            [tbox-A A] (clarify-ttp (tidy-up-ttp (clarify-ttp [new-tbox A]))),
+            [tbox-B B] (clarify-ttp (tidy-up-ttp (clarify-ttp [tbox B]))),
+            G_T_A      (tbox->description-graph tbox-A),
+            G_T_B      (tbox->description-graph tbox-B),
+            G-x-G      (graph-product G_T_A G_T_B [A,B]),
+            _ (println "LCS CHECK 2")
+            T_2        (description-graph->tbox G-x-G),
+            _ (println "LCS CHECK 3")]
+        (if (= #{}
+               (set ((vertex-labels G-x-G) [A,B]))
+               (set ((neighbours G-x-G) [A,B])))
+          [T_2 [A,B]]
+          (recur T_2
+                 (conj (nthnext concepts 2) [A,B])))))))
 
 (defn EL-gfp-msc
   "Returns the model based most specific concept of objects in model."
   [model objects]
   (if (not-empty objects)
-    (EL-gfp-lcs (interpretation->tbox model) objects)
+    (let [_ (println "MSC CHECK 1")
+          tbox (interpretation->tbox model)]
+      (EL-gfp-lcs tbox objects))
     (let [language (interpretation-language model),
           all      (make-dl-expression language
                                        (list* 'and
