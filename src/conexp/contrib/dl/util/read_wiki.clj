@@ -147,7 +147,7 @@
   "Computes a basis of gcis holding in wiki-model. Returns a reference
   to the gcis collected so far, a reference to the gcis returned so
   far and the thread where the computation is done."
-  [wiki-model]
+  [wiki-model & args]
   (let [collected-gcis (ref []),
         resulting-gcis (ref []),
 
@@ -156,7 +156,7 @@
                                               (dosync (alter collected-gcis
                                                              conj susu))
                                               false)]
-                    (explore-model model))),
+                    (apply explore-model model args))),
         thread (Thread. #(let [result (time (explore wiki-model))]
                            (time (doseq [gci result]
                                    (dosync (alter resulting-gcis conj gci))))))]
