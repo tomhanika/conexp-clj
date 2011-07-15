@@ -325,7 +325,11 @@
 (defn interpretation->tbox
   "Converts a given interpretation to its corresponding tbox."
   [interpretation]
-  (description-graph->tbox (interpretation->description-graph interpretation)))
+  (let [tbox (description-graph->tbox (interpretation->description-graph interpretation))
+        tbox (if (not-empty (tbox-definitions tbox))
+               (first (tidy-up-ttp [tbox (first (defined-concepts tbox))]))
+               tbox)]
+    tbox))
 
 ;;;
 
