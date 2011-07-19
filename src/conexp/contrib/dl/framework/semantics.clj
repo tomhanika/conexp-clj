@@ -135,6 +135,11 @@
   (let [r-I (interpret interpretation (first (arguments dl-exp)))]
     (set-of [y x] [[x y] r-I])))
 
+(define-constructor nominal
+  (let [individuals (map expression-term (arguments dl-exp))]
+    (intersection (interpretation-base-set interpretation)
+                  (set individuals))))
+
 
 ;;; interpretation syntax
 

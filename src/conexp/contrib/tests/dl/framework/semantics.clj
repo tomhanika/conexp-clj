@@ -32,6 +32,9 @@
        #{Marry} some-model Mother,
        #{John Peter} some-model Father,
        #{Jana Marry} some-model Female,
+       #{Marry} some-model (nominal Marry),
+       #{Marry John} some-model (nominal Marry John),
+       #{Marry} some-model (nominal Marry Fred),
        #{John Linda Michelle Paul} family-model [a-tbox A]
        #{John Marry} some-model dl-exp
        #{John} some-model ext-dl-exp
