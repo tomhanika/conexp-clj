@@ -34,7 +34,7 @@
   (let [^String output (with-out-str
                           (print (list 'TBox
                                        (vals (tbox-definition-map tbox)))))]
-    (.write out (.trim output))))
+    (.write ^java.io.Writer out (.trim output))))
 
 (defn make-tbox
   "Creates and returns a tbox for language from the given

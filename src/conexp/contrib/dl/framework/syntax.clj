@@ -49,7 +49,7 @@
   (.constructors language))
 
 (defmethod print-method DL [dl out]
-  (.write out (print-str (list 'DL (name (language-name dl))))))
+  (.write ^java.io.Writer out (print-str (list 'DL (name (language-name dl))))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
@@ -101,7 +101,7 @@
                           (if *print-with-dl-type*
                             (print (list 'DL-expr (expression-term dl-exp)))
                             (print (expression-term dl-exp))))]
-    (.write out (.trim output))))
+    (.write ^java.io.Writer out (.trim output))))
 
 ;;;
 
@@ -353,10 +353,11 @@
   (.dl-expression definition))
 
 (defmethod print-method DL-definition [definition out]
-  (.write out (with-out-str
-                (print (definition-target definition))
-                (print " := ")
-                (print (definition-expression definition)))))
+  (let [^String s (with-out-str
+                    (print (definition-target definition))
+                    (print " := ")
+                    (print (definition-expression definition)))]
+    (.write ^java.io.Writer out s)))
 
 (defn make-dl-definition
   "Creates and returns a DL definition."
@@ -399,7 +400,7 @@
                           (print (list (subsumee susu)
                                        '==>
                                        (subsumer susu))))]
-    (.write out (.trim output))))
+    (.write ^java.io.Writer out (.trim output))))
 
 (defmacro subsumption
   "Defines a subsumption."
