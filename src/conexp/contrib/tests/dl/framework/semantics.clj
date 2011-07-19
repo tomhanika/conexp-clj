@@ -35,6 +35,8 @@
        #{Marry} some-model (nominal Marry),
        #{Marry John} some-model (nominal Marry John),
        #{Marry} some-model (nominal Marry Fred),
+       #{} some-model (bottom),
+       #{John Marry Peter Jana} some-model (top),
        #{John Linda Michelle Paul} family-model [a-tbox A]
        #{John Marry} some-model dl-exp
        #{John} some-model ext-dl-exp

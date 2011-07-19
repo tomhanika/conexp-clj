@@ -140,6 +140,16 @@
     (intersection (interpretation-base-set interpretation)
                   (set individuals))))
 
+(define-constructor top
+  (assert (empty? (arguments dl-exp))
+          "Top concept constructor does not take any arguments.")
+  (interpretation-base-set interpretation))
+
+(define-constructor bottom
+  (assert (empty? (arguments dl-exp))
+          "Bottom concept constructor does not take any arguments.")
+  #{})
+
 
 ;;; interpretation syntax
 
