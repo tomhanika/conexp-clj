@@ -188,16 +188,19 @@
   all defined concepts only consist of defined concepts, primitive
   concepts or existential restrictions of defined concepts."
   [tbox-map]
-  (if (empty? tbox-map)
-    tbox-map
-    (let [new-names      (new-names),
-          normalized-map (reduce! (fn [map [A def-A]]
-                                    (assoc! map A (set-of (normalize-term t new-names)
-                                                          [t def-A])))
-                                  {}
-                                  tbox-map),
-          new-names-map  (introduce-auxiliary-definitions (get-names new-names))]
-      (into normalized-map new-names-map))))
+  (loop [tbox-map       tbox-map,
+         normalized-map {}]
+    (if (empty? tbox-map)
+      normalized-map
+      (let [new-names      (new-names),
+            normalized-map (into normalized-map
+                                 (reduce! (fn [map [A def-A]]
+                                            (assoc! map A (set-of (normalize-term t new-names)
+                                                                  [t def-A])))
+                                          {}
+                                          tbox-map)),
+            new-map        (get-names new-names)]
+        (recur new-map normalized-map)))))
 
 ;; normalizing algorithm -- squeezing the concept graph
 
