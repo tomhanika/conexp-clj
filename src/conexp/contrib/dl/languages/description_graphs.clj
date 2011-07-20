@@ -206,7 +206,7 @@
 
 (defn- concept-graph
   "Returns the concept graph of a tbox-map. The graph has the defined
-  conecpts of tbox as vertices and connects every two vertices C to D
+  concepts of tbox as vertices and connects every two vertices C to D
   if D appears in the top-level conjunction of C."
   [tbox-map]
   (let [defined-concepts (set (keys tbox-map))]
