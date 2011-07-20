@@ -28,8 +28,8 @@
 (defn- rdf-line-to-pair
   "Converts RDF line to a pair [role [First Second]]."
   [line]
-  (let [[A to B] (rest (re-find #"<(.*)> <(.*)> <(.*)>" line))]
-    [to [A B]]))
+  (let [[A to B-1 B-2] (rest (re-find #"<(.*)> <(.*)> (?:<(.*)>|\"(.*)\")" line))]
+    [to [A (or B-1 B-2)]]))
 
 (defn- map-count
   "Counts overall entries in a map."
@@ -275,38 +275,49 @@
   ([map role triples]
      (role-to-concept map role triples (fn [x y] y)))
   ([map role triples modifier]
+     (println role)
+     (println (count (get triples role)))
      (reduce (fn [map [A B]]
-               (assoc map B (conj (get map B) (modifier role A))))
+               (let [B (modifier role B)]
+                 (assoc map B (conj (get map B) A))))
              map
              (get triples role))))
 
 (defn read-drug-model [file]
   (let [triples  (read-rdf-lines-from-file file),
-        roles    (reduce (fn [map [r pairs]]
-                           (if (re-find #"(possibleDiseaseTarget|interactionDrug)" r)
-                             (assoc map r pairs)
-                             map))
-                         {}
-                         triples),
-        roles    (let [interactions (merge-with vector
-                                                (into {} (get roles "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug1"))
-                                                (into {} (get roles "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug2")))]
-                   (assoc (dissoc roles
-                                  "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug1"
-                                  "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/interactionDrug2")
-                     "interacts-with" (vals interactions))),
-        roles    (rename-keys roles
-                              {"http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/possibleDiseaseTarget"
-                               "Possible-disease-target",
-                               "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/target"
-                               "Has-target"}),
-
+        roles    {"possibleDiseaseTarget"
+                  (map (fn [pair]
+                         [(pair 1) (pair 0)])
+                       (get triples "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/possibleDiseaseTarget")),
+                  "treatedBy"
+                  (get triples "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/diseaseSubtypeOf"),
+                  "targets"
+                  (get triples "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/target")}
         concepts (-> {}
                      (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/drugCategory"
                                       triples)
                      (role-to-concept "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/class"
-                                      triples)),
-
+                                      triples)
+                     ;; (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/goClassificationFunction"
+                     ;;                  triples
+                     ;;                  (fn [r A]
+                     ;;                    (str "Function: " A ".")))
+                     (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/goClassificationProcess"
+                                      triples
+                                      (fn [r A]
+                                        (let [process (or (first-non-nil (map #(re-find (re-pattern %) A)
+                                                                              (list "transport"
+                                                                                    "regulation"
+                                                                                    "metabolism"
+                                                                                    "signal transduction"
+                                                                                    "biosynthesis"
+                                                                                    "catabolism"
+                                                                                    "homeostasis"
+                                                                                    "assembly"
+                                                                                    "symbiosis"
+                                                                                    "DNA.* replication")))
+                                                          A)]
+                                          (str "Process: " process "."))))),
         roles    (prepare-for-conexp roles),
         concepts (prepare-for-conexp concepts)]
     (hash-map->interpretation concepts
