@@ -8,7 +8,7 @@
 
 ;; A program to convert data from the dbpedia project to DL models
 
-(ns conexp.contrib.dl.util.read-wiki
+(ns conexp.contrib.dl.util.read-rdf-models
   (:use [conexp.io.util :only (with-in-reader)]
         [clojure.walk :only (walk)])
   (:use conexp.main
@@ -144,10 +144,10 @@
                          interpr)))
 
 (defn explore-verbosely
-  "Computes a basis of gcis holding in wiki-model. Returns a reference
+  "Computes a basis of gcis holding in model. Returns a reference
   to the gcis collected so far, a reference to the gcis returned so
   far and the thread where the computation is done."
-  [wiki-model & args]
+  [model & args]
   (let [collected-gcis (ref []),
         resulting-gcis (ref []),
 
@@ -157,7 +157,7 @@
                                                              conj susu))
                                               false)]
                     (apply explore-model model args))),
-        thread (Thread. #(let [result (time (explore wiki-model))]
+        thread (Thread. #(let [result (time (explore model))]
                            (time (doseq [gci result]
                                    (dosync (alter resulting-gcis conj gci))))))]
     (.start thread)
@@ -217,34 +217,27 @@
 
 ;;; DBpedia Model
 
-(defvar ^{:dynamic true} *properties* nil
-  "File containing the properties as defined by dbpedia")
-
-(defvar ^{:dynamic true} *instances* nil
-  "File containing the instances as defined by dbpedia")
-
-(defn- read-wiki [prefix roles]
-  "Reads model from wikipedia entries. roles can be any quoted
-  sequence of child, father, mother, influenced, influencedBy, relation,
-  relative, spouse, partner, opponent, ..."
-  (let [relations (read-rdf-lines-from-file *properties*
-                                            (set-of (str prefix role)
+(defn- read-dbpedia-triples [properties instances roles]
+  "Reads model from wikipedia entries. roles can be any quoted sequence of child, father, mother,
+  influenced, influencedBy, relation, relative, spouse, partner, opponent, ..."
+  (let [relations (read-rdf-lines-from-file properties
+                                            (set-of (str "http://dbpedia.org/ontology/" role)
                                                     [role roles])
                                             (constantly true)
                                             (constantly true)),
         instances (set (flatten (vals relations))),
         concepts  (role-map->concept-map
-                   (read-rdf-lines-from-file *instances*
+                   (read-rdf-lines-from-file instances
                                              (constantly true)
                                              #(contains? instances %)
                                              #(not (re-find #"owl#Thing" %))))]
     [(prepare-for-conexp concepts), (prepare-for-conexp relations)]))
 
 (defn- role-support
-  "From *instances* reads in all RDF triples and returns for every role occuring the number of times
+  "From properties reads in all RDF triples and returns for every role occuring the number of times
   it occured."
-  []
-  (with-in-reader *properties*
+  [properties]
+  (with-in-reader properties
     (binding [*in* (clojure.lang.LineNumberingPushbackReader. *in*)]
       (loop [map {},
              line-count 0]
@@ -259,14 +252,12 @@
             (println line-count)
             map))))))
 
-(defn read-wiki-model
+(defn read-dbpedia-model
   "For the given set of roles (as symbols) returns the smallest model
   containing the interpretations of roles in the data-set of dbpedia."
-  ([roles]
-     (read-wiki-model "http://dbpedia.org/ontology/" roles))
-  ([prefix roles]
-     (let [[concepts, roles] (read-wiki prefix roles)]
-       (hash-map->interpretation concepts roles :base-lang EL-gfp))))
+  [properties instances roles]
+  (let [[concepts, roles] (read-dbpedia-triples properties instances roles)]
+    (hash-map->interpretation concepts roles :base-lang EL-gfp)))
 
 
 ;;; Drug Model
@@ -298,10 +289,6 @@
                                       triples)
                      (role-to-concept "http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome/class"
                                       triples)
-                     ;; (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/goClassificationFunction"
-                     ;;                  triples
-                     ;;                  (fn [r A]
-                     ;;                    (str "Function: " A ".")))
                      (role-to-concept "http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/goClassificationProcess"
                                       triples
                                       (fn [r A]
