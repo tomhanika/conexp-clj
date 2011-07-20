@@ -217,9 +217,10 @@
 (defnk make-dl
   "Constructs a description logic from the given arguments."
   [name concepts roles constr :extends nil]
-  (when (exists [name (concat concepts roles)]
-          (not (Character/isUpperCase ^Character (first (str name)))))
-    (illegal-argument "Concept and role names must start with a capital letter. (sorry for that)"))
+  (when-let [invalid (first (filter #(not (Character/isUpperCase ^Character (first (str %))))
+                                    (concat concepts roles)))]
+    (illegal-argument "Invalid Concept or Role name \"" invalid "\". "
+                      "Concept and role names must start with a capital letter. (sorry for that)"))
 
   (when (not (empty? (intersection (set concepts) (set roles))))
     (illegal-argument "Concept and role names must be disjoint."))
