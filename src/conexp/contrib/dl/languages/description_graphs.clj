@@ -162,20 +162,25 @@
 (defn- normalize-term
   "Normalizes conjunctor term. New definitions go into the atom new-names."
   [term new-names]
-  (if (and (compound? term)
-           (= 'exists (operator term)))
-    (let [[r B] (arguments term),
-          norm  (normalize-for-goal B
-                                    #(and (atomic? %)
-                                          (not (tbox-target-pair? %))
-                                          (not (primitive? %)))
-                                    new-names)]
-      (make-dl-expression (expression-language term)
-                          (list 'exists r norm)))
-    (normalize-for-goal term
-                        #(and (atomic? %)
-                              (not (tbox-target-pair? %)))
-                        new-names)))
+  (cond
+   (and (compound? term)
+        (contains? #{'bottom 'top} (operator term)))
+   term,
+   (and (compound? term)
+        (= 'exists (operator term)))
+   (let [[r B] (arguments term),
+         norm  (normalize-for-goal B
+                                   #(and (atomic? %)
+                                         (not (tbox-target-pair? %))
+                                         (not (primitive? %)))
+                                   new-names)]
+     (make-dl-expression (expression-language term)
+                         (list 'exists r norm))),
+   :else
+   (normalize-for-goal term
+                       #(and (atomic? %)
+                             (not (tbox-target-pair? %)))
+                       new-names)))
 
 (defn- introduce-auxiliary-definitions
   "Introduces auxiliary definitions into the given tbox-map (as
