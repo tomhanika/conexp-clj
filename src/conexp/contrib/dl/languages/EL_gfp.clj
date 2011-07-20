@@ -91,14 +91,13 @@
             G_T_B      (tbox->description-graph tbox-B),
             G-x-G      (graph-product G_T_A G_T_B [A,B]),
             _ (println "LCS CHECK 2")
-            T_2        (description-graph->tbox G-x-G),
+            [T target] (uniquify-ttp [(description-graph->tbox G-x-G) [A,B]]),
             _ (println "LCS CHECK 3")]
         (if (= #{}
                (set ((vertex-labels G-x-G) [A,B]))
                (set ((neighbours G-x-G) [A,B])))
-          [T_2 [A,B]]
-          (recur T_2
-                 (conj (nthnext concepts 2) [A,B])))))))
+          [T target]
+          (recur T (conj (nthnext concepts 2) target)))))))
 
 (defn EL-gfp-msc
   "Returns the model based most specific concept of objects in model."
