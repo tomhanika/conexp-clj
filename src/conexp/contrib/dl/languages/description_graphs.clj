@@ -348,7 +348,6 @@
      (let [language      (graph-language graph-1),
            vertices      (cross-product (vertices graph-1)
                                         (vertices graph-2)),
-           _ (println "GP " (count vertices))
            neighbours    (fn [[A B]]
                            (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
                                               [s D] ((neighbours graph-2) B),
@@ -361,7 +360,6 @@
      (let [language      (graph-language graph-1),
            vertices      (loop [verts #{node},
                                 newvs #{node}]
-                           (println "GPC* " (count verts))
                            (if (empty? newvs)
                              verts
                              (let [nextvs (set-of [v w] | [x y] newvs
@@ -371,7 +369,6 @@
                                (recur (into verts nextvs)
                                       (difference nextvs verts))))),
 
-           _ (println "GPC " (count vertices))
            neighbours    (fn [[A B]]
                            (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
                                               [s D] ((neighbours graph-2) B),

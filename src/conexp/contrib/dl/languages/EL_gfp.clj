@@ -82,17 +82,14 @@
                            concepts)]
     (if (= 1 (count concepts))
       [new-tbox (first concepts)]
-      (let [_ (println "LCS CHECK 1" (count concepts))
-            A          (first concepts),
+      (let [A          (first concepts),
             B          (second concepts),
             [tbox-A A] (clarify-ttp (tidy-up-ttp (clarify-ttp [new-tbox A]))),
             [tbox-B B] (clarify-ttp (tidy-up-ttp (clarify-ttp [tbox B]))),
             G_T_A      (tbox->description-graph tbox-A),
             G_T_B      (tbox->description-graph tbox-B),
             G-x-G      (graph-product G_T_A G_T_B [A,B]),
-            _ (println "LCS CHECK 2")
-            [T target] (uniquify-ttp [(description-graph->tbox G-x-G) [A,B]]),
-            _ (println "LCS CHECK 3")]
+            [T target] (uniquify-ttp [(description-graph->tbox G-x-G) [A,B]])]
         (if (= #{}
                (set ((vertex-labels G-x-G) [A,B]))
                (set ((neighbours G-x-G) [A,B])))
@@ -103,8 +100,7 @@
   "Returns the model based most specific concept of objects in model."
   [model objects]
   (if (not-empty objects)
-    (let [_ (println "MSC CHECK 1")
-          tbox (interpretation->tbox model)]
+    (let [tbox (interpretation->tbox model)]
       (EL-gfp-lcs tbox objects))
     (let [language (interpretation-language model),
           all      (make-dl-expression language
