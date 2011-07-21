@@ -160,6 +160,7 @@
         thread (Thread. #(let [result (time (explore model))]
                            (time (doseq [gci result]
                                    (dosync (alter resulting-gcis conj gci))))))]
+    (println "Staring " (now))
     (.start thread)
     (add-watch collected-gcis 1
                (fn [k r o n]
