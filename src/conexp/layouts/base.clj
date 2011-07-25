@@ -144,13 +144,13 @@
                    (= 2 (count x))
                    (or (nil? (second x))
                        (and (vector? (second x))
-                            (float? (first (second x)))
-                            (float? (second (second x)))))))
-    (illegal-argument "Nodes must be labeld with pairs, of which the second entry must either "
-                      "be nil or a pair of floating points."))
-  (when-not (forall [[x [_ pos-x]] (keys positions)]
-              (if-let [[_ [_ pos-lab-x]] (labels x)]
-                (direction pos-x pos-lab-x)
+                            (number? (first (second x)))
+                            (number? (second (second x)))))))
+    (illegal-argument "Nodes must be labeled with pairs, of which the second entry must either "
+                      "be nil or a pair of numbers."))
+  (when-not (forall [[x [_ pos-x]] positions]
+              (if-let [[_ pos-lab-x] (second (labels x))]
+                (direction pos-lab-x pos-x)
                 true))
     (illegal-argument "Labels must be above the labeled node (for upper-labels) "
                       "or below the labeled node (for lower-labels).")))
@@ -208,12 +208,12 @@
   [^Layout layout]
   (.information layout))
 
-(defn- upper-labels
+(defn upper-labels
   "Returns the upper labels of a given layout."
   [^Layout layout]
   (.upper-labels layout))
 
-(defn- lower-labels
+(defn lower-labels
   "Returns the lower labels of a given layout."
   [^Layout layout]
   (.lower-labels layout))
@@ -239,14 +239,25 @@
   "Returns the upper label of x in layout, if it exists. Otherwise returns nil."
   [layout x]
   (when-let [labels (upper-labels layout)]
-    (labels x)))
+    (first (labels x))))
 
 (defn lower-label
   "Returns the lower label of x in layout, if it exists. Otherwise returns nil."
   [layout x]
   (when-let [labels (lower-labels layout)]
-    (labels x)))
+    (first (labels x))))
 
+(defn upper-label-position
+  "Returns the position of the upper label of x in layout, if existent. Otherwise returns nil."
+  [layout x]
+  (when-let [labels (upper-labels layout)]
+    (second (labels x))))
+
+(defn lower-label-position
+  "Returns the position of the lower label of x in layout, if existent. Otherwise returns nil."
+  [layout x]
+  (when-let [labels (lower-labels layout)]
+    (second (labels x))))
 
 ;;; Layout Auxiliary Functions
 

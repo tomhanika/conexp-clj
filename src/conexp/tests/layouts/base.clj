@@ -22,7 +22,6 @@
                             #{[1 2] [2 3]})))
   (is (layout? (make-layout {1 [0 0], 2 [1 1], 3 [2 2]}
                             [[1 2] [2 3]])))
-  ;; TODO: make-layout with labels
   (is (thrown-with-msg? IllegalArgumentException
         #"Positions must be a map."
         (make-layout 1 2)))
@@ -53,7 +52,35 @@
   (is (thrown-with-msg? IllegalArgumentException
         #"Given set of edges is cyclic."
         (make-layout {1 [0 0] 2 [0 0] 3 [0 0] 4 [0 0] 5 [0 0]}
-                     [[1 2] [2 3] [2 4] [4 5] [3 2]]))))
+                     [[1 2] [2 3] [2 4] [4 5] [3 2]])))
+  (is (layout? (make-layout {1 [0 0], 2 [0 1]}
+                            #{[1 2]}
+                            {1 ["1u" nil], 2 ["2u" [0 2]]}
+                            {1 ["1l" [0 -1]], 2 ["2l" nil]})))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Labels must be given as map."
+        (make-layout {1 [0 0], 2 [0 1]}
+                            #{[1 2]}
+                            [1 ["1u" nil], 2 ["2u" [0 2]]]
+                            {1 ["1l" [0 -1]], 2 ["2l" nil]})))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Nodes in layout and given labeled nodes are different."
+        (make-layout {1 [0 0], 2 [0 1]}
+                            #{[1 2]}
+                            {1 ["1u" nil], 2 ["2u" [0 2]], 3 ["3u" [0 3]]}
+                            {1 ["1l" [0 -1]]})))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Nodes must be labeled with pairs"
+        (make-layout {1 [0 0], 2 [0 1]}
+                            #{[1 2]}
+                            {1 ["1u" nil], 2 ["2u" 0 2]}
+                            {1 ["1l" [0 -1]], 2 ["2l" nil]})))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"Labels must be above the labeled node"
+        (make-layout {1 [0 0], 2 [0 1]}
+                            #{[1 2]}
+                            {1 ["1u" nil], 2 ["2u" [0 1]]}
+                            {1 ["1l" [0 1]], 2 ["2l" nil]}))))
 
 (deftest test-positions-and-connections
   (let [pos {1 [0,0], 2 [1,1], 3 [2,2]},
@@ -62,7 +89,17 @@
     (is (= pos (positions lay)))
     (is (= con (connections lay)))))
 
-;; TODO: test-labels
+(deftest test-labels
+  (let [layout (make-layout {1 [0 0], 2 [0 1]}
+                            #{[1 2]}
+                            {1 ["1u" nil], 2 ["2u" [0 2]]}
+                            {1 ["1l" [0 -1]], 2 ["2l" nil]})]
+    (is (= (upper-label layout 1) "1u"))
+    (is (= (lower-label layout 2) "2l"))
+    (is (= (upper-labels layout) {1 ["1u" nil], 2 ["2u" [0 2]]}))
+    (is (= (lower-labels layout) {1 ["1l" [0 -1]], 2 ["2l" nil]}))
+    (is (= (upper-label-position layout 1) nil))
+    (is (= (lower-label-position layout 1) [0 -1]))))
 
 (deftest test-lattice
   (with-testing-data [lay testing-layouts]
