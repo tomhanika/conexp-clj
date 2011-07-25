@@ -158,8 +158,7 @@
 (defn- verify-labels
   [positions upper-labels lower-labels]
   (check-labels positions upper-labels >=)
-  (check-labels positions lower-labels <=)
-  nil)
+  (check-labels positions lower-labels <=))
 
 ;;; checked construction
 
