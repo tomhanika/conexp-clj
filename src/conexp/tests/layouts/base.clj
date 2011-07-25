@@ -101,15 +101,6 @@
     (is (= (upper-label-position layout 1) nil))
     (is (= (lower-label-position layout 1) [0 -1]))))
 
-(deftest test-lattice
-  (with-testing-data [lay testing-layouts]
-    (let [lattice (lattice lay)]
-      (and (= (nodes lay) (base-set lattice))
-           (forall [x (nodes lay),
-                    y (nodes lay)]
-             (<=> (directly-neighboured? lattice x y)
-                  (contains? (connections lay) [x y])))))))
-
 ;;;
 
 (defn- rand-layout []
@@ -128,6 +119,15 @@
    (repeatedly 10 rand-layout)))
 
 ;;;
+
+(deftest test-lattice
+  (with-testing-data [lay testing-layouts]
+    (let [lattice (lattice lay)]
+      (and (= (nodes lay) (base-set lattice))
+           (forall [x (nodes lay),
+                    y (nodes lay)]
+             (<=> (directly-neighboured? lattice x y)
+                  (contains? (connections lay) [x y])))))))
 
 (deftest test-update-positions
   (with-testing-data [layout testing-layouts]
