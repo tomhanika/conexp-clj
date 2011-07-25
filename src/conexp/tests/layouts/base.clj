@@ -20,6 +20,9 @@
   (is (layout? (make-layout {} [])))
   (is (layout? (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
                             #{[1 2] [2 3]})))
+  (is (layout? (make-layout {1 [0 0], 2 [1 1], 3 [2 2]}
+                            [[1 2] [2 3]])))
+  ;; TODO: make-layout with labels
   (is (thrown-with-msg? IllegalArgumentException
         #"Positions must be a map."
         (make-layout 1 2)))
@@ -59,6 +62,17 @@
     (is (= pos (positions lay)))
     (is (= con (connections lay)))))
 
+;; TODO: test-labels
+
+(deftest test-lattice
+  (with-testing-data [lay testing-layouts]
+    (let [lattice (lattice lay)]
+      (and (= (nodes lay) (base-set lattice))
+           (forall [x (nodes lay),
+                    y (nodes lay)]
+             (<=> (directly-neighboured? lattice x y)
+                  (contains? (connections lay) [x y])))))))
+
 ;;;
 
 (defn- rand-layout []
@@ -82,12 +96,12 @@
   (with-testing-data [layout testing-layouts]
     (let [updated (update-positions layout
                                     (map-by-fn (constantly [0 0])
-                                               (vals (positions layout))))]
+                                               (keys (positions layout))))]
       (and (= (connections layout)
               (connections updated))
            (= (positions updated)
               (map-by-fn (constantly [0 0])
-                         (vals (positions layout))))))))
+                         (keys (positions layout))))))))
 
 (deftest test-nodes
   (with-testing-data [layout testing-layouts]
@@ -151,15 +165,6 @@
     (is (= (full-order-relation lay)
            #{[1 1] [2 2] [3 3]
              [1 2] [2 3] [1 3]}))))
-
-(deftest test-lattice
-  (with-testing-data [lay testing-layouts]
-    (let [lattice (lattice lay)]
-      (and (= (nodes lay) (base-set lattice))
-           (forall [x (nodes lay),
-                    y (nodes lay)]
-             (<=> (directly-neighboured? lattice x y)
-                  (contains? (connections lay) [x y])))))))
 
 (deftest test-context
   (with-testing-data [lay testing-layouts]

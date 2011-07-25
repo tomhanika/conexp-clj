@@ -16,37 +16,28 @@
 ;;;
 
 (deftype Layout [lattice                ;the underlying lattice
-                 positions              ;fn mapping nodes to $\RR^2$
-                 annotation-label       ;fn mapping nodes and #{'lower,'upper}
-                                        ;to their labels
-                 annotation-position    ;fn mapping nodes and #{'lower,'upper}
-                                        ;to the position of the corresponding
-                                        ;label
-                 information]           ;ref for technicals
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HERE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 positions              ;map mapping nodes to $\RR^2$
+                 connections            ;connections as set of pairs
+                 upper-labels           ;map mapping nodes to vectors of labels and coordinates/nil
+                 lower-labels           ;same
+                 information]           ;ref for technicalse
   Object
   (equals [this other]
-    (generic-equals [this other] Layout [positions connections]))
+    (generic-equals [this other] Layout [lattice positions connections upper-labels lower-labels]))
   (hashCode [this]
-    (hash-combine-hash Layout positions connections)))
+    (hash-combine-hash Layout lattice positions connections upper-labels lower-labels)))
 
 (defn layout?
   "Returns true iff thing is a layout."
   [thing]
   (instance? Layout thing))
 
-(defn make-layout-nc
-  "Creates layout datatype from given positions hash-map, mapping node
-  names to coordinate pairs, and connections, a set of pairs of node
-  names denoting edges in the layout. Does not do any error checking."
-  ([lattice positions connections]
-     (Layout. positions (set connections) (ref {:lattice lattice})))
-  ([positions connections]
-     (Layout. positions (set connections) (ref {}))))
+;;; helper functions
 
-(defn- verify-positions-connections
+(defn- lattice-from-layout-data
+  "Returns lattice represented by layout."
   [positions connections]
+  ;; error checking
   (when-not (map? positions)
     (illegal-argument "Positions must be a map."))
   (when-not (every? #(and (vector? %)
@@ -61,6 +52,64 @@
   (when-not (subset? (set-of x | pair connections, x pair)
                      (set (keys positions)))
     (illegal-argument "Connections must be given between positioned points."))
+  ;; actual construction
+  (let [uppers (loop [uppers      {},
+                      connections (seq connections)]
+                 (if (empty? connections)
+                   uppers
+                   (let [[a b] (first connections)]
+                     (recur (update-in uppers [a] conj b)
+                            (rest connections))))),
+        order  (memo-fn order [x y]
+                 (or (= x y)
+                     (exists [z (uppers x)]
+                       (order z y))))]
+    (make-lattice-nc (set (keys positions)) order)))
+
+;;; plain construction
+
+(defn make-layout-nc
+  "Creates layout datatype from given information. The arguments thereby have the following meaning:
+
+   - lattice is the underlying lattice of the to be constructed layout
+   - positions is a hash-map, mapping node names to coordinate pairs,
+   - connections is a set of pairs of node names denoting edges in the layout,
+   - upper-labels is a map mapping nodes to pairs of upper labels and coordinates or nil,
+   - lower-labels is like upper-labels for lower-labels.
+
+  This functions does not do any error checking."
+  ([lattice positions connections upper-labels lower-labels]
+     (Layout. lattice positions connections upper-labels lower-labels (ref {})))
+  ([lattice positions connections]
+     (make-layout-nc lattice positions connections nil nil))
+  ([positions connections upper-label lower-label]
+     (make-layout-nc (lattice-from-layout-data positions connections)
+                     positions
+                     connections
+                     upper-label lower-label))
+  ([positions connections]
+     (make-layout-nc (lattice-from-layout-data positions connections)
+                     positions
+                     connections)))
+
+(defn update-positions
+  "Updates position map in layout to be new-positions. Keys of both
+  hash-maps must be the same."
+  [^Layout layout, new-positions]
+  (assert (= (set (keys new-positions))
+             (set (keys (.positions layout))))
+          "Nodes must stay the same when updating positions of an already existing layout.")
+  (Layout. (.lattice layout)
+           new-positions
+           (.connections layout)
+           (.upper-labels layout)
+           (.lower-labels layout)
+           (.information layout)))
+
+;;; argument verification
+
+(defn- verify-positions-connections
+  [positions connections]
   ;; checking for cycles, copied from «upper-neighbours»
   (let [uppers  (loop [uppers {},
                        connections connections]
@@ -86,8 +135,7 @@
 
 (defn- verify-lattice-positions-connections
   [lattice positions connections]
-  (verify-positions-connections
-   positions connections)
+  (verify-positions-connections positions connections)
   (when-not (= (base-set lattice)
                (set (keys positions)))
     (illegal-argument "Positioned points must be the elements of the given lattice."))
@@ -95,21 +143,45 @@
                      y (base-set lattice)]
               (<=> (contains? connections [x y])
                    (directly-neighboured? lattice x y)))
-    (illegal-argument "The given connections must represent the edges of the given lattice."))
+    (illegal-argument "The given connections must represent the edges of the given lattice.")))
+
+(defn- verify-labels
+  [positions upper-label lower-label]
+  ;; TODO: write me
   nil)
+
+;;; checked construction
 
 (defn make-layout
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout."
+  ([lattice positions connections upper-label lower-label]
+     (let [connections (set connections)]
+       (verify-lattice-positions-connections lattice positions connections)
+       (verify-labels positions upper-label lower-label)
+       (make-layout-nc lattice positions connections upper-label lower-label)))
+  ([positions connections upper-label lower-label]
+     (make-layout (lattice-from-layout-data positions connections)
+                  positions
+                  connections
+                  upper-label
+                  lower-label))
   ([lattice positions connections]
-     (verify-lattice-positions-connections
-      lattice positions connections)
-     (make-layout-nc lattice positions connections))
+     (let [connections (set connections)]
+       (verify-lattice-positions-connections lattice positions connections)
+       (make-layout-nc lattice positions connections)))
   ([positions connections]
-     (verify-positions-connections
-      positions connections)
-     (make-layout-nc positions connections)))
+     (make-layout (lattice-from-layout-data positions connections)
+                  positions
+                  connections)))
+
+;;; basic functions
+
+(defn lattice
+  "Returns the lattice underlying the given layout."
+  [^Layout layout]
+  (.lattice layout))
 
 (defn positions
   "Return positions map of layout."
@@ -126,11 +198,17 @@
   [^Layout layout]
   (.information layout))
 
-(defn update-positions
-  "Updates position map in layout to be new-positions. Keys of both
-  hash-maps must be the same, otherwise everything will be a mess."
-  [layout new-positions]
-  (Layout. new-positions (connections layout) (information layout)))
+(defn- upper-labels
+  "Returns the upper labels of a given layout."
+  [^Layout layout]
+  (.upper-labels layout))
+
+(defn- lower-labels
+  "Returns the lower labels of a given layout."
+  [^Layout layout]
+  (.lower-labels layout))
+
+;;;
 
 (defmethod print-method Layout
   [layout, ^java.io.Writer out]
@@ -146,6 +224,18 @@
   "Returns all nodes of a given layout."
   [layout]
   (set (keys (positions layout))))
+
+(defn upper-label
+  "Returns the upper label of x in layout, if it exists. Otherwise returns nil."
+  [layout x]
+  (when-let [labels (upper-labels layout)]
+    (labels x)))
+
+(defn lower-label
+  "Returns the lower label of x in layout, if it exists. Otherwise returns nil."
+  [layout x]
+  (when-let [labels (lower-labels layout)]
+    (labels x)))
 
 
 ;;; Layout Auxiliary Functions
@@ -220,16 +310,6 @@
   [layout]
   (reflexive-transitive-closure (nodes layout) (connections layout)))
 
-(def-layout-fn lattice
-  "Returns lattice represented by layout."
-  [layout]
-  (let [uppers (upper-neighbours layout),
-        order  (memo-fn order [x y]
-                 (or (= x y)
-                     (exists [z (uppers x)]
-                       (order z y))))]
-    (make-lattice-nc (nodes layout) order)))
-
 (def-layout-fn context
   "Returns a context whose lattice is represented by this layout."
   [layout]
@@ -262,16 +342,26 @@
   pairs, where the first entry is the upper label and second one is
   the lower label."
   [layout]
-  (if-not (concept-lattice-layout? layout)
-    (map-by-fn (fn [x] [x ""]) (nodes layout))
-    (let [uppers (upper-neighbours layout),
-          lowers (lower-neighbours layout)]
-      (map-by-fn (fn [node]
-                   [(set-to-label
-                     (apply difference (second node) (map second (uppers node))))
-                    (set-to-label
-                     (apply difference (first node) (map first (lowers node))))])
-                 (nodes layout)))))
+  (cond
+   (and (upper-labels layout)
+        (lower-labels layout))
+   (map-by-fn (fn [x]
+                [(first ((upper-labels layout) x)),
+                 (first ((lower-labels layout) x))])
+              (nodes layout)),
+   ;;
+   (concept-lattice-layout? layout)
+   (let [uppers (upper-neighbours layout),
+         lowers (lower-neighbours layout)]
+     (map-by-fn (fn [node]
+                  [(set-to-label
+                    (apply difference (second node) (map second (uppers node))))
+                   (set-to-label
+                    (apply difference (first node) (map first (lowers node))))])
+                (nodes layout)))
+   ;;
+   :else
+   (map-by-fn (fn [x] [x ""]) (nodes layout))))
 
 ;;;
 
