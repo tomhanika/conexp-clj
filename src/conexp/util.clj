@@ -192,13 +192,10 @@
                   0)]
     (split-at index sequence)))
 
-(defn die-with-error
+(defmacro die-with-error
   "Stops program by raising the given error with strings as message."
   [^Class error, strings]
-  (assert (isa? error Throwable))
-  (throw (.. error
-             (getConstructor (into-array Class [String]))
-             (newInstance (into-array Object [(apply str strings)])))))
+  `(throw (new ~error ^String (apply str ~strings))))
 
 (defn illegal-argument
   "Throws IllegalArgumentException with given strings as message."
