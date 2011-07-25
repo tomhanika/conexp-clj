@@ -52,19 +52,32 @@
   (when-not (subset? (set-of x | pair connections, x pair)
                      (set (keys positions)))
     (illegal-argument "Connections must be given between positioned points."))
-  ;; actual construction
-  (let [uppers (loop [uppers      {},
-                      connections (seq connections)]
-                 (if (empty? connections)
-                   uppers
-                   (let [[a b] (first connections)]
-                     (recur (update-in uppers [a] conj b)
-                            (rest connections))))),
-        order  (memo-fn order [x y]
-                 (or (= x y)
-                     (exists [z (uppers x)]
-                       (order z y))))]
-    (make-lattice-nc (set (keys positions)) order)))
+  (let [uppers  (loop [uppers      {},
+                       connections connections]
+                  (if (empty? connections)
+                    (map-by-fn (fn [x] (set (uppers x)))
+                               (keys uppers))
+                    (let [[a b] (first connections)]
+                      (recur (update-in uppers [a] conj b)
+                             (rest connections))))),
+        cycles? (fn cycles? [node]
+                  (let [equals-some-seen (fn equals-some-seen [current seen]
+                                            (let [next (uppers current)]
+                                              (cond
+                                               (empty? next) false,
+                                               (not-empty (intersection seen next)) true,
+                                               :else
+                                               (let [seen (into seen next)]
+                                                 (some #(equals-some-seen % seen) next)))))]
+                    (equals-some-seen node #{})))]
+    (when (exists [x (keys positions)] (cycles? x))
+      (illegal-argument "Given set of edges is cyclic."))
+    ;; actual construction
+    (make-lattice-nc (set (keys positions))
+                     (memo-fn order [x y]
+                       (or (= x y)
+                           (exists [z (uppers x)]
+                             (order z y)))))))
 
 ;;; plain construction
 
@@ -77,7 +90,7 @@
    - upper-labels is a map mapping nodes to pairs of upper labels and coordinates or nil,
    - lower-labels is like upper-labels for lower-labels.
 
-  This functions does not do any error checking."
+  This functions does only a limited amount of error checking."
   ([lattice positions connections upper-labels lower-labels]
      (Layout. lattice positions connections upper-labels lower-labels (ref {})))
   ([lattice positions connections]
@@ -108,34 +121,8 @@
 
 ;;; argument verification
 
-(defn- verify-positions-connections
-  [positions connections]
-  ;; checking for cycles, copied from «upper-neighbours»
-  (let [uppers  (loop [uppers {},
-                       connections connections]
-                  (if (empty? connections)
-                    (map-by-fn (fn [x] (set (uppers x)))
-                               (keys uppers))
-                    (let [[a b] (first connections)]
-                      (recur (update-in uppers [a] conj b)
-                             (rest connections))))),
-        cycles? (fn cycles? [node]
-                  (let [equals-some-seen (fn equals-some-seen [current seen]
-                                            (let [next (uppers current)]
-                                              (cond
-                                               (empty? next) false,
-                                               (not-empty (intersection seen next)) true,
-                                               :else
-                                               (let [seen (into seen next)]
-                                                 (some #(equals-some-seen % seen) next)))))]
-                    (equals-some-seen node #{})))]
-    (when (exists [x (keys positions)] (cycles? x))
-      (illegal-argument "Given set of edges is cyclic.")))
-  nil)
-
 (defn- verify-lattice-positions-connections
   [lattice positions connections]
-  (verify-positions-connections positions connections)
   (when-not (= (base-set lattice)
                (set (keys positions)))
     (illegal-argument "Positioned points must be the elements of the given lattice."))
@@ -145,9 +132,33 @@
                    (directly-neighboured? lattice x y)))
     (illegal-argument "The given connections must represent the edges of the given lattice.")))
 
+(defn- check-labels
+  [positions labels direction]
+  (when-not (map? labels)
+    (illegal-argument "Labels must be given as map."))
+  (when-not (= (set (keys labels))
+               (set (keys positions)))
+    (illegal-argument "Nodes in layout and given labeled nodes are different."))
+  (when-not (forall [x (vals labels)]
+              (and (vector? x)
+                   (= 2 (count x))
+                   (or (nil? (second x))
+                       (and (vector? (second x))
+                            (float? (first (second x)))
+                            (float? (second (second x)))))))
+    (illegal-argument "Nodes must be labeld with pairs, of which the second entry must either "
+                      "be nil or a pair of floating points."))
+  (when-not (forall [[x [_ pos-x]] (keys positions)]
+              (if-let [[_ [_ pos-lab-x]] (labels x)]
+                (direction pos-x pos-lab-x)
+                true))
+    (illegal-argument "Labels must be above the labeled node (for upper-labels) "
+                      "or below the labeled node (for lower-labels).")))
+
 (defn- verify-labels
-  [positions upper-label lower-label]
-  ;; TODO: write me
+  [positions upper-labels lower-labels]
+  (check-labels positions upper-labels >=)
+  (check-labels positions lower-labels <=)
   nil)
 
 ;;; checked construction
