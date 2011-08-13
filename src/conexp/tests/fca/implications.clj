@@ -50,6 +50,10 @@
        #{1 2 3} #{1 2 3} #{1 2 3} #{},
        #{nil} #{true} #{nil} #{true}))
 
+(deftest test-implication?
+  (is (implication? (make-implication #{1} #{2})))
+  (is (not (implication? 1))))
+
 ;;;
 
 (deftest test-respects?
@@ -212,6 +216,66 @@
   (with-testing-data [ctx (random-contexts 10 20)]
     (= (stem-base ctx)
        (stem-base-from-base (proper-premise-implications ctx)))))
+
+;;;
+
+(defvar- ctx-1 (make-context #{0 1 2 3 4 5 6 7 8 9}
+                             #{0 1 2 3 4 5 6 7 8 9}
+                             #{[6 5] [1 0] [4 4] [9 9] [0 0] [1 1] [3 4] [6 7]
+                               [8 9] [1 2] [3 5] [6 8] [0 2] [3 6] [5 8] [0 3]
+                               [1 4] [0 4] [3 8] [0 5] [3 9] [2 9] [9 0] [7 0]
+                               [8 1] [7 1] [9 3] [7 2] [7 3] [9 5] [6 3] [3 1]
+                               [6 4] [8 6] [2 0]}))
+
+(defvar- ar-testing-data [ctx-1
+                          contexts/empty-context
+                          contexts/test-ctx-01
+                          contexts/test-ctx-04
+                          contexts/test-ctx-07
+                          contexts/test-ctx-08])
+
+(deftest test-support
+  (is (= 1 (support #{} contexts/empty-context)))
+  (with-testing-data [ctx ar-testing-data]
+    (let [oc (count (objects ctx))]
+      (forall [x (subsets (attributes ctx))]
+        (= (* oc (support x ctx))
+           (count (attribute-derivation ctx x)))))))
+
+(deftest test-confidence
+  (is (= 1 (confidence (make-implication #{} #{})
+                       contexts/empty-context))))
+
+(deftest test-iceberg-intent-seq
+  (is (= 1 (count (iceberg-intent-seq (one-context [1 2 3 4]) 0.0))))
+  (with-testing-data [ctx [contexts/test-ctx-01
+                           contexts/test-ctx-02
+                           contexts/test-ctx-04
+                           contexts/test-ctx-07
+                           contexts/test-ctx-08],
+                      spp [0 1/3 1/2 3/5 7/8 1]]
+    (= (set-of C [C (intents ctx) :when (>= (support C ctx) spp)])
+       (set (iceberg-intent-seq ctx spp)))))
+
+(deftest test-luxenburger-basis
+  (with-testing-data [ctx [ctx-1
+                           contexts/test-ctx-01
+                           contexts/test-ctx-02
+                           contexts/test-ctx-04
+                           contexts/test-ctx-07
+                           contexts/test-ctx-08]
+                      spp [0 1/2 9/10 1]
+                      cnf [0 1/2 9/10 1]]
+    (let [impls (luxenburger-basis ctx spp cnf)]
+      (forall [impl impls]
+        (and (<= spp (support impl ctx))
+             (<= cnf (confidence impl ctx))))))
+  (are [n ctx s c] (= n (count (luxenburger-basis ctx s c)))
+       58 ctx-1 0 0,
+        2 ctx-1 1/3 1/2,
+       26 ctx-1 1/5 1/2,
+        0 contexts/test-ctx-04 1/5 1/2,
+        1 contexts/test-ctx-01 1/5 1/2))
 
 ;;;
 
