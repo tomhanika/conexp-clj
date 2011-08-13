@@ -68,6 +68,7 @@ conexp-clj TODOs
    - [ ] retracts
    - [ ] util [0/1]
      - [ ] general sorted sets
+** INPROGRESS Add tests for new Association Rule functions           :Daniel:
 ** TODO Add tests for explicit IO formats                            :Daniel:
    given as keywords or strings.
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
