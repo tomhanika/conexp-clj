@@ -402,7 +402,7 @@
   for minimal support minsupp and minimal confidence minconf."
   ;; UNTESTED!
   [context minsupp minconf]
-  (let [closures (set (extended-iceberg-intent-seq context minsupp))]
+  (let [closures (frequent-pseudoclosed-itemsets context minsupp)]
     (set-of impl
             [B_1 closures,
              B_2 closures,
