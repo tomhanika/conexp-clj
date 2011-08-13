@@ -37,7 +37,7 @@
 (deftest test-titanic-iceberg-intent-seq
   (forall [minsupp [0.0 0.2 0.5 0.7 0.9 1.0]]
     (with-testing-data [ctx testing-data]
-      (= (set (iceberg-intent-seq ctx minsupp))
+      (= (set (frequent-closed-itemsets ctx minsupp))
          (set (titanic-iceberg-intent-seq ctx minsupp)))))
   (with-testing-data [ctx testing-data]
     (= (set (titanic-intents ctx))
