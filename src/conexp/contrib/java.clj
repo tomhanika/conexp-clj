@@ -63,7 +63,6 @@
                        (case tag
                          Lattice conexp.fca.lattices.Lattice
                          Context conexp.fca.contexts.Context
-                         Association-Rule conexp.fca.association_rules.Association-Rule
                          tag))))]
     (if-not arglists
       nil
@@ -111,7 +110,6 @@
 
             (import 'conexp.fca.contexts.Context)
             (import 'conexp.fca.lattices.Lattice)
-            (import 'conexp.fca.association_rules.Association-Rule)
 
             ~@(for [[new-name, ^clojure.lang.Var var] (conexp-functions orig-ns)]
                 (let [orig-name (symbol (str (.ns var)) (str (.sym var))),

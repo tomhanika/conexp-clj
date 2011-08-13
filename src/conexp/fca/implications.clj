@@ -11,7 +11,7 @@
         conexp.fca.contexts)
   (:import [java.util HashMap HashSet]))
 
-(ns-doc "Implications for Formal Concept Analysis")
+(ns-doc "Implications for Formal Concept Analysis.")
 
 ;;;
 
@@ -42,6 +42,11 @@
   [impl out]
   (.write ^java.io.Writer out
           ^String (str "(" (premise impl) "  ==>  " (conclusion impl) ")")))
+
+(defn implication?
+  "Returns true iff thing is an implication."
+  [thing]
+  (instance? Implication thing))
 
 ;;;
 
@@ -162,7 +167,7 @@
          (subset? (adprime ctx A)
                   (close-under-implications impl-set A)))))
 
-;; Stem Base
+;;; Stem Base
 
 (defn stem-base
   "Returns stem base of given context. Uses background-knowledge as
@@ -301,6 +306,113 @@
           (recur stem-base
                  implications
                  all))))))
+
+
+;;; Association Rules
+
+(defn support
+  "Computes the support of the set of attributes B in context ctx. If an implications is given,
+  returns the support of this implication in the given context."
+  [thing ctx]
+  (cond
+   (set? thing)
+   (if (empty? (objects ctx))
+     1
+     (/ (count (attribute-derivation ctx thing))
+        (count (objects ctx)))),
+   (implication? thing)
+   (recur (premise thing) ctx),
+   :else
+   (illegal-argument "Cannot determine support of " (print-str thing))))
+
+(defn confidence
+  "Computes the confidence of the given implication in the given context."
+  [implication context]
+  (let [premise-count (count (attribute-derivation context (premise implication)))]
+    (if (zero? premise-count)
+      1
+      (/ (count (attribute-derivation context
+                                      (union (premise implication) (conclusion implication))))
+         premise-count))))
+
+;;;
+
+(defn- frequent-itemsets
+  "Returns all frequent itemsets of context, given minsupp as minimal support."
+  ;; UNTESTED!
+  [context minsupp]
+  (let [mincount (* minsupp (count (objects context)))]
+    (all-closed-sets-in-family (fn [intent]
+                                 (>= (count (attribute-derivation context intent))
+                                     mincount))
+                               (attributes context)
+                               identity)))
+
+(defn- association-rules
+  "Returns all association rules of context with the parameters minsupp as minimal support and
+  minconf as minimal confidence. The result returned is a lazy sequence."
+  ;; UNTESTED!
+  [context minsupp minconf]
+  (let [fitemsets (frequent-itemsets context minsupp)]
+    (for [A fitemsets,
+          B fitemsets,
+          :let [impl (make-implication A B)]
+          :when (>= (confidence impl context) minconf)]
+      impl)))
+
+;;;
+
+(defn frequent-closed-itemsets
+  "Computes for context a lazy sequence of all frequent and closed itemsets, given minsupp as
+  minimal support."
+  [context minsupp]
+  (let [mincount (* minsupp (count (objects context)))]
+    (all-closed-sets-in-family (fn [intent]
+                                 (>= (count (attribute-derivation context intent))
+                                     mincount))
+                               (attributes context)
+                               (partial context-attribute-closure context))))
+
+(defn luxenburger-basis
+  "Computes the luxenburger-basis for context with minimal support minsupp and minimal confidence
+  minconf. The result returned will be a lazy sequence."
+  [context minsupp minconf]
+  (let [closed-intents (frequent-closed-itemsets context minsupp)]
+    (for [[B_1, B_2] (transitive-reduction closed-intents proper-subset?)
+          :let [impl (make-implication B_1 B_2)]
+          :when (>= (confidence impl context) minconf)]
+      impl)))
+
+;;;
+
+(defn- frequent-pseudoclosed-itemsets
+  "Computes for the given context all closed and pseudoclosed sets of attributes whose support is
+  not less than minsupp."
+  ;; UNTESTED!
+  [context minsupp]
+  (let [mincount (ceil (* minsupp (count (objects context))))]
+    (all-closed-sets-in-family (fn [intent]
+                                 (>= (count (attribute-derivation context intent))
+                                     mincount))
+                               (attributes context)
+                               (pseudo-clop-by-implications (stem-base context)))))
+
+(defn- dgl-basis
+  "Computes the combined Duquenne-Guiges basis for minimal support minsupp and the Luxenburger basis
+  for minimal support minsupp and minimal confidence minconf."
+  ;; UNTESTED!
+  [context minsupp minconf]
+  (let [closures (frequent-pseudoclosed-itemsets context minsupp)]
+    (set-of impl
+            [B_1 closures,
+             B_2 closures,
+             :when (and (proper-subset? B_1 B_2)
+                        (not (exists [C closures]
+                               (and (proper-subset? B_1 C)
+                                    (proper-subset? C B_2)))))
+             :let [impl (make-implication B_1
+                                          (context-attribute-closure context B_2))]
+             :when (>= (confidence impl) minconf)])))
 
 ;;;
 
