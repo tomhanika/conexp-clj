@@ -385,9 +385,9 @@
 
 ;;;
 
-(defn- extended-iceberg-intent-seq
-  "Computes for the given closure operator for given minimal support minsupp the corresponding
-  extended iceberg intent seq, which is the iceberg lattice of all intents and pseudo-intents."
+(defn- frequent-pseudoclosed-itemsets
+  "Computes for the given context all closed and pseudoclosed sets of attributes whose support is
+  not less than minsupp."
   ;; UNTESTED!
   [context minsupp]
   (let [mincount (ceil (* minsupp (count (objects context))))]
