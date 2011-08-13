@@ -76,26 +76,32 @@
   [tbox concepts]
   (when (empty? concepts)
     (illegal-argument "EL-gfp-lcs called with no concepts."))
-  (loop [tbox     tbox,
-         concepts concepts]
+  (loop [new-tbox tbox,
+         concepts (sort-by #(let [dl-expr (definition-expression (find-definition tbox %))]
+                              (count (filter compound? (arguments dl-expr))))
+                           concepts)]
     (if (= 1 (count concepts))
-      [tbox (first concepts)]
-      (let [A     (first concepts),
-            B     (second concepts),
-            G_T_A (tbox->description-graph (first (clarify-ttp [tbox, A])))
-            G_T_B (tbox->description-graph (first (clarify-ttp [tbox, B])))
-            G-x-G (graph-product G_T_A G_T_B),
-            T_2   (description-graph->tbox G-x-G),
-            [new-tbox new-target] (uniquify-ttp (clarify-ttp (tidy-up-ttp (clarify-ttp [T_2, [A,B]]))))]
-        (recur (tbox-union tbox new-tbox)
-               (conj (vec (nthnext concepts 2))
-                     new-target))))))
+      [new-tbox (first concepts)]
+      (let [A          (first concepts),
+            B          (second concepts),
+            [tbox-A A] (clarify-ttp (tidy-up-ttp (clarify-ttp [new-tbox A]))),
+            [tbox-B B] (clarify-ttp (tidy-up-ttp (clarify-ttp [tbox B]))),
+            G_T_A      (tbox->description-graph tbox-A),
+            G_T_B      (tbox->description-graph tbox-B),
+            G-x-G      (graph-product G_T_A G_T_B [A,B]),
+            [T target] (uniquify-ttp [(description-graph->tbox G-x-G) [A,B]])]
+        (if (= #{}
+               (set ((vertex-labels G-x-G) [A,B]))
+               (set ((neighbours G-x-G) [A,B])))
+          [T target]
+          (recur T (conj (nthnext concepts 2) target)))))))
 
 (defn EL-gfp-msc
   "Returns the model based most specific concept of objects in model."
   [model objects]
   (if (not-empty objects)
-    (EL-gfp-lcs (interpretation->tbox model) objects)
+    (let [tbox (interpretation->tbox model)]
+      (EL-gfp-lcs tbox objects))
     (let [language (interpretation-language model),
           all      (make-dl-expression language
                                        (list* 'and
@@ -113,7 +119,7 @@
                           normalize-EL-gfp-term)]
     (if (acyclic? tbox)
       (definition-expression (first (tbox-definitions tbox)))
-      (make-dl-expression (interpretation-language model) [tbox target]))))
+      (make-dl-expression-nc (interpretation-language model) [tbox target]))))
 
 ;;;
 

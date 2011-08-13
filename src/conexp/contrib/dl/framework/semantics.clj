@@ -135,6 +135,21 @@
   (let [r-I (interpret interpretation (first (arguments dl-exp)))]
     (set-of [y x] [[x y] r-I])))
 
+(define-constructor nominal
+  (let [individuals (map expression-term (arguments dl-exp))]
+    (intersection (interpretation-base-set interpretation)
+                  (set individuals))))
+
+(define-constructor top
+  (assert (empty? (arguments dl-exp))
+          "Top concept constructor does not take any arguments.")
+  (interpretation-base-set interpretation))
+
+(define-constructor bottom
+  (assert (empty? (arguments dl-exp))
+          "Bottom concept constructor does not take any arguments.")
+  #{})
+
 
 ;;; interpretation syntax
 

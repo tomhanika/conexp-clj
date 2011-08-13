@@ -85,7 +85,7 @@ conexp-clj TODOs
 ** TODO Change attribute names for mv-context scales                 :Daniel:
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** TODO Allow nominals in DL extension                               :Daniel:
+** DONE Allow nominals in DL extension                               :Daniel:
 ** TODO Make output of TBoxes readable                               :Daniel:
 ** TODO Automatically convert DL expressions to LaTeX                :Daniel:
 * For 0.0.6-alpha

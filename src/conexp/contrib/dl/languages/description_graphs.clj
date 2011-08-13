@@ -162,20 +162,25 @@
 (defn- normalize-term
   "Normalizes conjunctor term. New definitions go into the atom new-names."
   [term new-names]
-  (if (and (compound? term)
-           (= 'exists (operator term)))
-    (let [[r B] (arguments term),
-          norm  (normalize-for-goal B
-                                    #(and (atomic? %)
-                                          (not (tbox-target-pair? %))
-                                          (not (primitive? %)))
-                                    new-names)]
-      (make-dl-expression (expression-language term)
-                          (list 'exists r norm)))
-    (normalize-for-goal term
-                        #(and (atomic? %)
-                              (not (tbox-target-pair? %)))
-                        new-names)))
+  (cond
+   (and (compound? term)
+        (contains? #{'bottom 'top} (operator term)))
+   term,
+   (and (compound? term)
+        (= 'exists (operator term)))
+   (let [[r B] (arguments term),
+         norm  (normalize-for-goal B
+                                   #(and (atomic? %)
+                                         (not (tbox-target-pair? %))
+                                         (not (primitive? %)))
+                                   new-names)]
+     (make-dl-expression (expression-language term)
+                         (list 'exists r norm))),
+   :else
+   (normalize-for-goal term
+                       #(and (atomic? %)
+                             (not (tbox-target-pair? %)))
+                       new-names)))
 
 (defn- introduce-auxiliary-definitions
   "Introduces auxiliary definitions into the given tbox-map (as
@@ -183,22 +188,25 @@
   all defined concepts only consist of defined concepts, primitive
   concepts or existential restrictions of defined concepts."
   [tbox-map]
-  (if (empty? tbox-map)
-    tbox-map
-    (let [new-names      (new-names),
-          normalized-map (reduce! (fn [map [A def-A]]
-                                    (assoc! map A (set-of (normalize-term t new-names)
-                                                          [t def-A])))
-                                  {}
-                                  tbox-map),
-          new-names-map  (introduce-auxiliary-definitions (get-names new-names))]
-      (into normalized-map new-names-map))))
+  (loop [tbox-map       tbox-map,
+         normalized-map {}]
+    (if (empty? tbox-map)
+      normalized-map
+      (let [new-names      (new-names),
+            normalized-map (into normalized-map
+                                 (reduce! (fn [map [A def-A]]
+                                            (assoc! map A (set-of (normalize-term t new-names)
+                                                                  [t def-A])))
+                                          {}
+                                          tbox-map)),
+            new-map        (get-names new-names)]
+        (recur new-map normalized-map)))))
 
 ;; normalizing algorithm -- squeezing the concept graph
 
 (defn- concept-graph
   "Returns the concept graph of a tbox-map. The graph has the defined
-  conecpts of tbox as vertices and connects every two vertices C to D
+  concepts of tbox as vertices and connects every two vertices C to D
   if D appears in the top-level conjunction of C."
   [tbox-map]
   (let [defined-concepts (set (keys tbox-map))]
@@ -325,24 +333,65 @@
 (defn interpretation->tbox
   "Converts a given interpretation to its corresponding tbox."
   [interpretation]
-  (description-graph->tbox (interpretation->description-graph interpretation)))
+  (let [tbox (description-graph->tbox (interpretation->description-graph interpretation))
+        tbox (if (not-empty (tbox-definitions tbox))
+               (first (tidy-up-ttp [tbox (first (defined-concepts tbox))]))
+               tbox)]
+    tbox))
 
 ;;;
 
 (defn graph-product
-  "Returns the product of the two description graphs given."
-  [graph-1 graph-2]
-  (let [language      (graph-language graph-1),
-        vertices      (cross-product (vertices graph-1)
-                                     (vertices graph-2)),
-        neighbours    (fn [[A B]]
-                        (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
-                                           [s D] ((neighbours graph-2) B),
-                                           :when (= r s)])),
-        vertex-labels (fn [[A B]]
-                        (intersection ((vertex-labels graph-1) A)
-                                      ((vertex-labels graph-2) B)))]
- (make-description-graph language vertices neighbours vertex-labels)))
+  "Returns the product of the two description graphs given. Returns the directed connected component
+  of the graph product containing node, if given."
+  ([graph-1 graph-2]
+     (let [language      (graph-language graph-1),
+           vertices      (cross-product (vertices graph-1)
+                                        (vertices graph-2)),
+           neighbours    (fn [[A B]]
+                           (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
+                                              [s D] ((neighbours graph-2) B),
+                                              :when (= r s)])),
+           vertex-labels (fn [[A B]]
+                           (intersection ((vertex-labels graph-1) A)
+                                         ((vertex-labels graph-2) B)))]
+       (make-description-graph language vertices neighbours vertex-labels)))
+  ([graph-1 graph-2 node]
+     (let [language      (graph-language graph-1),
+           vertices      (loop [verts #{node},
+                                newvs #{node}]
+                           (if (empty? newvs)
+                             verts
+                             (let [nextvs (set-of [v w] | [x y] newvs
+                                                          [r v] ((neighbours graph-1) x)
+                                                          [s w] ((neighbours graph-2) y)
+                                                          :when (= r s))]
+                               (recur (into verts nextvs)
+                                      (difference nextvs verts))))),
+
+           neighbours    (fn [[A B]]
+                           (set-of [r [C D]] [[r C] ((neighbours graph-1) A),
+                                              [s D] ((neighbours graph-2) B),
+                                              :when (= r s)])),
+           vertex-labels (fn [[A B]]
+                           (intersection ((vertex-labels graph-1) A)
+                                         ((vertex-labels graph-2) B)))]
+       (make-description-graph language vertices neighbours vertex-labels))))
+
+(defn description-graph-component
+  "Returns the directed connected component of desgraph containing node."
+  [desgraph node]
+  (let [new-vertices (loop [verts #{node},
+                            newvs #{node}]
+                       (if (empty? newvs)
+                         verts
+                         (let [nextvs (set-of v | w newvs [_ v] ((neighbours desgraph) w))]
+                           (recur (into verts nextvs)
+                                  (difference nextvs verts)))))]
+    (make-description-graph (graph-language desgraph)
+                            new-vertices
+                            (neighbours desgraph)
+                            (vertex-labels desgraph))))
 
 ;;; simulations
 

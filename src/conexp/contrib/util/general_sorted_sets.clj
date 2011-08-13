@@ -51,13 +51,13 @@
 
 (defmethod print-method General-Sorted-Set
   [^General-Sorted-Set gss, out]
-  (.write ^java.io.Writer out
-          ^String (with-out-str
+  (let [^String s (with-out-str
                     (println "General Sorted Set")
                     (doseq [x (sort-gss gss)]
                       (println "Node:" (:node x)
                                ", Lowers:" (map :node @(:lowers x))
-                               ", Uppers:" (map :node @(:uppers x)))))))
+                               ", Uppers:" (map :node @(:uppers x)))))]
+    (.write ^java.io.Writer out s)))
 
 ;;
 

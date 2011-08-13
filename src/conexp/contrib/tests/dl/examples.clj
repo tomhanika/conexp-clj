@@ -29,6 +29,8 @@
 
 (def dl-exp (dl-expression SimpleDL (exists HasChild Male)))
 
+(def dl-exp-2 (dl-expression SimpleDL (nominal John Peter)))
+
 (with-dl SimpleDL
 
   (def some-model (interpretation #{John Marry Peter Jana}

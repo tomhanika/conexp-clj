@@ -49,7 +49,7 @@
   (.constructors language))
 
 (defmethod print-method DL [dl out]
-  (.write out (print-str (list 'DL (name (language-name dl))))))
+  (.write ^java.io.Writer out (print-str (list 'DL (name (language-name dl))))))
 
 (defn make-language
   "Creates a DL from concept-names, role-names and constructors."
@@ -58,6 +58,14 @@
        (set concept-names)
        (set role-names)
        (set constructors)))
+
+(defn restrict-language
+  "Restricts the given DL to the given concept- and role-names."
+  [^DL dl concept-names role-names]
+  (DL. (.name dl)
+       (set concept-names)
+       (set role-names)
+       (constructors dl)))
 
 ;;;
 
@@ -93,7 +101,7 @@
                           (if *print-with-dl-type*
                             (print (list 'DL-expr (expression-term dl-exp)))
                             (print (expression-term dl-exp))))]
-    (.write out (.trim output))))
+    (.write ^java.io.Writer out (.trim output))))
 
 ;;;
 
@@ -209,9 +217,10 @@
 (defnk make-dl
   "Constructs a description logic from the given arguments."
   [name concepts roles constr :extends nil]
-  (when (exists [name (concat concepts roles)]
-          (not (Character/isUpperCase ^Character (first (str name)))))
-    (illegal-argument "Concept and role names must start with a capital letter. (sorry for that)"))
+  (when-let [invalid (first (filter #(not (Character/isUpperCase ^Character (first (str %))))
+                                    (concat concepts roles)))]
+    (illegal-argument "Invalid Concept or Role name \"" invalid "\". "
+                      "Concept and role names must start with a capital letter. (sorry for that)"))
 
   (when (not (empty? (intersection (set concepts) (set roles))))
     (illegal-argument "Concept and role names must be disjoint."))
@@ -345,10 +354,11 @@
   (.dl-expression definition))
 
 (defmethod print-method DL-definition [definition out]
-  (.write out (with-out-str
-                (print (definition-target definition))
-                (print " := ")
-                (print (definition-expression definition)))))
+  (let [^String s (with-out-str
+                    (print (definition-target definition))
+                    (print " := ")
+                    (print (definition-expression definition)))]
+    (.write ^java.io.Writer out s)))
 
 (defn make-dl-definition
   "Creates and returns a DL definition."
@@ -391,7 +401,7 @@
                           (print (list (subsumee susu)
                                        '==>
                                        (subsumer susu))))]
-    (.write out (.trim output))))
+    (.write ^java.io.Writer out (.trim output))))
 
 (defmacro subsumption
   "Defines a subsumption."
