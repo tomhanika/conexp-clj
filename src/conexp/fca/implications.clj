@@ -335,9 +335,36 @@
                                       (union (premise implication) (conclusion implication))))
          premise-count))))
 
-(defn iceberg-intent-seq
-  "Computes in context for given minimal support minsupp the corresponding iceberg intent
-  seq (i.e. the iceberg-lattice)."
+;;;
+
+(defn- frequent-itemsets
+  "Returns all frequent itemsets of context, given minsupp as minimal support."
+  ;; UNTESTED!
+  [context minsupp]
+  (let [mincount (* minsupp (count (objects context)))]
+    (all-closed-sets-in-family (fn [intent]
+                                 (>= (count (attribute-derivation context intent))
+                                     mincount))
+                               (attributes context)
+                               identity)))
+
+(defn- association-rules
+  "Returns all association rules of context with the parameters minsupp as minimal support and
+  minconf as minimal confidence. The result returned is a lazy sequence."
+  ;; UNTESTED!
+  [context minsupp minconf]
+  (let [fitemsets (frequent-itemsets context minsupp)]
+    (for [A fitemsets,
+          B fitemsets,
+          :let [impl (make-implication A B)]
+          :when (>= (confidence impl context) minconf)]
+      impl)))
+
+;;;
+
+(defn frequent-closed-itemsets
+  "Computes for context a lazy sequence of all frequent and closed itemsets, given minsupp as
+  minimal support."
   [context minsupp]
   (let [mincount (* minsupp (count (objects context)))]
     (all-closed-sets-in-family (fn [intent]
@@ -350,7 +377,7 @@
   "Computes the luxenburger-basis for context with minimal support minsupp and minimal confidence
   minconf. The result returned will be a lazy sequence."
   [context minsupp minconf]
-  (let [closed-intents (iceberg-intent-seq context minsupp)]
+  (let [closed-intents (frequent-closed-itemsets context minsupp)]
     (for [[B_1, B_2] (transitive-reduction closed-intents proper-subset?)
           :let [impl (make-implication B_1 B_2)]
           :when (>= (confidence impl context) minconf)]

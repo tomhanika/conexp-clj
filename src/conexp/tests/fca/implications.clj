@@ -246,8 +246,8 @@
   (is (= 1 (confidence (make-implication #{} #{})
                        contexts/empty-context))))
 
-(deftest test-iceberg-intent-seq
-  (is (= 1 (count (iceberg-intent-seq (one-context [1 2 3 4]) 0.0))))
+(deftest test-frequent-closed-itemsets
+  (is (= 1 (count (frequent-closed-itemsets (one-context [1 2 3 4]) 0.0))))
   (with-testing-data [ctx [contexts/test-ctx-01
                            contexts/test-ctx-02
                            contexts/test-ctx-04
@@ -255,7 +255,7 @@
                            contexts/test-ctx-08],
                       spp [0 1/3 1/2 3/5 7/8 1]]
     (= (set-of C [C (intents ctx) :when (>= (support C ctx) spp)])
-       (set (iceberg-intent-seq ctx spp)))))
+       (set (frequent-closed-itemsets ctx spp)))))
 
 (deftest test-luxenburger-basis
   (with-testing-data [ctx [ctx-1
