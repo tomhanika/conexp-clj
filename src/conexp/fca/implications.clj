@@ -358,4 +358,35 @@
 
 ;;;
 
+(defn- extended-iceberg-intent-seq
+  "Computes for the given closure operator for given minimal support minsupp the corresponding
+  extended iceberg intent seq, which is the iceberg lattice of all intents and pseudo-intents."
+  ;; UNTESTED!
+  [context minsupp]
+  (let [mincount (ceil (* minsupp (count (objects context))))]
+    (all-closed-sets-in-family (fn [intent]
+                                 (>= (count (attribute-derivation context intent))
+                                     mincount))
+                               (attributes context)
+                               (pseudo-clop-by-implications (stem-base context)))))
+
+(defn- dgl-basis
+  "Computes the combined Duquenne-Guiges basis for minimal support minsupp and the Luxenburger basis
+  for minimal support minsupp and minimal confidence minconf."
+  ;; UNTESTED!
+  [context minsupp minconf]
+  (let [closures (set (extended-iceberg-intent-seq context minsupp))]
+    (set-of impl
+            [B_1 closures,
+             B_2 closures,
+             :when (and (proper-subset? B_1 B_2)
+                        (not (exists [C closures]
+                               (and (proper-subset? B_1 C)
+                                    (proper-subset? C B_2)))))
+             :let [impl (make-implication B_1
+                                          (context-attribute-closure context B_2))]
+             :when (>= (confidence impl) minconf)])))
+
+;;;
+
 nil
