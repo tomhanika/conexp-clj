@@ -15,7 +15,6 @@
               conexp.tests.fca.lattices
               conexp.tests.fca.implications
               conexp.tests.fca.many-valued-contexts
-              conexp.tests.fca.association-rules
               conexp.tests.fca.exploration
               conexp.tests.fca.more)
 
