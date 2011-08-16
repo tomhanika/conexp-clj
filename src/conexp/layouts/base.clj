@@ -336,7 +336,7 @@
   [layout]
   (standard-context (lattice layout)))
 
-(defn concept-lattice-layout?
+(def-layout-fn concept-lattice-layout?
   "Tests whether layout comes from a concept lattice.
 
   Note: This implementation is not correct, as it only tests whether
