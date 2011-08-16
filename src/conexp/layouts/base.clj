@@ -167,7 +167,13 @@
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout."
   ([lattice positions connections upper-label lower-label]
-     (let [connections (set connections)]
+     (let [connections (set connections),
+           upper-label (if (fn? upper-label)
+                         (map-by-fn upper-label (base-set lattice))
+                         upper-label),
+           lower-label (if (fn? lower-label)
+                         (map-by-fn lower-label (base-set lattice))
+                         lower-label)]
        (verify-lattice-positions-connections lattice positions connections)
        (verify-labels positions upper-label lower-label)
        (make-layout-nc lattice positions connections upper-label lower-label)))
