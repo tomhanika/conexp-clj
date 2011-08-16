@@ -358,6 +358,18 @@
   [set]
   (apply str (interpose ", " set)))
 
+(defn concept-lattice-annotation
+  "Returns the shortend annotation for a concept lattice."
+  [layout]
+  (assert (concept-lattice-layout? layout)
+          "Layout must be that of a concept lattice.")
+  (let [uppers (upper-neighbours layout),
+        lowers (lower-neighbours layout)]
+    (map-by-fn (fn [node]
+                 [(apply difference (second node) (map second (uppers node)))
+                  (apply difference (first node) (map first (lowers node)))])
+               (nodes layout))))
+
 (def-layout-fn annotation
   "Returns the annotation of this layout as hash-map of nodes to
   pairs, where the first entry is the upper label and second one is
@@ -372,14 +384,11 @@
               (nodes layout)),
    ;;
    (concept-lattice-layout? layout)
-   (let [uppers (upper-neighbours layout),
-         lowers (lower-neighbours layout)]
+   (let [ann (concept-lattice-annotation layout)]
      (map-by-fn (fn [node]
-                  [(set-to-label
-                    (apply difference (second node) (map second (uppers node))))
-                   (set-to-label
-                    (apply difference (first node) (map first (lowers node))))])
-                (nodes layout)))
+                  [(set-to-label (first (ann node))),
+                   (set-to-label (second (ann node)))])
+                (keys ann))),
    ;;
    :else
    (map-by-fn (fn [x] [x ""]) (nodes layout))))
