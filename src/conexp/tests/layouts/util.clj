@@ -39,10 +39,17 @@
 
 (deftest test-scale-layout
   (with-testing-data [layout test-layouts]
-    (is (= (enclosing-rectangle (vals (positions (scale-layout [0 0]
-                                                               [100 100]
-                                                               layout))))
-           [0 0 100 100]))))
+    (let [scaled-layout (scale-layout [0 0] [100 100] layout)]
+      (is (= (enclosing-rectangle (vals (positions scaled-layout)))
+             [0 0 100 100]))
+      (is (= (connections layout)
+             (connections scaled-layout)))
+      (is (= (lattice layout)
+             (lattice scaled-layout)))
+      (is (= (upper-labels layout)
+             (upper-labels scaled-layout)))
+      (is (= (lower-labels layout)
+             (lower-labels scaled-layout))))))
 
 ;;;
 
