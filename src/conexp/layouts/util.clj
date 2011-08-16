@@ -64,7 +64,9 @@
                     (zipmap (map first points)
                             (scale-points-to-rectangle [x1 y1] [x2 y2]
                                                        (map second points)))
-                    (connections layout))))
+                    (connections layout)
+                    (upper-labels layout)
+                    (lower-labels layout))))
 
 ;;;
 
