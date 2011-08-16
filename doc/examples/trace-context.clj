@@ -2,6 +2,7 @@
 ;;; This file is in the public domain.
 
 (use 'conexp.main)
+(use 'conexp.layouts.base)
 
 ;;;
 
@@ -28,6 +29,24 @@
     (make-context-nc (union H G)
                      (union N M)
                      (union I_HN I_GN I_HM I_GM))))
+
+(defn trace-layout
+  "Returns a layout of the concept lattice of the trace context of ctx-S in ctx-K, with a reduced
+  annotation."
+  [ctx-S ctx-K]
+  (let [trace-ctx (trace-context ctx-S ctx-K)
+        layout    (standard-layout (concept-lattice trace-ctx)),
+        ann       (concept-lattice-annotation layout),
+        label     #(apply str (interpose ", " %))]
+    (make-layout (lattice layout)
+                 (positions layout)
+                 (connections layout)
+                 (fn [x]
+                   [(label (set-of g | [g n] (first (ann x)) :when (= n 1))),
+                    nil])
+                 (fn [x]
+                   [(label (set-of m | [m n] (second (ann x)) :when (= n 1))),
+                    nil]))))
 
 (defn interval-context
   "Returns the formal context representing the interval induced by the pair [E F] in the concept
