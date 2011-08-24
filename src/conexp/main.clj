@@ -79,6 +79,11 @@
        (do (require 'conexp.tests)
            (clojure.test/run-tests 'conexp.tests)))))
 
+(defn quit
+  "Quits conexp-clj."
+  []
+  (System/exit 0))
+
 ;;;
 
 
