@@ -175,14 +175,16 @@
 
             obj-idxs-map (hash-from-pairs
                           (for [obj-map (:content objs-map)]
-                            [(-> obj-map :content (find-tag :Name) :content first trim)
+                            [(apply str (-> obj-map :content (find-tag :Name) :content))
                              (set-of (get-in att [:attrs :AttributeIdentifier])
                                      [att (-> obj-map :content (find-tag :Intent) :content)])]))
 
             idx-atts-map (hash-from-pairs
                           (for [att-map (:content atts-map)]
                             [(get-in att-map [:attrs :Identifier])
-                             (-> att-map :content (find-tag :Name) :content first trim)]))]
+                             (apply str (-> att-map :content (find-tag :Name) :content))]))]
+        (assert (distinct? (vals idx-atts-map))
+                "Names of attributes must be different.")
         (make-context-nc (set (keys obj-idxs-map))
                          (set (vals idx-atts-map))
                          (set-of [g (idx-atts-map idx) ]
