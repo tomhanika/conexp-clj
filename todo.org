@@ -144,3 +144,9 @@ conexp-clj TODOs
    And introduce make-layout-nc.
 ** DONE Make conexp-clj.sh script more sophisticated                 :Daniel:
    CLOSED: [2011-02-01 Di 21:37]
+
+conexp-clj BUGs
+
+* Bugs
+** TODO 001
+   Contexts in ConExp format are not read in properly.
