@@ -25,7 +25,6 @@
     (illegal-state "Function should be called in the GUI REPL only."))
   *main-frame*)
 
-
 ;;; Tabs
 
 (defn add-tab
