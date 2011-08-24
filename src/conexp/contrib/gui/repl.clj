@@ -215,9 +215,7 @@
         rpl (into-text-area repl-container repl-thread)]
     (doto rpl
       (.setFont (Font. "Monospaced" Font/PLAIN 16))
-      (.setBackground Color/BLACK)
-      (.setForeground Color/WHITE)
-      (.setCaretColor Color/RED))
+      (.setCaretColor Color/BLACK))
     (.start output-thread)
     (JScrollPane. rpl)))
 
