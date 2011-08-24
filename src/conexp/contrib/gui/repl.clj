@@ -229,7 +229,8 @@
                                           (implements-interface? (class (.getDocument ^JTextArea thing))
                                                                  conexp.contrib.gui.repl.ReplProcess))))]
     (when repl-container
-      (.. repl-container getDocument getReplThreadMap))))
+      (let [^conexp.contrib.gui.repl.ReplProcess repl-process (.getDocument repl-container)]
+        (.getReplThreadMap repl-process)))))
 
 ;;;
 
