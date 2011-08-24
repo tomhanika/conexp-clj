@@ -22,6 +22,8 @@
   [& args]
   (do-swing-return
    (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
+   (System/setProperty "awt.useSystemAAFontSettings" "on")
+   (System/setProperty "swing.aatext", "true")
    (let [^JFrame frame (apply conexp-main-frame args)]
      (.setVisible frame true)
      frame)))
