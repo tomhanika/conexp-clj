@@ -75,6 +75,9 @@
   (is (= [[1 3 5 4 7 3 0] [1]] (split-at-last even? [1 3 5 4 7 3 0 1])))
   (is (= [[] [1 3 5 7 3]] (split-at-last even? [1 3 5 7 3]))))
 
+(deftest test-warn
+  (= "WARNING: Huhu!" (with-out-str (warn "Huhu!"))))
+
 (deftest test-illegal-argument
   (is (thrown-with-msg? IllegalArgumentException #"Dies ist eine Testnachricht."
         (illegal-argument "Dies " "ist eine " "Testnachricht" "."))))

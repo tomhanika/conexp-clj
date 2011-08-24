@@ -70,7 +70,7 @@
 
 (deftest test-bug-001
   (if-not (.exists (java.io.File. "stuff/testing-data/nn_5.half.cex"))
-    (println "Could not verify bug 001, testing file not found.")
+    (warn "Could not verify bug 001, testing file not found.")
     (let [ctx (read-context "stuff/testing-data/nn_5.half.cex")]
       (is (= 42 (count (attributes ctx))))
       (is (= 10 (count (objects ctx))))

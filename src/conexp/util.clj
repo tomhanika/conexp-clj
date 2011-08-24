@@ -192,6 +192,11 @@
                   0)]
     (split-at index sequence)))
 
+(defn warn
+  "Emits a warning message on *out*."
+  [message]
+  (println "WARNING:" message))
+
 (defmacro die-with-error
   "Stops program by raising the given error with strings as message."
   [^Class error, strings]
