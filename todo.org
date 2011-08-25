@@ -89,6 +89,10 @@ conexp-clj TODOs
 ** DONE Allow nominals in DL extension                               :Daniel:
 ** TODO Make output of TBoxes readable                               :Daniel:
 ** TODO Automatically convert DL expressions to LaTeX                :Daniel:
+** TODO Allow resizing of cells in GUI                               :Daniel:
+   For this a special mouse handler has to be implemented that changes the cursor when resizing is
+   possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
+   setting the width of a column.
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
@@ -148,5 +152,11 @@ conexp-clj TODOs
 conexp-clj BUGs
 
 * Bugs
-** TODO 001
+** DONE 001
    Contexts in ConExp format are not read in properly.
+
+   The testing context nn_5.half.cex has problems when read in, the names of the objects and
+   attributes are wrong.
+
+   This can be fixed by taking all the content (not only the first element) of the appropiate
+   element of the xml file.
