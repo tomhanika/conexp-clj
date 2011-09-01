@@ -35,12 +35,9 @@
 (reduced? ctx-2)
 
 ;; then we reduce, that means all reducible objects and attributes
-;; will be deleted.
-(reduce ctx-2)
-
-;; If our context is clarified (in this case, we did it before) we can
-;; use
-(reduce-clarified-context ctx-3)
+;; will be deleted.  Note that objects with same object intent are
+;; kept, likewise for attributes.
+(reduce-context ctx-2)
 
 ;; Now let's take the Chevron from the basics part again as ctx-1.
 (defvar ctx-1 (make-context [1 2 3] [1 2 3] <=))

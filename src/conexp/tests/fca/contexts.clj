@@ -70,7 +70,10 @@
                       test-ctx-05,
                       test-ctx-06,
                       test-ctx-07,
-                      test-ctx-08])
+                      test-ctx-08,
+                      (make-context #{1 2}
+                                    #{1 2}
+                                    [[1 1] [1 2]])])
 
 ;;;
 
@@ -289,25 +292,17 @@
     (= (up-down-arrows ctx)
        (intersection (up-arrows ctx)
                      (down-arrows ctx)))))
-
-(deftest test-reduce-clarified-context
-  (with-testing-data [ctx testing-data]
-    (=> (clarified? ctx)
-        (let [rctx (reduce-clarified-context ctx),
-              arrs (up-down-arrows rctx)]
-          (and (= (objects rctx) (set-of g | [g _] arrs))
-               (= (attributes rctx) (set-of m | [_ m] arrs)))))))
     
 (deftest test-reduce-objects
   (with-testing-data [ctx testing-data]
     (let [rctx (reduce-objects ctx),
-          arrs (down-arrows rctx)]
+          arrs (down-arrows ctx)]
       (= (objects rctx) (set-of g | [g _] arrs)))))
 
 (deftest test-reduce-attributes
   (with-testing-data [ctx testing-data]
     (let [rctx (reduce-attributes ctx),
-          arrs (up-arrows rctx)]
+          arrs (up-arrows ctx)]
       (= (attributes rctx) (set-of m | [_ m] arrs)))))
 
 (deftest test-object-reduced?
@@ -322,13 +317,18 @@
   (is (not (reduced? test-ctx-01)))
   (is (not (reduced? test-ctx-03)))
   (is (reduced? test-ctx-04))
-  (is (not (reduced? test-ctx-06))))
+  (is (reduced? test-ctx-06)))
 
 (deftest test-reduce-context
   (with-testing-data [ctx testing-data]
     (subcontext? (reduce-context ctx) ctx))
   (with-testing-data [ctx testing-data]
-    (reduced? (reduce-context ctx))))
+    (reduced? (reduce-context ctx)))
+  (with-testing-data [ctx testing-data]
+    (let [rctx (reduce-context ctx),
+          arrs (up-down-arrows ctx)]
+      (and (= (objects rctx) (set-of g | [g _] arrs))
+           (= (attributes rctx) (set-of m | [_ m] arrs))))))
 
 (deftest test-context-object-attribute-closure
   (is (forall [s (subsets (objects test-ctx-01))]

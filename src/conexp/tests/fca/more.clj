@@ -104,7 +104,7 @@
                                              impls/testing-data)
                                      (clop-by-implications impls/testing-data)))))
   (with-testing-data [ctx (random-contexts 20 10)]
-    (let [ctx (reduce-objects ctx),
+    (let [ctx (reduce-objects (clarify-context ctx)),
           cct (context-from-clop (attributes ctx)
                                   #(context-attribute-closure ctx %))]
       (and (= (count (objects ctx))
