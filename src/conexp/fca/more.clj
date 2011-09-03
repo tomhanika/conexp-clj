@@ -121,7 +121,7 @@
          (all-closed-sets (cross-product (objects ctx-1) (attributes ctx-2))
                           clop))))
 
-;;; Shared Intents (by Stefan Borgwardt)
+;;; Shared Intents (implemented by Stefan Borgwardt)
 
 (defn- next-shared-intent
   "The smallest shared intent of contexts ctx-1 and ctx-2 containing b."
@@ -159,7 +159,7 @@
        (all-shared-intents (context-product (adiag-context (objects ctx-1)) ctx-2)
                            (dual-context (context-product ctx-1 (adiag-context (attributes ctx-2)))))))
 
-;;;
+;;; Context for Closure Operators
 
 (defn- maximal-counterexample
   "For a given closure operator c on a set base-set, maximizes the set
