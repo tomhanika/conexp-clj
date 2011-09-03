@@ -262,6 +262,55 @@
 
 ;;; Context Automorphisms
 
+(defn context-automorphism?
+  "Returns true if and only if the pair [alpha beta] is a context automorphism of ctx."
+  [ctx [alpha beta]]
+  (and (or (map? alpha) (fn? alpha))
+       (or (map? beta) (fn? beta))
+       (forall [g (objects ctx)
+                m (attributes ctx)]
+         (<=> (contains? (incidence ctx) [g m])
+              (contains? (incidence ctx) [(alpha g) (beta m)])))))
+
+(defn- possible-object-images
+  "Returns a selection of objects that the given object g might be mapped to by a context
+  automorphism."
+  [ctx g]
+  (let [prime (memoize #(oprime ctx #{%}))]
+    (filter #(= (count (prime %)) (count (prime g)))
+            (objects ctx))))
+
+(defn- possible-attribute-images
+  "Returns a selection of attributes that the given attribute m might be mapped to by a context
+  automorphism."
+  [ctx m]
+  (let [prime (memoize #(aprime ctx #{%}))]
+    (filter #(= (count (prime %)) (count (prime m)))
+            (attributes ctx))))
+
+(defn context-automorphisms
+  "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
+  and the attributes of ctx, respectively.  Returns its result as a lazy sequence."
+  [ctx]
+  (unsupported-operation))
+
+(defn context-object-automorphisms
+  "Computes the parts of the context automorphisms of ctx which act on the objects of ctx.  Returns
+  its result as a lasy sequence."
+  [ctx]
+  (map first (context-automorphisms ctx)))
+
+(defn context-attribute-automorphisms
+  "Computes the parts of the context automorphisms of ctx which act on the attributes of ctx.
+  Returns its result as a lazy sequence."
+  [ctx]
+  (map second (context-automorphisms ctx)))
+
+(defn rigid?
+  "Returns true if and only if ctx does not have any other automorphisms than the identity."
+  [ctx]
+  (nil? (second (context-object-automorphisms ctx))))
+
 (defn induced-object-automorphism
   "Returns the automorphism on the objects of ctx that is induced by beta, which is part of an
   context automorphism of ctx and acts on the attributes of ctx.  Note that ctx must be clarified."
@@ -287,29 +336,6 @@
                                       (<=> (contains? (incidence ctx) [g m])
                                            (contains? (incidence ctx) [(alpha g) n]))))]
     (into {} pairs)))
-
-(defn context-automorphisms
-  "Computes the context automorphisms of ctx as pairs of bijective mappins acting on the objects and
-  the attributes of ctx, respectively.  Returns its result as a lazy sequence."
-  [ctx]
-  (unsupported-operation))
-
-(defn context-object-automorphisms
-  "Computes the parts of the context automorphisms of ctx which act on the objects of ctx.  Returns
-  its result as a lasy sequence."
-  [ctx]
-  (map first (context-automorphisms ctx)))
-
-(defn context-attribute-automorphisms
-  "Computes the parts of the context automorphisms of ctx which act on the attributes of ctx.
-  Returns its result as a lazy sequence."
-  [ctx]
-  (map second (context-automorphisms ctx)))
-
-(defn rigid?
-  "Returns true if and only if ctx does not have any other automorphisms than the identity."
-  [ctx]
-  (nil? (second (context-object-automorphisms))))
 
 ;;;
 
