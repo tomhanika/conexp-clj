@@ -260,6 +260,57 @@
                           x (difference base-set base-sets))
                   respects?)))
 
+;;; Context Automorphisms
+
+(defn induced-object-automorphism
+  "Returns the automorphism on the objects of ctx that is induced by beta, which is part of an
+  context automorphism of ctx and acts on the attributes of ctx.  Note that ctx must be clarified."
+  [ctx beta]
+  (assert (clarified? ctx)
+          "Given context must be clarified to uniquely determine induced object automorphism.")
+  (let [pairs (set-of [g h] | g (objects ctx)
+                              h (objects ctx) ;this choice can be made finer
+                              :when (forall [m (attributes ctx)]
+                                      (<=> (contains? (incidence ctx) [g m])
+                                           (contains? (incidence ctx) [h (beta m)]))))]
+    (into {} pairs)))
+
+(defn induced-attribute-automorphism
+  "Returns the automorphism on the attributes of ctx that is induced by alpha, which is part of an
+  context automorphism of ctx and acts on the objects of ctx.  Note that ctx must be clarified."
+  [ctx alpha]
+  (assert (clarified? ctx)
+          "Given context must be clarified to uniquely determine induced attribute automorphism.")
+  (let [pairs (set-of [m n] | m (attributes ctx)
+                              n (attributes ctx) ;see above
+                              :when (forall [g (objects ctx)]
+                                      (<=> (contains? (incidence ctx) [g m])
+                                           (contains? (incidence ctx) [(alpha g) n]))))]
+    (into {} pairs)))
+
+(defn context-automorphisms
+  "Computes the context automorphisms of ctx as pairs of bijective mappins acting on the objects and
+  the attributes of ctx, respectively.  Returns its result as a lazy sequence."
+  [ctx]
+  (unsupported-operation))
+
+(defn context-object-automorphisms
+  "Computes the parts of the context automorphisms of ctx which act on the objects of ctx.  Returns
+  its result as a lasy sequence."
+  [ctx]
+  (map first (context-automorphisms ctx)))
+
+(defn context-attribute-automorphisms
+  "Computes the parts of the context automorphisms of ctx which act on the attributes of ctx.
+  Returns its result as a lazy sequence."
+  [ctx]
+  (map second (context-automorphisms ctx)))
+
+(defn rigid?
+  "Returns true if and only if ctx does not have any other automorphisms than the identity."
+  [ctx]
+  (nil? (second (context-object-automorphisms))))
+
 ;;;
 
 nil
