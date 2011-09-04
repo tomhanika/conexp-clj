@@ -262,6 +262,8 @@
 
 ;;; Context Automorphisms
 
+;; McKay Algorithm, very simplified
+
 (defn context-automorphism?
   "Returns true if and only if the pair [alpha beta] is a context automorphism of ctx."
   [ctx [alpha beta]]
@@ -272,27 +274,79 @@
          (<=> (contains? (incidence ctx) [g m])
               (contains? (incidence ctx) [(alpha g) (beta m)])))))
 
-(defn- possible-object-images
-  "Returns a selection of objects that the given object g might be mapped to by a context
-  automorphism."
-  [ctx g]
-  (let [prime (memoize #(oprime ctx #{%}))]
-    (filter #(= (count (prime %)) (count (prime g)))
-            (objects ctx))))
+(defn- refine-partition
+  ""
+  [ctx, pi]
+  (loop [pi pi,
+         m  0,
+         k  0]
+    (cond
+     (or (>= m (count pi))
+         (every? singleton? pi))
+     pi
+     ;;
+     (>= k (count pi))
+     (recur pi (inc m) 0)
+     ;;
+     :else
+     (let [W (pi m),
+           V (pi k),
+           X (group-by #(count (filter (fn [z]
+                                         (or (incident? ctx % z)
+                                             (incident? ctx z %)))
+                                       W))
+                       V),
+           X (remove empty?
+                     (map #(set (X %))
+                          (range (inc (apply max -1 (keys X))))))]
+       (recur (if (singleton? X)
+                pi
+                (vec (concat (subvec pi 0 k)
+                             X
+                             (subvec pi (inc k)))))
+              m                        ;correct?
+              (inc k))))))             ;correct?
 
-(defn- possible-attribute-images
-  "Returns a selection of attributes that the given attribute m might be mapped to by a context
-  automorphism."
-  [ctx m]
-  (let [prime (memoize #(aprime ctx #{%}))]
-    (filter #(= (count (prime %)) (count (prime m)))
-            (attributes ctx))))
+(defn- split-partition-at
+  ""
+  [pi u]
+  (let [[before-u after-u] (split-with #(not (contains? % u)) pi)]
+    (vec (concat before-u [#{u} (disj (first after-u) u)] (rest after-u)))))
+
+(defn- terminal-nodes
+  ""
+  [ctx pi]
+  (if (every? singleton? pi)
+    (list pi)
+    (mapcat #(terminal-nodes ctx (refine-partition ctx (split-partition-at pi %)))
+            (first (remove singleton? pi)))))
 
 (defn context-automorphisms
   "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
   and the attributes of ctx, respectively.  Returns its result as a lazy sequence."
   [ctx]
   (unsupported-operation))
+
+(defn- terminal-nodes/pruning
+  [ctx partition]
+  )
+
+(defn canonical-isomorph
+  "Returns the canonical isomorph of ctx, as defined by McKay's algorithm using lexicographic
+  ordering."
+  [ctx]
+  )
+
+;;
+
+(defn isomorphic-contexts?
+  "Tests whether ctx-1 and ctx-2 are isomorphic."
+  [ctx-1 ctx-2]
+  (and (= (count (objects ctx-1)) (count (objects ctx-2)))
+       (= (count (attributes ctx-1)) (count (attributes ctx-2)))
+       (= (count (incidence ctx-1)) (count (incidence ctx-2)))
+       (= (canonical-isomorph ctx-1)
+          (canonical-isomorph ctx-2))))
 
 (defn context-object-automorphisms
   "Computes the parts of the context automorphisms of ctx which act on the objects of ctx.  Returns
