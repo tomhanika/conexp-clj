@@ -326,10 +326,11 @@
 
 "
   [ctx pi]
-  (if (every? singleton? pi)
-    (list (vec (mapcat identity pi)))
-    (mapcat #(terminal-nodes ctx (refine-partition ctx (split-partition-at pi %)))
-            (first (remove singleton? pi)))))
+  (let [pi (refine-partition ctx pi)]
+    (if (every? singleton? pi)
+      (list (vec (mapcat identity pi)))
+      (mapcat #(terminal-nodes ctx (split-partition-at pi %))
+              (first (remove singleton? pi))))))
 
 (defn context-automorphisms
   "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
@@ -353,7 +354,7 @@
            sigma tn,
            :when (= (set-of [(pi g) (pi m)] | [g m] (incidence ctx))
                     (set-of [(sigma g) (sigma m)] | [g m] (incidence ctx)))]
-       (let [pi      (into {} (map-indexed vector pi))
+       (let [pi      (into {} (map-indexed vector pi)),
              sigma-1 (map-invert (into {} (map-indexed vector sigma)))]
          [(map-by-fn (comp obj-map sigma-1 pi rob-map)
                      objs),
