@@ -34,9 +34,9 @@
           (intern *ns* sym))))))
 
 (immigrate 'clojure.set
-           'clojure.contrib.set
-           'clojure.contrib.def
-           'clojure.contrib.math)
+           'clojure.core.incubator
+           'clojure.contrib.math
+           'clojure.contrib.def)
 
 ;;; Namespace documentation
 
@@ -52,6 +52,7 @@
   [doc]
   (let [ns (symbol (str *ns*))]
     `(update-ns-meta! ~ns :doc ~doc)))
+
 
 ;;; Testing
 
@@ -100,6 +101,17 @@
 
 
 ;;; Technical Helpers
+
+(defn proper-subset?
+  [set-1 set-2]
+  "Returns true iff set-1 is a proper subset of set-2."
+  (and (not= set-1 set-2)
+       (subset? set-1 set-2)))
+
+(defn proper-superset?
+  [set-1 set-2]
+  "Returns true iff set-1 is a proper superset of set-2."
+  (proper-subset? set-2 set-1))
 
 (defn singleton?
   "Returns true iff given thing is a singleton sequence or set."

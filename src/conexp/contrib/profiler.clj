@@ -9,8 +9,7 @@
 (ns conexp.contrib.profiler
   (:use conexp.base)
   (:use clojure.contrib.profile
-        [clojure.pprint :only (pprint, cl-format)]
-        [clojure.contrib.except :only (throw-if, throw-if-not)]))
+        [clojure.pprint :only (pprint, cl-format)]))
 
 (ns-doc
  "Provides simple function for statistical and instrumental
@@ -155,8 +154,8 @@
   [:thread (current-thread)
    :period 100]
   (assert (instance? Thread thread))
-  (throw-if (get-profiled-data thread)
-            IllegalArgumentException "Thread already profiled.")
+  (when (get-profiled-data thread)
+    (throw (IllegalArgumentException. "Thread already profiled.")))
   (add-profiled-thread thread period))
 
 (defnk stop-profiling
@@ -165,8 +164,8 @@
   to (current-thread)."
   [:thread (current-thread)]
   (assert (instance? Thread thread))
-  (throw-if-not (get-profiled-data thread)
-                IllegalArgumentException "Thread is not profiled.")
+  (when-not (get-profiled-data thread)
+    (throw (IllegalArgumentException. "Thread is not profiled.")))
   (delete-profiled-thread thread)
   nil)
 
@@ -184,7 +183,8 @@
    :threshold -1.0]
   (assert (instance? Thread thread))
   (let [data (get-profiled-data thread)]
-    (throw-if-not data IllegalArgumentException "Thread is not profiled.")
+    (when-not data
+      (throw (IllegalArgumentException. "Thread is not profiled.")))
     (pprint-profiling thread
                       (sort (fn [[x a] [y b]]
                               (compare [b y] [a x]))
