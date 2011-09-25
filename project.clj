@@ -12,19 +12,15 @@
   :min-lein-version "1.5.0"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
-  :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots/",
-                 "releases"  "https://oss.sonatype.org/content/repositories/releases/"}
-  :dependencies [[org.clojure/clojure               "1.3.0-master-SNAPSHOT"]
+  :dependencies [[org.clojure/clojure               "1.3.0"]
+                 [org.clojure/tools.cli             "0.1.0"]
+                 [org.clojure/core.incubator        "0.1.0"]
                  [org.clojure.contrib/combinatorics "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/command-line  "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/core          "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/def           "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/except        "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/graph         "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/lazy-xml      "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/math          "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/profile       "1.3.0-SNAPSHOT"]
-                 [org.clojure.contrib/set           "1.3.0-SNAPSHOT"]
                  [org.apache.commons/commons-math   "2.1"]
                  [jline                             "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.2"]]
