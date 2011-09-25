@@ -21,3 +21,5 @@ resources
 classes
 pom.xml
 src/conexp/contrib/java/*.clj
+.lein-failures
+
