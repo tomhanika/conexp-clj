@@ -9,7 +9,7 @@
 ;;;
 
 (defproject conexp-clj (.trim #=(slurp "VERSION"))
-  :min-lein-version "1.5.0"
+  :min-lein-version "1.6.1.1"
   :description "A ConExp rewrite in clojure"
   :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
   :dependencies [[org.clojure/clojure               "1.3.0"]
