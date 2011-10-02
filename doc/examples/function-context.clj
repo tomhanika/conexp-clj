@@ -80,7 +80,7 @@
 
 ;;; Now generate all functions on an n-elemental set
 
-(use '[clojure.contrib.combinatorics :only (selections)])
+(use '[clojure.math.combinatorics :only (selections)])
 
 (defn all-possible-funcs-on
   "Generates all functions, as hash-maps, on the subsets of base."
