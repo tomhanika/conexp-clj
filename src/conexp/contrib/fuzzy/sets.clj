@@ -9,7 +9,7 @@
 (ns conexp.contrib.fuzzy.sets
   (:use conexp.main
         conexp.contrib.fuzzy.logics)
-  (:require [clojure.contrib.combinatorics :as comb]))
+  (:require [clojure.math.combinatorics :as comb]))
 
 (ns-doc "Basic definitions for fuzzy sets")
 
