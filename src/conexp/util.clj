@@ -35,7 +35,7 @@
 
 (immigrate 'clojure.set
            'clojure.core.incubator
-           'clojure.contrib.math
+           'clojure.math.numeric-tower
            'clojure.contrib.def)
 
 ;;; Namespace documentation
