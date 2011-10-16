@@ -475,7 +475,7 @@
   [a b]
   (cond
    (not (and (integer? a) (integer? b)))
-   (clojure.contrib.math/expt a b),
+   (clojure.math.numeric-tower/expt a b),
 
    (< b 0)
    (/ (expt a (- b))),
