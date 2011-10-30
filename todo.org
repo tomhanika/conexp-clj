@@ -3,24 +3,17 @@
 #+startup: hidestars
 #+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
 
-conexp-clj TODOs
+conexp-clj TODOs and BUGs
 
 * For 1.0.0
 ** TODO Implement Christians Force Layout with derivations
 ** TODO Implement Christians Initial Position Layout
 ** TODO Rule Exploration with Impex
 ** TODO GUI context editor
-   It's slow, make it faster. If no second operand is given, calling
-   the corresponding menu entry produces an unintuitive error.
 ** TODO GUI lattice editor
 ** TODO GUI code editor
 ** TODO GUI plugin browser
-** TODO Fix stupid labeling
-** TODO Fix Neverending Rotation when switching tabs
-   This is a GUI problem.
 ** TODO Undo for GUI
-* For 0.1.0-beta
-** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * For 0.0.7-alpha
 ** DONE Make Sage interface faster                                   :Daniel:
    CLOSED: [2011-01-22 Sa 20:47]
@@ -93,6 +86,7 @@ conexp-clj TODOs
    For this a special mouse handler has to be implemented that changes the cursor when resizing is
    possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
    setting the width of a column.
+** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
@@ -160,3 +154,10 @@ conexp-clj BUGs
 
    This can be fixed by taking all the content (not only the first element) of the appropiate
    element of the xml file.
+** TODO 002 Fix stupid labeling of concept lattices
+** TODO 003 Fix Neverending Rotation when switching tabs
+   When rotating the lattice and switching panels, rotation does not stop and overrides the current
+   panel.
+
+** TODO 004 Unintuive Error when no second operand given
+   In the GUI, if no second operand is given but needed, the resulting error is very uninformative.
