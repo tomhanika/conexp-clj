@@ -22,7 +22,7 @@
                  [org.clojure.contrib/profile    "1.3.0-SNAPSHOT"]
                  [org.apache.commons/commons-math "2.1"]
                  [jline                          "0.9.94"]]
-  :dev-dependencies [[swank-clojure "1.3.2"]]
+  :dev-dependencies [[swank-clojure "1.3.3"]]
   :aot [conexp.main
         conexp.contrib.gui
         conexp.contrib.java]
