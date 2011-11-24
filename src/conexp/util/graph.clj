@@ -27,6 +27,11 @@
   :neighbors) ; A function that, given a node returns a collection
                                         ; neighbor nodes.
 
+(defn make-directed-graph
+  "Constructs a directed graph."
+  [nodes neighbour-fn]
+  (struct directed-graph nodes neighbour-fn))
+
 (defn get-neighbors
   "Get the neighbors of a node."
   [g n]
@@ -105,6 +110,7 @@ behavior, call (-> g transitive-closure add-loops)"
                             [(conj visited n) acc]
                             (get-neighbors g n))]
       [v2 (conj acc2 n)])))
+
 (defn post-ordered-nodes
   "Return a sequence of indexes of a post-ordered walk of the graph."
   [g]
@@ -113,8 +119,7 @@ behavior, call (-> g transitive-closure add-loops)"
                  (:nodes g))))
 
 (defn scc
-  "Returns, as a sequence of sets, the strongly connected components
-of g."
+  "Returns, as a sequence of sets, the strongly connected components of g."
   [g]
   (let [po (reverse (post-ordered-nodes g))
         rev (reverse-graph g)
@@ -124,7 +129,7 @@ of g."
                  (let [[nv comp] (post-ordered-visit rev
                                                      (first stack)
                                                      [visited #{}])
-                       ns (remove nv stack)]
+                       ns (doall (remove nv stack))] ;doall prevents StackOverflow
                    (recur ns nv (conj acc comp)))))]
     (step po #{} [])))
 

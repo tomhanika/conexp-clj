@@ -11,7 +11,7 @@
         conexp.contrib.dl.framework.syntax
         conexp.contrib.dl.framework.boxes
         conexp.contrib.dl.framework.semantics
-        conexp.contrib.dl.util.graphs)
+        [conexp.util.graph :exclude (transitive-closure)])
   (:use clojure.pprint)
   (:import [java.util HashMap HashSet]))
 

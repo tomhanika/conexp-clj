@@ -9,7 +9,7 @@
 (ns conexp.contrib.dl.framework.boxes
   (:use conexp.main
         conexp.contrib.dl.framework.syntax
-        conexp.contrib.dl.util.graphs))
+        [conexp.util.graph :exclude (transitive-closure)]))
 
 ;;; TBox definitions
 
