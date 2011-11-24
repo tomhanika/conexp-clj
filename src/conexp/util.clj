@@ -8,9 +8,6 @@
 
 (in-ns 'conexp.base)
 
-(use 'clojure.contrib.profile,
-     'clojure.test)
-
 (import 'javax.swing.JOptionPane
         'java.util.Calendar
         'java.text.SimpleDateFormat)

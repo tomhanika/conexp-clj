@@ -8,12 +8,84 @@
 
 (ns conexp.contrib.profiler
   (:use conexp.base)
-  (:use clojure.contrib.profile
-        [clojure.pprint :only (pprint, cl-format)]))
+  (:use [clojure.pprint :only (pprint, cl-format)]))
 
 (ns-doc
  "Provides simple function for statistical and instrumental
  profiling.")
+
+;;; profiling code from clojure.contrib.profile
+
+(def ^{:private true, :dynamic true} *profile-data* nil)
+
+(def #^{:doc "Set this to false before loading/compiling to omit
+profiling code."} enable-profiling true)
+
+(defmacro prof
+  "If enable-profiling is true, wraps body in profiling code.
+Returns the result of body. Profile timings will be stored in
+*profile-data* using name, which must be a keyword, as the key.
+Timings are measured with System/nanoTime."
+  [name & body]
+  (assert (keyword? name))
+  (if enable-profiling
+    `(if *profile-data*
+       (let [start-time# (System/nanoTime)
+             value# (do ~@body)
+             elapsed# (- (System/nanoTime) start-time#)]
+         (swap! *profile-data* assoc ~name
+                (conj (get @*profile-data* ~name) elapsed#))
+         value#)
+       ~@body)
+    `(do ~@body)))
+
+(defmacro with-profile-data
+  "Executes body with *profile-data* bound to an atom of a new map.
+Returns the raw profile data as a map. Keys in the map are profile
+names (keywords), and values are lists of elapsed time, in
+nanoseconds."
+  [& body]
+  `(binding [*profile-data* (atom {})]
+     ~@body
+     @*profile-data*))
+
+(defn summarize
+  "Takes the raw data returned by with-profile-data and returns a map
+from names to summary statistics. Each value in the map will look
+like:
+
+ {:mean ..., :min ..., :max ..., :count ..., :sum ...}
+
+:mean, :min, and :max are how long the profiled section took to run,
+in nanoseconds. :count is the total number of times the profiled
+section was executed. :sum is the total amount of time spent in the
+profiled section, in nanoseconds."
+  [profile-data]
+  (reduce (fn [m [k v]]
+            (let [cnt (count v)
+                  sum (reduce + v)]
+              (assoc m k {:mean (int (/ sum cnt))
+                          :min (apply min v)
+                          :max (apply max v)
+                          :count cnt
+                          :sum sum})))
+          {} profile-data))
+
+(defn print-summary
+  "Prints a table of the results returned by summarize."
+  [profile-summary]
+  (let [name-width (apply max 1 (map (comp count name) (keys profile-summary)))
+        fmt-string (str "%" name-width "s %8d %8d %8d %8d %8d%n")]
+    (printf (.replace fmt-string \d \s)
+            "Name" "mean" "min" "max" "count" "sum")
+    (doseq [k (sort (keys profile-summary))]
+      (let [v (get profile-summary k)]
+        (printf fmt-string (name k) (:mean v) (:min v) (:max v) (:count v) (:sum v))))))
+
+(defmacro profile
+  "Runs body with profiling enabled, then prints a summary of results. Returns nil."
+  [& body]
+  `(print-summary (summarize (with-profile-data (do ~@body)))))
 
 ;;; Low Level
 
