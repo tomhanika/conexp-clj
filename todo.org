@@ -17,6 +17,11 @@ conexp-clj TODOs and BUGs
 * For 0.0.7-alpha
 ** DONE Make Sage interface faster                                   :Daniel:
    CLOSED: [2011-01-22 Sa 20:47]
+** INPROGRESS Remove dependencies to clojure.contrib [2/4]           :Daniel:
+   - [X] clojure.contrib.def
+   - [ ] clojure.contrib.lazy-xml
+   - [X] clojure.contrib.graph
+   - [ ] clojure.contrib.profile
 ** INPROGRESS Add more layout output [0/2]                           :Daniel:
    - [ ] svg
    - [ ] povray
@@ -86,7 +91,8 @@ conexp-clj TODOs and BUGs
    For this a special mouse handler has to be implemented that changes the cursor when resizing is
    possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
    setting the width of a column.
-** TODO Adjusting nodes in lattice diagram with parallelogram rule
+** TODO Adjusting nodes in lattice diagram with parallelogram rule   :Daniel:
+** TODO Test conexp.util.graph                                       :Daniel:
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
