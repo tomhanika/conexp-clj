@@ -7,7 +7,6 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.generators
-  (:use [clojure.contrib.def])
   (:import [java.util.concurrent SynchronousQueue]
            [java.util NoSuchElementException]))
 

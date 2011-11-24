@@ -17,7 +17,6 @@
                  [org.clojure/core.incubator     "0.1.0"]
                  [org.clojure/math.combinatorics "0.0.1"]
                  [org.clojure/math.numeric-tower "0.0.1"]
-                 [org.clojure.contrib/def        "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/graph      "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/lazy-xml   "1.3.0-SNAPSHOT"]
                  [org.clojure.contrib/profile    "1.3.0-SNAPSHOT"]
