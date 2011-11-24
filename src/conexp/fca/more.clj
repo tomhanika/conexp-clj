@@ -11,7 +11,7 @@
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.exploration)
-  (:require [clojure.contrib.graph :as graph]))
+  (:require [conexp.util.graph :as graph]))
 
 (ns-doc "More on FCA.")
 

@@ -8,11 +8,10 @@
 
 (ns conexp.contrib.dl.util.graphs
   (:use conexp.base)
-  (:require [clojure.contrib.graph :as graph]))
+  (:require [conexp.util.graph :as graph]))
 
 (ns-doc
- "A custom implementation of graph algorithms on top of
- clojure.contrib.graph.")
+ "A custom implementation of graph algorithms on top of conexp.util.graph.")
 
 ;;;
 
@@ -28,7 +27,7 @@
 
 ;;;
 
-(defn- post-ordered-visit               ;from clojure.contrib.graph
+(defn- post-ordered-visit
   "Starting at node n, perform a post-ordered walk."
   [g n [visited acc :as state]]
   (if (visited n)
@@ -38,7 +37,7 @@
                             (graph/get-neighbors g n))]
       [v2 (conj acc2 n)])))
 
-(defn scc                               ;from clojure.contrib.graph
+(defn scc
   "Returns, as a sequence of sets, the strongly connected components of g."
   [g]
   (let [po (reverse (graph/post-ordered-nodes g))
