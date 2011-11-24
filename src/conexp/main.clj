@@ -10,8 +10,7 @@
   (:require conexp.base
             conexp.fca
             conexp.io
-            conexp.layouts)
-  (:require clojure.test))
+            conexp.layouts))
 
 (conexp.base/ns-doc
  "Main namespace for conexp-clj. Immigrates all needed namespaces.")
