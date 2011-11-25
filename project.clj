@@ -17,7 +17,6 @@
                  [org.clojure/core.incubator     "0.1.0"]
                  [org.clojure/math.combinatorics "0.0.1"]
                  [org.clojure/math.numeric-tower "0.0.1"]
-                 [org.clojure.contrib/lazy-xml   "1.3.0-SNAPSHOT"]
                  [org.apache.commons/commons-math "2.1"]
                  [jline                          "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.3"]]

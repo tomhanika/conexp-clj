@@ -17,9 +17,9 @@ conexp-clj TODOs and BUGs
 * For 0.0.7-alpha
 ** DONE Make Sage interface faster                                   :Daniel:
    CLOSED: [2011-01-22 Sa 20:47]
-** INPROGRESS Remove dependencies to clojure.contrib [3/4]           :Daniel:
+** DONE Remove dependencies to clojure.contrib [4/4]                 :Daniel:
    - [X] clojure.contrib.def
-   - [ ] clojure.contrib.lazy-xml
+   - [X] clojure.contrib.lazy-xml
    - [X] clojure.contrib.graph
    - [X] clojure.contrib.profile
 ** INPROGRESS Add more layout output [0/2]                           :Daniel:

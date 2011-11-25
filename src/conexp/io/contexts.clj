@@ -12,7 +12,7 @@
         conexp.fca.contexts
         conexp.io.util
         conexp.io.latex)
-  (:use [clojure.contrib.lazy-xml :exclude (attributes)]
+  (:use [conexp.util.lazy-xml :exclude (attributes)]
         [clojure.string :only (split)])
   (:import [java.io PushbackReader]))
 
