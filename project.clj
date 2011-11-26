@@ -9,22 +9,21 @@
 ;;;
 
 (defproject conexp-clj (.trim #=(slurp "VERSION"))
-  :min-lein-version "1.6.1.1"
+  :min-lein-version "1.3.0"
   :description "A ConExp rewrite in clojure"
-  :url "http://www.math.tu-dresden.de/~borch/conexp-clj/"
-  :dependencies [[org.clojure/clojure            "1.3.0"]
-                 [org.clojure/tools.cli          "0.1.0"]
-                 [org.clojure/core.incubator     "0.1.0"]
-                 [org.clojure/math.combinatorics "0.0.1"]
-                 [org.clojure/math.numeric-tower "0.0.1"]
+  :url "http://daniel.kxpq.de/math/conexp-clj/"
+  :dependencies [[org.clojure/clojure             "1.3.0"]
+                 [org.clojure/tools.cli           "0.1.0"]
+                 [org.clojure/core.incubator      "0.1.0"]
+                 [org.clojure/math.combinatorics  "0.0.1"]
+                 [org.clojure/math.numeric-tower  "0.0.1"]
                  [org.apache.commons/commons-math "2.1"]
-                 [jline                          "0.9.94"]]
+                 [jline                           "0.9.94"]]
   :dev-dependencies [[swank-clojure "1.3.3"]]
   :aot [conexp.main
         conexp.contrib.gui
         conexp.contrib.java]
   :keep-non-project-classes true
-  :jar-name "conexp-clj.jar"
   :jvm-opts ["-server", "-Xmx1g"]
   :warn-on-reflection true)
 
