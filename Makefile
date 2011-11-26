@@ -12,12 +12,14 @@ zip: jar
 	mv ${CONEXP_CLJ_JAR} conexp-clj/lib/
 	zip -r conexp-clj.zip conexp-clj
 
-jar: clean
+jar: distclean
 	lein jar
 
 clean:
 	rm -rf conexp-clj/ conexp-clj.zip
-	lein clean
+
+distclean: clean
+	rm -rf lib classes
 
 test:
 	lein test!
