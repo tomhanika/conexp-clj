@@ -15,82 +15,90 @@ conexp-clj TODOs and BUGs
 ** TODO GUI plugin browser
 ** TODO Undo for GUI
 * For 0.0.7-alpha
-** DONE Make Sage interface faster                                   :Daniel:
-   CLOSED: [2011-01-22 Sa 20:47]
-** DONE Remove dependencies to clojure.contrib [4/4]                 :Daniel:
-   - [X] clojure.contrib.def
-   - [X] clojure.contrib.lazy-xml
-   - [X] clojure.contrib.graph
-   - [X] clojure.contrib.profile
-** INPROGRESS Add more layout output [0/2]                           :Daniel:
-   - [ ] svg
-   - [ ] povray
-** INPROGRESS draw-lattice-to-file                                   :Daniel:
-   We need some function (i.e. draw-lattice-to-file) which produces a
-   file of the picture of a lattice layout, when given the same
-   arguments as draw-lattice.
+** GUI
+*** INPROGRESS Remove reflection warnings from GUI                   :Daniel:
+    There are some things missing:
+      - with-action-on does not provide type hint for captured variable
+      - type hints on variables in let seem to be ignored
+*** TODO Allow resizing of cells in GUI                              :Daniel:
+    For this a special mouse handler has to be implemented that changes the cursor when resizing is
+    possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
+    setting the width of a column.
+*** TODO Adjusting nodes in lattice diagram with parallelogram rule  :Daniel:
+*** TODO Find GUI Pictures via Javas Resource Management             :Daniel:
+** Testing
+*** TODO Add tests for explicit IO formats                           :Daniel:
+    given as keywords or strings.
+*** INPROGRESS Improve test coverage of conexp contrib [0/12]        :Daniel:
+    - [ ] algorithms
+    - [ ] concept approximation
+    - [ ] DL
+    - [ ] draw (?)
+    - [ ] exec
+    - [ ] experimental
+    - [ ] factor analysis
+    - [ ] fuzzy [0/3]
+      - [ ] logics
+      - [ ] sets
+      - [ ] fca
+    - [ ] GUI (?)
+    - [ ] Java
+    - [ ] retracts
+    - [ ] util [0/1]
+      - [ ] general sorted sets
+*** INPROGRESS Add tests for new Association Rule functions          :Daniel:
+** DONE Interop
+*** DONE Make Sage interface faster                                  :Daniel:
+    CLOSED: [2011-01-22 Sa 20:47]
+*** CANCELLED Java Interface [0/2]                                   :Daniel:
+    - [ ] Add type hints for automatically generated Java interface functions.
+    - [ ] Include conexp.contrib namespaces
+** DONE Infrastructure
+*** DONE Remove dependencies to clojure.contrib [4/4]                :Daniel:
+    - [X] clojure.contrib.def
+    - [X] clojure.contrib.lazy-xml
+    - [X] clojure.contrib.graph
+    - [X] clojure.contrib.profile
+*** DONE Separate DL implementation into its own project
+** Features
+*** INPROGRESS Add more layout output [0/2]                          :Daniel:
+    - [ ] svg
+    - [ ] povray
+*** INPROGRESS draw-lattice-to-file                                  :Daniel:
+    We need some function (i.e. draw-lattice-to-file) which produces a
+    file of the picture of a lattice layout, when given the same
+    arguments as draw-lattice.
 
-   For this we need some abstrace picture-drawing facility, which can
-   produce pictures without showing them. For that we could use svg
-   (also as output format for layouts) and simply write it to a file.
-** INPROGRESS Allow additional arguments to write-context            :Daniel:
-   depending on the current layout.
-** INPROGRESS Java Interface [0/2]                                   :Daniel:
-   - [ ] Add type hints for automatically generated Java interface functions.
-   - [ ] Include conexp.contrib namespaces
-** INPROGRESS Remove reflection warnings from GUI                    :Daniel:
-   There are some things missing:
-     - with-action-on does not provide type hint for captured variable
-     - type hints on variables in let seem to be ignored
-** INPROGRESS More IO formats for contexts [2/5]                     :Daniel:
-   - [X] anonymous burmeister (without names for objects and
-     attributes)
-   - [ ] csc
-   - [ ] slf
-   - [ ] csx
-   - [X] binary csv
-** INPROGRESS Improve test coverage of conexp contrib [0/12]         :Daniel:
-   - [ ] algorithms
-   - [ ] concept approximation
-   - [ ] DL
-   - [ ] draw (?)
-   - [ ] exec
-   - [ ] experimental
-   - [ ] factor analysis
-   - [ ] fuzzy [0/3]
-     - [ ] logics
-     - [ ] sets
-     - [ ] fca
-   - [ ] GUI (?)
-   - [ ] Java
-   - [ ] retracts
-   - [ ] util [0/1]
-     - [ ] general sorted sets
-** INPROGRESS Add tests for new Association Rule functions           :Daniel:
-** TODO Add tests for explicit IO formats                            :Daniel:
-   given as keywords or strings.
-** TODO Rewrite to-inf-additive-layout                               :Daniel:
-   As projection into the subspace of all infimum-additive layouts.
-** TODO Lattice IO for csv and dot                                   :Daniel:
-   That should be simple for output, but non-trivial for input.
-** TODO Add support for multiple contexts/... in IO                  :Daniel:
-   I.e. a call like
+    For this we need some abstrace picture-drawing facility, which can
+    produce pictures without showing them. For that we could use svg
+    (also as output format for layouts) and simply write it to a file.
+*** INPROGRESS Allow additional arguments to write-context           :Daniel:
+    depending on the current layout.
+*** INPROGRESS More IO formats for contexts [2/5]                    :Daniel:
+    - [X] anonymous burmeister (without names for objects and
+      attributes)
+    - [ ] csc
+    - [ ] slf
+    - [ ] csx
+    - [X] binary csv
+*** TODO Rewrite to-inf-additive-layout                              :Daniel:
+    As projection into the subspace of all infimum-additive layouts.
+*** TODO Lattice IO for csv and dot                                  :Daniel:
+    That should be simple for output, but non-trivial for input.
+*** TODO Add support for multiple contexts/... in IO                 :Daniel:
+    I.e. a call like
 
-     (write-context :conexp "/tmp/file" ctx-1 ctx-2 ctx-3)
+      (write-context :conexp "/tmp/file" ctx-1 ctx-2 ctx-3)
 
-   should be possible. read-context then should also take an index of
-   which context to read in.
-** TODO Write short documentation                                    :Daniel:
-** TODO Change attribute names for mv-context scales                 :Daniel:
-   They are somewhat arbitrary and may also be misleading. Don't
-   forget to adjust the tests for them after finishing.
-** DONE Allow nominals in DL extension                               :Daniel:
-** TODO Allow resizing of cells in GUI                               :Daniel:
-   For this a special mouse handler has to be implemented that changes the cursor when resizing is
-   possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
-   setting the width of a column.
-** TODO Adjusting nodes in lattice diagram with parallelogram rule   :Daniel:
-** TODO Find GUI Pictures via Javas Resource Management              :Daniel:
+    should be possible. read-context then should also take an index of
+    which context to read in.
+** Documentation
+*** TODO Write short documentation                                   :Daniel:
+** Fixes
+*** TODO Change attribute names for mv-context scales                :Daniel:
+    They are somewhat arbitrary and may also be misleading. Don't
+    forget to adjust the tests for them after finishing.
+*** DONE Allow nominals in DL extension                              :Daniel:
 * For 0.0.6-alpha
 ** DONE Check function names for DL contrib                          :Daniel:
    They mix «interpretation» and «model» in arbitrary ways.
