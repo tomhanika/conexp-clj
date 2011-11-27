@@ -18,5 +18,5 @@ clean:
 distclean: clean
 	rm -rf lib conexp-clj-$(cat VERSION).zip
 
-test:
-	lein test!
+test: clean
+	lein deps, test
