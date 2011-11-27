@@ -25,7 +25,8 @@
         conexp.contrib.java]
   :keep-non-project-classes true
   :jvm-opts ["-server", "-Xmx1g"]
-  :warn-on-reflection true)
+  :warn-on-reflection true
+  :test-path "src/test/")
 
 ;;;
 
