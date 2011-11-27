@@ -7,7 +7,7 @@ zip: jar
 	cp -r stuff/bin res AUTHORS LICENSE README.md conexp-clj/
 	cp lib/*.jar conexp-clj/lib/
 	mv conexp-clj-*.jar conexp-clj/lib/
-	zip -r conexp-clj.zip conexp-clj
+	zip -r conexp-clj-$(cat VERSION).zip conexp-clj
 
 jar: distclean
 	lein jar
@@ -16,7 +16,7 @@ clean:
 	rm -rf conexp-clj/
 
 distclean: clean
-	rm -rf lib classes conexp-clj.zip
+	rm -rf lib classes conexp-clj-$(cat VERSION).zip
 
 test:
 	lein test!
