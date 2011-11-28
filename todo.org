@@ -28,6 +28,7 @@ conexp-clj TODOs and BUGs
     setting the width of a column.
 *** TODO Adjusting nodes in lattice diagram with parallelogram rule  :Daniel:
 *** DONE Find GUI Pictures via Javas Resource Management             :Daniel:
+*** TODO Use breakable tool bar for context editor                   :Daniel:
 ** Testing
 *** TODO Add tests for explicit IO formats                           :Daniel:
     given as keywords or strings.
