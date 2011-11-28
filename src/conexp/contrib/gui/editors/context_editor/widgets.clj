@@ -117,8 +117,8 @@
   (let [^JButton button  (get-widget obutton),
         current-handlers (.getActionListeners button),
         listeners        (seq current-handlers)]
-    (doseq [l listeners]
-      (.removeActionListener button ^ActionListener l))
+    (doseq [^ActionListener l listeners]
+      (.removeActionListener button l))
     (with-action-on button (handler))))
 
 (defn-swing make-button
@@ -131,7 +131,7 @@
 
 (defn-swing make-tooltip-button
   "Creates a managed button object with tooltip."
-  [tooltip, name]
+  [^String tooltip, name]
   (let [jbutton (JButton. name),
         widget  (button. jbutton)]
     (doto jbutton

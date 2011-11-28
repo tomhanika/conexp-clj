@@ -32,7 +32,7 @@
         snapshot      (make-button buttons "Snapshot")]
     (add-scene-callback scn :move-stop save-layout)
     (with-action-on combo
-      (let [selected (.. evt getSource getSelectedItem),
+      (let [selected (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
             layout   (@saved-layouts selected)]
         (update-layout-of-scene scn layout)
         (fit-scene-to-layout scn layout)))

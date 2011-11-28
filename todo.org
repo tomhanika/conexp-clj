@@ -16,10 +16,12 @@ conexp-clj TODOs and BUGs
 ** TODO Undo for GUI
 * For 0.0.7-alpha
 ** GUI
-*** INPROGRESS Remove reflection warnings from GUI                   :Daniel:
+*** CANCELLED Remove reflection warnings from GUI                    :Daniel:
     There are some things missing:
       - with-action-on does not provide type hint for captured variable
       - type hints on variables in let seem to be ignored
+
+    Removed reflection warnings where possible, left others as they are.
 *** TODO Allow resizing of cells in GUI                              :Daniel:
     For this a special mouse handler has to be implemented that changes the cursor when resizing is
     possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for

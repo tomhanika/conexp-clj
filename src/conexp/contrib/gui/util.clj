@@ -62,10 +62,11 @@
   ActionEvent Object bound to the variable evt. body will be executed
   in a thread-safe manner."
   [thing & body]
-  `(.addActionListener ~thing
-                       (proxy [ActionListener] []
-                         (actionPerformed [~(vary-meta 'evt assoc :tag java.awt.event.ActionEvent)]
-                          (do-swing ~@body)))))
+  `(.addActionListener
+    ~thing
+    (proxy [ActionListener] []
+      (actionPerformed [^java.awt.event.ActionEvent ~'evt] ;how to do right?
+        (do-swing ~@body)))))
 
 (defmacro with-change-on
   "Adds a change listener on thing to execute body, with the catched
@@ -98,9 +99,9 @@
                                                  javax.swing.JOptionPane/ERROR_MESSAGE))))
 
 (defn- add-handler
-  "Adds an ActionListener to thing that calls function with frame when
+  "Adds an ActionListener to abstract-button that calls function with frame when
   activated (i.e. when actionPerformed is called)."
-  [thing frame function]
+  [^javax.swing.AbstractButton thing frame function]
   (.addActionListener thing
     (proxy [ActionListener] []
       (actionPerformed [evt]
