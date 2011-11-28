@@ -4,8 +4,8 @@ zip: jar
 	mkdir -p conexp-clj/lib/
 	cp stuff/libs/*.jar conexp-clj/lib/
 	cp stuff/libs/*.clj conexp-clj/lib
-	cp -r stuff/bin res AUTHORS LICENSE README.md conexp-clj/
-	cp lib/*.jar conexp-clj/lib/
+	cp -r stuff/bin AUTHORS LICENSE README.md conexp-clj/
+	cp -r src/res lib/*.jar conexp-clj/lib/
 	mv conexp-clj-*.jar conexp-clj/lib/
 	zip -r conexp-clj-$(cat VERSION).zip conexp-clj
 
