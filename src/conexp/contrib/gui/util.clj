@@ -108,11 +108,6 @@
         (with-swing-error-msg frame "Error"
           (function frame))))))
 
-(defn implements-interface?
-  "Returns true iff given class implements given interface."
-  [^Class class, interface]
-  (some #(= interface %) (.getInterfaces class)))
-
 (defn get-component
   "Returns the first component in component satisfing predicate."
   [^java.awt.Container component, predicate]
