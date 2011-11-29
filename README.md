@@ -7,11 +7,18 @@ new ideas.
 The project has been started by Daniel Borchmann under supervision of Christian
 Meschke as part of the DFG project ???/???/???.
 
-For more information, you can visit conexp-clj's website at http://daniel.kxpq.de/math/conexp-clj/.
+For more information, you can visit conexp-clj's website at
+http://daniel.kxpq.de/math/conexp-clj/.
 
 
 Features
 --------
+
+(missing)
+
+
+How to Run
+----------
 
 (missing)
 
@@ -60,9 +67,9 @@ Contributing Authors
 
 Currently conexp-clj is developed and maintained by
 
-  Daniel Borchmann
+  * Daniel Borchmann
 
 Additional Contributors are
 
-  Immanuel Albrecht        (Context Editor Plugin for the GUI)
-  Stefan Borgwardt         (Shared Intents)
+  * Immanuel Albrecht (Context Editor Plugin for the GUI)
+  * Stefan Borgwardt  (Shared Intents)
