@@ -8,8 +8,8 @@
 
 (ns conexp.contrib.algorithms.concepts
   (:use [conexp.main :only (ns-doc, illegal-argument, improve-basic-order)]
+        conexp.util.generators
         conexp.contrib.algorithms.bitwise
-        conexp.contrib.algorithms.generators
         [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
   (:use [conexp.fca.contexts :only (context?, objects, attributes,
                                     incidence, attribute-derivation,
