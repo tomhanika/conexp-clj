@@ -154,7 +154,7 @@ defnk accepts an optional docstring as well as an optional metadata map."
   current namespace, before all other tests in supplied as arguments."
   [& namespaces]
   `(defn ~'test-ns-hook []
-     (test-all-vars ~'*ns*)
+     (test-all-vars '~(ns-name *ns*))
      (doseq [ns# '~namespaces]
        (let [result# (do (require ns#) (test-ns ns#))]
          (dosync
