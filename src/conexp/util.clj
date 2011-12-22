@@ -150,9 +150,11 @@ defnk accepts an optional docstring as well as an optional metadata map."
 
 (defmacro tests-to-run
   "Defines tests to run when the namespace in which this macro is
-  called is tested by test-ns."
+  called is tested by test-ns.  Additionally, runs all tests in the
+  current namespace, before all other tests in supplied as arguments."
   [& namespaces]
   `(defn ~'test-ns-hook []
+     (test-all-vars ~'*ns*)
      (doseq [ns# '~namespaces]
        (let [result# (do (require ns#) (test-ns ns#))]
          (dosync
