@@ -17,7 +17,7 @@
            [javax.swing.filechooser FileNameExtensionFilter]
            [javax.imageio ImageIO]
            [java.awt GridLayout BorderLayout Dimension Image Font Color
-                     Graphics Graphics2D BasicStroke FlowLayout MediaTracker]
+                     Graphics Graphics2D BasicStroke FlowLayout]
            [java.awt.event KeyEvent ActionListener ActionEvent MouseAdapter MouseEvent]
            [java.awt.image BufferedImage]
            [javax.swing.event ChangeListener ChangeEvent]
@@ -62,10 +62,11 @@
   ActionEvent Object bound to the variable evt. body will be executed
   in a thread-safe manner."
   [thing & body]
-  `(.addActionListener ~thing
-                       (proxy [ActionListener] []
-                         (actionPerformed [~(vary-meta 'evt assoc :tag java.awt.event.ActionEvent)]
-                          (do-swing ~@body)))))
+  `(.addActionListener
+    ~thing
+    (proxy [ActionListener] []
+      (actionPerformed [^java.awt.event.ActionEvent ~'evt] ;how to do right?
+        (do-swing ~@body)))))
 
 (defmacro with-change-on
   "Adds a change listener on thing to execute body, with the catched
@@ -76,19 +77,6 @@
                        (proxy [ChangeListener] []
                          (stateChanged [^ChangeEvent ~'evt]
                            (do-swing ~@body)))))
-
-(let [all-paths (string/split (System/getProperty "java.class.path")  #":"),
-      cclj-path (filter (fn [x] (re-find #"conexp-clj-[^\/]*\.jar" x)),
-                        all-paths),
-      res-root  (if (empty? cclj-path)
-                  "./"
-                  (str (re-find #".*/" (first cclj-path)) "../")),
-      res-path  (str res-root "res/")]
-  (defn get-resource-file-path
-    "For a given file name, returns the file name with the current
-     resource path before it."
-    [res]
-    (str res-path res)))
 
 (defn get-root-cause
   "Returns original message of first exception causing the given one."
@@ -111,19 +99,14 @@
                                                  javax.swing.JOptionPane/ERROR_MESSAGE))))
 
 (defn- add-handler
-  "Adds an ActionListener to thing that calls function with frame when
+  "Adds an ActionListener to abstract-button that calls function with frame when
   activated (i.e. when actionPerformed is called)."
-  [thing frame function]
+  [^javax.swing.AbstractButton thing frame function]
   (.addActionListener thing
     (proxy [ActionListener] []
       (actionPerformed [evt]
         (with-swing-error-msg frame "Error"
           (function frame))))))
-
-(defn implements-interface?
-  "Returns true iff given class implements given interface."
-  [^Class class, interface]
-  (some #(= interface %) (.getInterfaces class)))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
@@ -149,8 +132,8 @@
   ([text]
      (JOptionPane/showMessageDialog nil (str text) "Info" 0)))
 
-(defn get-resource
-  "Returns the resource res if found, nil otherwise."
+(defn ^java.net.URL get-resource
+  "Returns the URL of the given the resource res if found, nil otherwise."
   [res]
   (let [cl (.getContextClassLoader (Thread/currentThread))]
     (.getResource cl res)))
@@ -160,13 +143,13 @@
   [frame message]
   (JOptionPane/showConfirmDialog frame message))
 
-(defn-swing get-image-icon-or-string
+(defn get-image-icon-or-string
   "Returns either the image-icon for the given resource or the given
    alternative string."
   [res alt]
-  (let [img (ImageIcon. ^String (get-resource-file-path res))]
-    (if (= (.getImageLoadStatus img) MediaTracker/COMPLETE)
-      img alt)))
+  (let [img (get-resource (str "res/" res)),
+        ^ImageIcon img (and img (ImageIcon. img))]
+    (or img alt)))
 
 
 ;;; widgets

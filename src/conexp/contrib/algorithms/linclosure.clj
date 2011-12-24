@@ -82,13 +82,12 @@
 
 (comment
 
-  (use '[clojure.contrib.def :only (defvar-)])
   (require '[conexp.main :as cm])
 
   (let [subsets-10 (cm/subsets #{1 2 3 4 5 6 7 8 9 10})]
-    (defvar- impls (cm/set-of (cm/make-implication A B)
-                              [A subsets-10
-                               B subsets-10])))
+    (cm/defvar- impls (cm/set-of (cm/make-implication A B)
+                                 [A subsets-10
+                                  B subsets-10])))
 
   (time (close-under-implications impls #{}))
   (time (cm/close-under-implications impls #{}))

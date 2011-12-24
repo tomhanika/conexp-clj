@@ -70,7 +70,7 @@
     (with-action-on fit
       (fit-scene-to-layout scn))
     (with-action-on combo-box
-      (let [selected  (.getSelectedItem ^JComboBox (.getSource evt)),
+      (let [selected  (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
             layout-fn (get layouts selected),
             layout    (scale-layout [0.0 0.0]
                                     [100.0 100.0]
@@ -91,7 +91,7 @@
                         (fn [node dx dy]
                           (@current-move-mode node dx dy)))
     (with-action-on combo-box
-      (let [selected (.. evt getSource getSelectedItem),
+      (let [selected (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
             move-mode (get move-modes selected)]
         (reset! current-move-mode move-mode))))
 

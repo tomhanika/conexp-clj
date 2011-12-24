@@ -8,10 +8,10 @@
 
 (ns conexp.contrib.tests.algorithms.concepts
   (:require [conexp.main :as cm])
-  (:use [conexp.contrib.exec :only (program-exists?)]
+  (:use [conexp.base :only (defvar-)]
+        [conexp.contrib.exec :only (program-exists?)]
         conexp.contrib.algorithms.concepts)
-  (:use clojure.test
-        clojure.contrib.def))
+  (:use clojure.test))
 
 ;;;
 

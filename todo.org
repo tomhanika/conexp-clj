@@ -3,54 +3,15 @@
 #+startup: hidestars
 #+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
 
-conexp-clj TODOs
-
-* For 1.0.0
-** TODO Implement Christians Force Layout with derivations
-** TODO Implement Christians Initial Position Layout
-** TODO Rule Exploration with Impex
-** TODO GUI context editor
-   It's slow, make it faster. If no second operand is given, calling
-   the corresponding menu entry produces an unintuitive error.
-** TODO GUI lattice editor
-** TODO GUI code editor
-** TODO GUI plugin browser
-** TODO Fix stupid labeling
-** TODO Fix Neverending Rotation when switching tabs
-   This is a GUI problem.
-** TODO Undo for GUI
-* For 0.1.0-beta
-** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * For 0.0.7-alpha
-** DONE Make Sage interface faster                                   :Daniel:
-   CLOSED: [2011-01-22 Sa 20:47]
-** INPROGRESS Add more layout output [0/2]                           :Daniel:
-   - [ ] svg
-   - [ ] povray
-** INPROGRESS draw-lattice-to-file                                   :Daniel:
-   We need some function (i.e. draw-lattice-to-file) which produces a
-   file of the picture of a lattice layout, when given the same
-   arguments as draw-lattice.
-
-   For this we need some abstrace picture-drawing facility, which can
-   produce pictures without showing them. For that we could use svg
-   (also as output format for layouts) and simply write it to a file.
-** INPROGRESS Allow additional arguments to write-context            :Daniel:
-   depending on the current layout.
-** INPROGRESS Java Interface [0/2]                                   :Daniel:
-   - [ ] Add type hints for automatically generated Java interface functions.
-   - [ ] Include conexp.contrib namespaces
-** INPROGRESS Remove reflection warnings from GUI                    :Daniel:
-   There are some things missing:
-     - with-action-on does not provide type hint for captured variable
-     - type hints on variables in let seem to be ignored
-** INPROGRESS More IO formats for contexts [2/5]                     :Daniel:
-   - [X] anonymous burmeister (without names for objects and
-     attributes)
-   - [ ] csc
-   - [ ] slf
-   - [ ] csx
-   - [X] binary csv
+** TODO Allow resizing of cells in GUI                               :Daniel:
+   For this a special mouse handler has to be implemented that changes the cursor when resizing is
+   possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
+   setting the width of a column.
+** TODO Adjusting nodes in lattice diagram with parallelogram rule   :Daniel:
+** TODO Use breakable tool bar for context editor                    :Daniel:
+** TODO Add tests for explicit IO formats                            :Daniel:
+   given as keywords or strings.
 ** INPROGRESS Improve test coverage of conexp contrib [0/12]         :Daniel:
    - [ ] algorithms
    - [ ] concept approximation
@@ -69,8 +30,26 @@ conexp-clj TODOs
    - [ ] util [0/1]
      - [ ] general sorted sets
 ** INPROGRESS Add tests for new Association Rule functions           :Daniel:
-** TODO Add tests for explicit IO formats                            :Daniel:
-   given as keywords or strings.
+** INPROGRESS Add more layout output [0/2]                           :Daniel:
+   - [ ] svg
+   - [ ] povray
+** INPROGRESS draw-lattice-to-file                                   :Daniel:
+   We need some function (i.e. draw-lattice-to-file) which produces a
+   file of the picture of a lattice layout, when given the same
+   arguments as draw-lattice.
+
+   For this we need some abstrace picture-drawing facility, which can
+   produce pictures without showing them. For that we could use svg
+   (also as output format for layouts) and simply write it to a file.
+** INPROGRESS Allow additional arguments to write-context            :Daniel:
+   depending on the current layout.
+** INPROGRESS More IO formats for contexts [2/5]                     :Daniel:
+   - [X] anonymous burmeister (without names for objects and
+     attributes)
+   - [ ] csc
+   - [ ] slf
+   - [ ] csx
+   - [X] binary csv
 ** TODO Rewrite to-inf-additive-layout                               :Daniel:
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Lattice IO for csv and dot                                   :Daniel:
@@ -86,77 +65,28 @@ conexp-clj TODOs
 ** TODO Change attribute names for mv-context scales                 :Daniel:
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** DONE Allow nominals in DL extension                               :Daniel:
-** TODO Make output of TBoxes readable                               :Daniel:
-** TODO Automatically convert DL expressions to LaTeX                :Daniel:
-** TODO Allow resizing of cells in GUI                               :Daniel:
-   For this a special mouse handler has to be implemented that changes the cursor when resizing is
-   possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
-   setting the width of a column.
-* For 0.0.6-alpha
-** DONE Check function names for DL contrib                          :Daniel:
-   They mix «interpretation» and «model» in arbitrary ways.
-** DONE Restructure layout code                                      :Daniel:
-   Some functions (grid adjustment) may just go to util, and the
-   freese layout should be in conexp.layout.freese and should provide
-   two functions (freese-layout and freese-interactive-layout).
-** DONE Write transitive-reduction                                   :Daniel:
-   and use it for «luxenburger-basis» and for «edges»
-** DONE Improve test coverage of conexp core [5/5]                   :Daniel:
-   CLOSED: [2011-01-31 Mo 20:50]
-   - [X] conexp.base
-   - [X] conexp.fca [7/7]
-     - [X] association rules
-     - [X] contexts
-     - [X] exploration
-     - [X] implications
-     - [X] lattices
-     - [X] many-valued contexts
-     - [X] more
-   - [X] conexp.io [4/4]
-     - [X] contexts
-     - [X] lattices
-     - [X] layouts
-     - [X] many-valued contexts
-   - [X] conexp.math [2/2]
-     - [X] optimize
-     - [X] statistics
-   - [X] conexp.layouts [6/6]
-     - [X] util
-     - [X] base
-     - [X] common
-     - [X] layered
-     - [X] force
-     - [X] freese
-** DONE Add more example files [5/5]                              :Sebastian:
-   CLOSED: [2011-02-14 Mo 19:57]
-   - [X] basic usage
-   - [X] working with contexts
-   - [X] lattices
-   - [X] implications
-   - [X] IO
-** DONE Detexify docstrings                                          :Daniel:
-   Docstrings don't need to contain TeX, since we will not import them
-   into the documentation anymore.
-** DONE Add conexp.io.latex                                          :Daniel:
-   CLOSED: [2010-12-29 Mi 20:54]
-   As a function which outputs a tex representation of a given object
-** DONE Text Layout IO should use shortened annotation               :Daniel:
-   CLOSED: [2011-01-26 Mi 23:17]
-** DONE Let make-layout do error checking                            :Daniel:
-   CLOSED: [2011-01-31 Mo 21:59]
-   And introduce make-layout-nc.
-** DONE Make conexp-clj.sh script more sophisticated                 :Daniel:
-   CLOSED: [2011-02-01 Di 21:37]
-
-conexp-clj BUGs
-
+* Unscheduled
+** TODO Implement Christians Force Layout with derivations
+** TODO Implement Christians Initial Position Layout
+** TODO Rule Exploration with Impex
+** TODO GUI context editor
+** TODO GUI lattice editor
+** TODO GUI code editor
+** TODO GUI plugin browser
+** TODO Undo for GUI
 * Bugs
-** DONE 001
-   Contexts in ConExp format are not read in properly.
-
+** DONE 001 Contexts in ConExp format are not read in properly.
    The testing context nn_5.half.cex has problems when read in, the names of the objects and
    attributes are wrong.
 
    This can be fixed by taking all the content (not only the first element) of the appropiate
    element of the xml file.
+** TODO 002 Fix stupid labeling of concept lattices
+** TODO 003 Fix Neverending Rotation when switching tabs
+   When rotating the lattice and switching panels, rotation does not stop and overrides the current
+   panel.
+
+** TODO 004 Unintuive Error when no second operand given
+   In the GUI, if no second operand is given but needed, the resulting error is very uninformative.
+** TODO 005 GUI icons don't show up under windows
+   probably a path problem

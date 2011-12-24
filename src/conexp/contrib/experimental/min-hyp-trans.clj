@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.experimental.min-hyp-trans
   (:use conexp.main
-        [clojure.contrib.combinatorics :only (selections)]))
+        [clojure.math.combinatorics :only (selections)]))
 
 ;;;
 

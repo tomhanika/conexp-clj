@@ -226,8 +226,8 @@
                                    frame
                                    (fn [thing]
                                      (and (= (class thing) JTextArea)
-                                          (implements-interface? (class (.getDocument ^JTextArea thing))
-                                                                 conexp.contrib.gui.repl.ReplProcess))))]
+                                          (satisfies? ReplProcess
+                                                      (.getDocument ^JTextArea thing)))))]
     (when repl-container
       (let [^conexp.contrib.gui.repl.ReplProcess repl-process (.getDocument repl-container)]
         (.getReplThreadMap repl-process)))))

@@ -6,14 +6,18 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.tests.dl.languages.concept-sets
-  (:use conexp.main
-        conexp.contrib.dl.framework.syntax
-        conexp.contrib.dl.languages.concept-sets
-        conexp.contrib.tests.dl.examples))
+(ns conexp.tests.util.generators
+  (:use clojure.test
+        conexp.util.generators))
+
 ;;;
 
-'todo
+(deftest test-generators
+  (is (= (generate-by (fn runner [x]
+                        (doseq [i (range x)]
+                          (yield i)))
+                      10)
+         (list 0 1 2 3 4 5 6 7 8 9))))
 
 ;;;
 

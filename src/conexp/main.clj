@@ -70,7 +70,6 @@
   conexp.contrib.tests too."
   ([] (test-conexp false))
   ([with-contrib?]
-     (require 'clojure.test)
      (if with-contrib?
        (do (require 'conexp.tests
                     'conexp.contrib.tests)

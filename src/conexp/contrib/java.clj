@@ -47,8 +47,13 @@
 
 (defn- dissect-arglist
   [arglist]
-  (let [[a b] (split-with #(not= '& %) arglist)]
-    [a (rest b)]))
+  (if (not (vector? arglist))
+    arglist
+    (let [[a b] (split-with #(not= '& %) arglist)]
+      (if (not-empty b)
+        `(vec (list* ~@(map dissect-arglist a)
+                     ~(dissect-arglist (second b))))
+        (vec (map dissect-arglist arglist))))))
 
 (defn- function-signatures
   "Returns sequence of function signatures, each being suitable for
@@ -67,25 +72,20 @@
     (if-not arglists
       nil
       (for [arglist arglists]
-        (let [arglist-split (dissect-arglist arglist)]
-          [new-name
-           (if (empty? (second arglist-split))
-             (vec (map tag (first arglist-split)))
-             (conj (vec (map tag (first arglist-split)))
-                   "[Ljava.lang.Object;"))
-           return])))))
+        [new-name
+         (vec (map tag (dissect-arglist arglist)))
+         return]))))
 
 (defn- generate-definition
   "Generates function definition with name new-name, calling orig-name
   with supplied arguments. Prepends prefix before new-name"
   [prefix new-name orig-name & arglists]
-  `(defn ~(symbol (str prefix new-name))
-     ~@(for [args arglists]
-         (let [arglist-split (dissect-arglist args)]
-           `(~args
-             ~(if (not-empty (second arglist-split))
-                `(apply ~(symbol orig-name) ~@(first arglist-split) ~@(second arglist-split))
-                `(~(symbol orig-name) ~@(first arglist-split))))))))
+  (when (not-empty arglists)
+    `(defn ~(symbol (str prefix new-name))
+       ~@(for [args arglists]
+           (let [arglist-split (dissect-arglist args)]
+             `(~args
+               (apply ~(symbol orig-name) ~(dissect-arglist args))))))))
 
 ;;;
 

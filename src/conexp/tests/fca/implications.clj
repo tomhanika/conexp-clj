@@ -277,6 +277,12 @@
         0 contexts/test-ctx-04 1/5 1/2,
         1 contexts/test-ctx-01 1/5 1/2))
 
+(deftest test-ryssel-base
+  (with-testing-data [ctx (random-contexts 10 15)]
+    (let [base (ryssel-base ctx)]
+      (and (sound-implication-set? ctx base)
+           (complete-implication-set? ctx base)))))
+
 ;;;
 
 nil

@@ -10,7 +10,7 @@
   (:use conexp.base
         conexp.layouts.base
         conexp.fca.lattices)
-  (:require [clojure.contrib.graph :as graph]))
+  (:require [conexp.util.graph :as graph]))
 
 (ns-doc
  "Utilities for computing lattice layouts.")

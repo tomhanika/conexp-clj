@@ -6,27 +6,27 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(use 'clojure.contrib.command-line)
+(use 'clojure.tools.cli)
 
 ;;
 
 (defn- run-repl []
   (clojure.main/repl :init #(use 'conexp.main)))
 
-(with-command-line *command-line-args*
-  "conexp-clj -- a general purpose tool for Formal Concept Analysis\n"
-  [[gui? "Start the graphical user interface"]
-   [load "Load script and run"]]
-  (when gui?
+(let [options (cli *command-line-args*
+                   (optional ["--gui" "Start the graphical user interface"])
+                   (optional ["--load" "Load a given script"]))]
+  (when (options :gui)
     (clojure.main/repl :init #(do
                                 (use 'conexp.main)
                                 (use 'conexp.contrib.gui)
                                 (@(ns-resolve 'conexp.contrib.gui 'gui)
                                  :default-close-operation javax.swing.JFrame/EXIT_ON_CLOSE))))
-  (when load
+  (when (options :load)
     (use 'conexp.main)
-    (load-file load))
-  (when-not (or load gui?)
+    (load-file (options :load)))
+  (when-not (or (options :gui)
+                (options :load))
     (clojure.main/repl :init #(use 'conexp.main))))
 
 ;;
