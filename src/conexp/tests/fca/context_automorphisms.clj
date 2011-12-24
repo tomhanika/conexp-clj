@@ -6,19 +6,19 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.fca
-  (:use conexp.base))
+(ns conexp.tests.fca.context-automorphisms
+  (:use conexp.base
+        conexp.fca.contexts
+        conexp.fca.context-automorphisms)
+  (:use clojure.test))
 
 ;;;
 
-(tests-to-run conexp.tests.fca.contexts
-              conexp.tests.fca.lattices
-              conexp.tests.fca.implications
-              conexp.tests.fca.many-valued-contexts
-              conexp.tests.fca.exploration
-              conexp.tests.fca.more
-              conexp.tests.fca.context-automorphisms)
+(deftest automorphisms-groups-of-certain-contexts
+  (is (= 6 (count (context-automorphisms (adiag-context 3))))))
 
 ;;;
 
 nil
+
+
