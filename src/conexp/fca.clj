@@ -22,7 +22,8 @@
            'conexp.fca.implications
            'conexp.fca.exploration
            'conexp.fca.lattices
-           'conexp.fca.more)
+           'conexp.fca.more
+           'conexp.fca.context-automorphisms)
 
 ;;;
 
