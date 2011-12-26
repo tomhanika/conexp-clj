@@ -25,34 +25,17 @@
          (<=> (contains? (incidence ctx) [g m])
               (contains? (incidence ctx) [(alpha g) (beta m)])))))
 
+(defn- context-to-graph
+  "Converts a given context to a bipartite graph." ;mention how objects and attributes are named in
+                                                   ;the resulting graph
+  [ctx]
+  (not-yet-implemented))
+
 (defn context-automorphisms-generators
   "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
   and the attributes of ctx, respectively.  Returns its result as a lazy sequence."
   [ctx]
-  (let [objs (vec (objects ctx)),
-        atts (vec (attributes ctx)),
-        ctx  (make-context (range (count objs))
-                           (range (count objs) (+ (count objs) (count atts)))
-                           (fn [x y]
-                             (incident? ctx (objs x) (atts (- y (count objs)))))),
-        ;;
-        obj-map (into {} (map-indexed vector objs)),
-        rob-map (map-invert obj-map),
-        att-map (into {} (map-indexed #(vector (+ (count objs) %1) %2) atts)),
-        rat-map (map-invert att-map),
-        ;;
-        tn   (terminal-nodes ctx [(objects ctx) (attributes ctx)])]
-    (distinct
-     (for [pi    tn,
-           sigma tn,
-           :when (= (set-of [(pi g) (pi m)] | [g m] (incidence ctx))
-                    (set-of [(sigma g) (sigma m)] | [g m] (incidence ctx)))]
-       (let [pi      (into {} (map-indexed vector pi)),
-             sigma-1 (map-invert (into {} (map-indexed vector sigma)))]
-         [(map-by-fn (comp obj-map sigma-1 pi rob-map)
-                     objs),
-          (map-by-fn (comp att-map sigma-1 pi rat-map)
-                     atts)])))))
+  (not-yet-implemented))
 
 (defn isomorphic-contexts?
   "Tests whether ctx-1 and ctx-2 are isomorphic."
