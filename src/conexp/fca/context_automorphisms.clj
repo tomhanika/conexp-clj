@@ -8,11 +8,12 @@
 
 (ns conexp.fca.context-automorphisms
   (:use conexp.base
+        conexp.util.graph
         conexp.fca.contexts))
 
 (ns-doc "Context Automorphisms.")
 
-;;; Context Automorphisms
+;;;
 
 (defn context-automorphism?
   "Returns true if and only if the pair [alpha beta] is a context automorphism of ctx."
@@ -24,65 +25,7 @@
          (<=> (contains? (incidence ctx) [g m])
               (contains? (incidence ctx) [(alpha g) (beta m)])))))
 
-;; McKay Algorithm, very simplified
-
-(defn- refine-partition
-  "This function is part of the implementation of McKay's algorithm.
-
-"
-  [ctx, pi]
-  (loop [pi pi,
-         m  0,
-         k  0]
-    (cond
-     (or (>= m (count pi))
-         (every? singleton? pi))
-     pi
-     ;;
-     (>= k (count pi))
-     (recur pi (inc m) 0)
-     ;;
-     :else
-     (let [W (pi m),
-           V (pi k),
-           X (group-by #(count (filter (fn [z]
-                                         (or (incident? ctx % z)
-                                             (incident? ctx z %)))
-                                       W))
-                       V),
-           X (remove empty?
-                     (map #(set (X %))
-                          (range (inc (apply max -1 (keys X))))))]
-       (recur (if (singleton? X)
-                pi
-                (vec (concat (subvec pi 0 k)
-                             X
-                             (subvec pi (inc k)))))
-              m                        ;correct?
-              (inc k))))))             ;correct?
-
-(defn- split-partition-at
-  "This function is part of the implementation of McKay's algorithm.
-
-"
-  [pi u]
-  (let [[before-u after-u] (split-with #(not (contains? % u)) pi)]
-    (vec (concat before-u
-                 [#{u} (disj (first after-u) u)]
-                 (rest after-u)))))
-
-(defn- terminal-nodes
-  "This function is part of the implementation of McKay's algorithm.
-
-"
-  [ctx pi]
-  (let [pi (refine-partition ctx pi)]
-    (if (every? singleton? pi)
-      (list (vec (mapcat identity pi)))
-      (mapcat #(terminal-nodes ctx (split-partition-at pi %))
-              (first (remove singleton? pi))))))
-
-(defn context-automorphisms
+(defn context-automorphisms-generators
   "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
   and the attributes of ctx, respectively.  Returns its result as a lazy sequence."
   [ctx]
@@ -110,21 +53,6 @@
                      objs),
           (map-by-fn (comp att-map sigma-1 pi rat-map)
                      atts)])))))
-
-(defn- terminal-nodes-pruning
-  "This function is part of the implementation of McKay's algorithm.
-
-"
-  [ctx partition]
-  )
-
-(defn canonical-isomorph
-  "Returns the canonical isomorph of ctx, as defined by McKay's algorithm using lexicographic
-  ordering."
-  [ctx]
-  )
-
-;;
 
 (defn isomorphic-contexts?
   "Tests whether ctx-1 and ctx-2 are isomorphic."

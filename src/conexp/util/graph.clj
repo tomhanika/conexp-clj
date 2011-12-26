@@ -99,6 +99,7 @@ behavior, call (-> g transitive-closure add-loops)"
     (struct directed-graph
             (:nodes g)
             (fn [n] (force (nbs n))))))
+
 ;; Strongly Connected Components
 
 (defn- post-ordered-visit
@@ -223,6 +224,84 @@ graph, node a must be equal or later in the sequence."
                             =)]
     (fold-into-sets counts)))
 
+;;; McKay's Algorithm for computing generators of the automorphism group
+
+;; Partitions
+
+;; Graphs
+
+;; Refining equitable partitions
+
+(defn- refine-partition
+  ""
+  [ctx, pi]
+  (loop [pi pi,
+         m  0,
+         k  0]
+    (cond
+     (or (>= m (count pi))
+         (every? singleton? pi))
+     pi
+     ;;
+     (>= k (count pi))
+     (recur pi (inc m) 0)
+     ;;
+     :else
+     (let [W (pi m),
+           V (pi k),
+           X (group-by #(count (filter (fn [z]
+                                         (or (incident? ctx % z)   ;wrong!
+                                             (incident? ctx z %))) ;wrong!
+                                       W))
+                       V),
+           X (remove empty?
+                     (map #(set (X %))
+                          (range (inc (apply max -1 (keys X))))))]
+       (recur (if (singleton? X)
+                pi
+                (vec (concat (subvec pi 0 k)
+                             X
+                             (subvec pi (inc k)))))
+              m                        ;correct?
+              (inc k))))))             ;correct?
+
+;; Partition Nests
+
+(defn- split-partition-at
+  ""
+  [pi u]
+  (let [[before-u after-u] (split-with #(not (contains? % u)) pi)]
+    (vec (concat before-u
+                 [#{u} (disj (first after-u) u)]
+                 (rest after-u)))))
+
+;; Search Tree
+
+(defn terminal-nodes
+  ""
+  [ctx pi]
+  (let [pi (refine-partition ctx pi)]
+    (if (every? singleton? pi)
+      (list (vec (mapcat identity pi)))
+      (mapcat #(terminal-nodes ctx (split-partition-at pi %))
+              (first (remove singleton? pi))))))
+
+;; 
+
+(defn canonical-isomorph
+  ""
+  [graph]
+  graph)
+
+(defn graph-automorphism-generators
+  ""
+  [graph]
+  nil)
+
+(defn graph-automorphism-group-size
+  ""
+  [graph]
+  0)
 
 ;; End of file
 
