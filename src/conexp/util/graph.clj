@@ -224,84 +224,48 @@ graph, node a must be equal or later in the sequence."
                             =)]
     (fold-into-sets counts)))
 
+
 ;;; McKay's Algorithm for computing generators of the automorphism group
-
-;; Partitions
-
-;; Graphs
 
 ;; Refining equitable partitions
 
 (defn- refine-partition
   ""
-  [ctx, pi]
-  (loop [pi pi,
-         m  0,
-         k  0]
-    (cond
-     (or (>= m (count pi))
-         (every? singleton? pi))
-     pi
-     ;;
-     (>= k (count pi))
-     (recur pi (inc m) 0)
-     ;;
-     :else
-     (let [W (pi m),
-           V (pi k),
-           X (group-by #(count (filter (fn [z]
-                                         (or (incident? ctx % z)   ;wrong!
-                                             (incident? ctx z %))) ;wrong!
-                                       W))
-                       V),
-           X (remove empty?
-                     (map #(set (X %))
-                          (range (inc (apply max -1 (keys X))))))]
-       (recur (if (singleton? X)
-                pi
-                (vec (concat (subvec pi 0 k)
-                             X
-                             (subvec pi (inc k)))))
-              m                        ;correct?
-              (inc k))))))             ;correct?
+  [graph, pi, alpha]
+  (not-yet-implemented))
 
 ;; Partition Nests
 
 (defn- split-partition-at
   ""
   [pi u]
-  (let [[before-u after-u] (split-with #(not (contains? % u)) pi)]
-    (vec (concat before-u
-                 [#{u} (disj (first after-u) u)]
-                 (rest after-u)))))
+  (not-yet-implemented))
 
 ;; Search Tree
 
 (defn terminal-nodes
   ""
   [ctx pi]
-  (let [pi (refine-partition ctx pi)]
-    (if (every? singleton? pi)
-      (list (vec (mapcat identity pi)))
-      (mapcat #(terminal-nodes ctx (split-partition-at pi %))
-              (first (remove singleton? pi))))))
+  (not-yet-implemented))
 
-;; 
+;; Isomorphy
 
 (defn canonical-isomorph
   ""
   [graph]
-  graph)
+  (not-yet-implemented))
+
+;; Automorphisms
 
 (defn graph-automorphism-generators
   ""
   [graph]
-  nil)
+  (not-yet-implemented))
 
 (defn graph-automorphism-group-size
   ""
   [graph]
-  0)
+  (not-yet-implemented))
 
 ;; End of file
 
