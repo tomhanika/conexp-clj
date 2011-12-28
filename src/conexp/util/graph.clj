@@ -300,22 +300,31 @@ graph, node a must be equal or later in the sequence."
 
 ;; Isomorphy and Automorphisms
 
-;; main algorithm, computing the canonical isomorph, automorphism generators and the size of the
-;; automorphism group
+(defn- mckay
+  ""
+  [graph partition]
+  (not-yet-implemented))
 
 (defn canonical-isomorph
   ""
   ([graph]
-     (canonical-isomorph (make-partition [(:nodes graph)])))
+     (canonical-isomorph [(:nodes graph)]))
   ([graph partition]
-     (not-yet-implemented)))
+     (:canonical-isomorph (mckay graph partition))))
 
-(defn graph-automorphism-generators
+(defn automorphism-group-generators
   ""
   ([graph]
-     (graph-automorphism-generators graph (make-partition [(:nodes graph)])))
+     (automorphism-group-generators graph [(:nodes graph)]))
   ([graph partition]
-     (not-yet-implemented)))
+     (:automorphism-generators (mckay graph partition))))
+
+(defn automorphism-group-size
+  ""
+  ([graph]
+     (automorphism-group-size graph [(:nodes graph)]))
+  ([graph partition]
+     (:automorphism-size (mckay graph partition))))
 
 ;;;
 
