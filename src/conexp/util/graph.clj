@@ -19,7 +19,8 @@
     #^{:author "Jeffrey Straszheim",
        :doc "Basic graph theory algorithms"}
   conexp.util.graph
-  (use [clojure.set :only (union)]))
+  (use [clojure.set :only (union)]
+       [conexp.base :only (not-yet-implemented)]))
 
 
 (defstruct directed-graph
@@ -227,12 +228,45 @@ graph, node a must be equal or later in the sequence."
 
 ;;; McKay's Algorithm for computing generators of the automorphism group
 
+;; Partitions
+
+(defn- make-ordered-partition
+  "Given a collection coll if disjoint collections of all numbers from 0 to n-1, returns the
+  corresponding partition."
+  [coll]
+  ;; error checking
+  (vec (sort (fn [x y] (< (apply min x) (apply min y)))
+             (map (comp vec sort) coll))))
+
+;; discrete-partition?
+;; unit-partition?
+;; partition-by-set
+;; first-maximal-set-index
+
 ;; Refining equitable partitions
 
-(defn- refine-partition
+(defn- refine-ordered-partition
   ""
   [graph, pi, alpha]
-  (not-yet-implemented))
+  (let [pi    (atom pi),
+        alpha (atom alpha)]
+    (loop [m 0]
+      (if (or (discrete-partition? @pi)
+              (>= m (count @alpha)))
+        pi
+        (let [W  (get @alpha m),
+              m  (inc m)]
+          (dotimes [k (count @pi)]
+            (let [V_k (get @pi k),
+                  X   (partition-by-set graph V_k W)]
+              (when-not (unit-partition? X)
+                (let [t (first-maximal-set-index X)]
+                  ;; replace V_k in alpha with X_t
+                  ;; append X_1..X_{t-1} to alpha
+                  ;; append X_{t+1}..X_s to alpha
+                  ;; replace V_k in pi with X_1..X_s in that order
+                  ))))
+          (recur pi alpha m))))))
 
 ;; Partition Nests
 
