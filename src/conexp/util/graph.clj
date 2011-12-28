@@ -237,10 +237,12 @@ graph, node a must be equal or later in the sequence."
   (vec (sort (fn [x y] (< (apply min x) (apply min y)))
              (map (comp vec sort) coll))))
 
-;; discrete-partition?
-;; unit-partition?
-;; partition-by-set
-;; first-maximal-set-index
+;; discrete-partition? X
+;; unit-partition? X
+;; partition-by-set graph A B
+;; first-maximal-set-index X
+;; replace-partition-cell X k Bs
+;; append-partition A X
 
 ;; equitable-partition?
 
@@ -254,19 +256,34 @@ graph, node a must be equal or later in the sequence."
     (loop [m 0]
       (if (or (discrete-partition? @pi)
               (>= m (count @alpha)))
-        pi
-        (let [W  (get @alpha m),
-              m  (inc m)]
+        @pi
+        (let [W (@alpha m),
+              m (inc m)]
           (dotimes [k (count @pi)]
-            (let [V_k (get @pi k),
+            (let [V_k (@pi k),
                   X   (partition-by-set graph V_k W)]
               (when-not (unit-partition? X)
                 (let [t (first-maximal-set-index X)]
                   ;; replace V_k in alpha with X_t
+                  (when-let [j (loop [j m]
+                                 (if (>= j (count @alpha))
+                                   nil
+                                   (if (= (@alpha j) V_k)
+                                     j
+                                     (recur (inc j)))))]
+                    (swap! alpha
+                           (replace-partition-cell @alpha k [(X t)])))
                   ;; append X_1..X_{t-1} to alpha
+                  (doseq [i (range 0 t)]
+                    (swap! alpha
+                           (append-partition @alpha (X i))))
                   ;; append X_{t+1}..X_s to alpha
+                  (doseq [i (range (inc t) (count X))]
+                    (swap! alpha
+                           (append-partition @alpha (X i))))
                   ;; replace V_k in pi with X_1..X_s in that order
-                  ))))
+                  (swap! pi
+                         (replace-partition-cell @pi k X))))))
           (recur pi alpha m))))))
 
 (defn- split-partition-at
