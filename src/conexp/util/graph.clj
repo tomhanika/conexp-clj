@@ -24,9 +24,8 @@
 
 
 (defstruct directed-graph
-  :nodes ; The nodes of the graph, a collection
-  :neighbors) ; A function that, given a node returns a collection
-                                        ; neighbor nodes.
+  :nodes                        ; The nodes of the graph, a collection
+  :neighbors)                   ; A function that, given a node returns a collection neighbor nodes.
 
 (defn make-directed-graph
   "Constructs a directed graph."
@@ -243,6 +242,8 @@ graph, node a must be equal or later in the sequence."
 ;; partition-by-set
 ;; first-maximal-set-index
 
+;; equitable-partition?
+
 ;; Refining equitable partitions
 
 (defn- refine-ordered-partition
@@ -268,8 +269,6 @@ graph, node a must be equal or later in the sequence."
                   ))))
           (recur pi alpha m))))))
 
-;; Partition Nests
-
 (defn- split-partition-at
   ""
   [pi u]
@@ -277,29 +276,30 @@ graph, node a must be equal or later in the sequence."
 
 ;; Search Tree
 
-(defn terminal-nodes
+(defn- terminal-nodes
   ""
-  [ctx pi]
+  [graph pi]
   (not-yet-implemented))
 
-;; Isomorphy
+;; Isomorphy and Automorphisms
+
+;; main algorithm, computing the canonical isomorph, automorphism generators and the size of the
+;; automorphism group
 
 (defn canonical-isomorph
   ""
-  [graph]
-  (not-yet-implemented))
-
-;; Automorphisms
+  ([graph]
+     (canonical-isomorph (make-partition [(:nodes graph)])))
+  ([graph partition]
+     (not-yet-implemented)))
 
 (defn graph-automorphism-generators
   ""
-  [graph]
-  (not-yet-implemented))
+  ([graph]
+     (graph-automorphism-generators graph (make-partition [(:nodes graph)])))
+  ([graph partition]
+     (not-yet-implemented)))
 
-(defn graph-automorphism-group-size
-  ""
-  [graph]
-  (not-yet-implemented))
+;;;
 
-;; End of file
-
+nil
