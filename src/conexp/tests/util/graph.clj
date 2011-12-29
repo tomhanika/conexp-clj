@@ -12,6 +12,24 @@
 
 ;;;
 
+(def make-ordered-partition @#'conexp.util.graph/make-ordered-partition)
+(def refine-ordered-partition @#'conexp.util.graph/refine-ordered-partition)
+
+;;;
+
+(def ^:private graph-1
+  (make-directed-graph #{1 2 3 4 5}
+                       {1 [2 3], 2 [1 3], 3 [1 2], 4 [5], 5 [4]}))
+
+(def ^:private pi-1
+  (make-ordered-partition [[1 2 3 4 5]]))
+
+;;;
+
+(deftest test-refine-ordered-partition
+  (is (= (make-ordered-partition [#{4 5} #{1 2 3}])
+         (refine-ordered-partition graph-1 pi-1 pi-1))))
+
 ;;;
 
 nil

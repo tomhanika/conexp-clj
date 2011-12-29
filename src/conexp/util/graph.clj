@@ -19,9 +19,9 @@
     #^{:author "Jeffrey Straszheim",
        :doc "Basic graph theory algorithms"}
   conexp.util.graph
-  (use [clojure.set :only (union)]
-       [conexp.base :only (not-yet-implemented)]))
+  (use [conexp.base :exclude (transitive-closure)]))
 
+;;;
 
 (defstruct directed-graph
   :nodes                        ; The nodes of the graph, a collection
@@ -233,18 +233,65 @@ graph, node a must be equal or later in the sequence."
   "Given a collection coll if disjoint collections of all numbers from 0 to n-1, returns the
   corresponding partition."
   [coll]
-  ;; error checking
-  (vec (sort (fn [x y] (< (apply min x) (apply min y)))
-             (map (comp vec sort) coll))))
+  (vec (map set coll)))
 
-;; discrete-partition? X
-;; unit-partition? X
-;; partition-by-set graph A B
-;; first-maximal-set-index X
-;; replace-partition-cell X k Bs
-;; append-partition A X
+(defn- discrete-partition?
+  ""
+  [parti]
+  (every? singleton? parti))
 
-;; equitable-partition?
+(defn- unit-partition?
+  ""
+  [parti]
+  (singleton? parti))
+
+(defn- nr-neighbors-in-set
+  ""
+  [graph v W]
+  (count (intersection W (set (get-neighbors graph v)))))
+
+(defn- partition-by-set
+  ""
+  [graph A W]
+  (let [grouped (group-by #(nr-neighbors-in-set graph % W) A)]
+    (make-ordered-partition (map (comp set second)
+                                 (sort #(< (first %1) (first %2)) grouped)))))
+
+(defn- first-maximal-set-index
+  ""
+  [parti]
+  (loop [i    0,
+         t    0,
+         size 0]
+    (if (>= i (count parti))
+      t
+      (if (< size (count (parti i)))
+        (recur (inc i) i (count (parti i)))
+        (recur (inc i) t size)))))
+
+(defn replace-partition-cell
+  ""
+  [parti idx new-parts]
+  (make-ordered-partition (concat (subvec parti 0 idx)
+                                  new-parts
+                                  (subvec parti (inc idx)))))
+
+(defn- append-partition
+  ""
+  [parti new-part]
+  (make-ordered-partition (conj parti (set new-part))))
+
+(defn- equitable-partition?
+  "Returns true if and only if parti is an equitable partition of the nodes of graph, i.e. for every
+  set V_1 in the partition and every two vertices v_1, v_2 in V_1 the number of common neighbors in
+  every set V_2 of the partition is equal."
+  [graph parti]
+  (forall [V_1 parti,                   ;naïve implementation, does everything twice
+           V_2 parti,
+           v_1 V_1,
+           v_2 V_1]
+    (= (nr-neighbors-in-set graph v_1 V_2)
+       (nr-neighbors-in-set graph v_2 V_2))))
 
 ;; Refining equitable partitions
 
@@ -271,20 +318,20 @@ graph, node a must be equal or later in the sequence."
                                    (if (= (@alpha j) V_k)
                                      j
                                      (recur (inc j)))))]
-                    (swap! alpha
-                           (replace-partition-cell @alpha k [(X t)])))
+                    (reset! alpha
+                            (replace-partition-cell @alpha k [(X t)])))
                   ;; append X_1..X_{t-1} to alpha
                   (doseq [i (range 0 t)]
-                    (swap! alpha
-                           (append-partition @alpha (X i))))
+                    (reset! alpha
+                            (append-partition @alpha (X i))))
                   ;; append X_{t+1}..X_s to alpha
                   (doseq [i (range (inc t) (count X))]
-                    (swap! alpha
-                           (append-partition @alpha (X i))))
+                    (reset! alpha
+                            (append-partition @alpha (X i))))
                   ;; replace V_k in pi with X_1..X_s in that order
-                  (swap! pi
-                         (replace-partition-cell @pi k X))))))
-          (recur pi alpha m))))))
+                  (reset! pi
+                          (replace-partition-cell @pi k X))))))
+          (recur m))))))
 
 (defn- split-partition-at
   ""
