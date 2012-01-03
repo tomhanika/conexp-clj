@@ -84,6 +84,11 @@
                 (java.util.NoSuchElementException. "No more elements to generate."))
                next#)))))))
 
+(defmacro gn
+  "Defines an anonymous generator from args and body."
+  [args & body]
+  `(make-generator (fn ~args ~@body)))
+
 (defmacro defg
   "Globally def'ines a generator. When given some arguments a function
   is returned yielding all \"yield\"ed values on subsequent calls. See

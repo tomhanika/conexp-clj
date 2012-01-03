@@ -19,7 +19,8 @@
     #^{:author "Jeffrey Straszheim",
        :doc "Basic graph theory algorithms"}
   conexp.util.graph
-  (use [conexp.base :exclude (transitive-closure)]))
+  (use [conexp.base :exclude (transitive-closure)]
+       [conexp.util.generators :only (gn, generate)]))
 
 ;;;
 
@@ -359,7 +360,9 @@ graph, node a must be equal or later in the sequence."
   ""
   [parti v]
   (let [idx (find-part-of-vertex parti v)]
-    (replace-partition-cell parti idx [#{v} (disj (parti v) v)])))
+    (if (singleton? (parti v))
+      parti
+      (replace-partition-cell parti idx [#{v} (disj (parti v) v)]))))
 
 (defn- split-partition-at
   ""
@@ -372,8 +375,11 @@ graph, node a must be equal or later in the sequence."
 
 (defn- terminal-nodes
   ""
-  [graph pi]
-  (not-yet-implemented))
+  [graph parti]
+  (let [nodes (gn [graph parti]
+                (let [idx (first-minimal-set-index parti)]
+                  
+  (generate (gene
 
 ;; Isomorphy and Automorphisms
 
