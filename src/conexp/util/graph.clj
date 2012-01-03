@@ -258,15 +258,16 @@ graph, node a must be equal or later in the sequence."
     (make-ordered-partition (map (comp set second)
                                  (sort #(< (first %1) (first %2)) grouped)))))
 
-(defn- find-part-of-vertex
+(defn- find-index-of-vertex
   ""
   [parti v]
-  (loop [parti parti]
+  (loop [parti parti,
+         idx   0]
     (if (empty? parti)
       nil
       (if (contains? (first parti) v)
-        (first parti)
-        (recur (rest parti))))))
+        idx
+        (recur (rest parti) (inc idx))))))
 
 (defn- first-maximal-set-index
   ""
@@ -283,14 +284,24 @@ graph, node a must be equal or later in the sequence."
 (defn- first-minimal-set-index
   ""
   [parti]
-  (loop [i    0,
-         t    0,
-         size 0]
-    (if (>= i (count parti))
-      t
-      (if (> size (count (parti i)))
-        (recur (inc i) i (count (parti i)))
-        (recur (inc i) t size)))))
+  (if (empty? parti)
+    nil
+    (loop [i 0,
+           t nil,
+           size nil]
+      (cond
+       (>= i (count parti))
+       t
+       ;;
+       (singleton? (parti i))
+       (recur (inc i) t size)
+       ;;
+       (or (not size)
+           (> size (count (parti i))))
+       (recur (inc i) i (count (parti i)))
+       ;;
+       :else
+       (recur (inc i) t (count (parti i)))))))
 
 (defn replace-partition-cell
   ""
@@ -359,10 +370,10 @@ graph, node a must be equal or later in the sequence."
 (defn- circ-partition
   ""
   [parti v]
-  (let [idx (find-part-of-vertex parti v)]
-    (if (singleton? (parti v))
+  (let [idx (find-index-of-vertex parti v)]
+    (if (not idx)
       parti
-      (replace-partition-cell parti idx [#{v} (disj (parti v) v)]))))
+      (replace-partition-cell parti idx [#{v} (disj (parti idx) v)]))))
 
 (defn- split-partition-at
   ""
@@ -376,10 +387,13 @@ graph, node a must be equal or later in the sequence."
 (defn- terminal-nodes
   ""
   [graph parti]
-  (let [nodes (gn [graph parti]
+  (let [nodes (gn nodes [parti]
                 (let [idx (first-minimal-set-index parti)]
-                  
-  (generate (gene
+                  (if (not idx)
+                    (yield parti)
+                    (doseq [v (parti idx)]
+                      (nodes (split-partition-at graph parti v))))))]
+    (generate (nodes parti))))
 
 ;; Isomorphy and Automorphisms
 
