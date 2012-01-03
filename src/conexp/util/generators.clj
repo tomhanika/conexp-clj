@@ -87,9 +87,9 @@
                next#)))))))
 
 (defmacro gn
-  "Defines an anonymous generator from args and body."
-  [args & body]
-  `(make-generator (fn ~args ~@body)))
+  "Defines an generator from name, args and body."
+  ([name args & body]
+     `(make-generator (fn ~name ~args ~@body))))
 
 (defmacro defg
   "Globally def'ines a generator. When given some arguments a function
