@@ -17,11 +17,11 @@
 
 ;;;
 
-(def ^:private graph-1
+(def graph-1
   (make-directed-graph #{1 2 3 4 5}
                        {1 [2 3], 2 [1 3], 3 [1 2], 4 [5], 5 [4]}))
 
-(def ^:private pi-1
+(def pi-1
   (make-ordered-partition [[1 2 3 4 5]]))
 
 ;;;
