@@ -25,7 +25,7 @@
 
 (defstruct directed-graph
   :nodes                        ; The nodes of the graph, a collection
-  :neighbors)                   ; A function that, given a node returns a collection neighbor nodes.
+  :neighbors)                   ; A function that, given a node, returns a collection neighbor nodes.
 
 (defn make-directed-graph
   "Constructs a directed graph."
@@ -257,6 +257,16 @@ graph, node a must be equal or later in the sequence."
     (make-ordered-partition (map (comp set second)
                                  (sort #(< (first %1) (first %2)) grouped)))))
 
+(defn- find-part-of-vertex
+  ""
+  [parti v]
+  (loop [parti parti]
+    (if (empty? parti)
+      nil
+      (if (contains? (first parti) v)
+        (first parti)
+        (recur (rest parti))))))
+
 (defn- first-maximal-set-index
   ""
   [parti]
@@ -266,6 +276,18 @@ graph, node a must be equal or later in the sequence."
     (if (>= i (count parti))
       t
       (if (< size (count (parti i)))
+        (recur (inc i) i (count (parti i)))
+        (recur (inc i) t size)))))
+
+(defn- first-minimal-set-index
+  ""
+  [parti]
+  (loop [i    0,
+         t    0,
+         size 0]
+    (if (>= i (count parti))
+      t
+      (if (> size (count (parti i)))
         (recur (inc i) i (count (parti i)))
         (recur (inc i) t size)))))
 
@@ -333,10 +355,18 @@ graph, node a must be equal or later in the sequence."
                           (replace-partition-cell @pi k X))))))
           (recur m))))))
 
+(defn- circ-partition
+  ""
+  [parti v]
+  (let [idx (find-part-of-vertex parti v)]
+    (replace-partition-cell parti idx [#{v} (disj (parti v) v)])))
+
 (defn- split-partition-at
   ""
-  [pi u]
-  (not-yet-implemented))
+  [graph parti u]
+  (refine-ordered-partition graph
+                            (circ-partition parti u)
+                            (make-ordered-partition [[u]])))
 
 ;; Search Tree
 
