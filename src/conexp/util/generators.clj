@@ -68,8 +68,10 @@
                 (.take demand-queue#))]
          (.start (Thread. (fn []
                             (.take demand-queue#)
-                            (apply ~function args#)
-                            (.put delivery-queue# eos#))))
+                            (try
+                              (apply ~function args#)
+                              (finally
+                               (.put delivery-queue# eos#))))))
          (fn []
            (let [next# (if @end#
                          eos#
