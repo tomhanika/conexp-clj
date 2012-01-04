@@ -181,6 +181,7 @@ exception. Set max to nil for unlimited iterations."
                    new-data
                    (recur new-data (and idx (dec idx))))))]
     (step data max)))
+
 (defn- fold-into-sets
   [priorities]
   (let [max (inc (apply max 0 (vals priorities)))
@@ -189,6 +190,7 @@ exception. Set max to nil for unlimited iterations."
     (reduce step
             (vec (replicate max #{}))
             priorities)))
+
 (defn dependency-list
   "Similar to a topological sort, this returns a vector of sets. The
 set of nodes at index 0 are independent. The set at index 1 depend
@@ -205,6 +207,7 @@ much be acyclic) has an edge a->b when a depends on b."
                             (inc (count (:nodes g)))
                             =)]
     (fold-into-sets counts)))
+
 (defn stratification-list
   "Similar to dependency-list (see doc), except two graphs are
 provided. The first is as dependency-list. The second (which may
@@ -382,13 +385,18 @@ graph, node a must be equal or later in the sequence."
                             (circ-partition parti u)
                             (make-ordered-partition [[u]])))
 
+;; Actual Algorithm
+
 (defn- induced-permutation
   ""
   [parti-1 parti-2]
   (zipmap (reduce concat parti-1)
           (reduce concat parti-2)))
 
-;; Actual Algorithm
+(defn- graph-<
+  ""
+  [perm-1 perm-2]
+  (not-yet-implemented))
 
 (defn- terminal-nodes
   ""
@@ -416,7 +424,8 @@ graph, node a must be equal or later in the sequence."
                 alpha))]
     {:automorphism-generators auto,
      :automorphism-group auto,
-     :automorphism-size (count auto)}))
+     :automorphism-size (count auto),
+     :canoical-isomorph nil}))
 
 ;; API
 
@@ -425,7 +434,6 @@ graph, node a must be equal or later in the sequence."
   ([graph]
      (canonical-isomorph [(:nodes graph)]))
   ([graph partition]
-     (not-yet-implemented)
      (:canonical-isomorph (mckay graph partition))))
 
 (defn automorphism-group-generators
