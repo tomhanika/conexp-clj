@@ -8,7 +8,8 @@
 
 (ns conexp.fca.context-automorphisms
   (:use conexp.base
-        [conexp.util.graph :only (make-directed-graph, make-ordered-partition, automorphism-group)]
+        [conexp.util.graph :only (make-directed-graph, make-ordered-partition,
+                                  automorphism-group, canonical-isomorph)]
         conexp.fca.contexts))
 
 (ns-doc "Context Automorphisms.")
@@ -58,8 +59,8 @@
   (and (= (count (objects ctx-1)) (count (objects ctx-2)))
        (= (count (attributes ctx-1)) (count (attributes ctx-2)))
        (= (count (incidence ctx-1)) (count (incidence ctx-2)))
-       (= (canonical-isomorph ctx-1)
-          (canonical-isomorph ctx-2))))
+       (= (canonical-isomorph (context-to-graph ctx-1))
+          (canonical-isomorph (context-to-graph ctx-2)))))
 
 (defn context-object-automorphisms
   "Computes the parts of the context automorphisms of ctx which act on the objects of ctx.  Returns
