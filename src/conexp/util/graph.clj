@@ -26,7 +26,7 @@
 
 (defstruct directed-graph
   :nodes                        ; The nodes of the graph, a collection
-  :neighbors)                   ; A function that, given a node, returns a collection neighbor nodes.
+  :neighbors)                   ; A function that, given a node returns a collection of all neighbor nodes.
 
 (defn make-directed-graph
   "Constructs a directed graph."
@@ -382,7 +382,13 @@ graph, node a must be equal or later in the sequence."
                             (circ-partition parti u)
                             (make-ordered-partition [[u]])))
 
-;; Search Tree
+(defn- induced-permutation
+  ""
+  [parti-1 parti-2]
+  (zipmap (reduce concat parti-1)
+          (reduce concat parti-2)))
+
+;; Actual Algorithm
 
 (defn- terminal-nodes
   ""
@@ -395,18 +401,30 @@ graph, node a must be equal or later in the sequence."
                       (nodes (split-partition-at graph parti v))))))]
     (generate (nodes parti))))
 
-;; Isomorphy and Automorphisms
-
 (defn- mckay
   ""
   [graph partition]
-  (not-yet-implemented))
+  (let [neig (memoize (fn [v] (set (get-neighbors graph v)))),
+        tn   (terminal-nodes graph partition),
+        zeta (first tn),
+        auto (distinct
+              (for [node tn,
+                    :let [alpha (induced-permutation zeta node)]
+                    :when (forall [v (:nodes graph)]
+                            (= (neig (alpha v))
+                               (set-of (alpha w) | w (neig v))))]
+                alpha))]
+    {:automorphism-generators auto,
+     :automorphism-size (count auto)}))
+
+;; API
 
 (defn canonical-isomorph
   ""
   ([graph]
      (canonical-isomorph [(:nodes graph)]))
   ([graph partition]
+     (not-yet-implemented)
      (:canonical-isomorph (mckay graph partition))))
 
 (defn automorphism-group-generators
