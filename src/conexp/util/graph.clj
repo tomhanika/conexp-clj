@@ -230,7 +230,7 @@ graph, node a must be equal or later in the sequence."
 
 ;; Partitions
 
-(defn- make-ordered-partition
+(defn make-ordered-partition
   "Given a collection coll if disjoint collections of all numbers from 0 to n-1, returns the
   corresponding partition."
   [coll]
@@ -415,6 +415,7 @@ graph, node a must be equal or later in the sequence."
                                (set-of (alpha w) | w (neig v))))]
                 alpha))]
     {:automorphism-generators auto,
+     :automorphism-group auto,
      :automorphism-size (count auto)}))
 
 ;; API
@@ -440,6 +441,13 @@ graph, node a must be equal or later in the sequence."
      (automorphism-group-size graph [(:nodes graph)]))
   ([graph partition]
      (:automorphism-size (mckay graph partition))))
+
+(defn automorphism-group
+  ""
+  ([graph]
+     (automorphism-group graph [(:nodes graph)]))
+  ([graph partition]
+     (:automorphism-group (mckay graph partition))))
 
 ;;;
 

@@ -8,7 +8,7 @@
 
 (ns conexp.fca.context-automorphisms
   (:use conexp.base
-        conexp.util.graph
+        [conexp.util.graph :only (make-directed-graph, make-ordered-partition, automorphism-group)]
         conexp.fca.contexts))
 
 (ns-doc "Context Automorphisms.")
@@ -29,13 +29,28 @@
   "Converts a given context to a bipartite graph." ;mention how objects and attributes are named in
                                                    ;the resulting graph
   [ctx]
-  (not-yet-implemented))
+  (make-directed-graph (disjoint-union (objects ctx) (attributes ctx))
+                       (memoize (fn [[x n]]
+                                  (if (= n 0)
+                                    ;; object
+                                    (set-of [m 1] | m (oprime ctx #{x}))
+                                    ;; attribute
+                                    (set-of [g 0] | g (aprime ctx #{x})))))))
 
-(defn context-automorphisms-generators
+(defn context-automorphisms
   "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
   and the attributes of ctx, respectively.  Returns its result as a lazy sequence."
   [ctx]
-  (not-yet-implemented))
+  (let [graph-automorphisms (automorphism-group (context-to-graph ctx)
+                                                (make-ordered-partition [(set-of [g 0] | g (objects ctx))
+                                                                         (set-of [m 1] | m (attributes ctx))]))]
+    (for [tau graph-automorphisms]
+      [(map-by-fn (fn [g]
+                    (first (tau [g 0])))
+                  (objects ctx)),
+       (map-by-fn (fn [m]
+                    (first (tau [m 1])))
+                  (attributes ctx))])))
 
 (defn isomorphic-contexts?
   "Tests whether ctx-1 and ctx-2 are isomorphic."
