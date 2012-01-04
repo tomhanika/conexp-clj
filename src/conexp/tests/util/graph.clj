@@ -26,9 +26,39 @@
 
 ;;;
 
+;; Partitions
+
+;; make-ordered-partition
+;; discrete-partition?
+;; unit-partition?
+;; nr-neighors-in-set
+;; partition-by-set
+;; find-index-of-vertex
+;; first-maximal-set-index
+;; first-minimal-set-index
+;; replace-partition-cell
+;; append-partition
+;; equitable-partition?
+
 (deftest test-refine-ordered-partition
   (is (= (make-ordered-partition [#{4 5} #{1 2 3}])
-         (refine-ordered-partition graph-1 pi-1 pi-1))))
+         (refine-ordered-partition graph-1 pi-1 pi-1)))
+  ;; More!
+  )
+
+;; circ-partition
+;; splut-partition-at
+;; induced-permutation
+
+;; McKay's Algorithm
+
+;; mckay
+;; canonical-isomorph
+;; automorphism-group-generators
+;; automorphism-group-size
+;; automorphism-group
+
+;;
 
 ;;;
 
