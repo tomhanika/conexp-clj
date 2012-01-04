@@ -12,7 +12,7 @@
                                   automorphism-group, canonical-isomorph)]
         conexp.fca.contexts))
 
-(ns-doc "Context Automorphisms.")
+(ns-doc "Context Automorphisms")
 
 ;;;
 
@@ -38,7 +38,7 @@
                                     ;; attribute
                                     (set-of [g 0] | g (aprime ctx #{x})))))))
 
-(defn context-automorphisms
+(defn context-automorphisms             ;does not work if object or attribute sets are empty
   "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
   and the attributes of ctx, respectively.  Returns its result as a lazy sequence."
   [ctx]
@@ -77,7 +77,7 @@
 (defn rigid?
   "Returns true if and only if ctx does not have any other automorphisms than the identity."
   [ctx]
-  (nil? (second (context-object-automorphisms ctx))))
+  (singleton? (context-object-automorphisms ctx)))
 
 (defn induced-object-automorphism
   "Returns the automorphism on the objects of ctx that is induced by beta, which is part of an
