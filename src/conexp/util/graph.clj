@@ -385,18 +385,33 @@ graph, node a must be equal or later in the sequence."
                             (circ-partition parti u)
                             (make-ordered-partition [[u]])))
 
-;; Actual Algorithm
-
 (defn- induced-permutation
-  ""
+  "Return the permutation induced by the discrete partitions parti-1 and parti-2."
   [parti-1 parti-2]
   (zipmap (reduce concat parti-1)
           (reduce concat parti-2)))
 
+;; Actual Algorithm
+
 (defn- graph-<
-  ""
-  [perm-1 perm-2]
-  (not-yet-implemented))
+  "Lexicographic order on the permutations of a graph."
+  [graph ground-order perm-1 perm-2]
+  (loop [indices (map (fn [v_2] (map (fn [v_1] [v_1 v_2])
+                                     ground-order))
+                      ground-order)]
+    (if-let [[v_1 v_2] (first indices)]
+      (let [cross-1 (contains? (get-neighbors graph (perm-1 v_1)) (perm-1 v_2)),
+            cross-2 (contains? (get-neighbors graph (perm-2 v_1)) (perm-2 v_2))]
+        (cond
+         (and cross-1 (not cross-2))
+         true
+         ;;
+         (and (not cross-2) cross-1)
+         false
+         ;;
+         :else
+         (recur (rest indices))))
+      false)))
 
 (defn- terminal-nodes
   ""
@@ -412,25 +427,25 @@ graph, node a must be equal or later in the sequence."
 (defn- mckay
   ""
   [graph partition]
-  (let [neig (memoize (fn [v] (set (get-neighbors graph v)))),
-        tn   (terminal-nodes graph partition),
-        zeta (first tn),
-        auto (distinct
-              (for [node tn,
-                    :let [alpha (induced-permutation zeta node)]
-                    :when (forall [v (:nodes graph)]
-                            (= (neig (alpha v))
-                               (set-of (alpha w) | w (neig v))))]
-                alpha))]
+  (let [neig  (memoize (fn [v] (set (get-neighbors graph v)))),
+        tn    (terminal-nodes graph partition),
+        zeta  (first tn),
+        auto  (distinct
+               (for [node tn,
+                     :let [alpha (induced-permutation zeta node)]
+                     :when (forall [v (:nodes graph)]
+                             (= (neig (alpha v))
+                                (set-of (alpha w) | w (neig v))))]
+                 alpha))]
     {:automorphism-generators auto,
      :automorphism-group auto,
-     :automorphism-size (count auto),
-     :canoical-isomorph nil}))
+     :automorphism-size (count auto)}))
 
 ;; API
 
 (defn canonical-isomorph
-  ""
+  "Returns the canonical isomorph for the given graph and the given partition, having
+vertex set {1..n}.  Can be compared with = to decide isomorphy."
   ([graph]
      (canonical-isomorph [(:nodes graph)]))
   ([graph partition]

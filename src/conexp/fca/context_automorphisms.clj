@@ -39,8 +39,8 @@
                                     (set-of [g 0] | g (aprime ctx #{x})))))))
 
 (defn context-automorphisms             ;does not work if object or attribute sets are empty
-  "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the objects
-  and the attributes of ctx, respectively.  Returns its result as a lazy sequence."
+  "Computes the context automorphisms of ctx as pairs of bijective mappings acting on the
+  objects and the attributes of ctx, respectively."
   [ctx]
   (let [graph-automorphisms (automorphism-group (context-to-graph ctx)
                                                 (make-ordered-partition [(set-of [g 0] | g (objects ctx))
