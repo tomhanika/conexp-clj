@@ -384,25 +384,19 @@ graph, node a must be equal or later in the sequence."
                             (circ-partition parti u)
                             (make-ordered-partition [[u]])))
 
-(defn- induced-permutation
-  "Return the permutation induced by the discrete partitions parti-1 and parti-2."
-  [parti-1 parti-2]
-  (zipmap (reduce concat parti-1)
-          (reduce concat parti-2)))
-
 ;; Actual Algorithm
 
 (defn- graph-<
   "Lexicographic order on the permutations of a graph."
-  [graph ground-order perm-1 perm-2]
-  (loop [indices (for [v_1 ground-order
-                       v_2 ground-order]
+  [graph vec-1 vec-2]
+  (loop [indices (for [v_1 (range (count (:nodes graph)))
+                       v_2 (range (count (:nodes graph)))]
                    [v_1 v_2])]
     (if (empty? indices)
       false
       (let [[v_1 v_2] (first indices),
-            cross-1 (contains? (set (get-neighbors graph (perm-1 v_1))) (perm-1 v_2)),
-            cross-2 (contains? (set (get-neighbors graph (perm-2 v_1))) (perm-2 v_2))]
+            cross-1 (contains? (set (get-neighbors graph (vec-1 v_1))) (vec-1 v_2)),
+            cross-2 (contains? (set (get-neighbors graph (vec-2 v_1))) (vec-2 v_2))]
 ;;        (println [v_1 v_2] [(perm-1 v_1) (perm-1 v_2)] [(perm-2 v_1) (perm-2 v_2)] cross-1 cross-2)
         (cond
          (and cross-1 (not cross-2))
@@ -420,17 +414,21 @@ graph, node a must be equal or later in the sequence."
   (let [nodes (fn nodes [parti]
                 (let [idx (first-minimal-set-index parti)]
                   (if (not idx)
-                    (list :node parti)
+                    (list :node (vec (reduce concat parti)))
                     (cons :tree
                           (map #(list % (nodes (split-partition-at graph parti %)))
                                (parti idx))))))]
     (nodes parti)))
 
+(defn- induced-permutation
+  "Return the permutation induced by the vectors vec-1 and vec-2."
+  [vec-1 vec-2]
+  (zipmap vec-1 vec-2))
+
 (defn- nauty
   ""
   [graph partition]
   (let [neig  (memoize (fn [v] (set (get-neighbors graph v)))),
-        nodes (seq (:nodes graph)),
         zeta  (atom nil),
         rho   (atom nil),
         gens  (atom []),
@@ -442,15 +440,14 @@ graph, node a must be equal or later in the sequence."
                  :node (let [node (second tree)]
                          (when-not @zeta
                            (reset! zeta node))
+                         (when (or (not @rho)
+                                   (graph-< graph @rho node))
+                           (reset! rho node))
                          (let [alpha (induced-permutation @zeta node)]
-                           (println node alpha)
                            (when (forall [v (:nodes graph)]
                                    (= (neig (alpha v))
                                       (set-of (alpha w) | w (neig v))))
-                             (swap! gens conj alpha))
-                           (when (or (not @rho)
-                                     (graph-< graph nodes @rho alpha))
-                             (reset! rho alpha))))))]
+                             (swap! gens conj alpha))))))]
     (walk (basic-search-tree graph partition))
     (swap! gens distinct)
     (println @rho)
@@ -458,13 +455,12 @@ graph, node a must be equal or later in the sequence."
      :automorphism-group      (future @gens), ;wrong in general
      :automorphism-size       (count @gens),  ;wrong in general
      :canonical-isomorph      (make-directed-graph
-                               (set-of-range (count nodes))
+                               (set-of-range (count (:nodes graph)))
                                (map-by-fn (fn [v]
-                                            (let [v-neighbors (set (get-neighbors graph (@rho (nth nodes v))))]
-                                              (set-of n | n (range (count nodes))
-                                                          :when (contains? v-neighbors
-                                                                           (@rho (nth nodes n))))))
-                                          (range (count nodes))))}))
+                                            (let [v-neighbors (set (get-neighbors graph (@rho v)))]
+                                              (set-of n | n (range (count (:nodes graph)))
+                                                          :when (contains? v-neighbors (@rho n)))))
+                                          (range (count (:nodes graph)))))}))
 
 ;; API
 
