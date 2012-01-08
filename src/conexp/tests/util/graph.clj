@@ -56,8 +56,12 @@
 
 ;; McKay's Algorithm
 
-;; mckay
-;; canonical-isomorph
+;; nauty
+
+(deftest test-canonical-isomorph
+  (is (= (canonical-isomorph graph-1)
+         (canonical-isomorph graph-2))))
+
 ;; automorphism-group-generators
 ;; automorphism-group-size
 ;; automorphism-group

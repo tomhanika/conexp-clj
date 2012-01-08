@@ -450,7 +450,6 @@ graph, node a must be equal or later in the sequence."
                              (swap! gens conj alpha))))))]
     (walk (basic-search-tree graph partition))
     (swap! gens distinct)
-    (println @rho)
     {:automorphism-generators @gens,
      :automorphism-group      (future @gens), ;wrong in general
      :automorphism-size       (count @gens),  ;wrong in general
