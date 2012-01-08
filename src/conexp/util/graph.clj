@@ -468,7 +468,7 @@ graph, node a must be equal or later in the sequence."
   "Returns the canonical isomorph for the given graph and the given partition, having
 vertex set {1..n}.  Can be compared with = to decide isomorphy."
   ([graph]
-     (canonical-isomorph [(:nodes graph)]))
+     (canonical-isomorph graph [(:nodes graph)]))
   ([graph partition]
      (:canonical-isomorph (nauty graph partition))))
 
