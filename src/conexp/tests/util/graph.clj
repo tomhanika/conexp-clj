@@ -12,7 +12,6 @@
 
 ;;;
 
-(def make-ordered-partition @#'conexp.util.graph/make-ordered-partition)
 (def refine-ordered-partition @#'conexp.util.graph/refine-ordered-partition)
 
 ;;;
@@ -20,6 +19,11 @@
 (def graph-1
   (make-directed-graph #{1 2 3 4 5}
                        {1 [2 3], 2 [1 3], 3 [1 2], 4 [5], 5 [4]}))
+
+(def graph-2
+  (make-directed-graph #{1 2 3 4 5}
+                       {1 [2], 2 [1], 3 [4 5], 4 [3 5], 5 [3 4]}))
+
 
 (def pi-1
   (make-ordered-partition [[1 2 3 4 5]]))

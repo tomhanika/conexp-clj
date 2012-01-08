@@ -19,8 +19,7 @@
     #^{:author "Jeffrey Straszheim",
        :doc "Basic graph theory algorithms"}
   conexp.util.graph
-  (use [conexp.base :exclude (transitive-closure)]
-       [conexp.util.generators :only (gn, generate)]))
+  (use [conexp.base :exclude (transitive-closure)]))
 
 ;;;
 
@@ -396,50 +395,76 @@ graph, node a must be equal or later in the sequence."
 (defn- graph-<
   "Lexicographic order on the permutations of a graph."
   [graph ground-order perm-1 perm-2]
-  (loop [indices (map (fn [v_2] (map (fn [v_1] [v_1 v_2])
-                                     ground-order))
-                      ground-order)]
-    (if-let [[v_1 v_2] (first indices)]
-      (let [cross-1 (contains? (get-neighbors graph (perm-1 v_1)) (perm-1 v_2)),
-            cross-2 (contains? (get-neighbors graph (perm-2 v_1)) (perm-2 v_2))]
+  (loop [indices (for [v_1 ground-order
+                       v_2 ground-order]
+                   [v_1 v_2])]
+    (if (empty? indices)
+      false
+      (let [[v_1 v_2] (first indices),
+            cross-1 (contains? (set (get-neighbors graph (perm-1 v_1))) (perm-1 v_2)),
+            cross-2 (contains? (set (get-neighbors graph (perm-2 v_1))) (perm-2 v_2))]
+;;        (println [v_1 v_2] [(perm-1 v_1) (perm-1 v_2)] [(perm-2 v_1) (perm-2 v_2)] cross-1 cross-2)
         (cond
          (and cross-1 (not cross-2))
-         true
-         ;;
-         (and (not cross-2) cross-1)
          false
          ;;
+         (and (not cross-1) cross-2)
+         true
+         ;;
          :else
-         (recur (rest indices))))
-      false)))
+         (recur (rest indices)))))))
 
-(defn- terminal-nodes
+(defn- basic-search-tree
   ""
   [graph parti]
-  (let [nodes (gn nodes [parti]
+  (let [nodes (fn nodes [parti]
                 (let [idx (first-minimal-set-index parti)]
                   (if (not idx)
-                    (yield parti)
-                    (doseq [v (parti idx)]
-                      (nodes (split-partition-at graph parti v))))))]
-    (generate (nodes parti))))
+                    (list :node parti)
+                    (cons :tree
+                          (map #(list % (nodes (split-partition-at graph parti %)))
+                               (parti idx))))))]
+    (nodes parti)))
 
-(defn- mckay
+(defn- nauty
   ""
   [graph partition]
   (let [neig  (memoize (fn [v] (set (get-neighbors graph v)))),
-        tn    (terminal-nodes graph partition),
-        zeta  (first tn),
-        auto  (distinct
-               (for [node tn,
-                     :let [alpha (induced-permutation zeta node)]
-                     :when (forall [v (:nodes graph)]
-                             (= (neig (alpha v))
-                                (set-of (alpha w) | w (neig v))))]
-                 alpha))]
-    {:automorphism-generators auto,
-     :automorphism-group auto,
-     :automorphism-size (count auto)}))
+        nodes (seq (:nodes graph)),
+        zeta  (atom nil),
+        rho   (atom nil),
+        gens  (atom []),
+        walk  (fn walk-search-tree [tree]
+                (case
+                 (first tree)
+                 :tree (doseq [t (rest tree)]
+                         (walk-search-tree (second t)))
+                 :node (let [node (second tree)]
+                         (when-not @zeta
+                           (reset! zeta node))
+                         (let [alpha (induced-permutation @zeta node)]
+                           (println node alpha)
+                           (when (forall [v (:nodes graph)]
+                                   (= (neig (alpha v))
+                                      (set-of (alpha w) | w (neig v))))
+                             (swap! gens conj alpha))
+                           (when (or (not @rho)
+                                     (graph-< graph nodes @rho alpha))
+                             (reset! rho alpha))))))]
+    (walk (basic-search-tree graph partition))
+    (swap! gens distinct)
+    (println @rho)
+    {:automorphism-generators @gens,
+     :automorphism-group      (future @gens), ;wrong in general
+     :automorphism-size       (count @gens),  ;wrong in general
+     :canonical-isomorph      (make-directed-graph
+                               (set-of-range (count nodes))
+                               (map-by-fn (fn [v]
+                                            (let [v-neighbors (set (get-neighbors graph (@rho (nth nodes v))))]
+                                              (set-of n | n (range (count nodes))
+                                                          :when (contains? v-neighbors
+                                                                           (@rho (nth nodes n))))))
+                                          (range (count nodes))))}))
 
 ;; API
 
@@ -449,28 +474,30 @@ vertex set {1..n}.  Can be compared with = to decide isomorphy."
   ([graph]
      (canonical-isomorph [(:nodes graph)]))
   ([graph partition]
-     (:canonical-isomorph (mckay graph partition))))
+     (:canonical-isomorph (nauty graph partition))))
 
 (defn automorphism-group-generators
-  ""
+  "Returns a generating set of the group of all automorphisms of graph, optionally
+respecting the given partition."
   ([graph]
      (automorphism-group-generators graph [(:nodes graph)]))
   ([graph partition]
-     (:automorphism-generators (mckay graph partition))))
+     (:automorphism-generators (nauty graph partition))))
 
 (defn automorphism-group-size
-  ""
+  "Returns the number of all automorphisms of graph, optionally with respect to the given
+partition."
   ([graph]
      (automorphism-group-size graph [(:nodes graph)]))
   ([graph partition]
-     (:automorphism-size (mckay graph partition))))
+     (:automorphism-size (nauty graph partition))))
 
 (defn automorphism-group
-  ""
+  "Returns all automorphisms of graph, optionally respecting the given partition."
   ([graph]
      (automorphism-group graph [(:nodes graph)]))
   ([graph partition]
-     (:automorphism-group (mckay graph partition))))
+     @(:automorphism-group (nauty graph partition))))
 
 ;;;
 
