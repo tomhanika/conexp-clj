@@ -51,7 +51,10 @@ For a fast repl run
 
 If you want a swank server, run
 
+    $ lein plugin install swank-clojure «VERSION»
     $ lein swank
+    ...
+    Connection opened on localhost port 4005.
 
 and connnect your Emacs (or whatever) to Port 4005 at 127.0.0.1. See the
 documentation of swank-clojure for more details on this.
