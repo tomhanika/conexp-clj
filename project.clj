@@ -19,7 +19,6 @@
                  [org.clojure/math.numeric-tower  "0.0.1"]
                  [org.apache.commons/commons-math "2.1"]
                  [jline                           "0.9.94"]]
-  :dev-dependencies [[swank-clojure "1.3.3"]]
   :aot [conexp.main
         conexp.contrib.gui
         conexp.contrib.java]
