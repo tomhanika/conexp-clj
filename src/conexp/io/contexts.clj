@@ -327,8 +327,8 @@
 (add-context-input-format :csv
                           (fn [rdr]
                             (try
-                             (re-matches #"^[^,]+,[^,]+$" (read-line))
-                             (catch Exception _))))
+                              (re-matches #"^[^,]+,[^,]+$" (read-line))
+                              (catch Exception _))))
 
 (define-context-input-format :csv
   [file]
@@ -339,7 +339,7 @@
           (make-context-nc (set-of g [[g m] inz])
                            (set-of m [[g m] inz])
                            inz)
-          (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]
+          (let [[_ g m] (re-matches #"^([^,]+),([^,]+)$" line)]
             (recur (conj inz [g m]))))))))
 
 (define-context-output-format :csv
