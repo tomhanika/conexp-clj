@@ -17,8 +17,7 @@
                  [org.clojure/core.incubator      "0.1.0"]
                  [org.clojure/math.combinatorics  "0.0.1"]
                  [org.clojure/math.numeric-tower  "0.0.1"]
-                 [org.apache.commons/commons-math "2.1"]
-                 [jline                           "0.9.94"]]
+                 [org.apache.commons/commons-math "2.1"]]
   :aot [conexp.main
         conexp.contrib.gui
         conexp.contrib.java]
