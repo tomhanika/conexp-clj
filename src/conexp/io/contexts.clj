@@ -339,7 +339,7 @@
           (make-context-nc (set-of g [[g m] inz])
                            (set-of m [[g m] inz])
                            inz)
-          (let [[_ g m] (re-matches #"^([^,]+),([^,]+)$" line)]
+          (let [[r g m] (re-matches #"^((?:[^,]+|\".*\")),((?:[^,]+|\".*\"))$" line)]
             (recur (conj inz [g m]))))))))
 
 (define-context-output-format :csv
