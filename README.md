@@ -39,9 +39,6 @@ That's it. Note that this works for Linux and Unix systems. For
 Windows there is some experimental version of leiningen, please see
 the corresponding website for this.
 
-You now need to copy the files under stuff/libs/\*.jar into your local maven
-repository such that they can be found.
-
 Now switch in the source directory of conexp-clj and run
 
     $ lein deps
