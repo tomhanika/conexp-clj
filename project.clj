@@ -26,7 +26,8 @@
         conexp.contrib.java]
   :keep-non-project-classes true
   :warn-on-reflection true
-  :test-path "src/test/")
+  :test-path "src/test/"
+  :compile-path "lib/classes/")
 
 ;;;
 
