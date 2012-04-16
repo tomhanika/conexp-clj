@@ -2,7 +2,6 @@ all: zip
 
 zip: jar
 	mkdir -p conexp-clj/lib/
-	cp stuff/libs/*.jar conexp-clj/lib/
 	cp stuff/libs/*.clj conexp-clj/lib
 	cp -r stuff/bin LICENSE README.md conexp-clj/
 	cp -r src/res lib/*.jar conexp-clj/lib/
