@@ -277,7 +277,6 @@
      (assert (sequential? others)
              "Interval values must be ordered to obtain a reasonable result.")
      (let [pairs      (partition 2 1 others)
-           last-other (last others)
            atts       (map #(str "[" (first %) ", " (second %) ")") pairs)
            inz        (set-of [g (str "[" (first m) ", " (second m) ")")]
                               [g values,
