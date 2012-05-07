@@ -13,7 +13,7 @@
   :description "A ConExp rewrite in clojure"
   :url "http://daniel.kxpq.de/math/conexp-clj/"
   :repositories {"math" "http://www.math.tu-dresden.de/~borch/repos/mvn/"}
-  :dependencies [[org.clojure/clojure             "1.3.0"]
+  :dependencies [[org.clojure/clojure             "1.4.0"]
                  [org.clojure/tools.cli           "0.1.0"]
                  [org.clojure/core.incubator      "0.1.0"]
                  [org.clojure/math.combinatorics  "0.0.1"]
