@@ -271,24 +271,19 @@
   be arbitrary"
   ([values]
     (interval-scale values values < >=))
-
   ([values others]
     (interval-scale values others < >=))
-
   ([values others < >=]
-      (let [pairs (partition 2 1 others)
-            last-other (last others)
-            atts  (map #(str "[" (first %) ", " (second %) ")") pairs)
-            inz   (set-of
-                      [g (str "[" (first m) ", " (second m) ")")]
-                      [g values,
-                       m pairs
-                       :when (and (< g (second m)) (>= g (first m)))
-                       ])
-            ]
-
-            (make-context values atts inz)))
-  )
+     (assert (sequential? others)
+             "Interval values must be ordered to obtain a reasonable result.")
+     (let [pairs      (partition 2 1 others)
+           last-other (last others)
+           atts       (map #(str "[" (first %) ", " (second %) ")") pairs)
+           inz        (set-of [g (str "[" (first m) ", " (second m) ")")]
+                              [g values,
+                               m pairs
+                               :when (and (< g (second m)) (>= g (first m)))])]
+       (make-context values atts inz))))
 
 ;;;
 

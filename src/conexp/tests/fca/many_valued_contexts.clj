@@ -165,6 +165,20 @@
   (is (thrown? AssertionError
                (dichotomic-scale [1]))))
 
+(deftest test-interval-scale
+  (is (thrown? AssertionError
+               (interval-scale [1 2 3] #{1 5 6})))
+  (is (= (interval-scale [1 2 3 4 5 6 7 8] [1 4 8])
+         (make-context [1 2 3 4 5 6 7 8]
+                       ["[1, 4)", "[4, 8)"]
+                       [[1, "[1, 4)"],
+                        [2, "[1, 4)"],
+                        [3, "[1, 4)"],
+                        [4, "[4, 8)"],
+                        [5, "[4, 8)"],
+                        [6, "[4, 8)"],
+                        [7, "[4, 8)"]]))))
+
 ;;;
 
 (deftest test-scale-mv-context
