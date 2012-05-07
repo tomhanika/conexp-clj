@@ -12,7 +12,7 @@ jar: distclean
 	lein jar
 
 clean:
-	rm -rf conexp-clj/ classes
+	rm -rf conexp-clj/ lib/classes
 
 distclean: clean
 	rm -rf lib conexp-clj-$(shell cat VERSION).zip
