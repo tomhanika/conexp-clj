@@ -14,57 +14,78 @@ http://daniel.kxpq.de/math/conexp-clj/.
 Features
 --------
 
-(missing)
+conexp-clj is a pocket-calculator for Formal Concept Analysis.  Its main purpose is to
+enable nontrivial examples to be computed easily.
+
+conexp-clj features include:
+
+* Basic Operations on Formal Contexts
+* Relational Algebra with Formal Contexts
+* Transparent IO for Formal Contexts (in development)
+* Scaling for Many-Valued Contexts
+* Implicational Theory and Basic Attribute Exploration
+* NextClosure (of course)
+* Computing Luxenburger-Bases and Iceberg Concept Sets
+* IO for Many-Valued Contexts
+* Lattice Layouts and Lattice IO (some...)
+* A bit of Fuzzy-FCA
+* Interface for sage
+
+Note that conexp-clj is not a high-performance tool for Formal Concept Analysis.  If you
+want this, check out Uta Priss'
+[website on FCA software](http://www.fcahome.org.uk/fcasoftware.html).
+
+
+Prerequisites
+-------------
+
+You need
+
+* a Jave Runtime Environment (≥ 1.6)
+* [Leiningen](http://github.com/technomancy/leiningen) (≥ 1.2.0) if you want to run
+  conexp-clj from source
 
 
 How to Run
 ----------
 
-(missing)
+The recommended way to run conexp-clj is to download the pre-compiled version
+[here](https://github.com/exot/conexp-clj/downloads).  Just unpack the zip file and put
+the contained `bin` directory in you path.  You can then run
+
+    $ conexp-clj.sh
+    
+from you command line (without the "$") to get a bare conexp-clj repl.  If you want to try
+the experimental GUI, you can use
+
+    $ conexp-clj.sh --gui
+    
+instead.
+
+
+Running conexp-clj from source
+------------------------------
+
+To run conexp-clj from source, switch in the source directory of conexp-clj and run
+
+    $ lein deps
+
+This will download any missing jar files needed for conexp-clj to run.  To quickly obtain
+a repl just issue
+
+    $ lein repl
+
+If you want a more sophisticated repl, you may try
+[nrepl.el](http://github.com/kingtim/nrepl.el).
 
 
 Compilation Instructions for conexp-clj
 ---------------------------------------
 
-To compile conexp-clj from source you need leiningen (at least version 1.2.0),
-a build tool for clojure. To get it just issue
-
-    $ wget http://github.com/technomancy/leiningen/raw/stable/bin/lein
-
-put the file lein in your path, make it executable and run
-
-    $ lein self-install
-
-That's it. Note that this works for Linux and Unix systems. For
-Windows there is some experimental version of leiningen, please see
-the corresponding website for this.
-
-Now switch in the source directory of conexp-clj and run
-
-    $ lein deps
-
-This will download any missing jar files needed for conexp-clj to run. With
-this you can now run conexp-clj directly from source and hack in its internals!
-
-For a fast repl run
-
-    $ lein repl
-
-If you want a swank server, run
-
-    $ lein plugin install swank-clojure «VERSION»
-    $ lein swank
-    ...
-    Connection opened on localhost port 4005.
-
-and connnect your Emacs (or whatever) to Port 4005 at 127.0.0.1. See the
-documentation of swank-clojure for more details on this.
-
-To create a standalone zip just run `make` in the top source directory. This
-will do everything to create a zip archive containing a compiled version of
+To create a standalone zip on your own, just run `make` in the top source directory. This
+will (should) do everything to create a zip archive containing a compiled version of
 conexp-clj. You can also run this compiled version directly by invoking
 ./conexp-clj/bin/conexp-clj.sh.
-
 
 
 Contributing Authors
