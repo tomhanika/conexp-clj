@@ -100,3 +100,10 @@ Additional Contributors are
   * Immanuel Albrecht (Context Editor Plugin for the GUI)
   * Stefan Borgwardt  (Shared Intents)
   * Gleb Kanterov (interval-scale)
+
+License
+-------
+
+Copyright ⓒ 2009—2012 Daniel Borchmann
+
+Distributed under the Eclipse Public License.
