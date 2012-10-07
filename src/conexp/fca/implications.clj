@@ -167,6 +167,21 @@
          (subset? (adprime ctx A)
                   (close-under-implications impl-set A)))))
 
+(defn irredundant-subset
+  "Given a set impls of implications, returns an irredundant subset of impls.  Note that
+  this set does not need to be of minimal cardinality."
+  [impls]
+  (reduce (fn [impls impl]
+            (if (follows-semantically? impl impls)
+              impls
+              (let [impls (conj impls impl)]
+                (conj (set-of new-impl | new-impl (disj impls impl)
+                                         :when (not (follows-semantically? new-impl
+                                                                           (disj impls new-impl))))
+                      impl))))
+          #{}
+          impls))
+
 ;;; Stem Base
 
 (defn stem-base

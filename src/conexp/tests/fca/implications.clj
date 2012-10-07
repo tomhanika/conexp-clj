@@ -150,6 +150,24 @@
   (is (not (equivalent-implications? #{(make-implication #{1} #{2})}
                                      #{(make-implication #{2} #{1})}))))
 
+(deftest test-irredundant-subset
+  (is (= (irredundant-subset #{(make-implication #{1} #{2})
+                                               (make-implication #{2} #{3})
+                                               (make-implication #{1} #{3})})
+         #{(make-implication #{1} #{2})
+           (make-implication #{2} #{3})}))
+  (let [ctx         (make-context-from-matrix [0 1 2 3]
+                                              [0 1 2 3]
+                                              [1 0 0 1
+                                               1 1 1 0
+                                               0 1 1 0
+                                               0 0 1 1]),
+        intent-base (set-of (make-implication A (adprime ctx A)) | A (subsets #{0 1 2 3})),
+        irr-subset  (irredundant-subset intent-base)]
+    (is (minimal-implication-set? irr-subset))
+    (is (sound-implication-set? ctx irr-subset))
+    (is (complete-implication-set? ctx irr-subset))))
+
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
   (are [ctx] (let [sb (stem-base ctx)]
