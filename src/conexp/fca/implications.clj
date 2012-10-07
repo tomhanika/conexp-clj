@@ -392,11 +392,11 @@
   "Computes the luxenburger-basis for context with minimal support minsupp and minimal confidence
   minconf. The result returned will be a lazy sequence."
   [context minsupp minconf]
-  (let [closed-intents (frequent-closed-itemsets context minsupp)]
-    (for [[B_1, B_2] (transitive-reduction closed-intents proper-subset?)
-          :let [impl (make-implication B_1 B_2)]
-          :when (>= (confidence impl context) minconf)]
-      impl)))
+  (for [B_2  (frequent-closed-itemsets context minsupp),
+        B_1  (map second (direct-upper-concepts context [(aprime context B_2) B_2])),
+        :let [impl (make-implication B_1 B_2)]
+        :when (>= (confidence impl context) minconf)]
+    impl))
 
 ;;;
 
