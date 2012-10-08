@@ -42,7 +42,7 @@ Prerequisites
 You need
 
 * a Jave Runtime Environment (≥ 1.6)
-* [Leiningen](http://github.com/technomancy/leiningen) (≥ 1.2.0) if you want to run
+* [Leiningen](http://github.com/technomancy/leiningen) (≥ 2.0.0) if you want to run
   conexp-clj from source
 
 
@@ -77,15 +77,6 @@ a repl just issue
 
 If you want a more sophisticated repl, you may try
 [nrepl.el](http://github.com/kingtim/nrepl.el).
-
-
-Compilation Instructions for conexp-clj
----------------------------------------
-
-To create a standalone zip on your own, just run `make` in the top source directory. This
-will (should) do everything to create a zip archive containing a compiled version of
-conexp-clj. You can also run this compiled version directly by invoking
-./conexp-clj/bin/conexp-clj.sh.
 
 
 Contributing Authors
