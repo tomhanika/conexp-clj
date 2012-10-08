@@ -7,9 +7,6 @@ new ideas.
 The project has been started by Daniel Borchmann under supervision of Christian
 Meschke as part of the DFG project GA 216/10-1.
 
-For more information, you can visit conexp-clj's website at
-http://daniel.kxpq.de/math/conexp-clj/.
-
 
 Features
 --------
