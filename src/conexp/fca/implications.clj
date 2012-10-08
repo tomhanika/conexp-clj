@@ -174,11 +174,14 @@
   (reduce (fn [impls impl]
             (if (follows-semantically? impl impls)
               impls
-              (let [impls (conj impls impl)]
-                (conj (set-of new-impl | new-impl (disj impls impl)
-                                         :when (not (follows-semantically? new-impl
-                                                                           (disj impls new-impl))))
-                      impl))))
+              (loop [impls     impls,             ; implications to check
+                     new-impls (conj impls impl)] ; all implications
+                (if-not (seq impls)
+                  new-impls
+                  (let [next-impl (first impls)]
+                    (if (follows-semantically? next-impl (disj new-impls next-impl))
+                      (recur (rest impls) (disj new-impls next-impl)) ; first implication entailed by others
+                      (recur (rest impls) new-impls)))))))            ; not
           #{}
           impls))
 
