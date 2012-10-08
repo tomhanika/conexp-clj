@@ -53,12 +53,12 @@ The recommended way to run conexp-clj is to download the pre-compiled version
 [here](https://github.com/exot/conexp-clj/downloads).  Just unpack the zip file and put
 the contained `bin` directory in you path.  You can then run
 
-    $ conexp-clj.sh
+    $ conexp-clj
     
 from you command line (without the "$") to get a bare conexp-clj repl.  If you want to try
 the experimental GUI, you can use
 
-    $ conexp-clj.sh --gui
+    $ conexp-clj --gui
     
 instead.
 
