@@ -208,6 +208,8 @@
            (recur implications next)
            (difference implications background-knowledge))))))
 
+(defalias canonical-base stem-base)
+
 (defn pseudo-intents
   "Returns the pseudo intents of the given context ctx."
   [ctx]
@@ -400,6 +402,8 @@
         :let [impl (make-implication B_1 B_2)]
         :when (>= (confidence impl context) minconf)]
     impl))
+
+(defalias luxenburger-base luxenburger-basis)
 
 ;;;
 
