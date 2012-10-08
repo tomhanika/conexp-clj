@@ -63,6 +63,53 @@ the experimental GUI, you can use
 instead.
 
 
+Documentation
+-------------
+
+By now, documentation is done via example files. Besides the special examples files given below,
+there exist some example files which give a general overview of how to use conexp-clj. Those files
+cover
+
+ * [basics](https://github.com/exot/conexp-clj/blob/master/doc/examples/01-basics.clj)
+ * [formal contexts](https://github.com/exot/conexp-clj/blob/master/doc/examples/02-contexts.clj)
+ * [lattices](https://github.com/exot/conexp-clj/blob/master/doc/examples/03-lattices.clj)
+ * [IO](https://github.com/exot/conexp-clj/blob/master/doc/examples/04-io.clj)
+ * [implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/05-implications.clj)
+
+They have been written by Sebastian Böhm.
+
+Additionally, for general help on a function f, you can use the clojure function `doc` with
+
+~~~
+(doc f)
+~~~
+
+For finding functions you may find useful, you can use `find-doc`
+
+~~~
+(find-doc "Whatever you may find useful")
+~~~
+
+Some more examples:
+
+ * [Attribute Exploration](https://github.com/exot/conexp-clj/blob/master/doc/examples/exploration.clj)
+   a demonstration how attribute exploration can be done in conexp-clj.
+ * [Fuzzy FCA](https://github.com/exot/conexp-clj/blob/master/doc/examples/fuzzy.clj),
+   a sample file to show how to use fuzzy FCA with conexp-clj
+ * [Factor Analysis](https://github.com/exot/conexp-clj/blob/master/doc/examples/factor-analysis.clj),
+   a small program that demonstrates how to use conexp-clj for factorizing contexts
+ * [Formal Contexts for Implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/implication-closure.clj),
+   computing a context for a set of implications
+ * A
+   [Formal Context of Functions](https://github.com/exot/conexp-clj/blob/master/doc/examples/function-context.clj),
+   see the paper by Artem Revenko and Sergej Kuznetzov for the CLA2010
+ * [Permutations as Formal Context](https://github.com/exot/conexp-clj/blob/master/doc/examples/permutation-context.clj),
+   computes a context whose concept lattice is isomorphic to the lattice of permutations on the set
+   \{0,...,n\}.
+ * [Tamari Lattice](https://github.com/exot/conexp-clj/blob/master/doc/examples/tamari-lattice.clj),
+   the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
+
+
 Running conexp-clj from source
 ------------------------------
 
