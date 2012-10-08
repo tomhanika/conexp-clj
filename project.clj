@@ -12,6 +12,8 @@
   :min-lein-version "1.3.0"
   :description "A ConExp rewrite in clojure"
   :url "http://daniel.kxpq.de/math/conexp-clj/"
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories {"math" "http://www.math.tu-dresden.de/~borch/repos/mvn/"}
   :dependencies [[org.clojure/clojure             "1.4.0"]
                  [org.clojure/tools.cli           "0.1.0"]
