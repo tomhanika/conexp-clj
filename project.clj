@@ -9,7 +9,7 @@
 ;;;
 
 (defproject conexp-clj (.trim #=(slurp "VERSION"))
-  :min-lein-version "1.3.0"
+  :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://daniel.kxpq.de/math/conexp-clj/"
   :license {:name "Eclipse Public License"
@@ -29,7 +29,8 @@
   :keep-non-project-classes true
   :warn-on-reflection true
   :test-path "src/test/"
-  :compile-path "lib/classes/")
+  :compile-path "lib/classes/"
+  :scm {:url "git@github.com:exot/conexp-clj.git"})
 
 ;;;
 
