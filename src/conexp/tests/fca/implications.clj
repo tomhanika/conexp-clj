@@ -233,7 +233,10 @@
 (deftest test-stem-base-from-base
   (with-testing-data [ctx (random-contexts 10 20)]
     (= (stem-base ctx)
-       (stem-base-from-base (proper-premise-implications ctx)))))
+       (stem-base-from-base (proper-premise-implications ctx))))
+  (= (stem-base-from-base [(make-implication #{1} #{2 3})
+                           (make-implication #{1} #{2 4})])
+     #{(make-implication #{1} #{2 3 4})}))
 
 ;;;
 

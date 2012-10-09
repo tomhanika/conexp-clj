@@ -307,25 +307,32 @@
 (defn stem-base-from-base
   "For a given set of implications returns its stem-base."
   [implications]
-  (loop [stem-base    #{},
-         implications implications,
-         all          (vec implications)]
-    (if (empty? implications)
-      stem-base
-      (let [A->B         (first implications),
-            implications (rest implications),
-            all          (subvec all 1)
-            [A* B*]      (let [values (pvalues (close-under-implications all (premise A->B))
-                                               (close-under-implications all (conclusion A->B)))]
-                           [(first values) (second values)]),
-            A*->B*       (make-implication A* B*)]
-        (if (not-empty (conclusion A*->B*))
-          (recur (conj stem-base A*->B*)
-                 implications
-                 (conj all A*->B*))
-          (recur stem-base
-                 implications
-                 all))))))
+  (let [implications (pmap (fn [impl]
+                             (make-implication
+                              (premise impl)
+                              (close-under-implications implications
+                                                        (union (premise impl)
+                                                               (conclusion impl)))))
+                           implications)]
+    (loop [stem-base    #{},
+           implications implications,
+           all          (set implications)]
+      (if (empty? implications)
+        stem-base
+        (let [A->B         (first implications),
+              implications (rest implications),
+              all          (disj all A->B)
+              A*           (close-under-implications all (premise A->B)),
+              A*->B        (make-implication A* (conclusion A->B))]
+          (if (not-empty (conclusion A*->B))
+            (recur (conj stem-base A*->B)
+                   implications
+                   (conj all A*->B))
+            (recur stem-base
+                   implications
+                   all)))))))
+
+(defalias canonical-base-from-base stem-base-from-base)
 
 
 ;;; Association Rules
