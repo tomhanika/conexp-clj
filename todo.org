@@ -3,77 +3,84 @@
 #+startup: hidestars
 #+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
 
-* For 0.0.7-alpha
-** TODO Allow resizing of cells in GUI                               :Daniel:
-   For this a special mouse handler has to be implemented that changes the cursor when resizing is
-   possible.  Resizing itself must be done via setRowHeight() or one of TableColumns methods for
-   setting the width of a column.
-** TODO Adjusting nodes in lattice diagram with parallelogram rule   :Daniel:
-** TODO Use breakable tool bar for context editor                    :Daniel:
-** TODO Add tests for explicit IO formats                            :Daniel:
-   given as keywords or strings.
-** INPROGRESS Improve test coverage of conexp contrib [0/12]         :Daniel:
-   - [ ] algorithms
-   - [ ] concept approximation
-   - [ ] DL
-   - [ ] draw (?)
-   - [ ] exec
-   - [ ] experimental
-   - [ ] factor analysis
-   - [ ] fuzzy [0/3]
-     - [ ] logics
-     - [ ] sets
-     - [ ] fca
-   - [ ] GUI (?)
-   - [ ] Java
-   - [ ] retracts
-   - [ ] util [0/1]
-     - [ ] general sorted sets
-** INPROGRESS Add tests for new Association Rule functions           :Daniel:
-** INPROGRESS Add more layout output [0/2]                           :Daniel:
-   - [ ] svg
-   - [ ] povray
-** INPROGRESS draw-lattice-to-file                                   :Daniel:
-   We need some function (i.e. draw-lattice-to-file) which produces a
-   file of the picture of a lattice layout, when given the same
-   arguments as draw-lattice.
+* Todo
+** GUI
+*** TODO Allow resizing of cells in GUI
+    For this a special mouse handler has to be implemented that changes the cursor when
+    resizing is possible.  Resizing itself must be done via setRowHeight() or one of
+    TableColumns methods for setting the width of a column.
+*** TODO Use breakable tool bar for context editor
+*** TODO GUI context editor
+*** TODO GUI lattice editor
+*** TODO GUI code editor
+*** TODO GUI plugin browser
+*** TODO Undo for GUI
+** Lattice Drawing
+*** TODO Adjusting nodes in lattice diagram with parallelogram rule
+*** INPROGRESS draw-lattice-to-file
+    We need some function (i.e. draw-lattice-to-file) which produces a
+    file of the picture of a lattice layout, when given the same
+    arguments as draw-lattice.
 
-   For this we need some abstrace picture-drawing facility, which can
-   produce pictures without showing them. For that we could use svg
-   (also as output format for layouts) and simply write it to a file.
-** INPROGRESS Allow additional arguments to write-context            :Daniel:
-   depending on the current layout.
-** INPROGRESS More IO formats for contexts [2/5]                     :Daniel:
-   - [X] anonymous burmeister (without names for objects and
-     attributes)
-   - [ ] csc
-   - [ ] slf
-   - [ ] csx
-   - [X] binary csv
-** TODO Rewrite to-inf-additive-layout                               :Daniel:
-   As projection into the subspace of all infimum-additive layouts.
-** TODO Lattice IO for csv and dot                                   :Daniel:
-   That should be simple for output, but non-trivial for input.
-** TODO Add support for multiple contexts/... in IO                  :Daniel:
-   I.e. a call like
+    For this we need some abstrace picture-drawing facility, which can
+    produce pictures without showing them. For that we could use svg
+    (also as output format for layouts) and simply write it to a file.
+** IO
+*** TODO Add tests for explicit IO formats
+    given as keywords or strings.
+*** INPROGRESS Allow additional arguments to write-context
+    depending on the current layout.
+*** INPROGRESS More IO formats for contexts [2/5]
+    - [X] anonymous burmeister (without names for objects and
+      attributes)
+    - [ ] csc
+    - [ ] slf
+    - [ ] csx
+    - [X] binary csv
+*** TODO Lattice IO for csv and dot
+    That should be simple for output, but non-trivial for input.
+*** TODO Add support for multiple contexts/... in IO
+    I.e. a call like
 
-     (write-context :conexp "/tmp/file" ctx-1 ctx-2 ctx-3)
+      (write-context :conexp "/tmp/file" ctx-1 ctx-2 ctx-3)
 
-   should be possible. read-context then should also take an index of
-   which context to read in.
-** TODO Write short documentation                                    :Daniel:
-** TODO Change attribute names for mv-context scales                 :Daniel:
-   They are somewhat arbitrary and may also be misleading. Don't
-   forget to adjust the tests for them after finishing.
-* Unscheduled
-** TODO Implement Christians Force Layout with derivations
-** TODO Implement Christians Initial Position Layout
-** TODO Rule Exploration with Impex
-** TODO GUI context editor
-** TODO GUI lattice editor
-** TODO GUI code editor
-** TODO GUI plugin browser
-** TODO Undo for GUI
+    should be possible. read-context then should also take an index of
+    which context to read in.
+** Tests
+*** INPROGRESS Improve test coverage of conexp contrib [0/12]             :7:
+    - [ ] algorithms
+    - [ ] concept approximation
+    - [ ] DL
+    - [ ] draw (?)
+    - [ ] exec
+    - [ ] experimental
+    - [ ] factor analysis
+    - [ ] fuzzy [0/3]
+      - [ ] logics
+      - [ ] sets
+      - [ ] fca
+    - [ ] GUI (?)
+    - [ ] Java
+    - [ ] retracts
+    - [ ] util [0/1]
+      - [ ] general sorted sets
+*** INPROGRESS Add tests for new Association Rule functions               :7:
+** Layout
+*** INPROGRESS Add more layout output [0/2]
+    - [ ] svg
+    - [ ] povray
+*** TODO Rewrite to-inf-additive-layout                                   :7:
+    As projection into the subspace of all infimum-additive layouts.
+*** TODO Implement Christians Force Layout with derivations
+*** UNCERTAIN Implement Christians Initial Position Layout
+** Documentation
+*** INPROGRESS Write short documentation                                  :7:
+** Core
+*** TODO Change attribute names for mv-context scales                     :7:
+    They are somewhat arbitrary and may also be misleading. Don't
+    forget to adjust the tests for them after finishing.
+*** TODO Make luxenburger-base parallel                                   :7:
+*** TODO Rule Exploration with Impex
 * Bugs
 ** DONE 001 Contexts in ConExp format are not read in properly.
    The testing context nn_5.half.cex has problems when read in, the names of the objects and
