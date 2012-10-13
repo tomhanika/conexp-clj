@@ -1,8 +1,8 @@
 conexp-clj
 ==========
 
-This is conexp-clj, an attempt to rewrite the famous ConExp to extend it with
-new ideas.
+This is conexp-clj, a general purpose software tool for [Formal Concept
+Analysis](http://www.upriss.org.uk/fca/fca.html).
 
 The project has been started by Daniel Borchmann under supervision of Christian
 Meschke as part of the DFG project GA 216/10-1.
