@@ -135,6 +135,8 @@
   (subset? (conclusion implication)
            (close-under-implications implications (premise implication))))
 
+(defalias follows? follows-semantically?)
+
 (defn equivalent-implications?
   "Returns true iff the two seqs of implications are equivalent."
   [impls-1 impls-2]
