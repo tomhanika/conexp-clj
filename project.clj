@@ -11,7 +11,7 @@
 (defproject conexp-clj (.trim #=(slurp "VERSION"))
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
-  :url "http://daniel.kxpq.de/math/conexp-clj/"
+  :url "http://github.com/exot/conexp-clj/"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories {"math" "http://www.math.tu-dresden.de/~borch/repos/mvn/"}
