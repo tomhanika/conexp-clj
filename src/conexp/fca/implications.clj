@@ -82,14 +82,15 @@
   (subset? (conclusion impl) (adprime ctx (premise impl))))
 
 (defn- add-immediate-elements
-  "Adds all elements which follow from implications with premises in initial-set. Uses subset-test
-  to dertermine whether a given implication can be used to extend a given set, i.e. an implication
-  impl can be used to extend a set s if and only if
+  "Iterating through the sequence of implications, tries to apply as many implications as
+  possible.  Uses subset-test to dertermine whether a given implication can be used to
+  extend a given set, i.e. an implication impl can be used to extend a set s if and only
+  if
 
     (subset-test (premise impl) s)
 
-  is true. Note that if (conclusion impl) is already a subset of s, then s is obviously not
-  extended."
+  is true. Note that if (conclusion impl) is already a subset of s, then s is effectively
+  not extended."
   [implications initial-set subset-test]
   (loop [conclusions  (transient initial-set),
          impls        implications,
