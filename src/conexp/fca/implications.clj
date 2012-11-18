@@ -57,6 +57,17 @@
         conclusion (set conclusion)]
     (Implication. premise (difference conclusion premise))))
 
+(defmacro impl
+  "Convenience interface for creating implications.  Write implications just as
+
+    user=> (impl 1 2 3 ==> 4 5 6)
+    (#{1 2 3} ==> #{4 5 6})"
+  [& elements]
+  (let [[premise conclusion] (split-with (fn [x]
+                                           (not= x '==>))
+                                         elements)]
+    `(make-implication (list ~@premise) (list ~@(rest conclusion)))))
+
 ;;;
 
 (defn respects?
