@@ -83,7 +83,7 @@
 
 (defn- add-immediate-elements
   "Iterating through the sequence of implications, tries to apply as many implications as
-  possible.  Uses subset-test to dertermine whether a given implication can be used to
+  possible.  Uses subset-test to determine whether a given implication can be used to
   extend a given set, i.e. an implication impl can be used to extend a set s if and only
   if
 
