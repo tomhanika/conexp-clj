@@ -153,14 +153,19 @@
   (let [new-atts    (union (set (:positives state)) (set (:negatives state))),
         object-set? (contains? state :object),
         all-atts?   (= (attributes ctx) new-atts),
-        valid-cex?  (falsifies-implication? (set (:positives state)) impl)]
+        respects?   (forall [impl (:knowledge state)]
+                      (or (not (subset? (premise impl) (set (:positives state))))
+                          (subset? (conclusion impl) (set (:positives state))))),
+        falsifies?  (falsifies-implication? (set (:positives state)) impl)]
     (when-not object-set?
       (println "You need to set a name for the new object."))
     (when-not all-atts?
       (println "You have not specified a complete counterexample."))
-    (when-not valid-cex?
+    (when-not respects?
+      (println "Your example does not respect the already confirmed knowledge."))
+    (when-not falsifies?
       (println "Your example does not falsify the given implication."))
-    (and object-set? all-atts? valid-cex?)))
+    (and object-set? all-atts? respects? falsifies?)))
 
 (define-repl-fn check-counterexample
   "Checks the given counterexample for being valid."
