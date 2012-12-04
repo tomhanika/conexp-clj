@@ -66,6 +66,8 @@
   (let [[premise conclusion] (split-with (fn [x]
                                            (not= x '==>))
                                          elements)]
+    (when (empty? conclusion)
+      (warn "«impl» does not contain ==>"))
     `(make-implication (list ~@premise) (list ~@(rest conclusion)))))
 
 ;;;
