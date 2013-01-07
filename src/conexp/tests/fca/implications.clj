@@ -204,14 +204,6 @@
           (<=> (proper-premise? ctx P)
                (not (empty? (proper-conclusion ctx P))))))))
 
-
-(deftest test-minimal-intersection-sets
-  (let [minimal-intersection-sets @#'conexp.fca.implications/minimal-intersection-sets]
-    (are [sets minimal-sets] (= (set minimal-sets)
-                                (set (minimal-intersection-sets (reduce union sets) sets)))
-      [#{2} #{2 4}] [#{2}]
-      [#{1 2 3} #{2 3 4} #{2 3 5}] [#{1 4 5} #{2} #{3}])))
-
 (deftest test-proper-premises-for-attributes
   (with-testing-data [ctx (random-contexts 10 20),
                       m   (attributes ctx),

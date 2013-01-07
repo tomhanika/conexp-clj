@@ -251,56 +251,18 @@
   (and (subset? A (attributes ctx))
        (not (empty? (proper-conclusion ctx A)))))
 
-(defn- intersection-set?
-  "Tests whether set has non-empty intersection with every set in sets."
-  [set sets]
-  (forall [other-set sets]
-    (exists [x set]
-      (contains? other-set x))))
-
-(defn- minimal-intersection-sets
-  "Returns for a sequence set-sqn of sets all subsets of base-set which have non-empty
-  intersection with all sets in set-sqn and are minimal with this property."
-  [base-set set-sqn]
-  (let [cards    (map-by-fn (fn [x]
-                              (count (set-of X | X set-sqn :when (contains? X x))))
-                            base-set),
-        elements (sort (fn [x y]
-                         (>= (cards x) (cards y)))
-                       base-set),
-        result   (atom []),
-        search   (fn search [rest-sets current rest-elements]
-                   (cond
-                    (exists [x current]
-                      (intersection-set? (disj current x) set-sqn))
-                    nil,
-                    (intersection-set? current set-sqn)
-                    (swap! result conj current),
-                    :else
-                    (when-let [x (first rest-elements)]
-                      (when (exists [set rest-sets]
-                              (contains? set x))
-                        (search (remove #(contains? % x) rest-sets)
-                                (conj current x)
-                                (rest rest-elements)))
-                      (search rest-sets
-                              current
-                              (rest rest-elements)))))]
-    (search set-sqn #{} elements)
-    @result))
-
-(defn- proper-premises-for-attribute-helper
+(defn- proper-premises-by-hypertrans
   "Returns all proper premises for the attribute «m» in the formal context «ctx».  The set
   «objs» should contain all objects from ctx which are in down-arrow relation to m."
   [ctx m objs]
-  (minimal-intersection-sets (disj (attributes ctx) m)
-                             (set-of (difference (attributes ctx) (oprime ctx #{g})) | g objs)))
+  (minimal-hypergraph-transversals
+   (disj (attributes ctx) m)
+   (set-of (difference (attributes ctx) (oprime ctx #{g})) | g objs)))
 
 (defn proper-premises-for-attribute
   "Returns all proper premises for the attribute «m» in the formal context «ctx»."
   [ctx m]
-  (proper-premises-for-attribute-helper
-   ctx m (set-of g | [g n] (down-arrows ctx) :when (= n m))))
+  (proper-premises-by-hypertrans ctx m (set-of g | [g n] (down-arrows ctx) :when (= n m))))
 
 (defn proper-premises
   "Returns the proper premises of the given context ctx as a lazy sequence."
@@ -313,7 +275,7 @@
                            arrow-map))]
     (distinct
      (reduce concat
-             (pmap #(apply proper-premises-for-attribute-helper ctx %)
+             (pmap #(apply proper-premises-by-hypertrans ctx %)
                    down-arrow-map)))))
 
 (defn proper-premise-implications

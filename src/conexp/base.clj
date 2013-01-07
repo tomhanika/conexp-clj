@@ -249,6 +249,46 @@
   [<= xs]
   (partial-min #(<= %2 %1) xs))
 
+;;; Hypergraph Transversals
+
+(defn- intersection-set?
+  "Tests whether set has non-empty intersection with every set in sets."
+  [set sets]
+  (forall [other-set sets]
+    (exists [x set]
+      (contains? other-set x))))
+
+(defn minimal-hypergraph-transversals
+  "Returns all minimal hypergraph transversals of the hypergraph defined by «edges» on the
+  vertex sets «vertices»."
+  [vertices edges]
+  (let [cards    (map-by-fn (fn [x]
+                              (count (set-of X | X edges :when (contains? X x))))
+                            vertices),
+        elements (sort (fn [x y]
+                         (>= (cards x) (cards y)))
+                       vertices),
+        result   (atom []),
+        search   (fn search [rest-sets current rest-elements]
+                   (cond
+                    (exists [x current]
+                      (intersection-set? (disj current x) edges))
+                    nil,
+                    (intersection-set? current edges)
+                    (swap! result conj current),
+                    :else
+                    (when-let [x (first rest-elements)]
+                      (when (exists [set rest-sets]
+                              (contains? set x))
+                        (search (remove #(contains? % x) rest-sets)
+                                (conj current x)
+                                (rest rest-elements)))
+                      (search rest-sets
+                              current
+                              (rest rest-elements)))))]
+    (search edges #{} elements)
+    @result))
+
 ;;;
 
 nil
