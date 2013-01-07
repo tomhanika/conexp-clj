@@ -259,8 +259,8 @@
       (contains? other-set x))))
 
 (defn- minimal-intersection-sets
-  "Returns for a sequence set-sqn of sets all subsets of base-set which have non-empty intersection
-  with all sets in set-sqn and are minimal with this property."
+  "Returns for a sequence set-sqn of sets all subsets of base-set which have non-empty
+  intersection with all sets in set-sqn and are minimal with this property."
   [base-set set-sqn]
   (let [cards    (map-by-fn (fn [x]
                               (count (set-of X | X set-sqn :when (contains? X x))))
@@ -289,13 +289,18 @@
     (search set-sqn #{} elements)
     @result))
 
-(defn- proper-premises-for-attribute
-  "Technical Helper. Returns in context ctx for the attribute m and the objects in objs,
-  which must contain all objects g in ctx such that [g m] are in the downarrow relation, the proper
-  premises for m."
-  [ctx [m objs]]
+(defn- proper-premises-for-attribute-helper
+  "Returns all proper premises for the attribute «m» in the formal context «ctx».  The set
+  «objs» should contain all objects from ctx which are in down-arrow relation to m."
+  [ctx m objs]
   (minimal-intersection-sets (disj (attributes ctx) m)
                              (set-of (difference (attributes ctx) (oprime ctx #{g})) | g objs)))
+
+(defn proper-premises-for-attribute
+  "Returns all proper premises for the attribute «m» in the formal context «ctx»."
+  [ctx m]
+  (proper-premises-for-attribute-helper
+   ctx m (set-of g | [g n] (down-arrows ctx) :when (= n m))))
 
 (defn proper-premises
   "Returns the proper premises of the given context ctx as a lazy sequence."
@@ -308,7 +313,7 @@
                            arrow-map))]
     (distinct
      (reduce concat
-             (pmap #(proper-premises-for-attribute ctx %)
+             (pmap #(apply proper-premises-for-attribute-helper ctx %)
                    down-arrow-map)))))
 
 (defn proper-premise-implications
