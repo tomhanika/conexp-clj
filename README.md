@@ -47,8 +47,8 @@ How to Run
 ----------
 
 The recommended way to run conexp-clj is to download the pre-compiled version
-[here](https://github.com/exot/conexp-clj/downloads).  Just unpack the zip file and put
-the contained `bin` directory in you path.  You can then run
+[here](http://www.math.tu-dresden.de/~borch/downloads).  Just unpack the zip
+file and put the contained `bin` directory in you path.  You can then run
 
     $ conexp-clj
     
