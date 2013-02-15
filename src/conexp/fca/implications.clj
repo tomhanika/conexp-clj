@@ -20,7 +20,9 @@
   (equals [this other]
     (generic-equals [this other] Implication [premise conclusion]))
   (hashCode [this]
-    (hash-combine-hash Implication premise conclusion)))
+    (hash-combine-hash Implication premise conclusion))
+  (toString [this]
+    (str "(" premise "  ==>  " conclusion ")")))
 
 (defmulti premise
   "Returns premise of given object."
@@ -41,7 +43,7 @@
 (defmethod print-method Implication
   [impl out]
   (.write ^java.io.Writer out
-          ^String (str "(" (premise impl) "  ==>  " (conclusion impl) ")")))
+          ^String (str impl)))
 
 (defn implication?
   "Returns true iff thing is an implication."
