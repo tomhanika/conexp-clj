@@ -24,7 +24,6 @@
                  [conexp-clj/G                    "0.1.1"]
                  [conexp-clj/LatDraw              "0.0.1"]]
   :aot [conexp.main
-        conexp.contrib.gui
         conexp.contrib.java]
   :keep-non-project-classes true
   :warn-on-reflection true
