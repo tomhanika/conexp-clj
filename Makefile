@@ -6,7 +6,7 @@ zip: uberjar
 	cp -r stuff/bin README.md conexp-clj/
 	cp -r src/res conexp-clj/lib/
 	mv target/conexp-clj-*.jar conexp-clj/lib/
-	zip -r conexp-clj-$(shell cat VERSION).zip conexp-clj
+	zip -r conexp-clj-$(shell cat VERSION)-$(date -u +"%Y%m%d%H%M").zip conexp-clj
 
 uberjar: distclean
 	lein uberjar
