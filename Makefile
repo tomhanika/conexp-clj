@@ -27,6 +27,6 @@ distclean: clean
 test: clean
 	@lein deps, test
 
-upload: conexp-clj-$(VERSION).zip
-	@chmod a+r conexp-clj-$(VERSION).zip
-	@scp conexp-clj-$(VERSION).zip math:public_html/downloads/conexp-clj-$(VERSION)-$(TIME).zip
+upload: all
+	@chmod a+r conexp-clj-$(VERSION)-$(TIME).zip
+	@scp conexp-clj-$(VERSION)-$(TIME).zip math:public_html/downloads/conexp-clj-$(VERSION)-$(TIME).zip
