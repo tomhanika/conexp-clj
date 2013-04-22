@@ -14,19 +14,11 @@
   (clojure.main/repl :init #(use 'conexp.main)))
 
 (let [options (cli *command-line-args*
-                   (optional ["--gui" "Start the graphical user interface"])
                    (optional ["--load" "Load a given script"]))]
-  (when (options :gui)
-    (clojure.main/repl :init #(do
-                                (use 'conexp.main)
-                                (use 'conexp.contrib.gui)
-                                (@(ns-resolve 'conexp.contrib.gui 'gui)
-                                 :default-close-operation javax.swing.JFrame/EXIT_ON_CLOSE))))
   (when (options :load)
     (use 'conexp.main)
     (load-file (options :load)))
-  (when-not (or (options :gui)
-                (options :load))
+  (when-not (or (options :load))
     (clojure.main/repl :init #(use 'conexp.main))))
 
 ;;
