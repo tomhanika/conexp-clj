@@ -3,7 +3,7 @@ VERSION = $(shell cat VERSION)
 FILES = $(shell find src -name "*.clj")
 
 all: conexp-clj-$(VERSION).zip
-	@cp conexp-clj-$(VERSION).zip conexp-clj-$(VERSION)-$(shell date -u +"%Y%m%d%H%M%S").zip
+	@mv conexp-clj-$(VERSION).zip conexp-clj-$(VERSION)-$(shell date -u +"%Y%m%d%H%M%S").zip
 
 target/conexp-clj-$(VERSION)-standalone.jar: $(FILES)
 	@lein uberjar
