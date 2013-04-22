@@ -27,7 +27,7 @@
         conexp.contrib.java]
   :keep-non-project-classes true
   :warn-on-reflection true
-  :test-path "src/test/"
+  :test-paths ["tests" "src/test/"]
   :compile-path "lib/classes/"
   :scm {:url "git@github.com:exot/conexp-clj.git"})
 
