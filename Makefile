@@ -10,8 +10,8 @@ target/conexp-clj-$(VERSION)-standalone.jar: $(FILES)
 
 conexp-clj-$(VERSION).zip: target/conexp-clj-$(VERSION)-standalone.jar
 	@mkdir -p conexp-clj/lib/ conexp-clj/bin/
-	@cp stuff/libs/*.clj conexp-clj/lib
-	@cp -r src/scripts conexp-clj/bin/
+	@cp src/scripts/conexp-clj.clj conexp-clj/lib/
+	@cp -r src/scripts/conexp-clj src/scripts/conexp-clj.bat conexp-clj/bin/
 	@cp README.md conexp-clj/
 	@cp -r src/res conexp-clj/lib/
 	@cp target/conexp-clj-$(VERSION)-standalone.jar conexp-clj/lib/
