@@ -25,7 +25,7 @@ distclean: clean
 	@rm -rf lib conexp-clj-*.zip
 
 test: clean
-	@lein deps, test
+	@lein do deps, test
 
 upload: all
 	@chmod a+r conexp-clj-$(VERSION)-$(TIME).zip
