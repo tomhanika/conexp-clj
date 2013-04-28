@@ -259,15 +259,15 @@
     (attribute-clarified? (clarify-attributes ctx))))
 
 (deftest test-clarified?
-  (is (not (clarified? test-ctx-03)))
-  (is (clarified? test-ctx-04))
-  (is (not (clarified? test-ctx-06))))
+  (is (not (context-clarified? test-ctx-03)))
+  (is (context-clarified? test-ctx-04))
+  (is (not (context-clarified? test-ctx-06))))
 
 (deftest test-clarify-context
   (with-testing-data [ctx testing-data]
     (subcontext? (clarify-context ctx) ctx))
   (with-testing-data [ctx testing-data]
-    (clarified? (clarify-context ctx))))
+    (context-clarified? (clarify-context ctx))))
 
 (deftest test-down-arrows
   (with-testing-data [ctx testing-data]
@@ -314,16 +314,16 @@
     (is (attribute-reduced? (reduce-attributes ctx)))))
 
 (deftest test-reduced?
-  (is (not (reduced? test-ctx-01)))
-  (is (not (reduced? test-ctx-03)))
-  (is (reduced? test-ctx-04))
-  (is (reduced? test-ctx-06)))
+  (is (not (context-reduced? test-ctx-01)))
+  (is (not (context-reduced? test-ctx-03)))
+  (is (context-reduced? test-ctx-04))
+  (is (context-reduced? test-ctx-06)))
 
 (deftest test-reduce-context
   (with-testing-data [ctx testing-data]
     (subcontext? (reduce-context ctx) ctx))
   (with-testing-data [ctx testing-data]
-    (reduced? (reduce-context ctx)))
+    (context-reduced? (reduce-context ctx)))
   (with-testing-data [ctx testing-data]
     (let [rctx (reduce-context ctx),
           arrs (up-down-arrows ctx)]

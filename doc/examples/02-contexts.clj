@@ -20,7 +20,7 @@
 (attribute-clarified? ctx-2)
 
 ;; To chech both in one step use
-(clarified? ctx-2)
+(context-clarified? ctx-2)
 
 ;; You can clarify the attribute set or the object set or the complete
 ;; context with the following functions
@@ -32,7 +32,7 @@
 (defvar ctx-3 (clarify-context ctx-2))
 
 ;; The next step ist to reduce our clarified context. First we check
-(reduced? ctx-2)
+(context-reduced? ctx-2)
 
 ;; then we reduce, that means all reducible objects and attributes
 ;; will be deleted.  Note that objects with same object intent are

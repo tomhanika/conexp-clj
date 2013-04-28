@@ -301,7 +301,7 @@
                   n (attributes ctx)]
            (and (not= m n) (= (prime #{m}) (prime #{n})))))))
 
-(defn clarified?
+(defn context-clarified?
   "Tests whether given context ctx is clarified."
   [ctx]
   (and (object-clarified? ctx)
@@ -394,7 +394,7 @@
       (exists [[_ n] ua]
         (= m n)))))
 
-(defn reduced?
+(defn context-reduced?
   "Tests whether given context ctx is reduced or not."
   [ctx]
   (and (object-reduced? ctx)

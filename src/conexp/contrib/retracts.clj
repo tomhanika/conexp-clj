@@ -81,7 +81,7 @@
   "Returns all retracts of context as computed by the algorithm of
   Felix Kästner."
   [context]
-  (when-not (reduced? context)
+  (when-not (context-reduced? context)
     (illegal-argument "Can only compute retracts of reduced contexts."))
   (let [concepts (concepts context)]
     (for [hom  (homomorphisms-by-cscs context),

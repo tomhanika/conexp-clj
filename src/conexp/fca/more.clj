@@ -32,7 +32,7 @@
 (defn compatible-subcontexts
   "Returns all compatible subcontexts of ctx. ctx has to be reduced."
   [ctx]
-  (if (not (reduced? ctx))
+  (if (not (context-reduced? ctx))
     (illegal-argument "Context given to compatible-subcontexts has to be reduced."))
   (let [up-arrows        (up-arrows ctx)
         down-arrows      (down-arrows ctx)
