@@ -19,7 +19,7 @@
     (use 'conexp.main)
     (load-file (options :load)))
   (when-not (or (options :load))
-    (clojure.main/repl :init #(use 'conexp.main))))
+    (clojure.main/repl :init #(do (use 'conexp.main) (use 'clojure.repl)))))
 
 ;;
 
