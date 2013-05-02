@@ -57,13 +57,13 @@
   (struct plugin-manager frame (ref #{}) (ref #{})))
 
 (defn plugin-registered? [plugin-manager plugin]
-  (contains? (registered-plugins plugin-manager) plugin))
+  (contains? @(registered-plugins plugin-manager) plugin))
 
 (defn plugin-loaded?
   "Tests whether a plugin is loaded within a plugin manager or not."
   [plugin-manager plugin]
   (and (plugin-registered? plugin-manager plugin)
-       (contains? (loaded-plugins plugin-manager) plugin)))
+       (contains? @(loaded-plugins plugin-manager) plugin)))
 
 (defn register-plugin
   "Tests whether a plugin is registered within a plugin manager or not."
