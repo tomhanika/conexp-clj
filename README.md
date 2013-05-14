@@ -152,6 +152,6 @@ Additional Contributors are
 License
 -------
 
-Copyright ⓒ 2009—2012 Daniel Borchmann
+Copyright ⓒ 2009—2013 Daniel Borchmann
 
 Distributed under the Eclipse Public License.
