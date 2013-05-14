@@ -63,17 +63,21 @@ instead.
 Documentation
 -------------
 
-By now, documentation is done via example files. Besides the special examples files given below,
-there exist some example files which give a general overview of how to use conexp-clj. Those files
-cover
+There are two parts of documentation right now:
 
- * [basics](https://github.com/exot/conexp-clj/blob/master/doc/examples/01-basics.clj)
- * [formal contexts](https://github.com/exot/conexp-clj/blob/master/doc/examples/02-contexts.clj)
- * [lattices](https://github.com/exot/conexp-clj/blob/master/doc/examples/03-lattices.clj)
- * [IO](https://github.com/exot/conexp-clj/blob/master/doc/examples/04-io.clj)
- * [implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/05-implications.clj)
+- There are a couple of example files: Besides the special examples files given
+  below, there exist some example files which give a general overview of how to
+  use conexp-clj. Those files cover
 
-They have been written by Sebastian Böhm.
+  * [basics](https://github.com/exot/conexp-clj/blob/master/doc/examples/01-basics.clj)
+  * [formal contexts](https://github.com/exot/conexp-clj/blob/master/doc/examples/02-contexts.clj)
+  * [lattices](https://github.com/exot/conexp-clj/blob/master/doc/examples/03-lattices.clj)
+  * [IO](https://github.com/exot/conexp-clj/blob/master/doc/examples/04-io.clj)
+  * [implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/05-implications.clj)
+
+  They have been written by Sebastian Böhm.
+
+- conexp-clj's [Wiki](http://github.com/exot/conexp-clj/wiki)
 
 Additionally, for general help on a function f, you can use the clojure function `doc` with
 
