@@ -301,9 +301,9 @@
 
     [att_1 att_2 ...] scale,
 
-  where att_i is an attribute of the given context and scale determines a call to a known scale. The
-  variable values will be bound to the corresponding values of each attribute and may be used when
-  constructing the scale. For example, you may use this macro with
+  where att_i is an attribute of the given context and scale determines a call to a known
+  scale. The variable «values» will be bound to the corresponding values of each attribute
+  and may be used when constructing the scale. For example, you may use this macro with
 
     (scale-mv-context-with ctx
       [a b c]  (nominal-scale values)
