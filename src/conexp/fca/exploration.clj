@@ -37,7 +37,7 @@
     being of the form [g ms], where «g» is a new object and «ms» is
     the set of its attributes.
 
-  - background-knowledge «set of implications»
+  - :background-knowledge «set of implications»
 
     background-knowledge denotes a set of implications used as
     background knowledge, which will be subtracted from the computed
