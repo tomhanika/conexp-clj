@@ -713,7 +713,7 @@ defnk accepts an optional docstring as well as an optional metadata map."
                    (when (covers? sets rest-base-set)
                      (let [counts (map-by-fn #(count (intersection rest-base-set %))
                                              sets),
-                           sets   (sort #(>= (counts %1) (counts %2))
+                           sets   (sort #(- (counts %2) (counts %1)) ; bah
                                         sets)],
                        (search (difference rest-base-set (first sets))
                                (conj current-cover (first sets))
