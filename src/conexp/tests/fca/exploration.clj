@@ -47,6 +47,15 @@
   (with-testing-data [ctx testing-data]
     (= #{} (:implications (explore-attributes ctx :handler say-no)))))
 
+(deftest test-explore-attributes-is-abortable
+  (let [ctx (rand-context 10 0.5)
+        imp #{(make-implication #{1} #{2})}
+        res (explore-attributes ctx
+                                :background-knowledge imp
+                                :handler #(throw (Exception. "Buh!")))]
+    (is (and (= ctx (:context res))
+             (= #{} (:implications res))))))
+
 (deftest test-explore-attributes-with-background-knowledge
   (with-testing-data [ctx testing-data]
     (= #{} (:implications (explore-attributes ctx

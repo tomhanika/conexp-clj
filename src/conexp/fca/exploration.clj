@@ -62,24 +62,35 @@
                                   last)
                  ctx)
           (let [new-impl        (make-implication last conclusion-from-last),
-                counterexamples (handler ctx implications new-impl)]
-            (if counterexamples
-              (let [new-objs (map first counterexamples)]
-                (when (exists [g new-objs] (contains? (objects ctx) g))
-                  (illegal-argument "Got objects as «new objects» in exploration "
-                                    "which are already present."))
-                (recur implications
-                       last
-                       (make-context (into (objects ctx) new-objs)
-                                     (attributes ctx)
-                                     (union (incidence ctx)
-                                            (set-of [g m] [[g ms] counterexamples,
-                                                           m ms])))))
-              (recur (conj implications new-impl)
-                     (next-closed-set (attributes ctx)
-                                      (clop-by-implications (conj implications new-impl))
-                                      last)
-                     ctx))))))))
+                counterexamples (try
+                                  (handler ctx implications new-impl)
+                                  (catch Throwable e
+                                    :abort))]
+            (cond
+             (= counterexamples :abort)
+             (recur implications nil ctx) ;; forget all other sets
+             ;;;
+             counterexamples
+             (let [new-objs (map first counterexamples)]
+               ;; check that new names are not there already
+               (when (exists [g new-objs] (contains? (objects ctx) g))
+                 (illegal-argument "Got objects as «new objects» in exploration "
+                                   "which are already present."))
+               (recur implications
+                      last
+                      (make-context (into (objects ctx) new-objs)
+                                    (attributes ctx)
+                                    (union (incidence ctx)
+                                           (set-of [g m] [[g ms] counterexamples,
+                                                          m ms])))))
+             ;;;
+             true
+             ;; add counterexample
+             (recur (conj implications new-impl)
+                    (next-closed-set (attributes ctx)
+                                     (clop-by-implications (conj implications new-impl))
+                                     last)
+                    ctx))))))))
 
 ;;; Handler
 
