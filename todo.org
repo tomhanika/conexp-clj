@@ -1,20 +1,9 @@
 # -*- mode: org -*-
-#+startup: overview
+#+startup: content
 #+startup: hidestars
 #+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
 
 * Todo
-** GUI
-*** TODO Allow resizing of cells in GUI
-    For this a special mouse handler has to be implemented that changes the cursor when
-    resizing is possible.  Resizing itself must be done via setRowHeight() or one of
-    TableColumns methods for setting the width of a column.
-*** TODO Use breakable tool bar for context editor
-*** TODO GUI context editor
-*** TODO GUI lattice editor
-*** TODO GUI code editor
-*** TODO GUI plugin browser
-*** TODO Undo for GUI
 ** Lattice Drawing
 *** TODO Adjusting nodes in lattice diagram with parallelogram rule
 *** INPROGRESS draw-lattice-to-file
@@ -24,7 +13,7 @@
 
     For this we need some abstrace picture-drawing facility, which can
     produce pictures without showing them. For that we could use svg
-    (also as output format for layouts) and simply write it to a file.
+*** (also as output format for layouts) and simply write it to a file.
 ** IO
 *** TODO Add tests for explicit IO formats
     given as keywords or strings.
@@ -72,15 +61,47 @@
 *** TODO Rewrite to-inf-additive-layout                                   :7:
     As projection into the subspace of all infimum-additive layouts.
 *** TODO Implement Christians Force Layout with derivations
-*** UNCERTAIN Implement Christians Initial Position Layout
 ** Documentation
-*** INPROGRESS Write short documentation                                  :7:
+*** INPROGRESS Write Wiki [3/7]
+    - [X] Getting Started
+    - [X] Basic Notation and Syntax
+    - [-] Basic Usage
+      - [X] Creating and Working with Formal Contexts
+      - [ ] Concept Lattices
+      - [X] IO
+      - [ ] Implications
+      - [X] Exploration
+      - [X] Scaling Many-Valued Contexts
+    - [ ] Advanced Usage
+      - [ ] Factorizing Formal Contexts
+      - [ ] Fuzzy FCA in conexp-clj
+    - [ ] Use cases of conexp-clj
+      - [ ] A Formal Context of Functions
+      - [ ] Context of All Permutations on a Finite Set
+      - [ ] The Tamari Lattice
+    - [-] Other Features
+      - [X] Using conexp-clj from sage
+      - [ ] Calling conexp-clj functions from Java
+    - [X] API documentation
+*** DONE API documentation on the Wiki
 ** Core
 *** TODO Change attribute names for mv-context scales                     :7:
     They are somewhat arbitrary and may also be misleading. Don't
     forget to adjust the tests for them after finishing.
 *** TODO Make luxenburger-base parallel                                   :7:
 *** TODO Rule Exploration with Impex
+** GUI
+*** TODO Allow resizing of cells in GUI
+    For this a special mouse handler has to be implemented that changes the cursor when
+    resizing is possible.  Resizing itself must be done via setRowHeight() or one of
+    TableColumns methods for setting the width of a column.
+*** TODO Use breakable tool bar for context editor
+*** TODO GUI context editor
+*** TODO GUI lattice editor
+*** TODO GUI code editor
+*** TODO GUI plugin browser
+*** TODO Undo for GUI
+
 * Bugs
 ** DONE 001 Contexts in ConExp format are not read in properly.
    The testing context nn_5.half.cex has problems when read in, the names of the objects and
