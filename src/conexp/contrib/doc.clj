@@ -89,12 +89,26 @@
   [file]
   (public-api-to-file 
    file '[conexp.main
+          conexp.layouts
           conexp.layouts.base
           conexp.layouts.common
           conexp.layouts.force
           conexp.layouts.freese
           conexp.layouts.layered
           conexp.layouts.util
+          conexp.contrib.concept-approximation
+          conexp.contrib.doc
+          conexp.contrib.fuzzy.fca
+          conexp.contrib.fuzzy.logics
+          conexp.contrib.fuzzy.sets
+          conexp.contrib.draw
+          conexp.contrib.exec
+          conexp.contrib.factor-analysis
+          conexp.contrib.gui
+          conexp.contrib.java
+          conexp.contrib.nonsense
+          conexp.contrib.profiler
+          conexp.contrib.retracts
           ]))
 
 ;;;
