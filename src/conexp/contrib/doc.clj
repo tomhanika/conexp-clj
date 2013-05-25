@@ -67,7 +67,7 @@
                              (map #(nth (re-find #"(  )?(.*)$" %1) 2)
                                   (split doc #"\n")))]
              (cl-format true
-                        "~%- <a name=\"~A\"> Function `~A` ~%~% * Argument List: `~A` ~%~% * Documentation: ~A ~%"
+                        "~%#### <a name=\"~A\"> Function `~A` ~%~%Argument List: `~A` ~%~%Documentation: ~A ~%"
                         f f arglist doc)))))))
 
 (defn public-api-to-file
