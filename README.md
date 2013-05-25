@@ -63,23 +63,9 @@ instead.
 Documentation
 -------------
 
-There are two parts of documentation right now:
-
-- There are a couple of example files: Besides the special examples files given
-  below, there exist some example files which give a general overview of how to
-  use conexp-clj. Those files cover
-
-  * [basics](https://github.com/exot/conexp-clj/blob/master/doc/examples/01-basics.clj)
-  * [formal contexts](https://github.com/exot/conexp-clj/blob/master/doc/examples/02-contexts.clj)
-  * [lattices](https://github.com/exot/conexp-clj/blob/master/doc/examples/03-lattices.clj)
-  * [IO](https://github.com/exot/conexp-clj/blob/master/doc/examples/04-io.clj)
-  * [implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/05-implications.clj)
-
-  They have been written by Sebastian Böhm.
-
-- conexp-clj's [Wiki](http://github.com/exot/conexp-clj/wiki)
-
-Additionally, for general help on a function f, you can use the clojure function `doc` with
+The current main source of documentation on conexp-clj is its
+[Wiki](http://github.com/exot/conexp-clj/wiki).  Additionally, for general help on a
+function f, you can use the clojure function `doc` with
 
 ~~~
 (doc f)
@@ -91,7 +77,19 @@ For finding functions you may find useful, you can use `find-doc`
 (find-doc "Whatever you may find useful")
 ~~~
 
-Some more examples:
+Additional Documentation:
+
+- Basic example files: those files cover
+
+  * [basics](https://github.com/exot/conexp-clj/blob/master/doc/examples/01-basics.clj)
+  * [formal contexts](https://github.com/exot/conexp-clj/blob/master/doc/examples/02-contexts.clj)
+  * [lattices](https://github.com/exot/conexp-clj/blob/master/doc/examples/03-lattices.clj)
+  * [IO](https://github.com/exot/conexp-clj/blob/master/doc/examples/04-io.clj)
+  * [implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/05-implications.clj)
+
+  They have been written by Sebastian Böhm.
+
+- Advances example files:
 
  * [Attribute Exploration](https://github.com/exot/conexp-clj/blob/master/doc/examples/exploration.clj)
    a demonstration how attribute exploration can be done in conexp-clj.
@@ -109,6 +107,9 @@ Some more examples:
    \{0,...,n\}.
  * [Tamari Lattice](https://github.com/exot/conexp-clj/blob/master/doc/examples/tamari-lattice.clj),
    the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
+
+- [Tutorial](http://www.math.tu-dresden.de/~borch/conexp-clj/icfca2013-tutorial), given at
+  the 11th International Conference on Formal Concept Analysis
 
 
 Running conexp-clj from source
