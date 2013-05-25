@@ -22,7 +22,8 @@
                  [org.clojure/math.numeric-tower  "0.0.2"]
                  [org.apache.commons/commons-math "2.1"]
                  [conexp-clj/G                    "0.1.1"]
-                 [conexp-clj/LatDraw              "0.0.1"]]
+                 [conexp-clj/LatDraw              "0.0.1"]
+                 [jline                           "0.9.94"]]
   :aot [conexp.main
         conexp.contrib.java]
   :keep-non-project-classes true

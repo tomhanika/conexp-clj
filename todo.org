@@ -4,7 +4,7 @@
 #+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
 
 * Script
-** Add readline support
+** DONE Add readline support
    using jline
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
