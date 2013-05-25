@@ -3,6 +3,9 @@
 #+startup: hidestars
 #+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
 
+* Script
+** Add readline support
+   using jline
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
 ** INPROGRESS draw-lattice-to-file
