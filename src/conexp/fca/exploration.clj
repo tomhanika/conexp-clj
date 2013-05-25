@@ -49,7 +49,7 @@
   [ctx, :background-knowledge #{}, :handler default-handler]
   (assert (set? background-knowledge))
   (loop [implications background-knowledge,
-         last         #{},
+         last         (close-under-implications implications #{}),
          ctx          ctx]
     (if (not last)
       {:implications (difference implications background-knowledge),

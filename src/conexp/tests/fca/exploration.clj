@@ -47,6 +47,12 @@
   (with-testing-data [ctx testing-data]
     (= #{} (:implications (explore-attributes ctx :handler say-no)))))
 
+(deftest test-explore-attributes-with-background-knowledge
+  (with-testing-data [ctx testing-data]
+    (= #{} (:implications (explore-attributes ctx
+                                              :background-knowledge (canonical-base ctx)
+                                              :handler #(is false))))))
+
 ;;;
 
 nil
