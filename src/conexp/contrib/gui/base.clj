@@ -42,9 +42,8 @@
                                            (fn [_]
                                              (.processWindowEvent
                                               main-frame
-                                              (WindowEvent.
-                                               main-frame
-                                               WindowEvent/WINDOW_CLOSING)))])])])
+                                              (WindowEvent. main-frame
+                                                            WindowEvent/WINDOW_CLOSING)))])])])
 
     ;; Add plugins (may add new menus)
     (add-plugin-manager main-frame)
