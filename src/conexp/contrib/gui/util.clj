@@ -28,18 +28,11 @@
 
 ;;; Swing handmade concurrency
 
-(defn invoke-later-or-now
-  "Calls fn with SwingUtilities/invokeLater."
-  [fn]
-  (if (SwingUtilities/isEventDispatchThread)
-    (fn)
-    (SwingUtilities/invokeLater fn)))
-
 (defmacro do-swing
   "Executes body within the Swing Dispatch Thread or immediately, if
   execution is already in this thread."
   [& body]
-  `(invoke-later-or-now #(do ~@body)))
+  `(invoke-soon #(do ~@body)))
 
 (defmacro do-swing-return
   "Executes body in a thread-safe manner for Swing and returns its value."
