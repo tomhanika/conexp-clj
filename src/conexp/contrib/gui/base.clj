@@ -18,7 +18,8 @@
         [conexp.contrib.gui.plugins.base :only (load-plugin)]
         [conexp.contrib.gui.editors.contexts :only (context-editor)]
         [conexp.contrib.gui.editors.lattices :only (lattice-editor)]
-        [conexp.contrib.gui.editors.code :only (code-editor)]))
+        [conexp.contrib.gui.editors.code :only (code-editor)])
+  (:use seesaw.core))
 
 
 (ns-doc "Provides basic definitions for the standard conexp-clj GUI.")
@@ -51,28 +52,19 @@
 
 (defnk conexp-main-frame
   "Returns main frame for conexp standard gui."
-  [:default-close-operation JFrame/DISPOSE_ON_CLOSE]
-  (let [main-frame (JFrame. "conexp-clj")]
-    ;; main setup (including menu)
-    (doto main-frame
-      (.setDefaultCloseOperation default-close-operation)
-      (.setSize 1000 800)
-      (.setJMenuBar (JMenuBar.))
-      (.setContentPane (JPanel. (BorderLayout.)))
-      (add-menus standard-menus)
-      (add-plugin-manager))
+  [:default-close-operation :dispose]
+  (let [tabbed-pane  (tabbed-panel)
+        content-pane (border-panel :center tabbed-pane)
 
-    ;; tabbed-pane setup
-    (let [tabbed-pane (JTabbedPane.),
-          split-pane  (JSplitPane. JSplitPane/VERTICAL_SPLIT)]
-      (doto split-pane
-        (.setTopComponent tabbed-pane)
-        (.setOneTouchExpandable true)
-        (.setResizeWeight 1.0))
-      (doto (.getContentPane main-frame)
-        (.add split-pane BorderLayout/CENTER)))
+        main-frame   (frame :title "conexp-clj"
+                            :on-close default-close-operation
+                            :size [1000 :by 800]
+                            :menubar (JMenuBar.)
+                            :content content-pane)]
+    (add-menus main-frame standard-menus)
 
-    ;; standard plugins
+    ;; plugins
+    (add-plugin-manager main-frame)
     (let [pm (get-plugin-manager main-frame)]
       (load-plugin pm context-editor)
       (load-plugin pm lattice-editor)
