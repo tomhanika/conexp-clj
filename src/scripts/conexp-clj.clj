@@ -13,17 +13,25 @@
 (defn- run-repl []
   (clojure.main/repl :init #(use 'conexp.main)))
 
-(let [options (cli *command-line-args*
-                   (optional ["--gui" "Start the graphical user interface"])
-                   (optional ["--load" "Load a given script"]))]
-  (when (options :gui)
+(let [[options trailing doc] (cli *command-line-args*
+                                  ["--gui"  "Start the graphical user interface"]
+                                  ["--load" "Load a given script"]
+                                  ["--help" "This help"])]
+  (when (contains? options :help)
+    (println doc)
+    (System/exit 0))
+  (when (contains? options :gui)
     (clojure.main/repl :init #(do
                                 (use 'conexp.main)
                                 (use 'conexp.contrib.gui)
                                 (@(ns-resolve 'conexp.contrib.gui 'gui)
                                  :default-close-operation javax.swing.JFrame/EXIT_ON_CLOSE))))
-  (when (options :load)
+  (when (contains? options :load)
     (use 'conexp.main)
+    (when (not (options :load))
+      (println "Error: --load requires a file to load")
+      (println doc)
+      (System/exit 1))
     (load-file (options :load)))
   (when-not (or (options :gui)
                 (options :load))
