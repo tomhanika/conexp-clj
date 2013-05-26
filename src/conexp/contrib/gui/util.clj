@@ -193,7 +193,7 @@
 (defn- ^JMenuBar get-menubar
   "Returns menubar of given frame."
   [frame]
-  (get-component frame #(= (class %) JMenuBar)))
+  (get-component frame #(instance? JMenuBar %)))
 
 (declare hash-map->menu)
 
@@ -227,14 +227,13 @@
   menus added."
   [^JFrame frame, menus]
   (let [our-menus (map #(hash-map->menu frame %) menus)]
-    (do-swing
-     (let [menu-bar (get-menubar frame),
-           [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
-                                                  (seq (.getComponents menu-bar)))]
-       (.removeAll menu-bar)
-       (doseq [^JComponent menu (concat menus-before our-menus menus-after)]
-         (.add menu-bar menu))
-       (.validate frame)))
+    (let [menu-bar (get-menubar frame),
+          [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
+                                                 (seq (.getComponents menu-bar)))]
+      (.removeAll menu-bar)
+      (doseq [^JComponent menu (concat menus-before our-menus menus-after)]
+        (.add menu-bar menu))
+      (.validate frame))
     our-menus))
 
 (defn remove-menus

@@ -10,7 +10,7 @@
   (:import [javax.swing JFrame JMenuBar JMenu JMenuItem JToolBar JPanel
                         JButton JSeparator JTabbedPane JSplitPane
                         JLabel JTextArea JScrollPane]
-           [java.awt GridLayout BorderLayout Dimension])
+           [java.awt GridLayout BorderLayout Dimension event.WindowEvent])
   (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc)]
         conexp.contrib.gui.util
         conexp.contrib.gui.repl
@@ -26,26 +26,11 @@
 
 ;;; Menus
 
-(defvar- main-menu {:name "Main",
-                    :content [---
-                              {:name "Quit",
-                               :handler (fn [^JFrame frame]
-                                          (condp = (.getDefaultCloseOperation frame)
-                                              JFrame/DISPOSE_ON_CLOSE    (.dispose frame),
-                                              JFrame/EXIT_ON_CLOSE       (System/exit 0),
-                                              JFrame/HIDE_ON_CLOSE       (.hide frame),
-                                              JFrame/DO_NOTHING_ON_CLOSE nil,
-                                              (illegal-state "Unknown default close operation for given frame.")))}]}
-  "Main menu for conexp-clj standard GUI.")
-
 (defvar- help-menu {:name "Help",
                       :content [{:name "License"}
                                 ---
                                 {:name "About"}]}
   "Help menu for conexp-clj standard GUI.")
-
-(defvar- standard-menus [main-menu === help-menu]
-  "Standard menus for conexp-clj GUI.")
 
 
 ;;; Conexp Main Frame
@@ -55,20 +40,39 @@
   [:default-close-operation :dispose]
   (let [tabbed-pane  (tabbed-panel)
         content-pane (border-panel :center tabbed-pane)
-
         main-frame   (frame :title "conexp-clj"
                             :on-close default-close-operation
                             :size [1000 :by 800]
-                            :menubar (JMenuBar.)
                             :content content-pane)]
-    (add-menus main-frame standard-menus)
 
-    ;; plugins
+    ;; Main menu first
+    (config! main-frame :menubar
+             (menubar :items
+                      [(menu :text "Main"
+                             :items
+                             [:separator
+                              (menu-item :text "Quit"
+                                         :listen [:action
+                                                  (fn [_]
+                                                    (.processWindowEvent
+                                                     main-frame
+                                                     (WindowEvent.
+                                                      main-frame
+                                                      WindowEvent/WINDOW_CLOSING)))])])]))
+
+    ;; Add plugins (may add new menus)
     (add-plugin-manager main-frame)
     (let [pm (get-plugin-manager main-frame)]
       (load-plugin pm context-editor)
       (load-plugin pm lattice-editor)
       (load-plugin pm code-editor))
+
+    ;; Add Help menu at right position
+    (config! main-frame :menubar
+             (menubar :items (-> (vec (config (first (select main-frame [:JMenuBar]))
+                                              :items))
+                                 (conj :separator)
+                                 (conj (menu :text "Help")))))
 
     main-frame))
 
