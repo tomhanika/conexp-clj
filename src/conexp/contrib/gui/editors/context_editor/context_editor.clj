@@ -17,8 +17,7 @@
         conexp.contrib.gui.editors.context-editor.editable-contexts
         conexp.contrib.gui.editors.context-editor.context-editor-control)
   (:use seesaw.core)
-  (:import [javax.swing JRootPane KeyStroke Box JFrame JTable JComponent]
-           [java.awt BorderLayout]
+  (:import [javax.swing KeyStroke Box JTable]
            [java.awt.event KeyEvent ActionEvent])
   (:import conexp.contrib.gui.editors.context_editor.context_editor_control.context-editor-widget))
 
