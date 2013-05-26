@@ -137,42 +137,6 @@
     (or img alt)))
 
 
-;;; widgets
-
-(defn class-to-keyword
-  "Takes a class c and returns a corresponding keyword describing
-  its class name."
-  [c]
-  (let [rv          string/reverse,
-        classname   (str c),
-        keywordname (rv (string/replace-first
-                         (rv (string/replace-first classname #"class " ""))
-                         #"\."
-                         "/"))]
-    (keyword keywordname)))
-
-(defn keyword-class
-  "Takes an object x and returns a corresponding keyword describing
-  its class name."
-  [x]
-  (class-to-keyword (type x)))
-
-(defn keyword-isa?
-  "Returns true iff the keyword-class of obj isa? parent."
-  [obj parent]
-  (isa? (keyword-class obj) (class-to-keyword parent)))
-
-(defmacro defwidget
-  "Defines a widget. The resulting widget will have super-widgets,
-  which must be a vector of valid widgets, as super-widgets and fields
-  and data fields."
-  [name super-widgets fields]
-  `(do
-     (defrecord ~name ~fields)
-     ~@(for [sw super-widgets]
-         `(derive (class-to-keyword ~name) (class-to-keyword ~sw)))))
-
-
 ;;; Menus
 
 (defn add-menus

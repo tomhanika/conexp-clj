@@ -9,13 +9,14 @@
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
 (ns conexp.contrib.gui.editors.context-editor.context-editor
-  (:use conexp.base
+  (:use [conexp.base :exclude (select)]
         conexp.fca
         conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts
         conexp.contrib.gui.editors.context-editor.context-editor-control)
+  (:use seesaw.core)
   (:import [javax.swing JRootPane KeyStroke Box JFrame JTable JComponent]
            [java.awt BorderLayout]
            [java.awt.event KeyEvent ActionEvent])
