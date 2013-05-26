@@ -195,7 +195,6 @@
   "Takes a sequences of menus and adds them to the given frame"
   [frame menus]
   (let [framebar (first (select frame [:JMenuBar]))]
-    (println menus)
     (config! frame :menubar
              (menubar :items (vec (concat (when framebar (config framebar :items))
                                           menus))))))
