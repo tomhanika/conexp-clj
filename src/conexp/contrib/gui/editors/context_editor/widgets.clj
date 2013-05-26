@@ -14,7 +14,9 @@
            [java.awt Toolkit Dimension Insets FlowLayout]
            [java.awt.event ActionListener]
            [java.awt.datatransfer DataFlavor StringSelection])
-  (:use [conexp.base :exclude (join)]))
+  (:use [conexp.base :exclude (join)]
+        conexp.contrib.gui.util)
+  (:require [clojure.string :as string]))
 
 ;;; util
 
