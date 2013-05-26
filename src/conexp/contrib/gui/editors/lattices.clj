@@ -30,8 +30,8 @@
 
 (define-plugin lattice-editor
   "Lattice editor plugin."
-  :load-hook   load-lattice-editor,
-  :unload-hook unload-lattice-editor)
+  :load-hook   #(load-lattice-editor %)
+  :unload-hook #(unload-lattice-editor %))
 
 ;;; The Actions
 

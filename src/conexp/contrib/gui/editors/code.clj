@@ -19,8 +19,8 @@
 
 (define-plugin code-editor
   "Code editor plugin."
-  :load-hook load-code-editor,
-  :unload-hook unload-code-editor)
+  :load-hook #(load-code-editor %)
+  :unload-hook #(unload-code-editor %))
 
 ;;; Menu
 

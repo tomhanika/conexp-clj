@@ -34,8 +34,8 @@
 
 (define-plugin context-editor
   "Context editor plugin."
-  :load-hook   load-context-editor,
-  :unload-hook unload-context-editor)
+  :load-hook   #(load-context-editor %)
+  :unload-hook #(unload-context-editor %))
 
 ;;; The Actions
 
