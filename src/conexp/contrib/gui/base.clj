@@ -7,10 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.base
-  (:import [javax.swing JFrame JMenuBar JMenu JMenuItem JToolBar JPanel
-                        JButton JSeparator JTabbedPane JSplitPane
-                        JLabel JTextArea JScrollPane]
-           [java.awt GridLayout BorderLayout Dimension event.WindowEvent])
+  (:import [java.awt.event WindowEvent])
   (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc)]
         conexp.contrib.gui.util
         conexp.contrib.gui.repl
@@ -21,17 +18,7 @@
         [conexp.contrib.gui.editors.code :only (code-editor)])
   (:use seesaw.core))
 
-
 (ns-doc "Provides basic definitions for the standard conexp-clj GUI.")
-
-;;; Menus
-
-(defvar- help-menu {:name "Help",
-                      :content [{:name "License"}
-                                ---
-                                {:name "About"}]}
-  "Help menu for conexp-clj standard GUI.")
-
 
 ;;; Conexp Main Frame
 
@@ -75,7 +62,6 @@
                                  (conj (menu :text "Help")))))
 
     main-frame))
-
 
 ;;;
 
