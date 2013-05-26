@@ -242,7 +242,7 @@
                                   :floatable? false)
           root           (top-bottom-split (scrollable bar)
                                            (get-widget table)
-                                           :divider-location 65)
+                                           :divider-location 70)
           e-ctx          @ectx,
           widget         (context-editor-widget. root table ectx),
           keystroke-fill (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
