@@ -187,7 +187,7 @@
   "Removes given menus (as Java objects) from menu-bar of frame."
   [^JFrame frame, menus]
   (do-swing
-   (let [menu-bar (select frame [:JMenuBar]),
+   (let [menu-bar (first (select frame [:JMenuBar])),
          new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
      (.removeAll menu-bar)
      (doseq [^JComponent menu new-menus]
@@ -242,7 +242,7 @@
   [^JFrame frame, icons]
   (let [our-icons (map #(make-icon frame %) icons)]
     (do-swing
-     (let [toolbar (select frame [:JToolBar]),
+     (let [toolbar (first (select frame [:JToolBar])),
            new-icons (collapse-separators (concat (.getComponents toolbar)
                                                   our-icons))]
        (.removeAll toolbar)
@@ -257,7 +257,7 @@
   side."
   [^JFrame frame, icons]
   (do-swing
-   (let [^JToolBar toolbar (select frame [:JToolBar]),
+   (let [^JToolBar toolbar (first (select frame [:JToolBar])),
          rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
      (.removeAll toolbar)
      (doseq [^JComponent icon rem-icons]
@@ -275,7 +275,7 @@
 (defn- get-tabpane
   "Returns tabpane of the given frame."
   [frame]
-  (get-component frame #(instance? javax.swing.JTabbedPane %)))
+  (first (select frame [:<javax.swing.JTabbedPane>])))
 
 (defn- make-tab-button
   "Creates and returns a button for a tab component in tabpane to
