@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.editors.lattices
-  (:use conexp.base
+  (:use [conexp.base :exclude (select)]
         conexp.fca.contexts
         conexp.fca.lattices
         conexp.io
@@ -17,6 +17,7 @@
         conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.context-editor
         conexp.contrib.gui.plugins.base)
+  (:use seesaw.core)
   (:import [java.io File]))
 
 (ns-doc
@@ -29,8 +30,8 @@
 
 (define-plugin lattice-editor
   "Lattice editor plugin."
-  :load-hook   #(load-lattice-editor %),
-  :unload-hook #(unload-lattice-editor %))
+  :load-hook   load-lattice-editor,
+  :unload-hook unload-lattice-editor)
 
 ;;; The Actions
 
@@ -70,30 +71,48 @@
 
 ;;; The Hooks
 
-(defvar- lattice-menu
-  {:name "Lattice",
-   :content [{:name "Load Lattice",
-              :handler #(load-lattice-and-go % read-lattice standard-layout)}
-             {:name "Load Lattice from Context"
-              :handler #(load-lattice-and-go % read-context
-                                             (comp standard-layout concept-lattice))}
-             {:name "Load Layout"
-              :handler #(load-lattice-and-go % read-layout identity)}
-             {}
-             {:name "Save Lattice",
-              :content (map (fn [format]
-                              (hash-map :name (str "Format " (name format)),
-                                        :handler #(save-layout % lattice write-lattice format)))
-                            (list-lattice-output-formats))},
-             {:name "Save Layout",
-              :content (map (fn [format]
-                              (hash-map :name (str "Format " (name format)),
-                                        :handler #(save-layout % identity write-layout format)))
-                            (list-layout-output-formats))}
-             {}
-             {:name "Edit Standard Context",
-              :handler edit-standard-context}]}
-  "Menu for lattice editor.")
+(defn- lattice-menu
+  "Returns the menu of the lattice editor plugin"
+  [frame]
+  (menu :text "Lattice",
+        :items [(menu-item :text "Load Lattice",
+                           :listen [:action (fn [_]
+                                              (load-lattice-and-go frame
+                                                                   read-lattice standard-layout))])
+                (menu-item :text "Load Lattice from Context"
+                           :listen [:action (fn [_]
+                                              (load-lattice-and-go frame
+                                                                   read-context
+                                                                   (comp standard-layout
+                                                                         concept-lattice)))])
+                (menu-item :text "Load Layout"
+                           :listen [:action (fn [_]
+                                              (load-lattice-and-go frame
+                                                                   read-layout
+                                                                   identity))])
+                :separator
+                (menu :text "Save Lattice",
+                      :items (map (fn [format]
+                                    (menu-item :text (str "Format " (name format)),
+                                               :listen [:action (fn [_]
+                                                                  (save-layout frame
+                                                                               lattice
+                                                                               write-lattice
+                                                                               format))]))
+                                  (list-lattice-output-formats))),
+                (menu :text "Save Layout",
+                      :items (map (fn [format]
+                                    (menu-item :text (str "Format " (name format)),
+                                               :listen [:action (fn [_]
+                                                                  (save-layout frame
+                                                                               identity
+                                                                               write-layout
+                                                                               format))]))
+                                  (list-layout-output-formats)))
+                :separator
+                (menu-item :text "Edit Standard Context",
+                           :listen [:action (fn [_]
+                                              (edit-standard-context frame))])]))
 
 (let [menu-hash (ref {})]
 
@@ -102,7 +121,7 @@
     [frame]
     (dosync
      (alter menu-hash
-            assoc frame (add-menus frame [lattice-menu]))))
+            assoc frame (add-menus frame [(lattice-menu frame)]))))
 
   (defn- unload-lattice-editor
     "Unloads the lattice-editor plugin from frame."
