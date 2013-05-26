@@ -17,15 +17,18 @@
                                   ["--gui"  "Start the graphical user interface"]
                                   ["--load" "Load a given script"]
                                   ["--help" "This help"])]
+  ;;
   (when (contains? options :help)
     (println doc)
     (System/exit 0))
+  ;;
   (when (contains? options :gui)
     (clojure.main/repl :init #(do
                                 (use 'conexp.main)
                                 (use 'conexp.contrib.gui)
                                 (@(ns-resolve 'conexp.contrib.gui 'gui)
-                                 :default-close-operation javax.swing.JFrame/EXIT_ON_CLOSE))))
+                                 :default-close-operation :exit))))
+  ;;
   (when (contains? options :load)
     (use 'conexp.main)
     (when (not (options :load))
@@ -33,6 +36,7 @@
       (println doc)
       (System/exit 1))
     (load-file (options :load)))
+  ;;
   (when-not (or (options :gui)
                 (options :load))
     (clojure.main/repl :init #(do (use 'conexp.main) (use 'clojure.repl)))))
