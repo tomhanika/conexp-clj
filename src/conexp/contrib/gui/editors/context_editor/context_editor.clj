@@ -252,16 +252,13 @@
       (doseq [icon icons]
         (if (= icon :separator)
           (.add bar (Box/createHorizontalStrut 3))
-          (let [[path alt tip fun no-return] icon
-                bctrl (make-tooltip-button
-                       tip
-                       (get-image-icon-or-string (str "context-editor/" path)
-                                                 alt))
-                handler #(if no-return
-                           (fun widget)
-                           (set-context @ectx (fun widget)))]
-            (set-handler bctrl handler)
-            (.add bar ^JComponent (get-widget bctrl)))))
+          (let [[path alt tip fun no-return] icon]
+            (.add bar (button :icon (get-image-icon-or-string (str "context-editor/" path)
+                                                              alt)
+                              :tip tip
+                              :listen [:action (if no-return
+                                                 (fn [_] (fun widget))
+                                                 (fn [_] (set-context @ectx (fun widget))))])))))
       widget))
 
   nil)
