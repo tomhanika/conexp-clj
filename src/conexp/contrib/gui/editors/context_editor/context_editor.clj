@@ -263,6 +263,7 @@
                                (set-handler bctrl handler)
                                (.add toolbar ^JComponent (get-widget bctrl)))))]
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
+      (add-widget e-ctx widget)
       (doseq [icon icons]
         (add-button bar icon))
       widget))
