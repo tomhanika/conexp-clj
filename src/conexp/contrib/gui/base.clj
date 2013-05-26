@@ -33,33 +33,29 @@
                             :content content-pane)]
 
     ;; Main menu first
-    (config! main-frame :menubar
-             (menubar :items
-                      [(menu :text "Main"
-                             :items
-                             [:separator
-                              (menu-item :text "Quit"
-                                         :listen [:action
-                                                  (fn [_]
-                                                    (.processWindowEvent
-                                                     main-frame
-                                                     (WindowEvent.
-                                                      main-frame
-                                                      WindowEvent/WINDOW_CLOSING)))])])]))
+    (add-menus main-frame
+               [(menu :text "Main"
+                      :items
+                      [:separator
+                       (menu-item :text "Quit"
+                                  :listen [:action
+                                           (fn [_]
+                                             (.processWindowEvent
+                                              main-frame
+                                              (WindowEvent.
+                                               main-frame
+                                               WindowEvent/WINDOW_CLOSING)))])])])
 
     ;; Add plugins (may add new menus)
     (add-plugin-manager main-frame)
     (let [pm (get-plugin-manager main-frame)]
-      (load-plugin pm context-editor)
-      (load-plugin pm lattice-editor)
-      (load-plugin pm code-editor))
+      ;(load-plugin pm context-editor)
+      ;(load-plugin pm lattice-editor)
+      ;(load-plugin pm code-editor)
+      )
 
     ;; Add Help menu at right position
-    (config! main-frame :menubar
-             (menubar :items (-> (vec (config (first (select main-frame [:JMenuBar]))
-                                              :items))
-                                 (conj :separator)
-                                 (conj (menu :text "Help")))))
+    (add-menus main-frame [:separator (menu :text "Help")])
 
     main-frame))
 

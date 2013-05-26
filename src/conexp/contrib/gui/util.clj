@@ -23,6 +23,7 @@
            [javax.swing.event ChangeListener ChangeEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
+  (:use seesaw.core)
   (:require [clojure.string :as string]))
 
 
@@ -190,57 +191,20 @@
 
 ;;; Menus
 
-(defn- ^JMenuBar get-menubar
-  "Returns menubar of given frame."
-  [frame]
-  (get-component frame #(instance? JMenuBar %)))
-
-(declare hash-map->menu)
-
-(defn- ^JComponent hash-map->menu-item
-  "Converts a hash to a JMenuItem for the given frame."
-  [frame hash]
-  (cond
-   (empty? hash) (JSeparator.),
-   (contains? hash :content) (hash-map->menu frame hash),
-   :else
-   (let [menu-item (JMenuItem. ^String (:name hash))]
-     (if (contains? hash :handler)
-       (add-handler menu-item frame (:handler hash))
-       (.setEnabled menu-item false))
-     ;; also enable hotkeys and images
-     menu-item)))
-
-(defn- hash-map->menu
-  "Converts a hash representing a menu into an actual JMenu for a given frame."
-  [frame hash-menu]
-  (if (instance? java.awt.Component hash-menu)
-    hash-menu
-    (let [menu (JMenu. ^String (:name hash-menu))]
-      (doseq [entry (:content hash-menu)]
-        (.add menu (hash-map->menu-item frame entry)))
-      menu)))
-
 (defn add-menus
-  "Adds the menus (specified as hash-maps) to the frame in front of
-  the first Box$Filler found in the menu-bar of frame. Returns the
-  menus added."
-  [^JFrame frame, menus]
-  (let [our-menus (map #(hash-map->menu frame %) menus)]
-    (let [menu-bar (get-menubar frame),
-          [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
-                                                 (seq (.getComponents menu-bar)))]
-      (.removeAll menu-bar)
-      (doseq [^JComponent menu (concat menus-before our-menus menus-after)]
-        (.add menu-bar menu))
-      (.validate frame))
-    our-menus))
+  "Takes a sequences of menus and adds them to the given frame"
+  [frame menus]
+  (let [framebar (first (select frame [:JMenuBar]))]
+    (println menus)
+    (config! frame :menubar
+             (menubar :items (vec (concat (when framebar (config framebar :items))
+                                          menus))))))
 
 (defn remove-menus
   "Removes given menus (as Java objects) from menu-bar of frame."
   [^JFrame frame, menus]
   (do-swing
-   (let [menu-bar (get-menubar frame),
+   (let [menu-bar (select frame [:JMenuBar]),
          new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
      (.removeAll menu-bar)
      (doseq [^JComponent menu new-menus]
@@ -248,14 +212,8 @@
      (.validate frame)
      new-menus)))
 
-;; menu shortcut variables for convenience
-
 (defvar --- {}
   "Separator for menu entries used in add-menus.")
-
-(defvar === (Box/createHorizontalGlue)
-  "Separator between menus used in add-menus.")
-
 
 ;;; Tool Bar
 
