@@ -127,7 +127,103 @@
 
 ;;; Creating context editor widgets
 
-(let [second-operand (atom nil)]
+(let [second-operand (atom nil)
+      icons   [["copy.png" "C"
+                "Copy the selected cells to clipboard",
+                #(copy-to-clipboard (get-table %)) :no-return]
+               ["cut.png" "X",
+                "Cut the selected cells to clipboard",
+                #(cut-to-clipboard (get-table %)) :no-return] 
+               ["paste.png" "P",
+                "Paste the clipboard to the selected cell and its down-right neighbors",
+                #(paste-from-clipboard (get-table %)) :no-return]
+               ["second-op.png" "M+",
+                "Use a copy of this context as second operand",
+                #(reset! second-operand (get-context (get-ectx %))) :no-return]
+               ["add-attribute.png" "+A",
+                "Adds a new attribute column to the context",
+                add-new-attribute]
+               ["add-object.png" "+O",
+                "Adds a new object row to the context",
+                add-new-object]
+               :separator
+               ["keep-attribute.png" "8<A",
+                "Remove all non-selected attribute columns from the context",
+                keep-attributes]
+               ["keep-object.png" "8<O",
+                "Remove all non-selected object rows from the context",
+                keep-objects]
+               ["keep-both.png" "8<OA",
+                "Remove all non-selected rows and columns from the context",
+                keep-objects-attributes]
+               :separator
+               ["cut-attribute.png" "-A",
+                "Remove all selected attribute columns from the context",
+                cut-attributes]
+               ["cut-object.png" "-O",
+                "Remove all selected object rows from the context",
+                cut-objects]
+               ["cut-both.png" "-OA",
+                "Remove all selected rows and columns from the context",
+                cut-objects-attributes]
+               ["clarify-attribute.png" "cA",
+                "Clarify the attribute columns of the context",
+                (cc-1 clarify-attributes)]
+               ["clarify-object.png" "cO",
+                "Clarify the object rows of the context",
+                (cc-1 clarify-objects)]
+               ["clarify-both.png" "cOA",
+                "Clarify both objects and attributes of the context",
+                (cc-1 clarify-context)]
+               :separator
+               ["reduce-attribute.png" "rA",
+                "Reduce the attribute columns of the context",
+                (cc-1 reduce-attributes)]
+               ["reduce-object.png" "rO",
+                "Reduce the object rows of the context",
+                (cc-1 reduce-objects)]
+               ["reduce-both.png" "rOA",
+                "Reduce both objects and attributes of the context",
+                (cc-1 reduce-context)]
+               ["transitive-closure.png" "trans",
+                "Apply transitive closure to the context",
+                (cc-1 context-transitive-closure)]
+               :separator
+               ["dual-context.png" "dual",
+                "Flip objects and attributes",
+                (cc-1 dual-context)]
+               ["inverse-context.png" "inv",
+                "Flip all crosses",
+                (cc-1 invert-context)]
+               ["sum.png" "sum",
+                "Calculate the context sum of this context with the second operand context"
+                (cc-2 context-sum)]
+               ["product.png" "prod",
+                "Calculate the context product of this context with the second operand context"
+                (cc-2 context-product)]
+               ["semi-product.png" "semi",
+                "Calculate the context semiproduct of this context with the second operand context"
+                (cc-2 context-semiproduct)]
+               ["xia-product.png" "Xia",
+                "Calculate the context Xia product of this context with the second operand context"
+                (cc-2 context-xia-product)]
+               :separator
+               ["union.png" "union",
+                "Calculate the context union of this context with the second operand context"
+                (cc-2 context-union)]
+               ["intersection.png" "inter",
+                "Calculate the context intersection of this context with the second operand context"
+                (cc-2 context-intersection)]
+               :separator
+               ["composition.png" "comp",
+                "Calculate the context composition of this context with the second operand context"
+                (cc-2 context-composition)]
+               ["apposition.png" "ap",
+                "Calculate the context apposition of this context with the second operand context"
+                (cc-2 context-apposition)]
+               ["subposition.png" "sub",
+                "Calculate the context subposition of this context with the second operand context"
+                (cc-2 context-subposition)]]]
 
   (defn get-current-second-operand-context
     "Returns the current second operand."
@@ -138,138 +234,37 @@
     "Creates a control for editing contexts, starting with the initial
     context ctx."
     [ctx]
-    (let [table   (doto (make-table-control)
-                    (set-row-count 1)
-                    (set-column-count 1)),
-          ectx    (ref (make-editable-context ctx)),
-          toolbar (make-toolbar-control :horiz)
-          root    (top-bottom-split (get-widget toolbar)
-                                    (get-widget table)
-                                    :divider-location 86)
-          e-ctx   @ectx,
-          widget  (context-editor-widget. root table ectx),
-          keystroke-fill  (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
-                                                  ActionEvent/CTRL_MASK false),
+    (let [table          (doto (make-table-control)
+                           (set-row-count 1)
+                           (set-column-count 1)),
+          ectx           (ref (make-editable-context ctx)),
+          bar            (toolbar :orientation :horizontal
+                                  :floatable? false)
+          root           (top-bottom-split bar
+                                           (get-widget table)
+                                           :divider-location 43)
+          e-ctx          @ectx,
+          widget         (context-editor-widget. root table ectx),
+          keystroke-fill (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
+                                                 ActionEvent/CTRL_MASK false),
 
-          add-button-box (fn [toolbar & buttonlist]
-                           (let [box (Box/createHorizontalBox)]
-                             (doseq [button buttonlist]
-                               (if (contains? button :spacer)
-                                 (.add box (Box/createHorizontalStrut (:spacer button)))
-                                 (let [bctrl (make-tooltip-button (:tip button) (:name button))
-                                       handler #(do
-                                                  (if (contains? button :no-return)
-                                                    ((:no-return button) widget))
-                                                  (if (contains? button :f)
-                                                    (set-context @ectx ((:f button) widget))))]
-                                   (set-handler bctrl handler)
-                                   ;;(add-button toolbar bctrl)))
-                                   (.add box ^JComponent (get-widget bctrl)))))
-                             (.add ^JComponent (get-control toolbar) box)))]
+          add-button     (fn [toolbar button]
+                           (if (= button :separator)
+                             (.add toolbar (Box/createHorizontalStrut 3))
+                             (let [[path alt tip fun no-return] button
+                                   bctrl (make-tooltip-button
+                                          tip
+                                          (get-image-icon-or-string (str "context-editor/"
+                                                                         path)
+                                                                    alt))
+                                   handler #(if no-return
+                                              (fun widget)
+                                              (set-context @ectx (fun widget)))]
+                               (set-handler bctrl handler)
+                               (.add toolbar ^JComponent (get-widget bctrl)))))]
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
-      (add-widget e-ctx widget)
-      (doto toolbar
-        (set-floatable false)
-        (add-button-box  { :name (get-image-icon-or-string "context-editor/copy.png" "C"),
-                          :tip  "Copy the selected cells to clipboard",
-                          :no-return #(copy-to-clipboard (get-table %)) }
-                         { :name (get-image-icon-or-string "context-editor/cut.png" "X"),
-                          :tip  "Cut the selected cells to clipboard",
-                          :no-return #(cut-to-clipboard (get-table %)) }
-                         { :name (get-image-icon-or-string "context-editor/paste.png" "P"),
-                          :tip  "Paste the clipboard to the selected cell and its down-right neighbors",
-                          :no-return #(paste-from-clipboard (get-table %)) }
-                         { :name (get-image-icon-or-string "context-editor/second-op.png" "M+"),
-                          :tip  "Use a copy of this context as second operand",
-                          :no-return #(reset! second-operand (get-context (get-ectx %))) }
-                         )
-        (add-button-box {:name (get-image-icon-or-string "context-editor/add-attribute.png" "+A"),
-                         :tip "Adds a new attribute column to the context",
-                         :f add-new-attribute}
-                        {:name (get-image-icon-or-string "context-editor/add-object.png" "+O"),
-                         :tip "Adds a new object row to the context",
-                         :f add-new-object}
-                        {:spacer 3}
-                        {:name (get-image-icon-or-string "context-editor/keep-attribute.png" "8<A"),
-                         :tip "Remove all non-selected attribute columns from the context",
-                         :f keep-attributes}
-                        {:name (get-image-icon-or-string "context-editor/keep-object.png" "8<O"),
-                         :tip "Remove all non-selected object rows from the context",
-                         :f keep-objects}
-                        {:name (get-image-icon-or-string "context-editor/keep-both.png" "8<OA"),
-                         :tip "Remove all non-selected rows and columns from the context",
-                         :f keep-objects-attributes}
-                        {:spacer 3}
-                        {:name (get-image-icon-or-string "context-editor/cut-attribute.png" "-A"),
-                         :tip "Remove all selected attribute columns from the context",
-                         :f cut-attributes}
-                        {:name (get-image-icon-or-string "context-editor/cut-object.png" "-O"),
-                         :tip "Remove all selected object rows from the context",
-                         :f cut-objects}
-                        {:name (get-image-icon-or-string "context-editor/cut-both.png" "-OA"),
-                         :tip "Remove all selected rows and columns from the context",
-                         :f cut-objects-attributes})
-        (add-button-box {:name (get-image-icon-or-string "context-editor/clarify-attribute.png"
-                                                         "cA"),
-                         :tip "Clarify the attribute columns of the context",
-                         :f (cc-1 clarify-attributes)}
-                        {:name (get-image-icon-or-string "context-editor/clarify-object.png" "cO"),
-                         :tip "Clarify the object rows of the context",
-                         :f (cc-1 clarify-objects)}
-                        {:name (get-image-icon-or-string "context-editor/clarify-both.png" "cOA"),
-                         :tip "Clarify both objects and attributes of the context",
-                         :f (cc-1 clarify-context)}
-                        {:spacer 3}
-                        {:name (get-image-icon-or-string "context-editor/reduce-attribute.png"
-                                                         "rA"),
-                         :tip "Reduce the attribute columns of the context",
-                         :f (cc-1 reduce-attributes)}
-                        {:name (get-image-icon-or-string "context-editor/reduce-object.png" "rO"),
-                         :tip "Reduce the object rows of the context",
-                         :f (cc-1 reduce-objects)}
-                        {:name (get-image-icon-or-string "context-editor/reduce-both.png" "rOA"),
-                         :tip "Reduce both objects and attributes of the context",
-                         :f (cc-1 reduce-context)})
-        (add-button-box {:name (get-image-icon-or-string "context-editor/transitive-closure.png"
-                                                         "trans"),
-                         :tip "Apply transitive closure to the context",
-                         :f (cc-1 context-transitive-closure)}
-                        {:spacer 3}
-                        {:name (get-image-icon-or-string "context-editor/dual-context.png" "dual"),
-                         :tip "Flip objects and attributes",
-                         :f (cc-1 dual-context)}
-                        {:name (get-image-icon-or-string "context-editor/inverse-context.png" "inv"),
-                         :tip "Flip all crosses",
-                         :f (cc-1 invert-context)})
-        (add-button-box {:name (get-image-icon-or-string "context-editor/sum.png" "sum"),
-                         :tip "Calculate the context sum of this context with the second operand context"
-                         :f (cc-2 context-sum)}
-                        {:name (get-image-icon-or-string "context-editor/product.png" "prod"),
-                         :tip "Calculate the context product of this context with the second operand context"
-                         :f (cc-2 context-product)}
-                        {:name (get-image-icon-or-string "context-editor/semi-product.png" "semi"),
-                         :tip "Calculate the context semiproduct of this context with the second operand context"
-                         :f (cc-2 context-semiproduct)}
-                        {:name (get-image-icon-or-string "context-editor/xia-product.png" "Xia"),
-                         :tip "Calculate the context Xia product of this context with the second operand context"
-                         :f (cc-2 context-xia-product)}
-                        {:spacer 3}
-                        {:name (get-image-icon-or-string "context-editor/union.png" "union"),
-                         :tip "Calculate the context union of this context with the second operand context"
-                         :f (cc-2 context-union)}
-                        {:name (get-image-icon-or-string "context-editor/intersection.png" "inter"),
-                         :tip "Calculate the context intersection of this context with the second operand context"
-                         :f (cc-2 context-intersection)}
-                        {:spacer 3}
-                        {:name (get-image-icon-or-string "context-editor/composition.png" "comp"),
-                         :tip "Calculate the context composition of this context with the second operand context"
-                         :f (cc-2 context-composition)}
-                        {:name (get-image-icon-or-string "context-editor/apposition.png" "ap"),
-                         :tip "Calculate the context apposition of this context with the second operand context"
-                         :f (cc-2 context-apposition)}
-                        {:name (get-image-icon-or-string "context-editor/subposition.png" "sub"),
-                         :tip "Calculate the context subposition of this context with the second operand context"
-                         :f (cc-2 context-subposition)}))
+      (doseq [icon icons]
+        (add-button bar icon))
       widget))
 
   nil)
