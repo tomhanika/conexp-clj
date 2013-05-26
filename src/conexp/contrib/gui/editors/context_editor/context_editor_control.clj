@@ -21,7 +21,7 @@
 ;;; Context editor control
 
 (defwidget context-editor-widget [conexp.contrib.gui.editors.context_editor.widgets.widget]
-  [widget table toolbar e-ctx])
+  [widget table e-ctx])
 
 (defmethod get-table (class-to-keyword context-editor-widget)
   [widget]

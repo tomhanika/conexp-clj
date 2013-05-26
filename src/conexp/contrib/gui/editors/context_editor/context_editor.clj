@@ -145,7 +145,7 @@
           toolbar (make-toolbar-control :horiz)
           root    (make-split-pane :vert toolbar table)
           e-ctx   @ectx,
-          widget  (context-editor-widget. (get-widget root) table toolbar ectx),
+          widget  (context-editor-widget. (get-widget root) table ectx),
           keystroke-fill  (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
                                                   ActionEvent/CTRL_MASK false),
 
