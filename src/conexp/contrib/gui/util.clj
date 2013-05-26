@@ -317,7 +317,7 @@
      (add-tab frame pane "")))
 
 (defn get-tabs
-  "Returns hashmap from numbers to tab contents of given frame."
+  "Returns a vector of all tab of the given frame."
   [frame]
   (let [^JTabbedPane tabpane (get-tabpane frame)]
     (vec (rest (seq (.getComponents tabpane))))))
