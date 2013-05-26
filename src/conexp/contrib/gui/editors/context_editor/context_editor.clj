@@ -127,103 +127,105 @@
 
 ;;; Creating context editor widgets
 
-(let [second-operand (atom nil)
-      icons   [["copy.png" "C"
-                "Copy the selected cells to clipboard",
-                #(copy-to-clipboard (get-table %)) :no-return]
-               ["cut.png" "X",
-                "Cut the selected cells to clipboard",
-                #(cut-to-clipboard (get-table %)) :no-return] 
-               ["paste.png" "P",
-                "Paste the clipboard to the selected cell and its down-right neighbors",
-                #(paste-from-clipboard (get-table %)) :no-return]
-               ["second-op.png" "M+",
-                "Use a copy of this context as second operand",
-                #(reset! second-operand (get-context (get-ectx %))) :no-return]
-               ["add-attribute.png" "+A",
-                "Adds a new attribute column to the context",
-                add-new-attribute]
-               ["add-object.png" "+O",
-                "Adds a new object row to the context",
-                add-new-object]
-               :separator
-               ["keep-attribute.png" "8<A",
-                "Remove all non-selected attribute columns from the context",
-                keep-attributes]
-               ["keep-object.png" "8<O",
-                "Remove all non-selected object rows from the context",
-                keep-objects]
-               ["keep-both.png" "8<OA",
-                "Remove all non-selected rows and columns from the context",
-                keep-objects-attributes]
-               :separator
-               ["cut-attribute.png" "-A",
-                "Remove all selected attribute columns from the context",
-                cut-attributes]
-               ["cut-object.png" "-O",
-                "Remove all selected object rows from the context",
-                cut-objects]
-               ["cut-both.png" "-OA",
-                "Remove all selected rows and columns from the context",
-                cut-objects-attributes]
-               ["clarify-attribute.png" "cA",
-                "Clarify the attribute columns of the context",
-                (cc-1 clarify-attributes)]
-               ["clarify-object.png" "cO",
-                "Clarify the object rows of the context",
-                (cc-1 clarify-objects)]
-               ["clarify-both.png" "cOA",
-                "Clarify both objects and attributes of the context",
-                (cc-1 clarify-context)]
-               :separator
-               ["reduce-attribute.png" "rA",
-                "Reduce the attribute columns of the context",
-                (cc-1 reduce-attributes)]
-               ["reduce-object.png" "rO",
-                "Reduce the object rows of the context",
-                (cc-1 reduce-objects)]
-               ["reduce-both.png" "rOA",
-                "Reduce both objects and attributes of the context",
-                (cc-1 reduce-context)]
-               ["transitive-closure.png" "trans",
-                "Apply transitive closure to the context",
-                (cc-1 context-transitive-closure)]
-               :separator
-               ["dual-context.png" "dual",
-                "Flip objects and attributes",
-                (cc-1 dual-context)]
-               ["inverse-context.png" "inv",
-                "Flip all crosses",
-                (cc-1 invert-context)]
-               ["sum.png" "sum",
-                "Calculate the context sum of this context with the second operand context"
-                (cc-2 context-sum)]
-               ["product.png" "prod",
-                "Calculate the context product of this context with the second operand context"
-                (cc-2 context-product)]
-               ["semi-product.png" "semi",
-                "Calculate the context semiproduct of this context with the second operand context"
-                (cc-2 context-semiproduct)]
-               ["xia-product.png" "Xia",
-                "Calculate the context Xia product of this context with the second operand context"
-                (cc-2 context-xia-product)]
-               :separator
-               ["union.png" "union",
-                "Calculate the context union of this context with the second operand context"
-                (cc-2 context-union)]
-               ["intersection.png" "inter",
-                "Calculate the context intersection of this context with the second operand context"
-                (cc-2 context-intersection)]
-               :separator
-               ["composition.png" "comp",
-                "Calculate the context composition of this context with the second operand context"
-                (cc-2 context-composition)]
-               ["apposition.png" "ap",
-                "Calculate the context apposition of this context with the second operand context"
-                (cc-2 context-apposition)]
-               ["subposition.png" "sub",
-                "Calculate the context subposition of this context with the second operand context"
-                (cc-2 context-subposition)]]]
+(let [second-operand (atom nil)]
+
+  (defvar- toolbar-icons
+    [["copy.png" "C"
+      "Copy the selected cells to clipboard",
+      #(copy-to-clipboard (get-table %)) :no-return]
+     ["cut.png" "X",
+      "Cut the selected cells to clipboard",
+      #(cut-to-clipboard (get-table %)) :no-return] 
+     ["paste.png" "P",
+      "Paste the clipboard to the selected cell and its down-right neighbors",
+      #(paste-from-clipboard (get-table %)) :no-return]
+     ["second-op.png" "M+",
+      "Use a copy of this context as second operand",
+      #(reset! second-operand (get-context (get-ectx %))) :no-return]
+     ["add-attribute.png" "+A",
+      "Adds a new attribute column to the context",
+      add-new-attribute]
+     ["add-object.png" "+O",
+      "Adds a new object row to the context",
+      add-new-object]
+     :separator
+     ["keep-attribute.png" "8<A",
+      "Remove all non-selected attribute columns from the context",
+      keep-attributes]
+     ["keep-object.png" "8<O",
+      "Remove all non-selected object rows from the context",
+      keep-objects]
+     ["keep-both.png" "8<OA",
+      "Remove all non-selected rows and columns from the context",
+      keep-objects-attributes]
+     :separator
+     ["cut-attribute.png" "-A",
+      "Remove all selected attribute columns from the context",
+      cut-attributes]
+     ["cut-object.png" "-O",
+      "Remove all selected object rows from the context",
+      cut-objects]
+     ["cut-both.png" "-OA",
+      "Remove all selected rows and columns from the context",
+      cut-objects-attributes]
+     ["clarify-attribute.png" "cA",
+      "Clarify the attribute columns of the context",
+      (cc-1 clarify-attributes)]
+     ["clarify-object.png" "cO",
+      "Clarify the object rows of the context",
+      (cc-1 clarify-objects)]
+     ["clarify-both.png" "cOA",
+      "Clarify both objects and attributes of the context",
+      (cc-1 clarify-context)]
+     :separator
+     ["reduce-attribute.png" "rA",
+      "Reduce the attribute columns of the context",
+      (cc-1 reduce-attributes)]
+     ["reduce-object.png" "rO",
+      "Reduce the object rows of the context",
+      (cc-1 reduce-objects)]
+     ["reduce-both.png" "rOA",
+      "Reduce both objects and attributes of the context",
+      (cc-1 reduce-context)]
+     ["transitive-closure.png" "trans",
+      "Apply transitive closure to the context",
+      (cc-1 context-transitive-closure)]
+     :separator
+     ["dual-context.png" "dual",
+      "Flip objects and attributes",
+      (cc-1 dual-context)]
+     ["inverse-context.png" "inv",
+      "Flip all crosses",
+      (cc-1 invert-context)]
+     ["sum.png" "sum",
+      "Calculate the context sum of this context with the second operand context"
+      (cc-2 context-sum)]
+     ["product.png" "prod",
+      "Calculate the context product of this context with the second operand context"
+      (cc-2 context-product)]
+     ["semi-product.png" "semi",
+      "Calculate the context semiproduct of this context with the second operand context"
+      (cc-2 context-semiproduct)]
+     ["xia-product.png" "Xia",
+      "Calculate the context Xia product of this context with the second operand context"
+      (cc-2 context-xia-product)]
+     :separator
+     ["union.png" "union",
+      "Calculate the context union of this context with the second operand context"
+      (cc-2 context-union)]
+     ["intersection.png" "inter",
+      "Calculate the context intersection of this context with the second operand context"
+      (cc-2 context-intersection)]
+     :separator
+     ["composition.png" "comp",
+      "Calculate the context composition of this context with the second operand context"
+      (cc-2 context-composition)]
+     ["apposition.png" "ap",
+      "Calculate the context apposition of this context with the second operand context"
+      (cc-2 context-apposition)]
+     ["subposition.png" "sub",
+      "Calculate the context subposition of this context with the second operand context"
+      (cc-2 context-subposition)]])
 
   (defn get-current-second-operand-context
     "Returns the current second operand."
@@ -249,7 +251,7 @@
                                                  ActionEvent/CTRL_MASK false)]
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
       (add-widget e-ctx widget)
-      (doseq [icon icons]
+      (doseq [icon toolbar-icons]
         (if (= icon :separator)
           (.add bar (Box/createHorizontalStrut 3))
           (let [[path alt tip fun no-return] icon]
