@@ -95,8 +95,9 @@
      (catch Exception e#
        (javax.swing.JOptionPane/showMessageDialog
         ~frame
-        (scrollable (apply str (get-root-cause e#) "\n"
-                           (interpose "\n" (.getStackTrace e#))))
+        (scrollable (text :text (apply str (get-root-cause e#) "\n"
+                                       (interpose "\n" (.getStackTrace e#)))
+                          :multi-line? true))
         ~title
         javax.swing.JOptionPane/ERROR_MESSAGE))))
 
