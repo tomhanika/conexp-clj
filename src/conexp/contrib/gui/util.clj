@@ -340,7 +340,7 @@
 (defn- get-tabpane
   "Returns tabpane of the given frame."
   [frame]
-  (get-component frame #(= (class %) javax.swing.JTabbedPane)))
+  (get-component frame #(instance? javax.swing.JTabbedPane %)))
 
 (defn- make-tab-button
   "Creates and returns a button for a tab component in tabpane to
