@@ -50,7 +50,7 @@
     (let [pm (get-plugin-manager main-frame)]
       (load-plugin pm context-editor)
       (load-plugin pm lattice-editor)
-      ;(load-plugin pm code-editor)
+      (load-plugin pm code-editor)
       )
 
     ;; Add Help menu at right position
