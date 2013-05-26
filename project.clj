@@ -26,7 +26,8 @@
                  [jline                           "0.9.94"]
                  [seesaw                          "1.4.3"]]
   :aot [conexp.main
-        conexp.contrib.java]
+        conexp.contrib.java
+        conexp.contrib.gui]
   :keep-non-project-classes true
   :warn-on-reflection true
   :test-paths ["tests" "src/test/"]
