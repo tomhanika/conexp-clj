@@ -126,42 +126,7 @@
 
 ;;; Creating context editor widgets
 
-(let [ second-operand (atom nil)
-       copy-img (get-image-icon-or-string "context-editor/copy.png" "C")
-       paste-img (get-image-icon-or-string "context-editor/paste.png" "P")
-       cut-img (get-image-icon-or-string "context-editor/cut.png" "X")
-       second-op-img (get-image-icon-or-string "context-editor/second-op.png" "M+")
-       add-attribute-img (get-image-icon-or-string "context-editor/add-attribute.png" "+A")
-       add-object-img (get-image-icon-or-string "context-editor/add-object.png" "+O")
-       keep-attribute-img (get-image-icon-or-string "context-editor/keep-attribute.png" "8<A")
-       keep-object-img (get-image-icon-or-string "context-editor/keep-object.png" "8<O")
-       keep-both-img (get-image-icon-or-string "context-editor/keep-both.png" "8<OA")
-       cut-attribute-img (get-image-icon-or-string "context-editor/cut-attribute.png" "-A")
-       cut-object-img (get-image-icon-or-string "context-editor/cut-object.png" "-O")
-       cut-both-img (get-image-icon-or-string "context-editor/cut-both.png" "-OA")
-       clarify-attribute-img (get-image-icon-or-string "context-editor/clarify-attribute.png"
-                                "cA")
-       clarify-object-img (get-image-icon-or-string "context-editor/clarify-object.png" "cO")
-       clarify-both-img (get-image-icon-or-string "context-editor/clarify-both.png" "cOA")
-       reduce-attribute-img (get-image-icon-or-string "context-editor/reduce-attribute.png"
-                                "rA")
-       reduce-object-img (get-image-icon-or-string "context-editor/reduce-object.png" "rO")
-       reduce-both-img (get-image-icon-or-string "context-editor/reduce-both.png" "rOA")
-       transitiy-closure-img (get-image-icon-or-string "context-editor/transitive-closure.png"
-                               "trans")
-       dual-context-img (get-image-icon-or-string "context-editor/dual-context.png" "dual")
-       inverse-context-img (get-image-icon-or-string "context-editor/inverse-context.png" "inv")
-       sum-img (get-image-icon-or-string "context-editor/sum.png" "sum")
-       product-img (get-image-icon-or-string "context-editor/product.png" "prod")
-       semi-product-img (get-image-icon-or-string "context-editor/semi-product.png" "semi")
-       xia-product-img (get-image-icon-or-string "context-editor/xia-product.png" "Xia")
-       union-img (get-image-icon-or-string "context-editor/union.png" "union")
-       intersection-img (get-image-icon-or-string "context-editor/intersection.png" "inter")
-
-       apposition-img (get-image-icon-or-string "context-editor/apposition.png" "ap")
-       composition-img (get-image-icon-or-string "context-editor/composition.png" "comp")
-       subposition-img (get-image-icon-or-string "context-editor/subposition.png" "sub")]
-
+(let [second-operand (atom nil)]
 
   (defn get-current-second-operand-context
     "Returns the current second operand."
@@ -209,101 +174,104 @@
       (add-widget e-ctx widget)
       (doto toolbar
         (set-floatable false)
-        (add-button-box  { :name copy-img,
+        (add-button-box  { :name (get-image-icon-or-string "context-editor/copy.png" "C"),
                            :tip  "Copy the selected cells to clipboard",
                            :no-return #(copy-to-clipboard (get-table %)) }
-                         { :name cut-img,
+                         { :name (get-image-icon-or-string "context-editor/cut.png" "X"),
                            :tip  "Cut the selected cells to clipboard",
                            :no-return #(cut-to-clipboard (get-table %)) }
-                         { :name paste-img,
+                         { :name (get-image-icon-or-string "context-editor/paste.png" "P"),
                            :tip  "Paste the clipboard to the selected cell and its down-right neighbors",
                            :no-return #(paste-from-clipboard (get-table %)) }
-                         { :name second-op-img,
+                         { :name (get-image-icon-or-string "context-editor/second-op.png" "M+"),
                            :tip  "Use a copy of this context as second operand",
                            :no-return #(reset! second-operand (get-context (get-ectx %))) }
                         )
-        (add-button-box {:name add-attribute-img,
+        (add-button-box {:name (get-image-icon-or-string "context-editor/add-attribute.png" "+A"),
                          :tip "Adds a new attribute column to the context",
                          :f add-new-attribute}
-                        {:name add-object-img,
+                        {:name (get-image-icon-or-string "context-editor/add-object.png" "+O"),
                          :tip "Adds a new object row to the context",
                          :f add-new-object}
                         {:spacer 3}
-                        {:name keep-attribute-img,
+                        {:name (get-image-icon-or-string "context-editor/keep-attribute.png" "8<A"),
                          :tip "Remove all non-selected attribute columns from the context",
                          :f keep-attributes}
-                        {:name keep-object-img,
+                        {:name (get-image-icon-or-string "context-editor/keep-object.png" "8<O"),
                          :tip "Remove all non-selected object rows from the context",
                          :f keep-objects}
-                        {:name keep-both-img,
+                        {:name (get-image-icon-or-string "context-editor/keep-both.png" "8<OA"),
                          :tip "Remove all non-selected rows and columns from the context",
                          :f keep-objects-attributes}
                         {:spacer 3}
-                        {:name cut-attribute-img,
+                        {:name (get-image-icon-or-string "context-editor/cut-attribute.png" "-A"),
                          :tip "Remove all selected attribute columns from the context",
                          :f cut-attributes}
-                        {:name cut-object-img,
+                        {:name (get-image-icon-or-string "context-editor/cut-object.png" "-O"),
                          :tip "Remove all selected object rows from the context",
                          :f cut-objects}
-                        {:name cut-both-img,
+                        {:name (get-image-icon-or-string "context-editor/cut-both.png" "-OA"),
                          :tip "Remove all selected rows and columns from the context",
                          :f cut-objects-attributes})
-        (add-button-box {:name clarify-attribute-img,
+        (add-button-box {:name (get-image-icon-or-string "context-editor/clarify-attribute.png"
+                                "cA"),
                          :tip "Clarify the attribute columns of the context",
                          :f (cc-1 clarify-attributes)}
-                        {:name clarify-object-img,
+                        {:name (get-image-icon-or-string "context-editor/clarify-object.png" "cO"),
                          :tip "Clarify the object rows of the context",
                          :f (cc-1 clarify-objects)}
-                        {:name clarify-both-img,
+                        {:name (get-image-icon-or-string "context-editor/clarify-both.png" "cOA"),
                          :tip "Clarify both objects and attributes of the context",
                          :f (cc-1 clarify-context)}
                         {:spacer 3}
-                        {:name reduce-attribute-img,
+                        {:name (get-image-icon-or-string "context-editor/reduce-attribute.png"
+                                "rA"),
                          :tip "Reduce the attribute columns of the context",
                          :f (cc-1 reduce-attributes)}
-                        {:name reduce-object-img,
+                        {:name (get-image-icon-or-string "context-editor/reduce-object.png" "rO"),
                          :tip "Reduce the object rows of the context",
                          :f (cc-1 reduce-objects)}
-                        {:name reduce-both-img,
+                        {:name (get-image-icon-or-string "context-editor/reduce-both.png" "rOA"),
                          :tip "Reduce both objects and attributes of the context",
                          :f (cc-1 reduce-context)})
-        (add-button-box {:name transitiy-closure-img,
+        (add-button-box {:name (get-image-icon-or-string "context-editor/transitive-closure.png"
+                               "trans"),
                          :tip "Apply transitive closure to the context",
                          :f (cc-1 context-transitive-closure)}
                         {:spacer 3}
-                        {:name dual-context-img,
+                        {:name (get-image-icon-or-string "context-editor/dual-context.png" "dual"),
                          :tip "Flip objects and attributes",
                          :f (cc-1 dual-context)}
-                        {:name inverse-context-img,
+                        {:name (get-image-icon-or-string "context-editor/inverse-context.png" "inv"),
                          :tip "Flip all crosses",
                          :f (cc-1 invert-context)})
-        (add-button-box {:name sum-img,
+        (add-button-box {:name (get-image-icon-or-string "context-editor/sum.png" "sum"),
                          :tip "Calculate the context sum of this context with the second operand context"
                          :f (cc-2 context-sum)}
-                        {:name product-img,
+                        {:name (get-image-icon-or-string "context-editor/product.png" "prod"),
                          :tip "Calculate the context product of this context with the second operand context"
                          :f (cc-2 context-product)}
-                        {:name semi-product-img,
+                        {:name (get-image-icon-or-string "context-editor/semi-product.png" "semi"),
                          :tip "Calculate the context semiproduct of this context with the second operand context"
                          :f (cc-2 context-semiproduct)}
-                        {:name xia-product-img,
+                        {:name (get-image-icon-or-string "context-editor/xia-product.png" "Xia"),
                          :tip "Calculate the context Xia product of this context with the second operand context"
                          :f (cc-2 context-xia-product)}
                         {:spacer 3}
-                        {:name union-img,
+                        {:name (get-image-icon-or-string "context-editor/union.png" "union"),
                          :tip "Calculate the context union of this context with the second operand context"
                          :f (cc-2 context-union)}
-                        {:name intersection-img,
+                        {:name (get-image-icon-or-string "context-editor/intersection.png" "inter"),
                          :tip "Calculate the context intersection of this context with the second operand context"
                          :f (cc-2 context-intersection)}
                         {:spacer 3}
-                        {:name composition-img,
+                        {:name (get-image-icon-or-string "context-editor/composition.png" "comp"),
                          :tip "Calculate the context composition of this context with the second operand context"
                          :f (cc-2 context-composition)}
-                        {:name apposition-img,
+                        {:name (get-image-icon-or-string "context-editor/apposition.png" "ap"),
                          :tip "Calculate the context apposition of this context with the second operand context"
                          :f (cc-2 context-apposition)}
-                        {:name subposition-img,
+                        {:name (get-image-icon-or-string "context-editor/subposition.png" "sub"),
                          :tip "Calculate the context subposition of this context with the second operand context"
                          :f (cc-2 context-subposition)}))
       (set-divider-location root 86)
