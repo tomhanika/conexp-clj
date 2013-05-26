@@ -299,29 +299,6 @@
       (.setMargin (Insets. 0 0 0 0)))
     widget))
 
-;;;  Split Pane
-
-(defwidget split-pane [widget] [widget])
-
-(defn-swing set-divider-location
-  "Sets the location of the divider; location is given as int."
-  [osplit-pane location]
-  (assert (keyword-isa? osplit-pane split-pane))
-  (.setDividerLocation ^JSplitPane (get-widget osplit-pane) (int location)))
-
-(defn-swing make-split-pane
-  "Creates a managed split pane object. direction is either :horiz
-  or :vert, topleft is the top (left) widget and bottomright is the
-  bottom (right) widget."
-  [direction topleft bottomright]
-  (let [jsplit-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
-                                             :vert JSplitPane/VERTICAL_SPLIT})
-                                 (get-widget topleft)
-                                 (get-widget bottomright)),
-        widget  (split-pane. jsplit-pane)]
-    widget))
-
-
 ;;;  Toolbar
 
 (defwidget toolbar-control [control] [widget control])

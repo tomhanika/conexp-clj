@@ -143,9 +143,11 @@
                     (set-column-count 1)),
           ectx    (ref (make-editable-context ctx)),
           toolbar (make-toolbar-control :horiz)
-          root    (make-split-pane :vert toolbar table)
+          root    (top-bottom-split (get-widget toolbar)
+                                    (get-widget table)
+                                    :divider-location 86)
           e-ctx   @ectx,
-          widget  (context-editor-widget. (get-widget root) table ectx),
+          widget  (context-editor-widget. root table ectx),
           keystroke-fill  (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
                                                   ActionEvent/CTRL_MASK false),
 
@@ -268,7 +270,6 @@
                         {:name (get-image-icon-or-string "context-editor/subposition.png" "sub"),
                          :tip "Calculate the context subposition of this context with the second operand context"
                          :f (cc-2 context-subposition)}))
-      (set-divider-location root 86)
       widget))
 
   nil)
