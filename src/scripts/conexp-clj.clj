@@ -10,9 +10,6 @@
 
 ;;
 
-(defn- run-repl []
-  (clojure.main/repl :init #(use 'conexp.main)))
-
 (let [[options trailing doc] (cli *command-line-args*
                                   ["--gui"  "Start the graphical user interface"]
                                   ["--load" "Load a given script"]
