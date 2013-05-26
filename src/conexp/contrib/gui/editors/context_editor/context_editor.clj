@@ -147,26 +147,19 @@
           e-ctx   @ectx,
           widget  (context-editor-widget. (get-widget root) table toolbar ectx),
           keystroke-fill  (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
-                                                ActionEvent/CTRL_MASK false),
-          add-button- (fn [toolbar text f & args]
-                        (add-button toolbar
-                                    (doto (make-tooltip-button "no-tip" text)
-                                      (set-handler #(set-context @ectx (f widget))))))
+                                                  ActionEvent/CTRL_MASK false),
 
-          add-separator (fn [toolbar]
-                          (add-button toolbar (Box/createVerticalStrut 3)))
-          
           add-button-box (fn [toolbar & buttonlist]
                            (let [box (Box/createHorizontalBox)]
                              (doseq [button buttonlist]
                                (if (contains? button :spacer)
                                  (.add box (Box/createHorizontalStrut (:spacer button)))
-                                 (let [ bctrl (make-tooltip-button (:tip button) (:name button))
-                                        handler #(do
-                                                   (if (contains? button :no-return)
-                                                     ((:no-return button) widget))
-                                                   (if (contains? button :f)
-                                                     (set-context @ectx ((:f button) widget))))]
+                                 (let [bctrl (make-tooltip-button (:tip button) (:name button))
+                                       handler #(do
+                                                  (if (contains? button :no-return)
+                                                    ((:no-return button) widget))
+                                                  (if (contains? button :f)
+                                                    (set-context @ectx ((:f button) widget))))]
                                    (set-handler bctrl handler)
                                    ;;(add-button toolbar bctrl)))
                                    (.add box ^JComponent (get-widget bctrl)))))
@@ -176,18 +169,18 @@
       (doto toolbar
         (set-floatable false)
         (add-button-box  { :name (get-image-icon-or-string "context-editor/copy.png" "C"),
-                           :tip  "Copy the selected cells to clipboard",
-                           :no-return #(copy-to-clipboard (get-table %)) }
+                          :tip  "Copy the selected cells to clipboard",
+                          :no-return #(copy-to-clipboard (get-table %)) }
                          { :name (get-image-icon-or-string "context-editor/cut.png" "X"),
-                           :tip  "Cut the selected cells to clipboard",
-                           :no-return #(cut-to-clipboard (get-table %)) }
+                          :tip  "Cut the selected cells to clipboard",
+                          :no-return #(cut-to-clipboard (get-table %)) }
                          { :name (get-image-icon-or-string "context-editor/paste.png" "P"),
-                           :tip  "Paste the clipboard to the selected cell and its down-right neighbors",
-                           :no-return #(paste-from-clipboard (get-table %)) }
+                          :tip  "Paste the clipboard to the selected cell and its down-right neighbors",
+                          :no-return #(paste-from-clipboard (get-table %)) }
                          { :name (get-image-icon-or-string "context-editor/second-op.png" "M+"),
-                           :tip  "Use a copy of this context as second operand",
-                           :no-return #(reset! second-operand (get-context (get-ectx %))) }
-                        )
+                          :tip  "Use a copy of this context as second operand",
+                          :no-return #(reset! second-operand (get-context (get-ectx %))) }
+                         )
         (add-button-box {:name (get-image-icon-or-string "context-editor/add-attribute.png" "+A"),
                          :tip "Adds a new attribute column to the context",
                          :f add-new-attribute}
@@ -215,7 +208,7 @@
                          :tip "Remove all selected rows and columns from the context",
                          :f cut-objects-attributes})
         (add-button-box {:name (get-image-icon-or-string "context-editor/clarify-attribute.png"
-                                "cA"),
+                                                         "cA"),
                          :tip "Clarify the attribute columns of the context",
                          :f (cc-1 clarify-attributes)}
                         {:name (get-image-icon-or-string "context-editor/clarify-object.png" "cO"),
@@ -226,7 +219,7 @@
                          :f (cc-1 clarify-context)}
                         {:spacer 3}
                         {:name (get-image-icon-or-string "context-editor/reduce-attribute.png"
-                                "rA"),
+                                                         "rA"),
                          :tip "Reduce the attribute columns of the context",
                          :f (cc-1 reduce-attributes)}
                         {:name (get-image-icon-or-string "context-editor/reduce-object.png" "rO"),
@@ -236,7 +229,7 @@
                          :tip "Reduce both objects and attributes of the context",
                          :f (cc-1 reduce-context)})
         (add-button-box {:name (get-image-icon-or-string "context-editor/transitive-closure.png"
-                               "trans"),
+                                                         "trans"),
                          :tip "Apply transitive closure to the context",
                          :f (cc-1 context-transitive-closure)}
                         {:spacer 3}
