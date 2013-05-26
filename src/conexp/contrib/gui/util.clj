@@ -125,7 +125,8 @@
    alternative string."
   [res alt]
   (let [img (get-resource (str "res/" res)),
-        ^ImageIcon img (and img (ImageIcon. img))]
+        ^ImageIcon
+        img (and img (ImageIcon. img))]
     (or img alt)))
 
 
