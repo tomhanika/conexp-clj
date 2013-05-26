@@ -9,17 +9,12 @@
 ;; this file contains contributions by Immanuel Albrecht
 
 (ns conexp.contrib.gui.util
-  (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
-                        JButton ImageIcon JSeparator JTabbedPane JSplitPane
-                        JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-                        AbstractButton SwingConstants JFileChooser JOptionPane
-                        ImageIcon JComponent]
+  (:import [javax.swing JFrame JPanel JButton ImageIcon JTabbedPane 
+                        JLabel BorderFactory AbstractButton JFileChooser
+                        JOptionPane JComponent]
            [javax.swing.filechooser FileNameExtensionFilter]
-           [javax.imageio ImageIO]
-           [java.awt GridLayout BorderLayout Dimension Image Font Color
-                     Graphics Graphics2D BasicStroke FlowLayout]
-           [java.awt.event KeyEvent ActionListener ActionEvent MouseAdapter MouseEvent]
-           [java.awt.image BufferedImage]
+           [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
+           [java.awt.event ActionListener ActionEvent MouseAdapter MouseEvent]
            [javax.swing.event ChangeListener ChangeEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
