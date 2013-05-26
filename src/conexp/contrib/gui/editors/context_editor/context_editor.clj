@@ -246,26 +246,22 @@
           e-ctx          @ectx,
           widget         (context-editor-widget. root table ectx),
           keystroke-fill (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
-                                                 ActionEvent/CTRL_MASK false),
-
-          add-button     (fn [toolbar button]
-                           (if (= button :separator)
-                             (.add toolbar (Box/createHorizontalStrut 3))
-                             (let [[path alt tip fun no-return] button
-                                   bctrl (make-tooltip-button
-                                          tip
-                                          (get-image-icon-or-string (str "context-editor/"
-                                                                         path)
-                                                                    alt))
-                                   handler #(if no-return
-                                              (fun widget)
-                                              (set-context @ectx (fun widget)))]
-                               (set-handler bctrl handler)
-                               (.add toolbar ^JComponent (get-widget bctrl)))))]
+                                                 ActionEvent/CTRL_MASK false)]
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)
       (add-widget e-ctx widget)
       (doseq [icon icons]
-        (add-button bar icon))
+        (if (= icon :separator)
+          (.add bar (Box/createHorizontalStrut 3))
+          (let [[path alt tip fun no-return] icon
+                bctrl (make-tooltip-button
+                       tip
+                       (get-image-icon-or-string (str "context-editor/" path)
+                                                 alt))
+                handler #(if no-return
+                           (fun widget)
+                           (set-context @ectx (fun widget)))]
+            (set-handler bctrl handler)
+            (.add bar ^JComponent (get-widget bctrl)))))
       widget))
 
   nil)
