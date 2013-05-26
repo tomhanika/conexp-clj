@@ -117,13 +117,6 @@
       pack!
       show!))
 
-(defn message-box
-  "Pops up a swing message box."
-  ([text title]
-     (JOptionPane/showMessageDialog nil (str text) (str title) 0))
-  ([text]
-     (JOptionPane/showMessageDialog nil (str text) "Info" 0)))
-
 (defn ^java.net.URL get-resource
   "Returns the URL of the given the resource res if found, nil otherwise."
   [res]
