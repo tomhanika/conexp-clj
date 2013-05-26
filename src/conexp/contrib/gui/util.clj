@@ -91,23 +91,14 @@
   displayed in a message dialog."
   [frame title & body]
   `(try
-    ~@body
-    (catch Exception e#
-      (javax.swing.JOptionPane/showMessageDialog ~frame
-                                                 (apply str (get-root-cause e#) "\n"
-                                                        (interpose "\n" (.getStackTrace e#)))
-                                                 ~title
-                                                 javax.swing.JOptionPane/ERROR_MESSAGE))))
-
-(defn- add-handler
-  "Adds an ActionListener to abstract-button that calls function with frame when
-  activated (i.e. when actionPerformed is called)."
-  [^javax.swing.AbstractButton thing frame function]
-  (.addActionListener thing
-    (proxy [ActionListener] []
-      (actionPerformed [evt]
-        (with-swing-error-msg frame "Error"
-          (function frame))))))
+     ~@body
+     (catch Exception e#
+       (javax.swing.JOptionPane/showMessageDialog
+        ~frame
+        (scrollable (apply str (get-root-cause e#) "\n"
+                           (interpose "\n" (.getStackTrace e#))))
+        ~title
+        javax.swing.JOptionPane/ERROR_MESSAGE))))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
@@ -118,13 +109,12 @@
 
 (defn show-in-frame
   "Creates new frame with thing embedded and shows it."
-  [^java.awt.Component thing]
-  (let [frame (JFrame.)]
-    (.add frame thing)
-    (.setVisible frame true)
-    (.setSize frame (Dimension. 500 200))
-    (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
-    frame))
+  [thing]
+  (-> (frame :content thing
+             :size [500 :by 200]
+             :on-close :dispose)
+      pack!
+      show!))
 
 (defn message-box
   "Pops up a swing message box."
@@ -211,15 +201,7 @@
      (.validate frame)
      new-menus)))
 
-(defvar --- {}
-  "Separator for menu entries used in add-menus.")
-
 ;;; Tool Bar
-
-(defn- ^JToolBar get-toolbar
-  "Returns toolbar of given frame."
-  [frame]
-  (get-component frame #(instance? JToolBar %)))
 
 (defvar ^String default-icon-image (get-resource "images/default.jpg")
   "Default icon image used when no other image is found.")
@@ -234,7 +216,10 @@
     (let [button (JButton.)]
       (doto button
         (.setName (:name icon-hash))
-        (add-handler frame (:handler icon-hash))
+        (listen :action
+                (fn [evt]
+                  (with-swing-error-msg frame "Error"
+                    ((:handler icon-hash) frame))))
         (.setToolTipText (:name icon-hash)))
       (let [icon (:icon icon-hash)
             image (-> ^BufferedImage
@@ -263,7 +248,7 @@
   [^JFrame frame, icons]
   (let [our-icons (map #(make-icon frame %) icons)]
     (do-swing
-     (let [toolbar (get-toolbar frame),
+     (let [toolbar (select frame [:JToolBar]),
            new-icons (collapse-separators (concat (.getComponents toolbar)
                                                   our-icons))]
        (.removeAll toolbar)
@@ -278,7 +263,7 @@
   side."
   [^JFrame frame, icons]
   (do-swing
-   (let [^JToolBar toolbar (get-toolbar frame),
+   (let [^JToolBar toolbar (select frame [:JToolBar]),
          rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
      (.removeAll toolbar)
      (doseq [^JComponent icon rem-icons]
