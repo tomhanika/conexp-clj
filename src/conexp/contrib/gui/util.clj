@@ -262,7 +262,7 @@
 (defn- ^JToolBar get-toolbar
   "Returns toolbar of given frame."
   [frame]
-  (get-component frame #(= (class %) JToolBar)))
+  (get-component frame #(instance? JToolBar %)))
 
 (defvar ^String default-icon-image (get-resource "images/default.jpg")
   "Default icon image used when no other image is found.")
