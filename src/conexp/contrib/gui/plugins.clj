@@ -36,15 +36,22 @@
   [frame]
   (let [plugin-manager (make-plugin-manager frame),
         plugin-menu    (menu :text "Plugins"
-                             :items [(menu-item :text "Show registered plugins")
-                                     (menu-item :text "Show loaded plugins")
+                             :items [(menu-item :text "Show registered plugins"
+                                                :enabled? false)
+                                     (menu-item :text "Show loaded plugins"
+                                                :enabled? false)
                                      :separator
-                                     (menu-item :text "Load plugin")
-                                     (menu-item :text "Unload plugin")
-                                     (menu-item :text "Register new plugin")
-                                     (menu-item :text "Unregister plugin")
+                                     (menu-item :text "Load plugin"
+                                                :enabled? false)
+                                     (menu-item :text "Unload plugin"
+                                                :enabled? false)
+                                     (menu-item :text "Register new plugin"
+                                                :enabled? false)
+                                     (menu-item :text "Unregister plugin"
+                                                :enabled? false)
                                      :separator
-                                     (menu-item :text "Browse plugins")])]
+                                     (menu-item :text "Browse plugins"
+                                                :enabled? false)])]
     (save-pm-for-frame frame plugin-manager)
     (add-menus frame [plugin-menu])))
 
