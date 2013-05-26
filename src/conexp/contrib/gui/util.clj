@@ -32,7 +32,7 @@
   "Executes body within the Swing Dispatch Thread or immediately, if
   execution is already in this thread."
   [& body]
-  `(invoke-soon #(do ~@body)))
+  `(invoke-soon ~@body))
 
 (defmacro do-swing-return
   "Executes body in a thread-safe manner for Swing and returns its value."
