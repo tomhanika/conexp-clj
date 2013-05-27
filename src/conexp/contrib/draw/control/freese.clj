@@ -13,6 +13,7 @@
         conexp.contrib.draw.scenes
         conexp.contrib.draw.scene-layouts
         conexp.contrib.gui.util)
+  (:use seesaw.core)
   (:import [javax.swing JButton JSpinner JFrame]
            [java.awt.event WindowEvent WindowAdapter]))
 
@@ -42,21 +43,21 @@
         stop-rotate     #(when @rotate-thread
                            (.stop ^Thread @rotate-thread)
                            (reset! rotate-thread nil))]
-    (with-action-on btn
-      (update-layout-of-scene scn (layout (get-value)))
-      (fit-scene-to-layout scn))
-    (with-change-on spn
-      (update-layout-of-scene scn (layout (get-value))))
-    (with-action-on rotate
-      (if @rotate-thread
-        (stop-rotate)
-        (start-rotate)))
-    (.addWindowListener ^JFrame frame
-                        (proxy [WindowAdapter] []
-                          (windowIconified [win-evt]
-                            (stop-rotate))
-                          (windowClosed [win-evt]
-                            (stop-rotate))))))
+    (listen btn :action
+            (fn [_]
+              (update-layout-of-scene scn (layout (get-value)))
+              (fit-scene-to-layout scn)))
+    (listen spn :change
+            (fn [_]
+              (update-layout-of-scene scn (layout (get-value)))))
+    (listen rotate :action
+            (fn [_]
+              (if @rotate-thread
+                (stop-rotate)
+                (start-rotate))))
+    (listen frame #{:window-iconified :window-closed}
+            (fn [_]
+              (stop-rotate)))))
 
 ;;;
 
