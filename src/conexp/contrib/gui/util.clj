@@ -56,16 +56,6 @@
       (actionPerformed [^java.awt.event.ActionEvent ~'evt] ;how to do right?
         (do-swing ~@body)))))
 
-(defmacro with-change-on
-  "Adds a change listener on thing to execute body, with the catched
-  ChangeEvent Object bound to the variable evt. body will be executed
-  in a thread-safe manner."
-  [thing & body]
-  `(.addChangeListener ~thing
-                       (proxy [ChangeListener] []
-                         (stateChanged [^ChangeEvent ~'evt]
-                           (do-swing ~@body)))))
-
 (defn get-root-cause
   "Returns original message of first exception causing the given one."
   [^Throwable exception]
