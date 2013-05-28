@@ -14,7 +14,7 @@
                         JOptionPane JComponent]
            [javax.swing.filechooser FileNameExtensionFilter]
            [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
-           [java.awt.event  MouseAdapter MouseEvent]
+           [java.awt.event MouseEvent]
            [javax.swing.event ChangeListener ChangeEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
@@ -156,19 +156,21 @@
                                           (- (.  this getHeight) delta 1))
                                (.drawLine g2 (- (. this getWidth) delta 1) delta
                                           delta (- (. this getHeight) delta 1))
-                               (.dispose g2))))),
-        mouse-listener (proxy [MouseAdapter] []
-                         (mouseEntered [^MouseEvent evt]
-                           (let [component (.getComponent evt)]
-                             (when (instance? AbstractButton component)
-                               (.setBorderPainted ^AbstractButton component true))))
-                         (mouseExited [^MouseEvent evt]
-                           (let [component (.getComponent evt)]
-                             (when (instance? AbstractButton component)
-                               (.setBorderPainted ^AbstractButton component false)))))]
+                               (.dispose g2)))))]
     (doto tabbutton
-      (listen :action (fn [_] (.remove tabpane (.indexOfComponent tabpane component))))
-      (.addMouseListener mouse-listener)
+      (listen :action
+              (fn [_]
+                (.remove tabpane (.indexOfComponent tabpane component))))
+      (listen :mouse-entered
+              (fn [^MouseEvent evt]
+                (let [component (.getComponent evt)]
+                  (when (instance? AbstractButton component)
+                    (.setBorderPainted ^AbstractButton component true)))))
+      (listen :mouse-exited
+              (fn [^MouseEvent evt]
+                (let [component (.getComponent evt)]
+                  (when (instance? AbstractButton component)
+                    (.setBorderPainted ^AbstractButton component false)))))
       (.setPreferredSize (Dimension. 17 17))
       (.setToolTipText "Close this tab")
       (.setContentAreaFilled false)
