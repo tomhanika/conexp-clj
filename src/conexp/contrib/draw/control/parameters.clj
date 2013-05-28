@@ -59,8 +59,8 @@
                   (.setText label-toggler "No Labels"))
                 (do
                   (show-labels scn true)
-                  (.setText label-toggler "Labels"))))
-      (redraw-scene scn)))
+                  (.setText label-toggler "Labels")))
+              (redraw-scene scn))))
 
   ;; layouts
   (let [layouts {"standard"     standard-layout,
