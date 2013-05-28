@@ -11,7 +11,7 @@
 (ns conexp.contrib.gui.util
   (:import [javax.swing JFrame JPanel JButton ImageIcon JTabbedPane 
                         JLabel BorderFactory AbstractButton JFileChooser
-                        JOptionPane JComponent]
+                        JOptionPane JComponent JMenuBar]
            [javax.swing.filechooser FileNameExtensionFilter]
            [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
            [java.awt.event MouseEvent]
@@ -111,7 +111,7 @@
   "Removes given menus (as Java objects) from menu-bar of frame."
   [^JFrame frame, menus]
   (do-swing
-   (let [menu-bar (first (select frame [:JMenuBar])),
+   (let [^JMenuBar menu-bar (first (select frame [:JMenuBar])),
          new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
      (.removeAll menu-bar)
      (doseq [^JComponent menu new-menus]
@@ -121,7 +121,7 @@
 
 ;;; Tabs
 
-(defn- get-tabpane
+(defn- ^JTabbedPane get-tabpane
   "Returns tabpane of the given frame."
   [frame]
   (first (select frame [:<javax.swing.JTabbedPane>])))
@@ -132,7 +132,8 @@
   [^JTabbedPane tabpane, component]
   ;; This contains code copied from TabComponentDemo and
   ;; ButtonTabComponent from the Java Tutorial
-  (let [tabbutton (button :paint (fn [^JButton this ^Graphics g]
+  (let [^JButton
+        tabbutton (button :paint (fn [^JButton this ^Graphics g]
                                    (proxy-super paintComponent g)
                                    (let [^Graphics2D g2 (.create g),
                                          delta 6]
@@ -166,8 +167,7 @@
                   (when (instance? AbstractButton component)
                     (.setBorderPainted ^AbstractButton component false)))))
       (.setBorderPainted false)
-      (.setContentAreaFilled false)
-      )))
+      (.setContentAreaFilled false))))
 
 (defn- make-tab-head
   "Creates and returns a panel to be used as tab component."
@@ -189,7 +189,7 @@
   "Addes given panel to the tabpane of frame with given title, if given."
   ([^JFrame frame, ^JPanel pane, ^String title]
      (do-swing
-      (let [^JTabbedPane tabpane (get-tabpane frame)]
+      (let [tabpane (get-tabpane frame)]
         (.add tabpane pane)
         (let [index (.indexOfComponent tabpane pane),
               title (if-not (.isEmpty title)
@@ -205,21 +205,21 @@
 (defn get-tabs
   "Returns a vector of all tab of the given frame."
   [frame]
-  (let [^JTabbedPane tabpane (get-tabpane frame)]
+  (let [tabpane (get-tabpane frame)]
     (vec (rest (seq (.getComponents tabpane))))))
 
 (defn add-tab-with-name-icon-tooltip
   "Addes given panel to the tabpane of frame, giving name icon and tooltip"
   [^JFrame frame, ^JPanel pane, name icon tooltip]
   (do-swing
-   (.addTab ^JTabbedPane (get-tabpane frame) name icon pane tooltip)
+   (.addTab (get-tabpane frame) name icon pane tooltip)
    (.validate frame)))
 
 (defn remove-tab
   "Removes a panel from the windows JTabbedPane."
    [^JFrame frame, ^JPanel pane]
    (do-swing
-    (.remove ^JTabbedPane (get-tabpane frame) pane)
+    (.remove (get-tabpane frame) pane)
     (.validate frame)))
 
 (defn current-tab
@@ -234,7 +234,7 @@
 (defn current-tab-title
   "Returns the currently selected tab's title and nil if there is none."
   [frame]
-  (let [^JTabbedPane tabpane (get-tabpane frame),
+  (let [tabpane (get-tabpane frame),
         index (.getSelectedIndex tabpane)]
     (if (= -1 index)
       nil
