@@ -11,6 +11,7 @@
         conexp.contrib.gui.util
         conexp.contrib.draw.scenes
         conexp.contrib.draw.nodes-and-connections)
+  (:use seesaw.core)
   (:import [javax.swing JButton JLabel]))
 
 ;;;
@@ -26,14 +27,15 @@
                            (printf "%1.2f" zoom-y)))),
         ^JButton zoom-move (make-button buttons "Move"),
         ^JLabel  zoom-info (make-label buttons " -- ")]
-    (with-action-on zoom-move
-      (if (= "Move" (.getText zoom-move))
-        (do
-          (start-interaction scn zoom-interaction)
-          (.setText zoom-move "Zoom"))
-        (do
-          (start-interaction scn move-interaction)
-          (.setText zoom-move "Move"))))
+    (listen zoom-move :action
+            (fn [_]
+              (if (= "Move" (.getText zoom-move))
+                (do
+                  (start-interaction scn zoom-interaction)
+                  (.setText zoom-move "Zoom"))
+                (do
+                  (start-interaction scn move-interaction)
+                  (.setText zoom-move "Move")))))
     (add-scene-callback scn :image-changed
                         (fn []
                           (.setText zoom-info (zoom-factors)))))

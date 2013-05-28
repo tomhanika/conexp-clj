@@ -14,7 +14,7 @@
                         JOptionPane JComponent]
            [javax.swing.filechooser FileNameExtensionFilter]
            [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
-           [java.awt.event ActionListener ActionEvent MouseAdapter MouseEvent]
+           [java.awt.event  MouseAdapter MouseEvent]
            [javax.swing.event ChangeListener ChangeEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
@@ -44,17 +44,6 @@
     `(defn ~name ~doc ~params (do-swing-return ~@body))))
 
 ;;; Helper functions
-
-(defmacro with-action-on
-  "Adds an action listener on thing to execute body, with the catched
-  ActionEvent Object bound to the variable evt. body will be executed
-  in a thread-safe manner."
-  [thing & body]
-  `(.addActionListener
-    ~thing
-    (proxy [ActionListener] []
-      (actionPerformed [^java.awt.event.ActionEvent ~'evt] ;how to do right?
-        (do-swing ~@body)))))
 
 (defn get-root-cause
   "Returns original message of first exception causing the given one."
@@ -178,7 +167,7 @@
                              (when (instance? AbstractButton component)
                                (.setBorderPainted ^AbstractButton component false)))))]
     (doto tabbutton
-      (with-action-on (.remove tabpane (.indexOfComponent tabpane component)))
+      (listen :action (fn [_] (.remove tabpane (.indexOfComponent tabpane component))))
       (.addMouseListener mouse-listener)
       (.setPreferredSize (Dimension. 17 17))
       (.setToolTipText "Close this tab")

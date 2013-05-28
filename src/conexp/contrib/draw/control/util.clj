@@ -7,8 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.util
-  (:use conexp.base
+  (:use [conexp.base :exclude (select)]
         conexp.contrib.gui.util)
+  (:use seesaw.core)
   (:import [javax.swing JPanel JButton JTextField JLabel
                         JSeparator SwingConstants Box JComboBox
                         JSlider SpinnerNumberModel JSpinner
@@ -140,12 +141,13 @@
             _           (.setLayout choice-pane (BoxLayout. choice-pane BoxLayout/Y_AXIS))]
         (.setMaximumSize base-pane nil)
         (.setMaximumSize choice-pane nil)
-        (with-action-on combo-box
-          (let [selected (.getSelectedItem ^JComboBox (.getSource ^ActionEvent evt)),
-                control  (get choices selected)]
-             (.removeAll choice-pane)
-             (control frame scene choice-pane)
-             (.validate frame)))
+        (listen combo-box :action
+                (fn [evt]
+                  (let [selected (.getSelectedItem ^JComboBox (.getSource ^ActionEvent evt)),
+                        control  (get choices selected)]
+                    (.removeAll choice-pane)
+                    (control frame scene choice-pane)
+                    (.validate frame))))
         (.setSelectedIndex combo-box 0)))))
 
 (defmacro with-layout-modifiers
