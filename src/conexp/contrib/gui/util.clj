@@ -15,7 +15,6 @@
            [javax.swing.filechooser FileNameExtensionFilter]
            [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
            [java.awt.event MouseEvent]
-           [javax.swing.event ChangeListener ChangeEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
   (:use seesaw.core))
