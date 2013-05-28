@@ -17,7 +17,8 @@
            [java.awt.event MouseEvent]
            [java.io File])
   (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
-  (:use seesaw.core))
+  (:use seesaw.core
+        [seesaw.util :only (root-cause)]))
 
 
 ;;; Swing handmade concurrency
@@ -44,13 +45,6 @@
 
 ;;; Helper functions
 
-(defn get-root-cause
-  "Returns original message of first exception causing the given one."
-  [^Throwable exception]
-  (if-let [cause (.getCause exception)]
-    (get-root-cause cause)
-    (.getMessage exception)))
-
 (defmacro with-swing-error-msg
   "Runs given code and catches any thrown exception, which is then
   displayed in a message dialog."
@@ -60,7 +54,7 @@
      (catch Exception e#
        (javax.swing.JOptionPane/showMessageDialog
         ~frame
-        (scrollable (text :text (apply str (get-root-cause e#) "\n"
+        (scrollable (text :text (apply str (root-cause e#) "\n"
                                        (interpose "\n" (.getStackTrace e#)))
                           :multi-line? true))
         ~title
