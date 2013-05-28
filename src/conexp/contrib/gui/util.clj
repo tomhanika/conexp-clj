@@ -139,24 +139,25 @@
   [^JTabbedPane tabpane, component]
   ;; This contains code copied from TabComponentDemo and
   ;; ButtonTabComponent from the Java Tutorial
-  (let [tabbutton      (proxy [JButton] []
-                         (paintComponent [^Graphics g]
-                           (let [^JButton this this]
-                             (proxy-super paintComponent g)
-                             (let [^Graphics2D g2 (.create g),
-                                   delta 6]
-                               (when (.. this getModel isPressed)
-                                 (.translate g2 1 1))
-                               (.setStroke g2 (BasicStroke. 2))
-                               (.setColor g2 Color/BLACK)
-                               (when (.. this getModel isRollover)
-                                 (.setColor g2 Color/MAGENTA))
-                               (.drawLine g2 delta delta
-                                          (- (. this getWidth) delta 1)
-                                          (- (.  this getHeight) delta 1))
-                               (.drawLine g2 (- (. this getWidth) delta 1) delta
-                                          delta (- (. this getHeight) delta 1))
-                               (.dispose g2)))))]
+  (let [tabbutton (button :paint (fn [^JButton this ^Graphics g]
+                                   (proxy-super paintComponent g)
+                                   (let [^Graphics2D g2 (.create g),
+                                         delta 6]
+                                     (when (.. this getModel isPressed)
+                                       (.translate g2 1 1))
+                                     (.setStroke g2 (BasicStroke. 2))
+                                     (.setColor g2 Color/BLACK)
+                                     (when (.. this getModel isRollover)
+                                       (.setColor g2 Color/MAGENTA))
+                                     (.drawLine g2 delta delta
+                                                (- (. this getWidth) delta 1)
+                                                (- (.  this getHeight) delta 1))
+                                     (.drawLine g2 (- (. this getWidth) delta 1) delta
+                                                delta (- (. this getHeight) delta 1))
+                                     (.dispose g2)))
+                          :preferred-size [17 :by 17]
+                          :tip "Close this tab"
+                          :focusable? false)]
     (doto tabbutton
       (listen :action
               (fn [_]
@@ -171,11 +172,9 @@
                 (let [component (.getComponent evt)]
                   (when (instance? AbstractButton component)
                     (.setBorderPainted ^AbstractButton component false)))))
-      (.setPreferredSize (Dimension. 17 17))
-      (.setToolTipText "Close this tab")
-      (.setContentAreaFilled false)
       (.setBorderPainted false)
-      (.setFocusable false))))
+      (.setContentAreaFilled false)
+      )))
 
 (defn- make-tab-head
   "Creates and returns a panel to be used as tab component."
