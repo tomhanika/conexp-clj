@@ -37,7 +37,8 @@
                                                                         (cycle (range 0 (* 2 Math/PI) 0.05))),
                                                       :while @rotate-thread]
                                                 (Thread/sleep 50)
-                                                (.setValue spn angle)))))
+                                                (do-swing
+                                                 (.setValue spn angle))))))
                            (.start ^Thread @rotate-thread)),
         stop-rotate     #(when @rotate-thread
                            (.stop ^Thread @rotate-thread)
