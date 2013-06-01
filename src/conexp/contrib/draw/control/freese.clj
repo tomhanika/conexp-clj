@@ -14,8 +14,7 @@
         conexp.contrib.draw.scene-layouts
         conexp.contrib.gui.util)
   (:use seesaw.core)
-  (:import [javax.swing JButton JSpinner JFrame]
-           [java.awt.event WindowEvent WindowAdapter]))
+  (:import [javax.swing JButton JSpinner JFrame]))
 
 ;;; Freese layout
 
