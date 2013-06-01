@@ -20,6 +20,7 @@
   parameters given by keywords and values."
   [& args]
   (native!)
+  (System/setProperty "awt.useSystemAAFontSettings" "on")
   (-> (apply conexp-main-frame args)
       pack!
       show!))
