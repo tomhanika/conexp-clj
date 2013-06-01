@@ -32,7 +32,8 @@
   :warn-on-reflection true
   :test-paths ["tests" "src/test/"]
   :compile-path "lib/classes/"
-  :scm {:url "git@github.com:exot/conexp-clj.git"})
+  :scm {:url "git@github.com:exot/conexp-clj.git"}
+  :java-opts ["-Dawt.useSystemAAFontSettings=on"])
 
 ;;;
 
