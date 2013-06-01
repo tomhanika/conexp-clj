@@ -26,11 +26,16 @@
   "Returns main frame for conexp standard gui."
   [:default-close-operation :dispose]
   (let [tabbed-pane  (tabbed-panel)
-        content-pane (border-panel :center tabbed-pane)
         main-frame   (frame :title "conexp-clj"
-                            :on-close default-close-operation
-                            :size [1000 :by 800]
-                            :content content-pane)]
+                            :on-close default-close-operation)
+        content-pane (top-bottom-split tabbed-pane
+                                       (make-repl main-frame)
+                                       :divider-location 1.0
+                                       :resize-weight 0.9
+                                       :one-touch-expandable? true)]
+
+    ;; set content
+    (config! main-frame :content content-pane)
 
     ;; Main menu first
     (add-menus main-frame
