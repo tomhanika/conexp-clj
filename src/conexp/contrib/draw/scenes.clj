@@ -8,8 +8,8 @@
 
 (ns conexp.contrib.draw.scenes
   (:use conexp.base)
+  (:use [seesaw.core :only (listen)])
   (:import [java.awt Color]
-           [java.awt.event ComponentListener]
            [java.io File]
            [java.awt.image BufferedImage]
            [javax.imageio ImageIO]
@@ -140,12 +140,9 @@
       (.shouldWorldExtentFitViewport false)
       (.setStyle default-scene-style)
       (add-scene-hook :image-changed))
-    (.addComponentListener (scene-canvas scn)
-                           (proxy [ComponentListener] []
-                             (componentResized [comp-evt]
-                               (call-scene-hook scn :image-changed))
-                             (componentHidden [comp-evt])
-                             (componentShown  [comp-evt])))
+    (listen (scene-canvas scn) :component-resized
+            (fn [_]
+              (call-scene-hook scn :image-changed)))
     scn))
 
 ;; methods on scenes
