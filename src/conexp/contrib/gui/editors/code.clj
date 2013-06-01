@@ -41,8 +41,7 @@
   (menu :text "Code",
         :items [(menu-item :text "Load into REPL",
                            :listen [:action (fn [_]
-                                              (get-file-and-go frame))]
-                           :enabled? false)]))
+                                              (get-file-and-go frame))])]))
 
 ;;;
 
