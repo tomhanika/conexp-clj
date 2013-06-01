@@ -12,7 +12,7 @@
                     PrintWriter CharArrayWriter PrintStream]
            [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame
                         JComponent]
-           [java.awt Font Color])
+           [java.awt Font Color Graphics Graphics2D RenderingHints])
   (:use [conexp.base :only (defvar-)]
         conexp.contrib.gui.util)
   (:require [conexp.contrib.gui.repl-utils :as repl-utils])
@@ -196,7 +196,14 @@
 (defn- ^JTextArea into-text-area
   "Puts repl-container (a PlainDocument) into a JTextArea adding some hotkeys."
   [repl-container repl-thread]
-  (let [^JTextArea repl-window (JTextArea. ^javax.swing.text.Document repl-container)]
+  (let [^JTextArea
+        repl-window (proxy [JTextArea] [^javax.swing.text.Document repl-container]
+                      (paintComponent [^Graphics g]
+                        (let [^Graphics2D g g]
+                          (.setRenderingHint g
+                                             RenderingHints/KEY_ANTIALIASING
+                                             RenderingHints/VALUE_ANTIALIAS_ON)
+                          (proxy-super paintComponent g))))]
     (doto repl-window
       (add-input-event "control C" "interrupt")
       (add-action-event "interrupt" #(repl-interrupt repl-thread))
@@ -214,7 +221,7 @@
   (let [[repl-container, ^Thread repl-thread, ^Thread output-thread] (make-clojure-repl frame),
         rpl (into-text-area repl-container repl-thread)]
     (doto rpl
-      (.setFont (Font. "Monospaced" Font/PLAIN 16))
+      (.setFont (Font. "Monospaced" Font/BOLD 16))
       (.setCaretColor Color/BLACK))
     (.start output-thread)
     (JScrollPane. rpl)))
