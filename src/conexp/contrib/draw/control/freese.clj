@@ -38,7 +38,8 @@
                                                       :while @rotate-thread]
                                                 (Thread/sleep 50)
                                                 (do-swing
-                                                 (.setValue spn angle))))))
+                                                 (when (.isVisible (scene-canvas scn))
+                                                   (.setValue spn angle)))))))
                            (.start ^Thread @rotate-thread)),
         stop-rotate     #(when @rotate-thread
                            (.stop ^Thread @rotate-thread)
