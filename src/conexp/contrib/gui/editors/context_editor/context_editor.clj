@@ -241,9 +241,9 @@
           ectx           (ref (make-editable-context ctx)),
           bar            (toolbar :orientation :horizontal
                                   :floatable? false)
-          root           (top-bottom-split (scrollable bar)
+          root           (top-bottom-split bar
                                            (get-widget table)
-                                           :divider-location 70)
+                                           :divider-location 40)
           e-ctx          @ectx,
           widget         (context-editor-widget. root table ectx),
           keystroke-fill (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
