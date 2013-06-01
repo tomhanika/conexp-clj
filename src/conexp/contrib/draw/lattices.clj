@@ -26,6 +26,7 @@
                                      snapshots
                                      zoom-move]
         conexp.contrib.gui.util)
+  (:use seesaw.core)
   (:import [javax.swing JFrame JPanel BoxLayout JScrollBar JScrollPane]
            [java.awt Dimension BorderLayout]))
 
@@ -83,6 +84,14 @@
                           JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)
             BorderLayout/WEST)
       (.setMinimumSize (Dimension. 0 0)))
+
+    ;;
+    (listen main-panel :component-hidden
+            (fn [_]
+              (.setVisible canvas false)))
+    (listen main-panel :component-shown
+            (fn [_]
+              (.setVisible canvas true)))
 
     ;; return main panel
     main-panel))
