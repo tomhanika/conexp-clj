@@ -20,7 +20,7 @@
 (defn snapshot-saver
   "Installs a snapshot saver, which, whenever a node has been moved,
   saves the image."
-  [frame scn buttons]
+  [_ scn buttons]
   (let [saved-layouts (atom {}),
         ^JComboBox
         combo         (make-combo-box buttons @saved-layouts),

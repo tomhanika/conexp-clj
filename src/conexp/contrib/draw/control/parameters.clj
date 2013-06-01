@@ -31,7 +31,7 @@
 
 (defn change-parameters
   "Installs parameter list which influences lattice drawing."
-  [frame scn buttons]
+  [_ scn buttons]
   ;; node radius
   (let [^JTextField
         node-radius (make-labeled-text-field buttons

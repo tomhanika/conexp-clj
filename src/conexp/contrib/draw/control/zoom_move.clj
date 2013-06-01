@@ -18,7 +18,7 @@
 
 (defn toggle-zoom-move
   "Install zoom-move-toggler."
-  [frame scn buttons]
+  [_ scn buttons]
   (let [zoom-factors (fn []
                        (let [[zoom-x zoom-y] (get-zoom-factors scn)]
                          (with-out-str
