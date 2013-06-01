@@ -55,6 +55,9 @@
               (if @rotate-thread
                 (stop-rotate)
                 (start-rotate))))
+    (listen (scene-canvas scn) :component-hidden
+            (fn [_]
+              (stop-rotate)))
     (listen frame #{:window-iconified :window-closed}
             (fn [_]
               (stop-rotate)))))
