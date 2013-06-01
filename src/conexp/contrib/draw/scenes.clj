@@ -143,7 +143,9 @@
     (.addComponentListener (scene-canvas scn)
                            (proxy [ComponentListener] []
                              (componentResized [comp-evt]
-                               (call-scene-hook scn :image-changed))))
+                               (call-scene-hook scn :image-changed))
+                             (componentHidden [comp-evt])
+                             (componentShown  [comp-evt])))
     scn))
 
 ;; methods on scenes
