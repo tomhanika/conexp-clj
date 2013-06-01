@@ -64,7 +64,7 @@
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** INPROGRESS Write Wiki [3/7]
+** INPROGRESS Write Wiki [4/7]
    - [X] Getting Started
    - [X] Basic Notation and Syntax
    - [-] Basic Usage
@@ -81,9 +81,9 @@
      - [ ] A Formal Context of Functions
      - [ ] Context of All Permutations on a Finite Set
      - [ ] The Tamari Lattice
-   - [-] Other Features
+   - [X] Other Features
      - [X] Using conexp-clj from sage
-     - [ ] Calling conexp-clj functions from Java
+     - [X] Calling conexp-clj functions from Java
    - [X] API documentation
 ** DONE API documentation on the Wiki
 * Core
@@ -103,4 +103,5 @@
 ** TODO GUI code editor
 ** TODO GUI plugin browser
 ** TODO Undo for GUI
+** DONE Fix neverending rotation when choosing another tab
 
