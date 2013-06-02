@@ -57,11 +57,13 @@
           (dialog :parent ~frame
                   :size [600 :by 300]
                   :content (vertical-panel :items [[:fill-v 10]
-                                                   (.getMessage cause#)
+                                                   (.getMessage ^Throwable cause#)
                                                    [:fill-v 10]
                                                    (scrollable (text :text (apply str (root-cause e#) "\n"
                                                                                   (interpose "\n" (.getStackTrace e#)))
-                                                                     :multi-line? true))])
+                                                                     :multi-line? true
+                                                                     :editable? false
+                                                                     :caret-position 0))])
                   :type :error
                   :title ~title))))))
 
