@@ -63,23 +63,31 @@
       )
 
     ;; Add Help menu at right position
-    (add-menus main-frame [:separator (menu :text "Help"
-                                            :items
-                                            [(menu-item :text "Online Documentation"
-                                                        :listen [:action (fn [_]
-                                                                           (with-swing-error-msg main-frame "Error"
-                                                                             (let [desktop (java.awt.Desktop/getDesktop)]
-                                                                               (when-not (.isSupported desktop java.awt.Desktop$Action/BROWSE)
-                                                                                 (unsupported-operation "Not supported"))
-                                                                               (.browse (java.awt.Desktop/getDesktop)
-                                                                                        (java.net.URI. "http://github.com/exot/conexp-clj/wiki")))))])
-                                             (menu-item :text "Report Bug"
-                                                        :enabled? false)
-                                             :separator
-                                             (menu-item :text "License"
-                                                        :enabled? false)
-                                             (menu-item :text "About"
-                                                        :enabled? false)])])
+    (add-menus main-frame [:separator
+                           (menu :text "Help"
+                                 :items
+                                 [(menu-item :text "Online Documentation"
+                                             :listen [:action (fn [_]
+                                                                (with-swing-error-msg main-frame "Error"
+                                                                  (let [desktop (java.awt.Desktop/getDesktop)]
+                                                                    (when-not (.isSupported desktop java.awt.Desktop$Action/BROWSE)
+                                                                      (unsupported-operation "Not supported"))
+                                                                    (.browse (java.awt.Desktop/getDesktop)
+                                                                             (java.net.URI. "http://github.com/exot/conexp-clj/wiki")))))])
+                                  (menu-item :text "Report Bug"
+                                             :enabled? false)
+                                  :separator
+                                  (menu-item :text "License"
+                                             :listen [:action (fn [_]
+                                                                (show!
+                                                                 (dialog :content
+                                                                         (scrollable
+                                                                          (text :text (get-resource "res/epl-v10.txt")
+                                                                                :multi-line? true
+                                                                                :editable? false
+                                                                                :caret-position 0)))))])
+                                  (menu-item :text "About"
+                                             :enabled? false)])])
 
     main-frame))
 
