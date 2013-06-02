@@ -232,7 +232,7 @@
   (let [^JTextArea repl-container (get-component
                                    frame
                                    (fn [thing]
-                                     (and (= (class thing) JTextArea)
+                                     (and (instance? JTextArea thing)
                                           (satisfies? ReplProcess
                                                       (.getDocument ^JTextArea thing)))))]
     (when repl-container
