@@ -9,6 +9,7 @@
 (ns conexp.contrib.gui.base
   (:import [java.awt event.WindowEvent])
   (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc, unsupported-operation)]
+        [conexp.main :only (conexp-version)]
         conexp.contrib.gui.util
         conexp.contrib.gui.repl
         conexp.contrib.gui.plugins
@@ -19,6 +20,34 @@
   (:use seesaw.core))
 
 (ns-doc "Provides basic definitions for the standard conexp-clj GUI.")
+
+;;; Helper Functions
+
+(defn- show-license []
+  (show!
+   (dialog :content (scrollable
+                     (editor-pane :content-type "text/html"
+                                  :text (slurp
+                                         (get-resource "res/epl-v10.html"))
+                                  :editable? false
+                                  :caret-position 0))
+           :size [800 :by 500]
+           :resizable? false)))
+
+(defn- show-about []
+  (show!
+   (dialog :content (vertical-panel :items [(label :text (str "conexp-clj " (conexp-version))
+                                                   :size [300 :by 16]
+                                                   :halign :center)
+                                            (label :text "Graphical User Interface"
+                                                   :size [300 :by 16]
+                                                   :halign :center)
+                                            (label :text "ⓒ 2013 Daniel Borchmann"
+                                                   :size [300 :by 30]
+                                                   :halign :center
+                                                   :valign :bottom)])
+           :resizable? false
+           :size [300 :by 121])))
 
 ;;; Conexp Main Frame
 
@@ -60,34 +89,28 @@
       (load-plugin pm context-editor)
       (load-plugin pm lattice-editor)
       (load-plugin pm code-editor)
-      )
+      nil)
 
     ;; Add Help menu at right position
-    (add-menus main-frame [:separator
-                           (menu :text "Help"
-                                 :items
-                                 [(menu-item :text "Online Documentation"
-                                             :listen [:action (fn [_]
-                                                                (with-swing-error-msg main-frame "Error"
-                                                                  (let [desktop (java.awt.Desktop/getDesktop)]
-                                                                    (when-not (.isSupported desktop java.awt.Desktop$Action/BROWSE)
-                                                                      (unsupported-operation "Not supported"))
-                                                                    (.browse (java.awt.Desktop/getDesktop)
-                                                                             (java.net.URI. "http://github.com/exot/conexp-clj/wiki")))))])
-                                  (menu-item :text "Report Bug"
-                                             :enabled? false)
-                                  :separator
-                                  (menu-item :text "License"
-                                             :listen [:action (fn [_]
-                                                                (show!
-                                                                 (dialog :content
-                                                                         (scrollable
-                                                                          (text :text (get-resource "res/epl-v10.txt")
-                                                                                :multi-line? true
-                                                                                :editable? false
-                                                                                :caret-position 0)))))])
-                                  (menu-item :text "About"
-                                             :enabled? false)])])
+    (add-menus main-frame
+               [:separator
+                (menu :text "Help"
+                      :items
+                      [(menu-item :text "Online Documentation"
+                                  :listen [:action
+                                           (fn [_]
+                                             (open-link-in-external-browser
+                                              main-frame
+                                              "http://github.com/exot/conexp-clj/wiki/"))])
+                       (menu-item :text "Report Bug"
+                                  :enabled? false)
+                       :separator
+                       (menu-item :text "License"
+                                  :listen [:action (fn [_]
+                                                     (show-license))])
+                       (menu-item :text "About"
+                                  :listen [:action (fn [_]
+                                                     (show-about))])])])
 
     main-frame))
 

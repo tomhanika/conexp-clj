@@ -16,7 +16,8 @@
            [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
            [java.awt.event MouseEvent]
            [java.io File])
-  (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
+  (:use [conexp.base :only (defvar, defmacro-, first-non-nil,
+                            illegal-argument, unsupported-operation)])
   (:use seesaw.core
         [seesaw.util :only (root-cause)]))
 
@@ -56,10 +57,11 @@
          (show!
           (dialog :parent ~frame
                   :size [600 :by 300]
+                  :resizable? false
                   :content (vertical-panel :items [[:fill-v 10]
                                                    (.getMessage ^Throwable cause#)
                                                    [:fill-v 10]
-                                                   (scrollable (text :text (apply str (root-cause e#) "\n"
+                                                   (scrollable (text :text (apply str cause# "\n"
                                                                                   (interpose "\n" (.getStackTrace e#)))
                                                                      :multi-line? true
                                                                      :editable? false
@@ -103,6 +105,15 @@
         img (and img (ImageIcon. img))]
     (or img alt)))
 
+(defn open-link-in-external-browser
+  ""
+  [frame string]
+  (with-swing-error-msg frame "Error"
+    (let [desktop (java.awt.Desktop/getDesktop)]
+      (when-not (.isSupported desktop java.awt.Desktop$Action/BROWSE)
+        (unsupported-operation "Not supported"))
+      (.browse (java.awt.Desktop/getDesktop)
+               (java.net.URI. string)))))
 
 ;;; Menus
 
