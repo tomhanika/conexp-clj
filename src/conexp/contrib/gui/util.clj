@@ -56,12 +56,10 @@
          (show!
           (dialog :parent ~frame
                   :size [600 :by 300]
-                  :content (grid-panel :rows 2
-                                       :columns 1
-                                       :items [(str cause#)
-                                               (scrollable (text :text (apply str (root-cause e#) "\n"
-                                                                              (interpose "\n" (.getStackTrace e#)))
-                                                                 :multi-line? true))])
+                  :content (border-panel :north (str cause#)
+                                         :center (scrollable (text :text (apply str (root-cause e#) "\n"
+                                                                                (interpose "\n" (.getStackTrace e#)))
+                                                                   :multi-line? true)))
                   :type :error
                   :title ~title))))))
 
