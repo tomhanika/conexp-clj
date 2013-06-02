@@ -106,7 +106,8 @@
     (or img alt)))
 
 (defn open-link-in-external-browser
-  ""
+  "Given a string denoting an URL, tries to open that URL in the default browser.  In case
+  this does not work, displays an error message attached to frame."
   [frame string]
   (with-swing-error-msg frame "Error"
     (let [desktop (java.awt.Desktop/getDesktop)]
