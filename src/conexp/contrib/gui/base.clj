@@ -41,7 +41,11 @@
     (add-menus main-frame
                [(menu :text "Main"
                       :items
-                      [:separator
+                      [(menu-item :text "Save window configuration to file"
+                                  :enabled? false)
+                       (menu-item :text "Load window configuration from file"
+                                  :enabled? false)
+                       :separator
                        (menu-item :text "Quit"
                                   :listen [:action
                                            (fn [_]
