@@ -41,7 +41,8 @@
   (menu :text "Code",
         :items [(menu-item :text "Load into REPL",
                            :listen [:action (fn [_]
-                                              (get-file-and-go frame))])]))
+                                              (with-swing-error-msg frame "Error"
+                                                (get-file-and-go frame)))])]))
 
 ;;;
 

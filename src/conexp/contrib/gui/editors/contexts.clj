@@ -52,41 +52,46 @@
 (defn- clone-context-and-go
   "Loads context with given loader and adds a new tab with a context-editor."
   [frame]
-  (add-tab frame
-    (clone-context-view-from-panel (current-tab frame))
-    (str (current-tab-title frame) "*")))
+  (with-swing-error-msg frame "Error"
+    (add-tab frame
+             (clone-context-view-from-panel (current-tab frame))
+             (str (current-tab-title frame) "*"))))
 
 (defn- context-and-go
   "Opens given context in a new context editor tab."
   [frame context]
-  (add-tab frame
-           (make-context-editor context)
-           "Context"))
+  (with-swing-error-msg frame "Error"
+    (add-tab frame
+             (make-context-editor context)
+             "Context")))
 
 (defn- second-op-context-and-go
   "Show the current second operand context in a new tab."
   [frame]
-  (let [thing (get-current-second-operand-context)]
-    (add-tab frame
-             (make-context-editor thing)
-             "Context")))
+  (with-swing-error-msg frame "Error"
+    (let [thing (get-current-second-operand-context)]
+      (add-tab frame
+               (make-context-editor thing)
+               "Context"))))
 
 (defn- save-context-and-go
   "Saves context with given writer."
   [frame writer]
-  (when-let [thing (get-context-from-panel (current-tab frame))]
-    (when-let [^File file (choose-save-file frame)]
-      (let [path (.getPath file)]
-        (writer thing path)))))
+  (with-swing-error-msg frame "Error"
+    (when-let [thing (get-context-from-panel (current-tab frame))]
+      (when-let [^File file (choose-save-file frame)]
+        (let [path (.getPath file)]
+          (writer thing path))))))
 
 (defn- show-lattice-and-go
   "Shows concept lattice of current tab."
   [frame]
-  (let [thing (get-context-from-panel (current-tab frame))]
-    (add-tab frame
-             (make-lattice-editor frame
-                                  (standard-layout (concept-lattice thing)))
-             "Concept-Lattice")))
+  (with-swing-error-msg frame "Error"
+    (let [thing (get-context-from-panel (current-tab frame))]
+      (add-tab frame
+               (make-lattice-editor frame
+                                    (standard-layout (concept-lattice thing)))
+               "Concept-Lattice"))))
 
 ;;; The Hooks
 

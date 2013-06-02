@@ -39,34 +39,37 @@
   "Loads lattice with given loader and adds a new tab with with a
   lattice-editor from the result of tranformer."
   [frame loader transformer]
-  (when-let [^File file (choose-open-file frame)]
-    (let [thing (loader (.getPath file))]
-      (add-tab frame
-               (make-lattice-editor frame
-                                    (transformer thing))
-               "Lattice"))))
+  (with-swing-error-msg frame "Error"
+    (when-let [^File file (choose-open-file frame)]
+      (let [thing (loader (.getPath file))]
+        (add-tab frame
+                 (make-lattice-editor frame
+                                      (transformer thing))
+                 "Lattice")))))
 
 (defn- save-layout
   "Tries to store the result of applying transformer to the currently
   selected layout into the file the users selects."
   [frame transformer write format]
-  (let [layout (get-layout-from-panel (current-tab frame))]
-    (if (nil? layout)
-      (illegal-argument "Current tab does not contain a lattice editor.")
-      (when-let [^File file (choose-save-file frame)]
-        (write format
-               (transformer layout)
-               (.getPath file))))))
+  (with-swing-error-msg frame "Error"
+    (let [layout (get-layout-from-panel (current-tab frame))]
+      (if (nil? layout)
+        (illegal-argument "Current tab does not contain a lattice editor.")
+        (when-let [^File file (choose-save-file frame)]
+          (write format
+                 (transformer layout)
+                 (.getPath file)))))))
 
 (defn- edit-standard-context
   "Opens a context-editor with the standard context of the lattice
   displayed in the current tab of frame."
   [frame]
-  (let [layout (get-layout-from-panel (current-tab frame))]
-    (if (nil? layout)
-      (illegal-argument "Current tab does not contain a lattice editor.")
-      (add-tab frame (make-context-editor (standard-context (lattice layout)))
-        "Standard-Context"))))
+  (with-swing-error-msg frame "Error"
+    (let [layout (get-layout-from-panel (current-tab frame))]
+      (if (nil? layout)
+        (illegal-argument "Current tab does not contain a lattice editor.")
+        (add-tab frame (make-context-editor (standard-context (lattice layout)))
+                 "Standard-Context")))))
 
 
 ;;; The Hooks
