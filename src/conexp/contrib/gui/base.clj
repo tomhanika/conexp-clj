@@ -7,8 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.base
-  (:import [java.awt.event WindowEvent])
-  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc)]
+  (:import [java.awt event.WindowEvent])
+  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc, unsupported-operation)]
         conexp.contrib.gui.util
         conexp.contrib.gui.repl
         conexp.contrib.gui.plugins
@@ -59,7 +59,23 @@
       )
 
     ;; Add Help menu at right position
-    (add-menus main-frame [:separator (menu :text "Help")])
+    (add-menus main-frame [:separator (menu :text "Help"
+                                            :items
+                                            [(menu-item :text "Online Documentation"
+                                                        :listen [:action (fn [_]
+                                                                           (with-swing-error-msg main-frame "Error"
+                                                                             (let [desktop (java.awt.Desktop/getDesktop)]
+                                                                               (when-not (.isSupported desktop java.awt.Desktop$Action/BROWSE)
+                                                                                 (unsupported-operation "Not supported"))
+                                                                               (.browse (java.awt.Desktop/getDesktop)
+                                                                                        (java.net.URI. "http://github.com/exot/conexp-clj/wiki")))))])
+                                             (menu-item :text "Report Bug"
+                                                        :enabled? false)
+                                             :separator
+                                             (menu-item :text "License"
+                                                        :enabled? false)
+                                             (menu-item :text "About"
+                                                        :enabled? false)])])
 
     main-frame))
 
