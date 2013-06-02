@@ -52,13 +52,18 @@
   `(try
      ~@body
      (catch Exception e#
-       (show!
-        (dialog :parent ~frame
-                :content (scrollable (text :text (apply str (root-cause e#) "\n"
-                                                        (interpose "\n" (.getStackTrace e#)))
-                                           :multi-line? true))
-                :type :error
-                :title ~title)))))
+       (let [cause# (root-cause e#)]
+         (show!
+          (dialog :parent ~frame
+                  :size [600 :by 300]
+                  :content (grid-panel :rows 2
+                                       :columns 1
+                                       :items [(str cause#)
+                                               (scrollable (text :text (apply str (root-cause e#) "\n"
+                                                                              (interpose "\n" (.getStackTrace e#)))
+                                                                 :multi-line? true))])
+                  :type :error
+                  :title ~title))))))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
