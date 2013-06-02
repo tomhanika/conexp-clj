@@ -300,7 +300,8 @@
     editor widget represented by the given panel."
     [panel]
     (let [widget (@panels panel)]
-      (when widget
+      (if-not widget
+        (unsupported-operation "There is no formal context in this panel")
         (get-context (get-ectx widget)))))
 
   (defn set-context-in-panel
