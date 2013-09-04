@@ -148,7 +148,8 @@ Additional Contributors are
 
   * Immanuel Albrecht (Context Editor Plugin for the GUI)
   * Stefan Borgwardt  (Shared Intents)
-  * Gleb Kanterov (interval-scale)
+  * Gleb Kanterov     (interval-scale)
+  * Johannes Wollbold (bug reports, feature requests)
 
 License
 -------
