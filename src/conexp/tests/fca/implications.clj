@@ -173,11 +173,30 @@
   (are [ctx] (let [sb (stem-base ctx)]
                (is (minimal-implication-set? sb))
                (is (sound-implication-set? ctx sb))
-               (is (complete-implication-set? ctx sb)))
+               (is (complete-implication-set? ctx sb))
+               (is (let [premises (map premise sb)]
+                     (forall [X premises]
+                       (forall [Y premises]
+                         (=> (proper-subset? Y X)
+                             (proper-subset? (adprime ctx Y) X)))))))
     contexts/test-ctx-01,
     contexts/test-ctx-04
     contexts/test-ctx-07,
     contexts/test-ctx-08))
+
+(deftest test-stem-base-with-background-knowledge
+  ;; make sure implications with empty premise are handled correctly
+  (is (let [ctx (make-context-from-matrix 5 5
+                                          [0 0 1 0 1
+                                           0 1 1 0 0
+                                           0 0 1 0 1
+                                           0 0 1 1 1
+                                           0 0 1 0 1]),
+            bgk #{(impl ==> 2)}]
+        (= (canonical-base ctx bgk)
+           #{(impl 0 2 ==> 1 3 4)
+             (impl 2 3 ==> 4)
+             (impl 1 2 4 ==> 0 3)}))))
 
 (deftest test-pseudo-intents
   (with-testing-data [ctx (random-contexts 10 20)]
