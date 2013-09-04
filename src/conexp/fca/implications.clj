@@ -213,7 +213,7 @@
      (stem-base ctx #{}))
   ([ctx background-knowledge]
      (loop [implications background-knowledge,
-            last         #{}]
+            last         (close-under-implications background-knowledge #{})]
        (let [conclusion-from-last (context-attribute-closure ctx last),
              implications         (if (not= last conclusion-from-last)
                                     (conj implications
