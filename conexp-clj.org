@@ -1,14 +1,15 @@
 # -*- mode: org -*-
 #+startup: content
 #+startup: hidestars
-#+TODO: UNCERTAIN TODO INPROGRESS | DONE CANCELLED
+#+filetags: CONEXP
+#+category: conexp-clj
 
 * Script
 ** DONE Add readline support
    using jline
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
-** INPROGRESS draw-lattice-to-file
+** NEXT draw-lattice-to-file
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
    arguments as draw-lattice.
@@ -19,9 +20,9 @@
 * IO
 ** TODO Add tests for explicit IO formats
    given as keywords or strings.
-** INPROGRESS Allow additional arguments to write-context
+** NEXT Allow additional arguments to write-context
    depending on the current layout.
-** INPROGRESS More IO formats for contexts [2/5]
+** NEXT More IO formats for contexts [2/5]
    - [X] anonymous burmeister (without names for objects and
      attributes)
    - [ ] csc
@@ -38,7 +39,7 @@
    should be possible. read-context then should also take an index of
    which context to read in.
 * Tests
-** INPROGRESS Improve test coverage of conexp contrib [0/12]             :7:
+** NEXT Improve test coverage of conexp contrib [0/12]                :0_0_7:
    - [ ] algorithms
    - [ ] concept approximation
    - [ ] DL
@@ -55,16 +56,16 @@
    - [ ] retracts
    - [ ] util [0/1]
      - [ ] general sorted sets
-** INPROGRESS Add tests for new Association Rule functions               :7:
+** NEXT Add tests for new Association Rule functions                  :0_0_7:
 * Layout
-** INPROGRESS Add more layout output [0/2]
+** NEXT Add more layout output [0/2]
    - [ ] svg
    - [ ] povray
-** TODO Rewrite to-inf-additive-layout                                   :7:
+** TODO Rewrite to-inf-additive-layout                                :0_0_7:
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** INPROGRESS Write Wiki [4/7]
+** NEXT Write Wiki [4/7]
    - [X] Getting Started
    - [X] Basic Notation and Syntax
    - [-] Basic Usage
@@ -87,10 +88,10 @@
    - [X] API documentation
 ** DONE API documentation on the Wiki
 * Core
-** TODO Change attribute names for mv-context scales                     :7:
+** TODO Change attribute names for mv-context scales                  :0_0_7:
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** TODO Make luxenburger-base parallel                                   :7:
+** TODO Make luxenburger-base parallel                                :0_0_7:
 ** TODO Rule Exploration with Impex
 * GUI
 ** TODO Allow resizing of cells in GUI
@@ -104,4 +105,7 @@
 ** TODO GUI plugin browser
 ** TODO Undo for GUI
 ** DONE Fix neverending rotation when choosing another tab
-
+* Bugs
+** TODO Fix error for conexp-clj's gui                                :0_0_7:
+   CLOCK: [2013-08-21 Mi 12:39]--[2013-08-21 Mi 12:39] =>  0:00
+   Added: [2013-08-21 Mi 12:39]
