@@ -93,6 +93,7 @@
    forget to adjust the tests for them after finishing.
 ** TODO Make luxenburger-base parallel                                :0_0_7:
 ** TODO Rule Exploration with Impex
+** TODO Incorporate clojure.core.reducers                             :0_0_7:
 * GUI
 ** TODO Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when
