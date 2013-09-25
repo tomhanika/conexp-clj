@@ -45,7 +45,7 @@
 
   If you want to use automorphisms of the underlying context, you have
   to construct a special handler using the «make-handler»
-  function. See its documentation."
+  function. See the corresponding documentation of «make-handler»"
   [ctx, :background-knowledge #{}, :handler default-handler]
   (assert (set? background-knowledge))
   (loop [implications background-knowledge,
