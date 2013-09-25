@@ -151,21 +151,25 @@
   "Checks the given example for being valid."
   [state ctx impl]
   (let [new-atts    (union (set (:positives state)) (set (:negatives state))),
-        object-set? (contains? state :object),
-        all-atts?   (= (attributes ctx) new-atts),
-        respects?   (forall [impl (:knowledge state)]
-                      (or (not (subset? (premise impl) (set (:positives state))))
-                          (subset? (conclusion impl) (set (:positives state))))),
-        falsifies?  (falsifies-implication? (set (:positives state)) impl)]
-    (when-not object-set?
-      (println "You need to set a name for the new object."))
-    (when-not all-atts?
-      (println "You have not specified a complete counterexample."))
-    (when-not respects?
-      (println "Your example does not respect the already confirmed knowledge."))
-    (when-not falsifies?
-      (println "Your example does not falsify the given implication."))
-    (and object-set? all-atts? respects? falsifies?)))
+        return      (atom true)]
+    (when-not (contains? state :object),
+      (println "You need to set a name for the new object.")
+      (reset! return false))
+    (when-not (= (attributes ctx) new-atts)
+      (println "You have not specified a complete counterexample.")
+      (reset! return false))
+    (let [not-respected (filter (fn [impl]
+                                  (not (respects? (set (:positives state)) impl)))
+                                (:knowledge state))]
+      (when-not (empty? not-respected)
+        (println "Your example does not respect the following confirmed implications:")
+        (doseq [impl not-respected]
+          (println impl))
+        (reset! return false)))
+    (when-not (falsifies-implication? (set (:positives state)) impl)
+      (println "Your example does not falsify the given implication.")
+      (reset! return false))
+    @return))
 
 (define-repl-fn check-counterexample
   "Checks the given counterexample for being valid."
