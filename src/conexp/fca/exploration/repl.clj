@@ -36,8 +36,8 @@
             (remove #{:default} (keys (methods run-repl-command))))))
 
 (defn- eval-command
-  "Runs the given REPL command query with state, context ctx and
-  implication impl."
+  "Runs the given REPL command query with state, in the case the query uniquely determines
+  a command.  If not, an error message is printed and state is returned."
   [query state]
   (if (= query 'abort)
     (throw (Exception. "Abnormal abortion from attribute exploration"))
@@ -61,12 +61,15 @@
            (println t)
            state))))))
 
+;;
+
 (defn counterexample-via-repl
-  "Starts a repl for counterexamples."
+  "Starts a repl for counterexamples, which must be specified completely."
   [ctx knowledge impl]
   (loop [state {:context ctx,
                 :knowledge knowledge,
-                :implication impl}]
+                :implication impl
+                :complete-counterexamples? true}]
     (let [query  (ask "counterexample> "
                       #(read-string (str (read-line)))
                       (constantly true)
@@ -76,12 +79,34 @@
         (recur result)
         [(:object state) (set (:positives state))]))))
 
+(defn incomplete-counterexample-via-repl
+  "Starts a repl for counterexamples, which may be incomplete."
+  [possible-ctx certain-ctx knowledge impl]
+  (loop [state {:possible-context possible-ctx,
+                :certain-context certain-ctx,
+                :knowledge knowledge,
+                :implication impl
+                :complete-counterexamples? false}]
+    (let [query  (ask "counterexample> "
+                      #(read-string (str (read-line)))
+                      (constantly true)
+                      "counterexample> "),
+          result (eval-command query state)]
+      (if result
+        (recur result)
+        [(:object state) (set (:positives state)) (set (:negatives state))]))))
+
+;; REPL commands
+
 (defmacro- define-repl-fn [name doc & body]
   `(do
      (defmethod run-repl-command '~name
        ~'[_ state]
-       (let [~'ctx  (:context ~'state),
-             ~'impl (:implication ~'state)]
+       (let [~'objects    (objects (or (:context ~'state)
+                                       (:possible-context ~'state)))
+             ~'attributes (attributes (or (:context ~'state)
+                                          (:possible-context ~'state))),
+             ~'impl       (:implication ~'state)]
          ~@body))
      (defmethod help-repl-command '~name
        ~'[_]
@@ -92,25 +117,25 @@
   (assoc state :object
          (ask (str "Please enter new object: ")
               #(read-string (str (read-line)))
-              #(not (contains? (objects ctx) %))
+              #(not (contains? objects %))
               "This object is already present, please enter a new one: ")))
 
 (define-repl-fn attributes
   "Enter all attributes the object has."
   (let [new-attributes (ask (str "Please enter the attributes the new object should have: ")
                             #(read-string (str "#{" (read-line) "}"))
-                            #(subset? % (attributes ctx))
+                            #(subset? % attributes)
                             (str "The attributes have to be present in the given context.\n"
                                  "Please enter new attributes: "))]
     (-> state
         (assoc :positives new-attributes)
-        (assoc :negatives (difference (attributes ctx) new-attributes)))))
+        (assoc :negatives (difference attributes new-attributes)))))
 
 (define-repl-fn positives
   "Give some attributes the object definitively has."
   (let [positives (ask (str "Please enter attributes the new object definitively has: ")
                        #(read-string (str "#{" (read-line) "}"))
-                       #(and (subset? % (attributes ctx))
+                       #(and (subset? % attributes)
                              (not (exists [m (:negatives state)]
                                     (contains? % m))))
                        (str "The attributes are invalid or already marked as negative.\n"
@@ -121,7 +146,7 @@
   "Give some attributes the object definitively has not."
   (let [negatives (ask (str "Please enter attributes the new object definitively has not: ")
                        #(read-string (str "#{" (read-line) "}"))
-                       #(and (subset? % (attributes ctx))
+                       #(and (subset? % attributes)
                              (not (exists [m (:positives state)]
                                     (contains? % m))))
                        (str "The attributes are invalid or already marked as positive.\n"
@@ -130,7 +155,7 @@
 
 (define-repl-fn complete-example
   "Adds all attributes, which are not positive, to the negatives."
-  (let [non-pos (difference (attributes ctx) (set (:positives state)))]
+  (let [non-pos (difference attributes (set (:positives state)))]
     (assoc state :negatives non-pos)))
 
 (define-repl-fn saturate-partial-example
@@ -140,7 +165,7 @@
         [pos neg] (saturate-partial-example (:knowledge state)
                                             old-pos
                                             old-neg
-                                            (difference (attributes ctx)
+                                            (difference attributes
                                                         old-pos
                                                         old-neg))]
     (-> state
@@ -149,13 +174,14 @@
 
 (defn- valid-counterexample?
   "Checks the given example for being valid."
-  [state ctx impl]
+  [state attributes impl]
   (let [new-atts    (union (set (:positives state)) (set (:negatives state))),
         return      (atom true)]
     (when-not (contains? state :object),
       (println "You need to set a name for the new object.")
       (reset! return false))
-    (when-not (= (attributes ctx) new-atts)
+    (when (and (:complete-counterexamples? state)
+               (not= attributes new-atts))
       (println "You have not specified a complete counterexample.")
       (reset! return false))
     (let [not-respected (filter (fn [impl]
@@ -173,12 +199,12 @@
 
 (define-repl-fn check-counterexample
   "Checks the given counterexample for being valid."
-  (valid-counterexample? state ctx impl)
+  (valid-counterexample? state attributes impl)
   state)
 
 (define-repl-fn quit
   "Quit the REPL, if the given counterexample is valid."
-  (if (valid-counterexample? state ctx impl)
+  (if (valid-counterexample? state attributes impl)
     nil
     state))
 
@@ -203,7 +229,11 @@
 
 (define-repl-fn context
   "Prints the current context."
-  (println ctx)
+  (if (:context state)
+    (println (:context state))
+    (do
+      (println (:possible-context state))
+      (println (:certain-context state))))
   state)
 
 (define-repl-fn knowledge
