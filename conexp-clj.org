@@ -110,3 +110,18 @@
 ** TODO Fix error for conexp-clj's gui                                    :7:
    CLOCK: [2013-08-21 Mi 12:39]--[2013-08-21 Mi 12:39] =>  0:00
    Added: [2013-08-21 Mi 12:39]
+** DONE conexp-clj: find out whether there is a bug in canonical-base with background knowledge
+   - State "DONE"       from "NEXT"       [2013-09-04 Mi 18:02] \\
+     Apparently, there was one: the computation of the canonical base with background
+     knowledge unconditionally started with ∅ as the first premises, which is not correct if
+     one has implications of the form ∅ ⇒ A for some A ⊆ M.  Fixed that, added some (small)
+     test case for it and added Johannes as contributor to conexp-clj.
+   - State "NEXT"       from "TODO"       [2013-09-04 Mi 17:10] \\
+     Making first reasonability tests with the data from Johannes
+   See Johannes information on this
+   :LOGBOOK:
+   CLOCK: [2013-09-04 Mi 17:11]--[2013-09-04 Mi 18:02] =>  0:51
+   CLOCK: [2013-09-04 Mi 15:50]--[2013-09-04 Mi 15:51] =>  0:01
+   :END:
+   Added: [2013-09-04 Mi 15:50]
+
