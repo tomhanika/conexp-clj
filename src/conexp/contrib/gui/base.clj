@@ -11,7 +11,6 @@
   (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc, unsupported-operation)]
         [conexp.main :only (conexp-version)]
         conexp.contrib.gui.util
-        conexp.contrib.gui.repl
         conexp.contrib.gui.plugins
         [conexp.contrib.gui.plugins.base :only (load-plugin)]
         [conexp.contrib.gui.editors.contexts :only (context-editor)]
@@ -56,15 +55,10 @@
   [:default-close-operation :dispose]
   (let [tabbed-pane  (tabbed-panel)
         main-frame   (frame :title "conexp-clj"
-                            :on-close default-close-operation)
-        content-pane (top-bottom-split tabbed-pane
-                                       (make-repl main-frame)
-                                       :divider-location 1.0
-                                       :resize-weight 0.9
-                                       :one-touch-expandable? true)]
+                            :on-close default-close-operation)]
 
     ;; set content
-    (config! main-frame :content content-pane)
+    (config! main-frame :content tabbed-pane)
 
     ;; Main menu first
     (add-menus main-frame
