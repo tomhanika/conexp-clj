@@ -39,7 +39,7 @@
    should be possible. read-context then should also take an index of
    which context to read in.
 * Tests
-** NEXT Improve test coverage of conexp contrib [0/12]                :0_0_7:
+** NEXT Improve test coverage of conexp contrib [0/12]                    :7:
    - [ ] algorithms
    - [ ] concept approximation
    - [ ] DL
@@ -56,12 +56,12 @@
    - [ ] retracts
    - [ ] util [0/1]
      - [ ] general sorted sets
-** NEXT Add tests for new Association Rule functions                  :0_0_7:
+** NEXT Add tests for new Association Rule functions                      :7:
 * Layout
 ** NEXT Add more layout output [0/2]
    - [ ] svg
    - [ ] povray
-** TODO Rewrite to-inf-additive-layout                                :0_0_7:
+** TODO Rewrite to-inf-additive-layout                                    :7:
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
@@ -88,12 +88,12 @@
    - [X] API documentation
 ** DONE API documentation on the Wiki
 * Core
-** TODO Change attribute names for mv-context scales                  :0_0_7:
+** TODO Change attribute names for mv-context scales                      :7:
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** TODO Make luxenburger-base parallel                                :0_0_7:
+** TODO Make luxenburger-base parallel                                    :7:
 ** TODO Rule Exploration with Impex
-** TODO Incorporate clojure.core.reducers                             :0_0_7:
+** TODO Incorporate clojure.core.reducers                                 :7:
 * GUI
 ** TODO Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when
@@ -107,6 +107,6 @@
 ** TODO Undo for GUI
 ** DONE Fix neverending rotation when choosing another tab
 * Bugs
-** TODO Fix error for conexp-clj's gui                                :0_0_7:
+** TODO Fix error for conexp-clj's gui                                    :7:
    CLOCK: [2013-08-21 Mi 12:39]--[2013-08-21 Mi 12:39] =>  0:00
    Added: [2013-08-21 Mi 12:39]
