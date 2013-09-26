@@ -55,6 +55,7 @@
   [:default-close-operation :dispose]
   (let [tabbed-pane  (tabbed-panel)
         main-frame   (frame :title "conexp-clj"
+                            :size [640 :by 480]
                             :on-close default-close-operation)]
 
     ;; set content

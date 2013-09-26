@@ -21,7 +21,6 @@
   [& args]
   (native!)
   (-> (apply conexp-main-frame args)
-      pack!
       show!))
 
 ;;;
