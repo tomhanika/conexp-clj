@@ -154,7 +154,20 @@
   counterexamples.  Returns a hashmap of implications computed and the final context,
   stored with keys :implications and :context, respectively.
 
-  The function takes a number of keyword arguments, which are as follows:
+  Arguments are passed as keyword arguments like so
+
+    (explore-attributes-with-incomplete-counterexamples
+      :possible-context ctx-1
+      :certain-context  ctx-2
+      :handler          my-handler
+      :background-knowledge #{})
+
+    (explore-attributes-with-incomplete-counterexamples
+      :context ctx-1
+      :handler my-other-handler)
+
+  Either a value for :context or values for :possible-context and :certain-context must be
+  given, but not both.  Optional keyword arguments are:
 
   - :handler «fn»
 
@@ -182,9 +195,20 @@
   If you want to use automorphisms of the underlying context, you have
   to construct a special handler using the «make-handler»
   function. See the corresponding documentation of «make-handler»."
-  [possible-ctx, certain-ctx & {:keys [background-knowledge handler]}]
-  (let [background-knowledge (or background-knowledge #{})
-        handler              (or handler default-handler-for-incomplete-counterexamples)]
+  [& {:keys [possible-context certain-context context background-knowledge handler]}]
+  (assert (or (and (nil? context)
+                   (not (nil? possible-context))
+                   (not (nil? certain-context)))
+              (and (not (nil? context))
+                   (nil? possible-context)
+                   (nil? certain-context)))
+          "Contexts can only be specified by either specifying only :context or by
+          specifying only both :possible-context and :certain-context.")
+  (let [[possible-ctx certain-ctx] (if context
+                                     [context context]
+                                     [possible-context certain-context]),
+        background-knowledge       (or background-knowledge #{}),
+        handler                    (or handler default-handler-for-incomplete-counterexamples)]
     (assert (set? background-knowledge))
     (assert (= (attributes certain-ctx)
                (attributes possible-ctx))
