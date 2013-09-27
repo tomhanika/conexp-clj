@@ -209,6 +209,7 @@
                                      [possible-context certain-context]),
         background-knowledge       (or background-knowledge #{}),
         handler                    (or handler default-handler-for-incomplete-counterexamples)]
+    ;; check arguments
     (assert (set? background-knowledge))
     (assert (= (attributes certain-ctx)
                (attributes possible-ctx))
@@ -216,12 +217,13 @@
     (assert (= (objects certain-ctx)
                (objects possible-ctx))
             "Given contexts must coincide on the set of objects")
+    ;; actual exploration
     (loop [implications background-knowledge,
            last         (close-under-implications implications #{}),
            possible-ctx possible-ctx
            certain-ctx  certain-ctx]
       (if (not last)
-        {:implications (difference implications background-knowledge),
+        {:implications     (difference implications background-knowledge),
          :possible-context possible-ctx
          :certain-context  certain-ctx}
         (let [conclusion-from-last (oprime possible-ctx (aprime certain-ctx last))] ; ?
@@ -239,10 +241,10 @@
                                       :abort))]
 
               (cond
-               (= counterexamples :abort)
-               (recur implications nil possible-ctx certain-ctx) ; abort exploration
+               (= counterexamples :abort) ; abort exploration
+               (recur implications nil possible-ctx certain-ctx)
                ;;
-               counterexamples         ; add counterexample
+               counterexamples          ; add counterexample
                (let [new-objs (map first counterexamples)]
                  ;; check that new names are not there already
                  (when (exists [g new-objs] (contains? (objects possible-ctx) g))
@@ -264,7 +266,7 @@
                                              (set-of [g m] [[g pos _] counterexamples,
                                                             m pos])))))
                ;;
-               true                    ; add implication
+               true                     ; add implication
                (let [new-implications (conj implications new-impl)]
                  (recur new-implications
                         (next-closed-set (attributes possible-ctx)
