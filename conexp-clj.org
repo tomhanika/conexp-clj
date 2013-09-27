@@ -107,7 +107,8 @@
 ** TODO Undo for GUI
 ** DONE Fix neverending rotation when choosing another tab
 * Bugs
-** TODO Fix error for conexp-clj's gui                                    :7:
+** DONE Fix error for conexp-clj's gui                                    :7:
+   - State "DONE"       from "TODO"       [2013-09-26 Do 15:25]
    CLOCK: [2013-08-21 Mi 12:39]--[2013-08-21 Mi 12:39] =>  0:00
    Added: [2013-08-21 Mi 12:39]
 ** DONE conexp-clj: find out whether there is a bug in canonical-base with background knowledge
