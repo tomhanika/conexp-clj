@@ -182,79 +182,77 @@
   If you want to use automorphisms of the underlying context, you have
   to construct a special handler using the «make-handler»
   function. See the corresponding documentation of «make-handler»."
-  [possible-ctx, certain-ctx,
-   & {:keys [background-knowledge handler]
-      :or   {:background-knowledge #{},
-             :handler default-handler-for-incomplete-counterexamples}}]
-  (println background-knowledge handler)
-  (assert (set? background-knowledge))
-  (assert (= (attributes certain-ctx)
-             (attributes possible-ctx))
-          "Given contexts must coincide on the set of attributes")
-  (assert (= (objects certain-ctx)
-             (objects possible-ctx))
-          "Given contexts must coincide on the set of objects")
-  (loop [implications background-knowledge,
-         last         (close-under-implications implications #{}),
-         possible-ctx possible-ctx
-         certain-ctx  certain-ctx]
-    (if (not last)
-      {:implications (difference implications background-knowledge),
-       :possible-context possible-ctx
-       :certain-context  certain-ctx}
-      (let [conclusion-from-last (oprime possible-ctx (aprime certain-ctx last))] ; ?
-        (if (= last conclusion-from-last)
-          (recur implications
-                 (next-closed-set (attributes possible-ctx)
-                                  (clop-by-implications implications)
-                                  last)
-                 possible-ctx
-                 certain-ctx)
-          (let [new-impl        (make-implication last conclusion-from-last),
-                counterexamples (try
-                                  (handler possible-ctx certain-ctx implications new-impl)
-                                  (catch Throwable e
-                                    :abort))]
+  [possible-ctx, certain-ctx & {:keys [background-knowledge handler]}]
+  (let [background-knowledge (or background-knowledge #{})
+        handler              (or handler default-handler-for-incomplete-counterexamples)]
+    (assert (set? background-knowledge))
+    (assert (= (attributes certain-ctx)
+               (attributes possible-ctx))
+            "Given contexts must coincide on the set of attributes")
+    (assert (= (objects certain-ctx)
+               (objects possible-ctx))
+            "Given contexts must coincide on the set of objects")
+    (loop [implications background-knowledge,
+           last         (close-under-implications implications #{}),
+           possible-ctx possible-ctx
+           certain-ctx  certain-ctx]
+      (if (not last)
+        {:implications (difference implications background-knowledge),
+         :possible-context possible-ctx
+         :certain-context  certain-ctx}
+        (let [conclusion-from-last (oprime possible-ctx (aprime certain-ctx last))] ; ?
+          (if (= last conclusion-from-last)
+            (recur implications
+                   (next-closed-set (attributes possible-ctx)
+                                    (clop-by-implications implications)
+                                    last)
+                   possible-ctx
+                   certain-ctx)
+            (let [new-impl        (make-implication last conclusion-from-last),
+                  counterexamples (try
+                                    (handler possible-ctx certain-ctx implications new-impl)
+                                    (catch Throwable e
+                                      :abort))]
 
-            (cond
-             (= counterexamples :abort)
-             (recur implications nil possible-ctx certain-ctx) ; abort exploration
-             ;;
-             counterexamples         ; add counterexample
-             (let [new-objs (map first counterexamples)]
-               ;; check that new names are not there already
-               (when (exists [g new-objs] (contains? (objects possible-ctx) g))
-                 (illegal-argument "Got objects as «new objects» in exploration "
-                                   "which are already present."))
-               (recur implications
-                      last
-                      ;; possible incidence, i.e. the one not excluded by the expert
-                      (make-context (into (objects possible-ctx) new-objs)
-                                    (attributes possible-ctx)
-                                    (union (incidence possible-ctx)
-                                           (set-of [g m] [[g _ neg] counterexamples,
-                                                          m (difference (attributes possible-ctx)
-                                                                        (set neg))])))
-                      ;; certain incidence, i.e. the one given by the expert
-                      (make-context (into (objects certain-ctx) new-objs)
-                                    (attributes certain-ctx)
-                                    (union (incidence certain-ctx)
-                                           (set-of [g m] [[g pos _] counterexamples,
-                                                          m pos])))))
-             ;;
-             true                    ; add implication
-             (let [new-implications (conj implications new-impl)]
-               (recur new-implications
-                      (next-closed-set (attributes possible-ctx)
-                                       (clop-by-implications new-implications)
-                                       last)
-                      possible-ctx
-                      (make-context (objects certain-ctx)
-                                    (attributes certain-ctx)
-                                    (set-of [g m] [g (objects certain-ctx),
-                                                   m (close-under-implications
-                                                      new-implications
-                                                      (oprime certain-ctx #{g}))])))))))))))
+              (cond
+               (= counterexamples :abort)
+               (recur implications nil possible-ctx certain-ctx) ; abort exploration
+               ;;
+               counterexamples         ; add counterexample
+               (let [new-objs (map first counterexamples)]
+                 ;; check that new names are not there already
+                 (when (exists [g new-objs] (contains? (objects possible-ctx) g))
+                   (illegal-argument "Got objects as «new objects» in exploration "
+                                     "which are already present."))
+                 (recur implications
+                        last
+                        ;; possible incidence, i.e. the one not excluded by the expert
+                        (make-context (into (objects possible-ctx) new-objs)
+                                      (attributes possible-ctx)
+                                      (union (incidence possible-ctx)
+                                             (set-of [g m] [[g _ neg] counterexamples,
+                                                            m (difference (attributes possible-ctx)
+                                                                          (set neg))])))
+                        ;; certain incidence, i.e. the one given by the expert
+                        (make-context (into (objects certain-ctx) new-objs)
+                                      (attributes certain-ctx)
+                                      (union (incidence certain-ctx)
+                                             (set-of [g m] [[g pos _] counterexamples,
+                                                            m pos])))))
+               ;;
+               true                    ; add implication
+               (let [new-implications (conj implications new-impl)]
+                 (recur new-implications
+                        (next-closed-set (attributes possible-ctx)
+                                         (clop-by-implications new-implications)
+                                         last)
+                        possible-ctx
+                        (make-context (objects certain-ctx)
+                                      (attributes certain-ctx)
+                                      (set-of [g m] [g (objects certain-ctx),
+                                                     m (close-under-implications
+                                                        new-implications
+                                                        (oprime certain-ctx #{g}))]))))))))))))
 
 ;;;
 
