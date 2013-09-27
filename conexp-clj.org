@@ -9,7 +9,7 @@
    using jline
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
-** NEXT draw-lattice-to-file
+** TODO draw-lattice-to-file
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
    arguments as draw-lattice.
@@ -20,9 +20,9 @@
 * IO
 ** TODO Add tests for explicit IO formats
    given as keywords or strings.
-** NEXT Allow additional arguments to write-context
+** TODO Allow additional arguments to write-context
    depending on the current layout.
-** NEXT More IO formats for contexts [2/5]
+** TODO More IO formats for contexts [2/5]
    - [X] anonymous burmeister (without names for objects and
      attributes)
    - [ ] csc
@@ -39,7 +39,7 @@
    should be possible. read-context then should also take an index of
    which context to read in.
 * Tests
-** NEXT Improve test coverage of conexp contrib [0/12]                    :7:
+** TODO Improve test coverage of conexp contrib [0/12]                    :7:
    - [ ] algorithms
    - [ ] concept approximation
    - [ ] DL
@@ -56,9 +56,10 @@
    - [ ] retracts
    - [ ] util [0/1]
      - [ ] general sorted sets
-** NEXT Add tests for new Association Rule functions                      :7:
+** TODO Add tests for new Association Rule functions                      :7:
+** TODO Add tests for exploration with incomplete counterexamples         :7:
 * Layout
-** NEXT Add more layout output [0/2]
+** TODO Add more layout output [0/2]
    - [ ] svg
    - [ ] povray
 ** TODO Rewrite to-inf-additive-layout                                    :7:
