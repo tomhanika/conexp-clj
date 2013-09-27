@@ -146,7 +146,7 @@
     [possible-ctx certain-ctx known impl]
     (dh possible-ctx certain-ctx known impl)))
 
-(defnk explore-attributes-with-incomplete-counterexamples
+(defn explore-attributes-with-incomplete-counterexamples
   "EXPERIMENTAL and LARGLY UNTESTED — USE WITH CARE
 
   Performs attribute exploration in given contexts of possible («possible-ctx») and
@@ -183,8 +183,10 @@
   to construct a special handler using the «make-handler»
   function. See the corresponding documentation of «make-handler»."
   [possible-ctx, certain-ctx,
-   :background-knowledge #{},
-   :handler default-handler-for-incomplete-counterexamples]
+   & {:keys [background-knowledge handler]
+      :or   {:background-knowledge #{},
+             :handler default-handler-for-incomplete-counterexamples}}]
+  (println background-knowledge handler)
   (assert (set? background-knowledge))
   (assert (= (attributes certain-ctx)
              (attributes possible-ctx))
@@ -218,7 +220,7 @@
              (= counterexamples :abort)
              (recur implications nil possible-ctx certain-ctx) ; abort exploration
              ;;
-             counterexamples            ; add counterexample
+             counterexamples         ; add counterexample
              (let [new-objs (map first counterexamples)]
                ;; check that new names are not there already
                (when (exists [g new-objs] (contains? (objects possible-ctx) g))
@@ -230,9 +232,9 @@
                       (make-context (into (objects possible-ctx) new-objs)
                                     (attributes possible-ctx)
                                     (union (incidence possible-ctx)
-                                           (set-of [g m] | [g _ neg] counterexamples
-                                                           m (difference (attributes possible-ctx)
-                                                                         (set neg)))))
+                                           (set-of [g m] [[g _ neg] counterexamples,
+                                                          m (difference (attributes possible-ctx)
+                                                                        (set neg))])))
                       ;; certain incidence, i.e. the one given by the expert
                       (make-context (into (objects certain-ctx) new-objs)
                                     (attributes certain-ctx)
@@ -240,7 +242,7 @@
                                            (set-of [g m] [[g pos _] counterexamples,
                                                           m pos])))))
              ;;
-             true                       ; add implication
+             true                    ; add implication
              (let [new-implications (conj implications new-impl)]
                (recur new-implications
                       (next-closed-set (attributes possible-ctx)
@@ -249,10 +251,10 @@
                       possible-ctx
                       (make-context (objects certain-ctx)
                                     (attributes certain-ctx)
-                                    (set-of [g m] | g (objects certain-ctx)
-                                                    m (close-under-implications
-                                                       new-implications
-                                                       (oprime certain-ctx #{g})))))))))))))
+                                    (set-of [g m] [g (objects certain-ctx),
+                                                   m (close-under-implications
+                                                      new-implications
+                                                      (oprime certain-ctx #{g}))])))))))))))
 
 ;;;
 
