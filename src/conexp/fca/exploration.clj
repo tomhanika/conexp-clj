@@ -210,7 +210,11 @@
         background-knowledge       (or background-knowledge #{}),
         handler                    (or handler default-handler-for-incomplete-counterexamples)]
     ;; check arguments
-    (assert (set? background-knowledge))
+    (assert (and (context? possible-ctx)
+                 (context? certain-ctx))
+            "Arguments to :context or :possible-context/:certain-context must be contexts")
+    (assert (set? background-knowledge)
+            "Background knowledge must be given as set")
     (assert (= (attributes certain-ctx)
                (attributes possible-ctx))
             "Given contexts must coincide on the set of attributes")
