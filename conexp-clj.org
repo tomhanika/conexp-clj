@@ -95,6 +95,7 @@
 ** TODO Make luxenburger-base parallel                                    :7:
 ** TODO Rule Exploration with Impex
 ** TODO Incorporate clojure.core.reducers                                 :7:
+** TODO Exploration: answer questions from within the repl                :7:
 * GUI
 ** TODO Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when
@@ -127,3 +128,4 @@
    :END:
    Added: [2013-09-04 Mi 15:50]
 
+** TODO Check whether counterexample is valid in incomplete exploration   :7:
