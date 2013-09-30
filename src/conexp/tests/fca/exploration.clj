@@ -34,7 +34,7 @@
 
 (deftest test-explore-attributes-is-stem-base
   (with-testing-data [ctx testing-data]
-    (let [result (explore-attributes ctx :handler (constantly nil))]
+    (let [result (explore-attributes :context ctx :handler (constantly nil))]
       (and (= (stem-base ctx)
               (:implications result))
            (= ctx
@@ -45,12 +45,12 @@
 
 (deftest test-explore-attributes-with-always-saying-no
   (with-testing-data [ctx testing-data]
-    (= #{} (:implications (explore-attributes ctx :handler say-no)))))
+    (= #{} (:implications (explore-attributes :context ctx :handler say-no)))))
 
 (deftest test-explore-attributes-is-abortable
   (let [ctx (rand-context 10 0.5)
         imp #{(make-implication #{1} #{2})}
-        res (explore-attributes ctx
+        res (explore-attributes :context ctx
                                 :background-knowledge imp
                                 :handler #(throw (Exception. "Buh!")))]
     (is (and (= ctx (:context res))
@@ -58,7 +58,7 @@
 
 (deftest test-explore-attributes-with-background-knowledge
   (with-testing-data [ctx testing-data]
-    (= #{} (:implications (explore-attributes ctx
+    (= #{} (:implications (explore-attributes :context ctx
                                               :background-knowledge (canonical-base ctx)
                                               :handler #(is false))))))
 

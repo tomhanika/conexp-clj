@@ -16,6 +16,113 @@
 (ns-doc
  "Provides function for exploration and computing proper premises.")
 
+;;; Exploration Interface
+
+(declare explore-attributes-with-complete-counterexamples
+         explore-attributes-with-incomplete-counterexamples
+         default-handler-for-complete-counterexamples
+         default-handler-for-incomplete-counterexamples)
+
+(defn explore-attributes
+  "Performs attribute exploration on the given context(s).  Returns a hashmap of
+  implications computed and the final context, stored with keys :implications
+  and :context (in the case of complete counterexamples)
+  or :possible-context/:certain-context (in the case of incomplete counterexamples),
+  respectively.
+
+  Arguments are passed as keyword arguments like so
+
+    (explore-attributes
+      :context ctx-1
+      :handler my-handler)
+
+    (explore-attributes
+      :incomplete-counterexamples true
+      :possible-context ctx-1
+      :certain-context  ctx-2
+      :handler          my-other-handler
+      :background-knowledge #{})
+
+  Either a value for :context or values for :possible-context and :certain-context must be
+  given, but not both.  The second option is only possible if :incomplete-counterexamples
+  is set to «true».
+
+  Optional keyword arguments are:
+
+  - :handler «fn»
+
+    Interaction is accomplished via the given handler fn, which is called with the current
+    context of possible incidences, the current context of certain indcidences, all
+    implications known so far and a new implication. The handler has to return
+    counterexamples for the new implication, if there are some. Otherwise it has to return
+    nil. Counterexamples are given as a sequence of rows, every row being of the form
+
+       [g positive-attributes negative-attributes],
+
+    where «g» is a new object, «positive-attributes» is a sequence of attributes the new
+    object has, and «negative-attributes» is a sequence of attributes the new object does
+    not have.  Note that «positive-attributes» and «negative-attributes» must be disjoint.
+
+  - :background-knowledge «set of implications»
+
+    background-knowledge denotes a set of implications used as background knowledge, which
+    will be subtracted from the computed result.
+
+  - :incomplete-counterexamples «true or false»
+
+    Specifies whether incomplete counterexamples are allowed or not.  Default is false.
+    Mandatory to be set to true if context is given via :possible-context
+    and :certain-context.
+
+  If you want to use automorphisms of the underlying context, you have to construct a
+  special handler using the «make-handler» function. See the corresponding documentation
+  of «make-handler»."  [& {:keys [possible-context certain-context context
+  background-knowledge handler incomplete-counterexamples]}]
+  ;; first check for arguments
+  (assert (or (and (nil? context)
+                   (not (nil? possible-context))
+                   (not (nil? certain-context)))
+              (and (not (nil? context))
+                   (nil? possible-context)
+                   (nil? certain-context)))
+          "Contexts can only be specified by either specifying only :context or by
+          specifying only both :possible-context and :certain-context.")
+  (assert (contains? #{true false nil} incomplete-counterexamples)
+          "Value for :incomplete-counterexamples must be either «true» or «false».")
+  (assert (or incomplete-counterexamples
+              (not possible-context))
+          "Possible/certain incidences can only be specified if incomplete counterexamples
+          are allowed.")
+  (let [[possible-context certain-context] (if context
+                                             [context context]
+                                             [possible-context certain-context]),
+        background-knowledge               (or background-knowledge #{})]
+    ;; additional checks
+    (assert (and (context? possible-context)
+                 (context? certain-context))
+            "Arguments to :context or :possible-context/:certain-context must be contexts")
+    (assert (set? background-knowledge)
+            "Background knowledge must be given as set")
+    (assert (= (attributes certain-context)
+               (attributes possible-context))
+            "Given contexts must coincide on the set of attributes")
+    (assert (= (objects certain-context)
+               (objects possible-context))
+            "Given contexts must coincide on the set of objects")
+    ;; dispatch
+    (if incomplete-counterexamples
+      (explore-attributes-with-incomplete-counterexamples
+         possible-context
+         certain-context
+         background-knowledge
+         (or handler
+             default-handler-for-incomplete-counterexamples))
+      (explore-attributes-with-complete-counterexamples
+         possible-context ; same as certain-context
+         background-knowledge
+         (or handler
+             default-handler-for-complete-counterexamples)))))
+
 ;;; Handler for Expert Interaction
 
 (defnk make-handler
@@ -58,42 +165,24 @@
               (recur new-counters)
               new-counters)))))))
 
-;;; Attribute Exploration with Complete Counterexamples
-
 (let [dh (make-handler)]
-  (defn default-handler
+  (defn default-handler-for-complete-counterexamples
     "Default handler for attribute exploration. Does it's interaction on the console."
     [ctx known impl]
     (dh ctx known impl)))
 
-(defnk explore-attributes
-  "Performs attribute exploration in given context. Returns a hashmap
-  of implications computed and the final context, stored with keys
-  :implications and :context, respectively.
+(let [dh (make-handler :incomplete-counterexamples? true)]
+  (defn default-handler-for-incomplete-counterexamples
+    "Default handler for attribute exploration with incomplete counterexamples. Does it's
+    interaction on the console."
+    [possible-ctx certain-ctx known impl]
+    (dh possible-ctx certain-ctx known impl)))
 
-  The function takes a number of keyword arguments, which are as follows:
+;;; Attribute Exploration with Complete Counterexamples
 
-  - :handler «fn»
-
-    Interaction is accomplished via the given handler fn, which is
-    called with the current context, all implications known so far and
-    a new implication. The handler has to return counterexamples for
-    the new implication, if there are some. Otherwise it has to return
-    nil. Counterexamples are given as a sequence of rows, every row
-    being of the form [g ms], where «g» is a new object and «ms» is
-    the set of its attributes.
-
-  - :background-knowledge «set of implications»
-
-    background-knowledge denotes a set of implications used as
-    background knowledge, which will be subtracted from the computed
-    result.
-
-  If you want to use automorphisms of the underlying context, you have
-  to construct a special handler using the «make-handler»
-  function. See the corresponding documentation of «make-handler»"
-  [ctx, :background-knowledge #{}, :handler default-handler]
-  (assert (set? background-knowledge))
+(defn- explore-attributes-with-complete-counterexamples
+  "Performs attribute exploration with complete background knowledge"
+  [ctx background-knowledge handler]
   (loop [implications background-knowledge,
          last         (close-under-implications implications #{}),
          ctx          ctx]
@@ -139,150 +228,69 @@
 
 ;;; Attribute Exploration with Incomplete Counterexamples
 
-(let [dh (make-handler :incomplete-counterexamples? true)]
-  (defn default-handler-for-incomplete-counterexamples
-    "Default handler for attribute exploration with incomplete counterexamples. Does it's
-    interaction on the console."
-    [possible-ctx certain-ctx known impl]
-    (dh possible-ctx certain-ctx known impl)))
-
-(defn explore-attributes-with-incomplete-counterexamples
-  "EXPERIMENTAL and LARGLY UNTESTED — USE WITH CARE
-
-  Performs attribute exploration in given contexts of possible («possible-ctx») and
-  certain («certain-ctx») incidences, allowing the expert to provide incomplete
-  counterexamples.  Returns a hashmap of implications computed and the final context,
-  stored with keys :implications and :context, respectively.
-
-  Arguments are passed as keyword arguments like so
-
-    (explore-attributes-with-incomplete-counterexamples
-      :possible-context ctx-1
-      :certain-context  ctx-2
-      :handler          my-handler
-      :background-knowledge #{})
-
-    (explore-attributes-with-incomplete-counterexamples
-      :context ctx-1
-      :handler my-other-handler)
-
-  Either a value for :context or values for :possible-context and :certain-context must be
-  given, but not both.  Optional keyword arguments are:
-
-  - :handler «fn»
-
-    Interaction is accomplished via the given handler fn, which is called
-    with the current context of possible incidences, the current context of
-    certain indcidences, all implications known so far and a new
-    implication. The handler has to return counterexamples for the new
-    implication, if there are some. Otherwise it has to return
-    nil. Counterexamples are given as a sequence of rows, every row being
-    of the form
-
-       [g positive-attributes negative-attributes],
-
-    where «g» is a new object, «positive-attributes» is a sequence of
-    attributes the new object has, and «negative-attributes» is a sequence
-    of attributes the new object does not have.  Note that
-    «positive-attributes» and «negative-attributes» must be disjoint.
-
-  - :background-knowledge «set of implications»
-
-    background-knowledge denotes a set of implications used as
-    background knowledge, which will be subtracted from the computed
-    result.
-
-  If you want to use automorphisms of the underlying context, you have
-  to construct a special handler using the «make-handler»
-  function. See the corresponding documentation of «make-handler»."
-  [& {:keys [possible-context certain-context context background-knowledge handler]}]
-  (assert (or (and (nil? context)
-                   (not (nil? possible-context))
-                   (not (nil? certain-context)))
-              (and (not (nil? context))
-                   (nil? possible-context)
-                   (nil? certain-context)))
-          "Contexts can only be specified by either specifying only :context or by
-          specifying only both :possible-context and :certain-context.")
-  (let [[possible-ctx certain-ctx] (if context
-                                     [context context]
-                                     [possible-context certain-context]),
-        background-knowledge       (or background-knowledge #{}),
-        handler                    (or handler default-handler-for-incomplete-counterexamples)]
-    ;; check arguments
-    (assert (and (context? possible-ctx)
-                 (context? certain-ctx))
-            "Arguments to :context or :possible-context/:certain-context must be contexts")
-    (assert (set? background-knowledge)
-            "Background knowledge must be given as set")
-    (assert (= (attributes certain-ctx)
-               (attributes possible-ctx))
-            "Given contexts must coincide on the set of attributes")
-    (assert (= (objects certain-ctx)
-               (objects possible-ctx))
-            "Given contexts must coincide on the set of objects")
-    ;; actual exploration
-    (loop [implications background-knowledge,
-           last         (close-under-implications implications #{}),
-           possible-ctx possible-ctx
-           certain-ctx  certain-ctx]
-      (if (not last)
-        {:implications     (difference implications background-knowledge),
-         :possible-context possible-ctx
-         :certain-context  certain-ctx}
-        (let [conclusion-from-last (oprime possible-ctx (aprime certain-ctx last))] ; ?
-          (if (= last conclusion-from-last)
-            (recur implications
-                   (next-closed-set (attributes possible-ctx)
-                                    (clop-by-implications implications)
-                                    last)
-                   possible-ctx
-                   certain-ctx)
-            (let [new-impl        (make-implication last conclusion-from-last),
-                  counterexamples (try
-                                    (handler possible-ctx certain-ctx implications new-impl)
-                                    (catch Throwable e
-                                      :abort))]
-
-              (cond
-               (= counterexamples :abort) ; abort exploration
-               (recur implications nil possible-ctx certain-ctx)
-               ;;
-               counterexamples          ; add counterexample
-               (let [new-objs (map first counterexamples)]
-                 ;; check that new names are not there already
-                 (when (exists [g new-objs] (contains? (objects possible-ctx) g))
-                   (illegal-argument "Got objects as «new objects» in exploration "
-                                     "which are already present."))
-                 (recur implications
-                        last
-                        ;; possible incidence, i.e. the one not excluded by the expert
-                        (make-context (into (objects possible-ctx) new-objs)
-                                      (attributes possible-ctx)
-                                      (union (incidence possible-ctx)
-                                             (set-of [g m] [[g _ neg] counterexamples,
-                                                            m (difference (attributes possible-ctx)
-                                                                          (set neg))])))
-                        ;; certain incidence, i.e. the one given by the expert
-                        (make-context (into (objects certain-ctx) new-objs)
-                                      (attributes certain-ctx)
-                                      (union (incidence certain-ctx)
-                                             (set-of [g m] [[g pos _] counterexamples,
-                                                            m pos])))))
-               ;;
-               true                     ; add implication
-               (let [new-implications (conj implications new-impl)]
-                 (recur new-implications
-                        (next-closed-set (attributes possible-ctx)
-                                         (clop-by-implications new-implications)
-                                         last)
-                        possible-ctx
-                        (make-context (objects certain-ctx)
-                                      (attributes certain-ctx)
-                                      (set-of [g m] [g (objects certain-ctx),
-                                                     m (close-under-implications
-                                                        new-implications
-                                                        (oprime certain-ctx #{g}))]))))))))))))
+(defn- explore-attributes-with-incomplete-counterexamples
+  "Performs attribute exploration allowing for incomplete counterexamples"
+  [possible-ctx certain-ctx background-knowledge handler]
+  (loop [implications background-knowledge,
+         last         (close-under-implications implications #{}),
+         possible-ctx possible-ctx
+         certain-ctx  certain-ctx]
+    (if (not last)
+      {:implications     (difference implications background-knowledge),
+       :possible-context possible-ctx
+       :certain-context  certain-ctx}
+      (let [conclusion-from-last (oprime possible-ctx (aprime certain-ctx last))] ; ?
+        (if (= last conclusion-from-last)
+          (recur implications
+                 (next-closed-set (attributes possible-ctx)
+                                  (clop-by-implications implications)
+                                  last)
+                 possible-ctx
+                 certain-ctx)
+          (let [new-impl        (make-implication last conclusion-from-last),
+                counterexamples (try
+                                  (handler possible-ctx certain-ctx implications new-impl)
+                                  (catch Throwable e
+                                    :abort))]
+            (cond
+             (= counterexamples :abort) ; abort exploration
+             (recur implications nil possible-ctx certain-ctx)
+             ;;
+             counterexamples          ; add counterexample
+             (let [new-objs (map first counterexamples)]
+               ;; check that new names are not there already
+               (when (exists [g new-objs] (contains? (objects possible-ctx) g))
+                 (illegal-argument "Got objects as «new objects» in exploration "
+                                   "which are already present."))
+               (recur implications
+                      last
+                      ;; possible incidence, i.e. the one not excluded by the expert
+                      (make-context (into (objects possible-ctx) new-objs)
+                                    (attributes possible-ctx)
+                                    (union (incidence possible-ctx)
+                                           (set-of [g m] [[g _ neg] counterexamples,
+                                                          m (difference (attributes possible-ctx)
+                                                                        (set neg))])))
+                      ;; certain incidence, i.e. the one given by the expert
+                      (make-context (into (objects certain-ctx) new-objs)
+                                    (attributes certain-ctx)
+                                    (union (incidence certain-ctx)
+                                           (set-of [g m] [[g pos _] counterexamples,
+                                                          m pos])))))
+             ;;
+             true                     ; add implication
+             (let [new-implications (conj implications new-impl)]
+               (recur new-implications
+                      (next-closed-set (attributes possible-ctx)
+                                       (clop-by-implications new-implications)
+                                       last)
+                      possible-ctx
+                      (make-context (objects certain-ctx)
+                                    (attributes certain-ctx)
+                                    (set-of [g m] [g (objects certain-ctx),
+                                                   m (close-under-implications
+                                                      new-implications
+                                                      (oprime certain-ctx #{g}))])))))))))))
 
 ;;;
 
