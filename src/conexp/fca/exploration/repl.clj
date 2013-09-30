@@ -210,6 +210,10 @@
     nil
     state))
 
+(define-repl-fn done
+  "Alias for «quit»"
+  (run-repl-command 'quit state))
+
 (define-repl-fn clear
   "Clears the current state."
   (-> state
