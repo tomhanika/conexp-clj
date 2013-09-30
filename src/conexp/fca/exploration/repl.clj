@@ -63,14 +63,7 @@
 
 ;;
 
-(defn- expert-interaction [initial-state result-fns]
-  "Implements expert interaction.  The initial state is given by «initial-state», from
-   which on the expert is queried for commands that modify this state.  If eventually one
-   command returns nil, a vector is returned which arises from applying all functions in
-   the sequence «result-fns» to state, collecting the return values in the vector.  In
-   other words, «result-fns» is a sequence of functions, which are applied to the final
-   state in the sequence given, and their return values (collected in a vector) constitute
-   the return value of the call to this function."
+(defn- counterexample-from-expert [initial-state result-fns]
   (loop [state initial-state]
     (let [result (eval-command (ask "counterexample> "
                                     #(read-string (str (read-line)))
@@ -81,7 +74,26 @@
         (vec (map (fn [f] (f state)) result-fns))
         (recur result)))))
 
-(defn counterexample-via-repl
+(defn- expert-interaction [initial-state result-fns]
+  "Implements expert interaction.  The initial state is given by «initial-state», from
+   which on the expert is queried for commands that modify this state.  If eventually one
+   command returns nil, a vector is returned which arises from applying all functions in
+   the sequence «result-fns» to state, collecting the return values in the vector.  In
+   other words, «result-fns» is a sequence of functions, which are applied to the final
+   state in the sequence given, and their return values (collected in a vector) constitute
+   the return value of the call to this function."
+  (when-not (yes-or-no? (str "Does the implication "
+                             (print-str (:implication initial-state))
+                             " hold? "))
+    (println "Then please provide a counterexample")
+    (loop [counterexamples []]
+      (let [counterexample  (counterexample-from-expert initial-state result-fns),
+            counterexamples (conj counterexamples counterexample)]
+        (if (yes-or-no? "Do you want to give another counterexample? ")
+          (recur counterexamples)
+          counterexamples)))))
+
+(defn counterexamples-via-repl
   "Starts a repl for counterexamples, which must be specified completely."
   [ctx knowledge impl]
   (expert-interaction {:context ctx,
@@ -90,7 +102,7 @@
                        :complete-counterexamples? true}
                       [:object (comp set :positives)]))
 
-(defn incomplete-counterexample-via-repl
+(defn incomplete-counterexamples-via-repl
   "Starts a repl for counterexamples, which may be incomplete."
   [possible-ctx certain-ctx knowledge impl]
   (expert-interaction {:possible-context possible-ctx,

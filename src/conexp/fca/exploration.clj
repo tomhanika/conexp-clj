@@ -144,26 +144,15 @@
   (if incomplete-counterexamples?
     ;; case of incomplete counterexamples
     (fn [possible-ctx certain-ctx known impl]
-      (when-not (yes-or-no? (str "Does the implication " (print-str impl) " hold? "))
-        (loop [counterexamples []]
-          (let [counterexamples (conj counterexamples
-                                      (incomplete-counterexample-via-repl possible-ctx
-                                                                          certain-ctx
-                                                                          known
-                                                                          impl))]
-            (if (yes-or-no? "Do you want to give another counterexample? ")
-              (recur counterexamples)
-              counterexamples)))))
+      (incomplete-counterexamples-via-repl possible-ctx certain-ctx known impl))
     ;; case of complete counterexamples
     (fn [ctx known impl]
-      (when-not (yes-or-no? (str "Does the implication " (print-str impl) " hold? "))
-        (loop [counterexamples []]
-          (let [counterexample (counterexample-via-repl ctx known impl),
-                new-counters   (into counterexamples
-                                     (examples-by-automorphism ctx counterexample automorphisms))]
-            (if (yes-or-no? "Do you want to give another counterexample? ")
-              (recur new-counters)
-              new-counters)))))))
+      (when-let [counterexamples (counterexamples-via-repl ctx known impl)]
+        (reduce (fn [counterexamples counterexample] ; add counterexamples induced by automorphisms
+                  (into counterexamples
+                        (examples-by-automorphism ctx counterexample automorphisms)))
+                []
+                counterexamples)))))
 
 (let [dh (make-handler)]
   (defn default-handler-for-complete-counterexamples
