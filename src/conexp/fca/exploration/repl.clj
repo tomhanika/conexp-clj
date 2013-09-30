@@ -192,7 +192,9 @@
         (doseq [impl not-respected]
           (println impl))
         (reset! return false)))
-    (when-not (falsifies-implication? (set (:positives state)) impl)
+    (when-not (and (subset? (premise impl) (set (:positives state)))
+                   (exists [m (:negatives state)]
+                     (contains? (conclusion impl) m)))
       (println "Your example does not falsify the given implication.")
       (reset! return false))
     @return))

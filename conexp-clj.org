@@ -128,4 +128,9 @@
    :END:
    Added: [2013-09-04 Mi 15:50]
 
-** TODO Check whether counterexample is valid in incomplete exploration   :7:
+** DONE Check whether counterexample is valid in incomplete exploration   :7:
+   - State "DONE"       from "TODO"       [2013-09-30 Mo 14:02]
+   :LOGBOOK:
+   CLOCK: [2013-09-30 Mo 13:47]--[2013-09-30 Mo 14:02] =>  0:15
+   :END:
+
