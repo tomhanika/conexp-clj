@@ -77,9 +77,9 @@
                                     (constantly true)
                                     "counterexample> ")
                                state)]
-      (if result
-        (recur result)
-        (vec (map (fn [f] (f state)) result-fns))))))
+      (if (:done result)
+        (vec (map (fn [f] (f state)) result-fns))
+        (recur result)))))
 
 (defn counterexample-via-repl
   "Starts a repl for counterexamples, which must be specified completely."
@@ -211,7 +211,7 @@
 (define-repl-fn quit
   "Quit the REPL, if the given counterexample is valid."
   (if (valid-counterexample? state attributes impl)
-    nil
+    (assoc state :done true)
     state))
 
 (define-repl-fn done
