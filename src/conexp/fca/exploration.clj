@@ -51,17 +51,33 @@
 
   - :handler «fn»
 
-    Interaction is accomplished via the given handler fn, which is called with the current
-    context of possible incidences, the current context of certain indcidences, all
-    implications known so far and a new implication. The handler has to return
-    counterexamples for the new implication, if there are some. Otherwise it has to return
-    nil. Counterexamples are given as a sequence of rows, every row being of the form
+    Interaction is accomplished via the given handler fn.  Depending on whether incomplete
+    counterexamples are allowed or not, this handler is called with different arguments
+    and is supposed to return different things:
 
-       [g positive-attributes negative-attributes],
+    - if incomplete counterexamples are not allowed, «fn» is called (in this order) with
+      the current working context, the set of known implications and the current
+      implication to be asked to the expert.  It is supposed to return either «nil» (in
+      which case the implication is accepted), or a sequence of counterexamples which are
+      supposed to be of the form
 
-    where «g» is a new object, «positive-attributes» is a sequence of attributes the new
-    object has, and «negative-attributes» is a sequence of attributes the new object does
-    not have.  Note that «positive-attributes» and «negative-attributes» must be disjoint.
+        [g attributes]
+
+      where «g» is the name of a new object and «attributes» is the set of attributes the
+      new object should possess.
+
+    - if incomplete counterexamples are allowed, «fn» is called with the context of
+      possible incidences, the context of certain incidence, the set of known implications
+      and the current implication to be asked to the expert.  It is supposed to return
+      either «nil» (in which case the implication is accepted), or a sequence of
+      counterexamples of the form
+
+        [g positive-attributes negative-attributes],
+
+      where «g» is a new object, «positive-attributes» is a sequence of attributes the new
+      object has, and «negative-attributes» is a sequence of attributes the new object
+      does not have.  Note that «positive-attributes» and «negative-attributes» must be
+      disjoint.
 
   - :background-knowledge «set of implications»
 
