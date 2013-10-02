@@ -256,7 +256,8 @@
 
 ;;; Test additional libraries
 
-(tests-to-run conexp.tests.util.generators)
+(tests-to-run conexp.tests.util.generators
+              conexp.tests.util.fcalib)
 
 ;;;
 
