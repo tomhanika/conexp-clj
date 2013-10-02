@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.util.fcalib
-  (:use conexp.base)
+  (:use conexp.base
+        conexp.fca.implications)
   (:import [de.tudresden.inf.tcs.fcaapi FCAImplication]
            [de.tudresden.inf.tcs.fcalib Implication]
            ;; for now, we use conexp-ng's implementation, until the corresponding code is
@@ -16,19 +17,23 @@
 
 ;;
 
-(defn fcalib-to-context [conexp-clj-context]
+(defn to-fcalib-context [conexp-clj-context]
   (not-yet-implemented))
 
-(defn fcalib-from-context [^FormalContext fcalib-context]
+(defn from-fcalib-context [^FormalContext fcalib-context]
   (not-yet-implemented))
 
-(defn fcalib-to-implication [conexp-clj-implication]
-  (not-yet-implemented))
+(defn to-fcalib-implication [conexp-clj-implication]
+  "Convert implications as used in conexp-clj to implications as used by fcalib."
+  (Implication. (premise conexp-clj-implication)
+                (conclusion conexp-clj-implication)))
 
-(defn fcalib-from-implication [^FCAImplication fcalib-implication]
-  (not-yet-implemented))
+(defn from-fcalib-implication [^FCAImplication fcalib-implication]
+  "Convert implications as used in fcalib to implications as used in conexp-clj."
+  (make-implication (.getPremise fcalib-implication)
+                    (.getConclusion fcalib-implication)))
 
-(defn fcalib-to-implication-set [conexp-clj-set-of-implications]
+(defn to-fcalib-implication-set [conexp-clj-set-of-implications]
   (not-yet-implemented))
 
 ;;
