@@ -71,8 +71,15 @@
   (make-implication (.getPremise fcalib-implication)
                     (.getConclusion fcalib-implication)))
 
-(defn ^ImplicationSet to-fcalib-implication-set [conexp-clj-context conexp-clj-set-of-implications]
-  (not-yet-implemented))
+(defn ^ImplicationSet to-fcalib-implication-set
+  "Given a formal context and a sequence of implications of this contexts, returns an
+  ImplicationSet as used in fcalib containing the implications, and having the given
+  context as base context."
+  [conexp-clj-context conexp-clj-implications]
+  (let [^ImplicationSet fcalib-implication-set (ImplicationSet. (to-fcalib-context conexp-clj-context))]
+    (doseq [impl (map to-fcalib-implication conexp-clj-set-of-implications)]
+      (.add fcalib-implication-set impl))
+    fcalib-implication-set))
 
 ;;
 
