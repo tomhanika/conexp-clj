@@ -25,7 +25,8 @@
                  [conexp-clj/G                    "0.1.1"]
                  [conexp-clj/LatDraw              "0.0.1"]
                  [jline                           "0.9.94"]
-                 [seesaw                          "1.4.3"]]
+                 [seesaw                          "1.4.3"]
+                 [fcatools/conexp-ng              "0.5.1"]]
   :aot [conexp.main
         conexp.contrib.java
         conexp.contrib.gui]
