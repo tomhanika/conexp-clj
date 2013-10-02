@@ -8,16 +8,43 @@
 
 (ns conexp.tests.util.fcalib
   (:use clojure.test
+        [conexp.base :only (defvar- gcd with-testing-data forall set-of)]
+        [conexp.fca.contexts :only (make-context diag-context adiag-context)]
+        [conexp.fca.implications :only (make-implication canonical-base)]
         conexp.util.fcalib))
 
 ;;
 
-;; stringify-context
-;; to-fcalib-context
-;; from-fcalib-context
-;; to-fcalib-implication
-;; from-fcalib-implication
-;; to-fcalib-implication-set
+(defvar- testing-contexts
+  [(make-context [] [] [])
+   (diag-context 3)
+   (diag-context 10)
+   (adiag-context 3)
+   (adiag-context 10)
+   (make-context 10 10 (fn [g m] (= 1 (gcd g m))))])
+
+;;
+
+(deftest test-fcalib-context-conversion
+  (with-testing-data [ctx testing-contexts]
+    (let [ctx (stringify-context ctx)]
+      (= ctx (from-fcalib-context (to-fcalib-context ctx))))))
+
+(deftest test-fcalib-implication-conversion
+  (with-testing-data [ctx  testing-contexts
+                      impl (canonical-base ctx)]
+    (= impl (from-fcalib-implication (to-fcalib-implication impl)))))
+
+(deftest test-fcalib-implication-set
+  (with-testing-data [ctx testing-contexts]
+    (let [ctx      (stringify-context ctx)
+          impls    (canonical-base ctx)
+          impl-set (to-fcalib-implication-set ctx impls)]
+      (and (instance? de.tudresden.inf.tcs.fcalib.ImplicationSet impl-set)
+           (forall [impl impl-set]
+             (instance? de.tudresden.inf.tcs.fcaapi.FCAImplication impl))
+           (= impls
+              (set-of (from-fcalib-implication impl) | impl impl-set))))))
 
 ;;
 
