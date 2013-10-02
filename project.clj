@@ -14,7 +14,8 @@
   :url "http://github.com/exot/conexp-clj/"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :repositories {"math" "http://www.math.tu-dresden.de/~borch/repos/mvn/"}
+  :repositories [["math" {:url "http://www.math.tu-dresden.de/~borch/repos/mvn/"
+                          :checksum :ignore}]]
   :dependencies [[org.clojure/clojure             "1.5.1"]
                  [org.clojure/tools.cli           "0.2.2"]
                  [org.clojure/core.incubator      "0.1.0"]
