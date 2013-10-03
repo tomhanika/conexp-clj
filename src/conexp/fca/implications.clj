@@ -206,25 +206,47 @@
 ;;; Stem Base
 
 (defn stem-base
-  "Returns stem base of given context. Uses background-knowledge as
-  starting set of implications, which will also be subtracted from the
-  final result."
+  "Returns stem base of given context.  Uses «background-knowledge» as starting set of
+  implications, which will also be subtracted from the final result.  If «minimal-support»
+  is specified, computes only the part of the canonical base that satisfies the
+  corresponding support constraint."
   ([ctx]
-     (stem-base ctx #{}))
+     (stem-base ctx #{} 0))
   ([ctx background-knowledge]
-     (loop [implications background-knowledge,
-            last         (close-under-implications background-knowledge #{})]
-       (let [conclusion-from-last (context-attribute-closure ctx last),
-             implications         (if (not= last conclusion-from-last)
-                                    (conj implications
-                                          (make-implication last conclusion-from-last))
-                                    implications),
-             next                 (next-closed-set (attributes ctx)
-                                                   (clop-by-implications implications)
-                                                   last)]
-         (if next
-           (recur implications next)
-           (difference implications background-knowledge))))))
+     (stem-base ctx background-knowledge 0))
+  ([ctx background-knowledge minimal-support]
+     (assert (context? ctx)
+             "First argument must be a formal context")
+     (assert (and (number? minimal-support)
+                  (<= 0 minimal-support 1))
+             "Minimal support must be a real number between 0 and 1")
+     (assert (and (set? background-knowledge)
+                  (forall [x background-knowledge]
+                    (implication? x)))
+             "Background knowledge must be a set of implications")
+     (let [attributes   (attributes ctx),
+           next-closure (if (zero? minimal-support)
+                          (fn [implications last]
+                            (next-closed-set attributes
+                                             (clop-by-implications implications)
+                                             last))
+                          (fn [implications last]
+                            (next-closed-set-in-family #(<= minimal-support
+                                                            (support % ctx))
+                                                       attributes
+                                                       (clop-by-implications implications)
+                                                       last)))]
+       (loop [implications background-knowledge,
+              last         (close-under-implications background-knowledge #{})]
+         (let [conclusion-from-last (context-attribute-closure ctx last),
+               implications         (if (not= last conclusion-from-last)
+                                      (conj implications
+                                            (make-implication last conclusion-from-last))
+                                      implications),
+               next                 (next-closure implications last)]
+           (if next
+             (recur implications next)
+             (difference implications background-knowledge)))))))
 
 (defalias canonical-base stem-base)
 
