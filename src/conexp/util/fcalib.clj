@@ -77,7 +77,7 @@
   context as base context."
   [conexp-clj-context conexp-clj-implications]
   (let [^ImplicationSet fcalib-implication-set (ImplicationSet. (to-fcalib-context conexp-clj-context))]
-    (doseq [impl (map to-fcalib-implication conexp-clj-set-of-implications)]
+    (doseq [impl (map to-fcalib-implication conexp-clj-implications)]
       (.add fcalib-implication-set impl))
     fcalib-implication-set))
 
