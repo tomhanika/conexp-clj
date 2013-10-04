@@ -205,6 +205,8 @@
 
 ;;; Stem Base
 
+(declare support)
+
 (defn stem-base
   "Returns stem base of given context.  Uses «background-knowledge» as starting set of
   implications, which will also be subtracted from the final result.  If «minimal-support»
