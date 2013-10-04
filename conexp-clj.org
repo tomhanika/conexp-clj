@@ -98,6 +98,7 @@
 ** TODO Exploration: answer questions from within the repl                :7:
 ** DONE Unify interface to explore-attributes                             :7:
 ** DONE Write conversion functions for fcalib                             :7:
+** DONE Add minimal-support constraints to canonical base computation     :7:
 * GUI
 ** TODO Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when

@@ -198,6 +198,16 @@
              (impl 2 3 ==> 4)
              (impl 1 2 4 ==> 0 3)}))))
 
+(deftest test-stem-base-with-minimal-support-constraints
+  (with-testing-data [ctx [contexts/test-ctx-01,
+                           contexts/test-ctx-04
+                           contexts/test-ctx-07,
+                           contexts/test-ctx-08]
+                      mis [0 1/5 1/3 1/2 4/5 1]]
+    (= (set (filter #(<= mis (support % ctx))
+                    (canonical-base ctx)))
+       (canonical-base ctx #{} mis))))
+
 (deftest test-pseudo-intents
   (with-testing-data [ctx (random-contexts 10 20)]
     (= (set (pseudo-intents ctx))

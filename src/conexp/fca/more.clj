@@ -185,7 +185,7 @@
   [base-set clop]
   (let [base-set (set base-set)]
     (:context
-     (explore-attributes (make-context #{} base-set #{})
+     (explore-attributes :context (make-context #{} base-set #{})
                          :handler (fn [_ _ impl]
                                     (let [A (premise impl),
                                           B (conclusion impl),
