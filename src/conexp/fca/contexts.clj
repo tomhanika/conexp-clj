@@ -408,9 +408,14 @@
 (defalias odprime context-object-closure)
 
 (defn extents
-  "Computes a sequence of all extents of ctx, in a lectic order."
-  [ctx]
-  (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
+  "Computes a sequence of all extents of «ctx», in a lectic order.  Optionally, one can
+  specify a predicate function «pred» that acts as a filter on all extents of «ctx».
+  «pred» should specify the same conditions as the predicate function to
+  «next-closed-set-in-family»."
+  ([ctx]
+     (all-closed-sets (objects ctx) (partial context-object-closure ctx)))
+  ([ctx pred]
+     (all-closed-sets-in-family pred (objects ctx) (partial context-object-closure ctx))))
 
 (defn context-attribute-closure
   "Computes double prime in context ctx for the given set-of-attributes."
@@ -420,9 +425,14 @@
 (defalias adprime context-attribute-closure)
 
 (defn intents
-  "Computes a sequence of all intents of ctx, in a lectic order."
-  [ctx]
-  (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
+  "Computes a sequence of all intents of «ctx», in a lectic order.  Optionally, one can
+  specify a predicate function «pred» that acts as a filter on all intents of «ctx».
+  «pred» should specify the same conditions as the predicate function to
+  «next-closed-set-in-family»."
+  ([ctx]
+     (all-closed-sets (attributes ctx) (partial context-attribute-closure ctx)))
+  ([ctx pred]
+     (all-closed-sets-in-family pred (attributes ctx) (partial context-attribute-closure ctx))))
 
 (defn- cbo-test
   "Simple implementation of the test used by the «Close by One»
