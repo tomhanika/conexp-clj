@@ -197,14 +197,14 @@ defnk accepts an optional docstring as well as an optional metadata map."
 ;;; Technical Helpers
 
 (defn proper-subset?
-  [set-1 set-2]
   "Returns true iff set-1 is a proper subset of set-2."
+  [set-1 set-2]
   (and (not= set-1 set-2)
        (subset? set-1 set-2)))
 
 (defn proper-superset?
-  [set-1 set-2]
   "Returns true iff set-1 is a proper superset of set-2."
+  [set-1 set-2]
   (proper-subset? set-2 set-1))
 
 (defn singleton?
