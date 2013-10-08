@@ -404,11 +404,10 @@
   minimal support."
   [context minsupp]
   (let [mincount (* minsupp (count (objects context)))]
-    (all-closed-sets-in-family (fn [intent]
-                                 (>= (count (attribute-derivation context intent))
-                                     mincount))
-                               (attributes context)
-                               (partial context-attribute-closure context))))
+    (intents context
+             (fn [intent]
+               (>= (count (attribute-derivation context intent))
+                   mincount)))))
 
 (defn luxenburger-basis
   "Computes the luxenburger-basis for context with minimal support minsupp and minimal
