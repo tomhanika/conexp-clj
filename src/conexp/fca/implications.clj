@@ -9,6 +9,7 @@
 (ns conexp.fca.implications
   (:use conexp.base
         conexp.fca.contexts)
+  (:require [clojure.core.reducers :as r])
   (:import [java.util HashMap HashSet]))
 
 (ns-doc "Implications for Formal Concept Analysis.")
@@ -410,14 +411,24 @@
                                (partial context-attribute-closure context))))
 
 (defn luxenburger-basis
-  "Computes the luxenburger-basis for context with minimal support minsupp and minimal confidence
-  minconf. The result returned will be a lazy sequence."
+  "Computes the luxenburger-basis for context with minimal support minsupp and minimal
+  confidence minconf."
   [context minsupp minconf]
-  (for [B_2  (frequent-closed-itemsets context minsupp),
-        B_1  (map second (direct-upper-concepts context [(aprime context B_2) B_2])),
-        :let [impl (make-implication B_1 B_2)]
-        :when (>= (confidence impl context) minconf)]
-    impl))
+  (let [fqis (vec (doall (frequent-closed-itemsets context minsupp)))]
+    (r/fold concat
+            (fn [impls B_2]
+              (let [lowers (filter (fn [B_1]
+                                     (and (proper-subset? B_1 B_2)
+                                          (not (exists [B_3 fqis]
+                                                 (and (proper-subset? B_1 B_3)
+                                                      (proper-subset? B_3 B_2))))))
+                                   fqis)]
+                (concat impls
+                        (doall      ; do actual computation here, to allow for parallelism
+                         (filter (fn [impl]
+                                   (<= minconf (confidence impl context)))
+                                 (map (fn [B_1] (make-implication B_1 B_2)) lowers))))))
+            fqis)))
 
 (defalias luxenburger-base luxenburger-basis)
 

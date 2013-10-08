@@ -92,7 +92,9 @@
 ** TODO Change attribute names for mv-context scales                      :7:
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** TODO Make luxenburger-base parallel                                    :7:
+** DONE Make luxenburger-base parallel                                    :7:
+   - State "DONE"       from "TODO"       [2013-10-08 Di 17:57] \\
+     Using clojure.core.reducers/fold
 ** TODO Rule Exploration with Impex
 ** TODO Incorporate clojure.core.reducers                                 :7:
 ** TODO Exploration: answer questions from within the repl                :7:
