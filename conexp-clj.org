@@ -67,6 +67,9 @@
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
 ** NEXT Write Wiki [4/7]
+   :PROPERTIES:
+   :Effort:   5:00
+   :END:
    - [X] Getting Started
    - [X] Basic Notation and Syntax
    - [-] Basic Usage
@@ -97,6 +100,9 @@
      Using clojure.core.reducers/fold
 ** TODO Rule Exploration with Impex
 ** TODO Incorporate clojure.core.reducers                                 :7:
+   Make parallel:
+   - up-down-arrows
+   - set-of ?
 ** TODO Exploration: answer questions from within the repl                :7:
 ** DONE Unify interface to explore-attributes                             :7:
 ** DONE Add minimal-support constraints to canonical base computation     :7:
@@ -138,3 +144,5 @@
    CLOCK: [2013-09-30 Mo 13:47]--[2013-09-30 Mo 14:02] =>  0:15
    :END:
 
+** TODO improve-basic-order sometimes causes errors
+   Like 'Comparison method violates its general contract!'
