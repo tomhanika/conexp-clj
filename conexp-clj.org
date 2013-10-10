@@ -9,6 +9,7 @@
    using jline
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
+* IO
 ** TODO draw-lattice-to-file
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
@@ -17,9 +18,6 @@
    For this we need some abstrace picture-drawing facility, which can
    produce pictures without showing them. For that we could use svg
    (also as output format for layouts) and simply write it to a file.
-* IO
-** TODO Add tests for explicit IO formats
-   given as keywords or strings.
 ** TODO Allow additional arguments to write-context
    depending on the current layout.
 ** TODO More IO formats for contexts [2/5]
@@ -39,6 +37,8 @@
    should be possible. read-context then should also take an index of
    which context to read in.
 * Tests
+** TODO Add tests for explicit IO formats
+   given as keywords or strings.
 ** TODO Improve test coverage of conexp contrib [0/12]                    :7:
    - [ ] algorithms
    - [ ] concept approximation
@@ -66,7 +66,7 @@
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** NEXT Write Wiki [4/7]
+** NEXT Write Wiki [4/7]                                                  :7:
    :PROPERTIES:
    :Effort:   5:00
    :END:
@@ -90,7 +90,7 @@
      - [X] Using conexp-clj from sage
      - [X] Calling conexp-clj functions from Java
    - [X] API documentation
-** DONE API documentation on the Wiki
+** DONE API documentation on the Wiki                                     :7:
 * Core
 ** TODO Change attribute names for mv-context scales                      :7:
    They are somewhat arbitrary and may also be misleading. Don't
@@ -101,8 +101,8 @@
 ** TODO Rule Exploration with Impex
 ** TODO Incorporate clojure.core.reducers                                 :7:
    Make parallel:
-   - up-down-arrows
-   - set-of ?
+   - [X] arrow computation
+   - [ ] set-of — may actually not a very good idea …
 ** TODO Exploration: answer questions from within the repl                :7:
 ** DONE Unify interface to explore-attributes                             :7:
 ** DONE Add minimal-support constraints to canonical base computation     :7:
