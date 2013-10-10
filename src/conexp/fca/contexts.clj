@@ -319,8 +319,8 @@
              m att
              :when (and (not (inz [g m]))
                         (forall [h obj]
-                          (=> (proper-subset? (prime g) (prime h))
-                              (inz [h m]))))])))
+                          (or (inz [h m])
+                              (not (proper-subset? (prime g) (prime h))))))])))
 
 (defn up-arrows
   "Computes the up arrow relation of ctx."
@@ -334,8 +334,8 @@
              m att
              :when (and (not (inz [g m]))
                         (forall [n att]
-                          (=> (proper-subset? (prime m) (prime n))
-                              (inz [g n]))))])))
+                          (or (inz [g n])
+                              (not (proper-subset? (prime m) (prime n))))))])))
 
 (defn up-down-arrows
   "Returns up-down-arrow relation of ctx."
@@ -350,11 +350,11 @@
              m atts
              :when (and (not (inz [g m]))
                         (forall [h objs]
-                          (=> (proper-subset? (oprime g) (oprime h))
-                              (inz [h m])))
+                          (or (inz [h m])
+                              (not (proper-subset? (oprime g) (oprime h)))))
                         (forall [n atts]
-                          (=> (proper-subset? (aprime m) (aprime n))
-                              (inz [g n]))))])))
+                          (or (inz [g n])
+                              (not (proper-subset? (aprime m) (aprime n))))))])))
 
 (defn reduce-objects
   "Object reduction for ctx."
