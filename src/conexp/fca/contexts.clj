@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.contexts
-  (:use conexp.base))
+  (:use conexp.base)
+  (:require [clojure.core.reducers :as r]))
 
 (ns-doc
  "Provides the implementation of formal contexts and functions on
@@ -314,13 +315,17 @@
         att   (attributes ctx),
         inz   (incidence ctx),
         prime (map-by-fn #(object-derivation ctx #{%}) obj)]
-    (set-of [g m]
-            [g obj
-             m att
-             :when (and (not (inz [g m]))
-                        (forall [h obj]
-                          (or (inz [h m])
-                              (not (proper-subset? (prime g) (prime h))))))])))
+    (r/fold union
+            (fn [set g]
+              (into set
+                    (map #(vector g %)
+                         (reduce (fn [places h]
+                                   (if (proper-subset? (prime g) (prime h))
+                                     (intersection places (prime h))
+                                     places))
+                                 (difference (attributes ctx) (prime g))
+                                 (objects ctx)))))
+            (vec (objects ctx)))))
 
 (defn up-arrows
   "Computes the up arrow relation of ctx."
@@ -329,13 +334,17 @@
         att   (attributes ctx),
         inz   (incidence ctx),
         prime (map-by-fn #(attribute-derivation ctx #{%}) att)]
-    (set-of [g m]
-            [g obj,
-             m att
-             :when (and (not (inz [g m]))
-                        (forall [n att]
-                          (or (inz [g n])
-                              (not (proper-subset? (prime m) (prime n))))))])))
+    (r/fold union
+            (fn [set m]
+              (into set
+                    (map #(vector % m)
+                         (reduce (fn [places n]
+                                   (if (proper-subset? (prime m) (prime n))
+                                     (intersection places (prime n))
+                                     places))
+                                 (difference (objects ctx) (prime m))
+                                 (attributes ctx)))))
+            (vec (attributes ctx)))))
 
 (defn up-down-arrows
   "Returns up-down-arrow relation of ctx."
