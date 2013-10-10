@@ -144,5 +144,10 @@
    CLOCK: [2013-09-30 Mo 13:47]--[2013-09-30 Mo 14:02] =>  0:15
    :END:
 
-** TODO improve-basic-order sometimes causes errors
+** DONE improve-basic-order sometimes causes errors
+   - State "DONE"       from "TODO"       [2013-10-10 Thu 14:36] \\
+     Should not happen anymore: the reason supposely was that the original test was not
+     transitive.  The new implementation just uses (lectic-< base (clop #{y}) (clop #{x})),
+     which should be.  However, it remains to be checked whether this really is what
+     improve-basic-order should do …
    Like 'Comparison method violates its general contract!'

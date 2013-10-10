@@ -100,9 +100,7 @@
   (let [base (seq base),
         clop (memoize clop)]
     (sort (fn [x y]
-            (or (subset? (clop #{y}) (clop #{x}))
-                (and (not (subset? (clop #{x}) (clop #{y})))
-                     (lectic-< base (clop #{y}) (clop #{x})))))
+            (lectic-< base (clop #{y}) (clop #{x})))
           base)))
 
 (defn all-closed-sets-in-family
