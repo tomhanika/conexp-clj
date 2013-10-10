@@ -111,6 +111,12 @@
       [(persistent! conclusions)
        (persistent! unused-impls)])))
 
+(defn close-under-implications-1
+  "Extends «set» by applying all implications in «implications» once, returning the
+  resulting, extended, set"
+  [implications set]
+  (first (add-immediate-elements implications set subset?)))
+
 (defn close-under-implications
   "Computes smallest superset of set being closed under given implications."
   [implications set]
