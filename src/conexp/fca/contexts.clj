@@ -340,21 +340,7 @@
 (defn up-down-arrows
   "Returns up-down-arrow relation of ctx."
   [ctx]
-  (let [objs   (objects ctx),
-        atts   (attributes ctx),
-        inz    (incidence ctx),
-        oprime (map-by-fn #(object-derivation ctx #{%}) objs),
-        aprime (map-by-fn #(attribute-derivation ctx #{%}) atts)]
-    (set-of [g m]
-            [g objs
-             m atts
-             :when (and (not (inz [g m]))
-                        (forall [h objs]
-                          (or (inz [h m])
-                              (not (proper-subset? (oprime g) (oprime h)))))
-                        (forall [n atts]
-                          (or (inz [g n])
-                              (not (proper-subset? (aprime m) (aprime n))))))])))
+  (apply intersection (pvalues (up-arrows ctx) (down-arrows ctx))))
 
 (defn reduce-objects
   "Object reduction for ctx."
