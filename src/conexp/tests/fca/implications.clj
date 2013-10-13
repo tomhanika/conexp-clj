@@ -281,6 +281,25 @@
                            (make-implication #{1} #{2 4})])
      #{(make-implication #{1} #{2 3 4})}))
 
+(deftest test-canonical-base-from-clop
+  (are [ctx] (and (= (canonical-base ctx)
+                     (canonical-base-from-clop (attributes ctx) #(adprime ctx %))))
+    contexts/test-ctx-01,
+    contexts/test-ctx-04
+    contexts/test-ctx-07,
+    contexts/test-ctx-08))
+
+(deftest test-intersect-implicational-theories
+  (with-testing-data [ctx [contexts/test-ctx-01
+                           contexts/test-ctx-04
+                           contexts/test-ctx-07
+                           contexts/test-ctx-08]
+                      n   (range 1 (count (objects ctx)))]
+    (= (canonical-base ctx)
+       (apply intersect-implicational-theories (attributes ctx)
+              (map #(canonical-base (make-context % (attributes ctx) (incidence ctx)))
+                   (partition-all n (objects ctx)))))))
+
 ;;;
 
 (defvar- ctx-1 (make-context #{0 1 2 3 4 5 6 7 8 9}
