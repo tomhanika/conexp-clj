@@ -6,10 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.algorithms.algorithms
+(ns conexp.contrib.algorithms
   (:require [conexp.main :as cm]
             [clojure.core.reducers :as r]
-            conexp.contrib.algorithms.concepts
             conexp.contrib.algorithms.linclosure))
 
 ;;;
@@ -23,8 +22,6 @@
          (pmap (fn [objs]
                  (cm/canonical-base (cm/make-context objs (cm/attributes ctx) (cm/incidence ctx))))
                (partition-all n (cm/objects ctx)))))
-
-(cm/defalias concepts conexp.contrib.algorithms.concepts/concepts)
 
 (cm/defalias linclosure conexp.contrib.algorithms.linclosure/close-under-implications)
 
