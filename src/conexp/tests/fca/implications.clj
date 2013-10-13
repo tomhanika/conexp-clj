@@ -181,21 +181,23 @@
     (is (sound-implication-set? ctx irr-subset))
     (is (complete-implication-set? ctx irr-subset))))
 
+(defvar stem-base-test-contexts [contexts/test-ctx-01,
+                                 contexts/test-ctx-04
+                                 contexts/test-ctx-07,
+                                 contexts/test-ctx-08])
+
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
-  (are [ctx] (let [sb (stem-base ctx)]
-               (is (minimal-implication-set? sb))
-               (is (sound-implication-set? ctx sb))
-               (is (complete-implication-set? ctx sb))
-               (is (let [premises (map premise sb)]
-                     (forall [X premises]
-                       (forall [Y premises]
-                         (=> (proper-subset? Y X)
-                             (proper-subset? (adprime ctx Y) X)))))))
-    contexts/test-ctx-01,
-    contexts/test-ctx-04
-    contexts/test-ctx-07,
-    contexts/test-ctx-08))
+  (doseq [ctx stem-base-test-contexts]
+    (let [sb (stem-base ctx)]
+      (is (minimal-implication-set? sb))
+      (is (sound-implication-set? ctx sb))
+      (is (complete-implication-set? ctx sb))
+      (is (let [premises (map premise sb)]
+            (forall [X premises]
+              (forall [Y premises]
+                (=> (proper-subset? Y X)
+                    (proper-subset? (adprime ctx Y) X)))))))))
 
 (deftest test-stem-base-with-background-knowledge
   ;; make sure implications with empty premise are handled correctly
@@ -212,10 +214,7 @@
              (impl 1 2 4 ==> 0 3)}))))
 
 (deftest test-stem-base-with-minimal-support-constraints
-  (with-testing-data [ctx [contexts/test-ctx-01,
-                           contexts/test-ctx-04
-                           contexts/test-ctx-07,
-                           contexts/test-ctx-08]
+  (with-testing-data [ctx stem-base-test-contexts
                       mis [0 1/5 1/3 1/2 4/5 1]]
     (= (set (filter #(<= mis (support % ctx))
                     (canonical-base ctx)))
@@ -242,9 +241,9 @@
                            contexts/test-ctx-04,
                            contexts/test-ctx-07,
                            contexts/test-ctx-08]]
-    (is (forall [P (subsets (attributes ctx))]
-          (<=> (proper-premise? ctx P)
-               (not (empty? (proper-conclusion ctx P))))))))
+    (forall [P (subsets (attributes ctx))]
+      (<=> (proper-premise? ctx P)
+           (not (empty? (proper-conclusion ctx P)))))))
 
 (deftest test-proper-premises-for-attributes
   (with-testing-data [ctx (random-contexts 10 20),
@@ -282,18 +281,12 @@
      #{(make-implication #{1} #{2 3 4})}))
 
 (deftest test-canonical-base-from-clop
-  (are [ctx] (and (= (canonical-base ctx)
-                     (canonical-base-from-clop (attributes ctx) #(adprime ctx %))))
-    contexts/test-ctx-01,
-    contexts/test-ctx-04
-    contexts/test-ctx-07,
-    contexts/test-ctx-08))
+  (with-testing-data [ctx stem-base-test-contexts]
+    (and (= (canonical-base ctx)
+            (canonical-base-from-clop (attributes ctx) #(adprime ctx %))))))
 
 (deftest test-intersect-implicational-theories
-  (with-testing-data [ctx [contexts/test-ctx-01
-                           contexts/test-ctx-04
-                           contexts/test-ctx-07
-                           contexts/test-ctx-08]
+  (with-testing-data [ctx stem-base-test-contexts,
                       n   (range 1 (count (objects ctx)))]
     (= (canonical-base ctx)
        (apply intersect-implicational-theories (attributes ctx)
