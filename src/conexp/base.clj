@@ -263,8 +263,7 @@
   (let [cards    (map-by-fn (fn [x]
                               (count (set-of X | X edges :when (contains? X x))))
                             vertices),
-        elements (sort (fn [x y]
-                         (>= (cards x) (cards y)))
+        elements (sort #(compare (cards %2) (cards %1))
                        vertices),
         result   (atom []),
         search   (fn search [rest-sets current rest-elements]
