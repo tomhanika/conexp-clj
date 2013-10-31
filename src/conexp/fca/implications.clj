@@ -438,10 +438,25 @@
                    mincount)))))
 
 (defn luxenburger-basis
-  "Computes the luxenburger-basis for context with minimal support minsupp and minimal
-  confidence minconf."
-  [context minsupp minconf]
-  (let [fqis (vec (doall (frequent-closed-itemsets context minsupp)))]
+  "Computes the luxenburger-base of a given context «context», returning the result as a
+  lazy sequence.  Uses «minconf» as minimal confidence.  If «minsupp-or-predicate» is a
+  number, uses that as a minimal support threshold.  In this case, «minsupp» ∈ [0,1] must
+  hold.  If «minsupp-or-predicate» is a function, uses this as a predicate to filter all
+  candidate itemsets.  In this case, the predicate should be valid predicate value for
+  «intents»."
+  [context minsupp-or-predicate minconf]
+  (let [pred (cond (and (number? minsupp-or-predicate)
+                        (<= 0 minsupp-or-predicate 1))
+                   (let [mincount (* minsupp-or-predicate (count (objects context)))]
+                     #(>= (count (aprime context %)) mincount))
+                   ;;
+                   (fn? minsupp-or-predicate)
+                   minsupp-or-predicate
+                   ;;
+                   true
+                   (illegal-argument "Value for parameter «minsupp-or-predicate» is invalid:"
+                                     (str minsupp-or-predicate))),
+        fqis (vec (doall (intents context pred)))]
     (r/fold concat
             (fn [impls B_2]
               (let [proper-subsets (filter #(proper-subset? % B_2)
