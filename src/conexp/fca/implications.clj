@@ -444,12 +444,12 @@
   (let [fqis (vec (doall (frequent-closed-itemsets context minsupp)))]
     (r/fold concat
             (fn [impls B_2]
-              (let [lowers (filter (fn [B_1]
-                                     (and (proper-subset? B_1 B_2)
-                                          (not (exists [B_3 fqis]
-                                                 (and (proper-subset? B_1 B_3)
-                                                      (proper-subset? B_3 B_2))))))
-                                   fqis)]
+              (let [proper-subsets (filter #(proper-subset? % B_2)
+                                           (take-while #(not= % B_2) fqis)) ; fqis in lectic order
+                    lowers         (filter (fn [B_1]
+                                             (not (exists [B_3 proper-subsets]
+                                                    (proper-subset? B_1 B_3))))
+                                           proper-subsets)]
                 (concat impls
                         (doall      ; do actual computation here, to allow for parallelism
                          (filter (fn [impl]
