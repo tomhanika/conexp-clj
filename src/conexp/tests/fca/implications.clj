@@ -283,15 +283,15 @@
 (deftest test-canonical-base-from-clop
   (with-testing-data [ctx stem-base-test-contexts]
     (and (= (set (canonical-base ctx))
-            (canonical-base-from-clop (attributes ctx) #(adprime ctx %))))))
+            (set (canonical-base-from-clop #(adprime ctx %) (attributes ctx)))))))
 
 (deftest test-intersect-implicational-theories
   (with-testing-data [ctx stem-base-test-contexts,
                       n   (range 1 (count (objects ctx)))]
     (= (set (canonical-base ctx))
-       (apply intersect-implicational-theories (attributes ctx)
-              (map #(set (canonical-base (make-context % (attributes ctx) (incidence ctx))))
-                   (partition-all n (objects ctx)))))))
+       (set (apply intersect-implicational-theories (attributes ctx)
+                   (map #(set (canonical-base (make-context % (attributes ctx) (incidence ctx))))
+                        (partition-all n (objects ctx))))))))
 
 ;;;
 

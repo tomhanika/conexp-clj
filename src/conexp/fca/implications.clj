@@ -210,7 +210,56 @@
           #{}
           impls))
 
-;;; Stem Base
+;;; Bases for closure operators
+
+(defn canonical-base-from-clop
+  "Given a closure operator «clop» on the set «base», computes its canonical base,
+   optionally using the set «background-knowledge» of implications on «base-set» as
+   background knowledge.  The result will be a lazy sequence.  If «predicate» is given as
+   third argument, computes only those implications whose premise satisfy this predicate.
+   Note that «predicate» has to satisfy the same conditions as the one of
+   «next-closed-set-in-family»."
+  ([clop base]
+     (canonical-base-from-clop clop base #{} (constantly true)))
+  ([clop base background-knowledge]
+     (canonical-base-from-clop clop base background-knowledge (constantly true)))
+  ([clop base background-knowledge predicate]
+     (assert (fn? clop)
+             "Given closure operator must be a function")
+     (assert (coll? base)
+             "Base must be a collection")
+     (assert (fn? predicate)
+             "Predicate must be a function")
+     (assert (and (set? background-knowledge)
+                  (forall [x background-knowledge]
+                    (implication? x)))
+             "Background knowledge must be a set of implications")
+     (let [next-closure (fn [implications last]
+                          (next-closed-set-in-family predicate
+                                                     base
+                                                     (clop-by-implications implications)
+                                                     last)),
+           runner       (fn runner [implications candidate]
+                          (when candidate
+                            (let [conclusions (clop candidate)]
+                              (if (not= candidate conclusions)
+                                (let [impl  (make-implication candidate conclusions),
+                                      impls (conj implications impl)]
+                                  (cons impl
+                                        (lazy-seq (runner impls (next-closure impls candidate)))))
+                                (recur implications (next-closure implications candidate))))))]
+       (lazy-seq (runner background-knowledge
+                         (close-under-implications background-knowledge #{}))))))
+
+(defn intersect-implicational-theories
+  "Given a set «base-set» and collections «implication-sets» of implications, returns the
+  canonical base of the intersection of the corresponding closure theories."
+  [base-set & implication-sets]
+  (let [implication-clops (vec (map clop-by-implications implication-sets)),
+        clop              (fn [A]
+                            (r/fold (r/monoid intersection (constantly base-set))
+                                    (r/map #(% A) implication-clops)))]
+    (canonical-base-from-clop clop base-set)))
 
 (defn canonical-base
   "Returns the canonical base of given context, as a lazy sequence.  Uses
@@ -226,29 +275,10 @@
   ([ctx background-knowledge predicate]
      (assert (context? ctx)
              "First argument must be a formal context")
-     (assert (fn? predicate)
-             "Predicate must be a function")
-     (assert (and (set? background-knowledge)
-                  (forall [x background-knowledge]
-                    (implication? x)))
-             "Background knowledge must be a set of implications")
-     (let [attributes   (attributes ctx),
-           next-closure (fn [implications last]
-                          (next-closed-set-in-family predicate
-                                                     attributes
-                                                     (clop-by-implications implications)
-                                                     last)),
-           runner       (fn runner [implications candidate]
-                          (when candidate
-                            (let [conclusions (context-attribute-closure ctx candidate)]
-                              (if (not= candidate conclusions)
-                                (let [impl  (make-implication candidate conclusions),
-                                      impls (conj implications impl)]
-                                  (cons impl
-                                        (lazy-seq (runner impls (next-closure impls candidate)))))
-                                (recur implications (next-closure implications candidate))))))]
-       (lazy-seq (runner background-knowledge
-                         (close-under-implications background-knowledge #{}))))))
+     (canonical-base-from-clop #(context-attribute-closure ctx %)
+                               (attributes ctx)
+                               background-knowledge
+                               predicate)))
 
 (defalias stem-base canonical-base)
 
@@ -342,53 +372,6 @@
                    all)))))))
 
 (defalias canonical-base-from-base stem-base-from-base)
-
-;;; Bases for closure operators
-
-(defn canonical-base-from-clop
-  "Given a closure operator «clop» on the set «base-set», computes its canonical base,
-   optionally using the set «background-knowledge» of implications on «base-set» as
-   background knowledge."
-  ([base-set clop]
-     (canonical-base-from-clop base-set clop #{}))
-  ([base-set clop background-knowledge]
-     ;; checks
-     (assert (coll? base-set)
-             "«base-set» must be a collection")
-     (assert (fn? clop)
-             "Closure operator «clop» must be a function")
-     (assert (and (coll? background-knowledge)
-                  (forall [x background-knowledge]
-                    (implication? x)))
-             "Background knowledge must be a collection of implications")
-     ;; algorithm
-     (let [base-set             (set base-set),
-           background-knowledge (set background-knowledge),
-           next-closure         (fn [implications last]
-                                  (next-closed-set base-set
-                                                   (clop-by-implications implications)
-                                                   last))]
-       (loop [implications background-knowledge,
-              last         (close-under-implications background-knowledge #{})]
-         (let [conclusion-from-last (clop last),
-               implications         (if (not= last conclusion-from-last)
-                                      (conj implications
-                                            (make-implication last conclusion-from-last))
-                                      implications),
-               next                 (next-closure implications last)]
-           (if next
-             (recur implications next)
-             (difference implications background-knowledge)))))))
-
-(defn intersect-implicational-theories
-  "Given a set «base-set» and collections «implication-sets» of implications, returns the
-  canonical base of the intersection of the corresponding closure theories."
-  [base-set & implication-sets]
-  (let [implication-clops (vec (map clop-by-implications implication-sets)),
-        clop              (fn [A]
-                            (r/fold (r/monoid intersection (constantly base-set))
-                                    (r/map #(% A) implication-clops)))]
-    (canonical-base-from-clop base-set clop)))
 
 ;;; Association Rules
 
