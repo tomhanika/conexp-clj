@@ -35,7 +35,7 @@
 (deftest test-explore-attributes-is-stem-base
   (with-testing-data [ctx testing-data]
     (let [result (explore-attributes :context ctx :handler (constantly nil))]
-      (and (= (stem-base ctx)
+      (and (= (set (stem-base ctx))
               (:implications result))
            (= ctx
               (:context result))))))
@@ -59,7 +59,7 @@
 (deftest test-explore-attributes-with-background-knowledge
   (with-testing-data [ctx testing-data]
     (= #{} (:implications (explore-attributes :context ctx
-                                              :background-knowledge (canonical-base ctx)
+                                              :background-knowledge (set (canonical-base ctx))
                                               :handler #(is false))))))
 
 ;;;

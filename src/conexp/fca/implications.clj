@@ -212,52 +212,45 @@
 
 ;;; Stem Base
 
-(declare support)
-
-(defn stem-base
-  "Returns stem base of given context.  Uses «background-knowledge» as starting set of
-  implications, which will also be subtracted from the final result.  If «minimal-support»
-  is specified, computes only the part of the canonical base that satisfies the
-  corresponding support constraint."
+(defn canonical-base
+  "Returns the canonical base of given context, as a lazy sequence.  Uses
+  «background-knowledge» as starting set of implications, which will not appear in the
+  result.  If «predicate» is given (a function), computes only those implications from the
+  canonical base whose premise satisfy this predicate, i.e. «predicate» returns true on
+  these premises.  Note that «predicate» has to satisfy the same conditions as the
+  predicate to «next-closed-set-in-family»."
   ([ctx]
-     (stem-base ctx #{} 0))
+     (canonical-base ctx #{} (constantly true)))
   ([ctx background-knowledge]
-     (stem-base ctx background-knowledge 0))
-  ([ctx background-knowledge minimal-support]
+     (canonical-base ctx background-knowledge (constantly true)))
+  ([ctx background-knowledge predicate]
      (assert (context? ctx)
              "First argument must be a formal context")
-     (assert (and (number? minimal-support)
-                  (<= 0 minimal-support 1))
-             "Minimal support must be a real number between 0 and 1")
+     (assert (fn? predicate)
+             "Predicate must be a function")
      (assert (and (set? background-knowledge)
                   (forall [x background-knowledge]
                     (implication? x)))
              "Background knowledge must be a set of implications")
      (let [attributes   (attributes ctx),
-           next-closure (if (zero? minimal-support)
-                          (fn [implications last]
-                            (next-closed-set attributes
-                                             (clop-by-implications implications)
-                                             last))
-                          (fn [implications last]
-                            (next-closed-set-in-family #(<= minimal-support
-                                                            (support % ctx))
-                                                       attributes
-                                                       (clop-by-implications implications)
-                                                       last)))]
-       (loop [implications background-knowledge,
-              last         (close-under-implications background-knowledge #{})]
-         (let [conclusion-from-last (context-attribute-closure ctx last),
-               implications         (if (not= last conclusion-from-last)
-                                      (conj implications
-                                            (make-implication last conclusion-from-last))
-                                      implications),
-               next                 (next-closure implications last)]
-           (if next
-             (recur implications next)
-             (difference implications background-knowledge)))))))
+           next-closure (fn [implications last]
+                          (next-closed-set-in-family predicate
+                                                     attributes
+                                                     (clop-by-implications implications)
+                                                     last)),
+           runner       (fn runner [implications candidate]
+                          (when candidate
+                            (let [conclusions (context-attribute-closure ctx candidate)]
+                              (if (not= candidate conclusions)
+                                (let [impl  (make-implication candidate conclusions),
+                                      impls (conj implications impl)]
+                                  (cons impl
+                                        (lazy-seq (runner impls (next-closure impls candidate)))))
+                                (recur implications (next-closure implications candidate))))))]
+       (lazy-seq (runner background-knowledge
+                         (close-under-implications background-knowledge #{}))))))
 
-(defalias canonical-base stem-base)
+(defalias stem-base canonical-base)
 
 (defn pseudo-intents
   "Returns the pseudo intents of the given context ctx."

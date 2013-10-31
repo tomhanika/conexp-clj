@@ -208,7 +208,7 @@
                                            0 0 1 1 1
                                            0 0 1 0 1]),
             bgk #{(impl ==> 2)}]
-        (= (canonical-base ctx bgk)
+        (= (set (canonical-base ctx bgk))
            #{(impl 0 2 ==> 1 3 4)
              (impl 2 3 ==> 4)
              (impl 1 2 4 ==> 0 3)}))))
@@ -218,7 +218,7 @@
                       mis [0 1/5 1/3 1/2 4/5 1]]
     (= (set (filter #(<= mis (support % ctx))
                     (canonical-base ctx)))
-       (canonical-base ctx #{} mis))))
+       (set (canonical-base ctx #{} #(<= mis (support % ctx)))))))
 
 (deftest test-pseudo-intents
   (with-testing-data [ctx (random-contexts 10 20)]
@@ -274,7 +274,7 @@
 
 (deftest test-stem-base-from-base
   (with-testing-data [ctx (random-contexts 10 20)]
-    (= (stem-base ctx)
+    (= (set (stem-base ctx))
        (stem-base-from-base (proper-premise-implications ctx))))
   (= (stem-base-from-base [(make-implication #{1} #{2 3})
                            (make-implication #{1} #{2 4})])
@@ -282,15 +282,15 @@
 
 (deftest test-canonical-base-from-clop
   (with-testing-data [ctx stem-base-test-contexts]
-    (and (= (canonical-base ctx)
+    (and (= (set (canonical-base ctx))
             (canonical-base-from-clop (attributes ctx) #(adprime ctx %))))))
 
 (deftest test-intersect-implicational-theories
   (with-testing-data [ctx stem-base-test-contexts,
                       n   (range 1 (count (objects ctx)))]
-    (= (canonical-base ctx)
+    (= (set (canonical-base ctx))
        (apply intersect-implicational-theories (attributes ctx)
-              (map #(canonical-base (make-context % (attributes ctx) (incidence ctx)))
+              (map #(set (canonical-base (make-context % (attributes ctx) (incidence ctx))))
                    (partition-all n (objects ctx)))))))
 
 ;;;
