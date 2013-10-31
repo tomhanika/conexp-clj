@@ -353,6 +353,36 @@
         0 contexts/test-ctx-04 1/5 1/2,
         1 contexts/test-ctx-01 1/5 1/2))
 
+(deftest test-luxenburger-basis-with-predicate
+  (with-testing-data [ctx [ctx-1
+                           contexts/test-ctx-01
+                           contexts/test-ctx-02
+                           contexts/test-ctx-04
+                           contexts/test-ctx-07
+                           contexts/test-ctx-08]
+                      cnt [0 1 2 3 4 5]
+                      cnf [0 1/2 9/10 1]]
+    (let [impls (luxenburger-basis ctx #(<= (count %) cnt) cnf)]
+      (forall [impl impls]
+        (and (<= (count (premise impl)) cnt)
+             (<= cnf (confidence impl ctx))))))
+
+  (with-testing-data [ctx [ctx-1
+                           contexts/test-ctx-01
+                           contexts/test-ctx-02
+                           contexts/test-ctx-04
+                           contexts/test-ctx-07
+                           contexts/test-ctx-08]
+                      cnt (range (inc (count (objects ctx))))]
+    (let [impls (luxenburger-basis ctx #(<= (count %) cnt) 0)
+          intes (set (filter #(<= (count %) cnt) (intents ctx)))
+          comps (union (set (map premise impls))
+                       (set (map #(union (premise %) (conclusion %)) impls)))]
+      (and (subset? comps intes)
+           (or (= comps intes)
+               (and (singleton? intes)
+                    (empty? comps)))))))
+
 (deftest test-ryssel-base
   (with-testing-data [ctx (random-contexts 10 15)]
     (let [base (ryssel-base ctx)]
