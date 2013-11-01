@@ -92,8 +92,9 @@
 
   If you want to use automorphisms of the underlying context, you have to construct a
   special handler using the «make-handler» function. See the corresponding documentation
-  of «make-handler»."  [& {:keys [possible-context certain-context context
-  background-knowledge handler incomplete-counterexamples]}]
+  of «make-handler»."
+  [& {:keys [possible-context certain-context context
+             background-knowledge handler incomplete-counterexamples]}]
   ;; first check for arguments
   (assert (or (and (nil? context)
                    (not (nil? possible-context))
