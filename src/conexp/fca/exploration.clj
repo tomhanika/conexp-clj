@@ -79,6 +79,10 @@
       does not have.  Note that «positive-attributes» and «negative-attributes» must be
       disjoint.
 
+    Note that it is the responsibility of the handler to ensure that the counterexample is
+    correct.  If this is not the case, the exploration algorithm will just ask the same
+    question in the next iteration again.
+
   - :background-knowledge «set of implications»
 
     background-knowledge denotes a set of implications used as background knowledge, which
