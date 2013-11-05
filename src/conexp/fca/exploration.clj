@@ -207,10 +207,7 @@
                                   last)
                  ctx)
           (let [new-impl        (make-implication last conclusion-from-last),
-                counterexamples (try
-                                  (handler ctx implications new-impl)
-                                  (catch Throwable e
-                                    :abort))]
+                counterexamples (handler ctx implications new-impl)]
             (cond
              (= counterexamples :abort)
              (recur implications nil ctx) ; forget all other sets
@@ -258,10 +255,7 @@
                  possible-ctx
                  certain-ctx)
           (let [new-impl        (make-implication last conclusion-from-last),
-                counterexamples (try
-                                  (handler possible-ctx certain-ctx implications new-impl)
-                                  (catch Throwable e
-                                    :abort))]
+                counterexamples (handler possible-ctx certain-ctx implications new-impl)]
             (cond
              (= counterexamples :abort) ; abort exploration
              (recur implications nil possible-ctx certain-ctx)
