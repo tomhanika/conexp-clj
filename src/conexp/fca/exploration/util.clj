@@ -20,7 +20,7 @@
   (and (subset? (premise impl) new-atts)
        (not (subset? (conclusion impl) new-atts))))
 
-(defn examples-by-automorphism
+(defn examples-by-automorphisms
   "Generates for the given context ctx and a given example row [g
   atts] a sequence of new examples (as rows of the same form) by
   applying the context automorphism in auts. The context automorphisms

@@ -11,7 +11,8 @@
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.exploration.util
-        conexp.fca.exploration.repl))
+        conexp.fca.exploration.repl)
+  (:require [clojure.core.reducers :as r]))
 
 (ns-doc
  "Provides function for exploration and computing proper premises.")
@@ -169,16 +170,17 @@
   (assert (or (contains? #{true false} incomplete-counterexamples?)))
   (if incomplete-counterexamples?
     ;; case of incomplete counterexamples
-    (fn [possible-ctx certain-ctx known impl]
-      (incomplete-counterexamples-via-repl possible-ctx certain-ctx known impl))
+    incomplete-counterexamples-via-repl
     ;; case of complete counterexamples
     (fn [ctx known impl]
-      (when-let [counterexamples (counterexamples-via-repl ctx known impl)]
-        (reduce (fn [counterexamples counterexample] ; add counterexamples induced by automorphisms
-                  (into counterexamples
-                        (examples-by-automorphism ctx counterexample automorphisms)))
-                []
-                counterexamples)))))
+      (let [counterexamples (counterexamples-via-repl ctx known impl)]
+        (case counterexamples
+          :abort :abort
+          nil    nil
+          (r/reduce into
+                    []
+                    (r/map #(examples-by-automorphisms ctx % automorphisms)
+                           counterexamples)))))))
 
 (let [dh (make-handler)]
   (defn default-handler-for-complete-counterexamples
