@@ -83,6 +83,11 @@
     correct.  If this is not the case, the exploration algorithm will just ask the same
     question in the next iteration again.
 
+    It is possible to abort the exploration from within a handler.  For this, the handler
+    just has to return :abort.  In this case, the current working context as well as the
+    currently known implications are returned as if the exploration would have been
+    finished in that iteration.
+
   - :background-knowledge «set of implications»
 
     background-knowledge denotes a set of implications used as background knowledge, which
