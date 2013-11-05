@@ -10,7 +10,8 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
-        conexp.fca.exploration)
+        conexp.fca.exploration
+        conexp.fca.exploration.util)
   (:use clojure.test))
 
 ;;;
@@ -61,6 +62,23 @@
     (= #{} (:implications (explore-attributes :context ctx
                                               :background-knowledge (set (canonical-base ctx))
                                               :handler #(is false))))))
+
+(deftest test-explore-attributes-with-automorphisms
+  (let [result (explore-attributes
+                :context (make-context [] [1 2 3] [])
+                :handler (fn [ctx known impl]
+                           (when-not (or (respects? #{1} impl)
+                                         (respects? #{2} impl))
+                             (examples-by-automorphisms ctx
+                                                        [(gensym) #{1}]
+                                                        #{(fn [x]
+                                                            (case x
+                                                              1 2
+                                                              2 1
+                                                              3 3))}))))]
+    (is (= (:implications result)
+           #{(impl 3 ==> 1 2) (impl 1 2 ==> 3)}))
+    (is (= 2 (count (objects (:context result)))))))
 
 ;;;
 
