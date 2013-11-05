@@ -35,12 +35,14 @@
     (filter #(.startsWith (str %) str-query)
             (remove #{:default} (keys (methods run-repl-command))))))
 
+(def ^:private abortion-sentinal (Exception. "You should never see this"))
+
 (defn- eval-command
   "Runs the given REPL command query with state, in the case the query uniquely determines
   a command.  If not, an error message is printed and state is returned."
   [query state]
   (if (= query 'abort)
-    (throw (Exception. "Abnormal abortion from attribute exploration"))
+    (throw abortion-sentinal)
     (let [suitable-methods (suitable-repl-commands query)]
       (cond
        (second suitable-methods)
@@ -86,12 +88,17 @@
                              (print-str (:implication initial-state))
                              " hold? "))
     (println "Then please provide a counterexample")
-    (loop [counterexamples []]
-      (let [counterexample  (counterexample-from-expert initial-state result-fns),
-            counterexamples (conj counterexamples counterexample)]
-        (if (yes-or-no? "Do you want to give another counterexample? ")
-          (recur counterexamples)
-          counterexamples)))))
+    (try
+      (loop [counterexamples []]
+        (let [counterexample  (counterexample-from-expert initial-state result-fns),
+              counterexamples (conj counterexamples counterexample)]
+          (if (yes-or-no? "Do you want to give another counterexample? ")
+            (recur counterexamples)
+            counterexamples)))
+      (catch Exception e
+        (if (identical? e abortion-sentinal)
+          :abort
+          (throw))))))
 
 (defn counterexamples-via-repl
   "Starts a repl for counterexamples, which must be specified completely."
