@@ -157,7 +157,7 @@
   - incomplete-counterexamples?: If true, allows for incomplete counterexamples.  In
     contrast to the case of complete counterexamples, the function returned takes four
     arguments (instead of 3), namely the context of the possible incidence, the context of
-    the certain incidence, the known implications aas well as the current implication to
+    the certain incidence, the known implications as well as the current implication to
     be asked to the expert."
   [:automorphisms #{}, :incomplete-counterexamples? false]
   (assert (or (set? automorphisms) (seq? automorphisms)))
