@@ -52,7 +52,7 @@
         imp #{(make-implication #{1} #{2})}
         res (explore-attributes :context ctx
                                 :background-knowledge imp
-                                :handler #(throw (Exception. "Buh!")))]
+                                :handler (fn [_ _ _] :abort))]
     (is (and (= ctx (:context res))
              (= #{} (:implications res))))))
 
