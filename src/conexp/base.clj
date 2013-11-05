@@ -45,7 +45,7 @@
   [thing]
   (cond
    (integer? thing) (set-of-range thing),
-   (coll? thing)    (set thing),
+   (seqable? thing) (set thing),
    :else            (illegal-argument "Cannot create set from " thing)))
 
 
