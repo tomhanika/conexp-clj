@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.lattices
-  (:use [conexp.base                       :only (ns-doc, defnk)]
+  "This namespace provides a lattice editor and a convenience function to draw lattices."
+  (:use [conexp.base                       :only (defnk)]
         [conexp.fca.lattices               :only (concept-lattice)]
         [conexp.layouts                    :only (standard-layout)]
         [conexp.layouts.util               :only (scale-layout)]
@@ -29,10 +30,6 @@
   (:use seesaw.core)
   (:import [javax.swing JFrame JPanel BoxLayout JScrollBar JScrollPane]
            [java.awt Dimension BorderLayout]))
-
-(ns-doc
- "This namespace provides a lattice editor and a convenience function
- to draw lattices.")
 
 ;;; Lattice Editor
 

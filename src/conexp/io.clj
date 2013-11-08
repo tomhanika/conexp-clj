@@ -7,15 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io
+  "Common namespace for conexp-clj IO functions."
   (:use conexp.base)
   (:require conexp.io.latex
             conexp.io.contexts
             conexp.io.lattices
             conexp.io.layouts
             conexp.io.many-valued-contexts))
-
-(ns-doc
- "Common namespace for conexp-clj IO functions.")
 
 ;;;
 

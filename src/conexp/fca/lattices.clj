@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.lattices
+  "Basis datastructure and definitions for abstract lattices."
   (:use conexp.base
         conexp.fca.contexts))
-
-(ns-doc "Basis datastructure and definitions for abstract lattices.")
 
 ;;; Datastructure
 

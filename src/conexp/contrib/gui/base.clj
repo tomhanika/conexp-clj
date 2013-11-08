@@ -7,8 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.base
+  "Provides basic definitions for the standard conexp-clj GUI."
   (:import [java.awt event.WindowEvent])
-  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, ns-doc, unsupported-operation)]
+  (:use [conexp.base :only (defvar-, defvar, defnk, illegal-state, unsupported-operation)]
         [conexp.main :only (conexp-version)]
         conexp.contrib.gui.util
         conexp.contrib.gui.plugins
@@ -17,8 +18,6 @@
         [conexp.contrib.gui.editors.lattices :only (lattice-editor)]
         [conexp.contrib.gui.editors.code :only (code-editor)])
   (:use seesaw.core))
-
-(ns-doc "Provides basic definitions for the standard conexp-clj GUI.")
 
 ;;; Helper Functions
 

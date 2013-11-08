@@ -7,16 +7,14 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.close-by-one
+  "Defines an external binding to the program «pcbo» by Petr Krajca, Jan Outrata, and Vilem
+Vychodil, which can compute context intents in parallel."
   (:use conexp.main
         conexp.contrib.exec
         [conexp.io.util :only (tmpfile)]
         [conexp.contrib.algorithms.util :only (string-to-ints)])
   (:use [clojure.string :only (split-lines split)]
         [clojure.java.io :only (reader)]))
-
-(ns-doc "Defines an external binding to the program «pcbo» by Petr
-Krajca, Jan Outrata, and Vilem Vychodil, which can compute context
-intents in parallel.")
 
 ;;;
 

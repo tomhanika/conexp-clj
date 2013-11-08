@@ -7,15 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.exploration
+  "Provides function for exploration and computing proper premises."
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.exploration.util
         conexp.fca.exploration.repl)
   (:require [clojure.core.reducers :as r]))
-
-(ns-doc
- "Provides function for exploration and computing proper premises.")
 
 ;;; Exploration Interface
 

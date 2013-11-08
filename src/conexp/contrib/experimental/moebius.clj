@@ -7,9 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.experimental.moebius
+  "Computing the Möbius function of concept lattices"
   (:use conexp.main))
-
-(ns-doc "Computing the Möbius function of concept lattices")
 
 ;;;
 

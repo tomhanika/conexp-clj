@@ -7,9 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.util
+  "Utility functions for algorithms."
   (:use conexp.main))
-
-(ns-doc "Utility functions for algorithms.")
 
 ;;;
 

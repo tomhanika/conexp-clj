@@ -7,16 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.nodes-and-connections
-  (:use [conexp.base :only (ns-doc,defvar-, defvar, round, union, difference, -?>)]
+  "Namespace for representing nodes and their connections for drawing lattice diagrams."
+  (:use [conexp.base :only (defvar-, defvar, round, union, difference, -?>)]
         conexp.contrib.draw.scenes)
   (:import [java.awt Color]
            [no.geosoft.cc.graphics GWindow GScene GObject GSegment
                                    GStyle GInteraction ZoomInteraction
                                    GText GPosition]))
-
-(ns-doc
- "Namespace for representing nodes and their connections for drawing
- lattice diagrams.")
 
 ;;; nodes and connections
 

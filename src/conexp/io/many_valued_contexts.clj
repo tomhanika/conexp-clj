@@ -7,13 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.many-valued-contexts
+  "Implements IO for Many-Valued Contexts."
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.many-valued-contexts
         conexp.io.util)
   (:import [java.io PushbackReader]))
-
-(ns-doc "Implements IO for Many-Valued Contexts.")
 
 ;;; Input format dispatch
 

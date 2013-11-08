@@ -7,12 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.implications
+  "Implications for Formal Concept Analysis."
   (:use conexp.base
         conexp.fca.contexts)
   (:require [clojure.core.reducers :as r])
   (:import [java.util HashMap HashSet]))
-
-(ns-doc "Implications for Formal Concept Analysis.")
 
 ;;;
 

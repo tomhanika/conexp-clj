@@ -7,12 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.profiler
-  (:use conexp.base)
-  (:use [clojure.pprint :only (pprint, cl-format)]))
-
-(ns-doc
- "Provides simple function for statistical and instrumental
- profiling.")
+  "Provides simple function for statistical and instrumental profiling."
+  (:use [conexp.base :only (defnk)]
+        [clojure.pprint :only (pprint, cl-format)]))
 
 ;;; profiling code from clojure.contrib.profile
 

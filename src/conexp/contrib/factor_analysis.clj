@@ -7,11 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.factor-analysis
+  "Implements factorization algorithms for contexts."
   (:use conexp.main
         [conexp.contrib.fuzzy sets logics fca])
   (:import [java.util HashMap]))
-
-(ns-doc "Implements factorization algorithms for contexts.")
 
 ;;; Interface
 

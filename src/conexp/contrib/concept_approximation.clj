@@ -7,9 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.concept-approximation
+  "Concept Approximation as described by C. Meschke."
   (:use conexp.main))
-
-(ns-doc "Concept Approximation as described by C. Meschke.")
 
 ;;;
 

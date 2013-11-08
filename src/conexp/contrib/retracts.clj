@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.retracts
+  "Package for computing retracts from formal contexts."
   (:use conexp.main)
   (:use [clojure.pprint :only (cl-format)]))
-
-(ns-doc "Package for computing retracts from formal contexts.")
 
 ;;;
 

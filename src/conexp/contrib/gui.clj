@@ -7,11 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui
-  (:use [conexp.base :only (ns-doc)])
+  "Provides standard gui for conexp-clj."
   (:use [conexp.contrib.gui.base :only (conexp-main-frame)])
   (:use [seesaw.core :only (native! pack! show!)]))
-
-(ns-doc "Provides standard gui for conexp-clj.")
 
 ;;;
 

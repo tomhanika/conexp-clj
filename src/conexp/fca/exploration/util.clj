@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.exploration.util
+  "Some utility functions for exploration."
   (:use conexp.base
         conexp.fca.implications))
-
-(ns-doc "Some utility functions for exploration.")
 
 ;;;
 

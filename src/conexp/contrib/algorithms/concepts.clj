@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.concepts
-  (:use [conexp.main :only (ns-doc, illegal-argument, improve-basic-order)]
+  "Implements various algorithms to compute the concepts of a given context efficiently."
+  (:use [conexp.main :only (illegal-argument, improve-basic-order)]
         conexp.util.generators
         conexp.contrib.algorithms.bitwise
         [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
@@ -17,10 +18,6 @@
   (:require [conexp.contrib.algorithms.close-by-one :as cbo])
   (:import [java.util BitSet List ArrayList])
   (:import [java.util.concurrent SynchronousQueue]))
-
-(ns-doc
- "Implements various algorithms to compute the concepts of a given
- context efficiently.")
 
 ;;; Concept Calculation Multi-Method
 

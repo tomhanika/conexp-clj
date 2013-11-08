@@ -7,10 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.plugins.base
-  (:use conexp.base))
-
-(ns-doc
- "Implements plugin frameworks used for conexp-clj's standard GUI.")
+  "Implements plugin frameworks used for conexp-clj's standard GUI."
+  (:use [conexp.base :only (illegal-argument)]))
 
 ;;; Basic Plugin Structure
 

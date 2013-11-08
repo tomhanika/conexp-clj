@@ -7,15 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.buttons
-  (:use conexp.base)
+ "Provides simple helper functions to create the buttons of the lattice editor."
   (:import [javax.swing JPanel JButton JTextField JLabel
                         JSeparator SwingConstants Box JComboBox
                         JSlider SpinnerNumberModel JSpinner]
            [java.awt Dimension Component]))
-
-(ns-doc
- "Provides simple helper functions to create the buttons of the
-  lattice editor.")
 
 ;;;
 

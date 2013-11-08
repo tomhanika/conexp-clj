@@ -7,6 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.editors.lattices
+  "Provides lattice-editor, a plugin for lattices for the standard GUI of conexp-clj."
   (:use [conexp.base :exclude (select)]
         conexp.fca.contexts
         conexp.fca.lattices
@@ -19,10 +20,6 @@
         conexp.contrib.gui.plugins.base)
   (:use seesaw.core)
   (:import [java.io File]))
-
-(ns-doc
- "Provides lattice-editor, a plugin for lattices for the standard GUI
- of conexp-clj.")
 
 ;;; The Plugin
 

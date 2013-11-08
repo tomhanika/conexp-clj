@@ -7,11 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.titanic
+  "Implements the TITANIC algorithm. Note that this implementation is not tuned for speed
+  but for flexibility."
   (:use conexp.main))
-
-(ns-doc
- "Implements the TITANIC algorithm. Note that this implementation is
- not tuned for speed but for flexibility.")
 
 ;;; Pragmatics
 

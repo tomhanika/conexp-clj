@@ -7,14 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.more
+  "More on FCA."
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.exploration)
   (:require [conexp.util.graph :as graph]))
-
-(ns-doc "More on FCA.")
-
 
 ;;; Compatible Subcontexts
 

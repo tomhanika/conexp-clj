@@ -6,11 +6,10 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.base)
+(ns conexp.base
+  "Basic definitions for conexp-clj.")
 
 (load "util")
-
-(ns-doc "Basic definitions for conexp-clj.")
 
 ;;; Very Basic Set Theory
 

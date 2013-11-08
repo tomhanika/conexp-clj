@@ -7,6 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.layouts
+  "Implements IO for layouts."
   (:use conexp.base
         conexp.io.util
         conexp.io.latex
@@ -15,8 +16,6 @@
         conexp.io.util.layout-svg)
   (:require clojure.string)
   (:import [java.io PushbackReader]))
-
-(ns-doc "Implements IO for layouts.")
 
 ;;; Input format dispatch
 

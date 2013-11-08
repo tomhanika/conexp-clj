@@ -7,12 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.experimental.quasiclosed
+  "Some experiments with the quasiclosed sets of a formal context"
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications))
-
-(ns-doc "Some experiments with the quasiclosed sets of a formal
-context")
 
 ;;;
 

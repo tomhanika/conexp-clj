@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.scenes
-  (:use conexp.base)
+  "Namespace for scene abstraction."
+  (:use [conexp.base :only (illegal-argument, defvar-)])
   (:use [seesaw.core :only (listen)])
   (:import [java.awt Color]
            [java.io File]
@@ -15,8 +16,6 @@
            [javax.imageio ImageIO]
            [javax.swing JScrollBar]
            [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent GCanvas]))
-
-(ns-doc "Namespace for scene abstraction.")
 
 ;; setting custom data
 

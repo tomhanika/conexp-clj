@@ -7,13 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.main
+  "Main namespace for conexp-clj. Immigrates all needed namespaces."
   (:require conexp.base
             conexp.fca
             conexp.io
             conexp.layouts))
-
-(conexp.base/ns-doc
- "Main namespace for conexp-clj. Immigrates all needed namespaces.")
 
 ;;;
 

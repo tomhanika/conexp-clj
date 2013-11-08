@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.many-valued-contexts
+  "Many-Valued-Contexts and some functions for scaling."
   (:use conexp.base
         conexp.fca.contexts))
-
-(ns-doc "Many-Valued-Contexts and some functions for scaling.")
 
 ;;;
 

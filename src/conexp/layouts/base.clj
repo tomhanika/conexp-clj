@@ -7,11 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.base
+  "Basic definition of layout datatype"
   (:use conexp.base
         conexp.fca.lattices
         clojure.pprint))
-
-(ns-doc "Basic definition of layout datatype")
 
 ;;;
 

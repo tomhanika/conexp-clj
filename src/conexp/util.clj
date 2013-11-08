@@ -36,22 +36,6 @@
            'clojure.core.incubator
            'clojure.math.numeric-tower)
 
-;;; Namespace documentation
-
-(defmacro update-ns-meta!
-  "Updates meta hash of given namespace with given description."
-  [ns & key-value-description]
-  `(alter-meta! (find-ns '~ns)
-                (fn [meta-hash#]
-                  (merge meta-hash# ~(apply hash-map key-value-description)))))
-
-(defmacro ns-doc
-  "Sets the documentation of the current namespace to be doc."
-  [doc]
-  (let [ns (symbol (str *ns*))]
-    `(update-ns-meta! ~ns :doc ~doc)))
-
-
 ;;; def macros, copied from clojure.contrib.def, 1.3.0-SNAPSHOT
 
 (defmacro defvar

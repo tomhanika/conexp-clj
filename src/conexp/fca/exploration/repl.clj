@@ -7,13 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.exploration.repl
+  "A REPL for giving counterexamples during attribute exploration."
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.exploration.util))
-
-(ns-doc
- "A REPL for giving counterexamples during attribute exploration.")
 
 ;;; Counterexample REPL
 

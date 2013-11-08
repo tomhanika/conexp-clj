@@ -9,6 +9,7 @@
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
 (ns conexp.contrib.gui.editors.contexts
+  "Provides context-editor, a plugin for contexts for the standard GUI of conexp-clj."
   (:use [conexp.base :exclude (select)]
         conexp.fca.contexts
         conexp.fca.lattices
@@ -21,12 +22,8 @@
         conexp.contrib.gui.plugins.base)
   (:use seesaw.core)
   (:use [clojure.string :only (replace)
-                        :rename {replace replace-str}])
+         :rename {replace replace-str}])
   (:import [java.io File]))
-
-(ns-doc
- "Provides context-editor, a plugin for contexts for the standard GUI
-  of conexp-clj.")
 
 ;;; The Plugin
 

@@ -7,12 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.contexts
+  "Provides the implementation of formal contexts and functions on them."
   (:use conexp.base)
   (:require [clojure.core.reducers :as r]))
-
-(ns-doc
- "Provides the implementation of formal contexts and functions on
-  them.")
 
 ;;;
 

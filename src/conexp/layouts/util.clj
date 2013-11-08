@@ -7,13 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.util
+  "Utilities for computing lattice layouts."
   (:use conexp.base
         conexp.layouts.base
         conexp.fca.lattices)
   (:require [conexp.util.graph :as graph]))
-
-(ns-doc
- "Utilities for computing lattice layouts.")
 
 ;;;
 
