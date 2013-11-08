@@ -14,8 +14,8 @@
 
 (defn- apprx-handler
   "Special handler for concept approximation exploration."
-  [ctx new-impl new-objs cross-handler]
-  (let [counterexamples (default-handler ctx new-impl)]
+  [ctx known new-impl new-objs cross-handler]
+  (let [counterexamples (default-handler-for-complete-counterexamples ctx known new-impl)]
     (doseq [new-att (map first counterexamples)]
       (let [att-objs (ask (str "Which of the objs " new-objs " definitively has the attribute " new-att "? ")
                           #(read-string (str "#{" (read-line) "}"))
@@ -25,22 +25,21 @@
     counterexamples))
 
 (defn explore-approximations
-  "Performs concept approximation exploration and returns the final
-  context."
+  "Performs concept approximation exploration and returns the final context."
   [context]
   (let [_                (println "Starting attribute exploration")
-        att-explored-ctx (:context (explore-attributes context)),
+        att-explored-ctx (:context (explore-attributes :context context)),
 
         _                (println "Starting object exploration")
         new-objects      (difference (objects att-explored-ctx)
                                      (objects context)),
         known-crosses    (atom #{}),
         handler          (fn [ctx known impl]
-                           (apprx-handler ctx impl new-objects
+                           (apprx-handler ctx known impl new-objects
                                           #(swap! known-crosses into %))),
         obj-explored-ctx (dual-context
                           (:context (explore-attributes
-                                     (dual-context context)
+                                     :context (dual-context context)
                                      :handler handler)))]
     (context-subposition
      (context-apposition context obj-explored-ctx)
