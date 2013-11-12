@@ -265,7 +265,7 @@
              (= counterexamples :abort) ; abort exploration
              (recur implications nil possible-ctx certain-ctx)
              ;;
-             counterexamples          ; add counterexample
+             counterexamples            ; add counterexample
              (let [new-objs (map first counterexamples)]
                ;; check that new names are not there already
                (when (exists [g new-objs] (contains? (objects possible-ctx) g))
@@ -287,19 +287,24 @@
                                            (set-of [g m] [[g pos _] counterexamples,
                                                           m pos])))))
              ;;
-             true                     ; add implication
-             (let [new-implications (conj implications new-impl)]
+             true                       ; add implication
+             (let [new-implications (conj implications new-impl),
+                   new-clop         (clop-by-implications new-implications),
+                   new-certain-ctx  (make-context (objects certain-ctx)
+                                                  (attributes certain-ctx)
+                                                  (set-of [g m] [g (objects certain-ctx),
+                                                                 m (new-clop (oprime certain-ctx #{g}))])),
+                   new-possible-ctx (make-context (objects possible-ctx)
+                                                  (attributes possible-ctx)
+                                                  (filter (fn [[g m]]
+                                                            (let [certain-atts (oprime new-certain-ctx #{g})]
+                                                              (subset? (new-clop (conj certain-atts m))
+                                                                       (incidence possible-ctx))))
+                                                          (incidence possible-ctx)))]
                (recur new-implications
-                      (next-closed-set (attributes possible-ctx)
-                                       (clop-by-implications new-implications)
-                                       last)
-                      possible-ctx
-                      (make-context (objects certain-ctx)
-                                    (attributes certain-ctx)
-                                    (set-of [g m] [g (objects certain-ctx),
-                                                   m (close-under-implications
-                                                      new-implications
-                                                      (oprime certain-ctx #{g}))])))))))))))
+                      (next-closed-set (attributes possible-ctx) new-clop last)
+                      new-possible-ctx
+                      new-certain-ctx)))))))))
 
 ;;;
 
