@@ -217,7 +217,7 @@
              (= counterexamples :abort)
              (recur implications nil ctx) ; forget all other sets
              ;;
-             counterexamples
+             counterexamples            ; add counterexample
              (let [new-objs (map first counterexamples)]
                ;; check that new names are not there already
                (when (exists [g new-objs] (contains? (objects ctx) g))
@@ -231,7 +231,7 @@
                                            (set-of [g m] [[g ms] counterexamples,
                                                           m ms])))))
              ;;
-             true                       ; add counterexample
+             true                       ; add implication
              (recur (conj implications new-impl)
                     (next-closed-set (attributes ctx)
                                      (clop-by-implications (conj implications new-impl))
