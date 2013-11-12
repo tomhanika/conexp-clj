@@ -80,6 +80,13 @@
            #{(impl 3 ==> 1 2) (impl 1 2 ==> 3)}))
     (is (= 2 (count (objects (:context result)))))))
 
+(deftest test-explore-attributes-with-incomplete-counterexamples
+  (let [result (explore-attributes :context (make-context [] '[black blue green] [])
+                                   :incomplete-counterexamples true
+                                   :handler (fn [_ _ _ impl]
+                                              [[(gensym) (premise impl) (conclusion impl)]]))]
+    (is (empty? (:implications result)))))
+
 ;;;
 
 nil
