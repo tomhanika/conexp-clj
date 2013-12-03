@@ -299,7 +299,7 @@
                                                   (filter (fn [[g m]]
                                                             (let [certain-atts (oprime new-certain-ctx #{g})]
                                                               (subset? (new-clop (conj certain-atts m))
-                                                                       (incidence possible-ctx))))
+                                                                       (oprime possible-ctx #{g}))))
                                                           (incidence possible-ctx)))]
                (recur new-implications
                       (next-closed-set (attributes possible-ctx) new-clop last)
