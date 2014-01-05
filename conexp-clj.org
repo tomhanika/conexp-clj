@@ -3,7 +3,6 @@
 #+startup: hidestars
 #+filetags: CONEXP
 #+category: conexp-clj
-#+options: h:2
 
 * Script
 ** DONE Add readline support
