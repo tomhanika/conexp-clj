@@ -76,7 +76,7 @@
      - [X] Creating and Working with Formal Contexts
      - [ ] Concept Lattices
      - [X] IO
-     - [ ] Implications
+     - [X] Implications
      - [X] Exploration
      - [X] Scaling Many-Valued Contexts
    - [ ] Advanced Usage
@@ -112,6 +112,12 @@
    CLOCK: [2013-11-07 Thu 14:27]--[2013-11-07 Thu 14:28] =>  0:01
    :END:
    Added: [2013-11-07 Thu 14:27]
+** TODO Allow expert to still accept an implication although she has denied it
+   :LOGBOOK:
+   CLOCK: [2013-12-16 Mon 10:11]--[2013-12-16 Mon 10:12] =>  0:01
+   :END:
+   [[gnus:nnmaildir%2Bzih:projects.ros#52A83E84.7070501@uni-rostock.de][Email from Johannes Wollbold: Re: fehler bei benutzung von s]]
+
 * GUI
 ** TODO Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when
