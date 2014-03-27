@@ -2,7 +2,7 @@
 #+startup: content
 #+startup: hidestars
 #+filetags: CONEXP
-#+category: conexp-clj
+#+category: cclj
 
 * Script
 ** DONE Add readline support
@@ -66,7 +66,8 @@
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** NEXT Write Wiki [4/7]                                                  :7:
+** HOLD Write Wiki [4/7]                                             :7:HOLD:
+   - State "HOLD"       from "NEXT"       [2014-03-10 Mon 08:19]
    :PROPERTIES:
    :Effort:   5:00
    :END:
