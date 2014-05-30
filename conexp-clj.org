@@ -66,7 +66,11 @@
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** HOLD Write Wiki [4/7]                                             :7:HOLD:
+** NEXT Write Wiki [4/7]                                                  :7:
+   :LOGBOOK:
+   CLOCK: [2014-04-25 Fri 09:49]--[2014-04-25 Fri 10:08] =>  0:19
+   :END:
+   - State "NEXT"       from "HOLD"       [2014-04-25 Fri 09:49]
    - State "HOLD"       from "NEXT"       [2014-03-10 Mon 08:19]
    :PROPERTIES:
    :Effort:   5:00
