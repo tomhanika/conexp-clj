@@ -16,7 +16,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories [["math" {:url "http://www.math.tu-dresden.de/~borch/repos/mvn/"
                           :checksum :ignore}]]
-  :dependencies [[org.clojure/clojure             "1.5.1"]
+  :dependencies [[org.clojure/clojure             "1.6.0"]
                  [org.clojure/tools.cli           "0.2.4"]
                  [org.clojure/core.incubator      "0.1.3"]
                  [org.clojure/math.combinatorics  "0.0.6"]
