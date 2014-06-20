@@ -128,9 +128,58 @@ defnk accepts an optional docstring as well as an optional metadata map."
        [~@pos & options#]
        (let [~de-map (apply hash-map options#)]
          ~@body))))
+;;; Version
 
+(defvar- internal-version-string
+  (.trim #=(slurp "VERSION")))
+
+(defvar- conexp-version-map
+  (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)-(.+)" internal-version-string)]
+    {:major (Integer/parseInt major),
+     :minor (Integer/parseInt minor),
+     :patch (Integer/parseInt patch),
+     :qualifier qualifier}))
+
+(defn conexp-version
+  "Returns the version of conexp as a string."
+  []
+  (let [{:keys [major minor patch qualifier]} conexp-version-map]
+    (str major "." minor "." patch "-" qualifier )))
+
+(defn has-version?
+  "Compares given version of conexp and returns true if and only if
+  the current version of conexp is higher or equal than the given one"
+  [{my-major :major, my-minor :minor, my-patch :patch}]
+  (assert (and my-major my-minor my-patch))
+  (let [{:keys [major, minor, patch]} conexp-version-map]
+    (or (and (< my-major major))
+        (and (= my-major major)
+             (< my-minor minor))
+        (and (= my-major major)
+             (= my-minor minor)
+             (< my-patch patch)))))
+
+;;;
+
+(defn quit
+  "Quits conexp-clj."
+  []
+  (System/exit 0))
 
 ;;; Testing
+
+(defn test-conexp
+  "Runs tests for conexp. If with-contrib? is given and true, tests
+  conexp.contrib.tests too."
+  ([] (test-conexp false))
+  ([with-contrib?]
+     (if with-contrib?
+       (do (require 'conexp.tests
+                    'conexp.contrib.tests)
+           (clojure.test/run-tests 'conexp.tests
+                                   'conexp.contrib.tests))
+       (do (require 'conexp.tests)
+           (clojure.test/run-tests 'conexp.tests)))))
 
 (defmacro tests-to-run
   "Defines tests to run when the namespace in which this macro is
