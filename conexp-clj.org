@@ -7,6 +7,7 @@
 * Script
 ** DONE Add readline support
    using jline
+** TODO Update usage of tools.cli                                         :7:
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * IO
