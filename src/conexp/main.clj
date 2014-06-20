@@ -15,12 +15,10 @@
 
 ;;;
 
-(def conexp-namespaces '[conexp.base
-                         conexp.fca
-                         conexp.io
-                         conexp.layouts])
-
-(dorun (map conexp.base/immigrate conexp-namespaces))
+(conexp.base/immigrate 'conexp.base
+                       'conexp.fca
+                       'conexp.io
+                       'conexp.layouts)
 
 ;;;
 

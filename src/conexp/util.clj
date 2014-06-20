@@ -124,6 +124,7 @@ defnk accepts an optional docstring as well as an optional metadata map."
        [~@pos & options#]
        (let [~de-map (apply hash-map options#)]
          ~@body))))
+
 ;;; Version
 
 (defvar- internal-version-string
