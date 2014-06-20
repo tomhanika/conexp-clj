@@ -10,10 +10,6 @@
 
 (use 'clojure.test)
 
-(import 'javax.swing.JOptionPane
-        'java.util.Calendar
-        'java.text.SimpleDateFormat)
-
 ;;;
 
 (defn immigrate
@@ -434,6 +430,9 @@ defnk accepts an optional docstring as well as an optional metadata map."
                    (lazy-seq
                      (cons (vec rest) (runner (next rest))))))]
     (runner (seq sqn))))
+
+(import 'java.util.Calendar
+        'java.text.SimpleDateFormat)
 
 (defn now
   "Returns the current time in a human readable format."
