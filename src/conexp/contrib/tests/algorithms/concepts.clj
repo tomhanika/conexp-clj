@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.tests.algorithms.concepts
   (:require [conexp.main :as cm])
-  (:use [conexp.base :only (defvar-)]
+  (:use [conexp.base :only (def-)]
         [conexp.contrib.exec :only (program-exists?)]
         conexp.contrib.algorithms.concepts)
   (:use clojure.test))
@@ -19,14 +19,14 @@
   (when-not (program-exists? program-name)
     (conj invalids keyword)))
 
-(defvar- concepts-methods (let [invalid-methods (-> #{}
-                                                    (add-if-not-exists "pcbo" :pcbo)
-                                                    (add-if-not-exists "fcbo" :fcbo))]
-                            (remove #(or (.startsWith ^String (name %) "default")
-                                         (contains? invalid-methods %))
-                                    (keys (methods concepts)))))
+(def- concepts-methods (let [invalid-methods (-> #{}
+                                                 (add-if-not-exists "pcbo" :pcbo)
+                                                 (add-if-not-exists "fcbo" :fcbo))]
+                         (remove #(or (.startsWith ^String (name %) "default")
+                                      (contains? invalid-methods %))
+                                 (keys (methods concepts)))))
 
-(defvar- test-runs 50)
+(def- test-runs 50)
 
 (deftest test-concepts
   (dotimes [_ test-runs]

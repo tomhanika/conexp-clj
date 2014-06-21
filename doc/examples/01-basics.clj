@@ -12,7 +12,7 @@
 ;; three options:
 
 ;; 1. By using a defined relation:
-(defvar ctx-1 (make-context [1 2 3] [1 2 3] <=))
+(def ctx-1 (make-context [1 2 3] [1 2 3] <=))
 
 ;; 2. By defining all sets explicitly:
 
@@ -25,23 +25,23 @@
 ;;         \ /
 ;;          1
 ;;
-(defvar ctx-2 (make-context #{1 2 3 4 5 6}
-                            #{1 2 3 4 5 6}
-                            #{[1 1] [1 2] [1 3] [1 5]
-                              [1 6] [2 2] [2 5] [3 3]
-                              [3 6] [4 4] [4 5] [4 6]
-                              [5 5] [6 6]}))
+(def ctx-2 (make-context #{1 2 3 4 5 6}
+                         #{1 2 3 4 5 6}
+                         #{[1 1] [1 2] [1 3] [1 5]
+                           [1 6] [2 2] [2 5] [3 3]
+                           [3 6] [4 4] [4 5] [4 6]
+                           [5 5] [6 6]}))
 
-(defvar ctx-3 (make-context-from-matrix 3 3
-                                        [0 0 1
-                                         1 0 1
-                                         1 1 0]))
+(def ctx-3 (make-context-from-matrix 3 3
+                                     [0 0 1
+                                      1 0 1
+                                      1 1 0]))
 
 ;; 3. By using a custom function
-(defvar ctx-4 (make-context [1 2 3 4 5 6]
-                            [1 2 3 4 5 6]
-                            (fn [x y]
-                              (= 1 (gcd x y)))))
+(def ctx-4 (make-context [1 2 3 4 5 6]
+                         [1 2 3 4 5 6]
+                         (fn [x y]
+                           (= 1 (gcd x y)))))
 
 ;; If you want to use a random context you can use rand-context
 (rand-context #{1 2 3} 0.5)
@@ -53,14 +53,14 @@
 ;; How to compute all formal concepts?
 
 ;; First we define a context ctx-1:
-(defvar ctx-1 (make-context-from-matrix ['a 'b 'c 'd 'e 'f]
-					['a 'b 'c 'd 'e 'f]
-					[1 1 1 0 1 1
-					 0 1 0 0 1 0
-					 0 0 1 0 0 1
-					 0 0 0 1 1 1
-					 0 0 0 0 1 0
-					 0 0 0 0 0 1]))
+(def ctx-1 (make-context-from-matrix ['a 'b 'c 'd 'e 'f]
+                                     ['a 'b 'c 'd 'e 'f]
+                                     [1 1 1 0 1 1
+                                      0 1 0 0 1 0
+                                      0 0 1 0 0 1
+                                      0 0 0 1 1 1
+                                      0 0 0 0 1 0
+                                      0 0 0 0 0 1]))
 
 ;; This ist the Chevron again, but this time with a instead of 1, b
 ;; instead of 2 etc. With ' (quote) you can use symbols in conexp.

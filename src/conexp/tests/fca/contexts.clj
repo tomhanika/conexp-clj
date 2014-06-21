@@ -62,18 +62,18 @@
                                   [3 b] [3 e]
                                   [4 c] [4 d] [4 e]}))
 
-(defvar testing-data [empty-context,
-                      test-ctx-01,
-                      test-ctx-02,
-                      test-ctx-03,
-                      test-ctx-04,
-                      test-ctx-05,
-                      test-ctx-06,
-                      test-ctx-07,
-                      test-ctx-08,
-                      (make-context #{1 2}
-                                    #{1 2}
-                                    [[1 1] [1 2]])])
+(def testing-data [empty-context,
+                   test-ctx-01,
+                   test-ctx-02,
+                   test-ctx-03,
+                   test-ctx-04,
+                   test-ctx-05,
+                   test-ctx-06,
+                   test-ctx-07,
+                   test-ctx-08,
+                   (make-context #{1 2}
+                                 #{1 2}
+                                 [[1 1] [1 2]])])
 
 ;;;
 

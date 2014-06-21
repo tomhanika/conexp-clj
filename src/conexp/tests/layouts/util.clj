@@ -14,11 +14,11 @@
         conexp.layouts.base)
   (:use clojure.test))
 
-(defvar test-lattices
+(def test-lattices
   [(make-lattice [1 2 3 4 5] <=),
    (concept-lattice (rand-context 10 10 0.7))])
 
-(defvar test-layouts
+(def test-layouts
   [(make-layout {1 [0 0],
                  2 [1 2],
                  3 [10 20]}

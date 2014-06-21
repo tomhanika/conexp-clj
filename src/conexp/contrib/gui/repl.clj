@@ -13,15 +13,15 @@
            [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame
                         JComponent]
            [java.awt Font Color Graphics Graphics2D RenderingHints])
-  (:use [conexp.base :only (defvar-)]
-        conexp.contrib.gui.util)
+  (:use conexp.contrib.gui.util)
   (:require [conexp.contrib.gui.repl-utils :as repl-utils])
   (:require clojure.main))
 
 ;;; REPL Process
 
-(defvar- ^:dynamic *print-stack-trace-on-error* false
-  "Controls whether the REPL prints a full stack strace or not.")
+(def- ^:dynamic *print-stack-trace-on-error*
+  "Controls whether the REPL prints a full stack strace or not."
+  false)
 
 (defn- eof-ex?
   "Returns true iff given throwable is an \"EOF while reading\" or \"Write

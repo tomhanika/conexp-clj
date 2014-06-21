@@ -13,7 +13,7 @@
 
 ;;;
 
-(defvar- testing-data
+(def- testing-data
   [(diag-context (set-of-range 10)),
    (one-context (set-of-range 10)),
    (make-context #{1 2 3 4 5 6 7 8 9 10}

@@ -128,7 +128,7 @@
 
 (let [second-operand (atom nil)]
 
-  (defvar- toolbar-icons
+  (def- toolbar-icons
     [["copy.png" "C"
       "Copy the selected cells to clipboard",
       #(copy-to-clipboard (get-table %)) :no-return]

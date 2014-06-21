@@ -49,7 +49,7 @@
 
 ;;;
 
-(defvar- testing-data
+(def- testing-data
   [(make-mv-context #{} #{} +),
    (make-mv-context [1 2 3] [1 2 3] =),
    (make-mv-context (range 100) (range 100) *),

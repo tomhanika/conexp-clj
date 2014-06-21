@@ -94,8 +94,8 @@
   (is (thrown-with-msg? IllegalStateException #"und nochmal"
         (illegal-state "und" " nochmal"))))
 
-(defvar- a 1)
-(defvar- b 2)
+(def- a 1)
+(def- b 2)
 
 (deftest test-with-altered-vars
   (is (and (= 1 a) (= 2 b)))
@@ -109,7 +109,7 @@
     (is (and (= 3 a) (= 2 b))))
   (is (and (= 1 a) (= 2 b))))
 
-(defvar- f (fn [x] (swap! x inc)))
+(def- f (fn [x] (swap! x inc)))
 
 (deftest test-with-memoized-fns
   (let [counter (atom 0)]

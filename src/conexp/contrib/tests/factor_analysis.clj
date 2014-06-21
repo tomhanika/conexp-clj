@@ -13,7 +13,7 @@
 
 ;;;
 
-(defvar- context-data
+(def- context-data
   [(make-context #{} #{} #{}),
    (make-context (set-of-range 15)
                  (set-of-range 15)

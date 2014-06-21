@@ -16,11 +16,11 @@
 ;;; «explore-attributes» with the corresponding context as its only
 ;;; argument
 
-(defvar- ctx (make-context-from-matrix '[a b c]
-                                       [1 2 3]
-                                       [0 1 0
-                                        1 1 0
-                                        1 0 1]))
+(def- ctx (make-context-from-matrix '[a b c]
+                                    [1 2 3]
+                                    [0 1 0
+                                     1 1 0
+                                     1 0 1]))
 (explore-attributes ctx)
 
 ;;; Exploration now proceeds as follows:

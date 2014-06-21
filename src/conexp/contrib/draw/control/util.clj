@@ -18,14 +18,17 @@
 
 ;;;
 
-(defvar ^:dynamic *item-width* 100
-  "Width of items in toolbar.")
+(def ^:dynamic *item-width*
+  "Width of items in toolbar."
+  100)
 
-(defvar ^:dynamic *item-height* 25
-  "Heights of items on toolbar.")
+(def ^:dynamic *item-height*
+  "Heights of items on toolbar."
+  25)
 
-(defvar ^:dynamic *toolbar-width* (+ 20 *item-width*)
-  "Width of toolbar containing buttons, labels and so on.")
+(def ^:dynamic *toolbar-width*
+  "Width of toolbar containing buttons, labels and so on."
+  (+ 20 *item-width*))
 
 ;;;
 

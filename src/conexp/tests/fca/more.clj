@@ -36,7 +36,7 @@
 
 ;;; Bonds
 
-(defvar small-contexts [test-ctx-01, test-ctx-04, test-ctx-07, test-ctx-08])
+(def small-contexts [test-ctx-01, test-ctx-04, test-ctx-07, test-ctx-08])
 
 (deftest test-all-bonds
   (is (= 2216 (count (all-bonds (make-context-from-matrix 5 5 [0 1 0 1 0

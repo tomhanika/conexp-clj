@@ -29,7 +29,7 @@
 
 ;;;
 
-(defvar testing-data
+(def testing-data
   [(make-implication [] []),
    (make-implication [1 2 3] '[a b c]),
    (make-implication [1 2 3] '[3 a b c])
@@ -181,10 +181,10 @@
     (is (sound-implication-set? ctx irr-subset))
     (is (complete-implication-set? ctx irr-subset))))
 
-(defvar stem-base-test-contexts [contexts/test-ctx-01,
-                                 contexts/test-ctx-04
-                                 contexts/test-ctx-07,
-                                 contexts/test-ctx-08])
+(def stem-base-test-contexts [contexts/test-ctx-01,
+                              contexts/test-ctx-04
+                              contexts/test-ctx-07,
+                              contexts/test-ctx-08])
 
 (deftest test-stem-base
   (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
@@ -295,20 +295,20 @@
 
 ;;;
 
-(defvar- ctx-1 (make-context #{0 1 2 3 4 5 6 7 8 9}
-                             #{0 1 2 3 4 5 6 7 8 9}
-                             #{[6 5] [1 0] [4 4] [9 9] [0 0] [1 1] [3 4] [6 7]
-                               [8 9] [1 2] [3 5] [6 8] [0 2] [3 6] [5 8] [0 3]
-                               [1 4] [0 4] [3 8] [0 5] [3 9] [2 9] [9 0] [7 0]
-                               [8 1] [7 1] [9 3] [7 2] [7 3] [9 5] [6 3] [3 1]
-                               [6 4] [8 6] [2 0]}))
+(def- ctx-1 (make-context #{0 1 2 3 4 5 6 7 8 9}
+                          #{0 1 2 3 4 5 6 7 8 9}
+                          #{[6 5] [1 0] [4 4] [9 9] [0 0] [1 1] [3 4] [6 7]
+                            [8 9] [1 2] [3 5] [6 8] [0 2] [3 6] [5 8] [0 3]
+                            [1 4] [0 4] [3 8] [0 5] [3 9] [2 9] [9 0] [7 0]
+                            [8 1] [7 1] [9 3] [7 2] [7 3] [9 5] [6 3] [3 1]
+                            [6 4] [8 6] [2 0]}))
 
-(defvar- ar-testing-data [ctx-1
-                          contexts/empty-context
-                          contexts/test-ctx-01
-                          contexts/test-ctx-04
-                          contexts/test-ctx-07
-                          contexts/test-ctx-08])
+(def- ar-testing-data [ctx-1
+                       contexts/empty-context
+                       contexts/test-ctx-01
+                       contexts/test-ctx-04
+                       contexts/test-ctx-07
+                       contexts/test-ctx-08])
 
 (deftest test-support
   (is (= 1 (support #{} contexts/empty-context)))

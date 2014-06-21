@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.scenes
   "Namespace for scene abstraction."
-  (:use [conexp.base :only (illegal-argument, defvar-)])
+  (:use [conexp.base :only (illegal-argument)])
   (:use [seesaw.core :only (listen)])
   (:import [java.awt Color]
            [java.io File]
@@ -119,10 +119,11 @@
 
 ;; scene constructor
 
-(defvar- default-scene-style (doto (GStyle.)
-                               (.setBackgroundColor Color/WHITE)
-                               (.setAntialiased true))
-  "Default GScene style.")
+(def- default-scene-style
+  "Default GScene style."
+  (doto (GStyle.)
+    (.setBackgroundColor Color/WHITE)
+    (.setAntialiased true)))
 
 (defn ^GWindow make-window
   "Creates default window."

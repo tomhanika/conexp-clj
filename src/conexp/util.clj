@@ -10,22 +10,12 @@
 
 (use 'clojure.test)
 
-;;; def macros, copied from clojure.contrib.def, 1.3.0-SNAPSHOT
+;;; def macros, inspired and partially copied from clojure.contrib.def, 1.3.0-SNAPSHOT
 
-(defmacro defvar
-  "Defines a var with an optional intializer and doc string"
-  ([name]
-     (list `def name))
-  ([name init]
-     (list `def name init))
-  ([name init doc]
-     (list `def name doc init)))
-
-(defmacro defvar-
-  "Same as defvar but yields a private definition"
+(defmacro def-
+  "Same as def, but yields a private definition"
   [name & decls]
-  (list* `defvar (with-meta name (assoc (meta name) :private true)) decls))
-
+  (list* `def (with-meta name (assoc (meta name) :private true)) decls))
 
 (defmacro defalias
   "Defines an alias for a var: a new var with the same root binding (if
@@ -116,10 +106,10 @@ defnk accepts an optional docstring as well as an optional metadata map."
 
 ;;; Version
 
-(defvar- internal-version-string
+(def- internal-version-string
   (.trim #=(slurp "VERSION")))
 
-(defvar- conexp-version-map
+(def- conexp-version-map
   (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)-(.+)" internal-version-string)]
     {:major (Integer/parseInt major),
      :minor (Integer/parseInt minor),
@@ -200,12 +190,12 @@ defnk accepts an optional docstring as well as an optional metadata map."
 
 ;;; Types
 
-(defvar clojure-set clojure.lang.PersistentHashSet)
-(defvar clojure-fn  clojure.lang.Fn)
-(defvar clojure-seq clojure.lang.Sequential)
-(defvar clojure-vec clojure.lang.PersistentVector)
-(defvar clojure-map clojure.lang.Associative)
-(defvar clojure-coll clojure.lang.IPersistentCollection)
+(def clojure-set clojure.lang.PersistentHashSet)
+(def clojure-fn  clojure.lang.Fn)
+(def clojure-seq clojure.lang.Sequential)
+(def clojure-vec clojure.lang.PersistentVector)
+(def clojure-map clojure.lang.Associative)
+(def clojure-coll clojure.lang.IPersistentCollection)
 
 (defn clojure-type
   "Dispatch function for multimethods."

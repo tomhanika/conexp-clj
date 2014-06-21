@@ -15,14 +15,17 @@
 
 ;;;
 
-(defvar *item-width* 100
-  "Width of items in toolbar.")
+(def *item-width*
+  "Width of items in toolbar."
+  100)
 
-(defvar *item-height* 25
-  "Heights of items on toolbar.")
+(def *item-height*
+  "Heights of items on toolbar."
+  25)
 
-(defvar *toolbar-width* (+ 20 *item-width*)
-  "Width of toolbar containing buttons, labels and so on.")
+(def *toolbar-width*
+  "Width of toolbar containing buttons, labels and so on."
+  (+ 20 *item-width*))
 
 (defn make-padding
   "Adds a padding to buttons."

@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.scene-layouts
   "Basic namespace for drawing lattice."
-  (:use [conexp.base :only (illegal-argument, defvar-, reduce!)]
+  (:use [conexp.base :only (illegal-argument, reduce!)]
         [conexp.layouts.base :only (positions, connections,
                                     nodes, update-positions, annotation)]
         [conexp.layouts.util :only (enclosing-rectangle)]

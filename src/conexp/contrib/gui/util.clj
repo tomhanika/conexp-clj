@@ -16,7 +16,7 @@
            [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
            [java.awt.event MouseEvent]
            [java.io File])
-  (:use [conexp.base :only (defvar, defmacro-, first-non-nil,
+  (:use [conexp.base :only (defmacro-, first-non-nil,
                             illegal-argument, unsupported-operation)])
   (:use seesaw.core
         [seesaw.util :only (root-cause)]))

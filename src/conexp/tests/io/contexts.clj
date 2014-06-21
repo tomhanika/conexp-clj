@@ -15,13 +15,13 @@
 
 ;;;
 
-(defvar- contexts-oi
+(def- contexts-oi
+  "Context to use for out-in testing"
   [(make-context #{"a" "b" "c"}
                  #{"1" "2" "3"}
                  #{["a" "1"] ["a" "3"]
                    ["b" "2"] ["c" "3"]}),
-   (null-context #{})]
-  "Context to use for out-in testing")
+   (null-context #{})])
 
 (deftest test-context-out-in
   (with-testing-data [ctx contexts-oi,
@@ -32,10 +32,10 @@
 
 ;;
 
-(defvar- contexts-oioi
+(def- contexts-oioi
+  "Contexts to use for out-in-out-in testing"
   [(make-context #{1 2 3} #{4 5 6} <),
-   (make-context #{'a} #{'+} #{['a '+]})]
-  "Contexts to use for out-in-out-in testing")
+   (make-context #{'a} #{'+} #{['a '+]})])
 
 (deftest test-context-out-in-out-in
   (with-testing-data [ctx contexts-oioi,
@@ -45,12 +45,12 @@
 
 ;;
 
-(defvar- contexts-with-empty-columns
+(def- contexts-with-empty-columns
+  "Context with empty columns, to test for corner cases"
   [(null-context #{1 2 3 4}),
    (null-context #{1 2 3}),
    (null-context #{}),
-   (make-context #{1 2 3} #{1 2 3} #{[1 2] [2 3] [3 2]})]
-  "Context with empty columns, to test for corner cases")
+   (make-context #{1 2 3} #{1 2 3} #{[1 2] [2 3] [3 2]})])
 
 (deftest test-empty-columns
   (with-testing-data [ctx contexts-with-empty-columns,
