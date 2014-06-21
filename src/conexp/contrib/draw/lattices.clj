@@ -136,7 +136,7 @@
   [lattice & args]
   (let [map       (apply hash-map args),
         layout-fn (get map :layout-fn standard-layout)]
-    (apply draw-layout (layout-fn lattice) map)))
+    (apply draw-layout (layout-fn lattice) args)))
 
 (defn draw-concept-lattice
   "Draws the concept lattice of a given context, passing all remaining
