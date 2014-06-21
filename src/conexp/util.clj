@@ -26,12 +26,6 @@
   [name & decls]
   (list* `defvar (with-meta name (assoc (meta name) :private true)) decls))
 
-(defmacro defonce-
-  "Same as defonce but yields a private definition"
-  ([name expr]
-     (list `defonce (with-meta name (assoc (meta name) :private true)) expr))
-  ([name expr doc]
-     (list `defonce (with-meta name (assoc (meta name) :private true :doc doc)) expr)))
 
 (defmacro defalias
   "Defines an alias for a var: a new var with the same root binding (if
