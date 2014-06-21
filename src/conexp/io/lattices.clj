@@ -28,12 +28,13 @@
 (define-lattice-output-format :simple
   [lat file]
   (with-out-writer file
-    (println "conexp-clj simple")
-    (prn {:lattice [(base-set lat)
-                    (set-of [x y]
-                            [x (base-set lat)
-                             y (base-set lat)
-                             :when ((order lat) [x y])])]})))
+    (binding [*print-length* nil]
+      (println "conexp-clj simple")
+      (prn {:lattice [(base-set lat)
+                      (set-of [x y]
+                              [x (base-set lat)
+                               y (base-set lat)
+                               :when ((order lat) [x y])])]}))))
 
 (define-lattice-input-format :simple
   [file]

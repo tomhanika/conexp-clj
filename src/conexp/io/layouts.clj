@@ -33,9 +33,10 @@
 (define-layout-output-format :simple
   [layout file]
   (with-out-writer file
-    (println "conexp-clj simple")
-    (prn {:layout [(positions layout)
-                   (connections layout)]})))
+    (binding [*print-length* nil]
+      (println "conexp-clj simple")
+      (prn {:layout [(positions layout)
+                     (connections layout)]}))))
 
 (define-layout-input-format :simple
   [file]

@@ -30,10 +30,11 @@
 (define-mv-context-output-format :simple
   [mv-context file]
   (with-out-writer file
-    (println "conexp-clj simple")
-    (prn {:many-valued-context [(objects mv-context)
-                                (attributes mv-context)
-                                (incidence mv-context)]})))
+    (binding [*print-length* nil]
+      (println "conexp-clj simple")
+      (prn {:many-valued-context [(objects mv-context)
+                                  (attributes mv-context)
+                                  (incidence mv-context)]}))))
 
 (define-mv-context-input-format :simple
   [file]

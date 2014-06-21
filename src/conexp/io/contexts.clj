@@ -33,10 +33,11 @@
 (define-context-output-format :simple
   [ctx file]
   (with-out-writer file
-    (println "conexp-clj simple")
-    (prn {:context [(objects ctx)
-                    (attributes ctx)
-                    (incidence ctx)]})))
+    (binding [*print-length* nil]
+      (println "conexp-clj simple")
+      (prn {:context [(objects ctx)
+                      (attributes ctx)
+                      (incidence ctx)]}))))
 
 (define-context-input-format :simple
   [file]
