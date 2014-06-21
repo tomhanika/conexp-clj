@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.nodes-and-connections
   "Namespace for representing nodes and their connections for drawing lattice diagrams."
-  (:use [conexp.base :only (round, union, difference, -?>)]
+  (:use [conexp.base :only (round, union, difference, -?>, def-)]
         conexp.contrib.draw.scenes)
   (:import [java.awt Color]
            [no.geosoft.cc.graphics GWindow GScene GObject GSegment

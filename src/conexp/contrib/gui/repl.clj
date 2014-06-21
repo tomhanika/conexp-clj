@@ -13,6 +13,7 @@
            [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame
                         JComponent]
            [java.awt Font Color Graphics Graphics2D RenderingHints])
+  (:use [conexp.base :only (def-)])
   (:use conexp.contrib.gui.util)
   (:require [conexp.contrib.gui.repl-utils :as repl-utils])
   (:require clojure.main))

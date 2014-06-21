@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.scenes
   "Namespace for scene abstraction."
-  (:use [conexp.base :only (illegal-argument)])
+  (:use [conexp.base :only (illegal-argument, def-)])
   (:use [seesaw.core :only (listen)])
   (:import [java.awt Color]
            [java.io File]
