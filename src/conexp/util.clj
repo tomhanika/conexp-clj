@@ -8,8 +8,6 @@
 
 (in-ns 'conexp.base)
 
-(use 'clojure.test)
-
 ;;; def macros, inspired and partially copied from clojure.contrib.def, 1.3.0-SNAPSHOT
 
 (defmacro def-
@@ -103,11 +101,13 @@ metadata (as provided by def) merged into the metadata of the original."
   ([] (test-conexp false))
   ([with-contrib?]
      (if with-contrib?
-       (do (require 'conexp.tests
+       (do (require 'clojure.test
+                    'conexp.tests
                     'conexp.contrib.tests)
            (clojure.test/run-tests 'conexp.tests
                                    'conexp.contrib.tests))
-       (do (require 'conexp.tests)
+       (do (require 'clojure.test
+                    'conexp.tests)
            (clojure.test/run-tests 'conexp.tests)))))
 
 (defmacro tests-to-run
