@@ -31,6 +31,8 @@
 
 ;;; Documentation Coverage
 
+(def- conexp-namespaces '[conexp.base conexp.fca conexp.io conexp.layouts])
+
 (defn conexp-fns-needing-doc
   "Returns function in public conexp-clj API not having documentation."
   []
