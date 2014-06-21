@@ -67,7 +67,7 @@
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** NEXT Write Wiki [4/7]                                                  :7:
+** NEXT Write Wiki [5/7]                                                  :7:
    :LOGBOOK:
    CLOCK: [2014-04-25 Fri 09:49]--[2014-04-25 Fri 10:08] =>  0:19
    :END:
@@ -78,9 +78,9 @@
    :END:
    - [X] Getting Started
    - [X] Basic Notation and Syntax
-   - [-] Basic Usage
+   - [X] Basic Usage
      - [X] Creating and Working with Formal Contexts
-     - [ ] Concept Lattices
+     - [X] Concept Lattices
      - [X] IO
      - [X] Implications
      - [X] Exploration
