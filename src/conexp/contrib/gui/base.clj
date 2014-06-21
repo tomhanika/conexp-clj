@@ -9,7 +9,7 @@
 (ns conexp.contrib.gui.base
   "Provides basic definitions for the standard conexp-clj GUI."
   (:import [java.awt event.WindowEvent])
-  (:use [conexp.base :only (defnk, illegal-state, unsupported-operation)]
+  (:use [conexp.base :only (illegal-state, unsupported-operation)]
         [conexp.main :only (conexp-version)]
         conexp.contrib.gui.util
         conexp.contrib.gui.plugins
@@ -49,9 +49,10 @@
 
 ;;; Conexp Main Frame
 
-(defnk conexp-main-frame
+(defn conexp-main-frame
   "Returns main frame for conexp standard gui."
-  [:default-close-operation :dispose]
+  [& {:keys [default-close-operation]
+      :or   {default-close-operation :dispose}}]
   (let [tabbed-pane  (tabbed-panel)
         main-frame   (frame :title "conexp-clj"
                             :size [640 :by 480]

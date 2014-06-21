@@ -8,8 +8,7 @@
 
 (ns conexp.contrib.profiler
   "Provides simple function for statistical and instrumental profiling."
-  (:use [conexp.base :only (defnk)]
-        [clojure.pprint :only (pprint, cl-format)]))
+  (:use [clojure.pprint :only (pprint, cl-format)]))
 
 ;;; profiling code from clojure.contrib.profile
 
@@ -213,32 +212,34 @@ profiled section, in nanoseconds."
 
 ;;; High Level
 
-(defnk start-profiling
+(defn start-profiling
   "Starts profiling the given thread. Options include
 
      :thread for the thread to be profiled (defaults
              to (current-thread)),
      :period for the period between two ticks, given in ms, defaults
              to 100"
-  [:thread (current-thread)
-   :period 100]
+  [& {:keys [thread period]
+      :or   {thread (current-thread),
+             period 100}}]
   (assert (instance? Thread thread))
   (when (get-profiled-data thread)
     (throw (IllegalArgumentException. "Thread already profiled.")))
   (add-profiled-thread thread period))
 
-(defnk stop-profiling
+(defn stop-profiling
   "Stops profiling the given thread. The :thread keyword argument may
   be given to indicate which profiling to stop, defaults
   to (current-thread)."
-  [:thread (current-thread)]
+  [& {:keys [thread]
+      :or   {thread (current-thread)}}]
   (assert (instance? Thread thread))
   (when-not (get-profiled-data thread)
     (throw (IllegalArgumentException. "Thread is not profiled.")))
   (delete-profiled-thread thread)
   nil)
 
-(defnk show-profiling
+(defn show-profiling
   "Show the statistics collected so far while profiling
   thread. Options include
 
@@ -247,9 +248,10 @@ profiled section, in nanoseconds."
     :pattern   for filtering the output via re-find
     :threshold for the minimum precentage a function has
                  to ticked to be shown."
-  [:thread (current-thread),
-   :pattern #".*",
-   :threshold -1.0]
+  [& {:keys [thread pattern threshold]
+      :or   {thread    (current-thread),
+             pattern   #".*",
+             threshold -1.0}}]
   (assert (instance? Thread thread))
   (let [data (get-profiled-data thread)]
     (when-not data

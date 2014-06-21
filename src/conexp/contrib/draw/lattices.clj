@@ -8,8 +8,7 @@
 
 (ns conexp.contrib.draw.lattices
   "This namespace provides a lattice editor and a convenience function to draw lattices."
-  (:use [conexp.base                       :only (defnk)]
-        [conexp.fca.lattices               :only (concept-lattice)]
+  (:use [conexp.fca.lattices               :only (concept-lattice)]
         [conexp.layouts                    :only (standard-layout)]
         [conexp.layouts.util               :only (scale-layout)]
         [conexp.io.layouts                 :only (write-layout)]
@@ -110,7 +109,7 @@
 
 ;;; Drawing Routine for the REPL
 
-(defnk draw-layout
+(defn draw-layout
   "Draws given layout on a canvas. Returns the frame and the scene (as
   map). The following options are allowed, their default values are
   given in parantheses:
@@ -119,8 +118,9 @@
     - dimension [600 600]
   "
   [layout
-   :visible true
-   :dimension [600 600]]
+   & {:keys [visible dimension]
+      :or   {visible   true,
+             dimension [600 600]}}]
   (let [frame          (JFrame. "conexp-clj Lattice"),
         lattice-editor (make-lattice-editor frame layout)]
     (doto frame
@@ -146,11 +146,12 @@
 
 ;;;
 
-(defnk draw-lattice-to-file
+(defn draw-lattice-to-file
   "Exports layout of given lattice to the given file."
   [lattice file-name
-   :layout-fn standard-layout,
-   :dimension [600 600]]
+   & {:keys [layout-fn dimension]
+      :or   {layout-fn standard-layout,
+             dimension [600 600]}}]
   (write-layout :svg (layout-fn lattice) file-name))
   
 ;;;

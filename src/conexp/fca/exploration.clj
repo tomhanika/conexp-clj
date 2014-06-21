@@ -150,7 +150,7 @@
 
 ;;; Handler for Expert Interaction
 
-(defnk make-handler
+(defn make-handler
   "Creates a handler for attribute exploration. Valid keys are
 
   - automorphisms: A sequence of automorphisms of the overall context,
@@ -163,7 +163,9 @@
     arguments (instead of 3), namely the context of the possible incidence, the context of
     the certain incidence, the known implications as well as the current implication to
     be asked to the expert."
-  [:automorphisms #{}, :incomplete-counterexamples? false]
+  [& {:keys [automorphisms incomplete-counterexamples?]
+      :or   {automorphisms #{},
+             incomplete-counterexamples? false}}]
   (assert (or (set? automorphisms) (seq? automorphisms)))
   (assert (or (contains? #{true false} incomplete-counterexamples?)))
   (if incomplete-counterexamples?
