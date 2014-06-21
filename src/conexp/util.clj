@@ -10,28 +10,6 @@
 
 (use 'clojure.test)
 
-;;;
-
-(defn immigrate
-  "Create a public var in this namespace for each public var in the
-  namespaces named by ns-names. The created vars have the same name, root
-  binding, and metadata as the original except that their :ns metadata
-  value is this namespace.
-
-  This function is literally copied from the clojure.contrib.ns-utils library."
-  [& ns-names]
-  (doseq [ns ns-names]
-    (require ns)
-    (doseq [[sym, ^clojure.lang.Var var] (ns-publics ns)]
-      (let [sym (with-meta sym (assoc (meta var) :ns *ns*))]
-        (if (.hasRoot var)
-          (intern *ns* sym (.getRawRoot var))
-          (intern *ns* sym))))))
-
-(immigrate 'clojure.set
-           'clojure.core.incubator
-           'clojure.math.numeric-tower)
-
 ;;; def macros, copied from clojure.contrib.def, 1.3.0-SNAPSHOT
 
 (defmacro defvar
@@ -124,6 +102,28 @@ defnk accepts an optional docstring as well as an optional metadata map."
        [~@pos & options#]
        (let [~de-map (apply hash-map options#)]
          ~@body))))
+
+;;; Namespace tools
+
+(defn immigrate
+  "Create a public var in this namespace for each public var in the
+  namespaces named by ns-names. The created vars have the same name, root
+  binding, and metadata as the original except that their :ns metadata
+  value is this namespace.
+
+  This function is literally copied from the clojure.contrib.ns-utils library."
+  [& ns-names]
+  (doseq [ns ns-names]
+    (require ns)
+    (doseq [[sym, ^clojure.lang.Var var] (ns-publics ns)]
+      (let [sym (with-meta sym (assoc (meta var) :ns *ns*))]
+        (if (.hasRoot var)
+          (intern *ns* sym (.getRawRoot var))
+          (intern *ns* sym))))))
+
+(immigrate 'clojure.set
+           'clojure.core.incubator
+           'clojure.math.numeric-tower)
 
 ;;; Version
 
