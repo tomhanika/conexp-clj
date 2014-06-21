@@ -71,7 +71,7 @@
                                          (respects? #{2} impl))
                              (examples-by-automorphisms ctx
                                                         [(gensym) #{1}]
-                                                        #{(fn [x]
+                                                        #{(fn [^long x]
                                                             (case x
                                                               1 2
                                                               2 1
