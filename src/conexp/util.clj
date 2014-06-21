@@ -26,11 +26,6 @@
   [name & decls]
   (list* `defvar (with-meta name (assoc (meta name) :private true)) decls))
 
-(defmacro defmacro-
-  "Same as defmacro but yields a private definition"
-  [name & decls]
-  (list* `defmacro (with-meta name (assoc (meta name) :private true)) decls))
-
 (defmacro defonce-
   "Same as defonce but yields a private definition"
   ([name expr]
