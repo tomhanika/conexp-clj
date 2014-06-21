@@ -19,7 +19,7 @@
                  connections            ;connections as set of pairs
                  upper-labels           ;map mapping nodes to vectors of labels and coordinates/nil
                  lower-labels           ;same
-                 information]           ;ref for technicalse
+                 information]           ;ref for technicals
   Object
   (equals [this other]
     (generic-equals [this other] Layout [lattice positions connections upper-labels lower-labels]))
