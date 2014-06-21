@@ -40,7 +40,7 @@
                                             (label :text "Graphical User Interface"
                                                    :size [300 :by 16]
                                                    :halign :center)
-                                            (label :text "ⓒ 2013 Daniel Borchmann"
+                                            (label :text "ⓒ 2013, 2014 Daniel Borchmann"
                                                    :size [300 :by 30]
                                                    :halign :center
                                                    :valign :bottom)])
