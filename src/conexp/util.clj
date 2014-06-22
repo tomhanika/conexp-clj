@@ -95,19 +95,19 @@ metadata (as provided by def) merged into the metadata of the original."
 
 ;;; Testing
 
+(require 'clojure.test)
+
 (defn test-conexp
   "Runs tests for conexp. If with-contrib? is given and true, tests
   conexp.contrib.tests too."
   ([] (test-conexp false))
   ([with-contrib?]
      (if with-contrib?
-       (do (require 'clojure.test
-                    'conexp.tests
+       (do (require 'conexp.tests
                     'conexp.contrib.tests)
            (clojure.test/run-tests 'conexp.tests
                                    'conexp.contrib.tests))
-       (do (require 'clojure.test
-                    'conexp.tests)
+       (do (require 'conexp.tests)
            (clojure.test/run-tests 'conexp.tests)))))
 
 (defmacro tests-to-run
@@ -116,12 +116,12 @@ metadata (as provided by def) merged into the metadata of the original."
   current namespace, before all other tests in supplied as arguments."
   [& namespaces]
   `(defn ~'test-ns-hook []
-     (test-all-vars '~(ns-name *ns*))
+     (clojure.test/test-all-vars '~(ns-name *ns*))
      (doseq [ns# '~namespaces]
-       (let [result# (do (require ns#) (test-ns ns#))]
+       (let [result# (do (require ns#) (clojure.test/test-ns ns#))]
          (dosync
-          (ref-set *report-counters*
-                   (merge-with + @*report-counters* result#)))))))
+          (ref-set clojure.test/*report-counters*
+                   (merge-with + @clojure.test/*report-counters* result#)))))))
 
 (defmacro with-testing-data
   "Expects for all bindings the body to be evaluated to true. bindings
@@ -137,8 +137,8 @@ metadata (as provided by def) merged into the metadata of the original."
                  (if-not result#
                    ~(let [vars (vec (remove keyword? (take-nth 2 bindings)))]
                       `(do (println "Test failed for" '~vars "being" ~vars)
-                           (is false)))
-                   (is true))))
+                           (clojure.test/is false)))
+                   (clojure.test/is true))))
             body)))
 
 ;;; Types
