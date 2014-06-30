@@ -90,6 +90,10 @@
     (test/is (= #{#{1 2} #{1 2 4} #{1 2 3 4}} (set (conexp/all-closed-sets [1 2 3 4] clop))))
     (test/is (not= #{1 2 3 4} (clop #{1 2 4})))))
 
+(def testing-implications (map (fn [set]
+                                 (conexp/make-implication set (conexp/adprime (conexp/diag-context 14) set)))
+                               (conexp/subsets (conexp/set-of-range 14))))
+
 ;;;
 
 nil
