@@ -30,12 +30,13 @@
   (let [numargs                    (reduce (fn [numargs i]
                                              (assoc numargs i (dec (get numargs i))))
                                            numargs
-                                           (mapcat in-premise input-set))
-        empty-premise-implications (map first
-                                        (filter (fn [[i c]] (zero? c))
-                                                numargs))]
-    (loop [queue   (into (clojure.lang.PersistentQueue/EMPTY)
-                         empty-premise-implications),
+                                           (mapcat in-premise input-set))]
+    (loop [queue   (reduce (fn [queue [i c]]
+                             (if (zero? c)
+                               (conj queue i)
+                               queue))
+                           (clojure.lang.PersistentQueue/EMPTY)
+                           numargs),
            numargs (transient numargs)
            result  input-set]
       (if (empty? queue)
