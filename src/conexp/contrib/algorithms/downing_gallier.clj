@@ -16,7 +16,7 @@
   (let [implications     (vec implications),
         where-in-premise (reduce (fn [map [i impl]]
                                    (reduce (fn [map m]
-                                             (update-in map [m] conj i))
+                                             (assoc map m (conj (get map m ()) i)))
                                            map
                                            (premise impl)))
                                  {}
@@ -28,7 +28,7 @@
 
 (defn close-with-downing-gallier [[implications in-premise numargs] input-set]
   (let [numargs                    (reduce (fn [numargs i]
-                                             (update-in numargs [i] dec))
+                                             (assoc numargs i (dec (get numargs i))))
                                            numargs
                                            (mapcat in-premise input-set))
         empty-premise-implications (map first
@@ -43,7 +43,7 @@
         (let [idx             (first queue),
               new             (difference (conclusion (implications idx)) result)
               [numargs queue] (reduce (fn [[numargs queue] i]
-                                        (let [numargs (update-in numargs [i] dec)]
+                                        (let [numargs (assoc numargs i (dec (get numargs i)))]
                                           [numargs (if (pos? (get numargs i))
                                                      queue
                                                      (conj queue i))]))
