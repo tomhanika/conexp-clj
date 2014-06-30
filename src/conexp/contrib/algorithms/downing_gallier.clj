@@ -41,7 +41,6 @@
       (if (empty? queue)
         result
         (let [idx             (first queue),
-              _ (println idx)
               new             (difference (conclusion (implications idx)) result)
               [numargs queue] (reduce (fn [[numargs queue] i]
                                         (let [numargs (update-in numargs [i] dec)]
@@ -49,8 +48,7 @@
                                                      queue
                                                      (conj queue i))]))
                                       [numargs (pop queue)]
-                                      (mapcat in-premise new))
-              _ (println numargs)]
+                                      (mapcat in-premise new))]
           (recur queue numargs (into result new)))))))
 
 ;;; Interface
