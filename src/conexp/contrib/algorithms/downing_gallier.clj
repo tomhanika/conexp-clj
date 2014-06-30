@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms.downing-gallier
-  (:use [conexp.base :only (not-yet-implemented, def-)]
+  (:use [conexp.base :only (not-yet-implemented, difference)]
         [conexp.fca.implications :only (premise conclusion)]))
 
 ;;; Implementation
@@ -69,7 +69,7 @@
 (test/deftest test-close-under-implications
   (test/are [start impls result]
     (= result
-       (close-under-implications (map (partial apply make-implication)
+       (close-under-implications (map (partial apply conexp/make-implication)
                                       impls)
                                  start))
     ;;
@@ -79,9 +79,9 @@
     #{1 2 3 4 5 6 7 8} [[#{1} #{4}] [#{2} #{3}] [#{4} #{5 6 7}] [#{6 7} #{8}] [#{9 10 11} #{8}]] #{1 2 3 4 5 6 7 8}))
 
 (test/deftest test-clop-by-implications
-  (let [clop (clop-by-implications #{(make-implication #{1} #{2}),
-                                     (make-implication #{3} #{4}),
-                                     (make-implication #{} #{1})})]
+  (let [clop (clop-by-implications #{(conexp/make-implication #{1} #{2}),
+                                     (conexp/make-implication #{3} #{4}),
+                                     (conexp/make-implication #{} #{1})})]
     ;;
     (test/is (= #{1 2} (clop #{1}) (clop #{2}) (clop #{})))
     (test/is (= #{1 2 3 4} (clop #{3})))
