@@ -36,14 +36,14 @@
                                                 numargs))]
     (loop [queue   (into (clojure.lang.PersistentQueue/EMPTY)
                          empty-premise-implications),
-           numargs numargs
+           numargs (transient numargs)
            result  input-set]
       (if (empty? queue)
         result
         (let [idx             (first queue),
               new             (difference (conclusion (implications idx)) result)
               [numargs queue] (reduce (fn [[numargs queue] i]
-                                        (let [numargs (assoc numargs i (dec (get numargs i)))]
+                                        (let [numargs (assoc! numargs i (dec (get numargs i)))]
                                           [numargs (if (pos? (get numargs i))
                                                      queue
                                                      (conj queue i))]))
