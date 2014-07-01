@@ -14,28 +14,34 @@
 
 (defn implication-graph [implications]
   (let [implications     (vec implications),
-        where-in-premise (reduce (fn [map [i impl]]
-                                   (reduce (fn [map m]
-                                             (assoc map m (conj (get map m ()) i)))
-                                           map
-                                           (premise impl)))
-                                 {}
-                                 (map vector (range) implications))
-        numargs          (into [] (map (comp count premise) implications))]
+        where-in-premise (persistent!
+                          (reduce (fn [map i]
+                                    (reduce (fn [map m]
+                                              (assoc! map m (conj (map m) i)))
+                                            map
+                                            (premise (implications i))))
+                                  (transient {})
+                                  (range (count implications))))
+        numargs          (loop [numargs []
+                                impls   implications]
+                           (if (empty? impls)
+                             numargs
+                             (recur (conj numargs (count (premise (first impls))))
+                                    (rest impls))))]
     [implications where-in-premise numargs]))
 
 (defn close-with-downing-gallier [[implications in-premise numargs] input-set]
-  (let [numargs  (reduce (fn [numargs i]
-                           (assoc! numargs i (dec (get numargs i))))
-                         (transient numargs)
-                         (mapcat in-premise input-set))]
+  (let [numargs (reduce (fn [numargs i]
+                          (assoc! numargs i (dec (get numargs i))))
+                        (transient numargs)
+                        (mapcat in-premise input-set))]
     (loop [queue   (reduce (fn [queue i]
                              (if (zero? (get numargs i))
                                (conj queue i)
                                queue))
                            (clojure.lang.PersistentQueue/EMPTY)
                            (range (count numargs))),
-           numargs numargs
+           numargs numargs,
            result  input-set]
       (if (empty? queue)
         result
