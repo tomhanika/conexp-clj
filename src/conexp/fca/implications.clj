@@ -85,6 +85,66 @@
   [impl ctx]
   (subset? (conclusion impl) (adprime ctx (premise impl))))
 
+(defn- implication-graph
+  "Compute setup for Downing-Gallier"
+  [implications]
+  (let [implications     (vec implications),
+        where-in-premise (persistent!
+                          (reduce (fn [map i]
+                                    (reduce (fn [map m]
+                                              (assoc! map m (conj (map m) i)))
+                                            map
+                                            (premise (implications i))))
+                                  (transient {})
+                                  (range (count implications))))
+        numargs          (loop [numargs []
+                                impls   implications]
+                           (if (empty? impls)
+                             numargs
+                             (recur (conj numargs (count (premise (first impls))))
+                                    (rest impls))))]
+    [implications where-in-premise numargs]))
+
+(defn- close-with-downing-gallier
+  "Downing-Gallier"
+  [[implications in-premise numargs] input-set]
+  (let [numargs (reduce (fn [numargs i]
+                          (assoc! numargs i (dec (numargs i))))
+                        (transient numargs)
+                        (mapcat in-premise input-set))]
+    (loop [queue   (reduce (fn [queue i]
+                             (if (zero? (numargs i))
+                               (conj queue i)
+                               queue))
+                           (clojure.lang.PersistentQueue/EMPTY)
+                           (range (count numargs))),
+           numargs numargs,
+           result  input-set]
+      (if (empty? queue)
+        result
+        (let [idx             (first queue),
+              new             (difference (conclusion (implications idx)) result)
+              [numargs queue] (reduce (fn [[numargs queue] i]
+                                        (let [numargs (assoc! numargs i (dec (numargs i)))]
+                                          [numargs (if (pos? (numargs i))
+                                                     queue
+                                                     (conj queue i))]))
+                                      [numargs (pop queue)]
+                                      (mapcat in-premise new))]
+          (recur queue numargs (into result new)))))))
+
+(defn clop-by-implications
+  "Returns closure operator given by implications."
+  [implications]
+  (let [predata (implication-graph implications)]
+    (fn [input-set]
+      (close-with-downing-gallier predata input-set))))
+
+(defn close-under-implications
+  "Computes smallest superset of set being closed under given implications."
+  [implications input-set]
+  ((clop-by-implications implications) input-set))
+
 (defn- add-immediate-elements
   "Iterating through the sequence of implications, tries to apply as many implications as
   possible.  Uses subset-test to determine whether a given implication can be used to
@@ -109,28 +169,6 @@
                (conj! unused-impls impl)))
       [(persistent! conclusions)
        (persistent! unused-impls)])))
-
-(defn close-under-implications-1
-  "Extends «set» by applying all implications in «implications» once, returning the
-  resulting, extended, set"
-  [implications set]
-  (first (add-immediate-elements implications set subset?)))
-
-(defn close-under-implications
-  "Computes smallest superset of set being closed under given implications."
-  [implications set]
-  (assert (set? set))
-  (loop [set   set,
-         impls implications]
-    (let [[new impls] (add-immediate-elements impls set subset?)]
-      (if (= new set)
-        new
-        (recur new impls)))))
-
-(defn clop-by-implications
-  "Returns closure operator given by implications."
-  [implications]
-  (partial close-under-implications implications))
 
 (defn pseudo-close-under-implications
   "Computes smallest superset of set being pseudo-closed under given
