@@ -21,23 +21,21 @@
                                            (premise impl)))
                                  {}
                                  (map vector (range) implications))
-        numargs          (into {} (map vector
-                                       (range)
-                                       (map (comp count premise) implications)))]
+        numargs          (into [] (map (comp count premise) implications))]
     [implications where-in-premise numargs]))
 
 (defn close-with-downing-gallier [[implications in-premise numargs] input-set]
-  (let [numargs                    (reduce (fn [numargs i]
-                                             (assoc numargs i (dec (get numargs i))))
-                                           numargs
-                                           (mapcat in-premise input-set))]
-    (loop [queue   (reduce (fn [queue [i c]]
-                             (if (zero? c)
+  (let [numargs  (reduce (fn [numargs i]
+                           (assoc! numargs i (dec (get numargs i))))
+                         (transient numargs)
+                         (mapcat in-premise input-set))]
+    (loop [queue   (reduce (fn [queue i]
+                             (if (zero? (get numargs i))
                                (conj queue i)
                                queue))
                            (clojure.lang.PersistentQueue/EMPTY)
-                           numargs),
-           numargs (transient numargs)
+                           (range (count numargs))),
+           numargs numargs
            result  input-set]
       (if (empty? queue)
         result
