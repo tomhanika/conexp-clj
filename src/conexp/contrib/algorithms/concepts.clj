@@ -63,10 +63,10 @@
                                                        incidence-matrix
                                                        %)
                                      start))]
-      (map (fn [bitset]
-             [(to-hashset object-vector (a-prime bitset)),
-              (to-hashset attribute-vector bitset)])
-           intents)))
+    (map (fn [bitset]
+           [(to-hashset object-vector (a-prime bitset)),
+            (to-hashset attribute-vector bitset)])
+         intents)))
 
 
 ;;; Vychodil (:vychodil)
