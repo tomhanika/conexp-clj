@@ -9,9 +9,12 @@
 (in-ns 'conexp.contrib.algorithms)
 
 (use 'conexp.contrib.algorithms.bitwise
-     '[conexp.fca.implications :only (premise conclusion implication? make-implication)]
+     '[conexp.fca.implications :only (implication? make-implication)]
      '[conexp.base :only (next-closed-set-in-family subset? forall)]
      '[conexp.fca.contexts :only (attributes context-attribute-closure)])
+
+(import '[conexp.fca.implications Implication])
+
 
 ;;; Computing Implicational Closures
 
@@ -20,9 +23,9 @@
   (loop [conclusions  (transient initial-set),
          impls        implications,
          unused-impls (transient [])]
-    (if-let [impl (first impls)]
-      (if (subset-test (premise impl) initial-set)
-        (recur (reduce conj! conclusions (conclusion impl))
+    (if-let [^Implication impl (first impls)]
+      (if (subset-test (.premise impl) initial-set)
+        (recur (reduce conj! conclusions (.conclusion impl))
                (rest impls)
                unused-impls)
         (recur conclusions
