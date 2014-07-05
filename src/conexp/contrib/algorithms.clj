@@ -23,8 +23,6 @@
                  (cm/canonical-base (cm/make-context objs (cm/attributes ctx) (cm/incidence ctx))))
                (partition-all n (cm/objects ctx)))))
 
-(cm/defalias linclosure conexp.contrib.algorithms.linclosure/close-under-implications)
-
 ;;;
 
 nil
