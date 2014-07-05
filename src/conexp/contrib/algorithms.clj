@@ -16,6 +16,8 @@
 
 (cm/defalias linclosure conexp.contrib.algorithms.linclosure/close-under-implications)
 
+(load "algorithms/concepts")
+
 ;;;
 
 nil
