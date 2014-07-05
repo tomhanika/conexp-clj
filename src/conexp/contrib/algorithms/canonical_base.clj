@@ -71,7 +71,7 @@
                           (when candidate
                             (let [conclusions (clop candidate)]
                               (if (not= candidate conclusions)
-                                (let [impl  (Implication. candidate conclusions),
+                                (let [impl  (cm/make-implication candidate conclusions),
                                       impls (conj implications impl)]
                                   (cons impl
                                         (lazy-seq (runner impls (next-closure impls candidate)))))
