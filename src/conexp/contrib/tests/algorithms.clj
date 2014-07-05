@@ -48,6 +48,8 @@
           base-2 (cm/canonical-base ctx)]
       (if-not (= base-1 base-2)
         (do (println "canonical-base returned different result for\n" ctx)
+            (println base-1)
+            (println base-2)
             (is false))
         (is true)))))
 
