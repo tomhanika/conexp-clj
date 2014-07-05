@@ -8,10 +8,8 @@
 
 (in-ns 'conexp.contrib.algorithms)
 
-(use 'conexp.contrib.algorithms.bitwise
-     '[conexp.fca.implications :only (implication? make-implication)]
-     '[conexp.base :only (next-closed-set-in-family subset? forall)]
-     '[conexp.fca.contexts :only (attributes context-attribute-closure)])
+(use 'conexp.contrib.algorithms.bitwise)
+(require '[conexp.main :as cm])
 
 (import '[conexp.fca.implications Implication])
 
@@ -55,30 +53,25 @@
 
 (defn canonical-base-from-clop
   ([clop base]
-     (canonical-base-from-clop clop base #{} (constantly true)))
+     (canonical-base-from-clop clop base #{}))
   ([clop base background-knowledge]
-     (canonical-base-from-clop clop base background-knowledge (constantly true)))
-  ([clop base background-knowledge predicate]
      (assert (fn? clop)
              "Given closure operator must be a function")
      (assert (coll? base)
              "Base must be a collection")
-     (assert (fn? predicate)
-             "Predicate must be a function")
      (assert (and (set? background-knowledge)
-                  (forall [x background-knowledge]
+                  (cm/forall [x background-knowledge]
                     (implication? x)))
              "Background knowledge must be a set of implications")
      (let [next-closure (fn [implications last]
-                          (next-closed-set-in-family predicate
-                                                     base
-                                                     (clop-by-implications implications)
-                                                     last)),
+                          (cm/next-closed-set base
+                                              (clop-by-implications implications)
+                                              last)),
            runner       (fn runner [implications candidate]
                           (when candidate
                             (let [conclusions (clop candidate)]
                               (if (not= candidate conclusions)
-                                (let [impl  (make-implication candidate conclusions),
+                                (let [impl  (Implication. candidate conclusions),
                                       impls (conj implications impl)]
                                   (cons impl
                                         (lazy-seq (runner impls (next-closure impls candidate)))))
@@ -88,16 +81,13 @@
 
 (defn canonical-base
   ([ctx]
-     (canonical-base ctx #{} (constantly true)))
+     (canonical-base ctx #{}))
   ([ctx background-knowledge]
-     (canonical-base ctx background-knowledge (constantly true)))
-  ([ctx background-knowledge predicate]
      (assert (context? ctx)
              "First argument must be a formal context")
-     (canonical-base-from-clop #(context-attribute-closure ctx %)
+     (canonical-base-from-clop #(cm/context-attribute-closure ctx %)
                                (attributes ctx)
-                               background-knowledge
-                               predicate)))
+                               background-knowledge)))
 
 ;;;
 
