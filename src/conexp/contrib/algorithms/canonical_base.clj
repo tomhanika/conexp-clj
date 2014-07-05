@@ -61,8 +61,7 @@
   ([ctx background-knowledge]
      (with-binary-context ctx 
        (let [next-closure (fn [implications last]
-                            (nc/next-closed-set object-count
-                                                attribute-count
+                            (nc/next-closed-set attribute-count
                                                 (clop-by-implications implications)
                                                 last)),
              runner       (fn runner [implications, ^BitSet candidate]

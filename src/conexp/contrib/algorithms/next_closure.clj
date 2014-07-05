@@ -44,7 +44,7 @@
 
 (defn next-closed-set
   "Computes the next closed set of closure after A. Returns nil if there is none."
-  [^long object-count, ^long attribute-count, closure, ^BitSet A]
+  [^long attribute-count, closure, ^BitSet A]
   (let [^BitSet B (.clone A)]
     (loop [i (dec attribute-count)]
       (cond

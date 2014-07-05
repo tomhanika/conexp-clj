@@ -58,8 +58,7 @@
         a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
         start   (o-prime (a-prime (BitSet.))),
         intents (take-while identity
-                            (iterate #(next-closed-set object-count
-                                                       attribute-count
+                            (iterate #(next-closed-set attribute-count
                                                        (partial bitwise-context-attribute-closure
                                                                 object-count
                                                                 attribute-count
