@@ -17,27 +17,28 @@
 ;;; Computing Implicational Closures
 
 (defn- add-immediate-elements
-  [implications, ^BitSet initial-set, subset-test]
-  (loop [^BitSet conclusions  initial-set,
-         impls        implications,
+  "Destructs input bitset"
+  [implications, ^BitSet input-set, subset-test]
+  (loop [impls        implications,
          unused-impls (transient [])]
     (if-let [^Implication impl (first impls)]
-      (if (subset-test (.premise impl) initial-set)
-        (recur (do (dobits [x (.conclusion impl)]
-                     (.set conclusions x))
-                   conclusions)
-               (rest impls)
-               unused-impls)
-        (recur conclusions
-               (rest impls)
+      (if (subset-test (.premise impl) input-set)
+        (do (dobits [x (.conclusion impl)]
+              (.set input-set x))
+            (recur (rest impls)
+                   unused-impls))
+        (recur (rest impls)
                (conj! unused-impls impl)))
-      [conclusions, (persistent! unused-impls)])))
+      [input-set, (persistent! unused-impls)])))
 
 (defn close-under-implications
+  "Yields new bitset that is the closure of the input bitset under the given collection of
+  implications of bitsetsn"
   [implications, ^BitSet set]
-  (loop [set   set,
+  (loop [set   (.clone set),
          impls implications]
-    (let [[new impls] (add-immediate-elements impls (.clone set)
+    (let [[new impls] (add-immediate-elements impls
+                                              (.clone set)
                                               (fn [^BitSet A, ^BitSet B]
                                                 (forall-in-bitset [x A]
                                                   (.get B x))))]
