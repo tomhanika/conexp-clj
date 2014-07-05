@@ -14,7 +14,7 @@
         conexp.contrib.algorithms))
 
 
-;;;
+;;; Concept Calculations
 
 (defn- add-if-not-exists [invalids program-name keyword]
   (when-not (program-exists? program-name)
@@ -36,6 +36,18 @@
                              concepts-methods))]
       (if-not (apply = rst)
         (do (println "concepts returned different result for\n" ctx)
+            (is false))
+        (is true)))))
+
+;;; Canonical Base Computation
+
+(deftest test-canonical-base
+  (dotimes [_ test-runs]
+    (let [ctx    (cm/rand-context (cm/set-of-range (rand 15)) (rand)),
+          base-1 (canonical-base ctx)
+          base-2 (cm/canonical-base ctx)]
+      (if-not (= base-1 base-2)
+        (do (println "canonical-base returned different result for\n" ctx)
             (is false))
         (is true)))))
 
