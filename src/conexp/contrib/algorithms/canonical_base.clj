@@ -35,7 +35,7 @@
   "Yields new bitset that is the closure of the input bitset under the given collection of
   implications of bitsetsn"
   [implications, ^BitSet set]
-  (loop [set   (.clone set),
+  (loop [set   set,
          impls implications]
     (let [[new impls] (add-immediate-elements impls
                                               (.clone set)
