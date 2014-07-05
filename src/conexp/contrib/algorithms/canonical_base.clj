@@ -9,8 +9,10 @@
 (in-ns 'conexp.contrib.algorithms)
 
 (use 'conexp.contrib.algorithms.bitwise)
-(require '[conexp.main :as cm])
+(require '[conexp.main :as cm]
+         '[conexp.contrib.algorithms.next-closure :as nc])
 
+(import '[java.util BitSet])
 (import '[conexp.fca.implications Implication])
 
 
@@ -57,17 +59,15 @@
   ([ctx]
      (canonical-base ctx #{}))
   ([ctx background-knowledge]
-     (assert (context? ctx)
-             "First argument must be a formal context")
      (with-binary-context ctx 
        (let [next-closure (fn [implications last]
-                            (next-closed-set object-count
-                                             attribute-count
-                                             (clop-by-implications implications)
-                                             last)),
+                            (nc/next-closed-set object-count
+                                                attribute-count
+                                                (clop-by-implications implications)
+                                                last)),
              runner       (fn runner [implications, ^BitSet candidate]
                             (when candidate
-                              (let [conclusions (bitwise-context-attribute-closure
+                              (let [conclusions (nc/bitwise-context-attribute-closure
                                                  object-count
                                                  attribute-count
                                                  incidence-matrix
@@ -80,9 +80,9 @@
                                     (cons impl
                                           (lazy-seq (runner impls (next-closure impls candidate)))))
                                   (recur implications (next-closure implications candidate))))))]
-         (map (fn [bit-impl]
-                (cm/make-implication (to-hashset attribute-vector (premise bit-impl))
-                                     (to-hashset attribute-vector (conclusion bit-impl))))
+         (map (fn [^Implication bit-impl]
+                (cm/make-implication (to-hashset attribute-vector (.premise bit-impl))
+                                     (to-hashset attribute-vector (.conclusion bit-impl))))
               (lazy-seq (runner (vec background-knowledge)
                                 (close-under-implications background-knowledge
                                                           (to-bitset attribute-vector #{})))))))))
