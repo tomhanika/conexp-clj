@@ -13,18 +13,6 @@
             [conexp.contrib.algorithms :as a]
             [conexp.tests.fca.contexts :as c]))
 
-;;; parallel-canonical-base
-
-(defn test-parallel-canonical-base [ctx & nums]
-  (with-testing-data [ctx [c/test-ctx-01
-                           c/test-ctx-04
-                           c/test-ctx-07
-                           c/test-ctx-08]
-                      num [2 5 10 20]]
-    (apply =
-           (canonical-base ctx)
-           (map #(a/parallel-canonical-base ctx %) num))))
-
 ;;; Rest
 
 (tests-to-run conexp.contrib.tests.algorithms.concepts
