@@ -11,7 +11,7 @@
 (use '[conexp.main :only (illegal-argument, improve-basic-order)]
      'conexp.util.generators
      'conexp.contrib.algorithms.bitwise
-     '[conexp.contrib.algorithms.next-closure :only (next-closed-set)])
+     '[conexp.contrib.algorithms.next-closure :only (next-closed-set bitwise-context-attribute-closure)])
 (use '[conexp.fca.contexts :only (context?, objects, attributes,
                                             incidence, attribute-derivation,
                                             context-attribute-closure)])
@@ -60,7 +60,10 @@
         intents (take-while identity
                             (iterate #(next-closed-set object-count
                                                        attribute-count
-                                                       incidence-matrix
+                                                       (partial bitwise-context-attribute-closure
+                                                                object-count
+                                                                attribute-count
+                                                                incidence-matrix)
                                                        %)
                                      start))]
     (map (fn [bitset]

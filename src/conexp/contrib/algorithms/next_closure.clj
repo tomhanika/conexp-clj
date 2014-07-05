@@ -26,7 +26,7 @@
           :else
           (recur (dec j))))))
 
-(defn- closure
+(defn bitwise-context-attribute-closure
   "Computes the closure of A in the context given by the parameters."
   [^long object-count, ^long attribute-count, incidence-matrix, ^BitSet A]
   (let [^BitSet A (.clone A),
@@ -43,9 +43,8 @@
     A))
 
 (defn next-closed-set
-  "Computes the next closed set after A in the given context. Returns
-  nil if there is none."
-  [^long object-count, ^long attribute-count, incidence-matrix, ^BitSet A]
+  "Computes the next closed set of closure after A. Returns nil if there is none."
+  [^long object-count, ^long attribute-count, closure, ^BitSet A]
   (let [^BitSet B (.clone A)]
     (loop [i (dec attribute-count)]
       (cond
@@ -56,7 +55,7 @@
            (recur (dec i))),
        :else
        (do (.set B i)
-           (let [A_i (closure object-count attribute-count incidence-matrix B)]
+           (let [A_i (closure B)]
              (if (lectic-<_i i A A_i)
                A_i
                (do (.clear B i)
