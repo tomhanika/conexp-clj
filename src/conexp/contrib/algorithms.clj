@@ -15,6 +15,7 @@
 
 (cm/defalias linclosure conexp.contrib.algorithms.linclosure/close-under-implications)
 
+(load "algorithms/canonical_base")
 (load "algorithms/concepts")
 
 ;;;
