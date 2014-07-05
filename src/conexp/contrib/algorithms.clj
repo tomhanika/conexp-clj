@@ -14,16 +14,6 @@
 
 ;;;
 
-(defn parallel-canonical-base
-  "Computes the canonical base of the context «ctx» in a parallel way, dividing the object
-  set in chunks of size at most «n» each"
-  [ctx n]
-  (apply cm/intersect-implicational-theories
-         (cm/attributes ctx)
-         (pmap (fn [objs]
-                 (cm/canonical-base (cm/make-context objs (cm/attributes ctx) (cm/incidence ctx))))
-               (partition-all n (cm/objects ctx)))))
-
 (cm/defalias linclosure conexp.contrib.algorithms.linclosure/close-under-implications)
 
 ;;;
