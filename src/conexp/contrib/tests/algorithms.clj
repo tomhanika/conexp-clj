@@ -54,7 +54,18 @@
         (is true))))
   (dotimes [_ test-runs]
     (is (zero? (count (canonical-base (cm/random-context 20 0.7)
-                                      #{(cm/make-implication #{} (cm/set-of-range 20))}))))))
+                                      #{(cm/make-implication #{} (cm/set-of-range 20))})))))
+  (is (let [ctx (make-context-from-matrix 5 5
+                                          [0 0 1 0 1
+                                           0 1 1 0 0
+                                           0 0 1 0 1
+                                           0 0 1 1 1
+                                           0 0 1 0 1]),
+            bgk #{(impl ==> 2)}]
+        (= (set (canonical-base ctx bgk))
+           #{(impl 0 2 ==> 1 3 4)
+             (impl 2 3 ==> 4)
+             (impl 1 2 4 ==> 0 3)}))))
 
 ;;;
 
