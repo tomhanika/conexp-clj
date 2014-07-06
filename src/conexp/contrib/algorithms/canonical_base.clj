@@ -12,41 +12,38 @@
 (require '[conexp.main :as cm]
          '[conexp.contrib.algorithms.next-closure :as nc])
 
-(import '[java.util BitSet])
+(import '[java.util BitSet List LinkedList ListIterator])
 (import '[conexp.fca.implications Implication])
 
 
 ;;; Computing Implicational Closures
 
 (defn- add-immediate-elements
-  "Destructs input bitset"
-  [implications, ^BitSet input-set, subset-test]
-  (loop [impls        implications,
-         unused-impls (transient []),
-         changed?     false]
-    (if-let [^Implication impl (first impls)]
-      (if (subset-test (.premise impl) input-set)
-        (do (dobits [x (.conclusion impl)]
-              (.set input-set x))
-            (recur (rest impls)
-                   unused-impls
-                   true))
-        (recur (rest impls)
-               (conj! unused-impls impl)
-               changed?))
-      [input-set, (persistent! unused-impls), changed?])))
+  "Destructs implications and input-bitset"
+  [^List implications, ^BitSet input-set, subset-test]
+  (let [^ListIterator iter (.listIterator implications)]
+    (loop [changed? false]
+      (if-not (.hasNext iter)
+        [input-set, implications, changed?]
+        (let [^Implication impl (.next iter)]
+          (if (subset-test (.premise impl) input-set)
+            (do (dobits [x (.conclusion impl)]
+                  (.set input-set x))
+                (.remove iter)
+                (recur true))
+            (recur changed?)))))))
 
 (defn close-under-implications
   "Yields new bitset that is the closure of the input bitset under the given collection of
   implications of bitsetsn"
   [implications, ^BitSet set]
   (loop [set   (.clone set),
-         impls implications]
+         impls (LinkedList. implications)]
     (let [[new impls changed?] (add-immediate-elements impls
                                                        set
                                                        (fn [^BitSet A, ^BitSet B]
                                                          (forall-in-bitset [x A]
-                                                                           (.get B x))))]
+                                                           (.get B x))))]
       (if changed?
         (recur new impls)
         new))))
