@@ -60,7 +60,11 @@
      (canonical-base ctx #{}))
   ([ctx background-knowledge]
      (with-binary-context ctx 
-       (let [next-closure (fn [implications last]
+       (let [bg-knowledge (map (fn [^Implication impl]
+                                 (Implication. (to-bitset attribute-vector (.premise impl))
+                                               (to-bitset attribute-vector (.conclusion impl))))
+                               background-knowledge),
+             next-closure (fn [implications last]
                             (nc/next-closed-set attribute-count
                                                 (clop-by-implications implications)
                                                 last)),
@@ -82,8 +86,8 @@
          (map (fn [^Implication bit-impl]
                 (cm/make-implication (to-hashset attribute-vector (.premise bit-impl))
                                      (to-hashset attribute-vector (.conclusion bit-impl))))
-              (lazy-seq (runner (vec background-knowledge)
-                                (close-under-implications background-knowledge
+              (lazy-seq (runner (vec bg-knowledge)
+                                (close-under-implications bg-knowledge
                                                           (to-bitset attribute-vector #{})))))))))
 
 ;;;

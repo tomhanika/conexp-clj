@@ -51,7 +51,10 @@
             (println base-1)
             (println base-2)
             (is false))
-        (is true)))))
+        (is true))))
+  (dotimes [_ test-runs]
+    (is (zero? (count (canonical-base (cm/random-context 20 0.7)
+                                      #{(cm/make-implication #{} (cm/set-of-range 20))}))))))
 
 ;;;
 
