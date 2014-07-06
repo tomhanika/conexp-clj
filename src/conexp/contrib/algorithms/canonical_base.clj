@@ -22,31 +22,34 @@
   "Destructs input bitset"
   [implications, ^BitSet input-set, subset-test]
   (loop [impls        implications,
-         unused-impls (transient [])]
+         unused-impls (transient []),
+         changed?     false]
     (if-let [^Implication impl (first impls)]
       (if (subset-test (.premise impl) input-set)
         (do (dobits [x (.conclusion impl)]
               (.set input-set x))
             (recur (rest impls)
-                   unused-impls))
+                   unused-impls
+                   true))
         (recur (rest impls)
-               (conj! unused-impls impl)))
-      [input-set, (persistent! unused-impls)])))
+               (conj! unused-impls impl)
+               changed?))
+      [input-set, (persistent! unused-impls), changed?])))
 
 (defn close-under-implications
   "Yields new bitset that is the closure of the input bitset under the given collection of
   implications of bitsetsn"
   [implications, ^BitSet set]
-  (loop [set   set,
+  (loop [set   (.clone set),
          impls implications]
-    (let [[new impls] (add-immediate-elements impls
-                                              (.clone set)
-                                              (fn [^BitSet A, ^BitSet B]
-                                                (forall-in-bitset [x A]
-                                                  (.get B x))))]
-      (if (= new set)
-        new
-        (recur new impls)))))
+    (let [[new impls changed?] (add-immediate-elements impls
+                                                       set
+                                                       (fn [^BitSet A, ^BitSet B]
+                                                         (forall-in-bitset [x A]
+                                                                           (.get B x))))]
+      (if changed?
+        (recur new impls)
+        new))))
 
 (defn clop-by-implications
   [implications]
