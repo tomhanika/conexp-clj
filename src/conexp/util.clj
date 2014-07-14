@@ -58,7 +58,7 @@ metadata (as provided by def) merged into the metadata of the original."
 ;;; Version
 
 (def- internal-version-string
-  (.trim #=(slurp "VERSION")))
+  "0.0.7-alpha-SNAPSHOT")
 
 (def- conexp-version-map
   (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)-(.+)" internal-version-string)]
