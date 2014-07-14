@@ -32,7 +32,6 @@
   :global-vars {*warn-on-reflection* true}
   :test-paths ["tests" "src/test/"]
   :compile-path "lib/classes/"
-  :resource-paths ["src/res/" "VERSION"]
   :scm {:url "git@github.com:exot/conexp-clj.git"}
   :java-opts ["-Dawt.useSystemAAFontSettings=on"])
 
