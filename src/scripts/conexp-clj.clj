@@ -7,6 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (use 'clojure.tools.cli)
+(require 'conexp.contrib.gui)
+(require 'conexp.contrib.gui.repl-utils)
 
 ;;
 
@@ -20,14 +22,14 @@
     (System/exit 0))
   ;;
   (when (contains? options :gui)
-    (clojure.main/repl :init #(do
-                                (use 'conexp.main)
-                                (use 'conexp.contrib.gui)
-                                (@(ns-resolve 'conexp.contrib.gui 'gui)
-                                 :default-close-operation :exit))))
+    (binding [conexp.contrib.gui.repl-utils/*main-frame*
+              (conexp.contrib.gui/gui :default-close-operation :exit)]
+      (clojure.main/repl :init #(do
+                                  (use 'conexp.main)
+                                  (use 'clojure.repl)
+                                  (require '[conexp.contrib.gui.repl-utils :as gui])))))
   ;;
   (when (contains? options :load)
-    (use 'conexp.main)
     (when (not (options :load))
       (println "Error: --load requires a file to load")
       (println doc)
