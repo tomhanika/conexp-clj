@@ -421,7 +421,7 @@
   (with-in-reader file
     (loop [count     0,
            incidence #{}]
-      (if-let [line (get-line)]
+      (if-let [line (read-line)]
         (recur (inc count)
                (into incidence (for [x (read-string (str "(" line ")"))]
                                  [count x])))
