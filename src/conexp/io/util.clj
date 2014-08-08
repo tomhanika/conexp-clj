@@ -15,7 +15,7 @@
 (defalias reader io/reader)
 (defalias writer io/writer)
 
-(defn get-line
+(defn ^String get-line
   "Reads one line from *in*."
   []
   (read-line))

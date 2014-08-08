@@ -78,8 +78,8 @@
   (with-in-reader file
     (let [_                    (get-lines 2)    ; "B\n\n", we don't support names
 
-          number-of-objects    (Integer/parseInt (get-line))
-          number-of-attributes (Integer/parseInt (get-line))
+          number-of-objects    (Integer/parseInt (.trim (get-line)))
+          number-of-attributes (Integer/parseInt (.trim (get-line)))
 
           _                    (get-line)         ; "\n"
 
@@ -121,8 +121,8 @@
   [file]
   (with-in-reader file
     (let [_                    (get-lines 1),    ; "A\n"
-          number-of-objects    (Integer/parseInt (get-line)),
-          number-of-attributes (Integer/parseInt (get-line)),
+          number-of-objects    (Integer/parseInt (.trim (get-line))),
+          number-of-attributes (Integer/parseInt (.trim (get-line))),
           seq-of-objects       (range number-of-objects),
           seq-of-attributes    (range number-of-attributes)]
       (loop [objs seq-of-objects
