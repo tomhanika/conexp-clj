@@ -17,7 +17,8 @@
            [java.awt.event MouseEvent]
            [java.io File])
   (:use [conexp.base :only (defmacro-, first-non-nil,
-                            illegal-argument, unsupported-operation)])
+                            illegal-argument, unsupported-operation,
+                            get-resource)])
   (:use seesaw.core
         [seesaw.util :only (root-cause)]))
 
@@ -84,12 +85,6 @@
              :on-close :dispose)
       pack!
       show!))
-
-(defn ^java.net.URL get-resource
-  "Returns the URL of the given the resource res if found, nil otherwise."
-  [res]
-  (let [cl (.getContextClassLoader (Thread/currentThread))]
-    (.getResource cl res)))
 
 (defn confirm
   "Opens a message dialog asking for confirmation."

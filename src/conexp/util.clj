@@ -86,12 +86,18 @@ metadata (as provided by def) merged into the metadata of the original."
              (= my-minor minor)
              (< my-patch patch)))))
 
-;;;
+;;; Java stuff
 
 (defn quit
   "Quits conexp-clj."
   []
   (System/exit 0))
+
+(defn ^java.net.URL get-resource
+  "Returns the URL of the given the resource res if found, nil otherwise."
+  [res]
+  (let [cl (.getContextClassLoader (Thread/currentThread))]
+    (.getResource cl res)))
 
 ;;; Testing
 
