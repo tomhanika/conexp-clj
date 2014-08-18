@@ -91,11 +91,14 @@
   [file]
   (with-in-reader file
     (let [read-comma-line (fn []
-                            (let [line (get-line)]
-                              (read-string (str "(" line ")")))),
+                            (try
+                              (let [line (get-line)]
+                                (read-string (str "(" line ")")))
+                              (catch java.io.EOFException _
+                                nil))),
           attributes      (read-comma-line),
           lines           (doall
-                           (take-while #(not (empty? %))
+                           (take-while #(not (nil? %))
                                        (repeatedly read-comma-line))),
           line-lengths    (set-of (count line) [line lines])]
       (when (< 1 (count line-lengths))
