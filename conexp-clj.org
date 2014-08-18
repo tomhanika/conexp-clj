@@ -1,13 +1,13 @@
 # -*- mode: org -*-
 #+startup: content
 #+startup: hidestars
-#+filetags: CONEXP
+#+filetags: CCLJ
 #+category: cclj
 
 * Script
 ** DONE Add readline support
    using jline
-** TODO Update usage of tools.cli                                         :7:
+** TODO Update usage of tools.cli
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * IO
@@ -40,7 +40,7 @@
 * Tests
 ** TODO Add tests for explicit IO formats
    given as keywords or strings.
-** TODO Improve test coverage of conexp contrib [0/12]                    :7:
+** TODO Improve test coverage of conexp contrib [0/12]
    - [ ] algorithms
    - [ ] concept approximation
    - [ ] DL
@@ -57,17 +57,17 @@
    - [ ] retracts
    - [ ] util [0/1]
      - [ ] general sorted sets
-** TODO Add tests for new Association Rule functions                      :7:
-** TODO Add tests for exploration with incomplete counterexamples         :7:
+** TODO Add tests for new Association Rule functions
+** TODO Add tests for exploration with incomplete counterexamples
 * Layout
 ** TODO Add more layout output [0/2]
    - [ ] svg
    - [ ] povray
-** TODO Rewrite to-inf-additive-layout                                    :7:
+** TODO Rewrite to-inf-additive-layout
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** NEXT Write Wiki [5/7]                                                  :7:
+** NEXT Write Wiki [5/7]
    :LOGBOOK:
    CLOCK: [2014-04-25 Fri 09:49]--[2014-04-25 Fri 10:08] =>  0:19
    :END:
@@ -96,23 +96,23 @@
      - [X] Using conexp-clj from sage
      - [X] Calling conexp-clj functions from Java
    - [X] API documentation
-** DONE API documentation on the Wiki                                     :7:
+** DONE API documentation on the Wiki
 * Core
-** TODO Change attribute names for mv-context scales                      :7:
+** TODO Change attribute names for mv-context scales
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** DONE Make luxenburger-base parallel                                    :7:
+** DONE Make luxenburger-base parallel
    - State "DONE"       from "TODO"       [2013-10-08 Di 17:57] \\
      Using clojure.core.reducers/fold
 ** TODO Rule Exploration with Impex
-** TODO Incorporate clojure.core.reducers                                 :7:
+** TODO Incorporate clojure.core.reducers
    Make parallel:
    - [X] arrow computation
    - [ ] set-of — may actually not a very good idea …
-** TODO Exploration: answer questions from within the repl                :7:
-** DONE Unify interface to explore-attributes                             :7:
-** DONE Add minimal-support constraints to canonical base computation     :7:
-** DONE Change ns-doc to docstrings in namespaces                         :7:
+** TODO Exploration: answer questions from within the repl
+** DONE Unify interface to explore-attributes
+** DONE Add minimal-support constraints to canonical base computation
+** DONE Change ns-doc to docstrings in namespaces
    - State "DONE"       from "TODO"       [2013-11-08 Fri 13:07]
    :LOGBOOK:
    CLOCK: [2013-11-07 Thu 14:27]--[2013-11-07 Thu 14:28] =>  0:01
@@ -124,6 +124,11 @@
    :END:
    [[gnus:nnmaildir%2Bzih:projects.ros#52A83E84.7070501@uni-rostock.de][Email from Johannes Wollbold: Re: fehler bei benutzung von s]]
 
+** DONE Locate resources in a uniform way
+   :LOGBOOK:
+   CLOCK: [2014-08-18 Mon 13:34]--[2014-08-18 Mon 13:41] =>  0:07
+   CLOCK: [2014-08-18 Mon 09:18]--[2014-08-18 Mon 09:18] =>  0:00
+   :END:
 * GUI
 ** TODO Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when
@@ -137,7 +142,7 @@
 ** TODO Undo for GUI
 ** DONE Fix neverending rotation when choosing another tab
 * Bugs
-** DONE Fix error for conexp-clj's gui                                    :7:
+** DONE Fix error for conexp-clj's gui
    - State "DONE"       from "TODO"       [2013-09-26 Do 15:25]
    CLOCK: [2013-08-21 Mi 12:39]--[2013-08-21 Mi 12:39] =>  0:00
    Added: [2013-08-21 Mi 12:39]
@@ -156,7 +161,7 @@
    :END:
    Added: [2013-09-04 Mi 15:50]
 
-** DONE Check whether counterexample is valid in incomplete exploration   :7:
+** DONE Check whether counterexample is valid in incomplete exploration
    - State "DONE"       from "TODO"       [2013-09-30 Mo 14:02]
    :LOGBOOK:
    CLOCK: [2013-09-30 Mo 13:47]--[2013-09-30 Mo 14:02] =>  0:15
