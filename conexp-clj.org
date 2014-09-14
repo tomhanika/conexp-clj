@@ -1,8 +1,8 @@
 # -*- mode: org -*-
 #+startup: content
 #+startup: hidestars
-#+filetags: CCLJ
-#+category: cclj
+#+filetags: CONEXP
+#+category: CONEXP
 
 * Script
 ** DONE Add readline support
