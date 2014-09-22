@@ -1,5 +1,4 @@
-conexp-clj
-==========
+# conexp-clj [![Build Status](https://travis-ci.org/exot/conexp-clj.svg?branch=master)](https://travis-ci.org/exot/conexp-clj)
 
 This is conexp-clj, a general purpose software tool for [Formal Concept
 Analysis](http://www.upriss.org.uk/fca/fca.html).
@@ -8,8 +7,7 @@ The project has been started by Daniel Borchmann under supervision of Christian
 Meschke as part of the DFG project GA 216/10-1.
 
 
-Features
---------
+## Features
 
 conexp-clj is a pocket-calculator for Formal Concept Analysis.  Its main purpose is to
 enable nontrivial examples to be computed easily.
@@ -33,8 +31,7 @@ want this, check out Uta Priss'
 [website on FCA software](http://www.fcahome.org.uk/fcasoftware.html).
 
 
-Prerequisites
--------------
+## Prerequisites
 
 You need
 
@@ -43,8 +40,7 @@ You need
   conexp-clj from source
 
 
-How to Run
-----------
+## How to Run
 
 The recommended way to run conexp-clj is to download the pre-compiled version
 [here](http://www.math.tu-dresden.de/~borch/downloads).  Just unpack the zip
@@ -60,8 +56,7 @@ the experimental GUI, you can use
 instead.
 
 
-Documentation
--------------
+## Documentation
 
 The current main source of documentation on conexp-clj is its
 [Wiki](http://github.com/exot/conexp-clj/wiki).  Additionally, for general help on a
@@ -112,8 +107,7 @@ Additional Documentation:
   at the 11th International Conference on Formal Concept Analysis
 
 
-Running conexp-clj from source
-------------------------------
+## Running conexp-clj from source
 
 To run conexp-clj from source, switch in the source directory of conexp-clj and run
 
@@ -128,8 +122,7 @@ If you want a more sophisticated repl, you may try
 [nrepl.el](http://github.com/kingtim/nrepl.el).
 
 
-Compilation Instructions for conexp-clj
----------------------------------------
+## Compilation Instructions for conexp-clj
 
 To create a standalone zip on your own, just run `make` in the top source directory. This
 will (should) do everything to create a zip archive containing a compiled version of
@@ -137,8 +130,7 @@ conexp-clj. You can also run this compiled version directly by invoking
 ./conexp-clj/bin/conexp-clj (after unpacking the .zip file.)
 
 
-Contributing Authors
---------------------
+## Contributing Authors
 
 Currently conexp-clj is developed and maintained by
 
@@ -151,8 +143,7 @@ Additional Contributors are
   * Gleb Kanterov     (interval-scale)
   * Johannes Wollbold (bug reports, feature requests)
 
-License
--------
+## License
 
 Copyright ⓒ 2009—2014 Daniel Borchmann
 
