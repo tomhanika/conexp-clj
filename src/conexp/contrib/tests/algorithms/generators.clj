@@ -6,9 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.util.generators
+(ns conexp.contrib.tests.algorithms.generators
   (:use clojure.test
-        conexp.util.generators))
+        conexp.contrib.algorithms.generators))
 
 ;;;
 

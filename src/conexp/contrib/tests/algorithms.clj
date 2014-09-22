@@ -13,6 +13,11 @@
         [conexp.contrib.exec :only (program-exists?)]
         conexp.contrib.algorithms))
 
+;;;
+
+(tests-to-run conexp.contrib.tests.algorithms.generators
+              conexp.contrib.tests.algorithms.titanic)
+
 
 ;;; Concept Calculations
 
@@ -66,10 +71,6 @@
            #{(cm/impl 0 2 ==> 1 3 4)
              (cm/impl 2 3 ==> 4)
              (cm/impl 1 2 4 ==> 0 3)}))))
-
-;;;
-
-(tests-to-run conexp.contrib.tests.algorithms.titanic)
 
 ;;;
 
