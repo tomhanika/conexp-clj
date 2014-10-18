@@ -59,7 +59,7 @@
   ([ctx]
      (canonical-base ctx #{}))
   ([ctx background-knowledge]
-     (with-binary-context ctx 
+     (with-binary-context ctx
        (let [bg-knowledge (map (fn [^Implication impl]
                                  (Implication. (to-bitset attribute-vector (.premise impl))
                                                (to-bitset attribute-vector (.conclusion impl))))
