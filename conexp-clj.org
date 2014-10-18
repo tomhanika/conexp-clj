@@ -5,9 +5,13 @@
 #+category: CONEXP
 
 * Script
-** DONE Add readline support
-   using jline
 ** TODO Update usage of tools.cli
+** Archive                                                          :ARCHIVE:
+*** DONE Add readline support
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+    using jline
 * Lattice Drawing
 ** TODO Adjusting nodes in lattice diagram with parallelogram rule
 * IO
@@ -67,7 +71,7 @@
    As projection into the subspace of all infimum-additive layouts.
 ** TODO Implement Christians Force Layout with derivations
 * Documentation
-** NEXT Write Wiki [5/7]
+** NEXT [#B] Write Wiki [5/7]
    :LOGBOOK:
    CLOCK: [2014-04-25 Fri 09:49]--[2014-04-25 Fri 10:08] =>  0:19
    :END:
@@ -92,44 +96,65 @@
      - [ ] A Formal Context of Functions
      - [ ] Context of All Permutations on a Finite Set
      - [ ] The Tamari Lattice
+     - [ ] Counting all Quasi-Orders on an n-elemental set
    - [X] Other Features
      - [X] Using conexp-clj from sage
      - [X] Calling conexp-clj functions from Java
    - [X] API documentation
-** DONE API documentation on the Wiki
+** Archive                                                          :ARCHIVE:
+*** DONE API documentation on the Wiki
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
 * Core
 ** TODO Change attribute names for mv-context scales
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** DONE Make luxenburger-base parallel
-   - State "DONE"       from "TODO"       [2013-10-08 Di 17:57] \\
-     Using clojure.core.reducers/fold
 ** TODO Rule Exploration with Impex
 ** TODO Incorporate clojure.core.reducers
    Make parallel:
    - [X] arrow computation
    - [ ] set-of — may actually not a very good idea …
 ** TODO Exploration: answer questions from within the repl
-** DONE Unify interface to explore-attributes
-** DONE Add minimal-support constraints to canonical base computation
-** DONE Change ns-doc to docstrings in namespaces
-   - State "DONE"       from "TODO"       [2013-11-08 Fri 13:07]
-   :LOGBOOK:
-   CLOCK: [2013-11-07 Thu 14:27]--[2013-11-07 Thu 14:28] =>  0:01
-   :END:
-   Added: [2013-11-07 Thu 14:27]
 ** TODO Allow expert to still accept an implication although she has denied it
    :LOGBOOK:
    CLOCK: [2013-12-16 Mon 10:11]--[2013-12-16 Mon 10:12] =>  0:01
    :END:
    [[gnus:nnmaildir%2Bzih:projects.ros#52A83E84.7070501@uni-rostock.de][Email from Johannes Wollbold: Re: fehler bei benutzung von s]]
 
-** DONE Locate resources in a uniform way
-   - State "DONE"       from "TODO"       [2014-08-18 Mon 13:41]
-   :LOGBOOK:
-   CLOCK: [2014-08-18 Mon 13:34]--[2014-08-18 Mon 13:41] =>  0:07
-   CLOCK: [2014-08-18 Mon 09:18]--[2014-08-18 Mon 09:18] =>  0:00
-   :END:
+** Archive                                                          :ARCHIVE:
+*** DONE Make luxenburger-base parallel
+    - State "DONE"       from "TODO"       [2013-10-08 Di 17:57] \\
+      Using clojure.core.reducers/fold
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+*** DONE Unify interface to explore-attributes
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+*** DONE Add minimal-support constraints to canonical base computation
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+*** DONE Change ns-doc to docstrings in namespaces
+    - State "DONE"       from "TODO"       [2013-11-08 Fri 13:07]
+    :LOGBOOK:
+    CLOCK: [2013-11-07 Thu 14:27]--[2013-11-07 Thu 14:28] =>  0:01
+    :END:
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+    Added: [2013-11-07 Thu 14:27]
+*** DONE Locate resources in a uniform way
+    - State "DONE"       from "TODO"       [2014-08-18 Mon 13:41]
+    :LOGBOOK:
+    CLOCK: [2014-08-18 Mon 13:34]--[2014-08-18 Mon 13:41] =>  0:07
+    CLOCK: [2014-08-18 Mon 09:18]--[2014-08-18 Mon 09:18] =>  0:00
+    :END:
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
 * GUI
 ** TODO Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when
@@ -141,37 +166,54 @@
 ** TODO GUI code editor
 ** TODO GUI plugin browser
 ** TODO Undo for GUI
-** DONE Fix neverending rotation when choosing another tab
+** Archive                                                          :ARCHIVE:
+*** DONE Fix neverending rotation when choosing another tab
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
 * Bugs
-** DONE Fix error for conexp-clj's gui
-   - State "DONE"       from "TODO"       [2013-09-26 Do 15:25]
-   CLOCK: [2013-08-21 Mi 12:39]--[2013-08-21 Mi 12:39] =>  0:00
-   Added: [2013-08-21 Mi 12:39]
-** DONE conexp-clj: find out whether there is a bug in canonical-base with background knowledge
-   - State "DONE"       from "NEXT"       [2013-09-04 Mi 18:02] \\
-     Apparently, there was one: the computation of the canonical base with background
-     knowledge unconditionally started with ∅ as the first premises, which is not correct if
-     one has implications of the form ∅ ⇒ A for some A ⊆ M.  Fixed that, added some (small)
-     test case for it and added Johannes as contributor to conexp-clj.
-   - State "NEXT"       from "TODO"       [2013-09-04 Mi 17:10] \\
-     Making first reasonability tests with the data from Johannes
-   See Johannes information on this
-   :LOGBOOK:
-   CLOCK: [2013-09-04 Mi 17:11]--[2013-09-04 Mi 18:02] =>  0:51
-   CLOCK: [2013-09-04 Mi 15:50]--[2013-09-04 Mi 15:51] =>  0:01
-   :END:
-   Added: [2013-09-04 Mi 15:50]
+** Archive                                                          :ARCHIVE:
+*** DONE Fix error for conexp-clj's gui
+    - State "DONE"       from "TODO"       [2013-09-26 Do 15:25]
+    CLOCK: [2013-08-21 Mi 12:39]--[2013-08-21 Mi 12:39] =>  0:00
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+    Added: [2013-08-21 Mi 12:39]
+*** DONE conexp-clj: find out whether there is a bug in canonical-base with background knowledge
+    - State "DONE"       from "NEXT"       [2013-09-04 Mi 18:02] \\
+      Apparently, there was one: the computation of the canonical base with background
+      knowledge unconditionally started with ∅ as the first premises, which is not correct if
+      one has implications of the form ∅ ⇒ A for some A ⊆ M.  Fixed that, added some (small)
+      test case for it and added Johannes as contributor to conexp-clj.
+    - State "NEXT"       from "TODO"       [2013-09-04 Mi 17:10] \\
+      Making first reasonability tests with the data from Johannes
+    See Johannes information on this
+    :LOGBOOK:
+    CLOCK: [2013-09-04 Mi 17:11]--[2013-09-04 Mi 18:02] =>  0:51
+    CLOCK: [2013-09-04 Mi 15:50]--[2013-09-04 Mi 15:51] =>  0:01
+    :END:
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+    Added: [2013-09-04 Mi 15:50]
 
-** DONE Check whether counterexample is valid in incomplete exploration
-   - State "DONE"       from "TODO"       [2013-09-30 Mo 14:02]
-   :LOGBOOK:
-   CLOCK: [2013-09-30 Mo 13:47]--[2013-09-30 Mo 14:02] =>  0:15
-   :END:
+*** DONE Check whether counterexample is valid in incomplete exploration
+    - State "DONE"       from "TODO"       [2013-09-30 Mo 14:02]
+    :LOGBOOK:
+    CLOCK: [2013-09-30 Mo 13:47]--[2013-09-30 Mo 14:02] =>  0:15
+    :END:
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
 
-** DONE improve-basic-order sometimes causes errors
-   - State "DONE"       from "TODO"       [2013-10-10 Thu 14:36] \\
-     Should not happen anymore: the reason supposely was that the original test was not
-     transitive.  The new implementation just uses (lectic-< base (clop #{y}) (clop #{x})),
-     which should be.  However, it remains to be checked whether this really is what
-     improve-basic-order should do …
-   Like 'Comparison method violates its general contract!'
+*** DONE improve-basic-order sometimes causes errors
+    - State "DONE"       from "TODO"       [2013-10-10 Thu 14:36] \\
+      Should not happen anymore: the reason supposely was that the original test was not
+      transitive.  The new implementation just uses (lectic-< base (clop #{y}) (clop #{x})),
+      which should be.  However, it remains to be checked whether this really is what
+      improve-basic-order should do …
+    :PROPERTIES:
+    :ARCHIVE_TIME: 2014-09-29 Mon 10:06
+    :END:
+    Like 'Comparison method violates its general contract!'
