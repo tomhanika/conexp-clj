@@ -1,11 +1,11 @@
 # -*- mode: org -*-
 #+startup: content
 #+startup: hidestars
-#+filetags: CONEXP
-#+category: CONEXP
+#+filetags: CONEXP FUN
+#+category: conexp
 
 * Script
-** TODO Update usage of tools.cli
+** TODO [#B] Update usage of tools.cli
 ** Archive                                                          :ARCHIVE:
 *** DONE Add readline support
     :PROPERTIES:
@@ -13,9 +13,9 @@
     :END:
     using jline
 * Lattice Drawing
-** TODO Adjusting nodes in lattice diagram with parallelogram rule
+** TODO [#B] Adjusting nodes in lattice diagram with parallelogram rule
 * IO
-** TODO draw-lattice-to-file
+** TODO [#B] draw-lattice-to-file
    We need some function (i.e. draw-lattice-to-file) which produces a
    file of the picture of a lattice layout, when given the same
    arguments as draw-lattice.
@@ -23,18 +23,18 @@
    For this we need some abstrace picture-drawing facility, which can
    produce pictures without showing them. For that we could use svg
    (also as output format for layouts) and simply write it to a file.
-** TODO Allow additional arguments to write-context
+** TODO [#B] Allow additional arguments to write-context
    depending on the current layout.
-** TODO More IO formats for contexts [2/5]
+** TODO [#B] More IO formats for contexts [2/5]
    - [X] anonymous burmeister (without names for objects and
      attributes)
    - [ ] csc
    - [ ] slf
    - [ ] csx
    - [X] binary csv
-** TODO Lattice IO for csv and dot
+** TODO [#B] Lattice IO for csv and dot
    That should be simple for output, but non-trivial for input.
-** TODO Add support for multiple contexts/... in IO
+** TODO [#B] Add support for multiple contexts/... in IO
    I.e. a call like
 
      (write-context :conexp "/tmp/file" ctx-1 ctx-2 ctx-3)
@@ -42,9 +42,9 @@
    should be possible. read-context then should also take an index of
    which context to read in.
 * Tests
-** TODO Add tests for explicit IO formats
+** TODO [#B] Add tests for explicit IO formats
    given as keywords or strings.
-** TODO Improve test coverage of conexp contrib [0/12]
+** TODO [#B] Improve test coverage of conexp contrib [0/12]
    - [ ] algorithms
    - [ ] concept approximation
    - [ ] DL
@@ -61,15 +61,15 @@
    - [ ] retracts
    - [ ] util [0/1]
      - [ ] general sorted sets
-** TODO Add tests for new Association Rule functions
-** TODO Add tests for exploration with incomplete counterexamples
+** TODO [#B] Add tests for new Association Rule functions
+** TODO [#B] Add tests for exploration with incomplete counterexamples
 * Layout
-** TODO Add more layout output [0/2]
+** TODO [#B] Add more layout output [0/2]
    - [ ] svg
    - [ ] povray
-** TODO Rewrite to-inf-additive-layout
+** TODO [#B] Rewrite to-inf-additive-layout
    As projection into the subspace of all infimum-additive layouts.
-** TODO Implement Christians Force Layout with derivations
+** TODO [#B] Implement Christians Force Layout with derivations
 * Documentation
 ** NEXT [#B] Write Wiki [5/7]
    :LOGBOOK:
@@ -107,16 +107,16 @@
     :ARCHIVE_TIME: 2014-09-29 Mon 10:06
     :END:
 * Core
-** TODO Change attribute names for mv-context scales
+** TODO [#B] Change attribute names for mv-context scales
    They are somewhat arbitrary and may also be misleading. Don't
    forget to adjust the tests for them after finishing.
-** TODO Rule Exploration with Impex
-** TODO Incorporate clojure.core.reducers
+** TODO [#B] Rule Exploration with Impex
+** TODO [#B] Incorporate clojure.core.reducers
    Make parallel:
    - [X] arrow computation
    - [ ] set-of — may actually not a very good idea …
-** TODO Exploration: answer questions from within the repl
-** TODO Allow expert to still accept an implication although she has denied it
+** TODO [#B] Exploration: answer questions from within the repl
+** TODO [#B] Allow expert to still accept an implication although she has denied it
    :LOGBOOK:
    CLOCK: [2013-12-16 Mon 10:11]--[2013-12-16 Mon 10:12] =>  0:01
    :END:
@@ -156,16 +156,16 @@
     :ARCHIVE_TIME: 2014-09-29 Mon 10:06
     :END:
 * GUI
-** TODO Allow resizing of cells in GUI
+** TODO [#B] Allow resizing of cells in GUI
    For this a special mouse handler has to be implemented that changes the cursor when
    resizing is possible.  Resizing itself must be done via setRowHeight() or one of
    TableColumns methods for setting the width of a column.
-** TODO Use breakable tool bar for context editor
-** TODO GUI context editor
-** TODO GUI lattice editor
-** TODO GUI code editor
-** TODO GUI plugin browser
-** TODO Undo for GUI
+** TODO [#B] Use breakable tool bar for context editor
+** TODO [#B] GUI context editor
+** TODO [#B] GUI lattice editor
+** TODO [#B] GUI code editor
+** TODO [#B] GUI plugin browser
+** TODO [#B] Undo for GUI
 ** Archive                                                          :ARCHIVE:
 *** DONE Fix neverending rotation when choosing another tab
     :PROPERTIES:
