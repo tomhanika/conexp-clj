@@ -472,31 +472,31 @@
 (defn dual-context
   "Dualizes context ctx, that is (G,M,I) gets (M,G,I^{-1})."
   [ctx]
-  (make-context (attributes ctx)
-                (objects ctx)
-                (fn [m g] ((incidence ctx) [g m]))))
+  (make-context-nc (attributes ctx)
+                   (objects ctx)
+                   (fn [[m g]] ((incidence ctx) [g m]))))
 
 (defn invert-context
   "Inverts context ctx, that is (G,M,I) gets (G,M,(G x M) \\ I)."
   [ctx]
-  (make-context (objects ctx)
-                (attributes ctx)
-                (fn [g m]
-                  (not ((incidence ctx) [g m])))))
+  (make-context-nc (objects ctx)
+                   (attributes ctx)
+                   (fn [[g m]]
+                     (not ((incidence ctx) [g m])))))
 
 (defn context-union
   "Returns the union of ctx-1 and ctx-2. Note that this union is
   inclusive; use context-disjoint-union if this is not what you want."
   [ctx-1 ctx-2]
-  (make-context (union (objects ctx-1) (objects ctx-2))
-                (union (attributes ctx-1) (attributes ctx-2))
-                (fn [g m]
-                  (or (and (contains? (objects ctx-1) g)
-                           (contains? (attributes ctx-1) m)
-                           ((incidence ctx-1) [g m]))
-                      (and (contains? (objects ctx-2) g)
-                           (contains? (attributes ctx-2) m)
-                           ((incidence ctx-2) [g m]))))))
+  (make-context-nc (union (objects ctx-1) (objects ctx-2))
+                   (union (attributes ctx-1) (attributes ctx-2))
+                   (fn [[g m]]
+                     (or (and (contains? (objects ctx-1) g)
+                              (contains? (attributes ctx-1) m)
+                              ((incidence ctx-1) [g m]))
+                         (and (contains? (objects ctx-2) g)
+                              (contains? (attributes ctx-2) m)
+                              ((incidence ctx-2) [g m]))))))
 
 (defn context-disjoint-union
   "Returns the disjoint union of ctx-1 and ctx-2."
@@ -505,19 +505,19 @@
                                  (objects ctx-2)),
         new-atts (disjoint-union (attributes ctx-1)
                                  (attributes ctx-2))
-        new-inz  (fn [[g idx-g] [m idx-m]]
+        new-inz  (fn [[[g idx-g] [m idx-m]]]
                    (or (and (= idx-g idx-m 0) ((incidence ctx-1) [g m]))
                        (and (= idx-g idx-m 1) ((incidence ctx-2) [g m]))))]
-    (make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-intersection
   "Returns context intersection of ctx1 and ctx2."
   [ctx1 ctx2]
-  (make-context (intersection (objects ctx1) (objects ctx2))
-                (intersection (attributes ctx1) (attributes ctx2))
-                (fn [g m]
-                  (and ((incidence ctx1) [g m])
-                       ((incidence ctx2) [g m])))))
+  (make-context-nc (intersection (objects ctx1) (objects ctx2))
+                   (intersection (attributes ctx1) (attributes ctx2))
+                   (fn [[g m]]
+                     (and ((incidence ctx1) [g m])
+                          ((incidence ctx2) [g m])))))
 
 (defn context-composition
   "Returns context composition of ctx-1 and ctx-2, that is
@@ -525,12 +525,12 @@
     (G_1,M_1,I_1) o (G_2,M_2,I_2) := (G_1,M_2,I_1 o I_2).
   "
   [ctx-1 ctx-2]
-  (make-context (objects ctx-1)
-                (attributes ctx-2)
-                (fn [g m]
-                  (exists [x (intersection (attributes ctx-1) (objects ctx-2))]
-                    (and ((incidence ctx-1) [g x])
-                         ((incidence ctx-2) [x m]))))))
+  (make-context-nc (objects ctx-1)
+                   (attributes ctx-2)
+                   (fn [[g m]]
+                     (exists [x (intersection (attributes ctx-1) (objects ctx-2))]
+                       (and ((incidence ctx-1) [g x])
+                            ((incidence ctx-2) [x m]))))))
 
 (defn context-apposition
   "Returns context apposition of ctx-1 and ctx-2, that is
@@ -541,11 +541,11 @@
   (if (not= (objects ctx-1) (objects ctx-2))
     (illegal-argument "Cannot do context apposition, since object sets are not equal."))
   (let [new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2)),
-        new-inz  (fn [g [m i]]
+        new-inz  (fn [[g [m i]]]
                    (if (= i 0)
                      ((incidence ctx-1) [g m])
                      ((incidence ctx-2) [g m])))]
-    (make-context (objects ctx-1) new-atts new-inz)))
+    (make-context-nc (objects ctx-1) new-atts new-inz)))
 
 (defn context-subposition
   "Returns context subposition of ctx-1 and ctx-2, that is
@@ -558,11 +558,11 @@
   (if (not= (attributes ctx-1) (attributes ctx-2))
     (illegal-argument "Cannot do context subposition, since attribute sets are not equal."))
   (let [new-objs (disjoint-union (objects ctx-1) (objects ctx-2))
-        new-inz  (fn [[g i] m]
+        new-inz  (fn [[[g i] m]]
                    (if (= i 0)
                      ((incidence ctx-1) [g m])
                      ((incidence ctx-2) [g m])))]
-    (make-context new-objs (attributes ctx-1) new-inz)))
+    (make-context-nc new-objs (attributes ctx-1) new-inz)))
 
 (defn context-transitive-closure
   "Transitively closes incidence relation of ctx and returns corresponding context."
@@ -575,14 +575,14 @@
   collections uses (range base-set) (and likewise for objects and
   attributes) instead."
   ([base-set fill-rate]
-     (rand-context base-set base-set fill-rate))
+   (rand-context base-set base-set fill-rate))
   ([objects attributes fill-rate]
-     (when-not (and (number? fill-rate)
-                    (<= 0 fill-rate 1))
-       (illegal-argument "Fill-rate must be a number between 0 and 1."))
-     (make-context (to-set objects)
-                   (to-set attributes)
-                   (fn [_ _] (> fill-rate (rand))))))
+   (when-not (and (number? fill-rate)
+                  (<= 0 fill-rate 1))
+     (illegal-argument "Fill-rate must be a number between 0 and 1."))
+   (make-context-nc (to-set objects)
+                    (to-set attributes)
+                    (memoize (fn [[_ _]] (> fill-rate (rand)))))))
 
 (defalias random-context rand-context)
 
@@ -597,22 +597,22 @@
 (defn one-context
   "Returns context full of crosses."
   [base-set]
-  (make-context base-set base-set (fn [_ _] true)))
+  (make-context-nc base-set base-set (fn [[_ _]] true)))
 
 (defn null-context
   "Returns context with no crosses."
   [base-set]
-  (make-context base-set base-set (fn [_ _] false)))
+  (make-context-nc base-set base-set (fn [[_ _]] false)))
 
 (defn diag-context
   "Returns = on base-set as context."
   [base-set]
-  (make-context base-set base-set =))
+  (make-context-nc base-set base-set (fn [[a b]] (= a b))))
 
 (defn adiag-context
   "Returns not= on base-set as context."
   [base-set]
-  (make-context base-set base-set not=))
+  (make-context-nc base-set base-set (fn [[a b]] (not= a b))))
 
 (defn context-sum
   "Computes the context sum of ctx-1 and ctx-2, that is
@@ -625,12 +625,12 @@
   [ctx-1 ctx-2]
   (let [new-objs (disjoint-union (objects ctx-1) (objects ctx-2)),
         new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2)),
-        new-inz  (fn [[g i] [m j]]
+        new-inz  (fn [[[g i] [m j]]]
                    (cond
                      (= i j 0) ((incidence ctx-1) [g m])
                      (= i j 1) ((incidence ctx-2) [g m])
                      :else true))]
-    (make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-product
   "Computes the context product of ctx-1 and ctx-2, that is
@@ -647,10 +647,10 @@
         new-atts (cross-product (attributes ctx-1) (attributes ctx-2))
         inz-1    (incidence ctx-1)
         inz-2    (incidence ctx-2)
-        new-inz  (fn [[g_1, g_2], [m_1, m_2]]
+        new-inz  (fn [[[g_1, g_2], [m_1, m_2]]]
                    (or (inz-1 [g_1, m_1])
                        (inz-2 [g_2, m_2])))]
-    (make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-semiproduct
   "Computes the context semiproduct of ctx-1 and ctx-2, where for
@@ -667,9 +667,9 @@
   (let [new-objs (cross-product (objects ctx-1) (objects ctx-2))
         new-atts (disjoint-union (attributes ctx-1) (attributes ctx-2))
         inzs     [(incidence ctx-1) (incidence ctx-2)]
-        new-inz  (fn [g, [m, idx]]
+        new-inz  (fn [[g, [m, idx]]]
                    ((inzs idx) [(g idx) m]))]
-    (make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 (defn context-xia-product
   "Computes Xia's product of ctx-1 and ctx-2, where for two contexts
@@ -691,10 +691,10 @@
 
         new-objs (cross-product G_1 G_2)
         new-atts (cross-product M_1 M_2)
-        new-inz  (fn [[g_1, g_2], [m_1, m_2]]
+        new-inz  (fn [[[g_1, g_2], [m_1, m_2]]]
                    (<=> (I_1 [g_1,m_1])
                         (I_2 [g_2,m_2])))]
-    (make-context new-objs new-atts new-inz)))
+    (make-context-nc new-objs new-atts new-inz)))
 
 ;;; Neighbours in the concept lattice with Lindig's Algorithm
 
