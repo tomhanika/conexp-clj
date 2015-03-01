@@ -1,7 +1,7 @@
 # -*- mode: org -*-
 #+startup: content
 #+startup: hidestars
-#+filetags: CONEXP FUN
+#+filetags: CONEXP WORK
 #+category: conexp
 
 * Script
@@ -72,9 +72,6 @@
 ** TODO [#B] Implement Christians Force Layout with derivations
 * Documentation
 ** NEXT [#B] Write Wiki [5/7]
-   :LOGBOOK:
-   CLOCK: [2014-04-25 Fri 09:49]--[2014-04-25 Fri 10:08] =>  0:19
-   :END:
    - State "NEXT"       from "HOLD"       [2014-04-25 Fri 09:49]
    - State "HOLD"       from "NEXT"       [2014-03-10 Mon 08:19]
    :PROPERTIES:
@@ -115,11 +112,9 @@
    Make parallel:
    - [X] arrow computation
    - [ ] set-of — may actually not a very good idea …
-** TODO [#B] Exploration: answer questions from within the repl
+** TODO [#B] Exploration: answer questions from within the REPL
 ** TODO [#B] Allow expert to still accept an implication although she has denied it
-   :LOGBOOK:
-   CLOCK: [2013-12-16 Mon 10:11]--[2013-12-16 Mon 10:12] =>  0:01
-   :END:
+
    [[gnus:nnmaildir%2Bzih:projects.ros#52A83E84.7070501@uni-rostock.de][Email from Johannes Wollbold: Re: fehler bei benutzung von s]]
 
 ** Archive                                                          :ARCHIVE:
@@ -139,19 +134,12 @@
     :END:
 *** DONE Change ns-doc to docstrings in namespaces
     - State "DONE"       from "TODO"       [2013-11-08 Fri 13:07]
-    :LOGBOOK:
-    CLOCK: [2013-11-07 Thu 14:27]--[2013-11-07 Thu 14:28] =>  0:01
-    :END:
     :PROPERTIES:
     :ARCHIVE_TIME: 2014-09-29 Mon 10:06
     :END:
     Added: [2013-11-07 Thu 14:27]
 *** DONE Locate resources in a uniform way
     - State "DONE"       from "TODO"       [2014-08-18 Mon 13:41]
-    :LOGBOOK:
-    CLOCK: [2014-08-18 Mon 13:34]--[2014-08-18 Mon 13:41] =>  0:07
-    CLOCK: [2014-08-18 Mon 09:18]--[2014-08-18 Mon 09:18] =>  0:00
-    :END:
     :PROPERTIES:
     :ARCHIVE_TIME: 2014-09-29 Mon 10:06
     :END:
@@ -189,10 +177,7 @@
     - State "NEXT"       from "TODO"       [2013-09-04 Mi 17:10] \\
       Making first reasonability tests with the data from Johannes
     See Johannes information on this
-    :LOGBOOK:
-    CLOCK: [2013-09-04 Mi 17:11]--[2013-09-04 Mi 18:02] =>  0:51
-    CLOCK: [2013-09-04 Mi 15:50]--[2013-09-04 Mi 15:51] =>  0:01
-    :END:
+
     :PROPERTIES:
     :ARCHIVE_TIME: 2014-09-29 Mon 10:06
     :END:
@@ -200,9 +185,6 @@
 
 *** DONE Check whether counterexample is valid in incomplete exploration
     - State "DONE"       from "TODO"       [2013-09-30 Mo 14:02]
-    :LOGBOOK:
-    CLOCK: [2013-09-30 Mo 13:47]--[2013-09-30 Mo 14:02] =>  0:15
-    :END:
     :PROPERTIES:
     :ARCHIVE_TIME: 2014-09-29 Mon 10:06
     :END:
