@@ -100,7 +100,12 @@
 
 (defn make-context-nc
   "Context constructor similar to make-context, but does not do any
-  safety checking and is therefore faster. Use with care."
+  safety checking and is therefore faster. Use with care.
+
+  This function is useful if you want to construct new contexts from old ones.  In
+  particular, if you want to use the incidence relation if a given context as the
+  incidence relation for a new one, you can just pass it to this function without any
+  modifications."
   [objects attributes incidence]
   (Formal-Context. (to-set objects) (to-set attributes) incidence))
 
