@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.util.fcalib
+(ns conexp.contrib.util.fcalib
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications)

@@ -6,12 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.util.fcalib
+(ns conexp.contrib.tests.util.fcalib
   (:use clojure.test
         [conexp.base :only (defvar- gcd with-testing-data forall set-of)]
         [conexp.fca.contexts :only (make-context diag-context adiag-context)]
         [conexp.fca.implications :only (make-implication canonical-base)]
-        conexp.util.fcalib))
+        conexp.contrib.util.fcalib))
 
 ;;
 
