@@ -56,16 +56,16 @@
   (with-testing-data [ctx small-contexts,
                       :let [bonds (all-bonds ctx ctx)]
                       rel (map (fn [_]
-                                 (incidence (rand-context (objects ctx)
-                                                          (attributes ctx)
-                                                          (rand))))
+                                 (incidence-relation (rand-context (objects ctx)
+                                                                   (attributes ctx)
+                                                                   (rand))))
                                (range 10))]
     (let [smallest (smallest-bond ctx ctx rel)]
       (and (exists [b bonds]
              (= smallest b))
            (forall [b bonds]
-             (=> (subset? rel (incidence b))
-                 (subset? (incidence smallest) (incidence b))))))))
+             (=> (subset? rel (incidence-relation b))
+                 (subset? (incidence-relation smallest) (incidence-relation b))))))))
 
 ;;;
 

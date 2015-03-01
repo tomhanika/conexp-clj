@@ -53,7 +53,7 @@
                                        (fn [g m]
                                          (not (contains? down-down [g m]))))]
     (for [[G-H N] (concepts compatible-ctx)]
-      (make-context (difference (objects ctx) G-H) N (incidence ctx)))))
+      (make-context-nc (difference (objects ctx) G-H) N (incidence ctx)))))
 
 ;;; Bonds
 

@@ -229,7 +229,7 @@
                       last
                       (make-context (into (objects ctx) new-objs)
                                     (attributes ctx)
-                                    (union (incidence ctx)
+                                    (union (incidence-relation ctx)
                                            (set-of [g m] [[g ms] counterexamples,
                                                           m ms])))))
              ;;
@@ -251,8 +251,8 @@
          certain-ctx  certain-ctx]
     (cond
      ;; consistency check
-     (not (subset? (incidence certain-ctx)
-                   (incidence possible-ctx)))
+     (not (subset? (incidence-relation certain-ctx)
+                   (incidence-relation possible-ctx)))
      (do
        (println "Inconsistent state reached: certain incidence is not a subset of the possible incidence")
        {:implications     (difference implications background-knowledge),
@@ -290,14 +290,14 @@
                      ;; possible incidence, i.e. the one not excluded by the expert
                      (make-context (into (objects possible-ctx) new-objs)
                                    (attributes possible-ctx)
-                                   (union (incidence possible-ctx)
+                                   (union (incidence-relation possible-ctx)
                                           (set-of [g m] [[g _ neg] counterexamples,
                                                          m (difference (attributes possible-ctx)
                                                                        (set neg))])))
                      ;; certain incidence, i.e. the one given by the expert
                      (make-context (into (objects certain-ctx) new-objs)
                                    (attributes certain-ctx)
-                                   (union (incidence certain-ctx)
+                                   (union (incidence-relation certain-ctx)
                                           (set-of [g m] [[g pos _] counterexamples,
                                                          m pos])))))
             ;;
@@ -314,7 +314,7 @@
                                                            (let [certain-atts (oprime new-certain-ctx #{g})]
                                                              (subset? (new-clop (conj certain-atts m))
                                                                       (oprime possible-ctx #{g}))))
-                                                         (incidence possible-ctx)))]
+                                                         (incidence-relation possible-ctx)))]
               (recur new-implications
                      (next-closed-set (attributes possible-ctx) new-clop last)
                      new-possible-ctx

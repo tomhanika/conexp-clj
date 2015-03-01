@@ -181,7 +181,7 @@
            inz    (set-of [g [m n]] [g objs
                                      [m n] atts
                                      :let [w (inz [g m])]
-                                     :when (contains? (incidence (scales m)) [w n])])]
+                                     :when ((incidence (scales m)) [w n])])]
        (make-context-nc objs atts inz))))
 
 (defn nominal-scale

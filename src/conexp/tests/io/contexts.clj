@@ -74,7 +74,7 @@
     (let [ctx (read-context "stuff/testing-data/nn_5.half.cex")]
       (is (= 42 (count (attributes ctx))))
       (is (= 10 (count (objects ctx))))
-      (is (= 120 (count (incidence ctx)))))))
+      (is (= 120 (count (incidence-relation ctx)))))))
 
 ;;;
 
