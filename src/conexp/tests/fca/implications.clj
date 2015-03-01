@@ -67,16 +67,6 @@
   (is (not (holds? (make-implication #{1} #{2})
                    (make-context [1 2] [1 2] >=)))))
 
-(deftest test-close-under-implications-1
-  (are [start impls result] (= result
-                               (close-under-implications-1 (map (partial apply make-implication)
-                                                                impls)
-                                                           start))
-       #{} [[#{} #{1}]] #{1},
-       #{1} [[#{1} #{2}] [#{2} #{3}] [#{3} #{4}] [#{4} #{5}]] #{1 2},
-       #{1 2 3} [[#{1 2} #{4}] [#{1 4} #{5}] [#{1 6} #{7}]] #{1 2 3 4}
-       #{1 2 3 4 5 6 7 8} [[#{1} #{4}] [#{2} #{3}] [#{4} #{5 6 7}] [#{6 7} #{8}] [#{9 10 11} #{8}]] #{1 2 3 4 5 6 7 8}))
-
 (deftest test-close-under-implications
   (are [start impls result] (= result
                                (close-under-implications (map (partial apply make-implication)

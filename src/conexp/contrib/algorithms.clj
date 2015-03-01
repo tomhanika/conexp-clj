@@ -8,12 +8,9 @@
 
 (ns conexp.contrib.algorithms
   "Provides some optimized versions of the standard algorithms of conexp.main"
-  (:require [conexp.main :as cm]
-            conexp.contrib.algorithms.linclosure))
+  (:require [conexp.main :as cm]))
 
 ;;;
-
-(cm/defalias linclosure conexp.contrib.algorithms.linclosure/close-under-implications)
 
 (load "algorithms/canonical_base")
 (load "algorithms/concepts")
