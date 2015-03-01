@@ -9,7 +9,7 @@
 (ns conexp.contrib.algorithms.bitwise
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue])
-  (:use [conexp.fca.contexts :only (objects attributes incidence)]))
+  (:use [conexp.fca.contexts :only (objects attributes incidence-relation)]))
 
 
 ;;; Helpers to convert to and from BitSets
@@ -104,7 +104,7 @@
         attribute-vector (vec (attributes context)),
         object-count     (count object-vector),
         attribute-count  (count attribute-vector),
-        incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))]
+        incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence-relation context))]
     [object-vector attribute-vector object-count attribute-count incidence-matrix]))
 
 (defmacro with-binary-context
