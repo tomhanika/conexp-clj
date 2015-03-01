@@ -218,9 +218,9 @@
         atts-2 (attributes ctx-2)]
     (and (subset? objs-1 objs-2)
          (subset? atts-1 atts-2)
-         (forall [[g m] (incidence-relation ctx-1)]
-           (=> (and (contains? objs-1 g)
-                    (contains? atts-1 m))
+         (forall [g (objects ctx-1)
+                  m (attributes ctx-1)]
+           (=> ((incidence ctx-1) [g m])
                ((incidence ctx-2) [g m]))))))
 
 (defn restrict-concept
