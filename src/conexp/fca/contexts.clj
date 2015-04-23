@@ -137,8 +137,8 @@
     (illegal-argument "Objects and attributes should not be given as a map."))
   (Formal-Context. (to-set objects)
                    (to-set attributes)
-                   (memoize (fn [[g m]]
-                              (incidence g m)))))
+                   (fn [[g m]]
+                     (incidence g m))))
 
 (defmethod make-context :default [obj att inz]
   (illegal-argument "The arguments " obj ", " att " and " inz " are not valid for a formal context."))
