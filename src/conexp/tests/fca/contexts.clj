@@ -47,7 +47,7 @@
 (def test-ctx-04 (make-context #{} #{} #{}))
 (def test-ctx-05 (make-context (set-of-range 0 50)
                                (set-of-range 0 50)
-                               (fn [_ _] (< 0.5 (rand)))))
+                               (memoize (fn [_ _] (< 0.5 (rand))))))
 (def test-ctx-06 (make-context (set-of-range 0 10)
                                (cross-product (set-of-range 0 10)
                                               (set-of-range 0 10))
