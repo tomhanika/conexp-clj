@@ -177,12 +177,12 @@
            inz    (incidence mv-ctx),
            objs   (objects mv-ctx),
            atts   (set-of [m n] [m (attributes mv-ctx)
-                                 n (attributes (scales m))]),
-           inz    (set-of [g [m n]] [g objs
-                                     [m n] atts
-                                     :let [w (inz [g m])]
-                                     :when ((incidence (scales m)) [w n])])]
-       (make-context-nc objs atts inz))))
+                                 n (attributes (scales m))])]
+       (make-context-nc objs
+                        atts
+                        (fn [[g [m n]]]
+                          (let [w (inz [g m])]
+                            ((incidence (scales m)) [w n])))))))
 
 (defn nominal-scale
   "Returns the nominal scale on the set base."
