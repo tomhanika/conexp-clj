@@ -963,27 +963,88 @@ metadata (as provided by def) merged into the metadata of the original."
                               (count (set-of X | X edges :when (contains? X x))))
                             vertices),
         elements (sort #(compare (cards %2) (cards %1))
-                       vertices),
-        result   (atom []),
-        search   (fn search [rest-sets current rest-elements]
-                   (cond
-                    (exists [x current]
-                      (intersection-set? (disj current x) edges))
-                    nil,
-                    (intersection-set? current edges)
-                    (swap! result conj current),
-                    :else
-                    (when-let [x (first rest-elements)]
-                      (when (exists [set rest-sets]
-                              (contains? set x))
-                        (search (remove #(contains? % x) rest-sets)
-                                (conj current x)
-                                (rest rest-elements)))
-                      (search rest-sets
-                              current
-                              (rest rest-elements)))))]
-    (search edges #{} elements)
-    @result))
+                       vertices)]
+    ;; What follows is rather complicated, but corresponds roughtly to the lazy
+    ;; version of the following code:
+    ;;
+    ;;  (let [result   (atom []),
+    ;;        search   (fn search [rest-sets current rest-elements]
+    ;;                   (cond
+    ;;                    (exists [x current]
+    ;;                      (intersection-set? (disj current x) edges))
+    ;;                    nil,
+    ;;                    (intersection-set? current edges)
+    ;;                    (swap! result conj current),
+    ;;                    :else
+    ;;                    (when-let [x (first rest-elements)]
+    ;;                      (when (exists [set rest-sets]
+    ;;                              (contains? set x))
+    ;;                        (search (remove #(contains? % x) rest-sets)
+    ;;                                (conj current x)
+    ;;                                (rest rest-elements)))
+    ;;                      (search rest-sets
+    ;;                              current
+    ;;                              (rest rest-elements)))))]
+    ;;    (search edges #{} elements)
+    ;;    @result)
+    (let [search (fn search [stack]
+                   (when-let [[rest-sets current-hitting-set rest-elements instruction] (first stack)]
+                     (lazy-seq
+                      (cond
+                        ;; start at the beginning
+                        (= instruction 'beginning)
+                        (cond
+                          ;; discard if current hitting-set candidate is not minimal
+                          (exists [x current-hitting-set]
+                            (intersection-set? (disj current-hitting-set x) edges))
+                          (search (rest stack))
+
+                          ;; if we have a (minimal) hitting-set, then we just return it
+                          (intersection-set? current-hitting-set edges)
+                          (cons current-hitting-set
+                                (search (rest stack)))
+
+                          ;; otherwise we try to extend our current candidate
+                          :else
+                          (if-let [x (first rest-elements)]
+                            (if (exists [set rest-sets]
+                                  (contains? set x))
+                              (search (conj (rest stack)
+                                            [rest-sets
+                                             current-hitting-set
+                                             rest-elements
+                                             'first-case]
+                                            [(remove #(contains? % x) rest-sets)
+                                             (conj current-hitting-set x)
+                                             (rest rest-elements)
+                                             'beginning]))
+                              (search (conj (rest stack)
+                                            [rest-sets
+                                             current-hitting-set
+                                             rest-elements
+                                             'second-case]
+                                            [rest-sets
+                                             current-hitting-set
+                                             (rest rest-elements)
+                                             'beginning])))
+                            (search (rest stack))))
+
+                        ;; entered `search' by returning from the first recursive call
+                        (= instruction 'first-case)
+                        (search (conj (rest stack)
+                                      [rest-sets
+                                       current-hitting-set
+                                       rest-elements
+                                       'second-case]
+                                      [rest-sets
+                                       current-hitting-set
+                                       (rest rest-elements)
+                                       'beginning]))
+
+                        ;; entered `search' by returning from the second recursive call
+                        (= instruction 'second-case)
+                        (search (rest stack))))))]
+      (search (list [edges #{} elements 'beginning])))))
 
 ;;;
 

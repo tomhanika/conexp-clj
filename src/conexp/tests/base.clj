@@ -441,7 +441,8 @@
   (are [sets minimal-sets] (= (set minimal-sets)
                               (set (minimal-hypergraph-transversals (reduce union sets) sets)))
     [#{2} #{2 4}] [#{2}]
-    [#{1 2 3} #{2 3 4} #{2 3 5}] [#{1 4 5} #{2} #{3}]))
+    [#{1 2 3} #{2 3 4} #{2 3 5}] [#{1 4 5} #{2} #{3}]
+    [#{1 2} #{1 3} #{2 3}] [#{1 2} #{1 3} #{2 3}]))
 
 ;;;
 
