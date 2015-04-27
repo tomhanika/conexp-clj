@@ -171,18 +171,19 @@
      (scale-mv-context mv-ctx scales #(illegal-argument "No scale given for attribute " % ".")))
   ([mv-ctx scales default]
      (assert (map? scales))
-     (let [scales (into scales (for [m (difference (attributes mv-ctx)
-                                                   (set (keys scales)))]
-                                 [m (default m)])),
+     (let [scale  (fn [m]
+                    (if (contains? scales m)
+                      (scales m)
+                      (default m)))
            inz    (incidence mv-ctx),
            objs   (objects mv-ctx),
            atts   (set-of [m n] [m (attributes mv-ctx)
-                                 n (attributes (scales m))])]
+                                 n (attributes (scale m))])]
        (make-context-nc objs
                         atts
                         (fn [[g [m n]]]
                           (let [w (inz [g m])]
-                            ((incidence (scales m)) [w n])))))))
+                            ((incidence (scale m)) [w n])))))))
 
 (defn nominal-scale
   "Returns the nominal scale on the set base."
