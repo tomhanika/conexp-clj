@@ -440,9 +440,32 @@
 (deftest test-minimal-hypergraph-transversals
   (are [sets minimal-sets] (= (set minimal-sets)
                               (set (minimal-hypergraph-transversals (reduce union sets) sets)))
-    [#{2} #{2 4}] [#{2}]
-    [#{1 2 3} #{2 3 4} #{2 3 5}] [#{1 4 5} #{2} #{3}]
-    [#{1 2} #{1 3} #{2 3}] [#{1 2} #{1 3} #{2 3}]))
+       [#{2} #{2 4}] [#{2}]
+       [#{1 2 3} #{2 3 4} #{2 3 5}] [#{1 4 5} #{2} #{3}]
+       [#{1 2} #{1 3} #{2 3}] [#{1 2} #{1 3} #{2 3}])
+  (forall [selection (map (partial take 20)
+                          (take 100 (iterate shuffle (subsets (set-of-range 10)))))]
+    (let [mhts (minimal-hypergraph-transversals (set-of-range 10) selection)]
+      (is (every? (fn [mht]
+                    (forall [x selection]
+                      (not-empty (intersection x mht))))
+                  mhts))
+      (is (every? (fn [mht]
+                    (every? (fn [sub-mht]
+                              (exists [x selection]
+                                (empty? (intersection x sub-mht))))
+                            (map #(disj mht %)
+                                 mht)))
+                  mhts))))
+  (forall [selection (map (partial take 20)
+                          (take 100 (iterate shuffle (subsets (set-of-range 10)))))]
+    (let [base-set (reduce union selection),
+          mscs     (minimum-set-covers base-set selection),
+          mhts     (minimal-hypergraph-transversals
+                    selection
+                    (set-of (set-of S | S selection :when (contains? S m))
+                            | m base-set))]
+      (is (= (set mscs) (set mhts))))))
 
 ;;;
 
