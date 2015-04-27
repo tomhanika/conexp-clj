@@ -457,8 +457,8 @@
                             (map #(disj mht %)
                                  mht)))
                   mhts))))
-  (forall [selection (map (partial take 20)
-                          (take 100 (iterate shuffle (subsets (set-of-range 10)))))]
+  (doseq [selection (map (partial take 20)
+                         (take 100 (iterate shuffle (subsets (set-of-range 10)))))]
     (let [base-set (reduce union selection),
           mscs     (minimum-set-covers base-set selection),
           mhts     (minimal-hypergraph-transversals
