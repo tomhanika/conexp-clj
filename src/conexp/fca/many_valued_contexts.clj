@@ -331,9 +331,9 @@
                                       att atts]
                                   `['~att (let [~'values (values-of-attribute ~ctx '~att)]
                                             ~scale)]))
-                         (fn [x#]
-                           (let [~'values (values-of-attribute ~ctx x#)]
-                             ~default))))))
+                         (memoize (fn [x#]
+                                    (let [~'values (values-of-attribute ~ctx x#)]
+                                      ~default)))))))
 
 ;;;
 
