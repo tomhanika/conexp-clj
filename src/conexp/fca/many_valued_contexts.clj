@@ -196,38 +196,33 @@
   "Returns the ordinal scale on the set values, optionally given an
   order relation <=."
   ([values]
-     (ordinal-scale values <=))
+   (ordinal-scale values <=))
   ([values <=]
-     (ordinal-scale values values <=))
+   (ordinal-scale values values <=))
   ([values others <=]
-     (let [atts (map #(str '<= " " %) others),
-           inz  (set-of [g (str '<= " " m)] [g values,
-                                             m others
-                                             :when (<= g m)])]
+   (let [atts (map #(vector '<= %) others),
+         inz  (fn [g [_ m]]
+                (<= g m))]
      (make-context values atts inz))))
 
 (defn interordinal-scale
   "Returns the interordinal scale on the set base, optionally given
   two order relations <= and >=."
   ([values]
-     (interordinal-scale values <= >=))
+   (interordinal-scale values <= >=))
   ([values <= >=]
-     (interordinal-scale values values <= >=))
+   (interordinal-scale values values <= >=))
   ([values others <= >=]
-     (let [objs    values,
+   (let [objs    values,
 
-           atts-<= (map #(str '<= " " %) others),
-           atts->= (map #(str '>= " " %) others),
+         atts-<= (map #(vector '<= %) others),
+         atts->= (map #(vector '>= %) others),
 
-           inz-<= (set-of [g (str '<= " " m)]
-                          [g objs,
-                           m others
-                           :when (<= g m)]),
-           inz->= (set-of [g (str '>= " " m)]
-                          [g objs,
-                           m others,
-                           :when (>= g m)])]
-       (make-context values (union atts-<= atts->=) (union inz-<= inz->=)))))
+         inz     (fn [g [test m]]
+                   (if (= test '<=)
+                     (<= g m)
+                     (>= g m)))]
+     (make-context values (union atts-<= atts->=) inz))))
 
 (defn biordinal-scale
   "Returns the biordinal scale on the sequence values, optionally given
@@ -240,23 +235,14 @@
      (let [first-objs (take n values),
            rest-objs  (drop n values),
 
-           first-atts (take n others),
-           rest-atts  (drop n others),
+           first-atts (map #(vector '<= %) (take n others)),
+           rest-atts  (map #(vector '>= %) (drop n others)),
 
-           first-inz  (set-of [g (str '<= " " m)]
-                              [g first-objs,
-                               m first-atts,
-                               :when (<= g m)]),
-           rest-inz   (set-of [g (str '>= " " m)]
-                              [g rest-objs,
-                               m rest-atts
-                               :when (>= g m)]),
-
-           first-atts (map #(str '<= " " %) first-atts),
-           rest-atts  (map #(str '>= " " %) rest-atts)]
-       (make-context values
-                     (union first-atts rest-atts)
-                     (union first-inz rest-inz)))))
+           inz        (fn [g [test m]]
+                        (if (= test '<=)
+                          (<= g m)
+                          (>= g m)))]
+       (make-context values (union first-atts rest-atts) inz))))
 
 (defn dichotomic-scale
   "Returns the dichotimic scale on the set values. Note that base must
@@ -266,9 +252,9 @@
   (nominal-scale values))
 
 (defn interval-scale
-  "Returns the interval scale on the set values. Note that values must
-  be ordered (e.g. vector or list), because otherwise the result will
-  be arbitrary"
+  "Returns the interval scale on the set values.
+  Note that values must be ordered (e.g. vector or list), because otherwise the result
+  will be arbitrary.  Also note that the intervales will be left-open."
   ([values]
     (interval-scale values values < >=))
   ([values others]
@@ -277,11 +263,10 @@
      (assert (sequential? others)
              "Interval values must be ordered to obtain a reasonable result.")
      (let [pairs      (partition 2 1 others)
-           atts       (map #(str "[" (first %) ", " (second %) ")") pairs)
-           inz        (set-of [g (str "[" (first m) ", " (second m) ")")]
-                              [g values,
-                               m pairs
-                               :when (and (< g (second m)) (>= g (first m)))])]
+           atts       (map #(vector '∈ (vec  %)) pairs)
+           inz        (fn [g [_ [a b]]]
+                        (and (< g b)
+                             (>= g a)))]
        (make-context values atts inz))))
 
 ;;;
