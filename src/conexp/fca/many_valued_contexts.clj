@@ -192,16 +192,6 @@
   ([values others]
      (make-context values others =)))
 
-(defn order-by
-  "Returns a function on two arguments a and b that returns true if and only if b occurs
-  not after a in the given sequence (ascending order.)"
-  [sequence]
-  (let [pos (zipmap sequence (range))]
-    (fn [a b]
-      (and (contains? pos a)
-           (contains? pos b)
-           (>= (pos a) (pos b))))))
-
 (defn ordinal-scale
   "Returns the ordinal scale on the set values, optionally given an
   order relation <=."

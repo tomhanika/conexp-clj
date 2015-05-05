@@ -232,6 +232,15 @@ metadata (as provided by def) merged into the metadata of the original."
     :else
     (compare-order x y)))
 
+(defn order-by
+  "Returns a function on two arguments a and b that returns true if and only if b occurs
+  not after a in the given sequence (ascending order.)"
+  [sequence]
+  (let [pos (zipmap sequence (range))]
+    (fn [a b]
+      (and (contains? pos a)
+           (contains? pos b)
+           (>= (pos a) (pos b))))))
 (defn zip
   "Returns sequence of pairs [x,y] where x runs through seq-1 and
   y runs through seq-2 simultaneously. This is the same as
