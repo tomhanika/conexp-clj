@@ -325,27 +325,42 @@
   [ctx]
   (map premise (stem-base ctx)))
 
+(defn parallel-canonical-base-from-clop
+  "Computes the canonical base of the given closure operator in parallel.
+  Accepts the same parameters as «canonical-base-from-clop», except for the
+  predicate."
+  ([clop base]
+   (parallel-canonical-base-from-clop clop base #{}))
+  ([clop base background-knowledge]
+   (let [implications (atom (set background-knowledge))
+         current      (atom #{#{}})]
+     (loop [n 0]
+       (if (< (count base) n)
+         (difference @implications (set background-knowledge))
+         (do
+           (dopar [C (filter #(= n (count %)) @current)]
+             (swap! current #(disj % C))
+             (let [impl-C (close-under-implications @implications C)]
+               (if (= C impl-C)
+                 (let [clop-C (clop C)]
+                   (when (not= C clop-C)
+                     (swap! implications
+                            #(conj % (make-implication C clop-C))))
+                   (doseq [m base :when (not (contains? clop-C m))]
+                     (swap! current #(conj % (conj clop-C m)))))
+                 (swap! current #(conj % impl-C)))))
+           (recur (inc n))))))))
+
 (defn parallel-canonical-base
-  "Computes the canonical base of the given closure operator in parallel."
-  [base clop]
-  (let [implications (atom #{})
-        current      (atom #{#{}})]
-    (loop [n 0]
-      (if (< (count base) n)
-        @implications
-        (do
-          (dopar [C (filter #(= n (count %)) @current)]
-            (swap! current #(disj % C))
-            (let [impl-C (close-under-implications @implications C)]
-              (if (= C impl-C)
-                (let [clop-C (clop C)]
-                  (when (not= C clop-C)
-                    (swap! implications
-                           #(conj % (make-implication C clop-C))))
-                  (doseq [m base :when (not (contains? clop-C m))]
-                    (swap! current #(conj % (conj clop-C m)))))
-                (swap! current #(conj % impl-C)))))
-          (recur (inc n)))))))
+  "Computes the canonical base of the given formal context.
+  Background knowledge can be provided as a set of implications on the attribute
+  set of the given context.  Computation is eager and is done in parallel."
+  ([ctx]
+   (parallel-canonical-base ctx #{}))
+  ([ctx background-knowledge]
+   (parallel-canonical-base-from-clop (partial adprime ctx)
+                                      (attributes ctx)
+                                      background-knowledge)))
 
 
 
