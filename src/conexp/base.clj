@@ -431,6 +431,17 @@ metadata (as provided by def) merged into the metadata of the original."
                #{'yes 'no}
                "Please answer 'yes' or 'no': ")))
 
+(defmacro dopar
+  "Executes body binding k to each value in v.
+  Execution is done in parallel.  Code adapted from
+  http://www.acooke.org/cute/Clojuremac0.html"
+  [[k v] & body]
+  `(apply await
+          (for [k# ~v]
+            (let [a# (agent k#)]
+              (send a# (fn [~k] ~@body))
+              a#))))
+
 ;;; deftype utilities
 
 (defmacro generic-equals
