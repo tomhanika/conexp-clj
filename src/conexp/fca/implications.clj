@@ -324,6 +324,29 @@
   [ctx]
   (map premise (stem-base ctx)))
 
+(defn parallel-canonical-base
+  "Computes the canonical base of the given closure operator in parallel."
+  [base clop]
+  (let [implications (atom #{})
+        current      (atom #{#{}})]
+    (loop [n 0]
+      (if (< (count base) n)
+        @implications
+        (do
+          (dopar [C (filter #(= n (count %)) @current)]
+            (swap! current #(disj % C))
+            (let [impl-C (close-under-implications @implications C)]
+              (if (= C impl-C)
+                (let [clop-C (clop C)]
+                  (when (not= C clop-C)
+                    (swap! implications
+                           #(conj % (make-implication C clop-C))))
+                  (doseq [m base :when (not (contains? clop-C m))]
+                    (swap! current #(conj % (conj clop-C m)))))
+                (swap! current #(conj % impl-C)))))
+          (recur (inc n)))))))
+
+
 
 ;;; Proper Premises
 

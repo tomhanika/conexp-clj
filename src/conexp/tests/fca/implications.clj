@@ -275,6 +275,12 @@
     (and (= (set (canonical-base ctx))
             (set (canonical-base-from-clop #(adprime ctx %) (attributes ctx)))))))
 
+(deftest test-parallel-canonical-base
+  (with-testing-data [ctx stem-base-test-contexts]
+    (and (= (set (canonical-base ctx))
+            (set (parallel-canonical-base (attributes ctx)
+                                          (partial adprime ctx)))))))
+
 (deftest test-intersect-implicational-theories
   (with-testing-data [ctx stem-base-test-contexts,
                       n   (range 1 (count (objects ctx)))]
