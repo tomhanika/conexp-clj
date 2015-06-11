@@ -13,7 +13,7 @@
             conexp.fca.implications
             conexp.fca.exploration
             conexp.fca.lattices
-            conexp.fca.more))
+            conexp.fca.misc))
 
 ;;;
 
@@ -22,7 +22,7 @@
            'conexp.fca.implications
            'conexp.fca.exploration
            'conexp.fca.lattices
-           'conexp.fca.more)
+           'conexp.fca.misc)
 
 ;;;
 

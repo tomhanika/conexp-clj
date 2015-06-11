@@ -6,11 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.tests.fca.more
+(ns conexp.tests.fca.misc
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
-        conexp.fca.more
+        conexp.fca.misc
         conexp.tests.fca.contexts)
   (:require [conexp.tests.fca.implications :as impls])
   (:use clojure.test))
