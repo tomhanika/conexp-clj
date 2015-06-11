@@ -869,15 +869,11 @@ Computes the closures in parallel, to the extent possible."
     (if (< (count base) n)
       closures
       (let [next-current (atom current)]
-        (apply await
-               (for [C current]
-                 (let [a (agent nil)]
-                   (send a
-                         (fn [_]
-                           (when (not= (count C) n)
-                             (swap! next-current #(disj % C))
-                             (doseq [x base :when (not (contains? C x))]
-                               (swap! next-current #(conj % (clop (conj C x)))))))))))
+        (dopar [C current]
+          (when (not= (count C) n)
+            (swap! next-current #(disj % C))
+            (doseq [x base :when (not (contains? C x))]
+              (swap! next-current #(conj % (clop (conj C x)))))))
         (recur (inc n) (into closures @next-current) @next-current)))))
 
 
