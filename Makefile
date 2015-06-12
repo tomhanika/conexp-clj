@@ -3,7 +3,7 @@ TIME = $(shell date -u +"%Y%m%d%H%M%S")
 
 FILES = $(shell find src -name "*.clj")
 
-all: conexp-clj-$(VERSION).zip
+all: clean conexp-clj-$(VERSION).zip
 	@mv conexp-clj-$(VERSION).zip conexp-clj-$(VERSION)-$(TIME).zip
 
 target/conexp-clj-$(VERSION)-standalone.jar: $(FILES)
