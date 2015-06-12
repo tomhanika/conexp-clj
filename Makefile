@@ -1,4 +1,4 @@
-VERSION = 1.0.0
+VERSION = 1.1.0
 TIME = $(shell date -u +"%Y%m%d%H%M%S")
 
 FILES = $(shell find src -name "*.clj")
