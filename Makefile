@@ -1,4 +1,4 @@
-VERSION = 0.0.7-alpha-SNAPSHOT
+VERSION = 0.0.8-SNAPSHOT
 TIME = $(shell date -u +"%Y%m%d%H%M%S")
 
 FILES = $(shell find src -name "*.clj")
