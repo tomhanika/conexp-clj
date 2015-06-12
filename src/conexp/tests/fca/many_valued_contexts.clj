@@ -49,7 +49,7 @@
 
 ;;;
 
-(defvar- testing-data
+(def- testing-data
   [(make-mv-context #{} #{} +),
    (make-mv-context [1 2 3] [1 2 3] =),
    (make-mv-context (range 100) (range 100) *),
@@ -126,36 +126,36 @@
 
 (deftest test-ordinal-scale
   (is (= (ordinal-scale [1 2])
-         (make-context-from-matrix [1 2] ["<= 1" "<= 2"] [1 1 0 1])))
+         (make-context-from-matrix [1 2] [['<= 1] ['<= 2]] [1 1 0 1])))
   (is (= (ordinal-scale [1 2] >=)
-         (make-context-from-matrix [1 2] ["<= 1" "<= 2"] [1 0 1 1])))
+         (make-context-from-matrix [1 2] [['<= 1] ['<= 2]] [1 0 1 1])))
   (is (= (ordinal-scale [1 2] [2 3] >=)
-         (make-context-from-matrix [1 2] ["<= 2" "<= 3"] [0 0 1 0]))))
+         (make-context-from-matrix [1 2] [['<= 2] ['<= 3]] [0 0 1 0]))))
 
 (deftest test-interordinal-scale
   (is (= (interordinal-scale [1 2])
          (make-context-from-matrix [1 2]
-                                   ["<= 1" "<= 2" ">= 1" ">= 2"]
+                                   '[[<= 1] [<= 2] [>= 1] [>= 2]]
                                    [1 1 1 0 0 1 1 1])))
   (is (= (interordinal-scale [1 2])
          (interordinal-scale [1 2] <= >=)))
   (is (= (interordinal-scale [1 2] [2 3] > <)
          (make-context-from-matrix [1 2]
-                                   ["<= 2" "<= 3" ">= 2" ">= 3"]
+                                   '[[<= 2] [<= 3] [>= 2] [>= 3]]
                                    [0 0 1 1
                                     0 0 0 1]))))
 
 (deftest test-biordinal-scale
   (is (= (biordinal-scale [1 2] 1)
          (make-context-from-matrix [1 2]
-                                   ["<= 1" ">= 2"]
+                                   '[[<= 1] [>= 2]]
                                    [1 0 0 1])))
   (is (= (biordinal-scale [1 2] 2)
          (ordinal-scale [1 2])))
   (is (= (biordinal-scale [1 2] [2 3] 1 >= <=)
          (make-context-from-matrix [1 2]
-                                   ["<= 2" ">= 3"]
-                                   [0 0 0 1]))))
+                                   '[[<= 2] [>= 3]]
+                                   [0 1 1 1]))))
 
 (deftest test-dichotomic-scale
   (is (= (dichotomic-scale [1 2])
@@ -164,6 +164,20 @@
                (dichotomic-scale [1 2 3])))
   (is (thrown? AssertionError
                (dichotomic-scale [1]))))
+
+(deftest test-interval-scale
+  (is (thrown? AssertionError
+               (interval-scale [1 2 3] #{1 5 6})))
+  (is (= (interval-scale [1 2 3 4 5 6 7 8] [1 4 8])
+         (make-context [1 2 3 4 5 6 7 8]
+                       '[[∈ [1, 4]], [∈ [4, 8]]]
+                       '[[1, [∈ [1, 4]]],
+                         [2, [∈ [1, 4]]],
+                         [3, [∈ [1, 4]]],
+                         [4, [∈ [4, 8]]],
+                         [5, [∈ [4, 8]]],
+                         [6, [∈ [4, 8]]],
+                         [7, [∈ [4, 8]]]]))))
 
 ;;;
 
@@ -174,15 +188,15 @@
         sc-ctx (make-context-from-matrix '[a b c]
                                          '[[x false]
                                            [x true]
-                                           [2 "<= 1"]
-                                           [2 "<= 2"]
-                                           [2 "<= 3"]
-                                           [3 "<= 0"]
-                                           [3 "<= 2"]
-                                           [3 "<= 4"]
-                                           [3 ">= 0"]
-                                           [3 ">= 2"]
-                                           [3 ">= 4"]]
+                                           [2 [<= 1]]
+                                           [2 [<= 2]]
+                                           [2 [<= 3]]
+                                           [3 [<= 0]]
+                                           [3 [<= 2]]
+                                           [3 [<= 4]]
+                                           [3 [>= 0]]
+                                           [3 [>= 2]]
+                                           [3 [>= 4]]]
                                          [0 1 1 1 1 0 0 1 1 1 1,
                                           1 0 0 1 1 0 1 1 1 1 0,
                                           0 1 0 0 1 1 1 1 1 0 0])]

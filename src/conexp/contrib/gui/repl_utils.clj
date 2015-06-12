@@ -15,8 +15,9 @@
 
 ;;;
 
-(defvar ^{:dynamic true} *main-frame* nil
-  "Main frame we are operating in.")
+(def ^{:dynamic true} *main-frame*
+  "Main frame we are operating in."
+  nil)
 
 (defn- get-main-frame
   "Returns current main-frame or nil."

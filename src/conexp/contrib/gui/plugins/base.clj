@@ -7,10 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.plugins.base
-  (:use conexp.base))
-
-(ns-doc
- "Implements plugin frameworks used for conexp-clj's standard GUI.")
+  "Implements plugin frameworks used for conexp-clj's standard GUI."
+  (:use [conexp.base :only (illegal-argument)]))
 
 ;;; Basic Plugin Structure
 
@@ -57,13 +55,13 @@
   (struct plugin-manager frame (ref #{}) (ref #{})))
 
 (defn plugin-registered? [plugin-manager plugin]
-  (contains? (registered-plugins plugin-manager) plugin))
+  (contains? @(registered-plugins plugin-manager) plugin))
 
 (defn plugin-loaded?
   "Tests whether a plugin is loaded within a plugin manager or not."
   [plugin-manager plugin]
   (and (plugin-registered? plugin-manager plugin)
-       (contains? (loaded-plugins plugin-manager) plugin)))
+       (contains? @(loaded-plugins plugin-manager) plugin)))
 
 (defn register-plugin
   "Tests whether a plugin is registered within a plugin manager or not."

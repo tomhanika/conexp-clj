@@ -7,13 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.many-valued-contexts
+  "Implements IO for Many-Valued Contexts."
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.many-valued-contexts
         conexp.io.util)
   (:import [java.io PushbackReader]))
-
-(ns-doc "Implements IO for Many-Valued Contexts.")
 
 ;;; Input format dispatch
 
@@ -31,10 +30,11 @@
 (define-mv-context-output-format :simple
   [mv-context file]
   (with-out-writer file
-    (println "conexp-clj simple")
-    (prn {:many-valued-context [(objects mv-context)
-                                (attributes mv-context)
-                                (incidence mv-context)]})))
+    (binding [*print-length* nil]
+      (println "conexp-clj simple")
+      (prn {:many-valued-context [(objects mv-context)
+                                  (attributes mv-context)
+                                  (incidence mv-context)]}))))
 
 (define-mv-context-input-format :simple
   [file]
@@ -70,9 +70,11 @@
   [mv-context file]
   (with-out-writer file
     (when (> 2 (count (attributes mv-context)))
-      (unsupported-operation "Cannot store many-valued contexts with less then 2 attributes in format :data-table."))
+      (unsupported-operation
+       "Cannot store many-valued contexts with less then 2 attributes in format :data-table."))
     (when (= 0 (count (objects mv-context)))
-      (unsupported-operation "Cannot store many-valued context without objects in format :data-table."))
+      (unsupported-operation
+       "Cannot store many-valued context without objects in format :data-table."))
     (let [write-comma-line (fn [things]
                              (cond
                               (empty? things) nil,
@@ -82,25 +84,30 @@
                                         (recur (rest things)))))]
       (write-comma-line (attributes mv-context))
       (doseq [g (objects mv-context)]
-        (write-comma-line (cons g (map #((incidence mv-context) [g %]) (attributes mv-context))))))))
+        (write-comma-line (cons g (map #((incidence mv-context) [g %])
+                                       (attributes mv-context))))))))
 
 (define-mv-context-input-format :data-table
   [file]
   (with-in-reader file
     (let [read-comma-line (fn []
-                            (let [line (get-line)]
-                              (read-string (str "(" line ")")))),
+                            (try
+                              (let [line (get-line)]
+                                (read-string (str "(" line ")")))
+                              (catch java.io.EOFException _
+                                nil))),
           attributes      (read-comma-line),
           lines           (doall
-                           (take-while #(not (empty? %))
+                           (take-while #(not (nil? %))
                                        (repeatedly read-comma-line))),
           line-lengths    (set-of (count line) [line lines])]
       (when (< 1 (count line-lengths))
         (illegal-argument "Many-Valued Context in file " file " has lines of different length."))
       (when (and (not= (count attributes) (first line-lengths))
                  (not= (inc (count attributes)) (first line-lengths)))
-        (illegal-argument "Number of values in lines in file " file " does not match given attributes.\n"
-                          "Number of values given should be equal or once more to the number of attributes."))
+        (illegal-argument
+         "Number of values in lines in file " file " does not match given attributes.\n"
+         "Number of values given should be equal or once more to the number of attributes."))
       (let [lines      (if (not= (first line-lengths) (count attributes))
                          lines
                          (map #(cons %1 %2) (iterate inc 0) lines)),

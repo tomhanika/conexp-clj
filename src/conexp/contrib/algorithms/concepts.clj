@@ -6,21 +6,18 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.algorithms.concepts
-  (:use [conexp.main :only (ns-doc, illegal-argument, improve-basic-order)]
-        conexp.util.generators
-        conexp.contrib.algorithms.bitwise
-        [conexp.contrib.algorithms.next-closure :only (next-closed-set)])
-  (:use [conexp.fca.contexts :only (context?, objects, attributes,
-                                    incidence, attribute-derivation,
-                                    context-attribute-closure)])
-  (:require [conexp.contrib.algorithms.close-by-one :as cbo])
-  (:import [java.util BitSet List ArrayList])
-  (:import [java.util.concurrent SynchronousQueue]))
+(in-ns 'conexp.contrib.algorithms)
 
-(ns-doc
- "Implements various algorithms to compute the concepts of a given
- context efficiently.")
+(use '[conexp.main :only (illegal-argument, improve-basic-order)]
+     'conexp.contrib.algorithms.generators
+     'conexp.contrib.algorithms.bitwise
+     '[conexp.contrib.algorithms.next-closure :only (next-closed-set bitwise-context-attribute-closure)])
+(use '[conexp.fca.contexts :only (context?, objects, attributes,
+                                            incidence, attribute-derivation,
+                                            context-attribute-closure)])
+(require '[conexp.contrib.algorithms.close-by-one :as cbo])
+(import '[java.util BitSet List ArrayList])
+(import '[java.util.concurrent SynchronousQueue])
 
 ;;; Concept Calculation Multi-Method
 
@@ -61,15 +58,17 @@
         a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
         start   (o-prime (a-prime (BitSet.))),
         intents (take-while identity
-                            (iterate #(next-closed-set object-count
-                                                       attribute-count
-                                                       incidence-matrix
+                            (iterate #(next-closed-set attribute-count
+                                                       (partial bitwise-context-attribute-closure
+                                                                object-count
+                                                                attribute-count
+                                                                incidence-matrix)
                                                        %)
                                      start))]
-      (map (fn [bitset]
-             [(to-hashset object-vector (a-prime bitset)),
-              (to-hashset attribute-vector bitset)])
-           intents)))
+    (map (fn [bitset]
+           [(to-hashset object-vector (a-prime bitset)),
+            (to-hashset attribute-vector bitset)])
+         intents)))
 
 
 ;;; Vychodil (:vychodil)

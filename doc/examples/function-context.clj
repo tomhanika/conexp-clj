@@ -89,7 +89,7 @@
     (map #(zipmap subs %)
          (selections subs (expt 2 (count base))))))
 
-(defvar function-context
+(def function-context
   (make-context (set (all-possible-funcs-on #{0 1}))
                 '#{idempotent?, intensive?, extensive?, monotone?, antitone?,
                    outcast?,    heritage?,  exchange?,  constancy?}

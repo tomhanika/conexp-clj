@@ -7,16 +7,15 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.scenes
-  (:use conexp.base)
+  "Namespace for scene abstraction."
+  (:use [conexp.base :only (illegal-argument, def-)])
+  (:use [seesaw.core :only (listen)])
   (:import [java.awt Color]
-           [java.awt.event ComponentListener]
            [java.io File]
            [java.awt.image BufferedImage]
            [javax.imageio ImageIO]
            [javax.swing JScrollBar]
            [no.geosoft.cc.graphics GWindow GScene GStyle GWorldExtent GCanvas]))
-
-(ns-doc "Namespace for scene abstraction.")
 
 ;; setting custom data
 
@@ -120,10 +119,11 @@
 
 ;; scene constructor
 
-(defvar- default-scene-style (doto (GStyle.)
-                               (.setBackgroundColor Color/WHITE)
-                               (.setAntialiased true))
-  "Default GScene style.")
+(def- default-scene-style
+  "Default GScene style."
+  (doto (GStyle.)
+    (.setBackgroundColor Color/WHITE)
+    (.setAntialiased true)))
 
 (defn ^GWindow make-window
   "Creates default window."
@@ -140,10 +140,9 @@
       (.shouldWorldExtentFitViewport false)
       (.setStyle default-scene-style)
       (add-scene-hook :image-changed))
-    (.addComponentListener (scene-canvas scn)
-                           (proxy [ComponentListener] []
-                             (componentResized [comp-evt]
-                               (call-scene-hook scn :image-changed))))
+    (listen (scene-canvas scn) :component-resized
+            (fn [_]
+              (call-scene-hook scn :image-changed)))
     scn))
 
 ;; methods on scenes

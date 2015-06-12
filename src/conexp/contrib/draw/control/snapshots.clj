@@ -7,11 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.snapshots
-  (:use conexp.base
+  (:use [conexp.base :only (now)]
         conexp.contrib.draw.control.util
         conexp.contrib.gui.util
         conexp.contrib.draw.scenes
         conexp.contrib.draw.scene-layouts)
+  (:use seesaw.core)
   (:import [javax.swing JComboBox JButton]))
 
 ;;;
@@ -19,7 +20,7 @@
 (defn snapshot-saver
   "Installs a snapshot saver, which, whenever a node has been moved,
   saves the image."
-  [frame scn buttons]
+  [_ scn buttons]
   (let [saved-layouts (atom {}),
         ^JComboBox
         combo         (make-combo-box buttons @saved-layouts),
@@ -31,13 +32,15 @@
         ^JButton
         snapshot      (make-button buttons "Snapshot")]
     (add-scene-callback scn :move-stop save-layout)
-    (with-action-on combo
-      (let [selected (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
-            layout   (@saved-layouts selected)]
-        (update-layout-of-scene scn layout)
-        (fit-scene-to-layout scn layout)))
-    (with-action-on snapshot
-      (save-layout nil))
+    (listen combo :action
+      (fn [evt]
+        (let [selected (.getSelectedItem
+                        ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
+              layout   (@saved-layouts selected)]
+          (update-layout-of-scene scn layout)
+          (fit-scene-to-layout scn layout))))
+    (listen snapshot :action
+      (fn [_] (save-layout nil)))
     (save-layout nil)))
 
 ;;;

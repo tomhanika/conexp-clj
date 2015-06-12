@@ -47,7 +47,7 @@
 (def test-ctx-04 (make-context #{} #{} #{}))
 (def test-ctx-05 (make-context (set-of-range 0 50)
                                (set-of-range 0 50)
-                               (fn [_ _] (< 0.5 (rand)))))
+                               (memoize (fn [_ _] (< 0.5 (rand))))))
 (def test-ctx-06 (make-context (set-of-range 0 10)
                                (cross-product (set-of-range 0 10)
                                               (set-of-range 0 10))
@@ -62,18 +62,18 @@
                                   [3 b] [3 e]
                                   [4 c] [4 d] [4 e]}))
 
-(defvar testing-data [empty-context,
-                      test-ctx-01,
-                      test-ctx-02,
-                      test-ctx-03,
-                      test-ctx-04,
-                      test-ctx-05,
-                      test-ctx-06,
-                      test-ctx-07,
-                      test-ctx-08,
-                      (make-context #{1 2}
-                                    #{1 2}
-                                    [[1 1] [1 2]])])
+(def testing-data [empty-context,
+                   test-ctx-01,
+                   test-ctx-02,
+                   test-ctx-03,
+                   test-ctx-04,
+                   test-ctx-05,
+                   test-ctx-06,
+                   test-ctx-07,
+                   test-ctx-08,
+                   (make-context #{1 2}
+                                 #{1 2}
+                                 [[1 1] [1 2]])])
 
 ;;;
 
@@ -141,7 +141,7 @@
   (are [thing] (thrown? Exception thing)
        (make-context [1 2 3 4] [3 4 5 6] [1 2 3])
        (make-context {1 2 3 4} {3 4 5 6} #{}))
-  (is (= (incidence (make-context [1 2 3] [2 3 4] <=))
+  (is (= (incidence-relation (make-context [1 2 3] [2 3 4] <=))
          #{[1 2] [1 3] [1 4] [2 2] [2 3] [2 4] [3 3] [3 4]}))
   (is (= (objects (make-context [nil 'a +] [] []))
          #{nil 'a +}))
@@ -155,24 +155,24 @@
          #{})))
 
 (deftest test-make-context-from-matrix
-  (is (= (incidence (make-context-from-matrix 2 2
-                                              [1 1
-                                               0 1]))
+  (is (= (incidence-relation (make-context-from-matrix 2 2
+                                                       [1 1
+                                                        0 1]))
          #{[0 0] [0 1] [1 1]}))
   (let [ctx (make-context-from-matrix 2 2 [0 0 1 1])]
     (is (= (objects ctx) #{0 1}))
     (is (= (attributes ctx) #{0 1}))
-    (is (= (incidence ctx) #{[1 0] [1 1]})))
+    (is (= (incidence-relation ctx) #{[1 0] [1 1]})))
   (let [ctx (make-context-from-matrix ['a +] 2 [0 1 0 1])]
     (is (= (objects ctx) #{'a +}))
     (is (= (attributes ctx) #{0 1}))
-    (is (= (incidence ctx) #{['a 1] [+ 1]}))))
+    (is (= (incidence-relation ctx) #{['a 1] [+ 1]}))))
 
 ;;;
 
 (deftest test-incident?
   (with-testing-data [ctx testing-data]
-    (forall [[g m] (incidence ctx)]
+    (forall [[g m] (incidence-relation ctx)]
       (incident? ctx g m)))
   (is (not (incident? (make-context [1] [1] [[1 1]])
                       1
@@ -194,14 +194,14 @@
             rct (rename-objects ctx inc)]
         (and (= #{1 2 3 4} (objects rct))
              (= (attributes ctx) (attributes rct))
-             (= (set-of [(inc g) m] [[g m] (incidence ctx)])
-                (incidence rct)))))
+             (= (set-of [(inc g) m] [[g m] (incidence-relation ctx)])
+                (incidence-relation rct)))))
   (is (let [ctx (make-context [0 1 2 3] [0 1 2 3] <),
             rct (rename-attributes ctx dec)]
         (and (= #{-1 0 1 2} (attributes rct))
              (= (objects ctx) (objects rct))
-             (= (set-of [g (dec m)] [[g m] (incidence ctx)])
-                (incidence rct))))))
+             (= (set-of [g (dec m)] [[g m] (incidence-relation ctx)])
+                (incidence-relation rct))))))
 
 (deftest test-subcontext?
   (with-testing-data [ctx testing-data]
@@ -214,7 +214,7 @@
                                 (fn [a b] (= 1 (gcd a b)))),
             ctx-2 (make-context (set-of-range 10)
                                 (set-of-range 10)
-                                (incidence ctx-1))]
+                                (incidence-relation ctx-1))]
         (forall [[A B] (concepts ctx-1)]
           (let [[C D] (restrict-concept [A B] ctx-2)]
             (and (= C (intersection A (objects ctx-2)))
@@ -259,40 +259,40 @@
     (attribute-clarified? (clarify-attributes ctx))))
 
 (deftest test-clarified?
-  (is (not (clarified? test-ctx-03)))
-  (is (clarified? test-ctx-04))
-  (is (not (clarified? test-ctx-06))))
+  (is (not (context-clarified? test-ctx-03)))
+  (is (context-clarified? test-ctx-04))
+  (is (not (context-clarified? test-ctx-06))))
 
 (deftest test-clarify-context
   (with-testing-data [ctx testing-data]
     (subcontext? (clarify-context ctx) ctx))
   (with-testing-data [ctx testing-data]
-    (clarified? (clarify-context ctx))))
+    (context-clarified? (clarify-context ctx))))
 
 (deftest test-down-arrows
   (with-testing-data [ctx testing-data]
     (forall [[g m] (down-arrows ctx)]
-      (and (not (contains? (incidence ctx) [g m]))
+      (and (not (contains? (incidence-relation ctx) [g m]))
            (forall [h (objects ctx)]
              (=> (proper-subset? (object-derivation ctx #{g})
                                  (object-derivation ctx #{h}))
-                 (contains? (incidence ctx) [h m])))))))
+                 (contains? (incidence-relation ctx) [h m])))))))
 
 (deftest test-up-arrows
   (with-testing-data [ctx testing-data]
     (forall [[g m] (up-arrows ctx)]
-      (and (not (contains? (incidence ctx) [g m]))
+      (and (not (contains? (incidence-relation ctx) [g m]))
            (forall [n (attributes ctx)]
              (=> (proper-subset? (attribute-derivation ctx #{m})
                                  (attribute-derivation ctx #{n}))
-                 (contains? (incidence ctx) [g n])))))))
+                 (contains? (incidence-relation ctx) [g n])))))))
 
 (deftest test-up-down-arrows
   (with-testing-data [ctx testing-data]
     (= (up-down-arrows ctx)
        (intersection (up-arrows ctx)
                      (down-arrows ctx)))))
-    
+
 (deftest test-reduce-objects
   (with-testing-data [ctx testing-data]
     (let [rctx (reduce-objects ctx),
@@ -314,16 +314,16 @@
     (is (attribute-reduced? (reduce-attributes ctx)))))
 
 (deftest test-reduced?
-  (is (not (reduced? test-ctx-01)))
-  (is (not (reduced? test-ctx-03)))
-  (is (reduced? test-ctx-04))
-  (is (reduced? test-ctx-06)))
+  (is (not (context-reduced? test-ctx-01)))
+  (is (not (context-reduced? test-ctx-03)))
+  (is (context-reduced? test-ctx-04))
+  (is (context-reduced? test-ctx-06)))
 
 (deftest test-reduce-context
   (with-testing-data [ctx testing-data]
     (subcontext? (reduce-context ctx) ctx))
   (with-testing-data [ctx testing-data]
-    (reduced? (reduce-context ctx)))
+    (context-reduced? (reduce-context ctx)))
   (with-testing-data [ctx testing-data]
     (let [rctx (reduce-context ctx),
           arrs (up-down-arrows ctx)]
@@ -378,7 +378,7 @@
 
 (deftest test-one-context
   (are [base-set] (let [ctx (one-context base-set)]
-                    (and (= (cross-product base-set base-set) (incidence ctx))
+                    (and (= (cross-product base-set base-set) (incidence-relation ctx))
                          (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2 3}
@@ -388,7 +388,7 @@
 
 (deftest test-null-context
   (are [base-set] (let [ctx (null-context base-set)]
-                    (and (= #{} (incidence ctx))
+                    (and (= #{} (incidence-relation ctx))
                          (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2}
@@ -396,7 +396,7 @@
 
 (deftest test-diag-context
   (are [base-set] (let [ctx (diag-context base-set)]
-                    (and (= (set-of [x x] [x base-set]) (incidence ctx))
+                    (and (= (set-of [x x] [x base-set]) (incidence-relation ctx))
                          (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2 3 4 5 6 7 8 9 10}
@@ -408,7 +408,7 @@
                     (and (= (set-of [x y] [x base-set
                                            y base-set
                                            :when (not= x y)])
-                            (incidence ctx))
+                            (incidence-relation ctx))
                          (= base-set (objects ctx) (attributes ctx))))
        #{}
        #{1 2 3 282 392 23}
@@ -422,7 +422,7 @@
                    (= (access uctx) (union (access ctx-1) (access ctx-2))))]
       (and (union? objects)
            (union? attributes)
-           (union? incidence)))))
+           (union? incidence-relation)))))
 
 (deftest test-context-disjoint-union
   (with-testing-data [ctx-1 testing-data,
@@ -432,11 +432,11 @@
                    (= (access uctx) (disjoint-union (access ctx-1) (access ctx-2))))]
       (and (union? objects)
            (union? attributes)
-           (= (incidence uctx)
+           (= (incidence-relation uctx)
               (set-of [[g i] [m j]] | [g i] (objects uctx)
                                       [m j] (attributes uctx)
-                                      :when (or (contains? (incidence ctx-1) [g m])
-                                                (contains? (incidence ctx-2) [g m]))))))))
+                                      :when (or (and (= i j 0) ((incidence ctx-1) [g m]))
+                                                (and (= i j 1) ((incidence ctx-2) [g m])))))))))
 
 (deftest test-context-intersection
   (with-testing-data [ctx-1 testing-data,
@@ -446,7 +446,7 @@
                           (= (access uctx) (intersection (access ctx-1) (access ctx-2))))]
       (and (intersection? objects)
            (intersection? attributes)
-           (intersection? incidence)))))
+           (intersection? incidence-relation)))))
 
 (deftest test-context-composition
   (is (= (context-composition (make-context-from-matrix 3 3 [1 1 0
@@ -495,7 +495,7 @@
     (is (= (context-subposition ctx-1 ctx-2) ctx-3))
     (is (thrown? IllegalArgumentException
                  (context-subposition ctx-1 (dual-context ctx-2))))))
-  
+
 (deftest test-context-transitive-closure
   (is (= (context-transitive-closure (make-context-from-matrix 3 3 [0 1 1
                                                                     1 0 1
@@ -521,7 +521,7 @@
   (with-testing-data [ctx (random-contexts 11 23)]
     (and (<= (count (objects ctx)) 23)
          (<= (count (attributes ctx)) 23))))
-  
+
 (deftest test-context-sum
   (let [ctx-1 (make-context-from-matrix 3 3 [1 1 0
                                              0 1 0
@@ -567,7 +567,7 @@
            ctx-3))))
 
 (deftest test-context-xia-product
-    (let [ctx-1 (make-context-from-matrix 2 2 [1 1
+  (let [ctx-1 (make-context-from-matrix 2 2 [1 1
                                              0 1]),
         ctx-2 (make-context-from-matrix 2 2 [0 1
                                              1 0]),
@@ -579,6 +579,26 @@
                                          0 1 1 0])]
     (is (= (context-xia-product ctx-1 ctx-2)
            ctx-3))))
+
+;;; Neighbours
+
+(deftest test-direct-upper-concepts
+  (with-testing-data [ctx (random-contexts 10 15)]
+    (let [concepts (concepts ctx)]
+      (forall [[X Y] concepts]
+        (let [uppers (direct-upper-concepts ctx [X Y])]
+          (and (forall [[A B] uppers]
+                 (subset? X A))
+               (forall [[A B] uppers]
+                 (not (exists [[C D] concepts]
+                        (and (proper-subset? X C)
+                             (proper-subset? C A)))))))))))
+
+(deftest test-direct-lower-concepts
+  (with-testing-data [ctx (random-contexts 10 15)]
+    (forall [[X Y] (concepts ctx)]
+      (= (direct-lower-concepts ctx [X Y])
+         (set-of [B A] | [A B] (direct-upper-concepts (dual-context ctx) [Y X]))))))
 
 ;;;
 

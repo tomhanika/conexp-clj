@@ -5,18 +5,18 @@
 
 ;; Consider a given context ctx-1. In this example we will we use the
 ;; Chevron again.
-(defvar ctx-1 (make-context #{1 2 3 4 5 6}
-                            #{1 2 3 4 5 6}
-                            #{[1 1] [1 2] [1 3] [1 5]
-                              [1 6] [2 2] [2 5] [3 3]
-                              [3 6] [4 4] [4 5] [4 6]
-                              [5 5] [6 6]}))
+(def ctx-1 (make-context #{1 2 3 4 5 6}
+                         #{1 2 3 4 5 6}
+                         #{[1 1] [1 2] [1 3] [1 5]
+                           [1 6] [2 2] [2 5] [3 3]
+                           [3 6] [4 4] [4 5] [4 6]
+                           [5 5] [6 6]}))
 
 ;; Compute and save the stem-base as sb-1 via
-(defvar sb-1 (stem-base ctx-1))
+(def sb-1 (stem-base ctx-1))
 
 ;; Now we define the implication {d} ==> {f,e}.
-(defvar impl-1 (make-implication #{'d} #{'f 'e}))
+(def impl-1 (make-implication #{'d} #{'f 'e}))
 
 ;; To check whether this implication holds in our context use
 (holds? impl-1 ctx-1)

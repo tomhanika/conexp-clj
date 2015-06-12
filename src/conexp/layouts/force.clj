@@ -7,14 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.force
+  "Force layout as described by C. Zschalig."
   (:use [conexp.base :exclude (sum)]
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.common
         conexp.math.util
         conexp.math.optimize))
-
-(ns-doc "Force layout as described by C. Zschalig.")
 
 ;; Helpers
 

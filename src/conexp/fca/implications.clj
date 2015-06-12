@@ -7,11 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.implications
+  "Implications for Formal Concept Analysis."
   (:use conexp.base
         conexp.fca.contexts)
+  (:require [clojure.core.reducers :as r])
   (:import [java.util HashMap HashSet]))
-
-(ns-doc "Implications for Formal Concept Analysis.")
 
 ;;;
 
@@ -20,7 +20,9 @@
   (equals [this other]
     (generic-equals [this other] Implication [premise conclusion]))
   (hashCode [this]
-    (hash-combine-hash Implication premise conclusion)))
+    (hash-combine-hash Implication premise conclusion))
+  (toString [this]
+    (str "(" premise " ⟶ " conclusion ")")))
 
 (defmulti premise
   "Returns premise of given object."
@@ -41,7 +43,7 @@
 (defmethod print-method Implication
   [impl out]
   (.write ^java.io.Writer out
-          ^String (str "(" (premise impl) "  ==>  " (conclusion impl) ")")))
+          ^String (str impl)))
 
 (defn implication?
   "Returns true iff thing is an implication."
@@ -57,6 +59,19 @@
         conclusion (set conclusion)]
     (Implication. premise (difference conclusion premise))))
 
+(defmacro impl
+  "Convenience interface for creating implications.  Write implications just as
+
+    user=> (impl 1 2 3 ==> 4 5 6)
+    (#{1 2 3} ==> #{4 5 6})"
+  [& elements]
+  (let [[premise conclusion] (split-with (fn [x]
+                                           (not= x '==>))
+                                         elements)]
+    (when (empty? conclusion)
+      (warn "«impl» does not contain ==>"))
+    `(make-implication (list ~@premise) (list ~@(rest conclusion)))))
+
 ;;;
 
 (defn respects?
@@ -70,15 +85,76 @@
   [impl ctx]
   (subset? (conclusion impl) (adprime ctx (premise impl))))
 
+(defn- implication-graph
+  "Compute setup for Downing-Gallier"
+  [implications]
+  (let [implications     (vec implications),
+        where-in-premise (persistent!
+                          (reduce (fn [map i]
+                                    (reduce (fn [map m]
+                                              (assoc! map m (conj (map m) i)))
+                                            map
+                                            (premise (implications i))))
+                                  (transient {})
+                                  (range (count implications))))
+        numargs          (loop [numargs []
+                                impls   implications]
+                           (if (empty? impls)
+                             numargs
+                             (recur (conj numargs (count (premise (first impls))))
+                                    (rest impls))))]
+    [implications where-in-premise numargs]))
+
+(defn- close-with-downing-gallier
+  "Downing-Gallier"
+  [[implications in-premise numargs] input-set]
+  (let [numargs (reduce (fn [numargs i]
+                          (assoc! numargs i (dec (numargs i))))
+                        (transient numargs)
+                        (mapcat in-premise input-set))]
+    (loop [queue   (reduce (fn [queue i]
+                             (if (zero? (numargs i))
+                               (conj queue i)
+                               queue))
+                           (clojure.lang.PersistentQueue/EMPTY)
+                           (range (count numargs))),
+           numargs numargs,
+           result  input-set]
+      (if (empty? queue)
+        result
+        (let [idx             (first queue),
+              new             (difference (conclusion (implications idx)) result)
+              [numargs queue] (reduce (fn [[numargs queue] i]
+                                        (let [numargs (assoc! numargs i (dec (numargs i)))]
+                                          [numargs (if (pos? (numargs i))
+                                                     queue
+                                                     (conj queue i))]))
+                                      [numargs (pop queue)]
+                                      (mapcat in-premise new))]
+          (recur queue numargs (into result new)))))))
+
+(defn clop-by-implications
+  "Returns closure operator given by implications."
+  [implications]
+  (let [predata (implication-graph implications)]
+    (fn [input-set]
+      (close-with-downing-gallier predata input-set))))
+
+(defn close-under-implications
+  "Computes smallest superset of set being closed under given implications."
+  [implications input-set]
+  ((clop-by-implications implications) input-set))
+
 (defn- add-immediate-elements
-  "Adds all elements which follow from implications with premises in initial-set. Uses subset-test
-  to dertermine whether a given implication can be used to extend a given set, i.e. an implication
-  impl can be used to extend a set s if and only if
+  "Iterating through the sequence of implications, tries to apply as many
+  implications as possible.  Uses subset-test to determine whether a given
+  implication can be used to extend a given set, i.e. an implication impl can be
+  used to extend a set s if and only if
 
     (subset-test (premise impl) s)
 
-  is true. Note that if (conclusion impl) is already a subset of s, then s is obviously not
-  extended."
+  is true. Note that if (conclusion impl) is already a subset of s, then s is
+  effectively not extended."
   [implications initial-set subset-test]
   (loop [conclusions  (transient initial-set),
          impls        implications,
@@ -93,22 +169,6 @@
                (conj! unused-impls impl)))
       [(persistent! conclusions)
        (persistent! unused-impls)])))
-
-(defn close-under-implications
-  "Computes smallest superset of set being closed under given implications."
-  [implications set]
-  (assert (set? set))
-  (loop [set   set,
-         impls implications]
-    (let [[new impls] (add-immediate-elements impls set subset?)]
-      (if (= new set)
-        new
-        (recur new impls)))))
-
-(defn clop-by-implications
-  "Returns closure operator given by implications."
-  [implications]
-  (partial close-under-implications implications))
 
 (defn pseudo-close-under-implications
   "Computes smallest superset of set being pseudo-closed under given
@@ -135,6 +195,8 @@
   (subset? (conclusion implication)
            (close-under-implications implications (premise implication))))
 
+(defalias follows? follows-semantically?)
+
 (defn equivalent-implications?
   "Returns true iff the two seqs of implications are equivalent."
   [impls-1 impls-2]
@@ -157,8 +219,8 @@
     (holds? impl ctx)))
 
 (defn complete-implication-set?
-  "Checks wheter given set of implications is complete in context ctx. This is a very costly
-  computation."
+  "Checks wheter given set of implications is complete in context ctx. This is a
+  very costly computation."
   [ctx impl-set]
   (and (forall [impl impl-set]
          (and (subset? (premise impl) (attributes ctx))
@@ -167,40 +229,146 @@
          (subset? (adprime ctx A)
                   (close-under-implications impl-set A)))))
 
-;;; Stem Base
+(defn irredundant-subset
+  "Given a set impls of implications, returns an irredundant subset of impls.
+  Note that this set does not need to be of minimal cardinality."
+  [impls]
+  (reduce (fn [impls impl]
+            (if (follows-semantically? impl impls)
+              impls
+              (loop [impls     impls,             ; implications to check
+                     new-impls (conj impls impl)] ; all implications
+                (if-not (seq impls)
+                  new-impls
+                  (let [next-impl (first impls)]
+                    (if (follows-semantically? next-impl (disj new-impls next-impl))
+                      (recur (rest impls) (disj new-impls next-impl)) ; first implication entailed by others
+                      (recur (rest impls) new-impls)))))))            ; not
+          #{}
+          impls))
 
-(defn stem-base
-  "Returns stem base of given context. Uses background-knowledge as
-  starting set of implications, which will also be subtracted from the
-  final result."
+;;; Bases for closure operators
+
+(defn canonical-base-from-clop
+  "Given a closure operator «clop» on the set «base», computes its canonical base,
+   optionally using the set «background-knowledge» of implications on «base-set»
+  as background knowledge.  The result will be a lazy sequence.  If «predicate»
+  is given as third argument, computes only those implications whose premise
+  satisfy this predicate.  Note that «predicate» has to satisfy the same
+  conditions as the one of «next-closed-set-in-family»."
+  ([clop base]
+     (canonical-base-from-clop clop base #{} (constantly true)))
+  ([clop base background-knowledge]
+     (canonical-base-from-clop clop base background-knowledge (constantly true)))
+  ([clop base background-knowledge predicate]
+     (assert (fn? clop)
+             "Given closure operator must be a function")
+     (assert (coll? base)
+             "Base must be a collection")
+     (assert (fn? predicate)
+             "Predicate must be a function")
+     (assert (and (set? background-knowledge)
+                  (forall [x background-knowledge]
+                    (implication? x)))
+             "Background knowledge must be a set of implications")
+     (let [next-closure (fn [implications last]
+                          (next-closed-set-in-family predicate
+                                                     base
+                                                     (clop-by-implications implications)
+                                                     last)),
+           runner       (fn runner [implications candidate]
+                          (when candidate
+                            (let [conclusions (clop candidate)]
+                              (if (not= candidate conclusions)
+                                (let [impl  (make-implication candidate conclusions),
+                                      impls (conj implications impl)]
+                                  (cons impl
+                                        (lazy-seq (runner impls (next-closure impls candidate)))))
+                                (recur implications (next-closure implications candidate))))))]
+       (lazy-seq (runner background-knowledge
+                         (close-under-implications background-knowledge #{}))))))
+
+(defn intersect-implicational-theories
+  "Given a set «base-set» and collections «implication-sets» of implications,
+  returns the canonical base of the intersection of the corresponding closure
+  theories."
+  [base-set & implication-sets]
+  (let [implication-clops (vec (map clop-by-implications implication-sets)),
+        clop              (fn [A]
+                            (r/fold (r/monoid intersection (constantly base-set))
+                                    (r/map #(% A) implication-clops)))]
+    (canonical-base-from-clop clop base-set)))
+
+(defn canonical-base
+  "Returns the canonical base of given context, as a lazy sequence.  Uses
+  «background-knowledge» as starting set of implications, which will not appear
+  in the result.  If «predicate» is given (a function), computes only those
+  implications from the canonical base whose premise satisfy this predicate,
+  i.e. «predicate» returns true on these premises.  Note that «predicate» has to
+  satisfy the same conditions as the predicate to «next-closed-set-in-family»."
   ([ctx]
-     (stem-base ctx #{}))
+     (canonical-base ctx #{} (constantly true)))
   ([ctx background-knowledge]
-     (loop [implications background-knowledge,
-            last         #{}]
-       (let [conclusion-from-last (context-attribute-closure ctx last),
-             implications         (if (not= last conclusion-from-last)
-                                    (conj implications
-                                          (make-implication last conclusion-from-last))
-                                    implications),
-             next                 (next-closed-set (attributes ctx)
-                                                   (clop-by-implications implications)
-                                                   last)]
-         (if next
-           (recur implications next)
-           (difference implications background-knowledge))))))
+     (canonical-base ctx background-knowledge (constantly true)))
+  ([ctx background-knowledge predicate]
+     (assert (context? ctx)
+             "First argument must be a formal context")
+     (canonical-base-from-clop #(context-attribute-closure ctx %)
+                               (attributes ctx)
+                               background-knowledge
+                               predicate)))
+
+(defalias stem-base canonical-base)
 
 (defn pseudo-intents
   "Returns the pseudo intents of the given context ctx."
   [ctx]
   (map premise (stem-base ctx)))
 
+(defn parallel-canonical-base-from-clop
+  "Computes the canonical base of the given closure operator in parallel.
+  Accepts the same parameters as «canonical-base-from-clop», except for the
+  predicate."
+  ([clop base]
+   (parallel-canonical-base-from-clop clop base #{}))
+  ([clop base background-knowledge]
+   (let [implications (atom (set background-knowledge))
+         current      (atom #{#{}})]
+     (loop [n 0]
+       (if (< (count base) n)
+         (difference @implications (set background-knowledge))
+         (do
+           (dopar [C (filter #(= n (count %)) @current)]
+             (swap! current #(disj % C))
+             (let [impl-C (close-under-implications @implications C)]
+               (if (= C impl-C)
+                 (let [clop-C (clop C)]
+                   (when (not= C clop-C)
+                     (swap! implications
+                            #(conj % (make-implication C clop-C))))
+                   (doseq [m base :when (not (contains? clop-C m))]
+                     (swap! current #(conj % (conj clop-C m)))))
+                 (swap! current #(conj % impl-C)))))
+           (recur (inc n))))))))
+
+(defn parallel-canonical-base
+  "Computes the canonical base of the given formal context.
+  Background knowledge can be provided as a set of implications on the attribute
+  set of the given context.  Computation is eager and is done in parallel."
+  ([ctx]
+   (parallel-canonical-base ctx #{}))
+  ([ctx background-knowledge]
+   (parallel-canonical-base-from-clop (partial adprime ctx)
+                                      (attributes ctx)
+                                      background-knowledge)))
+
+
 
 ;;; Proper Premises
 
 (defn proper-conclusion
-  "Returns all elements which are implied in context ctx by A but are neither contained in A or
-  follow from a strict subsets of A."
+  "Returns all elements which are implied in context ctx by A but are neither
+  contained in A or follow from a strict subsets of A."
   [ctx A]
   (difference (context-attribute-closure ctx A)
               (reduce into
@@ -215,51 +383,19 @@
   (and (subset? A (attributes ctx))
        (not (empty? (proper-conclusion ctx A)))))
 
-(defn- intersection-set?
-  "Tests whether set has non-empty intersection with every set in sets."
-  [set sets]
-  (forall [other-set sets]
-    (exists [x set]
-      (contains? other-set x))))
+(defn- proper-premises-by-hypertrans
+  "Returns all proper premises for the attribute «m» in the formal context
+  «ctx».  The set «objs» should contain all objects from ctx which are in
+  down-arrow relation to m."
+  [ctx m objs]
+  (minimal-hypergraph-transversals
+   (disj (attributes ctx) m)
+   (set-of (difference (attributes ctx) (oprime ctx #{g})) | g objs)))
 
-(defn- minimal-intersection-sets
-  "Returns for a sequence set-sqn of sets all subsets of base-set which have non-empty intersection
-  with all sets in set-sqn and are minimal with this property."
-  [base-set set-sqn]
-  (let [cards    (map-by-fn (fn [x]
-                              (count (set-of X | X set-sqn :when (contains? X x))))
-                            base-set),
-        elements (sort (fn [x y]
-                         (>= (cards x) (cards y)))
-                       base-set),
-        result   (atom []),
-        search   (fn search [rest-sets current rest-elements]
-                   (cond
-                    (exists [x current]
-                      (intersection-set? (disj current x) set-sqn))
-                    nil,
-                    (intersection-set? current set-sqn)
-                    (swap! result conj current),
-                    :else
-                    (when-let [x (first rest-elements)]
-                      (when (exists [set rest-sets]
-                              (contains? set x))
-                        (search (remove #(contains? % x) rest-sets)
-                                (conj current x)
-                                (rest rest-elements)))
-                      (search rest-sets
-                              current
-                              (rest rest-elements)))))]
-    (search set-sqn #{} elements)
-    @result))
-
-(defn- proper-premises-for-attribute
-  "Technical Helper. Returns in context ctx for the attribute m and the objects in objs,
-  which must contain all objects g in ctx such that [g m] are in the downarrow relation, the proper
-  premises for m."
-  [ctx [m objs]]
-  (minimal-intersection-sets (disj (attributes ctx) m)
-                             (set-of (difference (attributes ctx) (oprime ctx #{g})) | g objs)))
+(defn proper-premises-for-attribute
+  "Returns all proper premises for the attribute «m» in the formal context «ctx»."
+  [ctx m]
+  (proper-premises-by-hypertrans ctx m (set-of g | [g n] (down-arrows ctx) :when (= n m))))
 
 (defn proper-premises
   "Returns the proper premises of the given context ctx as a lazy sequence."
@@ -272,7 +408,7 @@
                            arrow-map))]
     (distinct
      (reduce concat
-             (pmap #(proper-premises-for-attribute ctx %)
+             (pmap #(apply proper-premises-by-hypertrans ctx %)
                    down-arrow-map)))))
 
 (defn proper-premise-implications
@@ -287,43 +423,50 @@
 (defn stem-base-from-base
   "For a given set of implications returns its stem-base."
   [implications]
-  (loop [stem-base    #{},
-         implications implications,
-         all          (vec implications)]
-    (if (empty? implications)
-      stem-base
-      (let [A->B         (first implications),
-            implications (rest implications),
-            all          (subvec all 1)
-            [A* B*]      (let [values (pvalues (close-under-implications all (premise A->B))
-                                               (close-under-implications all (conclusion A->B)))]
-                           [(first values) (second values)]),
-            A*->B*       (make-implication A* B*)]
-        (if (not-empty (conclusion A*->B*))
-          (recur (conj stem-base A*->B*)
-                 implications
-                 (conj all A*->B*))
-          (recur stem-base
-                 implications
-                 all))))))
+  (let [implications (pmap (fn [impl]
+                             (make-implication
+                              (premise impl)
+                              (close-under-implications implications
+                                                        (union (premise impl)
+                                                               (conclusion impl)))))
+                           implications)]
+    (loop [stem-base    #{},
+           implications implications,
+           all          (set implications)]
+      (if (empty? implications)
+        stem-base
+        (let [A->B         (first implications),
+              implications (rest implications),
+              all          (disj all A->B)
+              A*           (close-under-implications all (premise A->B)),
+              A*->B        (make-implication A* (conclusion A->B))]
+          (if (not-empty (conclusion A*->B))
+            (recur (conj stem-base A*->B)
+                   implications
+                   (conj all A*->B))
+            (recur stem-base
+                   implications
+                   all)))))))
 
+(defalias canonical-base-from-base stem-base-from-base)
 
 ;;; Association Rules
 
 (defn support
-  "Computes the support of the set of attributes B in context ctx. If an implications is given,
-  returns the support of this implication in the given context."
+  "Computes the support of the set of attributes B in context ctx. If an
+  implications is given, returns the support of this implication in the given
+  context."
   [thing ctx]
   (cond
-   (set? thing)
-   (if (empty? (objects ctx))
-     1
-     (/ (count (attribute-derivation ctx thing))
-        (count (objects ctx)))),
-   (implication? thing)
-   (recur (premise thing) ctx),
-   :else
-   (illegal-argument "Cannot determine support of " (print-str thing))))
+    (set? thing)
+    (if (empty? (objects ctx))
+      1
+      (/ (count (attribute-derivation ctx thing))
+         (count (objects ctx)))),
+    (implication? thing)
+    (recur (premise thing) ctx),
+    :else
+    (illegal-argument "Cannot determine support of " (print-str thing))))
 
 (defn confidence
   "Computes the confidence of the given implication in the given context."
@@ -349,8 +492,9 @@
                                identity)))
 
 (defn- association-rules
-  "Returns all association rules of context with the parameters minsupp as minimal support and
-  minconf as minimal confidence. The result returned is a lazy sequence."
+  "Returns all association rules of context with the parameters minsupp as
+  minimal support and minconf as minimal confidence. The result returned is a
+  lazy sequence."
   ;; UNTESTED!
   [context minsupp minconf]
   (let [fitemsets (frequent-itemsets context minsupp)]
@@ -363,56 +507,51 @@
 ;;;
 
 (defn frequent-closed-itemsets
-  "Computes for context a lazy sequence of all frequent and closed itemsets, given minsupp as
-  minimal support."
+  "Computes for context a lazy sequence of all frequent and closed itemsets,
+  given minsupp as minimal support."
   [context minsupp]
   (let [mincount (* minsupp (count (objects context)))]
-    (all-closed-sets-in-family (fn [intent]
-                                 (>= (count (attribute-derivation context intent))
-                                     mincount))
-                               (attributes context)
-                               (partial context-attribute-closure context))))
+    (intents context
+             (fn [intent]
+               (>= (count (attribute-derivation context intent))
+                   mincount)))))
 
 (defn luxenburger-basis
-  "Computes the luxenburger-basis for context with minimal support minsupp and minimal confidence
-  minconf. The result returned will be a lazy sequence."
-  [context minsupp minconf]
-  (let [closed-intents (frequent-closed-itemsets context minsupp)]
-    (for [[B_1, B_2] (transitive-reduction closed-intents proper-subset?)
-          :let [impl (make-implication B_1 B_2)]
-          :when (>= (confidence impl context) minconf)]
-      impl)))
+  "Computes the luxenburger-base of a given context «context», returning the
+  result as a lazy sequence.  Uses «minconf» as minimal confidence.  If
+  «minsupp-or-predicate» is a number, uses that as a minimal support threshold.
+  In this case, «minsupp» ∈ [0,1] must hold.  If «minsupp-or-predicate» is a
+  function, uses this as a predicate to filter all candidate itemsets.  In this
+  case, the predicate should be valid predicate value for «intents»."
+  [context minsupp-or-predicate minconf]
+  (let [pred (cond (and (number? minsupp-or-predicate)
+                        (<= 0 minsupp-or-predicate 1))
+                   (let [mincount (* minsupp-or-predicate (count (objects context)))]
+                     #(>= (count (aprime context %)) mincount))
+                   ;;
+                   (fn? minsupp-or-predicate)
+                   minsupp-or-predicate
+                   ;;
+                   true
+                   (illegal-argument "Value for parameter «minsupp-or-predicate» is invalid:"
+                                     (str minsupp-or-predicate))),
+        fqis (vec (doall (intents context pred)))]
+    (r/fold concat
+            (fn [impls B_2]
+              (let [proper-subsets (filter #(proper-subset? % B_2)
+                                           (take-while #(not= % B_2) fqis)) ; fqis in lectic order
+                    lowers         (filter (fn [B_1]
+                                             (not (exists [B_3 proper-subsets]
+                                                    (proper-subset? B_1 B_3))))
+                                           proper-subsets)]
+                (concat impls
+                        (doall      ; do actual computation here, to allow for parallelism
+                         (filter (fn [impl]
+                                   (<= minconf (confidence impl context)))
+                                 (map (fn [B_1] (make-implication B_1 B_2)) lowers))))))
+            fqis)))
 
-;;;
-
-(defn- frequent-pseudoclosed-itemsets
-  "Computes for the given context all closed and pseudoclosed sets of attributes whose support is
-  not less than minsupp."
-  ;; UNTESTED!
-  [context minsupp]
-  (let [mincount (ceil (* minsupp (count (objects context))))]
-    (all-closed-sets-in-family (fn [intent]
-                                 (>= (count (attribute-derivation context intent))
-                                     mincount))
-                               (attributes context)
-                               (pseudo-clop-by-implications (stem-base context)))))
-
-(defn- dgl-basis
-  "Computes the combined Duquenne-Guiges basis for minimal support minsupp and the Luxenburger basis
-  for minimal support minsupp and minimal confidence minconf."
-  ;; UNTESTED!
-  [context minsupp minconf]
-  (let [closures (frequent-pseudoclosed-itemsets context minsupp)]
-    (set-of impl
-            [B_1 closures,
-             B_2 closures,
-             :when (and (proper-subset? B_1 B_2)
-                        (not (exists [C closures]
-                               (and (proper-subset? B_1 C)
-                                    (proper-subset? C B_2)))))
-             :let [impl (make-implication B_1
-                                          (context-attribute-closure context B_2))]
-             :when (>= (confidence impl) minconf)])))
+(defalias luxenburger-base luxenburger-basis)
 
 ;;;
 

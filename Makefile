@@ -1,22 +1,32 @@
-all: zip
+VERSION = 1.2.0-SNAPSHOT
+TIME = $(shell date -u +"%Y%m%d%H%M%S")
 
-zip: jar
-	mkdir -p conexp-clj/lib/
-	cp stuff/libs/*.jar conexp-clj/lib/
-	cp stuff/libs/*.clj conexp-clj/lib
-	cp -r stuff/bin AUTHORS LICENSE README.md conexp-clj/
-	cp -r src/res lib/*.jar conexp-clj/lib/
-	mv conexp-clj-*.jar conexp-clj/lib/
-	zip -r conexp-clj-$(shell cat VERSION).zip conexp-clj
+FILES = $(shell find src -name "*.clj")
 
-jar: distclean
-	lein jar
+all: clean conexp-clj-$(VERSION).zip
+	@mv conexp-clj-$(VERSION).zip conexp-clj-$(VERSION)-$(TIME).zip
+
+target/conexp-clj-$(VERSION)-standalone.jar: $(FILES)
+	@lein uberjar
+
+conexp-clj-$(VERSION).zip: target/conexp-clj-$(VERSION)-standalone.jar
+	@mkdir -p conexp-clj/lib/ conexp-clj/bin/
+	@cp src/scripts/conexp-clj.clj conexp-clj/lib/
+	@cp -r src/scripts/conexp-clj src/scripts/conexp-clj.bat conexp-clj/bin/
+	@cp README.md conexp-clj/
+	@cp -r src/res conexp-clj/lib/
+	@cp target/conexp-clj-$(VERSION)-standalone.jar conexp-clj/lib/
+	@zip -q -r conexp-clj-$(VERSION).zip conexp-clj
 
 clean:
-	rm -rf conexp-clj/ classes
+	@rm -rf conexp-clj/ lib/classes target/
 
 distclean: clean
-	rm -rf lib conexp-clj-$(shell cat VERSION).zip
+	@rm -rf lib conexp-clj-*.zip
 
 test: clean
-	lein deps, test
+	@lein do deps, test
+
+upload: all
+	@chmod a+r conexp-clj-$(VERSION)-$(TIME).zip
+	@scp conexp-clj-$(VERSION)-$(TIME).zip math:public_html/downloads/conexp-clj-$(VERSION)-$(TIME).zip

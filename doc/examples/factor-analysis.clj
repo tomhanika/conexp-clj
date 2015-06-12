@@ -16,7 +16,7 @@
 ;; The multifunction factorize-context does the factorization of a
 ;; context as described by Belohlavek et. al.
 
-(defvar- ctx (rand-context #{1 2 3 4 5} 0.5))
+(def- ctx (rand-context #{1 2 3 4 5} 0.5))
 
 ;; The first parameter gives the method to use for factorization. Here
 ;; :boolean-full is Algorithm 1 (i.e. computing all concepts and then
@@ -32,12 +32,12 @@
 
 ;; This is actually very simple to do. First define a fuzzy context
 
-(defvar- fuzzy-ctx (make-fuzzy-context [1 2 3 4]
-                                       [1 2 3 4]
-                                       [1/10 2/10 3/10 4/10,
-                                        5/10 6/10 7/10 8/10,
-                                        9/10 1    9/10 8/10,
-                                        7/10 6/10 5/10 4/10]))
+(def- fuzzy-ctx (make-fuzzy-context [1 2 3 4]
+                                    [1 2 3 4]
+                                    [1/10 2/10 3/10 4/10,
+                                     5/10 6/10 7/10 8/10,
+                                     9/10 1    9/10 8/10,
+                                     7/10 6/10 5/10 4/10]))
 
 ;; and then call factorize-context with the parameter :fuzzy. Note
 ;; that you need to wrap this call in with-fuzzy-logic to determine

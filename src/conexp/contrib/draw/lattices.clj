@@ -7,8 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.lattices
-  (:use [conexp.base                       :only (ns-doc, defnk)]
-        [conexp.fca.lattices               :only (concept-lattice)]
+  "This namespace provides a lattice editor and a convenience function to draw lattices."
+  (:use [conexp.fca.lattices               :only (concept-lattice)]
         [conexp.layouts                    :only (standard-layout)]
         [conexp.layouts.util               :only (scale-layout)]
         [conexp.io.layouts                 :only (write-layout)]
@@ -26,12 +26,9 @@
                                      snapshots
                                      zoom-move]
         conexp.contrib.gui.util)
+  (:use seesaw.core)
   (:import [javax.swing JFrame JPanel BoxLayout JScrollBar JScrollPane]
            [java.awt Dimension BorderLayout]))
-
-(ns-doc
- "This namespace provides a lattice editor and a convenience function
- to draw lattices.")
 
 ;;; Lattice Editor
 
@@ -84,6 +81,14 @@
             BorderLayout/WEST)
       (.setMinimumSize (Dimension. 0 0)))
 
+    ;;
+    (listen main-panel :component-hidden
+            (fn [_]
+              (.setVisible canvas false)))
+    (listen main-panel :component-shown
+            (fn [_]
+              (.setVisible canvas true)))
+
     ;; return main panel
     main-panel))
 
@@ -104,7 +109,7 @@
 
 ;;; Drawing Routine for the REPL
 
-(defnk draw-layout
+(defn draw-layout
   "Draws given layout on a canvas. Returns the frame and the scene (as
   map). The following options are allowed, their default values are
   given in parantheses:
@@ -113,8 +118,9 @@
     - dimension [600 600]
   "
   [layout
-   :visible true
-   :dimension [600 600]]
+   & {:keys [visible dimension]
+      :or   {visible   true,
+             dimension [600 600]}}]
   (let [frame          (JFrame. "conexp-clj Lattice"),
         lattice-editor (make-lattice-editor frame layout)]
     (doto frame
@@ -130,7 +136,7 @@
   [lattice & args]
   (let [map       (apply hash-map args),
         layout-fn (get map :layout-fn standard-layout)]
-    (apply draw-layout (layout-fn lattice) map)))
+    (apply draw-layout (layout-fn lattice) args)))
 
 (defn draw-concept-lattice
   "Draws the concept lattice of a given context, passing all remaining
@@ -140,11 +146,12 @@
 
 ;;;
 
-(defnk draw-lattice-to-file
+(defn draw-lattice-to-file
   "Exports layout of given lattice to the given file."
   [lattice file-name
-   :layout-fn standard-layout,
-   :dimension [600 600]]
+   & {:keys [layout-fn dimension]
+      :or   {layout-fn standard-layout,
+             dimension [600 600]}}]
   (write-layout :svg (layout-fn lattice) file-name))
   
 ;;;

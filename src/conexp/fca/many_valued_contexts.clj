@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.many-valued-contexts
+  "Many-Valued-Contexts and some functions for scaling."
   (:use conexp.base
         conexp.fca.contexts))
-
-(ns-doc "Many-Valued-Contexts and some functions for scaling.")
 
 ;;;
 
@@ -172,18 +171,19 @@
      (scale-mv-context mv-ctx scales #(illegal-argument "No scale given for attribute " % ".")))
   ([mv-ctx scales default]
      (assert (map? scales))
-     (let [scales (into scales (for [m (difference (attributes mv-ctx)
-                                                   (set (keys scales)))]
-                                 [m (default m)])),
+     (let [scale  (fn [m]
+                    (if (contains? scales m)
+                      (scales m)
+                      (default m)))
            inz    (incidence mv-ctx),
            objs   (objects mv-ctx),
            atts   (set-of [m n] [m (attributes mv-ctx)
-                                 n (attributes (scales m))]),
-           inz    (set-of [g [m n]] [g objs
-                                     [m n] atts
-                                     :let [w (inz [g m])]
-                                     :when (contains? (incidence (scales m)) [w n])])]
-       (make-context-nc objs atts inz))))
+                                 n (attributes (scale m))])]
+       (make-context-nc objs
+                        atts
+                        (fn [[g [m n]]]
+                          (let [w (inz [g m])]
+                            ((incidence (scale m)) [w n])))))))
 
 (defn nominal-scale
   "Returns the nominal scale on the set base."
@@ -196,38 +196,33 @@
   "Returns the ordinal scale on the set values, optionally given an
   order relation <=."
   ([values]
-     (ordinal-scale values <=))
+   (ordinal-scale values <=))
   ([values <=]
-     (ordinal-scale values values <=))
+   (ordinal-scale values values <=))
   ([values others <=]
-     (let [atts (map #(str '<= " " %) others),
-           inz  (set-of [g (str '<= " " m)] [g values,
-                                             m others
-                                             :when (<= g m)])]
+   (let [atts (map #(vector '<= %) others),
+         inz  (fn [g [_ m]]
+                (<= g m))]
      (make-context values atts inz))))
 
 (defn interordinal-scale
   "Returns the interordinal scale on the set base, optionally given
   two order relations <= and >=."
   ([values]
-     (interordinal-scale values <= >=))
+   (interordinal-scale values <= >=))
   ([values <= >=]
-     (interordinal-scale values values <= >=))
+   (interordinal-scale values values <= >=))
   ([values others <= >=]
-     (let [objs    values,
+   (let [objs    values,
 
-           atts-<= (map #(str '<= " " %) others),
-           atts->= (map #(str '>= " " %) others),
+         atts-<= (map #(vector '<= %) others),
+         atts->= (map #(vector '>= %) others),
 
-           inz-<= (set-of [g (str '<= " " m)]
-                          [g objs,
-                           m others
-                           :when (<= g m)]),
-           inz->= (set-of [g (str '>= " " m)]
-                          [g objs,
-                           m others,
-                           :when (>= g m)])]
-       (make-context values (union atts-<= atts->=) (union inz-<= inz->=)))))
+         inz     (fn [g [test m]]
+                   (if (= test '<=)
+                     (<= g m)
+                     (>= g m)))]
+     (make-context values (union atts-<= atts->=) inz))))
 
 (defn biordinal-scale
   "Returns the biordinal scale on the sequence values, optionally given
@@ -240,23 +235,14 @@
      (let [first-objs (take n values),
            rest-objs  (drop n values),
 
-           first-atts (take n others),
-           rest-atts  (drop n others),
+           first-atts (map #(vector '<= %) (take n others)),
+           rest-atts  (map #(vector '>= %) (drop n others)),
 
-           first-inz  (set-of [g (str '<= " " m)]
-                              [g first-objs,
-                               m first-atts,
-                               :when (<= g m)]),
-           rest-inz   (set-of [g (str '>= " " m)]
-                              [g rest-objs,
-                               m rest-atts
-                               :when (>= g m)]),
-
-           first-atts (map #(str '<= " " %) first-atts),
-           rest-atts  (map #(str '>= " " %) rest-atts)]
-       (make-context values
-                     (union first-atts rest-atts)
-                     (union first-inz rest-inz)))))
+           inz        (fn [g [test m]]
+                        (if (= test '<=)
+                          (<= g m)
+                          (>= g m)))]
+       (make-context values (union first-atts rest-atts) inz))))
 
 (defn dichotomic-scale
   "Returns the dichotimic scale on the set values. Note that base must
@@ -265,6 +251,24 @@
   (assert (= 2 (count values)))
   (nominal-scale values))
 
+(defn interval-scale
+  "Returns the interval scale on the set values.
+  Note that values must be ordered (e.g. vector or list), because otherwise the result
+  will be arbitrary.  Also note that the intervales will be left-open."
+  ([values]
+    (interval-scale values values < >=))
+  ([values others]
+    (interval-scale values others < >=))
+  ([values others < >=]
+     (assert (sequential? others)
+             "Interval values must be ordered to obtain a reasonable result.")
+     (let [pairs      (partition 2 1 others)
+           atts       (map #(vector '∈ (vec  %)) pairs)
+           inz        (fn [g [_ [a b]]]
+                        (and (< g b)
+                             (>= g a)))]
+       (make-context values atts inz))))
+
 ;;;
 
 (defmacro scale-mv-context-with
@@ -272,9 +276,9 @@
 
     [att_1 att_2 ...] scale,
 
-  where att_i is an attribute of the given context and scale determines a call to a known scale. The
-  variable values will be bound to the corresponding values of each attribute and may be used when
-  constructing the scale. For example, you may use this macro with
+  where att_i is an attribute of the given context and scale determines a call to a known
+  scale. The variable «values» will be bound to the corresponding values of each attribute
+  and may be used when constructing the scale. For example, you may use this macro with
 
     (scale-mv-context-with ctx
       [a b c]  (nominal-scale values)
@@ -302,9 +306,9 @@
                                       att atts]
                                   `['~att (let [~'values (values-of-attribute ~ctx '~att)]
                                             ~scale)]))
-                         (fn [x#]
-                           (let [~'values (values-of-attribute ~ctx x#)]
-                             ~default))))))
+                         (memoize (fn [x#]
+                                    (let [~'values (values-of-attribute ~ctx x#)]
+                                      ~default)))))))
 
 ;;;
 

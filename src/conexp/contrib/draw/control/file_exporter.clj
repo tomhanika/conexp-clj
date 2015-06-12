@@ -10,6 +10,7 @@
   (:use conexp.contrib.draw.scenes
         conexp.contrib.draw.control.util
         conexp.contrib.gui.util)
+  (:use seesaw.core)
   (:import [javax.swing JButton JFileChooser]
            [javax.swing.filechooser FileNameExtensionFilter]
            [java.io File]))
@@ -37,12 +38,13 @@
       (.addChoosableFileFilter jpg-filter)
       (.addChoosableFileFilter gif-filter)
       (.addChoosableFileFilter png-filter))
-    (with-action-on save-button
-      (let [retVal (.showSaveDialog fc frame)]
-        (when (= retVal JFileChooser/APPROVE_OPTION)
-          (let [^File file (.getSelectedFile fc)]
-            (with-swing-error-msg frame "Error while saving"
-              (save-image scn file (get-file-extension file))))))))
+    (listen save-button :action
+            (fn [_]
+              (let [retVal (.showSaveDialog fc frame)]
+                (when (= retVal JFileChooser/APPROVE_OPTION)
+                  (let [^File file (.getSelectedFile fc)]
+                    (with-swing-error-msg frame "Error while saving"
+                      (save-image scn file (get-file-extension file)))))))))
   nil)
 
 ;;;

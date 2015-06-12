@@ -1,69 +1,136 @@
-conexp-clj
-==========
+# conexp-clj [![Build Status](https://travis-ci.org/exot/conexp-clj.svg?branch=dev)](https://travis-ci.org/exot/conexp-clj)
 
-This is conexp-clj, an attempt to rewrite the famous ConExp to extend it with
-new ideas.
+This is conexp-clj, a general purpose software tool for [Formal Concept
+Analysis](http://www.upriss.org.uk/fca/fca.html).
 
 The project has been started by Daniel Borchmann under supervision of Christian
-Meschke as part of the DFG project ???/???/???.
-
-For more information, you can visit conexp-clj's website at
-http://daniel.kxpq.de/math/conexp-clj/.
+Meschke as part of the DFG project GA 216/10-1.
 
 
-Features
---------
+## Features
 
-(missing)
+conexp-clj is a pocket-calculator for Formal Concept Analysis.  Its main purpose is to
+enable nontrivial examples to be computed easily.
+
+conexp-clj features include:
+
+* Basic Operations on Formal Contexts
+* Relational Algebra with Formal Contexts
+* Transparent IO for Formal Contexts (in development)
+* Scaling for Many-Valued Contexts
+* Implicational Theory and Basic Attribute Exploration
+* NextClosure (of course)
+* Computing Luxenburger-Bases and Iceberg Concept Sets
+* IO for Many-Valued Contexts
+* Lattice Layouts and Lattice IO (some...)
+* A bit of Fuzzy-FCA
+* Interface for sage
+
+Note that conexp-clj is not a high-performance tool for Formal Concept Analysis.  If you
+want this, check out Uta Priss'
+[website on FCA software](http://www.fcahome.org.uk/fcasoftware.html).
 
 
-How to Run
-----------
+## Prerequisites
 
-(missing)
+You need
+
+* a Jave Runtime Environment (≥ 1.6)
+* [Leiningen](http://github.com/technomancy/leiningen) (≥ 2.0.0) if you want to run
+  conexp-clj from source
 
 
-Compilation Instructions for conexp-clj
----------------------------------------
+## How to Run
 
-To compile conexp-clj from source you need leiningen (at least version 1.2.0),
-a build tool for clojure. To get it just issue
+The recommended way to run conexp-clj is to download the pre-compiled version
+[here](http://www.math.tu-dresden.de/~borch/downloads).  Just unpack the zip
+file and put the contained `bin` directory in you path.  You can then run
 
-    $ wget http://github.com/technomancy/leiningen/raw/stable/bin/lein
+    $ conexp-clj
+    
+from you command line (without the "$") to get a bare conexp-clj repl.  If you want to try
+the experimental GUI, you can use
 
-put the file lein in your path, make it executable and run
+    $ conexp-clj --gui
+    
+instead.
 
-    $ lein self-install
 
-That's it. Note that this works for Linux and Unix systems. For
-Windows there is some experimental version of leiningen, please see
-the corresponding website for this.
+## Documentation
 
-Now switch in the source directory of conexp-clj and run
+The current main source of documentation on conexp-clj is its
+[Wiki](http://github.com/exot/conexp-clj/wiki).  Additionally, for general help on a
+function f, you can use the clojure function `doc` with
+
+~~~
+(doc f)
+~~~
+
+For finding functions you may find useful, you can use `find-doc`
+
+~~~
+(find-doc "Whatever you may find useful")
+~~~
+
+Additional Documentation:
+
+- Basic example files: those files cover
+
+  * [basics](https://github.com/exot/conexp-clj/blob/master/doc/examples/01-basics.clj)
+  * [formal contexts](https://github.com/exot/conexp-clj/blob/master/doc/examples/02-contexts.clj)
+  * [lattices](https://github.com/exot/conexp-clj/blob/master/doc/examples/03-lattices.clj)
+  * [IO](https://github.com/exot/conexp-clj/blob/master/doc/examples/04-io.clj)
+  * [implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/05-implications.clj)
+
+  They have been written by Sebastian Böhm.
+
+- Advances example files:
+
+ * [Attribute Exploration](https://github.com/exot/conexp-clj/blob/master/doc/examples/exploration.clj)
+   a demonstration how attribute exploration can be done in conexp-clj.
+ * [Fuzzy FCA](https://github.com/exot/conexp-clj/blob/master/doc/examples/fuzzy.clj),
+   a sample file to show how to use fuzzy FCA with conexp-clj
+ * [Factor Analysis](https://github.com/exot/conexp-clj/blob/master/doc/examples/factor-analysis.clj),
+   a small program that demonstrates how to use conexp-clj for factorizing contexts
+ * [Formal Contexts for Implications](https://github.com/exot/conexp-clj/blob/master/doc/examples/implication-closure.clj),
+   computing a context for a set of implications
+ * A
+   [Formal Context of Functions](https://github.com/exot/conexp-clj/blob/master/doc/examples/function-context.clj),
+   see the paper by Artem Revenko and Sergej Kuznetzov for the CLA2010
+ * [Permutations as Formal Context](https://github.com/exot/conexp-clj/blob/master/doc/examples/permutation-context.clj),
+   computes a context whose concept lattice is isomorphic to the lattice of permutations on the set
+   \{0,...,n\}.
+ * [Tamari Lattice](https://github.com/exot/conexp-clj/blob/master/doc/examples/tamari-lattice.clj),
+   the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
+
+- A [Tutorial](http://www.math.tu-dresden.de/~borch/conexp-clj/icfca2013-tutorial), given
+  at the 11th International Conference on Formal Concept Analysis
+
+
+## Running conexp-clj from source
+
+To run conexp-clj from source, switch in the source directory of conexp-clj and run
 
     $ lein deps
 
-This will download any missing jar files needed for conexp-clj to run. With
-this you can now run conexp-clj directly from source and hack in its internals!
-For a fast repl run
+This will download any missing jar files needed for conexp-clj to run.  To quickly obtain
+a repl just issue
 
     $ lein repl
 
-If you want a swank server, run
+If you want a more sophisticated repl, you may try
+[nrepl.el](http://github.com/kingtim/nrepl.el).
 
-    $ lein swank
 
-and connnect your Emacs (or whatever) to Port 4005 at 127.0.0.1. See the
-documentation of swank-clojure for more details on this.
+## Compilation Instructions for conexp-clj
 
-To create a standalone zip just run `make` in the top source directory. This
-will do everything to create a zip archive containing a compiled version of
+To create a standalone zip on your own, just run `make` in the top source directory. This
+will (should) do everything to create a zip archive containing a compiled version of
 conexp-clj. You can also run this compiled version directly by invoking
-./conexp-clj/bin/conexp-clj.sh.
+./conexp-clj/bin/conexp-clj (after unpacking the .zip file.)
 
 
-Contributing Authors
---------------------
+## Contributing Authors
 
 Currently conexp-clj is developed and maintained by
 
@@ -73,3 +140,11 @@ Additional Contributors are
 
   * Immanuel Albrecht (Context Editor Plugin for the GUI)
   * Stefan Borgwardt  (Shared Intents)
+  * Gleb Kanterov     (interval-scale)
+  * Johannes Wollbold (bug reports, feature requests)
+
+## License
+
+Copyright ⓒ 2009—2014 Daniel Borchmann
+
+Distributed under the Eclipse Public License.

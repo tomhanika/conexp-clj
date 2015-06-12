@@ -11,6 +11,7 @@
         conexp.contrib.draw.scene-layouts
         conexp.contrib.draw.control.util
         conexp.contrib.gui.util)
+  (:use seesaw.core)
   (:import [javax.swing JTextField JButton]))
 
 ;;;
@@ -43,10 +44,11 @@
                                          g (Double/parseDouble (.getText grav-field)),
                                          i (Integer/parseInt (.getText iter-field))]
                                      [r a g i]))]
-    (with-action-on button
-      (with-swing-error-msg frame "An Error occured."
-        (let [[r a g i] (get-force-parameters)]
-          (improve-with-force scn i r a g))))))
+    (listen button :action
+            (fn [_]
+              (with-swing-error-msg frame "An Error occured."
+                (let [[r a g i] (get-force-parameters)]
+                  (improve-with-force scn i r a g)))))))
 
 ;;;
 

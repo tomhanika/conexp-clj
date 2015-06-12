@@ -8,8 +8,8 @@
 ;; Now we want to work a little bit with concept-lattices, all actions
 ;; work also with other lattices.  First we define a lattice from a
 ;; given formal context ctx-1 (the chevron from the basics)
-(defvar ctx-1 (make-context [1 2 3] [1 2 3] <=))
-(defvar lat-1 (concept-lattice ctx-1))
+(def ctx-1 (make-context [1 2 3] [1 2 3] <=))
+(def lat-1 (concept-lattice ctx-1))
 
 ;; If you want to draw the lattice (same procedure as in the basics)
 ;; then enter first
@@ -54,7 +54,7 @@
 
 ;; To get the dual lattice of a given lattice lat-1 and save it as
 ;; lat-2 enter
-(defvar lat-2 (dual-lattice lat-1))
+(def lat-2 (dual-lattice lat-1))
 
 ;; If you want to get the standard context out of a given lattice use
 (standard-context lat-1)

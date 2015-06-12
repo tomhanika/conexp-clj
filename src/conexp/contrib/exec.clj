@@ -7,14 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.exec
-  (:use conexp.main
+  "Executing external programs with a common interface."
+  (:use [conexp.main :only (illegal-state, write-context)]
         [conexp.io.util :only (tmpfile with-out-writer)])
   (:use [clojure.java.shell :only (sh)]
         [clojure.string :only (split)])
   (:import [java.io File]
            [java.util Map]))
-
-(ns-doc "Executing external programs with a common interface.")
 
 ;;;
 

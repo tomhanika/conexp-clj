@@ -12,14 +12,14 @@
 
 ;; Let's take a context and save it as cxt-1.
 
-(defvar ctx-1 (make-context-from-matrix ['a 'b 'c 'd 'e 'f]
-					['a 'b 'c 'd 'e 'f]
-					[1 1 1 0 1 1
-					 0 1 0 0 1 0
-					 0 0 1 0 0 1
-					 0 0 0 1 1 1
-					 0 0 0 0 1 0
-					 0 0 0 0 0 1]))
+(def ctx-1 (make-context-from-matrix ['a 'b 'c 'd 'e 'f]
+                                     ['a 'b 'c 'd 'e 'f]
+                                     [1 1 1 0 1 1
+                                      0 1 0 0 1 0
+                                      0 0 1 0 0 1
+                                      0 0 0 1 1 1
+                                      0 0 0 0 1 0
+                                      0 0 0 0 0 1]))
 
 ;; The next step is to save this context in a file. There are
 ;; different formats in which you can save it:
@@ -36,7 +36,7 @@
 ;; If you want to read a context from a given file and save it as
 ;; ctx-2 use
 
-(defvar ctx-2 (read-context "/path/of/inputfile"))
+(def ctx-2 (read-context "/path/of/inputfile"))
 
 ;;
 

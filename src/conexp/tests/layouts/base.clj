@@ -112,7 +112,7 @@
                                             (first (indexes y)))))]
     (simple-layered-layout lattice)))
 
-(defvar- testing-layouts
+(def- testing-layouts
   (concat
    [(make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
                  #{[1 2] [2 3]})]

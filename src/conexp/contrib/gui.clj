@@ -7,12 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui
-  (:import [javax.swing UIManager JFrame])
-  (:use conexp.base
-        [conexp.contrib.gui.util :only (do-swing-return)]
-        conexp.contrib.gui.base))
-
-(ns-doc "Provides standard gui for conexp-clj.")
+  "Provides standard gui for conexp-clj."
+  (:use [conexp.contrib.gui.base :only (conexp-main-frame)])
+  (:use [seesaw.core :only (native! pack! show!)]))
 
 ;;;
 
@@ -20,13 +17,9 @@
   "Starts the standard gui for conexp-clj. args may be a sequence of
   parameters given by keywords and values."
   [& args]
-  (do-swing-return
-   (. UIManager (setLookAndFeel (. UIManager (getSystemLookAndFeelClassName))))
-   (System/setProperty "awt.useSystemAAFontSettings" "on")
-   (System/setProperty "swing.aatext", "true")
-   (let [^JFrame frame (apply conexp-main-frame args)]
-     (.setVisible frame true)
-     frame)))
+  (native!)
+  (-> (apply conexp-main-frame args)
+      show!))
 
 ;;;
 

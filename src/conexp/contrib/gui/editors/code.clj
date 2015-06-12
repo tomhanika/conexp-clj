@@ -7,10 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.editors.code
-  (:use conexp.base
+  (:use [conexp.base :exclude (select)]
         conexp.contrib.gui.plugins.base
         conexp.contrib.gui.util
-        conexp.contrib.gui.repl))
+        conexp.contrib.gui.repl)
+  (:use seesaw.core))
 
 ;;;
 
@@ -18,7 +19,7 @@
 
 (define-plugin code-editor
   "Code editor plugin."
-  :load-hook #(load-code-editor %),
+  :load-hook #(load-code-editor %)
   :unload-hook #(unload-code-editor %))
 
 ;;; Menu
@@ -31,24 +32,29 @@
     (when-not (and repl-process (repl-alive? repl-process))
       (illegal-state "There is no REPL running, cannot load file."))
     (when-let [file (choose-open-file frame ["clojure files" "clj"])]
-      (repl-in repl-process (str "(do (load-file \"" (.getAbsolutePath ^java.io.File file) "\") nil)")))))
+      (repl-in repl-process
+               (str "(do (load-file \"" (.getAbsolutePath ^java.io.File file) "\") ")))))
 
-(defvar- code-menu
-  {:name "Code",
-   :content [{:name "Load into REPL",
-              :handler get-file-and-go}]})
+(defn- code-menu
+  "Returns the menu for the code editor"
+  [frame]
+  (menu :text "Code",
+        :items [(menu-item :text "Load into REPL",
+                           :listen [:action (fn [_]
+                                              (with-swing-error-msg frame "Error"
+                                                (get-file-and-go frame)))])]))
 
 ;;;
 
 (defn- load-code-editor
   "Loads the code editor plugin."
   [frame]
-  (add-menus frame [code-menu]))
+  (add-menus frame [(code-menu frame)]))
 
 (defn- unload-code-editor
   "Unloads the code editor plugin."
   [frame]
-  nil)
+  nil)                                  ; remove menu?
 
 ;;;
 

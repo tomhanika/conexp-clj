@@ -12,16 +12,17 @@
                     PrintWriter CharArrayWriter PrintStream]
            [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame
                         JComponent]
-           [java.awt Font Color])
-  (:use [conexp.base :only (defvar-)]
-        conexp.contrib.gui.util)
+           [java.awt Font Color Graphics Graphics2D RenderingHints])
+  (:use [conexp.base :only (def-)])
+  (:use conexp.contrib.gui.util)
   (:require [conexp.contrib.gui.repl-utils :as repl-utils])
   (:require clojure.main))
 
 ;;; REPL Process
 
-(defvar- ^:dynamic *print-stack-trace-on-error* false
-  "Controls whether the REPL prints a full stack strace or not.")
+(def- ^:dynamic *print-stack-trace-on-error*
+  "Controls whether the REPL prints a full stack strace or not."
+  false)
 
 (defn- eof-ex?
   "Returns true iff given throwable is an \"EOF while reading\" or \"Write
@@ -196,7 +197,14 @@
 (defn- ^JTextArea into-text-area
   "Puts repl-container (a PlainDocument) into a JTextArea adding some hotkeys."
   [repl-container repl-thread]
-  (let [^JTextArea repl-window (JTextArea. ^javax.swing.text.Document repl-container)]
+  (let [^JTextArea
+        repl-window (proxy [JTextArea] [^javax.swing.text.Document repl-container]
+                      (paintComponent [^Graphics g]
+                        (let [^Graphics2D g g]
+                          (.setRenderingHint g
+                                             RenderingHints/KEY_ANTIALIASING
+                                             RenderingHints/VALUE_ANTIALIAS_ON)
+                          (proxy-super paintComponent g))))]
     (doto repl-window
       (add-input-event "control C" "interrupt")
       (add-action-event "interrupt" #(repl-interrupt repl-thread))
@@ -214,7 +222,7 @@
   (let [[repl-container, ^Thread repl-thread, ^Thread output-thread] (make-clojure-repl frame),
         rpl (into-text-area repl-container repl-thread)]
     (doto rpl
-      (.setFont (Font. "Monospaced" Font/PLAIN 16))
+      (.setFont (Font. "Monospaced" Font/BOLD 16))
       (.setCaretColor Color/BLACK))
     (.start output-thread)
     (JScrollPane. rpl)))
@@ -225,7 +233,7 @@
   (let [^JTextArea repl-container (get-component
                                    frame
                                    (fn [thing]
-                                     (and (= (class thing) JTextArea)
+                                     (and (instance? JTextArea thing)
                                           (satisfies? ReplProcess
                                                       (.getDocument ^JTextArea thing)))))]
     (when repl-container

@@ -62,7 +62,7 @@
 
 ;;; Testing common operations for lattices
 
-(defvar- testing-data
+(def- testing-data
   [(make-lattice #{} #{}),
    (make-lattice [1 2 3 4 5 6] <=),
    (make-lattice (list 6 5 4 3 2 1) min max),

@@ -7,12 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.layered
+  "Layered lattice layouts."
   (:use conexp.base
         conexp.layouts.util
         conexp.layouts.base
         conexp.fca.lattices))
-
-(ns-doc "Layered lattice layouts.")
 
 ;;; Simple Layered Layout
 

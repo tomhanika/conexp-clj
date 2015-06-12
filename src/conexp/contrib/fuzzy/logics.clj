@@ -7,9 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.fuzzy.logics
+  "Basic definitions for fuzzy logics"
   (:use conexp.main))
-
-(ns-doc "Basic definitions for fuzzy logics")
 
 ;;; T-Norms
 

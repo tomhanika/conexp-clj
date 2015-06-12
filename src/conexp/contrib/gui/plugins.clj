@@ -7,10 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.gui.plugins
-  (:use conexp.base
+  (:use [conexp.base :exclude (select)]
         conexp.contrib.gui.util
         conexp.contrib.gui.plugins.base
-        conexp.contrib.gui.plugins.browse))
+        conexp.contrib.gui.plugins.browse)
+  (:use seesaw.core))
 
 
 ;;; Plugin Managers for Frames
@@ -34,16 +35,23 @@
   ;; unfinished
   [frame]
   (let [plugin-manager (make-plugin-manager frame),
-        plugin-menu {:name "Plugins",
-                     :content [{:name "Show registered plugins"}
-                               {:name "Show loaded plugins"}
-                               ---
-                               {:name "Load plugin"}
-                               {:name "Unload plugin"}
-                               {:name "Register new plugin"}
-                               {:name "Unregister plugin"}
-                               ---
-                               {:name "Browse plugins"}]}]
+        plugin-menu    (menu :text "Plugins"
+                             :items [(menu-item :text "Show registered plugins"
+                                                :enabled? false)
+                                     (menu-item :text "Show loaded plugins"
+                                                :enabled? false)
+                                     :separator
+                                     (menu-item :text "Load plugin"
+                                                :enabled? false)
+                                     (menu-item :text "Unload plugin"
+                                                :enabled? false)
+                                     (menu-item :text "Register new plugin"
+                                                :enabled? false)
+                                     (menu-item :text "Unregister plugin"
+                                                :enabled? false)
+                                     :separator
+                                     (menu-item :text "Browse plugins"
+                                                :enabled? false)])]
     (save-pm-for-frame frame plugin-manager)
     (add-menus frame [plugin-menu])))
 

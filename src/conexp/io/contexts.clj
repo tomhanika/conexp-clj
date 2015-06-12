@@ -33,10 +33,11 @@
 (define-context-output-format :simple
   [ctx file]
   (with-out-writer file
-    (println "conexp-clj simple")
-    (prn {:context [(objects ctx)
-                    (attributes ctx)
-                    (incidence ctx)]})))
+    (binding [*print-length* nil]
+      (println "conexp-clj simple")
+      (prn {:context [(objects ctx)
+                      (attributes ctx)
+                      (incidence-relation ctx)]}))))
 
 (define-context-input-format :simple
   [file]
@@ -77,8 +78,8 @@
   (with-in-reader file
     (let [_                    (get-lines 2)    ; "B\n\n", we don't support names
 
-          number-of-objects    (Integer/parseInt (get-line))
-          number-of-attributes (Integer/parseInt (get-line))
+          number-of-objects    (Integer/parseInt (.trim (get-line)))
+          number-of-attributes (Integer/parseInt (.trim (get-line)))
 
           _                    (get-line)         ; "\n"
 
@@ -92,10 +93,10 @@
                            incidence)
           (let [line (get-line)]
             (recur (rest objs)
-                   (union incidence
-                          (set-of [(first objs) (nth seq-of-attributes idx-m)]
-                                  [idx-m (range number-of-attributes)
-                                   :when (#{\X,\x} (nth line idx-m))])))))))))
+                   (into incidence
+                          (for [idx-m (range number-of-attributes)
+                                :when (#{\X,\x} (nth line idx-m))]
+                             [(first objs) (nth seq-of-attributes idx-m)])))))))))
 
 
 ;; Anonymous Burmeister, aka Burmeister Format without names
@@ -120,8 +121,8 @@
   [file]
   (with-in-reader file
     (let [_                    (get-lines 1),    ; "A\n"
-          number-of-objects    (Integer/parseInt (get-line)),
-          number-of-attributes (Integer/parseInt (get-line)),
+          number-of-objects    (Integer/parseInt (.trim (get-line))),
+          number-of-attributes (Integer/parseInt (.trim (get-line))),
           seq-of-objects       (range number-of-objects),
           seq-of-attributes    (range number-of-attributes)]
       (loop [objs seq-of-objects
@@ -132,10 +133,10 @@
                            incidence)
           (let [line (get-line)]
             (recur (rest objs)
-                   (union incidence
-                          (set-of [(first objs) (nth seq-of-attributes idx-m)]
-                                  [idx-m (range number-of-attributes)
-                                   :when (#{\X,\x} (nth line idx-m))])))))))))
+                   (into incidence
+                         (for [idx-m (range number-of-attributes)
+                               :when (#{\X,\x} (nth line idx-m))]
+                            [(first objs) (nth seq-of-attributes idx-m)])))))))))
 
 ;; XML helpers
 
@@ -248,7 +249,7 @@
                    [:raw! (str "\n    <Object>" obj "</Object>")])
                  (for [att atts-vector]
                    [:raw! (str "\n    <Attribute>" att "</Attribute>")])
-                 (for [[g m] (incidence ctx)]
+                 (for [[g m] (incidence-relation ctx)]
                    [:BinRel {:idxO (str (objs g)),
                              :idxA (str (atts m))}])]])))))
 
@@ -292,7 +293,7 @@
     (unsupported-operation
      "Cannot export to :colibri format, object or attribute names contain invalid characters."))
   (when (not (empty? (difference (attributes ctx)
-                                 (set-of m [[g m] (incidence ctx)]))))
+                                 (set-of m [[g m] (incidence-relation ctx)]))))
     (unsupported-operation
      "Cannot export to :colibri format, context contains empty columns."))
   (with-out-writer file
@@ -327,8 +328,8 @@
 (add-context-input-format :csv
                           (fn [rdr]
                             (try
-                             (re-matches #"^[^,]+,[^,]+$" (read-line))
-                             (catch Exception _))))
+                              (re-matches #"^[^,]+,[^,]+$" (read-line))
+                              (catch Exception _))))
 
 (define-context-input-format :csv
   [file]
@@ -339,7 +340,7 @@
           (make-context-nc (set-of g [[g m] inz])
                            (set-of m [[g m] inz])
                            inz)
-          (let [[_ g m] (re-matches #"^([^,])+,([^,])+$" line)]
+          (let [[r g m] (re-matches #"^((?:[^,]+|\".*\")),((?:[^,]+|\".*\"))$" line)]
             (recur (conj inz [g m]))))))))
 
 (define-context-output-format :csv
@@ -349,7 +350,7 @@
               (concat (objects ctx) (attributes ctx)))
     (unsupported-operation "Cannot export to :csv format, object or attribute names contain \",\"."))
   (with-out-writer file
-    (doseq [[g m] (incidence ctx)]
+    (doseq [[g m] (incidence-relation ctx)]
       (println (str g "," m)))))
 
 
@@ -372,7 +373,8 @@
                 i    (count objs)]
             (recur (conj objs i)
                    (into incidence
-                         (set-of [i n] | n atts :when (= (nth line n) "1")))))
+                         (for [n atts :when (= (nth line n) "1")]
+                           [i n]))))
           (make-context objs atts incidence))))))
 
 (define-context-output-format :binary-csv
@@ -420,7 +422,7 @@
   (with-in-reader file
     (loop [count     0,
            incidence #{}]
-      (if-let [line (get-line)]
+      (if-let [line (read-line)]
         (recur (inc count)
                (into incidence (for [x (read-string (str "(" line ")"))]
                                  [count x])))
@@ -439,17 +441,17 @@
                              "integral objects and attributes >= 0, counting upwards."))
     (when (let [max-att (dec (count (attributes context)))]
             (forall [g (objects context)]
-              (not (contains? (incidence context) [g max-att]))))
+              (not ((incidence context) [g max-att]))))
       (unsupported-operation "Cannot store context with last column empty in format :fcalgs"))
     (when (exists [g (objects context)]
             (forall [m (attributes context)]
-              (not (contains? (incidence context) [g m]))))
+              (not ((incidence context) [g m]))))
       (unsupported-operation "Cannot store context with empty rows in format :fcalgs"))
     (let [object-count    (count (objects context))
           attribute-count (count (attributes context))]
       (doseq [g (range object-count)]
         (doseq [m (range attribute-count)]
-          (when (contains? (incidence context) [g m])
+          (when ((incidence context) [g m])
             (print (str m " "))))
         (println)))))
 

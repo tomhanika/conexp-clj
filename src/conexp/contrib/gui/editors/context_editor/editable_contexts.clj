@@ -11,7 +11,6 @@
 (ns conexp.contrib.gui.editors.context-editor.editable-contexts
   (:use conexp.fca
         conexp.contrib.gui.util
-        conexp.contrib.gui.util.one-to-many
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control)
   (:use [clojure.string :only (join)]))

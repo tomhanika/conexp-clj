@@ -15,9 +15,169 @@
            [java.awt.event ActionListener]
            [java.awt.datatransfer DataFlavor StringSelection])
   (:use [conexp.base :exclude (join)]
-        conexp.contrib.gui.util
-        conexp.contrib.gui.util.hookable))
+        conexp.contrib.gui.util)
+  (:require [clojure.string :as string]))
 
+;;; util
+
+(defn class-to-keyword
+  "Takes a class c and returns a corresponding keyword describing
+  its class name."
+  [c]
+  (let [rv          string/reverse,
+        classname   (str c),
+        keywordname (rv (string/replace-first
+                         (rv (string/replace-first classname #"class " ""))
+                         #"\."
+                         "/"))]
+    (keyword keywordname)))
+
+(defn keyword-class
+  "Takes an object x and returns a corresponding keyword describing
+  its class name."
+  [x]
+  (class-to-keyword (type x)))
+
+(defn keyword-isa?
+  "Returns true iff the keyword-class of obj isa? parent."
+  [obj parent]
+  (isa? (keyword-class obj) (class-to-keyword parent)))
+
+(defmacro defwidget
+  "Defines a widget. The resulting widget will have super-widgets,
+  which must be a vector of valid widgets, as super-widgets and fields
+  and data fields."
+  [name super-widgets fields]
+  `(do
+     (defrecord ~name ~fields)
+     ~@(for [sw super-widgets]
+         `(derive (class-to-keyword ~name) (class-to-keyword ~sw)))))
+
+;;; hookable
+
+(defwidget hookable [] [hooks])
+
+(defn make-hookable
+  "Creates an empty hookable object."
+  []
+  (hookable. (ref {})))
+
+(defn hookable?
+  "Tests whether the given object is hookable."
+  [obj]
+  (keyword-isa? obj hookable))
+
+(defn add-hook
+  "Adds a hook to the hooksmap.
+
+  Parameters:
+    ohookable   _hookable object
+    name        _key for the hook
+    function    _a function that will be assigned to the hook"
+  [ohookable name function]
+  (assert (hookable? ohookable))
+  (let [hooks (:hooks ohookable)]
+    (dosync (alter hooks conj {name (list function "-no-doc-str-")}))))
+
+(defn set-hook
+  "Sets a hook in the hooksmap, throws if this hook doesn't exist."
+  [ohookable name function]
+  (assert (hookable? ohookable))
+  (let [hooks (:hooks ohookable)]
+    (if (contains? @hooks name)
+      (dosync (alter hooks 
+                     (fn [h]
+                       (let [doc-str (second (h name))
+                             fun-str (list function doc-str)
+                             new-h   (conj h {name fun-str})]
+                         new-h))))
+      (illegal-argument (str "set-hook " name " to " function " for "
+                             ohookable " failed: hook undefined")))))
+
+(defn call-hook
+  "Calls a hook in the hooksmap, throws if this hook doesn't exist."
+  [ohookable name & args]
+  (assert (hookable? ohookable))
+  (let [hooks (:hooks ohookable),
+        hookmap @hooks]
+    (if (contains? hookmap name)
+      (apply (first (hookmap name)) args)
+      (illegal-argument (str "call-hook " name " for "
+                             ohookable " failed: hook undefined"
+                             "\n\nmap:\n" hookmap)))))
+
+(defn get-hook-function
+  "Looks up a hook in the hooksmap and returns the associated function,
+ throws if this hook doesn't exist."
+  [ohookable name]
+  (assert (hookable? ohookable))
+  (let [hooks (:hooks ohookable),
+        hookmap @hooks]
+    (if (contains? hookmap name)
+      (first (hookmap name))
+      (illegal-argument (str "get-hook-function " name " for "
+                             ohookable " failed: hook undefined"
+                             "\n\nmap:\n" hookmap)))))
+
+(defn doc-hook
+  "Looks up a hook in the hooksmap and returns its doc-str,
+   returns :not-found if this hook doesn't exist."
+  [ohookable name]
+  (assert (hookable? ohookable))
+  (let [hooks (:hooks ohookable),
+        hookmap @hooks]
+    (if (contains? hookmap name)
+      (second (hookmap name))
+      :not-found)))
+
+;;; one-to-many abstraction
+
+(defwidget one-to-many [] [one many])
+
+(defn make-one-to-many
+  "Creates a one-to-many object.
+   Parameters:
+     one     _the single point object
+     & many  _optional hash-set of connected objects"
+  [one & many]
+  (one-to-many. one (if (nil? many) #{} (hash-set many))))
+
+(defn add
+  "Returns a new one-to-many object that consists of otm
+   and has some more elements."
+  [otm & els]
+  (assert (keyword-isa? otm one-to-many))
+  (one-to-many. (:one otm) (apply conj (:many otm) els)))
+
+(defn del
+  "Returns a new one-to-many object that consists of otm
+   and has some less elements."
+  [otm & els]
+  (assert (keyword-isa? otm one-to-many))
+  (one-to-many. (:one otm) (apply disj (:many otm) els)))
+
+(defn call-one
+  "Calls the given function with the one-part of the given one-many relation
+  as first parameter."
+  [otm f & parms]
+  (assert (keyword-isa? otm one-to-many))
+  (apply f (:one otm) parms))
+
+(defn call-many
+  "Calls the given function several times with each many-part of the given 
+  one-many relation as first parameter for one."
+  [otm f & parms]
+  (assert (keyword-isa? otm one-to-many))
+  (doseq [m (:many otm)] (apply f m parms)))
+
+(defn call-first
+  "Calls the given function with the given parameter for the first of
+  the many."
+  [otm f & parms]
+  (assert (keyword-isa? otm one-to-many))
+  (let [m (:many otm)]
+    (when-not (empty? m)
+      (apply f (first m) parms))))
 
 ;;; clipboard functions
 
@@ -103,110 +263,6 @@
   [control proxy]
   (.addMouseListener (get-control control) proxy)
   (.addMouseMotionListener (get-control control) proxy))
-
-
-;;; Button
-
-(defwidget button [widget] [widget])
-
-(defn-swing set-handler
-  "Sets the action handler for the button object. handler must be a
-  function of no arguments."
-  [obutton handler]
-  (assert (keyword-isa? obutton button))
-  (let [^JButton button  (get-widget obutton),
-        current-handlers (.getActionListeners button),
-        listeners        (seq current-handlers)]
-    (doseq [^ActionListener l listeners]
-      (.removeActionListener button l))
-    (with-action-on button (handler))))
-
-(defn-swing make-button
-  "Creates a managed button object."
-  [name]
-  (let [jbutton (JButton. name),
-        widget  (button. jbutton)]
-    (.setMargin jbutton (Insets. 0 0 0 0))
-    widget))
-
-(defn-swing make-tooltip-button
-  "Creates a managed button object with tooltip."
-  [^String tooltip, name]
-  (let [jbutton (JButton. name),
-        widget  (button. jbutton)]
-    (doto jbutton
-      (.setToolTipText tooltip)
-      (.setMargin (Insets. 0 0 0 0)))
-    widget))
-
-;;;  Split Pane
-
-(defwidget split-pane [widget] [widget])
-
-(defn-swing set-divider-location
-  "Sets the location of the divider; location is given as int."
-  [osplit-pane location]
-  (assert (keyword-isa? osplit-pane split-pane))
-  (.setDividerLocation ^JSplitPane (get-widget osplit-pane) (int location)))
-
-(defn-swing make-split-pane
-  "Creates a managed split pane object. direction is either :horiz
-  or :vert, topleft is the top (left) widget and bottomright is the
-  bottom (right) widget."
-  [direction topleft bottomright]
-  (let [jsplit-pane (JSplitPane. (direction {:horiz JSplitPane/HORIZONTAL_SPLIT
-                                             :vert JSplitPane/VERTICAL_SPLIT})
-                                 (get-widget topleft)
-                                 (get-widget bottomright)),
-        widget  (split-pane. jsplit-pane)]
-    widget))
-
-
-;;;  Toolbar
-
-(defwidget toolbar-control [control] [widget control])
-
-(defn-swing set-orientation
-  "Sets the toolbars orientation. orientation is either :horiz
-  or :vert."
-  [otoolbar orientation]
-  (assert (keyword-isa? otoolbar toolbar-control))
-  (.setOrientation ^JToolBar (get-control otoolbar)
-                   (int ({:horiz JToolBar/HORIZONTAL
-                          :vert JToolBar/VERTICAL}
-                         orientation))))
-
-(defn-swing add-button
-  "Adds a button (or any other component) to the toolbar."
-  [otoolbar button]
-  (assert (keyword-isa? otoolbar toolbar-control))
-  (.add ^JToolBar (get-control otoolbar)
-        ^JComponent (get-widget button)))
-
-(defn-swing add-separator
-  "Adds a separator space to the toolbar."
-  [otoolbar]
-  (assert (keyword-isa? otoolbar toolbar-control))
-  (.addSeparator ^JToolBar (get-control otoolbar)))
-
-(defn-swing set-floatable
-  "Sets the floatable mode of the toolbar control."
-  [otoolbar floatable]
-  (assert (keyword-isa? otoolbar toolbar-control))
-  (.setFloatable ^JToolBar (get-control otoolbar)
-                 (boolean floatable)))
-
-(defn-swing make-toolbar-control
-  "Creates a toolbar control in Java."
-  [orientation]
-  (let [toolbar (JToolBar. (int ({:horiz JToolBar/HORIZONTAL
-                                  :vert JToolBar/VERTICAL}
-                                 orientation))),
-        
-        widget  (toolbar-control. toolbar toolbar)
-        layout  (FlowLayout. FlowLayout/LEFT 5 3)]
-    (.setLayout toolbar layout)
-    widget))
 
 ;;;
 

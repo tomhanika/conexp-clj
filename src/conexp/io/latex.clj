@@ -7,14 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.latex
+  "Provides functionality to represent conexp-clj datastructures as latex code."
   (:use conexp.base
         [conexp.fca.contexts :only (objects attributes incidence)]
         conexp.fca.lattices
         conexp.fca.many-valued-contexts
         [conexp.layouts.base :only (positions connections nodes inf-irreducibles sup-irreducibles annotation)]))
-
-(ns-doc "Provides functionality to represent conexp-clj datastructures
-as latex code.")
 
 ;;;
 

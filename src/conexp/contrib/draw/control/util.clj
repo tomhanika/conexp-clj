@@ -7,8 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.util
-  (:use conexp.base
+  (:use [conexp.base :exclude (select)]
         conexp.contrib.gui.util)
+  (:use seesaw.core)
   (:import [javax.swing JPanel JButton JTextField JLabel
                         JSeparator SwingConstants Box JComboBox
                         JSlider SpinnerNumberModel JSpinner
@@ -17,14 +18,17 @@
 
 ;;;
 
-(defvar ^:dynamic *item-width* 100
-  "Width of items in toolbar.")
+(def ^:dynamic *item-width*
+  "Width of items in toolbar."
+  100)
 
-(defvar ^:dynamic *item-height* 25
-  "Heights of items on toolbar.")
+(def ^:dynamic *item-height*
+  "Heights of items on toolbar."
+  25)
 
-(defvar ^:dynamic *toolbar-width* (+ 20 *item-width*)
-  "Width of toolbar containing buttons, labels and so on.")
+(def ^:dynamic *toolbar-width*
+  "Width of toolbar containing buttons, labels and so on."
+  (+ 20 *item-width*))
 
 ;;;
 
@@ -140,12 +144,13 @@
             _           (.setLayout choice-pane (BoxLayout. choice-pane BoxLayout/Y_AXIS))]
         (.setMaximumSize base-pane nil)
         (.setMaximumSize choice-pane nil)
-        (with-action-on combo-box
-          (let [selected (.getSelectedItem ^JComboBox (.getSource ^ActionEvent evt)),
-                control  (get choices selected)]
-             (.removeAll choice-pane)
-             (control frame scene choice-pane)
-             (.validate frame)))
+        (listen combo-box :action
+                (fn [evt]
+                  (let [selected (.getSelectedItem ^JComboBox (.getSource ^ActionEvent evt)),
+                        control  (get choices selected)]
+                    (.removeAll choice-pane)
+                    (control frame scene choice-pane)
+                    (.validate frame))))
         (.setSelectedIndex combo-box 0)))))
 
 (defmacro with-layout-modifiers

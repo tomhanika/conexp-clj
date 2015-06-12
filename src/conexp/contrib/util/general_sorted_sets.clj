@@ -7,10 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.util.general-sorted-sets
-  (:use conexp.main))
-
-(ns-doc
- "Implementation of a generalization of tree sets to partial orders.")
+  "Implementation of a generalization of tree sets to partial orders."
+  (:use [conexp.main :only (forall, set-of, unsupported-operation)]))
 
 ;;; sorted-set for non-total orderings
 

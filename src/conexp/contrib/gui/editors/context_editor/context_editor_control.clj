@@ -11,8 +11,6 @@
 (ns conexp.contrib.gui.editors.context-editor.context-editor-control
   (:use conexp.fca
         conexp.contrib.gui.util
-        conexp.contrib.gui.util.one-to-many
-        conexp.contrib.gui.util.hookable
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control
         conexp.contrib.gui.editors.context-editor.editable-contexts)
@@ -23,7 +21,7 @@
 ;;; Context editor control
 
 (defwidget context-editor-widget [conexp.contrib.gui.editors.context_editor.widgets.widget]
-  [widget table toolbar e-ctx])
+  [widget table e-ctx])
 
 (defmethod get-table (class-to-keyword context-editor-widget)
   [widget]

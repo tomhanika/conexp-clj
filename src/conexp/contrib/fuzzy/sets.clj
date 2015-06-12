@@ -7,11 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.fuzzy.sets
+  "Basic definitions for fuzzy sets"
   (:use conexp.main
         conexp.contrib.fuzzy.logics)
   (:require [clojure.math.combinatorics :as comb]))
-
-(ns-doc "Basic definitions for fuzzy sets")
 
 ;;;
 

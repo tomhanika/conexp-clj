@@ -13,8 +13,9 @@
 
 ;;;
 
-(defvar standard-layout simple-layered-layout
-  "Standard layout function. Call on a lattice to get a layout.")
+(def standard-layout
+  "Standard layout function. Call on a lattice to get a layout."
+  simple-layered-layout)
 
 (defn inf-additive-layout
   "Returns an infimum additive layout for lattice."

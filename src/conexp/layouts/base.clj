@@ -7,11 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.base
+  "Basic definition of layout datatype"
   (:use conexp.base
         conexp.fca.lattices
         clojure.pprint))
-
-(ns-doc "Basic definition of layout datatype")
 
 ;;;
 
@@ -20,7 +19,7 @@
                  connections            ;connections as set of pairs
                  upper-labels           ;map mapping nodes to vectors of labels and coordinates/nil
                  lower-labels           ;same
-                 information]           ;ref for technicalse
+                 information]           ;ref for technicals
   Object
   (equals [this other]
     (generic-equals [this other] Layout [lattice positions connections upper-labels lower-labels]))

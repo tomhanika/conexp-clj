@@ -15,11 +15,11 @@
 
 ;;;
 
-(defvar- mv-contexts-oi
+(def- mv-contexts-oi
+  "Context to use for out-in testing"
   [(make-mv-context ["1" "2" "3"] ["4" "5" "6"] str),
    (make-mv-context ["a" "b" "c"] [] str)
-   (make-mv-context [] ["1" "2" "3"] str)]
-  "Context to use for out-in testing")
+   (make-mv-context [] ["1" "2" "3"] str)])
 
 (deftest test-mv-context-out-in
   (with-testing-data [mv-ctx mv-contexts-oi,
@@ -27,11 +27,11 @@
     (try (= mv-ctx (out-in mv-ctx 'mv-context fmt))
          (catch UnsupportedOperationException _ true))))
 
-(defvar- mv-contexts-oioi
+(def- mv-contexts-oioi
+  "Contexts to use for out-in-out-in testing"
   [(make-mv-context (range 10) (range 10) +),
    (make-mv-context (range 10) (range 10) (fn [_ _] (rand)))
-   (make-mv-context [] [] +)]
-  "Contexts to use for out-in-out-in testing")
+   (make-mv-context [] [] +)])
 
 (deftest test-mv-context-out-in-out-in
   (with-testing-data [mv-ctx mv-contexts-oioi,

@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.retracts
+  "Package for computing retracts from formal contexts."
   (:use conexp.main)
   (:use [clojure.pprint :only (cl-format)]))
-
-(ns-doc "Package for computing retracts from formal contexts.")
 
 ;;;
 
@@ -81,7 +80,7 @@
   "Returns all retracts of context as computed by the algorithm of
   Felix Kästner."
   [context]
-  (when-not (reduced? context)
+  (when-not (context-reduced? context)
     (illegal-argument "Can only compute retracts of reduced contexts."))
   (let [concepts (concepts context)]
     (for [hom  (homomorphisms-by-cscs context),

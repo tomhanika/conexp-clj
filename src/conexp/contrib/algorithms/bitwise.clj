@@ -83,14 +83,14 @@
 (defn to-binary-matrix
   "Converts the incidence-relation to a binary matrix (in the sense of
   Java) filled with 1 and 0."
-  [object-vector attribute-vector incidence-relation]
+  [object-vector attribute-vector incidence]
   (let [incidence-matrix (make-array Integer/TYPE (count object-vector) (count attribute-vector))]
     (dotimes [obj-idx (count object-vector)]
       (let [^ints row (aget ^objects incidence-matrix obj-idx)]
         (dotimes [att-idx (count attribute-vector)]
           (aset row att-idx
-                (if (contains? incidence-relation [(nth object-vector obj-idx)
-                                                   (nth attribute-vector att-idx)])
+                (if (incidence [(nth object-vector obj-idx)
+                                (nth attribute-vector att-idx)])
                   (int 1)
                   (int 0))))))
     incidence-matrix))

@@ -9,37 +9,27 @@
 ;; this file contains contributions by Immanuel Albrecht
 
 (ns conexp.contrib.gui.util
-  (:import [javax.swing JFrame JMenuBar JMenu JMenuItem Box JToolBar JPanel
-                        JButton ImageIcon JSeparator JTabbedPane JSplitPane
-                        JLabel JTextArea JScrollPane SwingUtilities BorderFactory
-                        AbstractButton SwingConstants JFileChooser JOptionPane
-                        ImageIcon JComponent]
+  (:import [javax.swing JFrame JPanel JButton ImageIcon JTabbedPane 
+                        JLabel BorderFactory AbstractButton JFileChooser
+                        JOptionPane JComponent JMenuBar]
            [javax.swing.filechooser FileNameExtensionFilter]
-           [javax.imageio ImageIO]
-           [java.awt GridLayout BorderLayout Dimension Image Font Color
-                     Graphics Graphics2D BasicStroke FlowLayout]
-           [java.awt.event KeyEvent ActionListener ActionEvent MouseAdapter MouseEvent]
-           [java.awt.image BufferedImage]
-           [javax.swing.event ChangeListener ChangeEvent]
+           [java.awt Color Dimension Graphics Graphics2D BasicStroke FlowLayout]
+           [java.awt.event MouseEvent]
            [java.io File])
-  (:use [conexp.base :only (defvar, defmacro-, first-non-nil, illegal-argument)])
-  (:require [clojure.string :as string]))
+  (:use [conexp.base :only (defmacro-, first-non-nil,
+                            illegal-argument, unsupported-operation,
+                            get-resource)])
+  (:use seesaw.core
+        [seesaw.util :only (root-cause)]))
 
 
 ;;; Swing handmade concurrency
-
-(defn invoke-later-or-now
-  "Calls fn with SwingUtilities/invokeLater."
-  [fn]
-  (if (SwingUtilities/isEventDispatchThread)
-    (fn)
-    (SwingUtilities/invokeLater fn)))
 
 (defmacro do-swing
   "Executes body within the Swing Dispatch Thread or immediately, if
   execution is already in this thread."
   [& body]
-  `(invoke-later-or-now #(do ~@body)))
+  `(invoke-soon ~@body))
 
 (defmacro do-swing-return
   "Executes body in a thread-safe manner for Swing and returns its value."
@@ -57,56 +47,28 @@
 
 ;;; Helper functions
 
-(defmacro with-action-on
-  "Adds an action listener on thing to execute body, with the catched
-  ActionEvent Object bound to the variable evt. body will be executed
-  in a thread-safe manner."
-  [thing & body]
-  `(.addActionListener
-    ~thing
-    (proxy [ActionListener] []
-      (actionPerformed [^java.awt.event.ActionEvent ~'evt] ;how to do right?
-        (do-swing ~@body)))))
-
-(defmacro with-change-on
-  "Adds a change listener on thing to execute body, with the catched
-  ChangeEvent Object bound to the variable evt. body will be executed
-  in a thread-safe manner."
-  [thing & body]
-  `(.addChangeListener ~thing
-                       (proxy [ChangeListener] []
-                         (stateChanged [^ChangeEvent ~'evt]
-                           (do-swing ~@body)))))
-
-(defn get-root-cause
-  "Returns original message of first exception causing the given one."
-  [^Throwable exception]
-  (if-let [cause (.getCause exception)]
-    (get-root-cause cause)
-    (.getMessage exception)))
-
 (defmacro with-swing-error-msg
   "Runs given code and catches any thrown exception, which is then
   displayed in a message dialog."
   [frame title & body]
   `(try
-    ~@body
-    (catch Exception e#
-      (javax.swing.JOptionPane/showMessageDialog ~frame
-                                                 (apply str (get-root-cause e#) "\n"
-                                                        (interpose "\n" (.getStackTrace e#)))
-                                                 ~title
-                                                 javax.swing.JOptionPane/ERROR_MESSAGE))))
-
-(defn- add-handler
-  "Adds an ActionListener to abstract-button that calls function with frame when
-  activated (i.e. when actionPerformed is called)."
-  [^javax.swing.AbstractButton thing frame function]
-  (.addActionListener thing
-    (proxy [ActionListener] []
-      (actionPerformed [evt]
-        (with-swing-error-msg frame "Error"
-          (function frame))))))
+     ~@body
+     (catch Exception e#
+       (let [cause# (root-cause e#)]
+         (show!
+          (dialog :parent ~frame
+                  :size [600 :by 300]
+                  :resizable? false
+                  :content (vertical-panel :items [[:fill-v 10]
+                                                   (.getMessage ^Throwable cause#)
+                                                   [:fill-v 10]
+                                                   (scrollable (text :text (apply str cause# "\n"
+                                                                                  (interpose "\n" (.getStackTrace e#)))
+                                                                     :multi-line? true
+                                                                     :editable? false
+                                                                     :caret-position 0))])
+                  :type :error
+                  :title ~title))))))
 
 (defn get-component
   "Returns the first component in component satisfing predicate."
@@ -117,26 +79,12 @@
 
 (defn show-in-frame
   "Creates new frame with thing embedded and shows it."
-  [^java.awt.Component thing]
-  (let [frame (JFrame.)]
-    (.add frame thing)
-    (.setVisible frame true)
-    (.setSize frame (Dimension. 500 200))
-    (.setDefaultCloseOperation frame JFrame/DISPOSE_ON_CLOSE)
-    frame))
-
-(defn message-box
-  "Pops up a swing message box."
-  ([text title]
-     (JOptionPane/showMessageDialog nil (str text) (str title) 0))
-  ([text]
-     (JOptionPane/showMessageDialog nil (str text) "Info" 0)))
-
-(defn ^java.net.URL get-resource
-  "Returns the URL of the given the resource res if found, nil otherwise."
-  [res]
-  (let [cl (.getContextClassLoader (Thread/currentThread))]
-    (.getResource cl res)))
+  [thing]
+  (-> (frame :content thing
+             :size [500 :by 200]
+             :on-close :dispose)
+      pack!
+      show!))
 
 (defn confirm
   "Opens a message dialog asking for confirmation."
@@ -148,100 +96,36 @@
    alternative string."
   [res alt]
   (let [img (get-resource (str "res/" res)),
-        ^ImageIcon img (and img (ImageIcon. img))]
+        ^ImageIcon
+        img (and img (ImageIcon. img))]
     (or img alt)))
 
-
-;;; widgets
-
-(defn class-to-keyword
-  "Takes a class c and returns a corresponding keyword describing
-  its class name."
-  [c]
-  (let [rv          string/reverse,
-        classname   (str c),
-        keywordname (rv (string/replace-first
-                         (rv (string/replace-first classname #"class " ""))
-                         #"\."
-                         "/"))]
-    (keyword keywordname)))
-
-(defn keyword-class
-  "Takes an object x and returns a corresponding keyword describing
-  its class name."
-  [x]
-  (class-to-keyword (type x)))
-
-(defn keyword-isa?
-  "Returns true iff the keyword-class of obj isa? parent."
-  [obj parent]
-  (isa? (keyword-class obj) (class-to-keyword parent)))
-
-(defmacro defwidget
-  "Defines a widget. The resulting widget will have super-widgets,
-  which must be a vector of valid widgets, as super-widgets and fields
-  and data fields."
-  [name super-widgets fields]
-  `(do
-     (defrecord ~name ~fields)
-     ~@(for [sw super-widgets]
-         `(derive (class-to-keyword ~name) (class-to-keyword ~sw)))))
-
+(defn open-link-in-external-browser
+  "Given a string denoting an URL, tries to open that URL in the default browser.  In case
+  this does not work, displays an error message attached to frame."
+  [frame string]
+  (with-swing-error-msg frame "Error"
+    (let [desktop (java.awt.Desktop/getDesktop)]
+      (when-not (.isSupported desktop java.awt.Desktop$Action/BROWSE)
+        (unsupported-operation "Not supported"))
+      (.browse (java.awt.Desktop/getDesktop)
+               (java.net.URI. string)))))
 
 ;;; Menus
 
-(defn- ^JMenuBar get-menubar
-  "Returns menubar of given frame."
-  [frame]
-  (get-component frame #(= (class %) JMenuBar)))
-
-(declare hash-map->menu)
-
-(defn- ^JComponent hash-map->menu-item
-  "Converts a hash to a JMenuItem for the given frame."
-  [frame hash]
-  (cond
-   (empty? hash) (JSeparator.),
-   (contains? hash :content) (hash-map->menu frame hash),
-   :else
-   (let [menu-item (JMenuItem. ^String (:name hash))]
-     (if (contains? hash :handler)
-       (add-handler menu-item frame (:handler hash))
-       (.setEnabled menu-item false))
-     ;; also enable hotkeys and images
-     menu-item)))
-
-(defn- hash-map->menu
-  "Converts a hash representing a menu into an actual JMenu for a given frame."
-  [frame hash-menu]
-  (if (instance? java.awt.Component hash-menu)
-    hash-menu
-    (let [menu (JMenu. ^String (:name hash-menu))]
-      (doseq [entry (:content hash-menu)]
-        (.add menu (hash-map->menu-item frame entry)))
-      menu)))
-
 (defn add-menus
-  "Adds the menus (specified as hash-maps) to the frame in front of
-  the first Box$Filler found in the menu-bar of frame. Returns the
-  menus added."
-  [^JFrame frame, menus]
-  (let [our-menus (map #(hash-map->menu frame %) menus)]
-    (do-swing
-     (let [menu-bar (get-menubar frame),
-           [menus-before menus-after] (split-with #(not (instance? javax.swing.Box$Filler %))
-                                                  (seq (.getComponents menu-bar)))]
-       (.removeAll menu-bar)
-       (doseq [^JComponent menu (concat menus-before our-menus menus-after)]
-         (.add menu-bar menu))
-       (.validate frame)))
-    our-menus))
+  "Takes a sequences of menus and adds them to the given frame"
+  [frame menus]
+  (let [framebar (first (select frame [:JMenuBar]))]
+    (config! frame :menubar
+             (menubar :items (vec (concat (when framebar (config framebar :items))
+                                          menus))))))
 
 (defn remove-menus
   "Removes given menus (as Java objects) from menu-bar of frame."
   [^JFrame frame, menus]
   (do-swing
-   (let [menu-bar (get-menubar frame),
+   (let [^JMenuBar menu-bar (first (select frame [:JMenuBar])),
          new-menus (remove (set menus) (seq (.getComponents menu-bar)))]
      (.removeAll menu-bar)
      (doseq [^JComponent menu new-menus]
@@ -249,98 +133,12 @@
      (.validate frame)
      new-menus)))
 
-;; menu shortcut variables for convenience
-
-(defvar --- {}
-  "Separator for menu entries used in add-menus.")
-
-(defvar === (Box/createHorizontalGlue)
-  "Separator between menus used in add-menus.")
-
-
-;;; Tool Bar
-
-(defn- ^JToolBar get-toolbar
-  "Returns toolbar of given frame."
-  [frame]
-  (get-component frame #(= (class %) JToolBar)))
-
-(defvar ^String default-icon-image (get-resource "images/default.jpg")
-  "Default icon image used when no other image is found.")
-(defvar icon-size 17
-  "Default icon size.")
-
-(defn- ^JButton make-icon
-  "Converts hash representing an icon to an actual JButton."
-  [frame icon-hash]
-  (if (empty? icon-hash)
-    (javax.swing.JToolBar$Separator.)
-    (let [button (JButton.)]
-      (doto button
-        (.setName (:name icon-hash))
-        (add-handler frame (:handler icon-hash))
-        (.setToolTipText (:name icon-hash)))
-      (let [icon (:icon icon-hash)
-            image (-> ^BufferedImage
-                      (ImageIO/read ^File (if (and icon
-                                                   (.exists (File. ^String icon)))
-                                            (File. ^String icon)
-                                            (File. default-icon-image)))
-                      (.getScaledInstance icon-size icon-size
-                                          Image/SCALE_SMOOTH))]
-        (.setIcon button (ImageIcon. ^Image image)))
-      button)))
-
-(defn- collapse-separators
-  "Given a sequence of Java objects returns a sequence of the same
-  objects where adjacent Separators are collapsed into one."
-  [objects]
-  (let [partitioned-objects (partition-by class objects)]
-    (apply concat (map #(if (instance? javax.swing.JSeparator (first %))
-                          (list (first %))
-                          %)
-                       partitioned-objects))))
-
-(defn add-icons
-  "Adds icons (sepcified as hash-maps) to toolbar of frame, returning
-  added icons."
-  [^JFrame frame, icons]
-  (let [our-icons (map #(make-icon frame %) icons)]
-    (do-swing
-     (let [toolbar (get-toolbar frame),
-           new-icons (collapse-separators (concat (.getComponents toolbar)
-                                                  our-icons))]
-       (.removeAll toolbar)
-       (doseq [^JComponent icon new-icons]
-         (.add toolbar icon))
-       (.validate frame)))
-    our-icons))
-
-(defn remove-icons
-  "Removes icons (as Java objects) from toolbar of frame. The
-  resulting toolbar in frame will have no two equal icons side by
-  side."
-  [^JFrame frame, icons]
-  (do-swing
-   (let [^JToolBar toolbar (get-toolbar frame),
-         rem-icons (collapse-separators (remove (set icons) (seq (.getComponents toolbar))))]
-     (.removeAll toolbar)
-     (doseq [^JComponent icon rem-icons]
-       (.add toolbar icon))
-     (.validate frame))))
-
-;; toolbar shortcut variables for convenience
-
-(defvar | {}
-  "Separator for icons in toolbars used in add-icons.")
-
-
 ;;; Tabs
 
-(defn- get-tabpane
+(defn- ^JTabbedPane get-tabpane
   "Returns tabpane of the given frame."
   [frame]
-  (get-component frame #(= (class %) javax.swing.JTabbedPane)))
+  (first (select frame [:<javax.swing.JTabbedPane>])))
 
 (defn- make-tab-button
   "Creates and returns a button for a tab component in tabpane to
@@ -348,41 +146,42 @@
   [^JTabbedPane tabpane, component]
   ;; This contains code copied from TabComponentDemo and
   ;; ButtonTabComponent from the Java Tutorial
-  (let [tabbutton      (proxy [JButton] []
-                         (paintComponent [^Graphics g]
-                           (let [^JButton this this]
-                             (proxy-super paintComponent g)
-                             (let [^Graphics2D g2 (.create g),
-                                   delta 6]
-                               (when (.. this getModel isPressed)
-                                 (.translate g2 1 1))
-                               (.setStroke g2 (BasicStroke. 2))
-                               (.setColor g2 Color/BLACK)
-                               (when (.. this getModel isRollover)
-                                 (.setColor g2 Color/MAGENTA))
-                               (.drawLine g2 delta delta
-                                          (- (. this getWidth) delta 1)
-                                          (- (.  this getHeight) delta 1))
-                               (.drawLine g2 (- (. this getWidth) delta 1) delta
-                                          delta (- (. this getHeight) delta 1))
-                               (.dispose g2))))),
-        mouse-listener (proxy [MouseAdapter] []
-                         (mouseEntered [^MouseEvent evt]
-                           (let [component (.getComponent evt)]
-                             (when (instance? AbstractButton component)
-                               (.setBorderPainted ^AbstractButton component true))))
-                         (mouseExited [^MouseEvent evt]
-                           (let [component (.getComponent evt)]
-                             (when (instance? AbstractButton component)
-                               (.setBorderPainted ^AbstractButton component false)))))]
+  (let [^JButton
+        tabbutton (button :paint (fn [^JButton this ^Graphics g]
+                                   (proxy-super paintComponent g)
+                                   (let [^Graphics2D g2 (.create g),
+                                         delta 6]
+                                     (when (.. this getModel isPressed)
+                                       (.translate g2 1 1))
+                                     (.setStroke g2 (BasicStroke. 2))
+                                     (.setColor g2 Color/BLACK)
+                                     (when (.. this getModel isRollover)
+                                       (.setColor g2 Color/MAGENTA))
+                                     (.drawLine g2 delta delta
+                                                (- (. this getWidth) delta 1)
+                                                (- (.  this getHeight) delta 1))
+                                     (.drawLine g2 (- (. this getWidth) delta 1) delta
+                                                delta (- (. this getHeight) delta 1))
+                                     (.dispose g2)))
+                          :preferred-size [17 :by 17]
+                          :tip "Close this tab"
+                          :focusable? false)]
     (doto tabbutton
-      (with-action-on (.remove tabpane (.indexOfComponent tabpane component)))
-      (.addMouseListener mouse-listener)
-      (.setPreferredSize (Dimension. 17 17))
-      (.setToolTipText "Close this tab")
-      (.setContentAreaFilled false)
+      (listen :action
+              (fn [_]
+                (.remove tabpane (.indexOfComponent tabpane component))))
+      (listen :mouse-entered
+              (fn [^MouseEvent evt]
+                (let [component (.getComponent evt)]
+                  (when (instance? AbstractButton component)
+                    (.setBorderPainted ^AbstractButton component true)))))
+      (listen :mouse-exited
+              (fn [^MouseEvent evt]
+                (let [component (.getComponent evt)]
+                  (when (instance? AbstractButton component)
+                    (.setBorderPainted ^AbstractButton component false)))))
       (.setBorderPainted false)
-      (.setFocusable false))))
+      (.setContentAreaFilled false))))
 
 (defn- make-tab-head
   "Creates and returns a panel to be used as tab component."
@@ -404,7 +203,7 @@
   "Addes given panel to the tabpane of frame with given title, if given."
   ([^JFrame frame, ^JPanel pane, ^String title]
      (do-swing
-      (let [^JTabbedPane tabpane (get-tabpane frame)]
+      (let [tabpane (get-tabpane frame)]
         (.add tabpane pane)
         (let [index (.indexOfComponent tabpane pane),
               title (if-not (.isEmpty title)
@@ -418,23 +217,23 @@
      (add-tab frame pane "")))
 
 (defn get-tabs
-  "Returns hashmap from numbers to tab contents of given frame."
+  "Returns a vector of all tab of the given frame."
   [frame]
-  (let [^JTabbedPane tabpane (get-tabpane frame)]
+  (let [tabpane (get-tabpane frame)]
     (vec (rest (seq (.getComponents tabpane))))))
 
 (defn add-tab-with-name-icon-tooltip
   "Addes given panel to the tabpane of frame, giving name icon and tooltip"
   [^JFrame frame, ^JPanel pane, name icon tooltip]
   (do-swing
-   (.addTab ^JTabbedPane (get-tabpane frame) name icon pane tooltip)
+   (.addTab (get-tabpane frame) name icon pane tooltip)
    (.validate frame)))
 
 (defn remove-tab
   "Removes a panel from the windows JTabbedPane."
    [^JFrame frame, ^JPanel pane]
    (do-swing
-    (.remove ^JTabbedPane (get-tabpane frame) pane)
+    (.remove (get-tabpane frame) pane)
     (.validate frame)))
 
 (defn current-tab
@@ -449,7 +248,7 @@
 (defn current-tab-title
   "Returns the currently selected tab's title and nil if there is none."
   [frame]
-  (let [^JTabbedPane tabpane (get-tabpane frame),
+  (let [tabpane (get-tabpane frame),
         index (.getSelectedIndex tabpane)]
     (if (= -1 index)
       nil

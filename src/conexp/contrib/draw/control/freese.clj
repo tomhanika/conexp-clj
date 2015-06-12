@@ -13,8 +13,8 @@
         conexp.contrib.draw.scenes
         conexp.contrib.draw.scene-layouts
         conexp.contrib.gui.util)
-  (:import [javax.swing JButton JSpinner JFrame]
-           [java.awt.event WindowEvent WindowAdapter]))
+  (:use seesaw.core)
+  (:import [javax.swing JButton JSpinner JFrame]))
 
 ;;; Freese layout
 
@@ -37,26 +37,31 @@
                                                                         (cycle (range 0 (* 2 Math/PI) 0.05))),
                                                       :while @rotate-thread]
                                                 (Thread/sleep 50)
-                                                (.setValue spn angle)))))
+                                                (do-swing
+                                                 (when (.isVisible (scene-canvas scn))
+                                                   (.setValue spn angle)))))))
                            (.start ^Thread @rotate-thread)),
         stop-rotate     #(when @rotate-thread
                            (.stop ^Thread @rotate-thread)
                            (reset! rotate-thread nil))]
-    (with-action-on btn
-      (update-layout-of-scene scn (layout (get-value)))
-      (fit-scene-to-layout scn))
-    (with-change-on spn
-      (update-layout-of-scene scn (layout (get-value))))
-    (with-action-on rotate
-      (if @rotate-thread
-        (stop-rotate)
-        (start-rotate)))
-    (.addWindowListener ^JFrame frame
-                        (proxy [WindowAdapter] []
-                          (windowIconified [win-evt]
-                            (stop-rotate))
-                          (windowClosed [win-evt]
-                            (stop-rotate))))))
+    (listen btn :action
+            (fn [_]
+              (update-layout-of-scene scn (layout (get-value)))
+              (fit-scene-to-layout scn)))
+    (listen spn :change
+            (fn [_]
+              (update-layout-of-scene scn (layout (get-value)))))
+    (listen rotate :action
+            (fn [_]
+              (if @rotate-thread
+                (stop-rotate)
+                (start-rotate))))
+    (listen (scene-canvas scn) :component-hidden
+            (fn [_]
+              (stop-rotate)))
+    (listen frame #{:window-iconified :window-closed}
+            (fn [_]
+              (stop-rotate)))))
 
 ;;;
 

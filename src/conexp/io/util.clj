@@ -15,15 +15,21 @@
 (defalias reader io/reader)
 (defalias writer io/writer)
 
-(defn get-line
-  "Reads one line from *in*."
+(defn ^String get-line
+  "Reads one line from *in*.  Throws an EOFException if line does not exist."
   []
-  (read-line))
+  (let [line (read-line)]
+    (if-not line
+      (throw (java.io.EOFException. "Premature end of input"))
+      line)))
 
 (defn get-lines
-  "Reads n line from *in*."
+  "Reads n line from *in*.  Throws an EOFException if less than n lines have been read."
   [n]
-  (doall (take n (repeatedly #(get-line)))))
+  (let [lines (doall (take n (repeatedly #(get-line))))]
+    (if-not (every? (comp not nil?) lines)
+      (throw (java.io.EOFException. (format "Expected %d lines of input, but got less" n)))
+      lines)))
 
 (defmacro with-in-reader
   "Opens file with reader and binds it to *in*."

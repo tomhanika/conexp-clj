@@ -7,10 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.nonsense
-  (:use conexp.base))
-
-(ns-doc
- "What it says.")
+  "What it says."
+  (:use [conexp.base :only (floor, illegal-argument)]))
 
 ;;; Doomsday Algorithm
 

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+CONEXP_CLJ_HOME=$(dirname $(readlink -f $0))/../
+CONEXP_CLJ_INIT=${CONEXP_CLJ_HOME}/lib/conexp-clj.clj
+
+java -Dawt.useSystemAAFontSettings=on -cp ${CONEXP_CLJ_HOME}/lib/\* jline.ConsoleReader clojure.main -e "" ${CONEXP_CLJ_INIT} $*

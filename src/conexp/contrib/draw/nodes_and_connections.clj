@@ -7,16 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.nodes-and-connections
-  (:use [conexp.base :only (ns-doc,defvar-, defvar, round, union, difference, -?>)]
+  "Namespace for representing nodes and their connections for drawing lattice diagrams."
+  (:use [conexp.base :only (round, union, difference, -?>, def-)]
         conexp.contrib.draw.scenes)
   (:import [java.awt Color]
            [no.geosoft.cc.graphics GWindow GScene GObject GSegment
                                    GStyle GInteraction ZoomInteraction
                                    GText GPosition]))
-
-(ns-doc
- "Namespace for representing nodes and their connections for drawing
- lattice diagrams.")
 
 ;;; nodes and connections
 
@@ -86,23 +83,27 @@
 
 ;;; create and connect nodes
 
-(defvar- default-node-style (doto (GStyle.)
-                              (.setForegroundColor Color/BLACK)
-                              (.setBackgroundColor Color/WHITE)
-                              (.setLineWidth 1.0))
-  "Default node style for lattice diagrams.")
+(def- default-node-style
+  "Default node style for lattice diagrams."
+  (doto (GStyle.)
+    (.setForegroundColor Color/BLACK)
+    (.setBackgroundColor Color/WHITE)
+    (.setLineWidth 1.0)))
 
-(defvar- default-object-concept-style (doto (GStyle.)
-                                        (.setBackgroundColor Color/BLACK))
-  "Default style for nodes being an object concept.")
+(def- default-object-concept-style
+  "Default style for nodes being an object concept."
+  (doto (GStyle.)
+    (.setBackgroundColor Color/BLACK)))
 
-(defvar- default-attribute-concept-style (doto (GStyle.)
-                                           (.setBackgroundColor Color/BLUE))
-  "Default style for nodes being an attribute concept.")
+(def- default-attribute-concept-style
+  "Default style for nodes being an attribute concept."
+  (doto (GStyle.)
+    (.setBackgroundColor Color/BLUE)))
 
-(defvar- default-node-label-style (doto (GStyle.)
-                                    (.setBackgroundColor Color/WHITE))
-  "Default style for node labels.")
+(def- default-node-label-style
+  "Default style for node labels."
+  (doto (GStyle.)
+    (.setBackgroundColor Color/WHITE)))
 
 (defn- create-two-halfcircles
   "Creates points for two half circles, lower circle points first."
@@ -126,8 +127,9 @@
                                                   (conj lower-points new-x (+ y y (- new-y)))))))]
     [(into-array Double/TYPE lower-points), (into-array Double/TYPE upper-points)]))
 
-(defvar default-node-radius 5.0
-  "Initial node radius when drawing lattices.")
+(def default-node-radius
+  "Initial node radius when drawing lattices."
+  5.0)
 
 (defn- add-node
   "Adds a node to scn at position [x y]."
@@ -171,11 +173,12 @@
 
 ;;
 
-(defvar- default-highlighted-node-style (doto (GStyle.)
-                                          (.setForegroundColor Color/RED)
-                                          (.setBackgroundColor Color/WHITE)
-                                          (.setLineWidth 3.0))
-  "Default node style for lattice diagrams for highlighted nodes.")
+(def- default-highlighted-node-style
+  "Default node style for lattice diagrams for highlighted nodes."
+  (doto (GStyle.)
+    (.setForegroundColor Color/RED)
+    (.setBackgroundColor Color/WHITE)
+    (.setLineWidth 3.0)))
 
 (defn highlight-node
   "Toggles the highlight-state of the given node."
@@ -186,10 +189,11 @@
 
 ;;
 
-(defvar- default-line-style (doto (GStyle.)
-                              (.setLineWidth 2.0)
-                              (.setForegroundColor Color/BLACK))
-  "Default line style.")
+(def- default-line-style
+  "Default line style."
+  (doto (GStyle.)
+    (.setLineWidth 2.0)
+    (.setForegroundColor Color/BLACK)))
 
 (defn- connect-nodes
   "Connects two nodes on scene."

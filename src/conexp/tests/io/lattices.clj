@@ -16,7 +16,7 @@
 
 ;;;
 
-(defvar- testing-lattices
+(def- testing-lattices
   (map concept-lattice (random-contexts 20 10)))
 
 (deftest test-lattice-oi

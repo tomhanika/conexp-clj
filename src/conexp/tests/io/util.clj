@@ -7,11 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.tests.io.util
-  (:use conexp.base
+  "Utilities for writing out-in tests for IO."
+  (:use [conexp.base :only (illegal-argument)]
         [conexp.io.util :only (tmpfile)])
   (:require conexp.io))
-
-(ns-doc "Utilities for writing out-in tests for IO.")
 
 ;;;
 

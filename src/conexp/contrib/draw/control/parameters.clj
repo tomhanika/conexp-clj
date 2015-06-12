@@ -19,6 +19,7 @@
         conexp.contrib.draw.scene-layouts
         conexp.contrib.draw.nodes-and-connections
         conexp.contrib.draw.control.util)
+  (:use seesaw.core)
   (:import [javax.swing JButton JTextField JComboBox]))
 
 ;;;
@@ -30,7 +31,7 @@
 
 (defn change-parameters
   "Installs parameter list which influences lattice drawing."
-  [frame scn buttons]
+  [_ scn buttons]
   ;; node radius
   (let [^JTextField
         node-radius (make-labeled-text-field buttons
@@ -42,23 +43,24 @@
                                 length     (min (scene-height scn) (scene-width scn))]
                             (do-nodes [n scn]
                               (set-node-radius! n (/ (* length new-radius) 400))))))
-    (with-action-on node-radius
-      (call-scene-hook scn :image-changed)))
+    (listen node-radius :action
+            (fn [_] (call-scene-hook scn :image-changed))))
 
   (make-padding buttons)
 
   ;; labels
   (let [^JButton label-toggler (make-button buttons "No Labels")]
     (show-labels scn false)
-    (with-action-on label-toggler
-      (if (= "Labels" (.getText label-toggler))
-        (do
-          (show-labels scn false)
-          (.setText label-toggler "No Labels"))
-        (do
-          (show-labels scn true)
-          (.setText label-toggler "Labels")))
-      (redraw-scene scn)))
+    (listen label-toggler :action
+            (fn [_]
+              (if (= "Labels" (.getText label-toggler))
+                (do
+                  (show-labels scn false)
+                  (.setText label-toggler "No Labels"))
+                (do
+                  (show-labels scn true)
+                  (.setText label-toggler "Labels")))
+              (redraw-scene scn))))
 
   ;; layouts
   (let [layouts {"standard"     standard-layout,
@@ -67,16 +69,18 @@
                  "as-chain"     as-chain},
         ^JButton fit (make-button buttons "Fit"),
         ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
-    (with-action-on fit
-      (fit-scene-to-layout scn))
-    (with-action-on combo-box
-      (let [selected  (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
-            layout-fn (get layouts selected),
-            layout    (scale-layout [0.0 0.0]
-                                    [100.0 100.0]
-                                    (layout-fn (lattice (get-layout-from-scene scn))))]
-        (update-layout-of-scene scn layout)
-        (fit-scene-to-layout scn layout))))
+    (listen fit :action
+            (fn [_]
+              (fit-scene-to-layout scn)))
+    (listen combo-box :action
+            (fn [evt]
+              (let [selected  (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
+                    layout-fn (get layouts selected),
+                    layout    (scale-layout [0.0 0.0]
+                                            [100.0 100.0]
+                                            (layout-fn (lattice (get-layout-from-scene scn))))]
+                (update-layout-of-scene scn layout)
+                (fit-scene-to-layout scn layout)))))
 
   ;; move mode
   (let [move-modes {"single" (single-move-mode),
@@ -90,10 +94,12 @@
     (add-scene-callback scn :move-drag
                         (fn [node dx dy]
                           (@current-move-mode node dx dy)))
-    (with-action-on combo-box
-      (let [selected (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
-            move-mode (get move-modes selected)]
-        (reset! current-move-mode move-mode))))
+    (listen combo-box :action
+            (fn [evt]
+              (let [selected (.getSelectedItem
+                              ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
+                    move-mode (get move-modes selected)]
+                (reset! current-move-mode move-mode)))))
 
   nil)
 

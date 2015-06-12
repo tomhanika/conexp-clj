@@ -51,8 +51,7 @@
     arglist
     (let [[a b] (split-with #(not= '& %) arglist)]
       (if (not-empty b)
-        `(vec (list* ~@(map dissect-arglist a)
-                     ~(dissect-arglist (second b))))
+        (vec (concat (map dissect-arglist a) (list (with-meta (second b) {:tag "[Ljava.lang.Object;"}))))
         (vec (map dissect-arglist arglist))))))
 
 (defn- function-signatures
@@ -69,12 +68,10 @@
                          Lattice conexp.fca.lattices.Lattice
                          Context conexp.fca.contexts.Context
                          tag))))]
-    (if-not arglists
-      nil
-      (for [arglist arglists]
-        [new-name
-         (vec (map tag (dissect-arglist arglist)))
-         return]))))
+    (for [arglist arglists]
+      [new-name
+       (vec (map tag (dissect-arglist arglist)))
+       return])))
 
 (defn- generate-definition
   "Generates function definition with name new-name, calling orig-name
@@ -83,9 +80,8 @@
   (when (not-empty arglists)
     `(defn ~(symbol (str prefix new-name))
        ~@(for [args arglists]
-           (let [arglist-split (dissect-arglist args)]
-             `(~args
-               (apply ~(symbol orig-name) ~(dissect-arglist args))))))))
+           `(~(dissect-arglist args)
+             (apply ~(symbol orig-name) ~(dissect-arglist args)))))))
 
 ;;;
 

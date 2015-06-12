@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.fuzzy.fca
+  "Basic definitions for Fuzzy FCA"
   (:use conexp.main
         [conexp.contrib.fuzzy sets logics]))
-
-(ns-doc "Basic definitions for Fuzzy FCA")
 
 ;;;
 

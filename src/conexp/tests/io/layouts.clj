@@ -17,7 +17,7 @@
 
 ;;;
 
-(defvar- testing-layouts
+(def- testing-layouts
   (map (comp standard-layout concept-lattice)
        (random-contexts 20 10)))
 

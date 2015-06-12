@@ -15,16 +15,16 @@
 
 ;; This is the empty set
 
-(defvar- fs-1 (make-fuzzy-set {}))
+(def- fs-1 (make-fuzzy-set {}))
 
 ;; This set contains 1 with degree 0.2, 3 with degree 0.4 and so on
 
-(defvar- fs-2 (make-fuzzy-set {1 0.2, 3 0.4, 4 0, 5 1}))
+(def- fs-2 (make-fuzzy-set {1 0.2, 3 0.4, 4 0, 5 1}))
 
 ;; You may also specify ratios to make all computation exact (and you
 ;; can also use bigfloats for that)
 
-(defvar- fs-3 (make-fuzzy-set {1 1/5, 2 4/7}))
+(def- fs-3 (make-fuzzy-set {1 1/5, 2 4/7}))
 
 ;; Now you can ask for containment; note that fuzzy sets can be called
 ;; like ordinary functions
@@ -54,7 +54,7 @@
 
 ;; Let's create a fuzzy context
 
-(defvar- fuzzy-context
+(def- fuzzy-context
   (make-fuzzy-context [1 2 3 4] ; vector of objects
                       [1 2 3 4] ; vector of attributes
                       [0.1 0.2 0.3 0.4, ; vector of entries
