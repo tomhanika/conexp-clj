@@ -62,7 +62,8 @@ metadata (as provided by def) merged into the metadata of the original."
   "0.0.8-SNAPSHOT")
 
 (def- conexp-version-map
-  (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)-(.+)" internal-version-string)]
+  (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)(?:-(.+))?"
+                                                 internal-version-string)]
     {:major (Integer/parseInt major),
      :minor (Integer/parseInt minor),
      :patch (Integer/parseInt patch),
@@ -72,7 +73,7 @@ metadata (as provided by def) merged into the metadata of the original."
   "Returns the version of conexp as a string."
   []
   (let [{:keys [major minor patch qualifier]} conexp-version-map]
-    (str major "." minor "." patch "-" qualifier )))
+    (str major "." minor "." patch (when qualifier (str "-" qualifier)))))
 
 (defn has-version?
   "Compares given version of conexp and returns true if and only if
