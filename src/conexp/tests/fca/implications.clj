@@ -171,15 +171,15 @@
     (is (sound-implication-set? ctx irr-subset))
     (is (complete-implication-set? ctx irr-subset))))
 
-(def stem-base-test-contexts [contexts/test-ctx-01,
-                              contexts/test-ctx-04
-                              contexts/test-ctx-07,
-                              contexts/test-ctx-08])
+(def canonical-base-test-contexts [contexts/test-ctx-01,
+                                   contexts/test-ctx-04
+                                   contexts/test-ctx-07,
+                                   contexts/test-ctx-08])
 
-(deftest test-stem-base
-  (is (= 1 (count (stem-base (one-context #{1 2 3 4 5})))))
-  (doseq [ctx stem-base-test-contexts]
-    (let [sb (stem-base ctx)]
+(deftest test-canonical-base
+  (is (= 1 (count (canonical-base (one-context #{1 2 3 4 5})))))
+  (doseq [ctx canonical-base-test-contexts]
+    (let [sb (canonical-base ctx)]
       (is (minimal-implication-set? sb))
       (is (sound-implication-set? ctx sb))
       (is (complete-implication-set? ctx sb))
@@ -189,7 +189,7 @@
                 (=> (proper-subset? Y X)
                     (proper-subset? (adprime ctx Y) X)))))))))
 
-(deftest test-stem-base-with-background-knowledge
+(deftest test-canonical-base-with-background-knowledge
   ;; make sure implications with empty premise are handled correctly
   (is (let [ctx (make-context-from-matrix 5 5
                                           [0 0 1 0 1
@@ -203,8 +203,8 @@
              (impl 2 3 ==> 4)
              (impl 1 2 4 ==> 0 3)}))))
 
-(deftest test-stem-base-with-minimal-support-constraints
-  (with-testing-data [ctx stem-base-test-contexts
+(deftest test-canonical-base-with-minimal-support-constraints
+  (with-testing-data [ctx canonical-base-test-contexts
                       mis [0 1/5 1/3 1/2 4/5 1]]
     (= (set (filter #(<= mis (support % ctx))
                     (canonical-base ctx)))
@@ -213,7 +213,7 @@
 (deftest test-pseudo-intents
   (with-testing-data [ctx (random-contexts 10 20)]
     (= (set (pseudo-intents ctx))
-       (set (map premise (stem-base ctx)))))
+       (set (map premise (canonical-base ctx)))))
   (is (empty? (pseudo-intents (adiag-context [0 1 2 3]))))
   (is (empty? (pseudo-intents (adiag-context [nil true adiag-context])))))
 
@@ -262,21 +262,32 @@
                     [3 5] [3 8] [4 1] [4 3] [4 5]
                     [4 8] [5 2] [5 3] [5 5] [5 7]})))
 
-(deftest test-stem-base-from-base
+(deftest test-canonical-base-from-base
   (with-testing-data [ctx (random-contexts 10 20)]
-    (= (set (stem-base ctx))
-       (stem-base-from-base (proper-premise-implications ctx))))
-  (= (stem-base-from-base [(make-implication #{1} #{2 3})
+    (= (set (canonical-base ctx))
+       (canonical-base-from-base (proper-premise-implications ctx))))
+  (= (canonical-base-from-base [(make-implication #{1} #{2 3})
                            (make-implication #{1} #{2 4})])
      #{(make-implication #{1} #{2 3 4})}))
 
 (deftest test-canonical-base-from-clop
-  (with-testing-data [ctx stem-base-test-contexts]
+  (with-testing-data [ctx canonical-base-test-contexts]
     (and (= (set (canonical-base ctx))
             (set (canonical-base-from-clop #(adprime ctx %) (attributes ctx)))))))
 
+(deftest test-parallel-canonical-base-from-clop
+  (with-testing-data [ctx canonical-base-test-contexts]
+    (and (= (set (canonical-base ctx))
+            (set (parallel-canonical-base-from-clop #(adprime ctx %)
+                                                    (attributes ctx)))))))
+
+(deftest test-parallel-canonical-base
+  (with-var-bindings [canonical-base parallel-canonical-base]
+    (test-canonical-base)
+    (test-canonical-base-with-background-knowledge)))
+
 (deftest test-intersect-implicational-theories
-  (with-testing-data [ctx stem-base-test-contexts,
+  (with-testing-data [ctx canonical-base-test-contexts,
                       n   (range 1 (count (objects ctx)))]
     (= (set (canonical-base ctx))
        (set (apply intersect-implicational-theories (attributes ctx)

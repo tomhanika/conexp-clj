@@ -431,6 +431,17 @@ metadata (as provided by def) merged into the metadata of the original."
                #{'yes 'no}
                "Please answer 'yes' or 'no': ")))
 
+(defmacro dopar
+  "Executes body binding k to each value in v.
+  Execution is done in parallel.  Code adapted from
+  http://www.acooke.org/cute/Clojuremac0.html"
+  [[k v] & body]
+  `(apply await
+          (for [k# ~v]
+            (let [a# (agent k#)]
+              (send a# (fn [~k] ~@body))
+              a#))))
+
 ;;; deftype utilities
 
 (defmacro generic-equals
@@ -847,6 +858,24 @@ metadata (as provided by def) merged into the metadata of the original."
      (all-closed-sets base clop #{}))
   ([base clop initial]
      (all-closed-sets-in-family (constantly true) base clop initial)))
+
+(defn parallel-closures
+  "Returns the set of all closures of the closure operator on the given base set.
+Computes the closures in parallel, to the extent possible."
+  [base clop]
+  (loop [n        0
+         closures #{(clop #{})}
+         current  #{(clop #{})}]
+    (if (< (count base) n)
+      closures
+      (let [next-current (atom current)]
+        (dopar [C current]
+          (when (not= (count C) n)
+            (swap! next-current #(disj % C))
+            (doseq [x base :when (not (contains? C x))]
+              (swap! next-current #(conj % (clop (conj C x)))))))
+        (recur (inc n) (into closures @next-current) @next-current)))))
+
 
 ;;; Common Math Algorithms
 

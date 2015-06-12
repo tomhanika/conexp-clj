@@ -355,6 +355,22 @@
   (is (= (all-closed-sets [1 nil] identity)
          (seq [#{} #{nil} #{1} #{1 nil}]))))
 
+(defn clop-by-subsets [base subsets]
+  (fn [X]
+    (reduce intersection base (filter #(subset? X %) subsets))))
+
+(deftest test-parallel-closures
+  (dotimes [i 13]
+    (is (= (expt 2 (+ i 1))
+           (count (parallel-closures (set-of-range (+ i 2)) #(conj % 1))))))
+  (are [base subsets] (= (set (all-closed-sets base (clop-by-subsets base subsets)))
+                         (set (parallel-closures base (clop-by-subsets base subsets))))
+    #{1 2 3 4} [#{1 2} #{3 4}]
+    #{1 2 3 4} [#{1} #{2} #{3}]
+    #{1 2 3 5 7} [#{1 2 3} #{1 2 3 5} #{1 2 3 7}]))
+
+;;;
+
 (deftest test-subsets
   (is (= #{#{} #{1} #{2} #{1 2}}
          (set (subsets #{1 2}))))
