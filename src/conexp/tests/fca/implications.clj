@@ -282,28 +282,9 @@
                                                     (attributes ctx)))))))
 
 (deftest test-parallel-canonical-base
-  (is (= 1 (count (parallel-canonical-base (one-context #{1 2 3 4 5})))))
-  (doseq [ctx stem-base-test-contexts]
-    (let [sb (parallel-canonical-base ctx)]
-      (is (minimal-implication-set? sb))
-      (is (sound-implication-set? ctx sb))
-      (is (complete-implication-set? ctx sb))
-      (is (let [premises (map premise sb)]
-            (forall [X premises]
-              (forall [Y premises]
-                (=> (proper-subset? Y X)
-                    (proper-subset? (adprime ctx Y) X))))))))
-    (is (let [ctx (make-context-from-matrix 5 5
-                                          [0 0 1 0 1
-                                           0 1 1 0 0
-                                           0 0 1 0 1
-                                           0 0 1 1 1
-                                           0 0 1 0 1]),
-            bgk #{(impl ==> 2)}]
-        (= (set (parallel-canonical-base ctx bgk))
-           #{(impl 0 2 ==> 1 3 4)
-             (impl 2 3 ==> 4)
-             (impl 1 2 4 ==> 0 3)}))))
+  (with-var-bindings [canonical-base parallel-canonical-base]
+    (test-canonical-base)
+    (test-canonical-base-with-background-knowledge)))
 
 (deftest test-intersect-implicational-theories
   (with-testing-data [ctx canonical-base-test-contexts,
