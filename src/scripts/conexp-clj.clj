@@ -25,10 +25,11 @@
   (when (contains? options :gui)
     (binding [conexp.contrib.gui.repl-utils/*main-frame*
               (conexp.contrib.gui/gui :default-close-operation :exit)]
-      (reply/launch {:custom-eval '(do
-                                     (use 'conexp.main)
-                                     (use 'clojure.repl)
-                                     (require '[conexp.contrib.gui.repl-utils :as gui]))})))
+      (reply/launch-standalone
+       {:custom-eval '(do
+                        (use 'conexp.main)
+                        (use 'clojure.repl)
+                        (require '[conexp.contrib.gui.repl-utils :as gui]))})))
   ;;
   (when (contains? options :load)
     (when (not (options :load))
@@ -39,8 +40,11 @@
   ;;
   (when-not (or (options :gui)
                 (options :load))
-    (reply/launch {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))})))
+    (reply/launch-standalone
+     {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))})))
+
+(System/exit 0)
 
 ;;
 
-nil
+true
