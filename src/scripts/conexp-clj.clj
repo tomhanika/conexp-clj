@@ -17,31 +17,30 @@
                                   ["--gui"  "Start the graphical user interface"]
                                   ["--load" "Load a given script"]
                                   ["--help" "This help"])]
-  ;;
-  (when (contains? options :help)
+  (cond
+    ;;
+    (contains? options :help)
     (println doc)
-    (System/exit 0))
-  ;;
-  (when (contains? options :gui)
+    ;;
+    (contains? options :gui)
     (binding [conexp.contrib.gui.repl-utils/*main-frame*
               (conexp.contrib.gui/gui :default-close-operation :exit)]
       (reply/launch-standalone
        {:custom-eval '(do
                         (use 'conexp.main)
                         (use 'clojure.repl)
-                        (require '[conexp.contrib.gui.repl-utils :as gui]))})))
-  ;;
-  (when (contains? options :load)
-    (when (not (options :load))
-      (println "Error: --load requires a file to load")
-      (println doc)
-      (System/exit 1))
-    (load-file (options :load)))
-  ;;
-  (when-not (or (options :gui)
-                (options :load))
-    (reply/launch-standalone
-     {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))})))
+                        (require '[conexp.contrib.gui.repl-utils :as gui]))}))
+    ;;
+    (contains? options :load)
+    (do (when (not (options :load))
+          (println "Error: --load requires a file to load")
+          (println doc)
+          (System/exit 1))
+        (load-file (options :load)))
+    ;;
+    true
+    (do (reply/launch-standalone
+         {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))}))))
 
 (System/exit 0)
 
