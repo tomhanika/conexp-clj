@@ -25,7 +25,8 @@
                  [conexp-clj/G                    "0.1.1"]
                  [conexp-clj/LatDraw              "0.0.1"]
                  [seesaw                          "1.4.3"]
-                 [jline/jline                     "0.9.93"]]
+                 [reply                           "0.3.7"
+                  :exclusions [org.clojure/clojure]]]
   :aot [conexp.main
         conexp.contrib.java
         conexp.contrib.gui]
