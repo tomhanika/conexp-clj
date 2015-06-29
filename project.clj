@@ -8,7 +8,7 @@
 
 ;;;
 
-(defproject conexp-clj "1.1.1"
+(defproject conexp-clj "1.1.2"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/exot/conexp-clj/"
@@ -25,7 +25,8 @@
                  [conexp-clj/G                    "0.1.1"]
                  [conexp-clj/LatDraw              "0.0.1"]
                  [seesaw                          "1.4.3"]
-                 [reply                           "0.3.7"]]
+                 [reply                           "0.3.7"
+                  :exclusions [org.clojure/clojure]]]
   :aot [conexp.main
         conexp.contrib.java
         conexp.contrib.gui]
