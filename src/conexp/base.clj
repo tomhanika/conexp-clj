@@ -59,7 +59,7 @@ metadata (as provided by def) merged into the metadata of the original."
 ;;; Version
 
 (def- internal-version-string
-  "1.1.0")
+  "1.1.2")
 
 (def- conexp-version-map
   (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)(?:-(.+))?"
