@@ -9,6 +9,7 @@
 (use 'clojure.tools.cli)
 (require 'conexp.contrib.gui)
 (require 'conexp.contrib.gui.repl-utils)
+(require '[reply.main :as reply])
 
 ;;
 
@@ -24,10 +25,10 @@
   (when (contains? options :gui)
     (binding [conexp.contrib.gui.repl-utils/*main-frame*
               (conexp.contrib.gui/gui :default-close-operation :exit)]
-      (clojure.main/repl :init #(do
-                                  (use 'conexp.main)
-                                  (use 'clojure.repl)
-                                  (require '[conexp.contrib.gui.repl-utils :as gui])))))
+      (reply/launch {:custom-eval '(do
+                                     (use 'conexp.main)
+                                     (use 'clojure.repl)
+                                     (require '[conexp.contrib.gui.repl-utils :as gui]))})))
   ;;
   (when (contains? options :load)
     (when (not (options :load))
@@ -38,7 +39,7 @@
   ;;
   (when-not (or (options :gui)
                 (options :load))
-    (clojure.main/repl :init #(do (use 'conexp.main) (use 'clojure.repl)))))
+    (reply/launch {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))})))
 
 ;;
 
