@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.base
-  "Basic definitions for conexp-clj.")
+  "Basic definitions for conexp-clj."
+  (:require [clojure.math.combinatorics :as comb]))
 
 ;;; def macros, inspired and partially copied from clojure.contrib.def, 1.3.0-SNAPSHOT
 
@@ -764,6 +765,11 @@ metadata (as provided by def) merged into the metadata of the original."
    (seqable? thing) (set thing),
    :else            (illegal-argument "Cannot create set from " thing)))
 
+(defn subsets
+  "Returns all subsets of the given base-set."
+  [base-set]
+  (map set (comb/subsets (seq base-set))))
+
 
 ;;; Next Closure
 
@@ -879,11 +885,6 @@ Computes the closures in parallel, to the extent possible."
 
 
 ;;; Common Math Algorithms
-
-(defn subsets
-  "Returns all subsets of set."
-  [set]
-  (all-closed-sets set identity))
 
 (defn transitive-closure
   "Computes transitive closure of a given set of pairs."
