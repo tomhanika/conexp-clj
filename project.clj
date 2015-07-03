@@ -19,7 +19,7 @@
   :dependencies [[org.clojure/clojure             "1.6.0"]
                  [org.clojure/tools.cli           "0.3.1"]
                  [org.clojure/core.incubator      "0.1.3"]
-                 [org.clojure/math.combinatorics  "0.0.7"]
+                 [org.clojure/math.combinatorics  "0.1.1"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.apache.commons/commons-math "2.2"]
                  [conexp-clj/G                    "0.1.1"]
