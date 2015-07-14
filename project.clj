@@ -30,7 +30,7 @@
         conexp.contrib.java
         conexp.contrib.gui]
   :keep-non-project-classes true
-  :global-vars {*warn-on-reflection* true}
+  :global-vars {*warn-on-reflection* false}
   :test-paths ["tests" "src/test/"]
   :compile-path "lib/classes/"
   :scm {:url "git@github.com:exot/conexp-clj.git"}
