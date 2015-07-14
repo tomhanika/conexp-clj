@@ -28,7 +28,7 @@
                       (require '[conexp.contrib.gui.repl-utils :as gui])
                       (require 'conexp.contrib.gui)
                       (alter-var-root
-                       (var conexp.contrib.gui.repl-utils/*main-frame*)
+                       (var gui/*main-frame*)
                        (fn [_]
                          (conexp.contrib.gui/gui :default-close-operation :exit))))})
     ;;
