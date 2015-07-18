@@ -202,10 +202,10 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (defn ensure-length
   "Fills given string with padding to have at least the given length."
-  ([string ^long length]
-     (ensure-length string length " "))
-  ([string ^long length padding]
-     (apply str string (repeat (- length (count string)) padding))))
+  ([string, ^long length]
+   (ensure-length string length " "))
+  ([string, ^long length, padding]
+   (apply str string (repeat (- length (count string)) padding))))
 
 (defn with-str-out
   "Returns string of all output being made in (flatten body)."
