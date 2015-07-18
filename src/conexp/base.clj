@@ -702,8 +702,9 @@ metadata (as provided by def) merged into the metadata of the original."
           (<= 2 ^long (get count x))))))
 
 (defn minimum-set-covers
-  "For a given set base-set and a collection of sets returns all subcollections of sets such that
-  the union of the contained sets cover base-set and that are minimal with that property."
+  "For a given set base-set and a collection of sets returns all subcollections
+  of sets such that the union of the contained sets cover base-set and that are
+  minimal with that property."
   [base-set sets]
   (let [result  (atom []),
         search  (fn search [rest-base-set current-cover cover-count sets]
@@ -719,15 +720,16 @@ metadata (as provided by def) merged into the metadata of the original."
 
                    :else
                    (when (covers? sets rest-base-set)
-                     (let [counts (map-by-fn #(count (intersection rest-base-set %))
-                                             sets),
-                           sets   (sort #(- (counts %2) (counts %1)) ; bah
-                                        sets)],
+                     (let [counts (map-by-fn
+                                   #(count (intersection rest-base-set %))
+                                   sets),
+                           ;; sort sets in order of decreasing cardinality
+                           sets   (sort-by #(- ^long (counts %)) sets)],
                        (search (difference rest-base-set (first sets))
                                (conj current-cover (first sets))
                                (reduce! (fn [map x]
                                           (if (contains? base-set x)
-                                            (assoc! map x (inc (get map x)))
+                                            (assoc! map x (inc (long (get map x))))
                                             map))
                                         cover-count
                                         (first sets))
