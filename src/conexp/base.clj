@@ -575,7 +575,7 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (defn expt*
   "Computes a^b using square and multiply."
-  [^BigInteger a, ^long b]
+  [^clojure.lang.BigInt a, ^long b]
   (if (< b 0)
     (/ (expt* a (- b)))
     (loop [result 1N,
@@ -585,8 +585,8 @@ metadata (as provided by def) merged into the metadata of the original."
         result
         (recur (if (zero? (Math/floorMod power 2))
                  result
-                 (* result aktpot))
-               (* aktpot aktpot)
+                 (.multiply result aktpot))
+               (.multiply aktpot aktpot)
                ;; divide power by two
                (Math/floorDiv power 2))))))
 
