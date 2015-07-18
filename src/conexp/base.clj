@@ -10,7 +10,7 @@
   "Basic definitions for conexp-clj."
   (:require [clojure.math.combinatorics :as comb]))
 
-;;; def macros, inspired and partially copied from clojure.contrib.def, 1.3.0-SNAPSHOT
+;;; def macros, inspired and partially copied from clojure.contrib.def
 
 (defmacro def-
   "Same as def, but yields a private definition"
@@ -250,8 +250,8 @@ metadata (as provided by def) merged into the metadata of the original."
     (compare-order x y)))
 
 (defn order-by
-  "Returns a function on two arguments a and b that returns true if and only if b occurs
-  not after a in the given sequence (ascending order.)"
+  "Returns a function on two arguments a and b that returns true if and only if
+  b occurs not after a in the given sequence (ascending order.)"
   [sequence]
   (let [pos (zipmap sequence (range))]
     (fn [a b]
@@ -418,7 +418,8 @@ metadata (as provided by def) merged into the metadata of the original."
   given answer fulfills all given predicates."
   [prompt read & preds-and-fail-messages]
   (when-not (even? (count preds-and-fail-messages))
-    (illegal-argument "Every predicate needs to have a corresponding error message."))
+    (illegal-argument
+     "Every predicate needs to have a corresponding error message."))
   (let [predicates (partition 2 preds-and-fail-messages),
         sentinel   (Object.),
         read-fn    #(try (read) (catch Throwable _ sentinel))]
@@ -464,11 +465,13 @@ metadata (as provided by def) merged into the metadata of the original."
 (defmacro generic-equals
   "Implements a generic equals for class on fields."
   [[this other] class fields]
-  `(boolean (or (identical? ~this ~other)
-                (when (= (class ~this) (class ~other))
-                  (and ~@(map (fn [field]
-                                `(= ~field (. ~(vary-meta other assoc :tag class) ~field)))
-                              fields))))))
+  `(boolean
+    (or (identical? ~this ~other)
+        (when (= (class ~this) (class ~other))
+          (and ~@(map (fn [field]
+                        `(= ~field
+                            (. ~(vary-meta other assoc :tag class) ~field)))
+                      fields))))))
 
 (defn hash-combine-hash
   "Combines the hashes of all things given."
@@ -590,22 +593,24 @@ metadata (as provided by def) merged into the metadata of the original."
                      (long (/ power 2))))))))))
 
 (defn distinct-by-key
-  "Returns a sequence of all elements of the given sequence with distinct key values,
-  where key is a function from the elements of the given sequence. If two elements
-  correspond to the same key, the one is chosen which appeared earlier in the sequence.
+  "Returns a sequence of all elements of the given sequence with distinct key
+  values, where key is a function from the elements of the given sequence. If
+  two elements correspond to the same key, the one is chosen which appeared
+  earlier in the sequence.
 
-  This function is copied from clojure.core/distinct and adapted for using a key function."
+  This function is copied from clojure.core/distinct and adapted for using a key
+  function."
   [sequence key]
   (let [step (fn step [xs seen]
                (lazy-seq
-                 ((fn [xs seen]
-                    (when-let [s (seq xs)]
-                      (let [f     (first xs)
-                            key-f (key f)]
-                        (if (contains? seen key-f)
-                          (recur (rest s) seen)
-                          (cons f (step (rest s) (conj seen key-f)))))))
-                  xs seen)))]
+                ((fn [xs seen]
+                   (when-let [s (seq xs)]
+                     (let [f     (first xs)
+                           key-f (key f)]
+                       (if (contains? seen key-f)
+                         (recur (rest s) seen)
+                         (cons f (step (rest s) (conj seen key-f)))))))
+                 xs seen)))]
     (step sequence #{})))
 
 (defn reduce!
@@ -673,7 +678,8 @@ metadata (as provided by def) merged into the metadata of the original."
 ;;; Searching for minimum covers
 
 (defn- covers?
-  "Technical Helper. Tests wheterh all elements in base-set are contained at least one set in sets."
+  "Technical Helper. Tests wheterh all elements in base-set are contained at
+  least one set in sets."
   [sets base-set]
   (if (empty? base-set)
     true
@@ -687,9 +693,10 @@ metadata (as provided by def) merged into the metadata of the original."
             (recur new-rest (next sets))))))))
 
 (defn- redundant?
-  "Technical Helper. For a given set base-set, a collection cover of sets and a map mapping elements
-  from base-set to the number of times they occur in sets in cover, tests whether the cover is
-  redundant or not, i.e. if a proper subcollection of cover is already a cover or not."
+  "Technical Helper. For a given set base-set, a collection cover of sets and a
+  map mapping elements from base-set to the number of times they occur in sets
+  in cover, tests whether the cover is redundant or not, i.e. if a proper
+  subcollection of cover is already a cover or not."
   [base-set cover count]
   (exists [set cover]
     (forall [x set]
@@ -879,7 +886,7 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (defn parallel-closures
   "Returns the set of all closures of the closure operator on the given base set.
-Computes the closures in parallel, to the extent possible."
+  Computes the closures in parallel, to the extent possible."
   [base clop]
   (loop [n        0
          closures #{(clop #{})}
@@ -1007,8 +1014,8 @@ Computes the closures in parallel, to the extent possible."
       (contains? other-set x))))
 
 (defn minimal-hypergraph-transversals
-  "Returns all minimal hypergraph transversals of the hypergraph defined by «edges» on the
-  vertex sets «vertices»."
+  "Returns all minimal hypergraph transversals of the hypergraph defined by
+  «edges» on the vertex sets «vertices»."
   [vertices edges]
   (let [cards    (map-by-fn (fn [x]
                               (count (set-of X | X edges :when (contains? X x))))
