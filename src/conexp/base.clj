@@ -583,12 +583,16 @@ metadata (as provided by def) merged into the metadata of the original."
            power  b]
       (if (zero? power)
         result
-        (recur (if (zero? (Math/floorMod power 2))
-                 result
-                 (.multiply result aktpot))
-               (.multiply aktpot aktpot)
-               ;; divide power by two
-               (Math/floorDiv power 2))))))
+        (if (zero? (Long/numberOfTrailingZeros power))
+          ;; power is odd
+          (recur (.multiply result aktpot)
+                 (.multiply aktpot aktpot)
+                 (long (/ (dec power) 2)))
+          ;; power is even
+          (recur result
+                 (.multiply aktpot aktpot)
+                 ;; divide power by two
+                 (long (/ power 2))))))))
 
 (defn distinct-by-key
   "Returns a sequence of all elements of the given sequence with distinct key values,
