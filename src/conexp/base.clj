@@ -567,33 +567,32 @@ metadata (as provided by def) merged into the metadata of the original."
            1N
            (range ~start (inc ~end))))
 
-(defn div
-  "Integer division."
-  [a b]
-  (/ (- a (mod a b)) b))
+(declare expt*)
 
 (defn expt
   "Exponentiation of arguments. Is exact if given arguments are exact
   and returns double otherwise."
   [a b]
-  (cond
-   (not (and (integer? a) (integer? b)))
-   (clojure.math.numeric-tower/expt a b),
+  (if (not (and (integer? a) (integer? b)))
+    (clojure.math.numeric-tower/expt a b)
+    (expt* (bigint a) (long b))))
 
-   (< b 0)
-   (/ (expt a (- b))),
-
-   :else
-   (loop [result 1N,
-          aktpot (bigint a),
-          power  (bigint b)]
-     (if (zero? power)
-       result
-       (recur (if (zero? (mod power 2))
-                result
-                (* result aktpot))
-              (* aktpot aktpot)
-              (div power 2))))))
+(defn expt*
+  "Computes a^b using square and multiply."
+  [^BigInteger a, ^long b]
+  (if (< b 0)
+    (/ (expt* a (- b)))
+    (loop [result 1N,
+           aktpot a,
+           power  b]
+      (if (zero? power)
+        result
+        (recur (if (zero? (Math/floorMod power 2))
+                 result
+                 (* result aktpot))
+               (* aktpot aktpot)
+               ;; divide power by two
+               (Math/floorDiv power 2))))))
 
 (defn distinct-by-key
   "Returns a sequence of all elements of the given sequence with distinct key values,
