@@ -202,9 +202,9 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (defn ensure-length
   "Fills given string with padding to have at least the given length."
-  ([string length]
+  ([string ^long length]
      (ensure-length string length " "))
-  ([string length padding]
+  ([string ^long length padding]
      (apply str string (repeat (- length (count string)) padding))))
 
 (defn with-str-out
@@ -257,7 +257,7 @@ metadata (as provided by def) merged into the metadata of the original."
     (fn [a b]
       (and (contains? pos a)
            (contains? pos b)
-           (>= (pos a) (pos b))))))
+           (>= ^long (pos a) ^long (pos b))))))
 (defn zip
   "Returns sequence of pairs [x,y] where x runs through seq-1 and
   y runs through seq-2 simultaneously. This is the same as
@@ -700,7 +700,7 @@ metadata (as provided by def) merged into the metadata of the original."
   (exists [set cover]
     (forall [x set]
       (=> (contains? base-set x)
-          (<= 2 (get count x))))))
+          (<= 2 ^long (get count x))))))
 
 (defn minimum-set-covers
   "For a given set base-set and a collection of sets returns all subcollections of sets such that
