@@ -51,7 +51,8 @@
     arglist
     (let [[a b] (split-with #(not= '& %) arglist)]
       (if (not-empty b)
-        (vec (concat (map dissect-arglist a) (list (with-meta (second b) {:tag "[Ljava.lang.Object;"}))))
+        (vec (concat (map dissect-arglist a)
+                     (list (with-meta (second b) {:tag "[Ljava.lang.Object;"}))))
         (vec (map dissect-arglist arglist))))))
 
 (defn- function-signatures
@@ -81,7 +82,10 @@
     `(defn ~(symbol (str prefix new-name))
        ~@(for [args arglists]
            `(~(dissect-arglist args)
-             (apply ~(symbol orig-name) ~(dissect-arglist args)))))))
+             (~(symbol orig-name)
+              ~@(map (fn [arg]
+                       (with-meta arg {}))
+                     (dissect-arglist args))))))))
 
 ;;;
 
