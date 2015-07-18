@@ -563,36 +563,31 @@ metadata (as provided by def) merged into the metadata of the original."
            1N
            (range ~start (inc ~end))))
 
-(declare expt*)
-
 (defn expt
   "Exponentiation of arguments. Is exact if given arguments are exact
   and returns double otherwise."
   [a b]
   (if (not (and (integer? a) (integer? b)))
     (clojure.math.numeric-tower/expt a b)
-    (expt* (bigint a) (long b))))
-
-(defn expt*
-  "Computes a^b using square and multiply."
-  [^clojure.lang.BigInt a, ^long b]
-  (if (< b 0)
-    (/ (expt* a (- b)))
-    (loop [result 1N,
-           aktpot a,
-           power  b]
-      (if (zero? power)
-        result
-        (if (zero? (Long/numberOfTrailingZeros power))
-          ;; power is odd
-          (recur (.multiply result aktpot)
-                 (.multiply aktpot aktpot)
-                 (long (/ (dec power) 2)))
-          ;; power is even
-          (recur result
-                 (.multiply aktpot aktpot)
-                 ;; divide power by two
-                 (long (/ power 2))))))))
+    (let [^clojure.lang.BigInt a (bigint a),
+          b (long b)]
+      (if (< b 0)
+        (/ (expt a (- b)))
+        (loop [result 1N,
+               aktpot a,
+               power  b]
+          (if (zero? power)
+            result
+            (if (zero? (Long/numberOfTrailingZeros power))
+              ;; power is odd
+              (recur (.multiply result aktpot)
+                     (.multiply aktpot aktpot)
+                     (long (/ (dec power) 2)))
+              ;; power is even
+              (recur result
+                     (.multiply aktpot aktpot)
+                     ;; divide power by two
+                     (long (/ power 2))))))))))
 
 (defn distinct-by-key
   "Returns a sequence of all elements of the given sequence with distinct key values,
