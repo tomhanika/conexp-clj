@@ -64,9 +64,9 @@ metadata (as provided by def) merged into the metadata of the original."
 (def- conexp-version-map
   (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)(?:-(.+))?"
                                                  internal-version-string)]
-    {:major (Integer/parseInt major),
-     :minor (Integer/parseInt minor),
-     :patch (Integer/parseInt patch),
+    {:major ^int (Integer/parseInt major),
+     :minor ^int (Integer/parseInt minor),
+     :patch ^int (Integer/parseInt patch),
      :qualifier qualifier}))
 
 (defn conexp-version
@@ -78,9 +78,9 @@ metadata (as provided by def) merged into the metadata of the original."
 (defn has-version?
   "Compares given version of conexp and returns true if and only if
   the current version of conexp is higher or equal than the given one"
-  [{my-major :major, my-minor :minor, my-patch :patch}]
+  [{^int my-major :major, ^int my-minor :minor, ^int my-patch :patch}]
   (assert (and my-major my-minor my-patch))
-  (let [{:keys [major, minor, patch]} conexp-version-map]
+  (let [{:keys [^int major, ^int minor, ^int patch]} conexp-version-map]
     (or (and (< my-major major))
         (and (= my-major major)
              (< my-minor minor))
@@ -178,7 +178,7 @@ metadata (as provided by def) merged into the metadata of the original."
       (instance? clojure.lang.Seqable x)
       (nil? x)
       (instance? Iterable x)
-      (-> x .getClass .isArray)
+      (-> ^Object x .getClass .isArray)
       (string? x)
       (instance? java.util.Map x)))
 
