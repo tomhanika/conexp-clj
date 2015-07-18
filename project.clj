@@ -26,9 +26,7 @@
                  [seesaw                          "1.4.3"]
                  [reply                           "0.3.7"
                   :exclusions [org.clojure/clojure]]]
-  :aot [conexp.main
-        conexp.contrib.java
-        conexp.contrib.gui]
+  :aot [conexp.contrib.java]
   :keep-non-project-classes true
   :test-paths ["tests" "src/test/"]
   :compile-path "lib/classes/"
