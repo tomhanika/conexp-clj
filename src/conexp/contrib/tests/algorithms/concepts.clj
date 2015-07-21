@@ -7,10 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.algorithms.concepts
-  (:require [conexp.main :as cm])
-  (:use [conexp.base :only (def-)]
+  (:use [conexp.base :only (set-of-range def-)]
+        [conexp.fca.contexts :only (rand-context)]
         [conexp.contrib.exec :only (program-exists?)]
-        conexp.contrib.algorithms.concepts)
+        conexp.contrib.algorithms)
   (:use clojure.test))
 
 ;;;
@@ -30,7 +30,7 @@
 
 (deftest test-concepts
   (dotimes [_ test-runs]
-    (let [ctx (cm/rand-context (cm/set-of-range (rand 15)) (rand)),
+    (let [ctx (rand-context (set-of-range (rand 15)) (rand)),
           rst (map set (keep #(try (concepts % ctx) (catch Exception _ nil))
                              concepts-methods))]
       (if-not (apply = rst)

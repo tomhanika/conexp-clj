@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.algorithms
-  "Provides some optimized versions of the standard algorithms of conexp.main")
+  "Provides some optimized versions of the standard algorithms of conexp-clj")
 
 ;;;
 

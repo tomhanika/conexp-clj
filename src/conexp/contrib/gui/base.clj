@@ -9,8 +9,10 @@
 (ns conexp.contrib.gui.base
   "Provides basic definitions for the standard conexp-clj GUI."
   (:import [java.awt event.WindowEvent])
-  (:use [conexp.base :only (illegal-state, unsupported-operation, get-resource)]
-        [conexp.main :only (conexp-version)]
+  (:use [conexp.base :only (illegal-state
+                            unsupported-operation
+                            get-resource
+                            conexp-version)]
         conexp.contrib.gui.util
         conexp.contrib.gui.plugins
         [conexp.contrib.gui.plugins.base :only (load-plugin)]
