@@ -121,19 +121,6 @@ metadata (as provided by def) merged into the metadata of the original."
        (do (require 'conexp.tests)
            (clojure.test/run-tests 'conexp.tests)))))
 
-(defmacro tests-to-run
-  "Defines tests to run when the namespace in which this macro is
-  called is tested by test-ns.  Additionally, runs all tests in the
-  current namespace, before all other tests in supplied as arguments."
-  [& namespaces]
-  `(defn ~'test-ns-hook []
-     (clojure.test/test-all-vars '~(ns-name *ns*))
-     (doseq [ns# '~namespaces]
-       (let [result# (do (require ns#) (clojure.test/test-ns ns#))]
-         (dosync
-          (ref-set clojure.test/*report-counters*
-                   (merge-with + @clojure.test/*report-counters* result#)))))))
-
 (defmacro with-testing-data
   "Expects for all bindings the body to be evaluated to true. bindings
   must be those of doseq."

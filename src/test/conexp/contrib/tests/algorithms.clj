@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.tests.algorithms
   (:use clojure.test)
-  (:use [conexp.base :only (def- tests-to-run set-of-range)]
+  (:use [conexp.base :only (def- set-of-range)]
         [conexp.fca.contexts :only (rand-context
                                     random-context
                                     random-contexts
@@ -16,11 +16,6 @@
         [conexp.fca.implications :only (make-implication impl)]
         [conexp.contrib.exec :only (program-exists?)]
         conexp.contrib.algorithms))
-
-;;;
-
-(tests-to-run conexp.contrib.tests.algorithms.generators
-              conexp.contrib.tests.algorithms.titanic)
 
 
 ;;; Concept Calculations
