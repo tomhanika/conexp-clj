@@ -31,7 +31,7 @@
                   :exclusions [org.clojure/clojure]]]
   :aot [conexp.contrib.java]
   :keep-non-project-classes true
-  :test-paths ["tests" "src/test/"]
+  :test-paths ["src/test/"]
   :compile-path "lib/classes/"
   :scm {:url "git@github.com:exot/conexp-clj.git"}
   :java-opts ["-Dawt.useSystemAAFontSettings=on"])
