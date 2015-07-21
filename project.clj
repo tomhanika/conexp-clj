@@ -25,6 +25,9 @@
                  [conexp-clj/LatDraw              "0.0.1"]
                  [seesaw                          "1.4.3"]
                  [reply                           "0.3.7"
+                  :exclusions [org.clojure/clojure
+                               net.cgrand.parsley]]
+                 [net.cgrand/parsley              "0.9.3"
                   :exclusions [org.clojure/clojure]]]
   :aot [conexp.main
         conexp.contrib.java
