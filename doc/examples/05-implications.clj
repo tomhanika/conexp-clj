@@ -1,7 +1,8 @@
 ;; Sebastian Böhm, Daniel Borchmann, 2010
 ;; This file is in the public domain
 
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;; Consider a given context ctx-1. In this example we will we use the
 ;; Chevron again.

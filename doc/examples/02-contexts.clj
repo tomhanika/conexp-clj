@@ -1,7 +1,8 @@
 ;; Sebastian Böhm, Daniel Borchmann, 2010
 ;; This file is in the public domain
 
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;; Working with Formal Contexts
 
@@ -46,18 +47,6 @@
 (extents ctx-1)
 (intents ctx-1)
 
-;; Now I want to get all objects, which attribute a and b have in
-;; common
-(attribute-derivation ctx-1 #{'a 'b})
-
-;; Note that the argument is a set. This also works for the objects:
-(object-derivation ctx-1 #{'c 'd 'f})
-
-;; If you want to compute the closure of a given set of objects or
-;; attributes in our context use
-(context-attribute-closure ctx-1 #{'a 'b})
-(context-object-closure ctx-1 #{'a 'b})
-
 ;; There a several operations you can do with contexts, e.g. the
 ;; apposition. We define two contexts:
 (def ctx-1 (make-context #{1 2 3} #{1 2 3} < ))
@@ -93,7 +82,7 @@
 (context-product ctx-1 ctx-2)
 
 ;; If you want to do a context semiproduct 
-(context-semiprodukt ctx-1 ctx-2)
+(context-semiproduct ctx-1 ctx-2)
 
 ;; Compute Xia's product 
 (context-xia-product ctx-1 ctx-2)

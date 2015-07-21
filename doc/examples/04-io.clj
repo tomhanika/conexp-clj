@@ -1,7 +1,8 @@
 ;; Sebastian Böhm, Daniel Borchmann, 2010
 ;; This file is in the public domain
 
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;; In- and output for formal contexts
 

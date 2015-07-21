@@ -1,4 +1,5 @@
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 (defn number-of-elements-in-FCD
   "For a given number `n', returns the number of elements in the free distributive lattice

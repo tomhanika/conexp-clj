@@ -1,7 +1,8 @@
 ;; Sebastian Böhm, Daniel Borchmann, 2010
 ;; This file is in the public domain
 
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;; Working with lattices
 
@@ -37,10 +38,10 @@
 (lattice-inf-irreducibles lat-1)
 
 ;; The supremum irreducible elements are similar
-(lattive-sup-irreducibles lat-1)
+(lattice-sup-irreducibles lat-1)
 
 ;; To check both (infimum and supremum irreducible elements) just use
-(lattice-irreducubles lat-1)
+(lattice-doubly-irreducibles lat-1)
 
 ;; Now we will take an element of our lattice and work with it.  Let's
 ;; choose [#{a b} #{b e}]. You get the lower- and upper-neighbours

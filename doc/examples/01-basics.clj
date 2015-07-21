@@ -1,7 +1,8 @@
 ;; Sebastian Böhm, Daniel Borchmann, 2010
 ;; This file is in the public domain
 
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;; How to create a context?
 
@@ -64,6 +65,18 @@
 
 ;; This ist the Chevron again, but this time with a instead of 1, b
 ;; instead of 2 etc. With ' (quote) you can use symbols in conexp.
+
+;; Now I want to get all objects, which attribute a and b have in
+;; common
+(attribute-derivation ctx-1 #{'a 'b})
+
+;; Note that the argument is a set. This also works for the objects:
+(object-derivation ctx-1 #{'c 'd 'f})
+
+;; If you want to compute the closure of a given set of objects or
+;; attributes in our context use
+(context-attribute-closure ctx-1 #{'a 'b})
+(context-object-closure ctx-1 #{'a 'b})
 
 ;; Now we can compute the arrow-relations (e.g. to see which objects
 ;; or attributes are irreducible.)
