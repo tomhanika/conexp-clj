@@ -21,7 +21,11 @@
     conexp.fca.exploration
     conexp.fca.lattices
     conexp.fca.misc
-    conexp.io
+    conexp.io.latex
+    conexp.io.contexts
+    conexp.io.lattices
+    conexp.io.layouts
+    conexp.io.many-valued-contexts
     conexp.layouts])
 
 (apply conexp.base/immigrate conexp-clj-namespaces)

@@ -12,25 +12,21 @@
 
 ;;;
 
-(immigrate 'conexp.io.latex
-           'conexp.io.contexts
-           'conexp.io.lattices
-           'conexp.io.layouts
-           'conexp.io.many-valued-contexts)
-
-;;;
-
 (defn available-formats
   "Returns for a given type (as string, i.e. \"context\") all
   available output methods."
   [type]
-  (let [writer (resolve (symbol "conexp.io" (str "write-" type)))]
-    (when (nil? writer)
-      (illegal-argument "Unknown type " type " given to available-formats."))
-    (remove #(or (= :default %)
-                 (= :conexp.io.util/default-write %))
-            (keys (methods @writer)))))
+  (let [namespace (str "conexp.io." type "s")]
+    (try
+      (do
+        (require (symbol namespace))
+        (let [writer (resolve (symbol namespace (str "write-" type)))]
+          (remove #(or (= :default %)
+                       (= :conexp.io.util/default-write %))
+                  (keys (methods @writer)))))
+      (catch java.io.FileNotFoundException _
+        (illegal-argument "available-formats: unknown type \"" type "\"")))))
 
 ;;;
 
-nil
+true
