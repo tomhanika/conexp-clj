@@ -1,7 +1,6 @@
-VERSION = 1.2.0-SNAPSHOT
-TIME = $(shell date -u +"%Y%m%d%H%M%S")
-
-FILES = $(shell find src -name "*.clj")
+VERSION := $(shell cat src/res/version)
+TIME    := $(shell date -u +"%Y%m%d%H%M%S")
+FILES   := $(shell find src -name "*.clj")
 
 all: clean conexp-clj-$(VERSION).zip
 	@mv conexp-clj-$(VERSION).zip conexp-clj-$(VERSION)-$(TIME).zip

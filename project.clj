@@ -8,7 +8,7 @@
 
 ;;;
 
-(defproject conexp-clj "1.2.0-SNAPSHOT"
+(defproject conexp-clj #=(slurp "src/res/version")
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/exot/conexp-clj/"
