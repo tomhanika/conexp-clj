@@ -13,7 +13,6 @@ conexp-clj-$(VERSION).zip: target/conexp-clj-$(VERSION)-standalone.jar
 	@cp src/scripts/conexp-clj.clj builds/conexp-clj/lib/
 	@cp -r src/scripts/conexp-clj src/scripts/conexp-clj.bat builds/conexp-clj/bin/
 	@cp README.md builds/conexp-clj/
-	@cp -r src/res builds/conexp-clj/lib/
 	@cp target/conexp-clj-$(VERSION)-standalone.jar builds/conexp-clj/lib/
 	@zip -q -r builds/conexp-clj-$(VERSION).zip builds/conexp-clj
 
