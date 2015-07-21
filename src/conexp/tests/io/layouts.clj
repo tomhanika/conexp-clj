@@ -11,7 +11,7 @@
         conexp.fca.contexts
         conexp.fca.lattices
         conexp.layouts
-        conexp.io
+        conexp.io.layouts
         conexp.tests.io.util)
   (:use clojure.test))
 

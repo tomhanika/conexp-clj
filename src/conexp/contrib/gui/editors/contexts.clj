@@ -13,7 +13,7 @@
   (:use [conexp.base :exclude (select)]
         conexp.fca.contexts
         conexp.fca.lattices
-        conexp.io
+        conexp.io.contexts
         conexp.layouts
         [conexp.layouts.base :only (lattice)]
         conexp.contrib.draw.lattices

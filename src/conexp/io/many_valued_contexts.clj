@@ -19,6 +19,9 @@
 (define-format-dispatch "mv-context")
 (set-default-mv-context-format! :simple)
 
+(defalias read-many-valued-context read-mv-context)
+(defalias write-many-valued-context write-mv-context)
+
 ;;; Formats
 
 ;; Simple conexp-clj Format for Many-Valued Contexts

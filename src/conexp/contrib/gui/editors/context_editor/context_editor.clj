@@ -10,7 +10,7 @@
 
 (ns conexp.contrib.gui.editors.context-editor.context-editor
   (:use [conexp.base :exclude (select)]
-        conexp.fca
+        conexp.fca.contexts
         conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control

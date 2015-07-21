@@ -9,7 +9,7 @@
 ;; This file has been written by Immanuel Albrecht, with modifications by DB
 
 (ns conexp.contrib.gui.editors.context-editor.editable-contexts
-  (:use conexp.fca
+  (:use conexp.fca.contexts
         conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control)

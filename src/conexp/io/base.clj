@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.io
+(ns conexp.io.base
   "Common namespace for conexp-clj IO functions."
   (:use conexp.base))
 

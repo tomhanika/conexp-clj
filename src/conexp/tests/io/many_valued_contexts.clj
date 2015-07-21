@@ -24,7 +24,7 @@
 (deftest test-mv-context-out-in
   (with-testing-data [mv-ctx mv-contexts-oi,
                       fmt (list-mv-context-formats)]
-    (try (= mv-ctx (out-in mv-ctx 'mv-context fmt))
+    (try (= mv-ctx (out-in mv-ctx 'many-valued-context fmt))
          (catch UnsupportedOperationException _ true))))
 
 (def- mv-contexts-oioi
@@ -36,7 +36,7 @@
 (deftest test-mv-context-out-in-out-in
   (with-testing-data [mv-ctx mv-contexts-oioi,
                       fmt (list-mv-context-formats)]
-    (try (out-in-out-in-test mv-ctx 'mv-context fmt)
+    (try (out-in-out-in-test mv-ctx 'many-valued-context fmt)
          (catch UnsupportedOperationException _ true))))
 
 ;;;
