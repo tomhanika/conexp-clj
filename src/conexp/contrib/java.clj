@@ -90,12 +90,12 @@
 ;;;
 
 (defn generate-java-interface
-  "Given a name of a file generates the code for the Java interface in
-  that file. After this has been compiled it can be used to call
+  "Given a sequence of namespaces generates the code for the Java interface in
+  those namespaces. After this has been compiled it can be used to call
   conexp-clj functions from Java."
-  [orig-ns new-ns file-name]
+  [orig-nss new-ns file-name]
   (let [methods (mapcat #(apply function-signatures %)
-                        (conexp-functions orig-ns)),
+                        (mapcat conexp-functions orig-nss)),
         methods (mapcat #(list (symbol "^{:static true}") %) methods)]
     (with-open [out (writer file-name)]
       (binding [*print-meta* true
@@ -111,7 +111,8 @@
             (import 'conexp.fca.contexts.Context)
             (import 'conexp.fca.lattices.Lattice)
 
-            ~@(for [[new-name, ^clojure.lang.Var var] (conexp-functions orig-ns)]
+            ~@(for [orig-ns orig-nss
+                    [new-name, ^clojure.lang.Var var] (conexp-functions orig-ns)]
                 (let [orig-name (symbol (str (.ns var)) (str (.sym var))),
                       arglists  (:arglists (meta var))]
                   (apply generate-definition
@@ -123,7 +124,7 @@
 
 ;;;
 
-(generate-java-interface 'conexp.main
+(generate-java-interface conexp.main/conexp-clj-namespaces
                          'conexp.contrib.java.Main
                          "src/conexp/contrib/java/Main.clj")
 
