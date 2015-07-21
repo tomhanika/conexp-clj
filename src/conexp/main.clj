@@ -8,20 +8,25 @@
 
 (ns conexp.main
   "Main namespace for conexp-clj. Immigrates all needed namespaces."
-  (:require conexp.base
-            conexp.fca
-            conexp.io
-            conexp.layouts))
+  (:require conexp.base))
 
 ;;;
 
-(conexp.base/immigrate 'conexp.base
-                       'conexp.fca
-                       'conexp.io
-                       'conexp.layouts)
+(def conexp-clj-namespaces
+  "Standard namespaces of conexp-clj."
+  '[conexp.base
+    conexp.fca.contexts
+    conexp.fca.many-valued-contexts
+    conexp.fca.implications
+    conexp.fca.exploration
+    conexp.fca.lattices
+    conexp.fca.misc
+    conexp.io
+    conexp.layouts])
+
+(apply conexp.base/immigrate conexp-clj-namespaces)
 
 ;;;
 
-
-nil
+true
 

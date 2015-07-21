@@ -8,12 +8,7 @@
 
 (ns conexp.io
   "Common namespace for conexp-clj IO functions."
-  (:use conexp.base)
-  (:require conexp.io.latex
-            conexp.io.contexts
-            conexp.io.lattices
-            conexp.io.layouts
-            conexp.io.many-valued-contexts))
+  (:use conexp.base))
 
 ;;;
 

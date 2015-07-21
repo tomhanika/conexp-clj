@@ -31,12 +31,10 @@
 
 ;;; Documentation Coverage
 
-(def- conexp-namespaces '[conexp.base conexp.fca conexp.io conexp.layouts])
-
 (defn conexp-fns-needing-doc
   "Returns function in public conexp-clj API not having documentation."
   []
-  (for [ns conexp-namespaces,
+  (for [ns conexp-clj-namespaces,
         [f _] (public-api ns)
         :when (not (:doc (meta (resolve (symbol (str ns) (str f))))))]
     (symbol (str ns) (str f))))
@@ -47,7 +45,7 @@
   "Prints to standard out the API documentation of the main namespaces of conexp-clj, or
   the namespaces provided as argument."
   ([]
-     (public-api-to-markdown conexp-namespaces))
+     (public-api-to-markdown conexp-clj-namespaces))
   ([namespaces]
      (doseq [ns namespaces]
        (require ns))
