@@ -1,4 +1,4 @@
-VERSION := $(shell cat src/res/version)
+VERSION := $(shell cat src/main/resources/version)
 TIME    := $(shell date -u +"%Y-%m-%d-%H%M%S")
 FILES   := $(shell find src -name "*.clj")
 
@@ -10,8 +10,8 @@ target/conexp-clj-$(VERSION)-standalone.jar: $(FILES)
 
 conexp-clj-$(VERSION).zip: target/conexp-clj-$(VERSION)-standalone.jar
 	@mkdir -p builds/conexp-clj/lib/ builds/conexp-clj/bin/
-	@cp src/scripts/conexp-clj.clj builds/conexp-clj/lib/
-	@cp -r src/scripts/conexp-clj src/scripts/conexp-clj.bat builds/conexp-clj/bin/
+	@cp src/main/scripts/conexp-clj.clj builds/conexp-clj/lib/
+	@cp -r src/main/scripts/conexp-clj src/main/scripts/conexp-clj.bat builds/conexp-clj/bin/
 	@cp README.md builds/conexp-clj/
 	@cp target/conexp-clj-$(VERSION)-standalone.jar builds/conexp-clj/lib/
 	@zip -q -r builds/conexp-clj-$(VERSION).zip builds/conexp-clj

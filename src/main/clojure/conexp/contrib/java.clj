@@ -126,7 +126,7 @@
 
 (generate-java-interface conexp.main/conexp-clj-namespaces
                          'conexp.contrib.java.Main
-                         "src/conexp/contrib/java/Main.clj")
+                         "src/main/clojure/conexp/contrib/java/Main.clj")
 
 ;;;
 

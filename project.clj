@@ -8,7 +8,7 @@
 
 ;;;
 
-(defproject conexp-clj #=(slurp "src/res/version")
+(defproject conexp-clj #=(slurp "src/main/resources/version")
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/exot/conexp-clj/"
@@ -31,7 +31,9 @@
                   :exclusions [org.clojure/clojure]]]
   :aot [conexp.contrib.java]
   :keep-non-project-classes true
-  :test-paths ["src/test/"]
+  :source-paths ["src/main/clojure"]
+  :test-paths ["src/test/clojure"]
+  :resource-paths ["src/main/resources"]
   :compile-path "lib/classes/"
   :scm {:url "git@github.com:exot/conexp-clj.git"}
   :java-opts ["-Dawt.useSystemAAFontSettings=on"])

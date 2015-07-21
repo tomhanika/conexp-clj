@@ -28,7 +28,7 @@
    (dialog :content (scrollable
                      (editor-pane :content-type "text/html"
                                   :text (slurp
-                                         (get-resource "res/epl-v10.html"))
+                                         (get-resource "epl-v10.html"))
                                   :editable? false
                                   :caret-position 0))
            :size [800 :by 500]

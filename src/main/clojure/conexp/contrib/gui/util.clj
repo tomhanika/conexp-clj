@@ -95,7 +95,7 @@
   "Returns either the image-icon for the given resource or the given
    alternative string."
   [res alt]
-  (let [img (get-resource (str "res/" res)),
+  (let [img (get-resource (str res)),
         ^ImageIcon
         img (and img (ImageIcon. img))]
     (or img alt)))

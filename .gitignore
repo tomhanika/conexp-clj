@@ -20,7 +20,7 @@
 /resources
 /classes
 /pom.xml
-/src/conexp/contrib/java/*.clj
+/src/main/clojure/conexp/contrib/java/*.clj
 /.lein*
 /.cake*
 /target
