@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.util.general-sorted-sets
-  (:use conexp.main
+  (:use conexp.base
         conexp.contrib.util.general-sorted-sets)
   (:use clojure.test))
 

@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.main
-  "Main namespace for conexp-clj. Immigrates all needed namespaces."
-  (:require conexp.base))
+  "Main namespace for conexp-clj.")
 
 ;;;
 
@@ -28,7 +27,7 @@
     conexp.io.many-valued-contexts
     conexp.layouts])
 
-(apply conexp.base/immigrate conexp-clj-namespaces)
+(apply use conexp-clj-namespaces)
 
 ;;;
 

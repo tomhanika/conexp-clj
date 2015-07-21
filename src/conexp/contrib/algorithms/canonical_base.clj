@@ -8,9 +8,9 @@
 
 (in-ns 'conexp.contrib.algorithms)
 
-(use 'conexp.contrib.algorithms.bitwise)
-(require '[conexp.main :as cm]
-         '[conexp.contrib.algorithms.next-closure :as nc])
+(use 'conexp.contrib.algorithms.bitwise
+     '[conexp.fca.implications :only (make-implication)])
+(require '[conexp.contrib.algorithms.next-closure :as nc])
 
 (import '[java.util BitSet List LinkedList ListIterator])
 (import '[conexp.fca.implications Implication])
@@ -57,38 +57,38 @@
 
 (defn canonical-base
   ([ctx]
-     (canonical-base ctx #{}))
+   (canonical-base ctx #{}))
   ([ctx background-knowledge]
-     (with-binary-context ctx
-       (let [bg-knowledge (map (fn [^Implication impl]
-                                 (Implication. (to-bitset attribute-vector (.premise impl))
-                                               (to-bitset attribute-vector (.conclusion impl))))
-                               background-knowledge),
-             next-closure (fn [implications last]
-                            (nc/next-closed-set attribute-count
-                                                (clop-by-implications implications)
-                                                last)),
-             runner       (fn runner [implications, ^BitSet candidate]
-                            (when candidate
-                              (let [conclusions (nc/bitwise-context-attribute-closure
-                                                 object-count
-                                                 attribute-count
-                                                 incidence-matrix
-                                                 candidate)]
-                                (if (not= candidate conclusions)
-                                  (let [impl  (Implication. candidate
-                                                            (filter-bitset #(not (.get candidate %))
-                                                                           conclusions)),
-                                        impls (conj implications impl)]
-                                    (cons impl
-                                          (lazy-seq (runner impls (next-closure impls candidate)))))
-                                  (recur implications (next-closure implications candidate))))))]
-         (map (fn [^Implication bit-impl]
-                (cm/make-implication (to-hashset attribute-vector (.premise bit-impl))
-                                     (to-hashset attribute-vector (.conclusion bit-impl))))
-              (lazy-seq (runner (vec bg-knowledge)
-                                (close-under-implications bg-knowledge
-                                                          (to-bitset attribute-vector #{})))))))))
+   (with-binary-context ctx
+     (let [bg-knowledge (map (fn [^Implication impl]
+                               (Implication. (to-bitset attribute-vector (.premise impl))
+                                             (to-bitset attribute-vector (.conclusion impl))))
+                             background-knowledge),
+           next-closure (fn [implications last]
+                          (nc/next-closed-set attribute-count
+                                              (clop-by-implications implications)
+                                              last)),
+           runner       (fn runner [implications, ^BitSet candidate]
+                          (when candidate
+                            (let [conclusions (nc/bitwise-context-attribute-closure
+                                               object-count
+                                               attribute-count
+                                               incidence-matrix
+                                               candidate)]
+                              (if (not= candidate conclusions)
+                                (let [impl  (Implication. candidate
+                                                          (filter-bitset #(not (.get candidate %))
+                                                                         conclusions)),
+                                      impls (conj implications impl)]
+                                  (cons impl
+                                        (lazy-seq (runner impls (next-closure impls candidate)))))
+                                (recur implications (next-closure implications candidate))))))]
+       (map (fn [^Implication bit-impl]
+              (make-implication (to-hashset attribute-vector (.premise bit-impl))
+                                (to-hashset attribute-vector (.conclusion bit-impl))))
+            (lazy-seq (runner (vec bg-knowledge)
+                              (close-under-implications bg-knowledge
+                                                        (to-bitset attribute-vector #{})))))))))
 
 ;;;
 

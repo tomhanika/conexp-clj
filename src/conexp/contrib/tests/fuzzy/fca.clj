@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.fuzzy.fca
-  (:use conexp.main
+  (:use [conexp.base :only (def-)]
         conexp.contrib.fuzzy.sets
         conexp.contrib.fuzzy.logics
         conexp.contrib.fuzzy.fca)

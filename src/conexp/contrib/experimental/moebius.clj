@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.experimental.moebius
   "Computing the Möbius function of concept lattices"
-  (:use conexp.main))
+  (:use conexp.base
+        conexp.fca.contexts))
 
 ;;;
 

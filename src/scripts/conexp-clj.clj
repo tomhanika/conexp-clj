@@ -27,7 +27,8 @@
               (conexp.contrib.gui/gui :default-close-operation :exit)]
       (reply/launch
        {:custom-eval '(do
-                        (use 'conexp.main)
+                        (require 'conexp.main)
+                        (in-ns 'conexp.main)
                         (use 'clojure.repl)
                         (require '[conexp.contrib.gui.repl-utils :as gui]))}))
     ;;
@@ -36,11 +37,16 @@
           (println "Error: --load requires a file to load")
           (println doc)
           (System/exit 1))
-        (load-file (options :load)))
+        (do
+          (require 'conexp.main)
+          (in-ns 'conexp.main)
+          (load-file (options :load))))
     ;;
     true
     (do (reply/launch
-         {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))}))))
+         {:custom-eval '(do (require 'conexp.main)
+                            (in-ns 'conexp.main)
+                            (use 'clojure.repl))}))))
 
 (System/exit 0)
 

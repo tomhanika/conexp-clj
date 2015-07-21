@@ -9,7 +9,8 @@
 (ns conexp.contrib.algorithms.close-by-one
   "Defines an external binding to the program «pcbo» by Petr Krajca, Jan Outrata, and Vilem
 Vychodil, which can compute context intents in parallel."
-  (:use conexp.main
+  (:use [conexp.base :only (set-of)]
+        [conexp.fca.contexts :only (objects attributes incidence make-context)]
         conexp.contrib.exec
         [conexp.io.util :only (tmpfile)]
         [conexp.contrib.algorithms.util :only (string-to-ints)])

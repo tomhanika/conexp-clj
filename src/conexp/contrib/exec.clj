@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.exec
   "Executing external programs with a common interface."
-  (:use [conexp.main :only (illegal-state, write-context)]
+  (:use [conexp.base :only (illegal-state)]
+        [conexp.io.contexts :only (write-context)]
         [conexp.io.util :only (tmpfile with-out-writer)])
   (:use [clojure.java.shell :only (sh)]
         [clojure.string :only (split)])
@@ -108,4 +109,4 @@
 
 ;;;
 
-nil
+true

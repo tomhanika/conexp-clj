@@ -7,7 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.algorithms.titanic
-  (:use conexp.main
+  (:use conexp.base
+        conexp.fca.contexts
+        conexp.fca.implications
         conexp.contrib.algorithms.titanic)
   (:use clojure.test))
 

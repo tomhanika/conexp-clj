@@ -8,8 +8,12 @@
 
 (ns conexp.contrib.tests.algorithms
   (:use clojure.test)
-  (:require [conexp.main :as cm])
-  (:use [conexp.base :only (def- tests-to-run)]
+  (:use [conexp.base :only (def- tests-to-run set-of-range)]
+        [conexp.fca.contexts :only (rand-context
+                                    random-context
+                                    random-contexts
+                                    make-context-from-matrix)]
+        [conexp.fca.implications :only (make-implication impl)]
         [conexp.contrib.exec :only (program-exists?)]
         conexp.contrib.algorithms))
 
@@ -36,7 +40,7 @@
 
 (deftest test-concepts
   (dotimes [_ test-runs]
-    (let [ctx (cm/rand-context (cm/set-of-range (rand 15)) (rand)),
+    (let [ctx (rand-context (set-of-range (rand 15)) (rand)),
           rst (map set (keep #(try (concepts % ctx) (catch Exception _ nil))
                              concepts-methods))]
       (if-not (apply = rst)
@@ -48,9 +52,9 @@
 
 (deftest test-canonical-base
   (dotimes [_ test-runs]
-    (let [ctx    (cm/rand-context (cm/set-of-range (rand 15)) (rand)),
+    (let [ctx    (rand-context (set-of-range (rand 15)) (rand)),
           base-1 (canonical-base ctx)
-          base-2 (cm/canonical-base ctx)]
+          base-2 (conexp.fca.implications/canonical-base ctx)]
       (if-not (= base-1 base-2)
         (do (println "canonical-base returned different result for\n" ctx)
             (println base-1)
@@ -58,19 +62,19 @@
             (is false))
         (is true))))
   (dotimes [_ test-runs]
-    (is (zero? (count (canonical-base (cm/random-context 20 0.7)
-                                      #{(cm/make-implication #{} (cm/set-of-range 20))})))))
-  (is (let [ctx (cm/make-context-from-matrix 5 5
-                                             [0 0 1 0 1
-                                              0 1 1 0 0
-                                              0 0 1 0 1
-                                              0 0 1 1 1
-                                              0 0 1 0 1]),
-            bgk #{(cm/impl ==> 2)}]
+    (is (zero? (count (canonical-base (random-context 20 0.7)
+                                      #{(make-implication #{} (set-of-range 20))})))))
+  (is (let [ctx (make-context-from-matrix 5 5
+                                          [0 0 1 0 1
+                                           0 1 1 0 0
+                                           0 0 1 0 1
+                                           0 0 1 1 1
+                                           0 0 1 0 1]),
+            bgk #{(impl ==> 2)}]
         (= (set (canonical-base ctx bgk))
-           #{(cm/impl 0 2 ==> 1 3 4)
-             (cm/impl 2 3 ==> 4)
-             (cm/impl 1 2 4 ==> 0 3)}))))
+           #{(impl 0 2 ==> 1 3 4)
+             (impl 2 3 ==> 4)
+             (impl 1 2 4 ==> 0 3)}))))
 
 ;;;
 

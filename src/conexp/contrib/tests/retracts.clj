@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.tests.retracts
-  (:use conexp.main
+  (:use [conexp.fca.contexts :only (diag-context adiag-context)]
         conexp.contrib.retracts)
   (:use clojure.test))
 

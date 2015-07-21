@@ -8,7 +8,8 @@
 
 (ns conexp.contrib.factor-analysis
   "Implements factorization algorithms for contexts."
-  (:use conexp.main
+  (:use conexp.base
+        conexp.fca.contexts
         [conexp.contrib.fuzzy sets logics fca])
   (:import [java.util HashMap]))
 

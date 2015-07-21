@@ -8,7 +8,9 @@
 
 (ns conexp.contrib.fuzzy.fca
   "Basic definitions for Fuzzy FCA"
-  (:use conexp.main
+  (:use conexp.base
+        conexp.fca.contexts
+        conexp.fca.many-valued-contexts
         [conexp.contrib.fuzzy sets logics]))
 
 ;;;

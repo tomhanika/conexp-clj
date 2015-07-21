@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.experimental.min-hyp-trans
-  (:use conexp.main
+  (:use conexp.base
+        conexp.fca.contexts
         [clojure.math.combinatorics :only (selections)]))
 
 ;;;

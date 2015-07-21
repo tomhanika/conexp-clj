@@ -8,7 +8,7 @@
 
 (in-ns 'conexp.contrib.algorithms)
 
-(use '[conexp.main :only (illegal-argument, improve-basic-order)]
+(use '[conexp.base :only (illegal-argument, improve-basic-order)]
      'conexp.contrib.algorithms.generators
      'conexp.contrib.algorithms.bitwise
      '[conexp.contrib.algorithms.next-closure :only (next-closed-set bitwise-context-attribute-closure)])

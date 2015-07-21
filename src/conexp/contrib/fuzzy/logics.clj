@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.fuzzy.logics
   "Basic definitions for fuzzy logics"
-  (:use conexp.main))
+  (:use conexp.base))
 
 ;;; T-Norms
 

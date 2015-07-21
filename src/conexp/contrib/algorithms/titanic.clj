@@ -9,7 +9,10 @@
 (ns conexp.contrib.algorithms.titanic
   "Implements the TITANIC algorithm. Note that this implementation is not tuned for speed
   but for flexibility."
-  (:use conexp.main))
+  (:use [conexp.base
+         :only (union difference exists subset? set-of forall map-by-fn)]
+        [conexp.fca.contexts
+         :only (objects object-derivation attributes attribute-derivation)]))
 
 ;;; Pragmatics
 

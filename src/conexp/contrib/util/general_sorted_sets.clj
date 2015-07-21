@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.util.general-sorted-sets
   "Implementation of a generalization of tree sets to partial orders."
-  (:use [conexp.main :only (forall, set-of, unsupported-operation)]))
+  (:use [conexp.base :only (forall, set-of, unsupported-operation)]))
 
 ;;; sorted-set for non-total orderings
 

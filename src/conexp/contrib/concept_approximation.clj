@@ -8,7 +8,10 @@
 
 (ns conexp.contrib.concept-approximation
   "Concept Approximation as described by C. Meschke."
-  (:use conexp.main))
+  (:use conexp.base
+        conexp.fca.contexts
+        [conexp.fca.exploration :only (default-handler-for-complete-counterexamples)]
+        [conexp.fca.misc :only (smallest-bond)]))
 
 ;;;
 

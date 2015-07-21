@@ -8,7 +8,18 @@
 
 (ns conexp.contrib.retracts
   "Package for computing retracts from formal contexts."
-  (:use conexp.main)
+  (:use [conexp.base :only (set-of illegal-argument)]
+        [conexp.fca.contexts :only (restrict-concept
+                                    concepts
+                                    objects
+                                    attributes
+                                    incidence
+                                    make-context
+                                    object-derivation
+                                    attribute-derivation
+                                    intents
+                                    context-reduced?)]
+        [conexp.fca.misc :only (compatible-subcontexts)])
   (:use [clojure.pprint :only (cl-format)]))
 
 ;;;
