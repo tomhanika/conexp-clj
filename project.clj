@@ -31,7 +31,7 @@
                   :exclusions [org.clojure/clojure]]]
   :aot [conexp.contrib.java]
   :keep-non-project-classes true
-  :source-paths ["src/main/clojure"]
+  :source-paths ["src/main/clojure" "src/test/clojure"]
   :test-paths ["src/test/clojure"]
   :resource-paths ["src/main/resources"]
   :compile-path "lib/classes/"

@@ -108,6 +108,40 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (require 'clojure.test)
 
+(defn test-conexp
+  "Runs tests for conexp-clj."
+  ([]
+   (let [nss '[conexp.tests.base
+               conexp.tests.math.optimize
+               conexp.tests.math.statistics
+               conexp.tests.fca.contexts
+               conexp.tests.fca.exploration
+               conexp.tests.fca.implications
+               conexp.tests.fca.lattices
+               conexp.tests.fca.many-valued-contexts
+               conexp.tests.fca.misc
+               conexp.tests.io.contexts
+               conexp.tests.io.lattices
+               conexp.tests.io.layouts
+               conexp.tests.io.many-valued-contexts
+               conexp.tests.io.util
+               conexp.tests.layouts.base
+               conexp.tests.layouts.common
+               conexp.tests.layouts.force
+               conexp.tests.layouts.freese
+               conexp.tests.layouts.layered
+               conexp.tests.layouts.util
+               conexp.contrib.tests.algorithms
+               conexp.contrib.tests.algorithms.concepts
+               conexp.contrib.tests.algorithms.generators
+               conexp.contrib.tests.algorithms.titanic
+               conexp.contrib.tests.factor-analysis
+               conexp.contrib.tests.fuzzy.sets
+               conexp.contrib.tests.retracts
+               conexp.contrib.tests.util.general-sorted-sets]]
+     (apply require nss)
+     (apply clojure.test/run-tests nss))))
+
 (defmacro with-testing-data
   "Expects for all bindings the body to be evaluated to true. bindings
   must be those of doseq."
