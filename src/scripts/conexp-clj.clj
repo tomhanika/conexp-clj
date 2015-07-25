@@ -21,7 +21,7 @@
     (println doc)
     ;;
     (contains? options :gui)
-    (reply/launch
+    (reply/launch-standalone
      {:custom-eval '(do
                       (use 'conexp.main)
                       (use 'clojure.repl)
@@ -30,7 +30,8 @@
                       (alter-var-root
                        (var gui/*main-frame*)
                        (fn [_]
-                         (conexp.contrib.gui/gui :default-close-operation :exit))))})
+                         (conexp.contrib.gui/gui
+                          :default-close-operation :exit))))})
     ;;
     (contains? options :load)
     (do (when (not (options :load))
@@ -40,7 +41,7 @@
         (load-file (options :load)))
     ;;
     true
-    (do (reply/launch
+    (do (reply/launch-standalone
          {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))}))))
 
 (System/exit 0)
