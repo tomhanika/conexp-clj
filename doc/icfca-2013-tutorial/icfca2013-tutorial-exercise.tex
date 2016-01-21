@@ -1,0 +1,141 @@
+\documentclass{article}
+\usepackage{mydefs}
+\usepackage{todonotes}
+
+\usepackage[backend=biber]{biblatex}
+\addbibresource{fca.bib}
+
+%%%
+
+\title{\cclj\\ Exploratory Programming for FCA\\ Exercise Sheet}
+\author{Daniel Borchmann}
+
+%%%
+
+\newcommand{\cclj}{\texttt{conexp-clj}\xspace}
+
+\newcounter{exercise}
+\newenvironment{exercise}{\bigskip\stepcounter{exercise}\noindent\begingroup\textbf{Exercise
+    \theexercise}\hspace*{.3cm}}{\endgroup}
+\newcommand{\hint}{\medskip\noindent\emph{Hint}: }
+
+%%%
+
+\begin{document}
+
+\maketitle
+
+\noindent The mathematical background of these exercises is described in~\cite{fca-book}.
+
+\begin{exercise}
+  Given $n \in \NN$, compute a contextual representation of the closure system of all
+  closure systems on $\set{ 1, \ldots, n }$.  For $n \in \set{1,2,3,4}$, compute the
+  number of formal concepts of these formal contexts.
+
+  \hint
+  \begin{itemize}
+  \item A contextual representation of the lattice of closure systems on $M =
+    \set{1,\ldots, n}$ is given by
+    \begin{equation*}
+      (\subsets{M}, \set{ A \to \set{x} \mid A \subseteq M, x \in M \setminus A }, \models),
+    \end{equation*}
+    where $N \models (A \to \set{x})$ if and only if $N$ respects $A \to \set{x}$.
+  \item \texttt{(set-of-range 1 n)} yields the set \texttt{\#\{1, ..., n\}}
+  \item \texttt{(subsets M)} yields a lazy sequence of all subsets of the set $M$.
+  \item \texttt{(respects?\ M implication)} returns true if and only if \texttt{M} respects
+    \texttt{implication}.
+  \end{itemize}
+\end{exercise}
+
+\begin{exercise}
+  Given $n \in \NN$, compute a contextual representation of the Tamari lattice on $n$
+  symbols.  Draw the concept lattice of these formal contexts for suitable (\ie not too
+  large) values of $n$.
+
+  \hint Such a contextual representation can be obtained as
+  \begin{equation*}
+    (P, P, \set{ ((i, j), (p, q)) \mid (i,j),(p,q) \in P, i = q \text{ or not }
+      (p \le i \le q \le j) })
+  \end{equation*}
+  where $P = \set{ (a, b) \mid a, b \in \set{ 1, \ldots, n }, a < b }$.
+\end{exercise}
+
+\pagebreak
+
+\begin{exercise}
+  Given $n \in \NN$, compute a contextual representation of the lattice of all
+  permutations on $\set{ 1, \ldots, n }$.
+
+  \hint If $\con K_n$ is such a contextual representation, then it can be obtained by
+  \begin{align*}
+    \con K_0 := \con L_0 & :=
+    \begin{array}{|c|}
+      \hline
+      \times\\
+      \hline
+    \end{array}
+    \\
+    \con L_{n+1} &:=
+    \begin{array}{c|c}
+      \emptyset & \con L_n \\
+      \hline
+      \con L_n & \con L_n
+    \end{array}
+    \\
+    \con K_{n+1} &:=
+    \begin{array}{c|c}
+      \con K_n & \con K_n \\
+      \hline
+      \con K_n & \con L_n
+    \end{array}
+  \end{align*}
+  Contextual apposition and subposition are implemented in \texttt{context-apposition} and
+  \texttt{context-subposition}, respectively.
+\end{exercise}
+
+\begin{exercise}
+  Compute the number of linear extensions of the free distributive lattice on 3
+  generators.
+
+  \hint
+  \begin{itemize}
+  \item A contextual representation of the free distributive lattice on 3 generators can
+    be obtained by
+    \begin{equation*}
+      \def\context{
+        \begin{array}{|c|c|}
+          \hline
+          \phantom{\times} & \times \\\hline
+          ~ & ~\\
+          \hline
+        \end{array}
+      }
+      \context\times\context\times\context
+    \end{equation*}
+    where $\times$ denotes the contextual product, which is implemented in \cclj as
+    \texttt{context-product}.
+  \item Let $\con K$ be the contraordinal scale of an ordered set $(S, \le)$, \ie $\con K
+    = (S, S, {\not\le})$.  The number of linear extensions of $(S, \le)$ is then the value
+    $\mu_{\BV(\con K)}(\emptyset, \emptyset'')$, where
+    \begin{equation*}
+      \mu_{\BV(\con K)}(A, B) :=
+      \begin{cases}
+        1 & \text{if } A = S,\\
+        \sum_{(C,D) \gtrdot (A, B)} \mu_{\BV(\con K)}(C,D) & \text{otherwise}
+      \end{cases}
+    \end{equation*}
+    where $\gtrdot$ denotes the neighborhood relation in $(\BV(\con K), \preceq)$.  Direct
+    upper neighbors can be obtained by means of the function
+    \texttt{direct-upper-concepts}.
+  \end{itemize}
+\end{exercise}
+
+\printbibliography
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% ispell-local-dictionary: "american"
+%%% End: 
