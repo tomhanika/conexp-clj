@@ -13,7 +13,8 @@
         conexp.contrib.gui.util
         conexp.contrib.gui.editors.context-editor.widgets
         conexp.contrib.gui.editors.context-editor.table-control)
-  (:use [clojure.string :only (join)]))
+  (:use [clojure.string :only (join)]
+        [clojure.set :only (map-invert)]))
 
 ;;; Helpers
 
@@ -100,14 +101,20 @@
   "Takes a context object and returns a compatible fca-Context."
   [ctx]
   (let [ctx (get-context ctx),
+
         obj (objects ctx),
         att (attributes ctx),
         inc (incidence ctx),
+
         obj-map (map-to-unique-strings obj),
+        obj-map-i (map-invert obj-map),
         att-map (map-to-unique-strings att),
+        att-map-i (map-invert att-map),
+
         comp-obj (map obj-map obj),
         comp-att (map att-map att),
-        comp-inc (map (fn [x] [(obj-map (first x)) (att-map (second x))]) inc)]
+        comp-inc (fn [g m] (inc [(obj-map-i g) (att-map-i m)]))]
+
     (make-context comp-obj comp-att comp-inc)))
 
 (defn- restore-order
