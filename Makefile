@@ -1,4 +1,4 @@
-VERSION = 1.1.4
+VERSION = $(shell perl -ne '/defproject conexp-clj "(.*)"/ && print $$1' project.clj)
 TIME = $(shell date -u +"%Y%m%d%H%M%S")
 
 FILES = $(shell find src -name "*.clj")
