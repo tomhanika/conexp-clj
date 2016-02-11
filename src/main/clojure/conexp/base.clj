@@ -8,7 +8,8 @@
 
 (ns conexp.base
   "Basic definitions for conexp-clj."
-  (:require [clojure.math.combinatorics :as comb]))
+  (:require [clojure.math.combinatorics :as comb]
+            [clojure.java.io            :as io]))
 
 ;;; def macros, inspired and partially copied from clojure.contrib.def
 
@@ -63,13 +64,6 @@ metadata (as provided by def) merged into the metadata of the original."
   "Quits conexp-clj."
   []
   (System/exit 0))
-
-(defn ^java.net.URL get-resource
-  "Returns the URL of the given the resource res if found, nil otherwise."
-  [res]
-  (let [cl (.getContextClassLoader (Thread/currentThread))]
-    (.getResource cl res)))
-
 
 ;;; Version
 

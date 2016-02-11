@@ -17,8 +17,8 @@
            [java.awt.event MouseEvent]
            [java.io File])
   (:use [conexp.base :only (defmacro-, first-non-nil,
-                            illegal-argument, unsupported-operation,
-                            get-resource)])
+                             illegal-argument, unsupported-operation)])
+  (:require [clojure.java.io :as io])
   (:use seesaw.core
         [seesaw.util :only (root-cause)]))
 
@@ -95,7 +95,7 @@
   "Returns either the image-icon for the given resource or the given
    alternative string."
   [res alt]
-  (let [img (get-resource (str res)),
+  (let [img (io/resource (str "res/" res)),
         ^ImageIcon
         img (and img (ImageIcon. img))]
     (or img alt)))

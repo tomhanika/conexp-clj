@@ -11,7 +11,6 @@
   (:import [java.awt event.WindowEvent])
   (:use [conexp.base :only (illegal-state
                             unsupported-operation
-                            get-resource
                             conexp-version)]
         conexp.contrib.gui.util
         conexp.contrib.gui.plugins
@@ -19,6 +18,7 @@
         [conexp.contrib.gui.editors.contexts :only (context-editor)]
         [conexp.contrib.gui.editors.lattices :only (lattice-editor)]
         [conexp.contrib.gui.editors.code :only (code-editor)])
+  (:require [clojure.java.io :as io])
   (:use seesaw.core))
 
 ;;; Helper Functions
@@ -28,7 +28,7 @@
    (dialog :content (scrollable
                      (editor-pane :content-type "text/html"
                                   :text (slurp
-                                         (get-resource "epl-v10.html"))
+                                         (io/resource "res/epl-v10.html"))
                                   :editable? false
                                   :caret-position 0))
            :size [800 :by 500]
