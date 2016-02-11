@@ -17,7 +17,7 @@
 
 ;; Helpers
 
-(defn- ^double square [^double x]
+(defn- square ^double [^double x]
   (* x x))
 
 (defn- line-length-squared

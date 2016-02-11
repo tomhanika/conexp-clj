@@ -1,5 +1,5 @@
-VERSION := $(shell cat src/main/resources/version)
-TIME    := $(shell date -u +"%Y-%m-%d-%H%M%S")
+VERSION := $(shell perl -ne '/defproject conexp-clj "(.*)"/ && print $$1' project.clj)
+TIME    := $(shell date -u +"%Y%m%d%H%M%S")
 FILES   := $(shell find src -name "*.clj")
 
 all: clean conexp-clj-$(VERSION).zip

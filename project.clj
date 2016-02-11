@@ -8,7 +8,7 @@
 
 ;;;
 
-(defproject conexp-clj #=(slurp "src/main/resources/version")
+(defproject conexp-clj "1.1.5-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/exot/conexp-clj/"
@@ -16,7 +16,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories [["math" {:url "http://www.math.tu-dresden.de/~borch/repos/mvn/"
                           :checksum :ignore}]]
-  :dependencies [[org.clojure/clojure             "1.7.0"]
+  :dependencies [[org.clojure/clojure             "1.8.0"]
                  [org.clojure/tools.cli           "0.3.1"]
                  [org.clojure/math.combinatorics  "0.1.1"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
