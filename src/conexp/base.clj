@@ -59,8 +59,14 @@ metadata (as provided by def) merged into the metadata of the original."
 
 ;;; Version
 
+;; https://stackoverflow.com/questions/11235445/embed-version-string-from-leiningen-project-in-application
 (def- internal-version-string
-  "1.1.5-SNAPSHOT")
+  (or (System/getProperty "conexp-clj.version")
+      (-> (doto (java.util.Properties.)
+            (.load (-> "META-INF/maven/conexp-clj/conexp-clj/pom.properties"
+                       (io/resource)
+                       (io/reader))))
+          (.get "version"))))
 
 (def- conexp-version-map
   (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)(?:-(.+))?"
