@@ -57,14 +57,6 @@ metadata (as provided by def) merged into the metadata of the original."
 (immigrate 'clojure.set
            'clojure.math.numeric-tower)
 
-
-;;; Java stuff
-
-(defn quit
-  "Quits conexp-clj."
-  []
-  (System/exit 0))
-
 ;;; Version
 
 (def- internal-version-string
@@ -170,6 +162,11 @@ metadata (as provided by def) merged into the metadata of the original."
 
 
 ;;; Technical Helpers
+
+(defn quit
+  "Quits conexp-clj."
+  []
+  (System/exit 0))
 
 (defmacro defmacro-                     ; from clojure.core.incubator
   "Same as defmacro but yields a private definition"
