@@ -18,6 +18,7 @@
 ;;
 ;; January 4, 2009: initial version
 
+;; TODO: remove; replace by something else
 
 ;; See function "prxml" at the bottom of this file for documentation.
 

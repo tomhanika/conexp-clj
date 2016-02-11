@@ -8,6 +8,8 @@
 
 ;; Functions to parse xml lazily and emit back to text.
 
+;; TODO: remove; only used in context io
+
 (ns
     #^{:author "Chris Houser",
        :doc "Functions to parse xml lazily and emit back to text."}
