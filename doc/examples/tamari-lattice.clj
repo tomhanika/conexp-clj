@@ -4,8 +4,8 @@
 ;; Computes the Tamari lattice T_n of all bracketings of a set of n+1
 ;; symbols. See GW97, 5.4, example 11.
 
-(in-ns 'user)
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;;;
 

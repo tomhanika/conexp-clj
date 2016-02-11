@@ -20,10 +20,11 @@
 /resources
 /classes
 /pom.xml
-/src/conexp/contrib/java/*.clj
+/src/main/clojure/conexp/contrib/java/Main.clj
 /.lein*
 /.cake*
 /target
 .nrepl-port
 TAGS
 /pom.xml.asc
+/builds

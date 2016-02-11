@@ -6,9 +6,8 @@
 ;; may take a moment) you can use stem-base or explore-attributes to
 ;; explore the context function-context.
 
-(in-ns 'user)
-
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;;; First define some properties of functions (not all defined by Artem)
 

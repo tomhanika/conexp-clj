@@ -29,12 +29,11 @@
                                net.cgrand.parsley]]
                  [net.cgrand/parsley              "0.9.3"
                   :exclusions [org.clojure/clojure]]]
-  :aot [conexp.main
-        conexp.contrib.java
-        conexp.contrib.gui]
+  :aot [conexp.contrib.java]
   :keep-non-project-classes true
-  :global-vars {*warn-on-reflection* false}
-  :test-paths ["tests" "src/test/"]
+  :source-paths ["src/main/clojure" "src/test/clojure"]
+  :test-paths ["src/test/clojure"]
+  :resource-paths ["src/main/resources"]
   :compile-path "lib/classes/"
   :scm {:url "git@github.com:exot/conexp-clj.git"}
   :java-opts ["-Dawt.useSystemAAFontSettings=on"])
