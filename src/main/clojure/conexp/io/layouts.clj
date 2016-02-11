@@ -12,8 +12,7 @@
         conexp.io.util
         conexp.io.latex
         conexp.layouts.util
-        conexp.layouts.base
-        conexp.io.util.layout-svg)
+        conexp.layouts.base)
   (:require clojure.string)
   (:import [java.io PushbackReader]))
 
@@ -164,12 +163,6 @@
 (define-layout-output-format :fca-style
   [layout file]
   (unsupported-operation "Output in :fca-style is not yet supported."))
-
-;;; SVG
-
-(define-layout-output-format :svg
-  [layout file]
-  (svg-layout-to-file layout file))
 
 ;;;
 
