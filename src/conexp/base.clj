@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.base
-  "Basic definitions for conexp-clj.")
+  "Basic definitions for conexp-clj."
+  (:require [clojure.math.combinatorics :as comb]))
 
 ;;; def macros, inspired and partially copied from clojure.contrib.def, 1.3.0-SNAPSHOT
 
@@ -53,13 +54,12 @@ metadata (as provided by def) merged into the metadata of the original."
           (intern *ns* sym))))))
 
 (immigrate 'clojure.set
-           'clojure.core.incubator
            'clojure.math.numeric-tower)
 
 ;;; Version
 
 (def- internal-version-string
-  "1.1.3")
+  "1.1.4")
 
 (def- conexp-version-map
   (let [[_ major minor patch qualifier] (re-find #"(\d+)\.(\d+)\.(\d+)(?:-(.+))?"
@@ -165,6 +165,22 @@ metadata (as provided by def) merged into the metadata of the original."
 
 
 ;;; Technical Helpers
+
+(defmacro defmacro-                     ; from clojure.core.incubator
+  "Same as defmacro but yields a private definition"
+  [name & decls]
+  (list* `defmacro (with-meta name (assoc (meta name) :private true)) decls))
+
+(defn seqable?                          ; from clojure.core.incubator
+  "Returns true if (seq x) will succeed, false otherwise."
+  [x]
+  (or (seq? x)
+      (instance? clojure.lang.Seqable x)
+      (nil? x)
+      (instance? Iterable x)
+      (-> x .getClass .isArray)
+      (string? x)
+      (instance? java.util.Map x)))
 
 (defn proper-subset?
   "Returns true iff set-1 is a proper subset of set-2."
@@ -764,6 +780,11 @@ metadata (as provided by def) merged into the metadata of the original."
    (seqable? thing) (set thing),
    :else            (illegal-argument "Cannot create set from " thing)))
 
+(defn subsets
+  "Returns all subsets of the given base-set."
+  [base-set]
+  (map set (comb/subsets (seq base-set))))
+
 
 ;;; Next Closure
 
@@ -879,11 +900,6 @@ Computes the closures in parallel, to the extent possible."
 
 
 ;;; Common Math Algorithms
-
-(defn subsets
-  "Returns all subsets of set."
-  [set]
-  (all-closed-sets set identity))
 
 (defn transitive-closure
   "Computes transitive closure of a given set of pairs."

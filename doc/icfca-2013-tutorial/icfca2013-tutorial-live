@@ -1,0 +1,309 @@
+-*- org -*-
+
+#+startup: showall
+
+* conexp-clj live presentation
+
+This document has been extracted literally from the online documentation of conexp-clj.
+
+** Creating Formal Contexts
+
+As conexp-clj is a general purpose tool for Formal Concept Analysis, it lets you easily
+work with the basic structure of FCA, namely formal contexts.  This page discusses in
+which ways conexp-clj can work with and on formal contexts.
+
+conexp-clj lets you easily create formal contexts in a number of ways.  We shall describe
+some of them in the following.
+
+*** Using a defined relation
+
+The fasted way to construct a formal context is just by writing it down, as in the
+following example.
+
+    user=> (def ctx-1 (make-context [1 2 3] [1 2 3] <=))
+    #'user/ctx-1
+
+To see the formal context, just evaluate its variable explicitly
+
+    user=> ctx-1
+      |1 2 3 
+    --+------
+    1 |x x x 
+    2 |. x x 
+    3 |. . x 
+
+*** Defining all sets explicitly
+
+This is the ordered set called *Chevron* (in ASCII Art, don't type this into the prompt)
+
+     5   6
+    | \ / |
+    |  4  |
+    2     3
+     \   /
+       1
+
+To obtain a formal context for this, we can use the following command
+
+    user=> (def ctx-2 (make-context #{1 2 3 4 5 6}
+                                    #{1 2 3 4 5 6}
+                                    #{[1 1] [1 2] [1 3] [1 5]
+                                      [1 6] [2 2] [2 5] [3 3]
+                                      [3 6] [4 4] [4 5] [4 6]
+                                      [5 5] [6 6]}))
+    #'user/ctx-2
+    user=> ctx-2
+      |1 2 3 4 5 6 
+    --+------------
+    1 |x x x . x x 
+    2 |. x . . x . 
+    3 |. . x . . x 
+    4 |. . . x x x 
+    5 |. . . . x . 
+    6 |. . . . . x 
+  
+One can enter the cross-table explicitly, using the function `make-context-from-matrix`,
+like this
+
+    user=> (def ctx-3 (make-context-from-matrix 6 6
+                                                [1 1 1 0 1 1
+                                                 0 1 0 0 1 0
+                                                 0 0 1 0 0 1
+                                                 0 0 0 1 1 1
+                                                 0 0 0 0 1 0
+                                                 0 0 0 0 0 1]))
+    #'user/ctx-3
+
+Here, instead of writing out the sets of objects and attributes explicitly, we have just
+entered their cardinality `6`.  With this, the set of objects and attributes automatically
+gets set to `#{1 2 3 4 5 6}`.  From time to time, this make save some typing time.
+
+*** Creating Random Contexts
+
+For some experiments it is often helpful to randomly create contexts.  Here is how this
+can be done in conexp-clj.  Of course, the exact result is probably not the one you see
+here
+
+    user=> (rand-context #{1 2 3} 0.5)
+      |1 2 3 
+    --+------
+    1 |. . x 
+    2 |x x x 
+    3 |x x . 
+
+Here, the first parameter is the set of objects and attributes and the second parameter is
+the probality for the incidence.
+
+** More Functionality
+
+*** Working with Formal Contexts
+
+Having created a formal context, there a plenty of possibilities to work with it.  To
+illustrate this, let us define the Chevron again
+
+    user=> (def ctx-1 (make-context-from-matrix ['a 'b 'c 'd 'e 'f]
+                                                ['a 'b 'c 'd 'e 'f]
+                                                [1 1 1 0 1 1
+                                                 0 1 0 0 1 0 
+                                                 0 0 1 0 0 1
+                                                 0 0 0 1 1 1
+                                                 0 0 0 0 1 0
+                                                 0 0 0 0 0 1]))
+    #'user/ctx-1
+
+Note that `'a` denotes the symbol named a.
+
+*** Basic Accessors
+
+The most basic operation on formal contexts is to retrieve its components.  This can be
+done as follows
+
+    user=> (objects ctx-1)
+    #{a c b f d e}
+    user=> (attributes ctx-1)
+    #{a c b f d e}
+    user=> (incidence ctx-1)
+    #{[a a] [c c] [b b] [f f] [d d] [e e] [d e] [a c] [c f] [a b] [a f] [b e] [a e] [d f]}
+
+*** Clarifying and Reducing Contexts
+
+To see if `ctx-1` is clarified, you can also use
+
+    user=> (object-clarified? ctx-1)
+    true
+    user=> (attribute-clarified? ctx-1)
+    true
+
+or both steps at once using
+
+    user=> (context-clarified? ctx-1)
+    true
+
+If `ctx-1` would not be clarified, one could obtain a clarified version of `ctx-1` by using
+
+    (clarify-attributes ctx-1)
+    (clarify-objects ctx-1)
+    (clarify-context ctx-1)
+
+As another example, for `ctx-1`, we could for instance compute the arrow relations
+(e.g. to see which objects or attributes are irreducible)
+
+    user=> (up-arrows ctx-1)
+    #{[b f] [f e] [c e] [a d] [e b] [d c] [d b] [e f] [f c]}
+    user=> (down-arrows ctx-1)
+    #{[b c] [c b] [b f] [c e] [a d] [d a] [d c] [d b] [b a] [c a]}
+
+To directly see whether `ctx-1` is reduced, one could also use
+
+    user=> (context-reduced? ctx-1)
+    false
+
+and to obtain a reduced version of `ctx-1`
+
+    user=> (reduce-context ctx-1)
+      |b c d e f 
+    --+----------
+    a |x x . x x 
+    b |x . . x . 
+    c |. x . . x 
+    d |. . x x x 
+
+*** Derivation Operations
+
+Now I want to get all objects, which attribute a and b have in common
+
+    user=> (attribute-derivation ctx-1 #{'a 'b})
+    #{a}
+
+The same can be done for sets of objects
+
+    user=> (object-derivation ctx-1 #{'c 'd 'f})
+    #{f}
+
+Instead of using this long names, there are also the abbreviations `aprime` and `oprime`
+available.
+
+If you want to compute the closure of a given set of objects or attributes in our context
+use
+
+    user=> (context-attribute-closure ctx-1 #{'a 'b})
+    #{a c b f e}
+    user=> (context-object-closure ctx-1 #{'a 'b})
+    #{a b}
+
+*** Formal Concepts and Concept Lattices
+
+We can compute all intents and extents via
+
+    user=> (extents ctx-1)
+    (#{} #{d} #{a} #{a d} #{a b} #{a b d e} #{a c} #{a c f d} #{a c b f d e})
+    user=> (intents ctx-1)
+    (#{} #{e} #{f} #{f e} #{f d e} #{b e} #{c f} #{a c b f e} #{a c b f d e})
+  
+To get all formal concepts use
+
+    user=> (concepts ctx-1)
+    ([#{a c b f d e} #{}] [#{a} #{a c b f e}] [#{} #{a c b f d e}]
+     [#{a c} #{c f}] [#{a b} #{b e}] [#{a c f d} #{f}] [#{d} #{f d e}]
+     [#{a d} #{f e}] [#{a b d e} #{e}])
+
+If you are only interested in the number of formal concepts, you can instead write
+
+    user=> (count (concepts ctx-1))
+    9
+
+Finally, you can compute the concept lattice via
+
+    user=> (concept-lattice ctx-1)
+    Lattice on 9 elements
+
+Note that this will not give you a picture of the lattice, but a representation of the
+algebraic structure.  To get an picture of the lattice, do the following
+
+    user=> (use 'conexp.contrib.draw)
+    nil
+    user=> (draw-lattice (concept-lattice ctx-1))
+    {:frame …}
+
+This will open up a new window which should look like this
+
+![Sample screenshot of the lattice drawer](https://raw.github.com/wiki/exot/conexp-clj/cevron-concept-lattice.png)
+
+*** Canonical Base
+
+You get the canonical base with (who would have guessed that!)
+
+    user=> (canonical-base ctx-1)
+    #{(#{b}  ==>  #{e}) (#{c}  ==>  #{f}) (#{c f e}  ==>  #{a b})
+      (#{a}  ==>  #{c b f e}) (#{d}  ==>  #{f e}) (#{b f e}  ==>  #{a c})}
+
+*** Further Operations
+
+There a several further operations you can do with contexts, e.g. the context
+apposition. We define two contexts:
+
+    user=> (def ctx-1 (make-context #{1 2 3} #{1 2 3} <))
+    #'user/ctx-1
+    user=> (def ctx-2 (make-context-from-matrix [1 2 3]
+                                                ['a 'b 'c 'd]
+                                                [1 1 0 1
+                                                 1 0 1 0
+                                                 0 0 1 1]))
+    #'user/ctx-2
+    user=> ctx-1
+      |1 2 3 
+    --+------
+    1 |. x x 
+    2 |. . x 
+    3 |. . . 
+
+    user=> ctx-2
+      |a b c d 
+    --+--------
+    1 |x x . x 
+    2 |x . x . 
+    3 |. . x x 
+
+The apposition of these two contexts is
+
+    user=> (context-apposition ctx-1 ctx-2)
+      |[1 0] [2 0] [3 0] [a 1] [b 1] [c 1] [d 1] 
+    --+------------------------------------------
+    1 |.     x     x     x     x     .     x     
+    2 |.     .     x     x     .     x     .     
+    3 |.     .     .     .     .     x     x     
+
+Note how the two sets of attributes are automatically made disjoint by considering pairs
+with different second entry.
+
+To compute the dual context, we use
+
+    user=> (dual-context ctx-2)
+      |1 2 3 
+    --+------
+    a |x x . 
+    b |x . . 
+    c |. x x 
+    d |x . x 
+
+Now we can build the subposition of ctx-1 and the dual of ctx-2
+
+    user=> (context-subposition ctx-1 (dual-context ctx-2))
+          |1 2 3 
+    ------+------
+    [1 0] |. x x 
+    [2 0] |. . x 
+    [3 0] |. . . 
+    [a 1] |x x . 
+    [b 1] |x . . 
+    [c 1] |. x x 
+    [d 1] |x . x 
+
+If you want to invert a given context use
+
+    user=> (invert-context ctx-1)
+      |1 2 3 
+    --+------
+    1 |x . . 
+    2 |x x . 
+    3 |x x x 

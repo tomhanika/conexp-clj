@@ -158,7 +158,7 @@
         obj          (objects ctx),
         inc          (incidence ctx),
         get-cross    (fn [obj att]
-                       (if (contains? inc [obj att]) "X" ""))
+                       (if (inc [obj att]) "X" ""))
         table        (get-table editor),
         current-ectx (get-ectx editor)]
     (dosync
@@ -226,7 +226,7 @@
                           attr-name (@(:attr-cols ectx) column),
                           fca-ctx   (get-context ectx),
                           inc       (incidence fca-ctx),
-                          cross     (contains? inc [obj-name attr-name])]
+                          cross     (inc [obj-name attr-name])]
                       (if cross "X" ""))))
 
 (defn- ectx-set-cell-value
@@ -248,7 +248,7 @@
                           attr-name     (@(:attr-cols ectx) column),
                           fca-ctx       (get-context ectx),
                           inc           (incidence fca-ctx),
-                          current-state (contains? inc [obj-name attr-name])]
+                          current-state (inc [obj-name attr-name])]
                       (when (not= current-state cross)
                         (change-incidence-cross ectx obj-name attr-name cross))
                       (if cross "X" ""))))

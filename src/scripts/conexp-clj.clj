@@ -7,8 +7,6 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (use 'clojure.tools.cli)
-(require 'conexp.contrib.gui)
-(require 'conexp.contrib.gui.repl-utils)
 (require '[reply.main :as reply])
 
 ;;
@@ -23,13 +21,17 @@
     (println doc)
     ;;
     (contains? options :gui)
-    (binding [conexp.contrib.gui.repl-utils/*main-frame*
-              (conexp.contrib.gui/gui :default-close-operation :exit)]
-      (reply/launch-standalone
-       {:custom-eval '(do
-                        (use 'conexp.main)
-                        (use 'clojure.repl)
-                        (require '[conexp.contrib.gui.repl-utils :as gui]))}))
+    (reply/launch
+     {:custom-eval '(do
+                      (use 'conexp.main)
+                      (use 'clojure.repl)
+                      (require '[conexp.contrib.gui.repl-utils :as gui])
+                      (require 'conexp.contrib.gui)
+                      (alter-var-root
+                       (var gui/*main-frame*)
+                       (fn [_]
+                         (conexp.contrib.gui/gui
+                          :default-close-operation :exit))))})
     ;;
     (contains? options :load)
     (do (when (not (options :load))
@@ -39,7 +41,7 @@
         (load-file (options :load)))
     ;;
     true
-    (do (reply/launch-standalone
+    (do (reply/launch
          {:custom-eval '(do (use 'conexp.main) (use 'clojure.repl))}))))
 
 (System/exit 0)

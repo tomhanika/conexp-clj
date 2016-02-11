@@ -8,7 +8,7 @@
 
 (ns conexp.contrib.draw.nodes-and-connections
   "Namespace for representing nodes and their connections for drawing lattice diagrams."
-  (:use [conexp.base :only (round, union, difference, -?>, def-)]
+  (:use [conexp.base :only (round, union, difference, def-)]
         conexp.contrib.draw.scenes)
   (:import [java.awt Color]
            [no.geosoft.cc.graphics GWindow GScene GObject GSegment
@@ -138,10 +138,10 @@
         ^GSegment lower-segment (GSegment.),
         object (proxy [GObject] []
                  (draw []
-                   (let [upper-style (if (= 1 (-?> this upper-neighbors count))
+                   (let [upper-style (if (= 1 (some-> this upper-neighbors count))
                                        default-attribute-concept-style
                                        nil),
-                         lower-style (if (= 1 (-?> this lower-neighbors count))
+                         lower-style (if (= 1 (some-> this lower-neighbors count))
                                        default-object-concept-style
                                        nil),
                          [x y] (position this),

@@ -96,7 +96,7 @@
       (catch Exception e
         (if (identical? e abortion-sentinal)
           :abort
-          (throw))))))
+          (throw e))))))
 
 (defn counterexamples-via-repl
   "Starts a repl for counterexamples, which must be specified completely."
