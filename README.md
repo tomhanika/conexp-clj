@@ -60,7 +60,7 @@ instead.
 
 The current main source of documentation on conexp-clj is its
 [Wiki](http://github.com/exot/conexp-clj/wiki).  Additionally, for general help on a
-function f, you can use the clojure function `doc` with
+function `f`, you can use the clojure function `doc` with
 
 ~~~
 (doc f)
@@ -103,7 +103,7 @@ Additional Documentation:
  * [Tamari Lattice](https://github.com/exot/conexp-clj/blob/master/doc/examples/tamari-lattice.clj),
    the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
 
-- A [Tutorial](http://www.math.tu-dresden.de/~borch/conexp-clj/icfca2013-tutorial), given
+- A [Tutorial](https://github.com/exot/conexp-clj/blob/master/doc/icfca-2013-tutorial/icfca2013-tutorial-talk.pdf), given
   at the 11th International Conference on Formal Concept Analysis
 
 
