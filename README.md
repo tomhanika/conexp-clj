@@ -103,7 +103,7 @@ Additional Documentation:
  * [Tamari Lattice](https://github.com/exot/conexp-clj/blob/master/doc/examples/tamari-lattice.clj),
    the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
 
-- A [Tutorial](https://github.com/exot/conexp-clj/blob/master/doc/icfca-2013-tutorial/icfca2013-tutorial-talk.pdf), given
+- A [Tutorial](doc/icfca-2013-tutorial), given
   at the 11th International Conference on Formal Concept Analysis
 
 
