@@ -213,7 +213,7 @@
              (fn [x]
                (let [as (attributes x),
                      os (objects x),
-                     ir (incidence x)]
+                     ir (incidence-relation x)]
                  (if cross
                    (make-context os as (conj ir [ostr astr]))
                    (make-context os as (disj ir [ostr astr])))))))
