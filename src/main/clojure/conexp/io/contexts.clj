@@ -198,12 +198,12 @@
         attributes (vector :Attributes
                            (map (fn [[att id]]
                                   [:Attribute {:Identifier id}
-                                   [:raw! (str "\n          <Name>" att "</Name>")]])
+                                   [:Name att]])
                                 ctx-atts))
         objects (vector :Objects
                         (for [obj ctx-objs]
                           [:Object
-                           [:raw! (str "\n          <Name>" obj "</Name>")]
+                           [:Name obj]
                            (vector :Intent
                                    (for [att (object-derivation ctx #{obj})]
                                      [:HasAttribute {:AttributeIdentifier (ctx-atts att)}]))]))]
@@ -213,11 +213,11 @@
 
 (define-context-output-format :conexp
   [ctx file]
-  (with-out-writer file
-    (prxml [:decl! {:version "1.0"}])
-    (prxml [:ConceptualSystem
-            [:Version {:MajorNumber "1", :MinorNumber "0"}]
-            [:Contexts (ctx->xml-vector ctx 0)]])))
+  (with-open [outfile (clojure.java.io/writer file)]
+    (xml/emit (xml/sexp-as-element [:ConceptualSystem
+                                    [:Version {:MajorNumber "1", :MinorNumber "0"}]
+                                    [:Contexts (ctx->xml-vector ctx 0)]])
+              outfile)))
 
 
 ;; Galicia (.bin.xml)
