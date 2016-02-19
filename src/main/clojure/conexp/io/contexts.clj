@@ -238,18 +238,18 @@
         atts-vector (sort #(< (atts %1) (atts %2)) (attributes ctx))
         objs-vector (sort #(< (objs %1) (objs %2)) (objects ctx))]
     (with-out-writer file
-      (prxml [:decl! {:vecsion "1.0"}])
-      (prxml [:Galicia_Document
-              [:BinaryContext {:numberObj (str (count objs-vector)),
-                               :numberAtt (str (count atts-vector))}
-               [:Name "conexp-clj generated context"]
-               (for [obj objs-vector]
-                 [:raw! (str "\n    <Object>" obj "</Object>")])
-               (for [att atts-vector]
-                 [:raw! (str "\n    <Attribute>" att "</Attribute>")])
-               (for [[g m] (incidence-relation ctx)]
-                 [:BinRel {:idxO (str (objs g)),
-                           :idxA (str (atts m))}])]]))))
+      (xml/emit (xml/sexp-as-element [:Galicia_Document
+                                      [:BinaryContext {:numberObj (str (count objs-vector)),
+                                                       :numberAtt (str (count atts-vector))}
+                                       [:Name "conexp-clj generated context"]
+                                       (for [obj objs-vector]
+                                         [:Object obj])
+                                       (for [att atts-vector]
+                                         [:Attribute att])
+                                       (for [[g m] (incidence-relation ctx)]
+                                         [:BinRel {:idxO (str (objs g)),
+                                                   :idxA (str (atts m))}])]])
+                *out*))))
 
 (define-context-input-format :galicia
   [file]
