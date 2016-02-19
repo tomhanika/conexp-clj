@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.contexts
-  (:use [conexp.util.xml :only (prxml)]
-        conexp.base
+  (:use conexp.base
         conexp.fca.contexts
         conexp.io.util
         conexp.io.latex)
