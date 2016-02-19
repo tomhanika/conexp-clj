@@ -7,13 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.contexts
-  (:use conexp.util.xml
-        conexp.base
-        conexp.fca.contexts
-        conexp.io.util
-        conexp.io.latex)
-  (:use [conexp.util.lazy-xml :exclude (attributes)]
-        [clojure.string :only (split)])
+  (:require [conexp.base         :refer :all]
+            [conexp.fca.contexts :refer :all]
+            [conexp.io.util      :refer :all]
+            [conexp.io.latex     :refer :all]
+            [clojure.string      :refer (split)]
+            [clojure.data.xml    :as xml])
   (:import [java.io PushbackReader]))
 
 
@@ -157,13 +156,13 @@
 (add-context-input-format :conexp
                           (fn [rdr]
                             (try
-                             (= :ConceptualSystem (-> (parse-seq rdr) first :name))
+                             (= :ConceptualSystem (-> (xml/parse rdr) :tag))
                              (catch Exception _))))
 
 (define-context-input-format :conexp
   [file]
   (with-in-reader file
-    (let [xml-tree (parse-trim *in*)
+    (let [xml-tree (xml/parse *in*)
           contexts (:content (first (find-tags (:content xml-tree) :Contexts)))]
       (cond
         (= 0 (count contexts))
@@ -198,12 +197,12 @@
         attributes (vector :Attributes
                            (map (fn [[att id]]
                                   [:Attribute {:Identifier id}
-                                   [:raw! (str "\n          <Name>" att "</Name>")]])
+                                   [:Name att]])
                                 ctx-atts))
         objects (vector :Objects
                         (for [obj ctx-objs]
                           [:Object
-                           [:raw! (str "\n          <Name>" obj "</Name>")]
+                           [:Name obj]
                            (vector :Intent
                                    (for [att (object-derivation ctx #{obj})]
                                      [:HasAttribute {:AttributeIdentifier (ctx-atts att)}]))]))]
@@ -213,12 +212,11 @@
 
 (define-context-output-format :conexp
   [ctx file]
-  (binding [*prxml-indent* 2]
-    (with-out-writer file
-      (prxml [:decl! {:version "1.0"}])
-      (prxml [:ConceptualSystem
-              [:Version {:MajorNumber "1", :MinorNumber "0"}]
-              [:Contexts (ctx->xml-vector ctx 0)]]))))
+  (with-out-writer file
+    (xml/emit (xml/sexp-as-element [:ConceptualSystem
+                                    [:Version {:MajorNumber "1", :MinorNumber "0"}]
+                                    [:Contexts (ctx->xml-vector ctx 0)]])
+              *out*)))
 
 
 ;; Galicia (.bin.xml)
@@ -226,9 +224,9 @@
 (add-context-input-format :galicia
                           (fn [rdr]
                             (try
-                             (let [xml-tree (parse-seq rdr)]
-                               (and (= :Galicia_Document (-> xml-tree first :name))
-                                    (= :BinaryContext (-> xml-tree second :name))))
+                             (let [xml-tree (xml/parse rdr)]
+                               (and (= :Galicia_Document (-> xml-tree :tag))
+                                    (= :BinaryContext (-> xml-tree :content first :tag))))
                              (catch Exception _))))
 
 (define-context-output-format :galicia
@@ -238,25 +236,24 @@
 
         atts-vector (sort #(< (atts %1) (atts %2)) (attributes ctx))
         objs-vector (sort #(< (objs %1) (objs %2)) (objects ctx))]
-    (binding [*prxml-indent* 2]
-      (with-out-writer file
-        (prxml [:decl! {:vecsion "1.0"}])
-        (prxml [:Galicia_Document
-                [:BinaryContext {:numberObj (str (count objs-vector)),
-                                 :numberAtt (str (count atts-vector))}
-                 [:Name "conexp-clj generated context"]
-                 (for [obj objs-vector]
-                   [:raw! (str "\n    <Object>" obj "</Object>")])
-                 (for [att atts-vector]
-                   [:raw! (str "\n    <Attribute>" att "</Attribute>")])
-                 (for [[g m] (incidence-relation ctx)]
-                   [:BinRel {:idxO (str (objs g)),
-                             :idxA (str (atts m))}])]])))))
+    (with-out-writer file
+      (xml/emit (xml/sexp-as-element [:Galicia_Document
+                                      [:BinaryContext {:numberObj (str (count objs-vector)),
+                                                       :numberAtt (str (count atts-vector))}
+                                       [:Name "conexp-clj generated context"]
+                                       (for [obj objs-vector]
+                                         [:Object obj])
+                                       (for [att atts-vector]
+                                         [:Attribute att])
+                                       (for [[g m] (incidence-relation ctx)]
+                                         [:BinRel {:idxO (str (objs g)),
+                                                   :idxA (str (atts m))}])]])
+                *out*))))
 
 (define-context-input-format :galicia
   [file]
   (with-in-reader file
-    (let [ctx-xml-tree (-> (parse-trim *in*) :content first)
+    (let [ctx-xml-tree (-> (xml/parse *in*) :content first)
 
           nr-objs (Integer/parseInt (-> ctx-xml-tree :attrs :numberObj))
           nr-atts (Integer/parseInt (-> ctx-xml-tree :attrs :numberAtt))

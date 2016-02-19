@@ -28,7 +28,8 @@
                   :exclusions [org.clojure/clojure
                                net.cgrand.parsley]]
                  [net.cgrand/parsley              "0.9.3"
-                  :exclusions [org.clojure/clojure]]]
+                  :exclusions [org.clojure/clojure]]
+                 [org.clojure/data.xml            "0.0.8"]]
   :aot [conexp.contrib.java]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
