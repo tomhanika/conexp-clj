@@ -212,11 +212,11 @@
 
 (define-context-output-format :conexp
   [ctx file]
-  (with-open [outfile (clojure.java.io/writer file)]
+  (with-out-writer file
     (xml/emit (xml/sexp-as-element [:ConceptualSystem
                                     [:Version {:MajorNumber "1", :MinorNumber "0"}]
                                     [:Contexts (ctx->xml-vector ctx 0)]])
-              outfile)))
+              *out*)))
 
 
 ;; Galicia (.bin.xml)
