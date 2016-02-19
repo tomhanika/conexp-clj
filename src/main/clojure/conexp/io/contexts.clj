@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.contexts
-  (:use conexp.util.xml
+  (:use [conexp.util.xml :only (prxml)]
         conexp.base
         conexp.fca.contexts
         conexp.io.util
@@ -213,12 +213,11 @@
 
 (define-context-output-format :conexp
   [ctx file]
-  (binding [*prxml-indent* 2]
-    (with-out-writer file
-      (prxml [:decl! {:version "1.0"}])
-      (prxml [:ConceptualSystem
-              [:Version {:MajorNumber "1", :MinorNumber "0"}]
-              [:Contexts (ctx->xml-vector ctx 0)]]))))
+  (with-out-writer file
+    (prxml [:decl! {:version "1.0"}])
+    (prxml [:ConceptualSystem
+            [:Version {:MajorNumber "1", :MinorNumber "0"}]
+            [:Contexts (ctx->xml-vector ctx 0)]])))
 
 
 ;; Galicia (.bin.xml)
@@ -238,20 +237,19 @@
 
         atts-vector (sort #(< (atts %1) (atts %2)) (attributes ctx))
         objs-vector (sort #(< (objs %1) (objs %2)) (objects ctx))]
-    (binding [*prxml-indent* 2]
-      (with-out-writer file
-        (prxml [:decl! {:vecsion "1.0"}])
-        (prxml [:Galicia_Document
-                [:BinaryContext {:numberObj (str (count objs-vector)),
-                                 :numberAtt (str (count atts-vector))}
-                 [:Name "conexp-clj generated context"]
-                 (for [obj objs-vector]
-                   [:raw! (str "\n    <Object>" obj "</Object>")])
-                 (for [att atts-vector]
-                   [:raw! (str "\n    <Attribute>" att "</Attribute>")])
-                 (for [[g m] (incidence-relation ctx)]
-                   [:BinRel {:idxO (str (objs g)),
-                             :idxA (str (atts m))}])]])))))
+    (with-out-writer file
+      (prxml [:decl! {:vecsion "1.0"}])
+      (prxml [:Galicia_Document
+              [:BinaryContext {:numberObj (str (count objs-vector)),
+                               :numberAtt (str (count atts-vector))}
+               [:Name "conexp-clj generated context"]
+               (for [obj objs-vector]
+                 [:raw! (str "\n    <Object>" obj "</Object>")])
+               (for [att atts-vector]
+                 [:raw! (str "\n    <Attribute>" att "</Attribute>")])
+               (for [[g m] (incidence-relation ctx)]
+                 [:BinRel {:idxO (str (objs g)),
+                           :idxA (str (atts m))}])]]))))
 
 (define-context-input-format :galicia
   [file]
