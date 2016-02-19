@@ -249,7 +249,7 @@
                                       new-name),
                              os (objects x)
                              ir (map (fn [x] [(first x)(amap (second x))])
-                                     (incidence x))]
+                                     (incidence-relation x))]
                          (make-context os as ir))))
               (alter (:attr-cols ectx) switch-bipartit-auto
                      given current-name given new-name)
@@ -283,7 +283,7 @@
                                       new-name),
                              as (attributes x)
                              ir (map (fn [x] [(omap (first x))(second x)])
-                                     (incidence x))]
+                                     (incidence-relation x))]
                          (make-context os as ir))))
               (alter (:obj-rows ectx) switch-bipartit-auto
                      given current-name given new-name)

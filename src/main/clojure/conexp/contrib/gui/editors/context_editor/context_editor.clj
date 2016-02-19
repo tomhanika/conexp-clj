@@ -59,52 +59,52 @@
   (make-context (objects ctx)
                 (conj (attributes ctx)
                       (req-unique-string (attributes ctx) "new attribute"))
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 (defn-context-changer add-new-object
   "Adds a new object."
   (make-context (conj (objects ctx)
                       (req-unique-string (objects ctx) "new object"))
                 (attributes ctx)
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 (defn-context-changer keep-attributes
   "Cut out all but the given attributes from the context."
   (make-context (objects ctx)
                 (intersection (set selected-atts) (attributes ctx))
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 (defn-context-changer keep-objects
   "Cut out all but the given objects from the context."
   (make-context (intersection (set selected-objs) (objects ctx))
                 (attributes ctx)
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 (defn-context-changer keep-objects-attributes
   "Cut out the given objects and attributes from the context."
   (make-context (intersection (set selected-objs) (objects ctx))
                 (intersection (set selected-atts) (attributes ctx))
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 (defn-context-changer cut-attributes
   "Cut out the given attributes from the context."
   (make-context (objects ctx)
                 (remove (set selected-atts)
                         (attributes ctx))
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 (defn-context-changer cut-objects
   "Cut out the given objects from the context."
   (make-context (remove (set selected-objs)
                         (objects ctx))
                 (attributes ctx)
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 (defn-context-changer cut-objects-attributes
   "Cut out the given objects and attributes from the context"
   (make-context (remove (set selected-objs) (objects ctx))
                 (remove (set selected-atts) (attributes ctx))
-                (incidence ctx)))
+                (incidence-relation ctx)))
 
 ;;; Helper for filling with X's
 
