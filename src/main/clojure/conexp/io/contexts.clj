@@ -12,8 +12,8 @@
         conexp.fca.contexts
         conexp.io.util
         conexp.io.latex)
-  (:use [conexp.util.lazy-xml :exclude (attributes)]
-        [clojure.string :only (split)])
+  (:use [clojure.string :only (split)])
+  (:require [clojure.data.xml :as xml])
   (:import [java.io PushbackReader]))
 
 
@@ -157,13 +157,13 @@
 (add-context-input-format :conexp
                           (fn [rdr]
                             (try
-                             (= :ConceptualSystem (-> (parse-seq rdr) first :name))
+                             (= :ConceptualSystem (-> (xml/parse rdr) :tag))
                              (catch Exception _))))
 
 (define-context-input-format :conexp
   [file]
   (with-in-reader file
-    (let [xml-tree (parse-trim *in*)
+    (let [xml-tree (xml/parse *in*)
           contexts (:content (first (find-tags (:content xml-tree) :Contexts)))]
       (cond
         (= 0 (count contexts))
@@ -226,9 +226,9 @@
 (add-context-input-format :galicia
                           (fn [rdr]
                             (try
-                             (let [xml-tree (parse-seq rdr)]
-                               (and (= :Galicia_Document (-> xml-tree first :name))
-                                    (= :BinaryContext (-> xml-tree second :name))))
+                             (let [xml-tree (xml/parse rdr)]
+                               (and (= :Galicia_Document (-> xml-tree :tag))
+                                    (= :BinaryContext (-> xml-tree :content first :tag))))
                              (catch Exception _))))
 
 (define-context-output-format :galicia
@@ -256,7 +256,7 @@
 (define-context-input-format :galicia
   [file]
   (with-in-reader file
-    (let [ctx-xml-tree (-> (parse-trim *in*) :content first)
+    (let [ctx-xml-tree (-> (xml/parse *in*) :content first)
 
           nr-objs (Integer/parseInt (-> ctx-xml-tree :attrs :numberObj))
           nr-atts (Integer/parseInt (-> ctx-xml-tree :attrs :numberAtt))
