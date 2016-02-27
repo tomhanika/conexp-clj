@@ -165,7 +165,17 @@
       inz
       (set-of [g m] [g (objects ctx)
                      m (attributes ctx)
-                     :when ((incidence ctx) [g m])]))))
+                     :when (inz [g m])]))))
+
+(defn incidence-function
+  "Returns the incidence function of a given context, i.e., a function of two
+  arguments `g' and `m' that returns true if `g' is incident with `m', and false
+  otherwise."
+  [ctx]
+  (let [inz (incidence ctx)]
+    (if (set? inz)
+      (fn [g m] (contains? inz [g m]))
+      (fn [g m] (inz [g m])))))
 
 (defn context-size
   "Returns tuple of number of objects, number of attributes, and fill rate."
