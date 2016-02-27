@@ -14,10 +14,13 @@
 ;;;
 
 (defprotocol Context
-  (objects [ctx]    "Returns the objects of a context.")
-  (attributes [ctx] "Returns the attributes of a context.")
-  (incidence [ctx] "Returns a function that, given a pair [a b], returns true if and only
-  if a and b are incident in the context ctx."))
+  (objects [ctx]
+    "Returns the objects of a context.")
+  (attributes [ctx]
+    "Returns the attributes of a context.")
+  (incidence [ctx]
+    "Returns a function that, given a pair [a b], returns true if and only if a
+  and b are incident in the context ctx."))
 
 (deftype Formal-Context [objects attributes incidence]
   Object
@@ -154,8 +157,8 @@
   ((incidence ctx) [g m]))
 
 (defn incidence-relation
-  "Returns the incidence-relation of the given context, as a set of pairs of objects and
-  attributes."
+  "Returns the incidence-relation of the given context, as a set of pairs of
+  objects and attributes."
   [ctx]
   (let [inz (incidence ctx)]
     (if (set? inz)
