@@ -16,6 +16,7 @@
                                             incidence, attribute-derivation,
                                             context-attribute-closure)])
 (require '[conexp.contrib.algorithms.close-by-one :as cbo])
+(require '[clojure.core.async :refer (thread >!! <!! chan close!)])
 (import '[java.util BitSet List ArrayList])
 (import '[java.util.concurrent SynchronousQueue])
 
@@ -88,9 +89,9 @@
           (.set D j false))))
     [C, D]))
 
-(defg vychodil-generate-from
-  [object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
-  (yield [A, B])
+(defn vychodil-generate-from
+  [output, object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
+  (>!! output [A, B])
   (when (and (not (== attribute-count (.cardinality B)))
              (< (int y) (int attribute-count)))
     (doseq [j (range (int y) (int attribute-count))
@@ -104,7 +105,8 @@
                            (not= (.get D k) (.get B k)) true,
                            :else (recur (inc k))))]
             :when (not skip)]
-      (vychodil-generate-from object-count attribute-count,
+      (vychodil-generate-from output
+                              object-count attribute-count,
                               incidence-matrix rows,
                               C D (inc j)))))
 
@@ -128,17 +130,22 @@
           empty-down-up (bitwise-object-derivation incidence-matrix
                                                    object-count
                                                    attribute-count
-                                                   empty-down)]
+                                                   empty-down)
+          output        (chan)]
+      (thread (vychodil-generate-from output
+                                      object-count
+                                      attribute-count
+                                      incidence-matrix
+                                      rows
+                                      empty-down
+                                      empty-down-up
+                                      0)
+              (close! output))
       (map (fn [pair]
              [(to-hashset object-vector (first pair))
               (to-hashset attribute-vector (second pair))])
-           (generate (vychodil-generate-from object-count
-                                             attribute-count
-                                             incidence-matrix
-                                             rows
-                                             empty-down
-                                             empty-down-up
-                                             0))))))
+           (take-while (comp not nil?)
+                       (repeatedly #(<!! output)))))))
 
 
 ;;; In-Close (:in-close)
