@@ -9,7 +9,6 @@
 (in-ns 'conexp.contrib.algorithms)
 
 (use '[conexp.base :only (illegal-argument, improve-basic-order)]
-     'conexp.contrib.algorithms.generators
      'conexp.contrib.algorithms.bitwise
      '[conexp.contrib.algorithms.next-closure :only (next-closed-set bitwise-context-attribute-closure)])
 (use '[conexp.fca.contexts :only (context?, objects, attributes,
