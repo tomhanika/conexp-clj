@@ -10,7 +10,7 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.io.contexts
-        conexp.tests.io.util)
+        conexp.io.util-test)
   (:use clojure.test))
 
 ;;;

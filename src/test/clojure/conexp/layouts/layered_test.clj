@@ -12,7 +12,7 @@
         conexp.layouts.base
         conexp.layouts.util
         conexp.layouts.layered
-        conexp.tests.layouts.util)
+        conexp.layouts.util-test)
   (:use clojure.test))
 
 ;;;

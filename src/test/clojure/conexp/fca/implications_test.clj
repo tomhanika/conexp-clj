@@ -11,7 +11,7 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications)
-  (:require [conexp.tests.fca.contexts :as contexts]))
+  (:require [conexp.fca.contexts-test :as contexts]))
 
 ;;;
 

@@ -11,8 +11,8 @@
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.misc
-        conexp.tests.fca.contexts)
-  (:require [conexp.tests.fca.implications :as impls])
+        conexp.fca.contexts-test)
+  (:require [conexp.fca.implications-test :as impls])
   (:use clojure.test))
 
 ;;; Subcontexts

@@ -12,7 +12,7 @@
         conexp.fca.lattices
         conexp.layouts
         conexp.io.layouts
-        conexp.tests.io.util)
+        conexp.io.util-test)
   (:use clojure.test))
 
 ;;;
