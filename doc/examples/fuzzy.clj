@@ -4,10 +4,10 @@
 ;; This file shows some examples how to use conexp-clj for (very
 ;; limited) Fuzzy-FCA.
 
-(in-ns 'user)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
-(use 'conexp.main
-     'conexp.contrib.fuzzy.sets
+(use 'conexp.contrib.fuzzy.sets
      'conexp.contrib.fuzzy.logics
      'conexp.contrib.fuzzy.fca)
 

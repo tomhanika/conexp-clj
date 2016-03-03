@@ -6,8 +6,8 @@
 ;; isomorphic to the lattice of all permutations on a set {1,...,n}.
 ;; For this see Ganter-Wille, 1.4, Example 12.
 
-(in-ns 'user)
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;;; Context computation
 

@@ -4,10 +4,10 @@
 ;; This file shows how to use conexp-clj to factorize context (formal
 ;; and fuzzy ones)
 
-(in-ns 'user)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
-(use 'conexp.main
-     'conexp.contrib.factor-analysis
+(use 'conexp.contrib.factor-analysis
      'conexp.contrib.fuzzy.logics
      'conexp.contrib.fuzzy.fca)
 

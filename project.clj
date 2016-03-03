@@ -8,7 +8,7 @@
 
 ;;;
 
-(defproject conexp-clj "1.1.4"
+(defproject conexp-clj "1.1.5"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/exot/conexp-clj/"
@@ -28,13 +28,14 @@
                   :exclusions [org.clojure/clojure
                                net.cgrand.parsley]]
                  [net.cgrand/parsley              "0.9.3"
-                  :exclusions [org.clojure/clojure]]]
-  :aot [conexp.main
-        conexp.contrib.java
-        conexp.contrib.gui]
+                  :exclusions [org.clojure/clojure]]
+                 [org.clojure/data.xml            "0.0.8"]
+                 [org.clojure/core.async          "0.2.374"]]
+  :aot [conexp.contrib.java]
   :keep-non-project-classes true
-  :global-vars {*warn-on-reflection* false}
-  :test-paths ["tests" "src/test/"]
+  :source-paths ["src/main/clojure" "src/test/clojure"]
+  :test-paths ["src/test/clojure"]
+  :resource-paths ["src/main/resources"]
   :compile-path "lib/classes/"
   :scm {:url "git@github.com:exot/conexp-clj.git"}
   :java-opts ["-Dawt.useSystemAAFontSettings=on"])

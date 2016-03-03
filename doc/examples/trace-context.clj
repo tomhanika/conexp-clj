@@ -1,7 +1,9 @@
 ;;; Daniel Borchmann, 2011
 ;;; This file is in the public domain.
 
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
+
 (use 'conexp.layouts.base)
 
 ;;;

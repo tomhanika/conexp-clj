@@ -25,9 +25,10 @@
 ;; implementations for {intersection,union}-of-closure-system.
 
 
-(in-ns 'user)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
-(use 'conexp.main)
+;;
 
 (defn- implications-from-macro
   "Implements the syntax used by closure-context."

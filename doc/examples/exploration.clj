@@ -4,9 +4,8 @@
 ;; This example file shows how to use conexp-clj to explore formal
 ;; contexts
 
-(in-ns 'user)
-
-(use 'conexp.main)
+(require 'conexp.main)
+(in-ns 'conexp.main)
 
 ;;;
 
