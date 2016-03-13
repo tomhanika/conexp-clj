@@ -8,8 +8,8 @@
 
 (ns conexp.fca.many-valued-contexts
   "Many-Valued-Contexts and some functions for scaling."
-  (:use conexp.base
-        conexp.fca.contexts))
+  (:require [conexp.base :refer :all]
+            [conexp.fca.contexts :refer :all]))
 
 ;;;
 
@@ -20,7 +20,7 @@
   (hashCode [this]
     (hash-combine-hash Many-Valued-Context objects attributes incidence))
   ;;
-  conexp.fca.contexts/Context
+  Context
   (objects [this] objects)
   (attributes [this] attributes)
   (incidence [this] incidence))
