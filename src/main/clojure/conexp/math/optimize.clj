@@ -7,14 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.math.optimize
-  (:use conexp.math.util
-        conexp.base)
-  (:import [org.apache.commons.math.optimization RealPointValuePair GoalType
-                                                 DifferentiableMultivariateRealOptimizer
-                                                 RealConvergenceChecker]
-           [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead MultiDirectional]
-           [org.apache.commons.math.optimization.general NonLinearConjugateGradientOptimizer
-                                                         ConjugateGradientFormula]))
+  (:require [conexp.math.util :refer :all])
+  (:import [org.apache.commons.math.optimization DifferentiableMultivariateRealOptimizer GoalType RealConvergenceChecker RealPointValuePair]
+           [org.apache.commons.math.optimization.direct DirectSearchOptimizer NelderMead]
+           [org.apache.commons.math.optimization.general ConjugateGradientFormula NonLinearConjugateGradientOptimizer]))
+
 ;;;
 
 ;; better way to type hint without code duplication?

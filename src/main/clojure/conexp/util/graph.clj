@@ -19,7 +19,7 @@
     #^{:author "Jeffrey Straszheim",
        :doc "Basic graph theory algorithms"}
   conexp.util.graph
-  (use [clojure.set :only (union)]))
+  (:use [clojure.set :only (union)]))
 
 
 (defstruct directed-graph
