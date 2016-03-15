@@ -8,10 +8,10 @@
 
 (ns conexp.layouts.util
   "Utilities for computing lattice layouts."
-  (:use conexp.base
-        conexp.layouts.base
-        conexp.fca.lattices)
-  (:require [conexp.util.graph :as graph]))
+  (:require [conexp.base :refer :all]
+            [conexp.fca.lattices :refer :all]
+            [conexp.layouts.base :refer :all]
+            [conexp.util.graph :as graph]))
 
 ;;;
 

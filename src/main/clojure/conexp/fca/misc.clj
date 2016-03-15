@@ -8,11 +8,12 @@
 
 (ns conexp.fca.misc
   "More on FCA."
-  (:use conexp.base
-        conexp.fca.contexts
-        conexp.fca.implications
-        conexp.fca.exploration)
-  (:require [conexp.util.graph :as graph]))
+  (:require [conexp.base :refer :all]
+            [conexp.fca
+             [contexts :refer :all]
+             [exploration :refer :all]
+             [implications :refer :all]]
+            [conexp.util.graph :as graph]))
 
 ;;; Compatible Subcontexts
 
