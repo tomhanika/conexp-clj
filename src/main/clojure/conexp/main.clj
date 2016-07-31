@@ -76,4 +76,5 @@
       (reply/launch {:custom-eval '(do (in-ns 'conexp.main)
                                        (use 'clojure.repl))
                      :custom-help ""})))
+
   (System/exit 0))
