@@ -32,7 +32,7 @@
                  [org.clojure/data.xml            "0.0.8"]
                  [org.clojure/core.async          "0.2.374"]]
   :main conexp.main
-  :aot [conexp.contrib.java]
+  :aot [conexp.main conexp.contrib.java]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :test-paths ["src/test/clojure"]
