@@ -40,8 +40,14 @@
    ["-h" "--help" "This help"]])
 
 (defn -main [& args]
-  (let [{:keys [options summary]}
+  (let [{:keys [options summary errors]}
         (cli/parse-opts args conexp-clj-options)]
+
+    (when errors
+      (doseq [error errors]
+        (println error))
+      (System/exit 1))
+
     (cond
       ;;
       (contains? options :help)
