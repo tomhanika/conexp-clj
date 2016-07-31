@@ -9,7 +9,8 @@
 (ns conexp.main
   "Main namespace for conexp-clj."
   (:require [clojure.tools.cli :as cli])
-  (:require [reply.main :as reply]))
+  (:require [reply.main :as reply])
+  (:gen-class))
 
 ;;;
 
