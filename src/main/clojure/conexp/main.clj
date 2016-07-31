@@ -64,7 +64,8 @@
                          (var gui/*main-frame*)
                          (fn [_]
                            (conexp.contrib.gui/gui
-                            :default-close-operation :exit))))})
+                            :default-close-operation :exit))))
+        :custom-help ""})
       ;;
       (contains? options :load)
       (do
@@ -73,5 +74,6 @@
       ;;
       true
       (reply/launch {:custom-eval '(do (in-ns 'conexp.main)
-                                       (use 'clojure.repl))})))
+                                       (use 'clojure.repl))
+                     :custom-help ""})))
   (System/exit 0))
