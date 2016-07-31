@@ -2,4 +2,4 @@
 
 CONEXP_CLJ_HOME=$(dirname $(readlink -f "$0"))/../
 
-java -Dawt.useSystemAAFontSettings=on -jar "${CONEXP_CLJ_HOME}"/lib/conexp-clj-*-standalone.jar "$@"
+java -jar "${CONEXP_CLJ_HOME}"/lib/conexp-clj-*-standalone.jar "$@"
