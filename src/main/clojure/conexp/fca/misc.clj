@@ -209,6 +209,4 @@
                           x (difference base-set base-sets))
                   respects?)))
 
-;;;
 
-nil
