@@ -137,5 +137,5 @@
                           (* (concept-stability context [A B])
                              (expt 2 (count A))))
                         (concepts context)))
-         (expt 2 (count (attributes context)))))))
+         (expt 2 (count (objects context)))))))
 
