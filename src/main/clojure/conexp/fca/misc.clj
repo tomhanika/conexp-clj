@@ -211,43 +211,6 @@
 
 ;;; Concept Stability
 
-(defn intent-stability
-  "Compute intent stability of `concept' in `context'."
-  [context concept]
-
-  ;; Sanity checking
-  (assert (context? context)
-          "First argument must be a formal context.")
-  (assert (and (vector? concept)
-               (= 2 (count concept))
-               (concept? context concept))
-          "Second argument must be a formal concept of the given context.")
-
-  ;; Actual Computation
-  (let [[extent intent] [(first concept) (second concept)]
-        counter         (fn counter
-                          ;; Perform depth-first search to count all subsets of
-                          ;; `intent' whose derivation in context yields `extent'.
-                          ;; For this we keep the list `fixed-included' of already
-                          ;; considered elements to be included in the target
-                          ;; subset of `intent', and the list `unfixed' of
-                          ;; unconsidered elements for which it is still to be
-                          ;; decided of whether they will be included or not.
-                          [fixed-included unfixed]
-                          (if (empty? unfixed)
-                            1
-                            (let [some-element (first unfixed)]
-                              (+ (counter (conj fixed-included some-element)
-                                          (disj unfixed some-element))
-                                 (if (= extent
-                                        (attribute-derivation context
-                                                              (union fixed-included
-                                                                     (disj unfixed some-element))))
-                                   (counter fixed-included (disj unfixed some-element))
-                                   0)))))]
-    (/ (counter #{} intent)
-       (expt 2 (count intent)))))
-
 (defn concept-stability
   "Compute the concept stability of `concept' in `context'."
   [context concept]
@@ -259,4 +222,26 @@
                (concept? context concept))
           "Second argument must be a formal concept of the given context.")
 
-  (intent-stability (dual-context context) [(second concept) (first concept)]))
+  (let [[extent intent] [(first concept) (second concept)]
+        counter         (fn counter
+                          ;; Perform depth-first search to count all subsets of
+                          ;; `extent' whose derivation in context yields `intent'.
+                          ;; For this we keep the list `fixed-included' of already
+                          ;; considered elements to be included in the target
+                          ;; subset of `extent', and the list `unfixed' of
+                          ;; unconsidered elements for which it is still to be
+                          ;; decided of whether they will be included or not.
+                          [fixed-included unfixed]
+                          (if (empty? unfixed)
+                            1
+                            (let [some-element (first unfixed)]
+                              (+ (counter (conj fixed-included some-element)
+                                          (disj unfixed some-element))
+                                 (if (= intent
+                                        (object-derivation context
+                                                           (union fixed-included
+                                                                  (disj unfixed some-element))))
+                                   (counter fixed-included (disj unfixed some-element))
+                                   0)))))]
+    (/ (counter #{} extent)
+       (expt 2 (count extent)))))
