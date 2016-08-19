@@ -232,3 +232,16 @@
                             0))]
     (/ (counter intent)
        (Math/pow 2 (count intent)))))
+
+(defn extent-stability
+  "TODO."
+  [context concept]
+
+  (assert (context? context)
+          "First argument must be a formal context.")
+  (assert (and (vector? concept)
+               (= 2 (count concept))
+               (concept? context concept))
+          "Second argument must be a formal concept of the given context.")
+
+  (intent-stability (dual-context context) [(second concept) (first concept)]))

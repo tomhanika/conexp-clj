@@ -127,6 +127,10 @@
                                 [5 9] [2 4] [3 6] [4 5] [9 1] [9 7] [7 0] [6 9] [2 0]
                                 [0 4] [3 1] [9 5] [3 8] [9 4] [4 4] [7 5] [2 6] [5 0]
                                 [6 2] [3 5] [0 8] [4 0]})
-        concept [#{0 7} #{0 7 3 9 8}]]
-    (is (< -1e-10 (- (intent-stability context concept) 0.15625) 1e-10))))
+        concept [#{0 7} #{0 7 3 9 8}]
+        approx= (fn [x y] (< -1e-10 (- x y) 1e-10))]
+    (is (approx= (intent-stability context concept) 0.15625))
+    (is (approx= (extent-stability context concept) 0.25))
+    (is (approx= (intent-stability context concept)
+                 (extent-stability (dual-context context) [(second concept) (first concept)])))))
 
