@@ -131,5 +131,11 @@
     (is (= (concept-stability context concept) 1/4))
     (is (every? #(<= % 1)
                 (let [ctx (random-context 10 0.5)]
-                  (map #(concept-stability ctx %) (concepts ctx)))))))
+                  (map #(concept-stability ctx %) (concepts ctx)))))
+    (with-testing-data [context (random-contexts 10 (rand-int 13))]
+      (= (reduce + (map (fn [[A B]]
+                          (* (concept-stability context [A B])
+                             (expt 2 (count A))))
+                        (concepts context)))
+         (expt 2 (count (attributes context)))))))
 
