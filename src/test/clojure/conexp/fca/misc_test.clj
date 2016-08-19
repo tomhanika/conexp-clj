@@ -118,7 +118,7 @@
 
 ;;;
 
-(deftest test-stability
+(deftest test-concept-stability
   (let [context (make-context 10 10
                               #{[8 7] [9 8] [8 9] [0 0] [3 9] [7 7] [2 3] [2 5] [0 6]
                                 [3 3] [5 4] [1 1] [7 3] [8 6] [4 2] [7 8] [3 0] [6 6]
@@ -129,11 +129,8 @@
                                 [6 2] [3 5] [0 8] [4 0]})
         concept [#{0 7} #{0 7 3 9 8}]
         approx= (fn [x y] (< -1e-10 (- x y) 1e-10))]
-    (is (= (intent-stability context concept) 1/8))
-    (is (= (extent-stability context concept) 1/4))
-    (is (= (intent-stability context concept)
-           (extent-stability (dual-context context) [(second concept) (first concept)])))
+    (is (= (concept-stability context concept) 1/4))
     (is (every? #(<= % 1)
                 (let [ctx (random-context 10 0.5)]
-                  (map #(intent-stability ctx %) (concepts ctx)))))))
+                  (map #(concept-stability ctx %) (concepts ctx)))))))
 

@@ -248,8 +248,8 @@
     (/ (counter #{} intent)
        (expt 2 (count intent)))))
 
-(defn extent-stability
-  "Compute extent stability of `concept' in `context'."
+(defn concept-stability
+  "Compute the concept stability of `concept' in `context'."
   [context concept]
 
   (assert (context? context)
