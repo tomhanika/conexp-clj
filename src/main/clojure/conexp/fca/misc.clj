@@ -209,4 +209,26 @@
                           x (difference base-set base-sets))
                   respects?)))
 
+;;; Concept Stability
 
+(defn intent-stability
+  "TODO."
+  [context concept]
+
+  ;; Sanity checking
+  (assert (context? context)
+          "First argument must be a formal context.")
+  (assert (and (vector? concept)
+               (= 2 (count concept))
+               (concept? context concept))
+          "Second argument must be a formal concept of the given context.")
+
+  ;; Actual Computation
+  (let [[extent intent] [(first concept) (second concept)]
+        counter         (fn counter [subset-of-intent]
+                          (if (= extent (attribute-derivation context subset-of-intent))
+                            (reduce + 1 (map #(counter (disj subset-of-intent %))
+                                             subset-of-intent))
+                            0))]
+    (/ (counter intent)
+       (Math/pow 2 (count intent)))))
