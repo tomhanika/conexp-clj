@@ -225,13 +225,21 @@
 
   ;; Actual Computation
   (let [[extent intent] [(first concept) (second concept)]
-        counter         (fn counter [subset-of-intent]
-                          (if (= extent (attribute-derivation context subset-of-intent))
-                            (reduce + 1 (map #(counter (disj subset-of-intent %))
-                                             subset-of-intent))
-                            0))]
-    (/ (counter intent)
-       (Math/pow 2 (count intent)))))
+        counter         (fn counter
+                          [fixed-elements rest-elements]
+                          (if (empty? rest-elements)
+                            1
+                            (let [some-element (first rest-elements)]
+                              (+ (counter (conj fixed-elements some-element)
+                                          (disj rest-elements some-element))
+                                 (if (= extent (attribute-derivation context
+                                                                     (union fixed-elements
+                                                                            (disj rest-elements
+                                                                                  some-element))))
+                                   (counter fixed-elements (disj rest-elements some-element))
+                                   0)))))]
+    (/ (counter #{} intent)
+       (expt 2 (count intent)))))
 
 (defn extent-stability
   "TODO."

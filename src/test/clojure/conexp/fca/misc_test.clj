@@ -129,8 +129,11 @@
                                 [6 2] [3 5] [0 8] [4 0]})
         concept [#{0 7} #{0 7 3 9 8}]
         approx= (fn [x y] (< -1e-10 (- x y) 1e-10))]
-    (is (approx= (intent-stability context concept) 0.15625))
-    (is (approx= (extent-stability context concept) 0.25))
-    (is (approx= (intent-stability context concept)
-                 (extent-stability (dual-context context) [(second concept) (first concept)])))))
+    (is (= (intent-stability context concept) 1/8))
+    (is (= (extent-stability context concept) 1/4))
+    (is (= (intent-stability context concept)
+           (extent-stability (dual-context context) [(second concept) (first concept)])))
+    (is (every? #(<= % 1)
+                (let [ctx (random-context 10 0.5)]
+                  (map #(intent-stability ctx %) (concepts ctx)))))))
 
