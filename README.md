@@ -42,17 +42,18 @@ You need
 
 ## How to Run
 
-The recommended way to run conexp-clj is to download the pre-compiled version
-[here](http://www.math.tu-dresden.de/~borch/downloads).  Just unpack the zip
-file and put the contained `bin` directory in you path.  You can then run
+The recommended way to run conexp-clj is to download a
+[pre-compiled version](https://wwwtcs.inf.tu-dresden.de/~borch/downloads/conexp-clj/),
+unpacking the zip file and puting the contained `bin` directory into you path.
+You can then run
 
     $ conexp-clj
-    
+
 from you command line (without the "$") to get a bare conexp-clj repl.  If you want to try
 the experimental GUI, you can use
 
     $ conexp-clj --gui
-    
+
 instead.
 
 
