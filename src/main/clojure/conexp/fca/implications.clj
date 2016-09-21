@@ -596,14 +596,14 @@
 
 ;;; Learn Implicational Theories by Query Learning
 
-(defn- afp-horn1_reduce-implication
+(defn- horn1-reduce-implication
   [implication counterexample]
   "Reduce implication by counterexample as needed by the HORN1 algorithm."
   (make-implication (premise implication)
                     (intersection (conclusion implication)
                                   counterexample)))
 
-(defn- afp-horn1_refine-implication
+(defn- horn1-refine-implication
   [implication counterexample]
   "Refine implication by counterexample as needed by the HORN1 algorithm."
   (make-implication counterexample
@@ -634,23 +634,23 @@
             (recur (mapv (fn [implication]
                            (if (respects? counterexample implication)
                              implication
-                             (afp-horn1_reduce-implication implication counterexample)))
+                             (horn1-reduce-implication implication counterexample)))
                          hypothesis))
             (let [minimal-index (first-position-if
                                  (fn [implication]
-                                   (and (proper-subset? (intersection counterexample
-                                                                      (premise implication))
-                                                        (premise implication))
-                                        (not (member? (intersection counterexample
-                                                                    (premise implication))))))
+                                   (let [reduced-premise (intersection counterexample
+                                                                       (premise implication))]
+                                     (and (proper-subset? reduced-premise
+                                                          (premise implication))
+                                          (not (member? reduced-premise)))))
                                  hypothesis)]
               (if minimal-index
                 (let [implication (get hypothesis minimal-index)]
                   (recur (assoc hypothesis
                                 minimal-index
-                                (afp-horn1_refine-implication implication
-                                                              (intersection counterexample
-                                                                            (premise implication))))))
+                                (horn1-refine-implication implication
+                                                          (intersection counterexample
+                                                                        (premise implication))))))
                 (recur (conj hypothesis
                              (make-implication counterexample base-set)))))))))))
 
@@ -663,18 +663,16 @@
   background-implications or vice versa."
   [background-implications]
   (fn [hypothesis]
-    (let [positive-examples (keep (fn [implication]
-                                    (when-not (follows-semantically? implication hypothesis)
-                                      (close-under-implications hypothesis (premise implication))))
-                                  background-implications)
-          negative-examples (keep (fn [implication]
-                                    (when-not (follows-semantically? implication
-                                                                     background-implications)
-                                      (close-under-implications background-implications
+    (let [model-non-model (fn [impl-set-1 impl-set-2]
+                            ;; Return a model of impl-set-1 that is not a model
+                            ;; of impl-set-2
+                            (keep (fn [implication]
+                                    (when-not (follows-semantically? implication impl-set-1)
+                                      (close-under-implications impl-set-1
                                                                 (premise implication))))
-                                  hypothesis)]
-      (or (first positive-examples)
-          (first negative-examples)
+                                  impl-set-2))]
+      (or (first (model-non-model hypothesis background-implications)) ; positive counterexamples
+          (first (model-non-model background-implications hypothesis)) ; negative counterexamples
           true))))
 
 (defn membership-oracle-by-implications
