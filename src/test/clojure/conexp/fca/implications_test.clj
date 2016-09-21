@@ -392,4 +392,15 @@
 
 ;;;
 
+(deftest test-afp-horn1
+  ;; example from paper
+  (let [background-hypothesis #{(make-implication '#{a c} '#{d}) (make-implication '#{a b} '#{c})}]
+    (is (= (afp-horn1 '#{a b c d}
+                      (membership-oracle-by-implications background-hypothesis)
+                      (equivalence-oracle-by-implications background-hypothesis))
+           [(make-implication '#{a b} '#{c d})
+            (make-implication '#{a c} '#{d})]))))
+
+;;;
+
 nil

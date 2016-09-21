@@ -594,6 +594,86 @@
 
 (defalias luxenburger-base luxenburger-basis)
 
+;;; Probabilistic Computation of Bases
+
+(defn- first-position-if
+  [predicate sequence]
+  (loop [index    0
+         sequence sequence]
+    (cond
+      (not (seq sequence))
+      nil
+      (predicate (first sequence))
+      index
+      :else
+      (recur (inc index) (rest sequence)))))
+
+(defn- afp-horn1_reduce-implication
+  [implication counterexample]
+  (make-implication (premise implication)
+                    (intersection (conclusion implication)
+                                  counterexample)))
+
+(defn- afp-horn1_refine-implication
+  [implication counterexample]
+  (make-implication counterexample
+                    (union (conclusion implication)
+                           (difference (premise implication)
+                                       counterexample))))
+
+(defn afp-horn1
+  "The HORN1 algorithm of Angluin, Frazier, and Pitt."
+  [base-set member? equivalent?]
+  (loop [hypothesis []]                 ; this needs to be ordered
+    (let [equivalence-result (equivalent? hypothesis)]
+      (if (= true equivalence-result)   ; we need to check this explicitly
+        hypothesis
+        (let [counterexample equivalence-result] ; rename for better readability
+          (if (some #(not (respects? counterexample %)) hypothesis)
+            (recur (mapv (fn [implication]
+                           (if (respects? counterexample implication)
+                             implication
+                             (afp-horn1_reduce-implication implication counterexample)))
+                         hypothesis))
+            (let [minimal-index (first-position-if
+                                 (fn [implication]
+                                   (and (proper-subset? (intersection counterexample
+                                                                      (premise implication))
+                                                        (premise implication))
+                                        (not (member? (intersection counterexample
+                                                                    (premise implication))))))
+                                 hypothesis)]
+              (if minimal-index
+                (let [implication (get hypothesis minimal-index)]
+                  (recur (assoc hypothesis
+                                minimal-index
+                                (afp-horn1_refine-implication implication
+                                                               (intersection counterexample
+                                                                             (premise implication))))))
+                (recur (conj hypothesis
+                             (make-implication counterexample base-set)))))))))))
+
+(defn equivalence-oracle-by-implications
+  [background-implications]
+  (fn [hypothesis]
+    (let [positive-examples (keep (fn [implication]
+                                    (when-not (follows-semantically? implication hypothesis)
+                                      (close-under-implications hypothesis (premise implication))))
+                                  background-implications)
+          negative-examples (keep (fn [implication]
+                                    (when-not (follows-semantically? implication
+                                                                     background-implications)
+                                      (close-under-implications background-implications
+                                                                (premise implication))))
+                                  hypothesis)]
+      (or (first positive-examples)
+          (first negative-examples)
+          true))))
+
+(defn membership-oracle-by-implications
+  [implications]
+  #(every? (fn [implication] (respects? % implication)) implications))
+
 ;;; The End
 
 true
