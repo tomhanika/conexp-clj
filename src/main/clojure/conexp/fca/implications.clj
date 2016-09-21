@@ -418,7 +418,48 @@
   (set-of (make-implication A (context-attribute-closure ctx A))
           [A (proper-premises ctx)]))
 
-;;;
+;; Ryssel's Algorithm
+
+(defn- cover [base-set candidates A]
+  (let [object-covers (minimum-set-covers
+                       (difference base-set A)
+                       (set-of (difference base-set N) | N candidates))]
+    (map (fn [cover]
+           (map #(difference base-set %) cover))
+         object-covers)))
+
+(defn ryssel-base
+  "Returns the implications computed by Ryssels Algorithm, as a lazy sequence."
+  [ctx]
+  (let [gens        (reduce! (fn [map x]      ;generating elements of attribute extents
+                               (let [extent (aprime ctx #{x})]
+                                 (assoc! map extent
+                                         (conj (get map extent #{}) x))))
+                             {}
+                             (attributes ctx)),
+        all-extents (set (keys gens)),        ;all attribute extents
+        irr-extents (set-of (aprime ctx #{m}) ;attribute extents of irreducible attributes
+                            | m (attributes (reduce-attributes ctx))),
+        empty-prime (adprime ctx #{})]
+    (->> (reduce into
+                 (for [m (attributes ctx)
+                       :when (not= (adprime ctx #{m})
+                                   (conj empty-prime m))]
+                   #{m})
+                 (pmap (fn [A]
+                         (let [candidates (set-of U | U (disj irr-extents A),
+                                                      :let [U-cap-A (intersection U A)]
+                                                      :when (not (exists [V all-extents]
+                                                                   (and (proper-subset? V A)
+                                                                        (subset? U-cap-A V))))),
+                               covers     (cover (objects ctx) candidates A)]
+                           (for [X covers]
+                             (set-of m | Y X, m (gens Y)))))
+                       all-extents))
+         distinct
+         (map #(make-implication % (adprime ctx %))))))
+
+;;; Convert arbitrary bases to the Canonical Base
 
 (defn stem-base-from-base
   "For a given set of implications returns its stem-base."
@@ -478,7 +519,7 @@
                                       (union (premise implication) (conclusion implication))))
          premise-count))))
 
-;;;
+;;
 
 (defn- frequent-itemsets
   "Returns all frequent itemsets of context, given minsupp as minimal support."
@@ -504,7 +545,7 @@
           :when (>= (confidence impl context) minconf)]
       impl)))
 
-;;;
+;;
 
 (defn frequent-closed-itemsets
   "Computes for context a lazy sequence of all frequent and closed itemsets,
@@ -553,47 +594,6 @@
 
 (defalias luxenburger-base luxenburger-basis)
 
-;;;
+;;; The End
 
-(defn- cover [base-set candidates A]
-  (let [object-covers (minimum-set-covers
-                       (difference base-set A)
-                       (set-of (difference base-set N) | N candidates))]
-    (map (fn [cover]
-           (map #(difference base-set %) cover))
-         object-covers)))
-
-(defn ryssel-base
-  "Returns the implications computed by Ryssels Algorithm, as a lazy sequence."
-  [ctx]
-  (let [gens        (reduce! (fn [map x]      ;generating elements of attribute extents
-                               (let [extent (aprime ctx #{x})]
-                                 (assoc! map extent
-                                         (conj (get map extent #{}) x))))
-                             {}
-                             (attributes ctx)),
-        all-extents (set (keys gens)),        ;all attribute extents
-        irr-extents (set-of (aprime ctx #{m}) ;attribute extents of irreducible attributes
-                            | m (attributes (reduce-attributes ctx))),
-        empty-prime (adprime ctx #{})]
-    (->> (reduce into
-                 (for [m (attributes ctx)
-                       :when (not= (adprime ctx #{m})
-                                   (conj empty-prime m))]
-                   #{m})
-                 (pmap (fn [A]
-                         (let [candidates (set-of U | U (disj irr-extents A),
-                                                      :let [U-cap-A (intersection U A)]
-                                                      :when (not (exists [V all-extents]
-                                                                   (and (proper-subset? V A)
-                                                                        (subset? U-cap-A V))))),
-                               covers     (cover (objects ctx) candidates A)]
-                           (for [X covers]
-                             (set-of m | Y X, m (gens Y)))))
-                       all-extents))
-         distinct
-         (map #(make-implication % (adprime ctx %))))))
-
-;;;
-
-nil
+true
