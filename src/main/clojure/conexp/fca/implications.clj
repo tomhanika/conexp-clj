@@ -596,18 +596,6 @@
 
 ;;; Probabilistic Computation of Bases
 
-(defn- first-position-if
-  [predicate sequence]
-  (loop [index    0
-         sequence sequence]
-    (cond
-      (not (seq sequence))
-      nil
-      (predicate (first sequence))
-      index
-      :else
-      (recur (inc index) (rest sequence)))))
-
 (defn- afp-horn1_reduce-implication
   [implication counterexample]
   (make-implication (premise implication)

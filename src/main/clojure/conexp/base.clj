@@ -272,6 +272,20 @@ metadata (as provided by def) merged into the metadata of the original."
   [seq-1 seq-2]
   (map #(vector %1 %2) seq-1 seq-2))
 
+(defn first-position-if
+  "Return the index of the first element in sequence for which predicate returns
+  true."
+  [predicate sequence]
+  (loop [index    0
+         sequence sequence]
+    (cond
+      (not (seq sequence))
+      nil
+      (predicate (first sequence))
+      index
+      :else
+      (recur (inc index) (rest sequence)))))
+
 (defn first-non-nil
   "Returns first non-nil element in seq, or nil if there is none."
   [seq]
