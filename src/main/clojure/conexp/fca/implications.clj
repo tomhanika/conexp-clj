@@ -594,25 +594,38 @@
 
 (defalias luxenburger-base luxenburger-basis)
 
-;;; Probabilistic Computation of Bases
+;;; Learn Implicational Theories by Query Learning
 
 (defn- afp-horn1_reduce-implication
   [implication counterexample]
+  "Reduce implication by counterexample as needed by the HORN1 algorithm."
   (make-implication (premise implication)
                     (intersection (conclusion implication)
                                   counterexample)))
 
 (defn- afp-horn1_refine-implication
   [implication counterexample]
+  "Refine implication by counterexample as needed by the HORN1 algorithm."
   (make-implication counterexample
                     (union (conclusion implication)
                            (difference (premise implication)
                                        counterexample))))
 
-(defn afp-horn1
-  "The HORN1 algorithm of Angluin, Frazier, and Pitt."
+(defn learn-implications-by-queries
+  "Learn an implicational theory on base-set with access to membership oracle
+  `member?' and equivalence oracle `equivalent?'.
+
+  The membership oracle has to decide for a given set S whether S is a model of
+  the background theory to be learned.  The equivalence oracle has to decide
+  whether a given set of implications is equivalent to the background theory.
+  For this it needs to return true if the theories are equivalent, and a
+  counterexample otherwise, i.e., a subset of base-set that is a model of the
+  current hypothesis and not a model of the background theory, or vice versa.
+
+  This function implements the HORN1 algorithm of Angluin, Frazier, and Pitt:
+  “Learning Conjunctions of Horn Clauses”, 1992."
   [base-set member? equivalent?]
-  (loop [hypothesis []]                 ; this needs to be ordered
+  (loop [hypothesis []]
     (let [equivalence-result (equivalent? hypothesis)]
       (if (= true equivalence-result)   ; we need to check this explicitly
         hypothesis
@@ -636,12 +649,18 @@
                   (recur (assoc hypothesis
                                 minimal-index
                                 (afp-horn1_refine-implication implication
-                                                               (intersection counterexample
-                                                                             (premise implication))))))
+                                                              (intersection counterexample
+                                                                            (premise implication))))))
                 (recur (conj hypothesis
                              (make-implication counterexample base-set)))))))))))
 
 (defn equivalence-oracle-by-implications
+  "Return a function that can serve as an equivalence oracle for query learning.
+
+  The returned oracle will return true if a given set S of implications is
+  equivalent to background-implications.  Otherwise, it will return a
+  counterexample, i.e., model of S that is not a model ov
+  background-implications or vice versa."
   [background-implications]
   (fn [hypothesis]
     (let [positive-examples (keep (fn [implication]
@@ -659,6 +678,10 @@
           true))))
 
 (defn membership-oracle-by-implications
+  "Return a function that can serve as a membership oracle for query learning.
+
+  The returned oracle will return true if a given set S of elements is a model
+  of implications, and false otherwise."
   [implications]
   #(every? (fn [implication] (respects? % implication)) implications))
 

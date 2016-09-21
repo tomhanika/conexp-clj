@@ -392,12 +392,12 @@
 
 ;;;
 
-(deftest test-afp-horn1
-  ;; example from paper
+(deftest test-learn-implications-by-queries
+  ;; example Angluin, Frazier, Pitt: Learning Conjunctoins of Horn Clauses
   (let [background-hypothesis #{(make-implication '#{a c} '#{d}) (make-implication '#{a b} '#{c})}]
-    (is (= (afp-horn1 '#{a b c d}
-                      (membership-oracle-by-implications background-hypothesis)
-                      (equivalence-oracle-by-implications background-hypothesis))
+    (is (= (learn-implications-by-queries '#{a b c d}
+                                          (membership-oracle-by-implications background-hypothesis)
+                                          (equivalence-oracle-by-implications background-hypothesis))
            [(make-implication '#{a b} '#{c d})
             (make-implication '#{a c} '#{d})]))))
 
