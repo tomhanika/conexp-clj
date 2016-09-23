@@ -925,10 +925,10 @@ metadata (as provided by def) merged into the metadata of the original."
                                   (update map x conj y)))))
         runner (fn runner [to-be-visited already-visited]
                  (lazy-seq
-                  (let [not-yet-visited (seq (drop-while already-visited
+                  (let [not-yet-visited (seq (drop-while #(contains? already-visited %)
                                                          to-be-visited))
                         unseen-node     (first not-yet-visited)]
-                    (when unseen-node
+                    (when (seq not-yet-visited)
                       (cons unseen-node
                             (runner (concat (get pairs-as-map unseen-node)
                                             (rest not-yet-visited))
