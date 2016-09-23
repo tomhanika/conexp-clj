@@ -913,18 +913,29 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (defn transitive-closure
   "Computes transitive closure of a given set of pairs."
+  ;; Inspired by the corresponding code from the graph library by
+  ;; Jeffrey Straszheim
   [pairs]
-  (let [pairs  (set pairs),
-        runner (fn runner [new old]
-                 (if (= new old)
-                   new
-                   (recur (union new
-                                 (set-of [x y]
-                                         [[x z_1] (difference new old)
-                                          [z_2 y] pairs
-                                          :when (= z_1 z_2)]))
-                          new)))]
-    (runner pairs #{})))
+  (let [pairs-as-map (loop [pairs pairs
+                            map   {}]
+                       (if (not (seq pairs))
+                         map
+                         (let [[x y] (first pairs)]
+                           (recur (rest pairs)
+                                  (update map x conj y)))))
+        runner (fn runner [to-be-visited already-visited]
+                 (lazy-seq
+                  (let [not-yet-visited (seq (drop-while already-visited
+                                                         to-be-visited))
+                        unseen-node     (first not-yet-visited)]
+                    (when unseen-node
+                      (cons unseen-node
+                            (runner (concat (get pairs-as-map unseen-node)
+                                            (rest not-yet-visited))
+                                    (conj already-visited
+                                          unseen-node)))))))]
+    (set-of [x y] [x (keys pairs-as-map)
+                   y (runner (get pairs-as-map x) #{})])))
 
 (defn reflexive-transitive-closure
   "Computes the reflexive, transitive closure of a given set of pairs
