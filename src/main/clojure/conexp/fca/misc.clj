@@ -12,8 +12,7 @@
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]
-             [implications :refer :all]]
-            [conexp.util.graph :as graph]))
+             [implications :refer :all]]))
 
 ;;; Compatible Subcontexts
 
@@ -33,26 +32,17 @@
   [ctx]
   (if (not (context-reduced? ctx))
     (illegal-argument "Context given to compatible-subcontexts has to be reduced."))
-  (let [up-arrows        (up-arrows ctx)
-        down-arrows      (down-arrows ctx)
-        subcontext-graph (graph/transitive-closure
-                          (struct graph/directed-graph
-                                  (disjoint-union (objects ctx) (attributes ctx))
-                                  (fn [[x idx]]
-                                    (condp = idx
-                                      0 (for [[g m] up-arrows
-                                              :when (= g x)]
-                                          [m 1])
-                                      1 (for [[g m] down-arrows
-                                              :when (= m x)]
-                                          [g 0])))))
-        down-down        (set-of [g m] [m (attributes ctx)
-                                        [g idx] (graph/get-neighbors subcontext-graph [m 1])
-                                        :when (= idx 0)])
-        compatible-ctx   (make-context (objects ctx)
-                                       (attributes ctx)
-                                       (fn [g m]
-                                         (not (contains? down-down [g m]))))]
+  (let [up-arrows         (up-arrows ctx)
+        down-arrows       (down-arrows ctx)
+        transitive-arrows (transitive-closure
+                           (union (set-of [[g 0] [m 1]] | [g m] up-arrows)
+                                  (set-of [[m 1] [g 0]] | [g m] down-arrows)))
+        down-down         (set-of [g m] [[[m idx-m] [g idx-g]] transitive-arrows
+                                         :when (and (= 1 idx-m) (= 0 idx-g))])
+        compatible-ctx    (make-context (objects ctx)
+                                        (attributes ctx)
+                                        (fn [g m]
+                                          (not (contains? down-down [g m]))))]
     (for [[G-H N] (concepts compatible-ctx)]
       (make-context-nc (difference (objects ctx) G-H) N (incidence ctx)))))
 
