@@ -393,7 +393,7 @@
 ;;;
 
 (deftest test-learn-implications-by-queries
-  ;; example Angluin, Frazier, Pitt: Learning Conjunctoins of Horn Clauses
+  ;; example Angluin, Frazier, Pitt: Learning Conjunctions of Horn Clauses
   (let [background-hypothesis #{(make-implication '#{a c} '#{d}) (make-implication '#{a b} '#{c})}]
     (is (= (set
             (learn-implications-by-queries '#{a b c d}
