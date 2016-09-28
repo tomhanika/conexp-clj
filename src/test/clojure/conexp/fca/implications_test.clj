@@ -400,7 +400,14 @@
                                            (membership-oracle-by-implications background-hypothesis)
                                            (equivalence-oracle-by-implications background-hypothesis)))
            #{(make-implication '#{a b} '#{c d})
-             (make-implication '#{a c} '#{d})}))))
+             (make-implication '#{a c} '#{d})})))
+  (with-testing-data [ctx (random-contexts 10 15)]
+    (let [base (canonical-base ctx)]
+      (equivalent-implications?
+       base
+       (learn-implications-by-queries (attributes ctx)
+                                      (membership-oracle-by-implications base)
+                                      (equivalence-oracle-by-implications base))))))
 
 ;;;
 
