@@ -408,6 +408,19 @@
        (learn-implications-by-queries (attributes ctx)
                                       (membership-oracle-by-implications base)
                                       (equivalence-oracle-by-implications base))))))
+;;;
+
+(deftest test-approx-canonical-base
+  (let [ε 0.3
+        δ 1e-10]
+    (with-testing-data [ctx (random-contexts 10 15)]
+      (let [exact-base (canonical-base ctx)
+            approx-base (approx-canonical-base ctx ε δ)
+            exact-models (set (all-closed-sets (attributes ctx) (clop-by-implications exact-base)))
+            approx-models (set (all-closed-sets (attributes ctx) (clop-by-implications approx-base)))]
+        (<= (+ (count (difference exact-models approx-models))
+               (count (difference approx-models exact-models)))
+            (* ε (expt 2 (count (attributes ctx)))))))))
 
 ;;;
 
