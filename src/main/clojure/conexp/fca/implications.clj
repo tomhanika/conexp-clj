@@ -682,6 +682,27 @@
   [implications]
   #(every? (fn [implication] (respects? % implication)) implications))
 
+;;; Approximate Computation of the Canonical Base
+
+(defn approx-canonical-base
+  ""
+  ([ctx ε δ]
+   (approx-canonical-base ctx ε δ #(set (random-sample 0.5 (attributes ctx)))))
+  ([ctx ε δ subset-sampler]
+   (let [intent?       #(= % (adprime ctx %))
+         nr-iter       (inc (ceil (* (/ ε) (Math/log (/ δ)))))
+         respects-all? (fn [set impls]
+                         (every? (fn [impl] (respects? set impl)) impls))]
+     (learn-implications-by-queries (attributes ctx)
+                                    intent?
+                                    (fn [implications]
+                                      (or (some (fn [test-set]
+                                                  (when (not (<=> (intent? test-set)
+                                                                  (respects-all? test-set implications)))
+                                                    test-set))
+                                                (repeatedly nr-iter subset-sampler))
+                                          true))))))
+
 ;;; The End
 
 true
