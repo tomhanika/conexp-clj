@@ -61,6 +61,11 @@
     (is (= [1 2 3] (map first zipped)))
     (is (= '[a b c] (map second zipped)))))
 
+(deftest test-first-position-if
+  (is (= 0 (first-position-if odd? [1 2 3 4])))
+  (is (= 1 (first-position-if even? [1 2 3 4])))
+  (is (nil? (first-position-if (every-pred odd? even?) [1 2 3 4]))))
+
 (deftest test-first-non-nil
   (is (= 3 (first-non-nil [3 2 1])))
   (is (= nil (first-non-nil [nil nil])))

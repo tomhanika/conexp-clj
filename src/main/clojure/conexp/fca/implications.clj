@@ -8,10 +8,9 @@
 
 (ns conexp.fca.implications
   "Implications for Formal Concept Analysis."
-  (:use conexp.base
-        conexp.fca.contexts)
-  (:require [clojure.core.reducers :as r])
-  (:import [java.util HashMap HashSet]))
+  (:require [clojure.core.reducers :as r]
+            [conexp.base :refer :all]
+            [conexp.fca.contexts :refer :all]))
 
 ;;;
 
@@ -593,6 +592,132 @@
             fqis)))
 
 (defalias luxenburger-base luxenburger-basis)
+
+;;; Learn Implicational Theories by Query Learning
+
+(defn- horn1-reduce-implication
+  [implication counterexample]
+  "Reduce implication by counterexample as needed by the HORN1 algorithm."
+  (make-implication (premise implication)
+                    (intersection (conclusion implication)
+                                  counterexample)))
+
+(defn- horn1-refine-implication
+  [implication counterexample]
+  "Refine implication by counterexample as needed by the HORN1 algorithm."
+  (make-implication counterexample
+                    (union (conclusion implication)
+                           (difference (premise implication)
+                                       counterexample))))
+
+(defn learn-implications-by-queries
+  "Learn an implicational theory on base-set with access to membership oracle
+  `member?' and equivalence oracle `equivalent?'.
+
+  The membership oracle has to decide for a given set S whether S is a model of
+  the background theory to be learned.  The equivalence oracle has to decide
+  whether a given set of implications is equivalent to the background theory.
+  For this it needs to return true if the theories are equivalent, and a
+  counterexample otherwise, i.e., a subset of base-set that is a model of the
+  current hypothesis and not a model of the background theory, or vice versa.
+
+  This function implements the HORN1 algorithm of Angluin, Frazier, and Pitt:
+  “Learning Conjunctions of Horn Clauses”, 1992."
+  [base-set member? equivalent?]
+  (loop [hypothesis []]
+    (let [equivalence-result (equivalent? hypothesis)]
+      (if (= true equivalence-result)   ; we need to check this explicitly
+        hypothesis
+        (let [counterexample equivalence-result] ; rename for better readability
+          (if (some #(not (respects? counterexample %)) hypothesis)
+            (recur (mapv (fn [implication]
+                           (if (respects? counterexample implication)
+                             implication
+                             (horn1-reduce-implication implication counterexample)))
+                         hypothesis))
+            (let [minimal-index (first-position-if
+                                 (fn [implication]
+                                   (let [reduced-premise (intersection counterexample
+                                                                       (premise implication))]
+                                     (and (proper-subset? reduced-premise
+                                                          (premise implication))
+                                          (not (member? reduced-premise)))))
+                                 hypothesis)]
+              (if minimal-index
+                (let [implication (get hypothesis minimal-index)]
+                  (recur (assoc hypothesis
+                                minimal-index
+                                (horn1-refine-implication implication
+                                                          (intersection counterexample
+                                                                        (premise implication))))))
+                (recur (conj hypothesis
+                             (make-implication counterexample base-set)))))))))))
+
+(defn equivalence-oracle-by-implications
+  "Return a function that can serve as an equivalence oracle for query learning.
+
+  The returned oracle will return true if a given set S of implications is
+  equivalent to background-implications.  Otherwise, it will return a
+  counterexample, i.e., model of S that is not a model ov
+  background-implications or vice versa."
+  [background-implications]
+  (fn [hypothesis]
+    (let [model-non-model (fn [impl-set-1 impl-set-2]
+                            ;; Return a model of impl-set-1 that is not a model
+                            ;; of impl-set-2
+                            (keep (fn [implication]
+                                    (when-not (follows-semantically? implication impl-set-1)
+                                      (close-under-implications impl-set-1
+                                                                (premise implication))))
+                                  impl-set-2))]
+      (or (first (model-non-model hypothesis background-implications)) ; positive counterexamples
+          (first (model-non-model background-implications hypothesis)) ; negative counterexamples
+          true))))
+
+(defn membership-oracle-by-implications
+  "Return a function that can serve as a membership oracle for query learning.
+
+  The returned oracle will return true if a given set S of elements is a model
+  of implications, and false otherwise."
+  [implications]
+  #(every? (fn [implication] (respects? % implication)) implications))
+
+
+;;; Approximate Computation of the Canonical Base
+
+(defn approx-canonical-base
+  "Compute a set L of implications that is an approximation to the canonical
+  base of the formal context `ctx'.  More precisely, if H is the canonical base
+  of ctx, then
+
+    |Mod(L) Δ Mod(H)|/2^{|M|} ≤ ε
+
+  with probability at least 1-δ.  The computation is done in polynomial time
+  with respect to |M|, |L|, 1/ε, and 1/δ. "
+  [ctx ε δ]
+  (assert (context? ctx))
+  (assert (and (number? ε)
+               (< 0 ε 1)))
+  (assert (and (number? δ)
+               (< 0 δ 1)))
+  (let [random-subset #(set (random-sample 0.5 (attributes ctx)))
+        intent?       #(= % (adprime ctx %))
+        respects-all? (fn [set impls]
+                        (every? (fn [impl] (respects? set impl)) impls))
+        iter-counter  (atom 0)]
+    (learn-implications-by-queries (attributes ctx)
+                                   intent?
+                                   (fn [implications]
+                                     (let [nr-iter (ceil (* (/ ε) (+ (swap! iter-counter inc)
+                                                                     (/ (Math/log (/ δ))
+                                                                        (Math/log 2)))))]
+                                       (or (some (fn [test-set]
+                                                   (when-not (<=> (intent? test-set)
+                                                                  (respects-all? test-set
+                                                                                 implications))
+                                                     test-set))
+                                                 (repeatedly nr-iter random-subset))
+                                           true))))))
 
 ;;; The End
 
