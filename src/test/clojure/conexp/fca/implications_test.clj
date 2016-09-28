@@ -411,16 +411,26 @@
 ;;;
 
 (deftest test-approx-canonical-base
-  (let [ε 0.3
-        δ 1e-10]
-    (with-testing-data [ctx (random-contexts 10 15)]
-      (let [exact-base (canonical-base ctx)
-            approx-base (approx-canonical-base ctx ε δ)
-            exact-models (set (all-closed-sets (attributes ctx) (clop-by-implications exact-base)))
-            approx-models (set (all-closed-sets (attributes ctx) (clop-by-implications approx-base)))]
-        (<= (+ (count (difference exact-models approx-models))
-               (count (difference approx-models exact-models)))
-            (* ε (expt 2 (count (attributes ctx)))))))))
+  (let [test-bound (fn [ctx ε δ]
+                     (let [exact-base (canonical-base ctx)
+                           approx-base (approx-canonical-base ctx ε δ)
+                           exact-models (set (all-closed-sets (attributes ctx)
+                                                              (clop-by-implications exact-base)))
+                           approx-models (set (all-closed-sets (attributes ctx)
+                                                               (clop-by-implications approx-base)))]
+                       (<= (+ (count (difference exact-models approx-models))
+                              (count (difference approx-models exact-models)))
+                           (* ε (expt 2 (count (attributes ctx)))))))]
+    (let [ε 0.3,
+          δ 1e-10]
+      (with-testing-data [ctx (random-contexts 10 15)]
+        (test-bound ctx ε δ)))
+    (let [ε 0.3,
+          δ 0.5
+          n 50]
+      (let [failures (filter (comp not #(test-bound % ε δ)) (random-contexts n 15))]
+        (< (count failures)
+           (* n (- 1 δ)))))))
 
 ;;;
 
