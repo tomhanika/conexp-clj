@@ -8,10 +8,9 @@
 
 (ns conexp.fca.implications
   "Implications for Formal Concept Analysis."
-  (:use conexp.base
-        conexp.fca.contexts)
-  (:require [clojure.core.reducers :as r])
-  (:import [java.util HashMap HashSet]))
+  (:require [clojure.core.reducers :as r]
+            [conexp.base :refer :all]
+            [conexp.fca.contexts :refer :all]))
 
 ;;;
 
