@@ -682,26 +682,42 @@
   [implications]
   #(every? (fn [implication] (respects? % implication)) implications))
 
+
 ;;; Approximate Computation of the Canonical Base
 
 (defn approx-canonical-base
-  ""
-  ([ctx ε δ]
-   (approx-canonical-base ctx ε δ #(set (random-sample 0.5 (attributes ctx)))))
-  ([ctx ε δ subset-sampler]
-   (let [intent?       #(= % (adprime ctx %))
-         nr-iter       (inc (ceil (* (/ ε) (Math/log (/ δ)))))
-         respects-all? (fn [set impls]
-                         (every? (fn [impl] (respects? set impl)) impls))]
-     (learn-implications-by-queries (attributes ctx)
-                                    intent?
-                                    (fn [implications]
-                                      (or (some (fn [test-set]
-                                                  (when (not (<=> (intent? test-set)
-                                                                  (respects-all? test-set implications)))
-                                                    test-set))
-                                                (repeatedly nr-iter subset-sampler))
-                                          true))))))
+  "Compute a set L of implications that is an approximation to the canonical
+  base of the formal context `ctx'.  More precisely, if H is the canonical base
+  of ctx, then
+
+    |Mod(L) Δ Mod(H)|/2^{|M|} ≤ ε
+
+  with probability at least 1-δ.  The computation is done in polynomial time
+  with respect to |M|, |L|, 1/ε, and 1/δ. "
+  [ctx ε δ]
+  (assert (context? ctx))
+  (assert (and (number? ε)
+               (< 0 ε 1)))
+  (assert (and (number? δ)
+               (< 0 δ 1)))
+  (let [random-subset #(set (random-sample 0.5 (attributes ctx)))
+        intent?       #(= % (adprime ctx %))
+        respects-all? (fn [set impls]
+                        (every? (fn [impl] (respects? set impl)) impls))
+        iter-counter  (atom 0)]
+    (learn-implications-by-queries (attributes ctx)
+                                   intent?
+                                   (fn [implications]
+                                     (let [nr-iter (ceil (* (/ ε) (+ (swap! iter-counter inc)
+                                                                     (/ (Math/log (/ δ))
+                                                                        (Math/log 2)))))]
+                                       (or (some (fn [test-set]
+                                                   (when-not (<=> (intent? test-set)
+                                                                  (respects-all? test-set
+                                                                                 implications))
+                                                     test-set))
+                                                 (repeatedly nr-iter random-subset))
+                                           true))))))
 
 ;;; The End
 
