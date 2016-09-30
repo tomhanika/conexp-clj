@@ -38,7 +38,8 @@
   :javac-options ["-Xlint:unchecked"]
   :test-paths ["src/test/clojure"]
   :resource-paths ["src/main/resources"]
-  :compile-path "lib/classes/"
+  :target-path "builds/%s"
+  :compile-path "%s/classes/"
   :scm {:url "git@github.com:exot/conexp-clj.git"}
   :java-opts ["-Dawt.useSystemAAFontSettings=on"])
 
