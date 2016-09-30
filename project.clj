@@ -21,7 +21,6 @@
                  [org.clojure/math.combinatorics  "0.1.1"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.apache.commons/commons-math "2.2"]
-                 [conexp-clj/LatDraw              "0.0.1"]
                  [seesaw                          "1.4.3"]
                  [reply                           "0.3.7"
                   :exclusions [org.clojure/clojure
