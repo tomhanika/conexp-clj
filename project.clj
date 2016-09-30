@@ -16,17 +16,17 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure             "1.8.0"]
                  [org.clojure/tools.cli           "0.3.5"]
-                 [org.clojure/math.combinatorics  "0.1.1"]
+                 [org.clojure/math.combinatorics  "0.1.3"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.apache.commons/commons-math "2.2"]
-                 [seesaw                          "1.4.3"]
+                 [seesaw                          "1.4.5"]
                  [reply                           "0.3.7"
                   :exclusions [org.clojure/clojure
                                net.cgrand.parsley]]
                  [net.cgrand/parsley              "0.9.3"
                   :exclusions [org.clojure/clojure]]
                  [org.clojure/data.xml            "0.0.8"]
-                 [org.clojure/core.async          "0.2.374"]]
+                 [org.clojure/core.async          "0.2.391"]]
   :main conexp.main
   :aot [conexp.main conexp.contrib.java]
   :keep-non-project-classes true
