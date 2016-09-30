@@ -157,3 +157,6 @@ the [GNU Lesser General Public License](http://www.gnu.org/copyleft/lesser.html)
 (LGPL).  Modifications to the original version of G are only concerned with
 exposing internals necessary for conexp-clj to work.  The modified version of G
 is again licensed under LGPL.
+
+This program uses parts of the [LatDraw library](http://latdraw.org), ⓒ 2002
+Ralph Freese.
