@@ -149,3 +149,11 @@ Additional Contributors are
 Copyright ⓒ 2009—2016 Daniel Borchmann
 
 Distributed under the Eclipse Public License.
+
+This program uses an adapted version of
+the [G library](http://geosoft.no/graphics/index.html), a 2D graphics library
+and rendering engine for Java, ⓒ 2009 GeoSoft, licensed under
+the [GNU Lesser General Public License](http://www.gnu.org/copyleft/lesser.html)
+(LGPL).  Modifications to the original version of G are only concerned with
+exposing internals necessary for conexp-clj to work.  The modified version of G
+is again licensed under LGPL.
