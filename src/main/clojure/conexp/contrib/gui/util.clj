@@ -9,7 +9,7 @@
 ;; this file contains contributions by Immanuel Albrecht
 
 (ns conexp.contrib.gui.util
-  (:import [javax.swing JFrame JPanel JButton ImageIcon JTabbedPane 
+  (:import [javax.swing JFrame JPanel JButton ImageIcon JTabbedPane
                         JLabel BorderFactory AbstractButton JFileChooser
                         JOptionPane JComponent JMenuBar]
            [javax.swing.filechooser FileNameExtensionFilter]
