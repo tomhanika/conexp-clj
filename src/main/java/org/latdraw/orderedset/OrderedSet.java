@@ -220,8 +220,10 @@ public class OrderedSet {
   List[] linExt(List labels, List ucs, boolean save) 
                                              throws NonOrderedSetException {
     final int n = labels.size();
-System.out.println("labels has size " + n);
-System.out.println("ucs has size " + ucs.size());
+    /*
+      System.out.println("labels has size " + n);
+      System.out.println("ucs has size " + ucs.size());
+    */
     //Stack S = new Stack();
     SimpleList Z = SimpleList.EMPTY_LIST;
     SimpleList ZNew = SimpleList.EMPTY_LIST;
