@@ -86,11 +86,6 @@
       pack!
       show!))
 
-(defn confirm
-  "Opens a message dialog asking for confirmation."
-  [frame message]
-  (JOptionPane/showConfirmDialog frame message))
-
 (defn get-image-icon-or-string
   "Returns either the image-icon for the given resource or the given
    alternative string."
@@ -288,7 +283,7 @@
         (let [^File file (.getSelectedFile fc)]
           (if (not (.exists file))
             file
-            (condp = (confirm frame "File exists, overwrite?")
+            (condp = (JOptionPane/showConfirmDialog frame "File exists, overwrite?")
               JOptionPane/YES_OPTION file,
               JOptionPane/NO_OPTION (recur),
               JOptionPane/CANCEL_OPTION nil)))))))
