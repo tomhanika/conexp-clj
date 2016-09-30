@@ -21,7 +21,6 @@
                  [org.clojure/math.combinatorics  "0.1.1"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.apache.commons/commons-math "2.2"]
-                 [conexp-clj/G                    "0.1.1"]
                  [conexp-clj/LatDraw              "0.0.1"]
                  [seesaw                          "1.4.3"]
                  [reply                           "0.3.7"
@@ -35,6 +34,8 @@
   :aot [conexp.main conexp.contrib.java]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
+  :java-source-paths ["src/main/java"]
+  :javac-options ["-Xlint:unchecked"]
   :test-paths ["src/test/clojure"]
   :resource-paths ["src/main/resources"]
   :compile-path "lib/classes/"
