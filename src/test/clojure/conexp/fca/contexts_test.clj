@@ -366,6 +366,16 @@
         (= (set (extents ctx))
            (set-of A [[A _] (concepts ctx)])))))
 
+(deftest test-intent?
+  (for [ctx testing-data :when (<= (count (attributes ctx)) 12)]
+    (is (= (set (intents ctx))
+           (set-of A | A (subsets (attributes ctx)) :when (intent? ctx A))))))
+
+(deftest test-extent?
+  (for [ctx testing-data :when (<= (count (objects ctx)) 12)]
+    (is (= (set (extents ctx))
+           (set-of A | A (subsets (objects ctx)) :when (extent? ctx A))))))
+
 ;;;
 
 (deftest test-dual-context

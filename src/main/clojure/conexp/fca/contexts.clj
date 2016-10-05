@@ -434,6 +434,22 @@
   ([ctx pred]
      (all-closed-sets-in-family pred (attributes ctx) (partial context-attribute-closure ctx))))
 
+(defn intent?
+  "Test whether `thing' is an intent of the formal context `ctx.'"
+  [ctx thing]
+  (assert (context? ctx))
+  (and (set? thing)
+       (subset? thing (attributes ctx))
+       (= thing (adprime ctx thing))))
+
+(defn extent?
+  "Test whether `thing' is an extent of the formal context `ctx.'"
+  [ctx thing]
+  (assert (context? ctx))
+  (and (set? thing)
+       (subset? thing (objects ctx))
+       (= thing (odprime ctx thing))))
+
 (defn- cbo-test
   "Simple implementation of the test used by the «Close by One»
   algorithm."
