@@ -7,7 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.main
-  "Main namespace for conexp-clj.")
+  "Main namespace for conexp-clj."
+  (:require [clojure.tools.cli :as cli])
+  (:require [reply.main :as reply])
+  (:gen-class))
 
 ;;;
 
@@ -31,5 +34,47 @@
 
 ;;;
 
-true
+(def conexp-clj-options
+  [["-g" "--gui" "Start the graphical user interface"]
+   ["-l" "--load FILE" "Load a given file and exit"]
+   ["-h" "--help" "This help"]])
 
+(defn -main [& args]
+  (let [{:keys [options summary errors]}
+        (cli/parse-opts args conexp-clj-options)]
+
+    (when errors
+      (doseq [error errors]
+        (println error))
+      (System/exit 1))
+
+    (cond
+      ;;
+      (contains? options :help)
+      (println summary)
+      ;;
+      (contains? options :gui)
+      (reply/launch
+       {:custom-eval '(do
+                        (in-ns 'conexp.main)
+                        (use 'clojure.repl)
+                        (require '[conexp.contrib.gui.repl-utils :as gui])
+                        (require 'conexp.contrib.gui)
+                        (alter-var-root
+                         (var gui/*main-frame*)
+                         (fn [_]
+                           (conexp.contrib.gui/gui
+                            :default-close-operation :exit))))
+        :custom-help ""})
+      ;;
+      (contains? options :load)
+      (do
+        (in-ns 'conexp.main)
+        (load-file (options :load)))
+      ;;
+      true
+      (reply/launch {:custom-eval '(do (in-ns 'conexp.main)
+                                       (use 'clojure.repl))
+                     :custom-help ""})))
+
+  (System/exit 0))

@@ -7,9 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.math.statistics
-  (:use conexp.base
-        conexp.math.util)
-  (:import [org.apache.commons.math.stat.regression SimpleRegression]))
+  (:require [conexp.base :refer :all])
+  (:import org.apache.commons.math.stat.regression.SimpleRegression))
 
 ;;;
 

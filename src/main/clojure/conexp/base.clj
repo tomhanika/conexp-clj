@@ -272,6 +272,20 @@ metadata (as provided by def) merged into the metadata of the original."
   [seq-1 seq-2]
   (map #(vector %1 %2) seq-1 seq-2))
 
+(defn first-position-if
+  "Return the index of the first element in sequence for which predicate returns
+  true."
+  [predicate sequence]
+  (loop [index    0
+         sequence sequence]
+    (cond
+      (not (seq sequence))
+      nil
+      (predicate (first sequence))
+      index
+      :else
+      (recur (inc index) (rest sequence)))))
+
 (defn first-non-nil
   "Returns first non-nil element in seq, or nil if there is none."
   [seq]
@@ -913,18 +927,29 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (defn transitive-closure
   "Computes transitive closure of a given set of pairs."
+  ;; Inspired by the corresponding code from the graph library by
+  ;; Jeffrey Straszheim
   [pairs]
-  (let [pairs  (set pairs),
-        runner (fn runner [new old]
-                 (if (= new old)
-                   new
-                   (recur (union new
-                                 (set-of [x y]
-                                         [[x z_1] (difference new old)
-                                          [z_2 y] pairs
-                                          :when (= z_1 z_2)]))
-                          new)))]
-    (runner pairs #{})))
+  (let [pairs-as-map (loop [pairs pairs
+                            map   {}]
+                       (if (not (seq pairs))
+                         map
+                         (let [[x y] (first pairs)]
+                           (recur (rest pairs)
+                                  (update map x conj y)))))
+        runner (fn runner [to-be-visited already-visited]
+                 (lazy-seq
+                  (let [not-yet-visited (seq (drop-while #(contains? already-visited %)
+                                                         to-be-visited))
+                        unseen-node     (first not-yet-visited)]
+                    (when (seq not-yet-visited)
+                      (cons unseen-node
+                            (runner (concat (get pairs-as-map unseen-node)
+                                            (rest not-yet-visited))
+                                    (conj already-visited
+                                          unseen-node)))))))]
+    (set-of [x y] [x (keys pairs-as-map)
+                   y (runner (get pairs-as-map x) #{})])))
 
 (defn reflexive-transitive-closure
   "Computes the reflexive, transitive closure of a given set of pairs

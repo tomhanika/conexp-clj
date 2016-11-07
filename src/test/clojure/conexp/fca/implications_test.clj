@@ -392,4 +392,46 @@
 
 ;;;
 
+(deftest test-learn-implications-by-queries
+  ;; example Angluin, Frazier, Pitt: Learning Conjunctions of Horn Clauses
+  (let [background-hypothesis #{(make-implication '#{a c} '#{d}) (make-implication '#{a b} '#{c})}]
+    (is (= (set
+            (learn-implications-by-queries '#{a b c d}
+                                           (membership-oracle-by-implications background-hypothesis)
+                                           (equivalence-oracle-by-implications background-hypothesis)))
+           #{(make-implication '#{a b} '#{c d})
+             (make-implication '#{a c} '#{d})})))
+  (with-testing-data [ctx (random-contexts 10 15)]
+    (let [base (canonical-base ctx)]
+      (equivalent-implications?
+       base
+       (learn-implications-by-queries (attributes ctx)
+                                      (membership-oracle-by-implications base)
+                                      (equivalence-oracle-by-implications base))))))
+;;;
+
+(deftest test-approx-canonical-base
+  (let [test-bound (fn [ctx ε δ]
+                     (let [exact-base (canonical-base ctx)
+                           approx-base (approx-canonical-base ctx ε δ)
+                           exact-models (set (all-closed-sets (attributes ctx)
+                                                              (clop-by-implications exact-base)))
+                           approx-models (set (all-closed-sets (attributes ctx)
+                                                               (clop-by-implications approx-base)))]
+                       (<= (+ (count (difference exact-models approx-models))
+                              (count (difference approx-models exact-models)))
+                           (* ε (expt 2 (count (attributes ctx)))))))]
+    (let [ε 0.3,
+          δ 1e-10]
+      (with-testing-data [ctx (random-contexts 10 15)]
+        (test-bound ctx ε δ)))
+    (let [ε 0.3,
+          δ 0.5
+          n 50]
+      (let [failures (filter (comp not #(test-bound % ε δ)) (random-contexts n 15))]
+        (< (count failures)
+           (* n (- 1 δ)))))))
+
+;;;
+
 nil

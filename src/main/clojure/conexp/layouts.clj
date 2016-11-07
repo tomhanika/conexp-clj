@@ -7,9 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts
-  (:use conexp.base
-        conexp.layouts.layered
-        conexp.layouts.common))
+  (:require [conexp.layouts
+             [common :refer :all]
+             [layered :refer :all]]))
 
 ;;;
 

@@ -7,9 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.math.util
-  (:import [org.apache.commons.math.analysis MultivariateRealFunction
-                                             DifferentiableMultivariateRealFunction
-                                             MultivariateVectorialFunction]))
+  (:import [org.apache.commons.math.analysis DifferentiableMultivariateRealFunction MultivariateRealFunction MultivariateVectorialFunction]))
 
 ;;; Interfacing Apache Math
 
