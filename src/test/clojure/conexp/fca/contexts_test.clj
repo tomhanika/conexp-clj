@@ -525,7 +525,12 @@
   (is (= #{1 2 3 4} (objects (rand-context [1 2 3 4] 0.5))))
   (is (= '#{a b c d} (objects (rand-context '[a b c d] 0.5))))
   (is (= '#{x y z v} (attributes (rand-context [1 2 3 4] '[x y z v] 0.6))))
-  (is (thrown? IllegalArgumentException (rand-context [] 'a))))
+  (is (thrown? IllegalArgumentException (rand-context [] 'a)))
+  ;; check that random contexts generation is not prone to race conditions
+  (dotimes [_ 20]
+    (let [ctx (rand-context 10 10 0.8)
+          ctxs (repeat 20 ctx)]
+      (is (apply = (pmap context-size ctxs))))))
 
 (deftest test-random-contexts
   (with-testing-data [ctx (random-contexts 11 23)]

@@ -596,9 +596,10 @@
    (when-not (and (number? fill-rate)
                   (<= 0 fill-rate 1))
      (illegal-argument "Fill-rate must be a number between 0 and 1."))
-   (make-context-nc (to-set objects)
-                    (to-set attributes)
-                    (memoize (fn [[_ _]] (> fill-rate (rand)))))))
+   (let [objs (to-set objects)
+         atts (to-set attributes)]
+     (make-context-nc objs atts
+                      (set-of [g m] | g objs, m atts, :when (> fill-rate (rand)))))))
 
 (defalias random-context rand-context)
 
