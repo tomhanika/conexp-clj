@@ -15,6 +15,7 @@
         conexp.fca.exploration.repl)
   (:require [clojure.core.reducers :as r]))
 
+
 ;;; Exploration Interface
 
 (declare explore-attributes-with-complete-counterexamples
@@ -148,6 +149,7 @@
          (or handler
              default-handler-for-complete-counterexamples)))))
 
+
 ;;; Handler for Expert Interaction
 
 (defn make-handler
@@ -195,6 +197,7 @@
     [possible-ctx certain-ctx known impl]
     (dh possible-ctx certain-ctx known impl)))
 
+
 ;;; Attribute Exploration with Complete Counterexamples
 
 (defn- explore-attributes-with-complete-counterexamples
@@ -239,6 +242,7 @@
                                      (clop-by-implications (conj implications new-impl))
                                      last)
                     ctx))))))))
+
 
 ;;; Attribute Exploration with Incomplete Counterexamples
 
