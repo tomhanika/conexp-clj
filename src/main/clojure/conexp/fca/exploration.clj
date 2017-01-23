@@ -324,6 +324,39 @@
                      new-possible-ctx
                      new-certain-ctx)))))))))
 
+
+;;; Probably Approximately Correct Attribute Exploration
+
+(defn pac-explore-attributes
+  "Interactive version of approx-canonical-base, which see.
+
+  TODO: extend this doc-string."
+  [base-set ε δ handler]
+  (assert (and (set? base-set) (not-empty base-set)))
+  (assert (and (number? ε) (< 0 ε 1)))
+  (assert (and (number? δ) (< 0 δ 1)))
+  ;; handler as above
+  (let [is-model?     (fn [X]
+                        (forall [m (difference base-set X)]
+                          (handler (make-implication X #{m}))))
+        respects-all? (fn [set impls]
+                        (every? (fn [impl] (respects? set impl)) impls))
+        iter-counter  (atom 0)
+        random-subset #(set (random-sample 0.5 base-set))]
+    (learn-implications-by-queries base-set
+                                   is-model?
+                                   (fn [implications]
+                                     (let [nr-iter (ceil (* (/ ε) (+ (swap! iter-counter inc)
+                                                                     (/ (Math/log (/ δ))
+                                                                        (Math/log 2)))))]
+                                       (or (some (fn [test-set]
+                                                   (when-not (<=> (is-model? test-set)
+                                                                  (respects-all? test-set
+                                                                                 implications))
+                                                     test-set))
+                                                 (repeatedly nr-iter random-subset))
+                                           true))))))
+
 ;;;
 
 nil
