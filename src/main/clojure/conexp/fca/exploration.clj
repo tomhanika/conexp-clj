@@ -364,9 +364,11 @@
         ;; AFP helper functions
         horn1-refine-implication (fn [implication counterexample]
                                    (make-implication counterexample
-                                                     (union (conclusion implication)
-                                                            (difference (premise implication)
-                                                                        counterexample))))
+                                                     (close-under-implications
+                                                      background-knowledge
+                                                      (union (conclusion implication)
+                                                             (difference (premise implication)
+                                                                         counterexample)))))
         horn1-reduce-implication (fn [implication counterexample]
                                    (make-implication (premise implication)
                                                      (intersection (conclusion implication)
