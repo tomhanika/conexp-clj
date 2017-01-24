@@ -337,84 +337,92 @@
   (assert (and (set? base-set) (not-empty base-set)))
   (assert (and (number? ε) (< 0 ε 1)))
   (assert (and (number? δ) (< 0 δ 1)))
-  ;; handler as in other exploration algorithms
+  ;; `handler’ as in other exploration algorithms
 
-  ;; setting up helper functions and variables
-  (let [ ;; we need some static variables here
-        hypothesis   (atom [])
+  (let [hypothesis   (atom [])
+        iter-counter (atom 0)]
 
-        ;; membership oracle in terms of domain expert
-        member?       (fn [X]
-                        (forall [m (difference base-set X)]
-                          (handler (make-implication X #{m}))))
+    (letfn [(query-expert [implication]
+              ;; whenever the domain expert returns a counterexample, we can reduce
+              ;; the hypothesis using it
+              (let [result (handler implication)]
+                (and result (reduce-hypothesis result))
+                result))
 
-        ;; sampling equivalence oracle in terms of membership oracle
-        respects-all? (fn [set impls]
-                        (every? (fn [impl] (respects? set impl)) impls))
-        iter-counter  (atom 0)
-        random-subset #(set (random-sample 0.5 base-set))
-        equivalent?   (fn []
-                        (let [nr-iter (ceil (* (/ ε) (+ (swap! iter-counter inc)
-                                                        (/ (Math/log (/ δ))
-                                                           (Math/log 2)))))]
-                          (or (some (fn [test-set]
-                                      ;; should `test-set’ be closed under
-                                      ;; `background-knowledge’?; if not, then
-                                      ;; we get redundant questions; if yes, how
-                                      ;; to sample those sets uniformly at
-                                      ;; random?
-                                      (when-not (<=> (member? test-set)
-                                                     (respects-all? test-set @hypothesis))
-                                        test-set))
-                                    (repeatedly nr-iter random-subset))
-                              true)))
+            ;; membership oracle in terms of domain expert
+            (member? [X]
+              (forall [m (difference base-set X)]
+                (query-expert (make-implication X #{m}))))
 
-        ;; AFP helper functions
-        reduce-hypothesis        (fn [counterexample]
-                                   ;; we received a positive counterexample
-                                   (reset! hypothesis
-                                           (mapv (fn [implication]
-                                                   (if (respects? counterexample implication)
-                                                     implication
-                                                     (make-implication (premise implication)
-                                                                       (intersection (conclusion implication)
-                                                                                     counterexample))))
-                                                 @hypothesis)))
+            ;; sampling equivalence oracle in terms of membership oracle
+            (respects-all? [set impls]
+              (every? (fn [impl] (respects? set impl)) impls))
 
-        refine-hypothesis        (fn [counterexample]
-                                   ;; we received a negative counterexample
-                                   (let [minimal-index (first-position-if
-                                                        (fn [implication]
-                                                          (let [reduced-premise (intersection counterexample
-                                                                                              (premise implication))]
-                                                            (and (proper-subset? reduced-premise
-                                                                                 (premise implication))
-                                                                 (not (member? reduced-premise)))))
-                                                        @hypothesis)]
-                                     (if minimal-index
-                                       (let [implication (get @hypothesis minimal-index)]
-                                         (swap! hypothesis
-                                                assoc
-                                                minimal-index
-                                                (make-implication (intersection counterexample (premise implication))
-                                                                  (close-under-implications
-                                                                   background-knowledge
-                                                                   (union (conclusion implication)
-                                                                          (difference (premise implication)
-                                                                                      counterexample))))))
-                                       (swap! hypothesis
-                                              conj (make-implication counterexample base-set)))))]
+            (random-subset []
+              (set (random-sample 0.5 base-set)))
 
-    ;; AFP algorithm
-    (loop []
-     (let [equivalence-result (equivalent?)]
-       (if (= true equivalence-result)  ; we need to check this explicitly
-         @hypothesis
-         (let [counterexample equivalence-result] ; rename for better readability
-           (if (some #(not (respects? counterexample %)) @hypothesis)
-             (reduce-hypothesis counterexample)
-             (refine-hypothesis counterexample))
-           (recur)))))))
+            (equivalent? []
+              (let [nr-iter (ceil (* (/ ε)
+                                     (+ (swap! iter-counter inc)
+                                        (/ (Math/log (/ δ))
+                                           (Math/log 2)))))]
+                (or (some (fn [test-set]
+                            ;; should `test-set’ be closed under
+                            ;; `background-knowledge’?; if not, then
+                            ;; we get redundant questions; if yes, how
+                            ;; to sample those sets uniformly at
+                            ;; random?
+                            (when-not (<=> (member? test-set)
+                                           (respects-all? test-set @hypothesis))
+                              test-set))
+                          (repeatedly nr-iter random-subset))
+                    true)))
+
+            (reduce-hypothesis [counterexample]
+              ;; we received a positive counterexample
+              (reset! hypothesis
+                      (mapv (fn [implication]
+                              (if (respects? counterexample implication)
+                                implication
+                                (make-implication (premise implication)
+                                                  (intersection (conclusion implication)
+                                                                counterexample))))
+                            @hypothesis)))
+
+            (refine-hypothesis [counterexample]
+              ;; we received a negative counterexample
+              (let [minimal-index (first-position-if
+                                   (fn [implication]
+                                     (let [reduced-premise (intersection counterexample
+                                                                         (premise implication))]
+                                       (and (proper-subset? reduced-premise
+                                                            (premise implication))
+                                            (not (member? reduced-premise)))))
+                                   @hypothesis)]
+                (if minimal-index
+                  (let [implication (get @hypothesis minimal-index)]
+                    (swap! hypothesis
+                           assoc
+                           minimal-index
+                           (make-implication (intersection counterexample (premise implication))
+                                             (close-under-implications
+                                              background-knowledge
+                                              (union (conclusion implication)
+                                                     (difference (premise implication)
+                                                                 counterexample))))))
+                  (swap! hypothesis
+                         conj (make-implication counterexample base-set)))))]
+
+      ;; AFP algorithm
+      (loop []
+        (let [equivalence-result (equivalent?)]
+          (if (= true equivalence-result) ; we need to check this explicitly
+            @hypothesis
+            (let [counterexample equivalence-result] ; rename for better readability
+              (if (some #(not (respects? counterexample %)) @hypothesis)
+                (reduce-hypothesis counterexample)
+                (refine-hypothesis counterexample))
+              (recur))))))))
 
 ;;;
 
