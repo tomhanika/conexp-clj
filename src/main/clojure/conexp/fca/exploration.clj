@@ -340,11 +340,12 @@
   ;; handler as above
 
   ;; setting up helper functions and variables
-  (let [member?       (fn [X]
+  (let [;; membership oracle in terms of domain expert
+        member?       (fn [X]
                         (forall [m (difference base-set X)]
                           (handler (make-implication X #{m}))))
 
-        ;; sampling equivalence oracle
+        ;; sampling equivalence oracle in terms of membership oracle
         respects-all? (fn [set impls]
                         (every? (fn [impl] (respects? set impl)) impls))
         iter-counter  (atom 0)
@@ -354,6 +355,11 @@
                                                         (/ (Math/log (/ δ))
                                                            (Math/log 2)))))]
                           (or (some (fn [test-set]
+                                      ;; should test-set’ be closed under
+                                      ;; `background-knowledge’?; if not, then
+                                      ;; we get redundant questions; if yes, how
+                                      ;; to sample those sets uniformly at
+                                      ;; random?
                                       (when-not (<=> (member? test-set)
                                                      (respects-all? test-set
                                                                     implications))
