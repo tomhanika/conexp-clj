@@ -362,65 +362,19 @@
                 (query-expert (make-implication X #{m}))))
 
             ;; sampling equivalence oracle in terms of membership oracle
-            (respects-all? [set impls]
-              (every? (fn [impl] (respects? set impl)) impls))
-
-            (random-subset []
-              (set (random-sample 0.5 base-set)))
-
             (equivalent? []
               (let [nr-iter (ceil (* (/ ε)
                                      (+ (swap! iter-counter inc)
                                         (/ (Math/log (/ δ))
-                                           (Math/log 2)))))]
+                                           (Math/log 2)))))
+                    respects-hypothesis? (fn [set]
+                                           (every? #(respects? set %) @hypothesis))]
                 (or (some (fn [test-set]
-                            ;; should `test-set’ be closed under
-                            ;; `background-knowledge’?; if not, then
-                            ;; we get redundant questions; if yes, how
-                            ;; to sample those sets uniformly at
-                            ;; random?
                             (when-not (<=> (member? test-set)
-                                           (respects-all? test-set @hypothesis))
+                                           (respects-hypothesis? test-set))
                               test-set))
-                          (repeatedly nr-iter random-subset))
-                    true)))
-
-            (reduce-hypothesis [counterexample]
-              ;; we received a positive counterexample
-              (reset! hypothesis
-                      (mapv (fn [implication]
-                              (if (respects? counterexample implication)
-                                implication
-                                (make-implication (premise implication)
-                                                  (intersection (conclusion implication)
-                                                                counterexample))))
-                            @hypothesis)))
-
-            (refine-hypothesis [counterexample]
-              ;; we received a negative counterexample
-              (let [minimal-index (first-position-if
-                                   (fn [implication]
-                                     (let [reduced-premise (intersection counterexample
-                                                                         (premise implication))]
-                                       (and (proper-subset? reduced-premise
-                                                            (premise implication))
-                                            (not (member? reduced-premise)))))
-                                   @hypothesis)]
-                (if minimal-index
-                  (let [implication (get @hypothesis minimal-index)]
-                    (swap! hypothesis
-                           assoc
-                           minimal-index
-                           (let [A (premise implication)
-                                 B (conclusion implication)
-                                 C counterexample]
-                             (make-implication (intersection C A)
-                                               (intersection (union B (difference A C))
-                                                             (adprime @counterexamples
-                                                                      (intersection C A)))))))
-                  (swap! hypothesis
-                         conj (make-implication counterexample
-                                                (adprime @counterexamples counterexample))))))]
+                          (repeatedly nr-iter #(set (random-sample 0.5 base-set))))
+                    true)))]
 
       ;; AFP algorithm
       (loop []
@@ -429,8 +383,39 @@
             @hypothesis
             (let [counterexample equivalence-result] ; rename for better readability
               (if (some #(not (respects? counterexample %)) @hypothesis)
-                (reduce-hypothesis counterexample)
-                (refine-hypothesis counterexample))
+                ;; handle positive counterexample
+                (reset! hypothesis
+                        (mapv (fn [implication]
+                                (if (respects? counterexample implication)
+                                  implication
+                                  (make-implication (premise implication)
+                                                    (intersection (conclusion implication)
+                                                                  counterexample))))
+                              @hypothesis))
+                ;; handle negative counterexample
+                (let [minimal-index (first-position-if
+                                     (fn [implication]
+                                       (let [reduced-premise (intersection counterexample
+                                                                           (premise implication))]
+                                         (and (proper-subset? reduced-premise
+                                                              (premise implication))
+                                              (not (member? reduced-premise)))))
+                                     @hypothesis)]
+                  (if minimal-index
+                    (let [implication (get @hypothesis minimal-index)]
+                      (swap! hypothesis
+                             assoc
+                             minimal-index
+                             (let [A (premise implication)
+                                   B (conclusion implication)
+                                   C counterexample]
+                               (make-implication (intersection C A)
+                                                 (intersection (union B (difference A C))
+                                                               (adprime @counterexamples
+                                                                        (intersection C A)))))))
+                    (swap! hypothesis
+                           conj (make-implication counterexample
+                                                  (adprime @counterexamples counterexample))))))
               (recur))))))))
 
 ;;;
