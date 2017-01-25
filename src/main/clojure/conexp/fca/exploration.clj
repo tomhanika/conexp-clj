@@ -339,18 +339,21 @@
   (assert (and (number? δ) (< 0 δ 1)))
   ;; `handler’ as in other exploration algorithms
 
-  (let [hypothesis   (atom [])
-        iter-counter (atom 0)]
+  (let [hypothesis      (atom [])
+        iter-counter    (atom 0)
+        counterexamples (atom (make-context #{} base-set #{}))]
 
     (letfn [(query-expert [implication]
               ;; if implication follows from background knowledge, return `nil’
               ;; to signal acceptance
               (if (follows? implication background-knowledge)
                 nil
-                ;; whenever the domain expert returns a counterexample, we can reduce
-                ;; the hypothesis using it
+                ;; whenever the domain expert returns a counterexample, we store
+                ;; it
                 (let [result (handler implication)]
-                  (and result (reduce-hypothesis result))
+                  (when result
+                    (swap! counterexamples
+                           add-object implication result))
                   result)))
 
             ;; membership oracle in terms of domain expert
@@ -408,12 +411,16 @@
                     (swap! hypothesis
                            assoc
                            minimal-index
-                           (make-implication (intersection counterexample (premise implication))
-                                             (union (conclusion implication)
-                                                    (difference (premise implication)
-                                                                counterexample)))))
+                           (let [A (premise implication)
+                                 B (conclusion implication)
+                                 C counterexample]
+                             (make-implication (intersection C A)
+                                               (intersection (union B (difference A C))
+                                                             (adprime @counterexamples
+                                                                      (intersection C A)))))))
                   (swap! hypothesis
-                         conj (make-implication counterexample base-set)))))]
+                         conj (make-implication counterexample
+                                                (adprime @counterexamples counterexample))))))]
 
       ;; AFP algorithm
       (loop []
