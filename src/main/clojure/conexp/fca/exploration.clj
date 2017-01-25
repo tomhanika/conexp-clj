@@ -343,11 +343,15 @@
         iter-counter (atom 0)]
 
     (letfn [(query-expert [implication]
-              ;; whenever the domain expert returns a counterexample, we can reduce
-              ;; the hypothesis using it
-              (let [result (handler implication)]
-                (and result (reduce-hypothesis result))
-                result))
+              ;; if implication follows from background knowledge, return `nil’
+              ;; to signal acceptance
+              (if (follows? implication background-knowledge)
+                nil
+                ;; whenever the domain expert returns a counterexample, we can reduce
+                ;; the hypothesis using it
+                (let [result (handler implication)]
+                  (and result (reduce-hypothesis result))
+                  result)))
 
             ;; membership oracle in terms of domain expert
             (member? [X]
@@ -405,11 +409,9 @@
                            assoc
                            minimal-index
                            (make-implication (intersection counterexample (premise implication))
-                                             (close-under-implications
-                                              background-knowledge
-                                              (union (conclusion implication)
-                                                     (difference (premise implication)
-                                                                 counterexample))))))
+                                             (union (conclusion implication)
+                                                    (difference (premise implication)
+                                                                counterexample)))))
                   (swap! hypothesis
                          conj (make-implication counterexample base-set)))))]
 
