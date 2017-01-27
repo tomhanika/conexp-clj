@@ -346,10 +346,12 @@
     (letfn [(query-expert [implication]
               ;; if implication follows from background knowledge, return `nil’
               ;; to signal acceptance
-              (if (follows? implication background-knowledge)
+              (cond
+                (follows? implication background-knowledge)
                 nil
-                ;; whenever the domain expert returns a counterexample, we store
-                ;; it
+                (contains? (objects @counterexamples) implication)
+                (oprime @counterexamples #{implication})
+                true
                 (let [result (handler implication)]
                   (when result
                     (reduce-hypothesis result)
