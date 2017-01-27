@@ -89,19 +89,31 @@
 
 ;;;
 
-(deftest test-pac-explore-attributes
+(deftest test-pac-explore-attributes-plain
   (with-testing-data [ctx testing-data]
-    (=> (not (empty? (attributes ctx)))
-        (let [result (pac-explore-attributes (attributes ctx)
-                                             0.01
-                                             0.99
-                                             (fn [impl]
-                                               (if (holds? impl ctx)
-                                                 nil
-                                                 (adprime ctx (premise impl))))
-                                             #{})]
-          (= (set (stem-base ctx))
-             (set result))))))
+    (let [result (pac-explore-attributes (attributes ctx)
+                                         0.01
+                                         0.99
+                                         (fn [impl]
+                                           (if (holds? impl ctx)
+                                             nil
+                                             (adprime ctx (premise impl))))
+                                         #{})]
+      (= (set (stem-base ctx))
+         (set result)))))
+
+(deftest test-pac-explore-attributes-with-background-knowledge
+  (with-testing-data [ctx testing-data]
+    (= (set (canonical-base ctx))
+       (set (pac-explore-attributes (attributes ctx)
+                                    0.01
+                                    0.99
+                                    (fn [impl]
+                                      (if (holds? impl ctx)
+                                        nil
+                                        (adprime ctx (premise impl))))
+                                    ;; select random sample from the canonical base
+                                    (set (random-sample 0.1 (canonical-base ctx))))))))
 
 ;;;
 
