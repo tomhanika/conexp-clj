@@ -334,7 +334,7 @@
   [base-set ε δ handler background-knowledge]
 
   ;; sanity checking first
-  (assert (and (set? base-set) (not-empty base-set)))
+  (assert (set? base-set))
   (assert (and (number? ε) (< 0 ε 1)))
   (assert (and (number? δ) (< 0 δ 1)))
   ;; `handler’ as in other exploration algorithms
