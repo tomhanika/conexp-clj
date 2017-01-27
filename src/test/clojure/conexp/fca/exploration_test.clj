@@ -89,4 +89,20 @@
 
 ;;;
 
+(deftest test-pac-explore-attributes
+  (with-testing-data [ctx testing-data]
+    (=> (not (empty? (attributes ctx)))
+        (let [result (pac-explore-attributes (attributes ctx)
+                                             0.01
+                                             0.99
+                                             (fn [impl]
+                                               (if (holds? impl ctx)
+                                                 nil
+                                                 (adprime ctx (premise impl))))
+                                             #{})]
+          (= (set (stem-base ctx))
+             (set result))))))
+
+;;;
+
 nil
