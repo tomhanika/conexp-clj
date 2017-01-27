@@ -377,7 +377,7 @@
                           (repeatedly nr-iter #(set (random-sample 0.5 base-set))))
                     true)))
 
-            (reduce-hypothesis [counterexampe]
+            (reduce-hypothesis [counterexample]
               (reset! hypothesis
                       (mapv (fn [implication]
                               (if (respects? counterexample implication)
