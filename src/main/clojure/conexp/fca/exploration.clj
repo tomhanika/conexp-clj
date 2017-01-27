@@ -352,6 +352,7 @@
                 ;; it
                 (let [result (handler implication)]
                   (when result
+                    (reduce-hypothesis result)
                     (swap! counterexamples
                            add-object implication result))
                   result)))
@@ -374,26 +375,20 @@
                                            (respects-hypothesis? test-set))
                               test-set))
                           (repeatedly nr-iter #(set (random-sample 0.5 base-set))))
-                    true)))]
+                    true)))
 
-      ;; AFP algorithm
-      (loop []
-        (let [equivalence-result (equivalent?)]
-          (if (= true equivalence-result) ; we need to check this explicitly
-            @hypothesis
-            (let [counterexample equivalence-result] ; rename for better readability
-              (if (some #(not (respects? counterexample %)) @hypothesis)
-                ;; handle positive counterexample
-                (reset! hypothesis
-                        (mapv (fn [implication]
-                                (if (respects? counterexample implication)
-                                  implication
-                                  (make-implication (premise implication)
-                                                    (intersection (conclusion implication)
-                                                                  counterexample))))
-                              @hypothesis))
-                ;; handle negative counterexample
-                (let [minimal-index (first-position-if
+            (reduce-hypothesis [counterexampe]
+              (reset! hypothesis
+                      (mapv (fn [implication]
+                              (if (respects? counterexample implication)
+                                implication
+                                (make-implication (premise implication)
+                                                  (intersection (conclusion implication)
+                                                                counterexample))))
+                            @hypothesis)))
+
+            (refine-hypothesis [counterexample]
+              (let [minimal-index (first-position-if
                                      (fn [implication]
                                        (let [reduced-premise (intersection counterexample
                                                                            (premise implication))]
@@ -415,7 +410,19 @@
                                                                         (intersection C A)))))))
                     (swap! hypothesis
                            conj (make-implication counterexample
-                                                  (adprime @counterexamples counterexample))))))
+                                                  (adprime @counterexamples counterexample))))))]
+
+      ;; AFP algorithm
+      (loop []
+        (let [equivalence-result (equivalent?)]
+          (if (= true equivalence-result) ; we need to check this explicitly
+            @hypothesis
+            (let [counterexample equivalence-result] ; rename for better readability
+              (if (some #(not (respects? counterexample %)) @hypothesis)
+                ;; handle positive counterexample
+                (reduce-hypothesis counterexample)
+                ;; handle negative counterexample
+                (refine-hypothesis counterexample))
               (recur))))))))
 
 ;;;
