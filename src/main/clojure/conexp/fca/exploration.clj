@@ -347,10 +347,14 @@
               ;; if implication follows from background knowledge, return `nil’
               ;; to signal acceptance
               (cond
+                ;; when implication follows from background knowledge, accept
                 (follows? implication background-knowledge)
                 nil
-                (contains? (objects @counterexamples) implication)
-                (oprime @counterexamples #{implication})
+                ;; when implication is refuted by previousely given
+                ;; counterexamples, reject
+                (not (holds? implication @counterexamples))
+                (adprime @counterexamples (premise implication))
+                ;; otherwise, query the handler
                 true
                 (let [result (handler implication)]
                   (when result
