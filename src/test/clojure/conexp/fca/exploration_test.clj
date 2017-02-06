@@ -93,7 +93,7 @@
   (with-testing-data [ctx testing-data]
     (let [result (pac-explore-attributes (attributes ctx)
                                          0.01
-                                         0.99
+                                         0.01
                                          (fn [impl]
                                            (if (holds? impl ctx)
                                              nil
@@ -107,7 +107,7 @@
     (= (set (canonical-base ctx))
        (set (pac-explore-attributes (attributes ctx)
                                     0.01
-                                    0.99
+                                    0.01
                                     (fn [impl]
                                       (if (holds? impl ctx)
                                         nil
