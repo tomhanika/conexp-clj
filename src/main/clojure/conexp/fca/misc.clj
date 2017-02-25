@@ -12,7 +12,9 @@
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]
-             [implications :refer :all]]))
+             [implications :refer :all]]
+            [conexp.math
+             [util :refer [binomial-coefficient]]]))
 
 ;;; Compatible Subcontexts
 
@@ -235,3 +237,51 @@
                                    0)))))]
     (/ (counter #{} extent)
        (expt 2 (count extent)))))
+
+
+
+(defn concept-probability
+  "Compute the probability of a `concept' in `context' 𝕂 in the following manor.
+  Let pₘ be the relative frequence of attribute m in context. Then the
+  probability of a subset B ⊆ M in 𝕂 is the product of all pₘ for m ∈ B.
+  Then, the probability of a concep is defined by pr(A,B):=pr(B=B'')
+  which is: $\\sum_{k=0}^n {n\\choose k} p_B^k(1-p_B)^{n-k}\\prod_{m\\in
+  M\\setminus B}(1-p_m^k).$"
+  [context concept]
+  (let [n (count (objects context))
+        M (attributes context)
+        B (second concept) ; intent of concept
+        P_M_B (pmap #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
+        p_B (reduce * (pmap #(/ (count (attribute-derivation context #{%})) n) B))
+        k_barrier (/ (Math/log 1E-16) (Math/log (apply max P_M_B)))]
+    (reduce + (pmap (fn [k]
+                       (* (binomial-coefficient n k)
+                          (expt p_B k)
+                          (expt (- 1 p_B) (- n k))
+                          (reduce * (map #(- 1 (expt % k)) P_M_B)))) (range 1 (inc n))))))
+
+(defn faster-concept-probability
+  "In case some of the powers are evaluated in double precision
+  arithmetic we might get loose of some of the last factors. When
+  $p_m^k$ is smallen than the Wilinson Epsilon we might gain no effect
+  by subtracting it form 1. Therefore we compute some `kbarrier' value
+  for the greatest $p_m$. For k bigger than that we omit the last
+  factor.  Be aware, if you have *many* attributes in the context this
+  might lead to errors."
+  [context concept]
+  (let [n (count (objects context))
+        M (attributes context)
+        B (second concept) ; intent of concept
+        P_M_B (pmap #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
+        p_B (reduce * (pmap #(/ (count (attribute-derivation context #{%})) n) B))
+        k_barrier (int (/ (Math/log 1E-16) (Math/log (apply max P_M_B))))]
+    (+
+     (reduce + (pmap (fn [k]
+                       (* (binomial-coefficient n k)
+                          (expt p_B k)
+                          (expt (- 1 p_B) (- n k))
+                          (reduce * (map #(- 1 (Math/pow % k)) P_M_B)))) (range 1 k_barrier)))
+     (reduce + (pmap (fn [k]
+                       (* (binomial-coefficient n k)
+                          (expt p_B k)
+                          (expt (- 1 p_B) (- n k)))) (range (inc k_barrier) (inc n)))))))
