@@ -79,7 +79,7 @@
 
 ;;; Combinatorics
 (defn binomial-coefficient
-   "Straight forward computing of ${n\choose k}$ by multiplying
+   "Straight forward computing of ${n\\choose k}$ by multiplying
   all (n-k) factors, where `run' is incremented up to k, divided by
   the incrementing divisor `run'"
   [n k]
