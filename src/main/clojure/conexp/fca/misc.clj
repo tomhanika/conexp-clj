@@ -251,7 +251,7 @@
   (let [n (count (objects context))
         M (attributes context)
         B (second concept) ; intent of concept
-        P_M_B (pmap #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
+        P_M_B (map #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
         p_B (reduce * (pmap #(/ (count (attribute-derivation context #{%})) n) B))
         k_barrier (/ (Math/log 1E-16) (Math/log (apply max P_M_B)))]
     (reduce + (pmap (fn [k]
