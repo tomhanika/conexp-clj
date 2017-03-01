@@ -242,7 +242,7 @@
 
 
 (defn concept-probability
-  "Compute the probability of a `concept' in `context' 𝕂 in the following manor.
+  "Compute the probability of a `concept' in `context' 𝕂 in the following manner.
   Let pₘ be the relative frequence of attribute m in context. Then the
   probability of a subset B ⊆ M in 𝕂 is the product of all pₘ for m ∈ B.
   Then, the probability of a concep is defined by pr(A,B):=pr(B=B'')
