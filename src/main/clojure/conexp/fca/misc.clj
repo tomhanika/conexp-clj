@@ -9,12 +9,13 @@
 (ns conexp.fca.misc
   "More on FCA."
   (:require [conexp.base :refer :all]
+            [clojure.core.reducers :as r]
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]
-             [implications :refer :all]]
-            [conexp.math
-             [util :refer [binomial-coefficient]]]))
+             [implications :refer :all]]))
+
+(def ^:dynamic *fast-computation* nil)
 
 ;;; Compatible Subcontexts
 
@@ -248,40 +249,29 @@
   which is: $\\sum_{k=0}^n {n\\choose k} p_B^k(1-p_B)^{n-k}\\prod_{m\\in
   M\\setminus B}(1-p_m^k).$"
   [context concept]
-  (let [n (count (objects context))
+  (let [nr_of_objects (count (objects context))
+        n  (if *fast-computation* (double nr_of_objects) nr_of_objects)
         M (attributes context)
         B (second concept) ; intent of concept
-        P_M_B (map #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
-        p_B (reduce * (pmap #(/ (count (attribute-derivation context #{%})) n) B))
-        k_barrier (/ (Math/log 1E-16) (Math/log (apply max P_M_B)))]
-    (reduce + (pmap (fn [k]
-                       (* (binomial-coefficient n k)
-                          (expt p_B k)
-                          (expt (- 1 p_B) (- n k))
-                          (reduce * (map #(- 1 (expt % k)) P_M_B)))) (range 1 (inc n))))))
-
-(defn faster-concept-probability
-  "In case some of the powers are evaluated in double precision
-  arithmetic we might get loose of some of the last factors. When
-  $p_m^k$ is smallen than the Wilinson Epsilon we might gain no effect
-  by subtracting it form 1. Therefore we compute some `kbarrier' value
-  for the greatest $p_m$. For k bigger than that we omit the last
-  factor.  Be aware, if you have *many* attributes in the context this
-  might lead to errors."
-  [context concept]
-  (let [n (count (objects context))
-        M (attributes context)
-        B (second concept) ; intent of concept
-        P_M_B (pmap #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
-        p_B (reduce * (pmap #(/ (count (attribute-derivation context #{%})) n) B))
-        k_barrier (int (/ (Math/log 1E-16) (Math/log (apply max P_M_B))))]
-    (+
-     (reduce + (pmap (fn [k]
-                       (* (binomial-coefficient n k)
-                          (expt p_B k)
-                          (expt (- 1 p_B) (- n k))
-                          (reduce * (map #(- 1 (Math/pow % k)) P_M_B)))) (range 1 k_barrier)))
-     (reduce + (pmap (fn [k]
-                       (* (binomial-coefficient n k)
-                          (expt p_B k)
-                          (expt (- 1 p_B) (- n k)))) (range (inc k_barrier) (inc n)))))))
+        P_M_B (mapv #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
+        p_B (r/fold * (map #(/ (count (attribute-derivation context #{%})) n) B))
+        one_minus_p_B_n (expt (- 1 p_B) n)]
+    (loop [
+           k 1  ;; since for k=0 the last term is 0, we can start with 1
+           result 0
+           binomial n ;; since k=0 the start binomial is n
+           p_B_k  p_B
+           one_minus_p_B_k  (/ one_minus_p_B_n (- 1 p_B))
+           P_M_B_k P_M_B ]
+      (if (or (== k n) (== p_B_k 0)) ;; either done or underflowed probability (double)
+        result
+        (let [new_res
+              (* binomial p_B_k one_minus_p_B_k
+                 (r/fold * (map #(- 1 %) P_M_B_k)))]
+          (recur
+           (inc k)
+           (+ new_res result)
+           (* binomial (/ (- n k) (inc k)))
+           (* p_B_k p_B)
+           (/ one_minus_p_B_k (- 1 p_B))
+           (mapv (partial *) P_M_B_k P_M_B)))))))
