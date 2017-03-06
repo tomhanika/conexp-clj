@@ -133,16 +133,7 @@ conexp-clj. You can also run this compiled version directly by invoking
 
 ## Contributing Authors
 
-Currently conexp-clj is developed and maintained by
-
-  * Daniel Borchmann
-
-Additional Contributors are
-
-  * Immanuel Albrecht (Context Editor Plugin for the GUI)
-  * Stefan Borgwardt  (Shared Intents)
-  * Gleb Kanterov     (interval-scale)
-  * Johannes Wollbold (bug reports, feature requests)
+See [AUTHORS.md](AUTHORS.md).
 
 ## License
 
