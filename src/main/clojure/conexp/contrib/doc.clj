@@ -39,7 +39,7 @@
         :when (not (:doc (meta (resolve (symbol (str ns) (str f))))))]
     (symbol (str ns) (str f))))
 
-;;; API Documentation 
+;;; API Documentation
 
 (defn public-api-to-markdown
   "Prints to standard out the API documentation of the main namespaces of conexp-clj, or
@@ -87,7 +87,7 @@
   "Generates the standard conexp-clj API documentation and writes it to the specified
   file"
   [file]
-  (public-api-to-file 
+  (public-api-to-file
    file '[conexp.main
           conexp.layouts
           conexp.layouts.base

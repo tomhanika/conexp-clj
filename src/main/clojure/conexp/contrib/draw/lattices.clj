@@ -153,7 +153,7 @@
       :or   {layout-fn standard-layout,
              dimension [600 600]}}]
   (write-layout :svg (layout-fn lattice) file-name))
-  
+
 ;;;
 
 nil

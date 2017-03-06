@@ -119,8 +119,8 @@
                            (map (fn [x]
                                   (list y x)) sel-columns))
                          sel-rows)]
-    (doseq [lines sel-pairs] 
-      (doseq [p lines] 
+    (doseq [lines sel-pairs]
+      (doseq [p lines]
         (set-value-at-view obj (first p) (second p) "X")))))
 
 
@@ -134,7 +134,7 @@
       #(copy-to-clipboard (get-table %)) :no-return]
      ["cut.png" "X",
       "Cut the selected cells to clipboard",
-      #(cut-to-clipboard (get-table %)) :no-return] 
+      #(cut-to-clipboard (get-table %)) :no-return]
      ["paste.png" "P",
       "Paste the clipboard to the selected cell and its down-right neighbors",
       #(paste-from-clipboard (get-table %)) :no-return]

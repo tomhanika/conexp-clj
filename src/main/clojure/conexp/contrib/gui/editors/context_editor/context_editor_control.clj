@@ -107,7 +107,7 @@
       plain-background-00 (Color. 255 255 128),
       plain-foreground    (Color. 0 0 0)]
   (defn- context-cell-renderer-hook
-    "Returns the component given as first parameter, optionally changes 
+    "Returns the component given as first parameter, optionally changes
      attributes of it depending on the cell"
     [^JTable table, ^JComponent component, view-row view-col is-selected has-focus value]
     (let [row (get-row-index table view-row),
@@ -124,7 +124,7 @@
           (.setFont attr-obj-font)
           (.setForeground attr-obj-foreground)
           (.setBackground attr-obj-background))
-        
+
         :otherwise
         (let [plain-background (if (even? view-row)
                                  (if (even? view-col)
@@ -168,11 +168,11 @@
     (set-hook table "get-cell-value"
       (fn [r c]
         (ectx-get-cell-value e-ctx r c)))
-    (set-hook table "mouse-click-cell-editable-hook" 
+    (set-hook table "mouse-click-cell-editable-hook"
       (fn [r c]
         (mouse-click-cell-edtble table r c)))
     (set-hook table "cell-renderer-hook"
-      (fn [com r c s f v] 
+      (fn [com r c s f v]
         (context-cell-renderer-hook table com r c s f v)))
     (set-column-count table (+ 1 (count att)))
     (set-row-count table (+ 1 (count obj)))

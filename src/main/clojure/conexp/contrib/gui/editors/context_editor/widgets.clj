@@ -85,7 +85,7 @@
   (assert (hookable? ohookable))
   (let [hooks (:hooks ohookable)]
     (if (contains? @hooks name)
-      (dosync (alter hooks 
+      (dosync (alter hooks
                      (fn [h]
                        (let [doc-str (second (h name))
                              fun-str (list function doc-str)
@@ -164,7 +164,7 @@
   (apply f (:one otm) parms))
 
 (defn call-many
-  "Calls the given function several times with each many-part of the given 
+  "Calls the given function several times with each many-part of the given
   one-many relation as first parameter for one."
   [otm f & parms]
   (assert (keyword-isa? otm one-to-many))

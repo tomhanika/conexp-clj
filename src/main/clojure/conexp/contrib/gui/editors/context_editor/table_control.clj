@@ -92,8 +92,8 @@
 (defwidget table-control [conexp.contrib.gui.editors.context_editor.widgets.control,
                           conexp.contrib.gui.editors.context_editor.widgets.hookable]
   [widget control hooks model row-permutator])
-;; row-permutator is a ref to an two-element vector of functions, 
-;; where the first-row element transforms view-rows to index-rows 
+;; row-permutator is a ref to an two-element vector of functions,
+;; where the first-row element transforms view-rows to index-rows
 ;; and the second element is the inverse function transforming
 ;; index-rows to view-rows.
 
@@ -452,7 +452,7 @@
       (let [grab-list             (vec (if (< old-view new-view)
                                          (range old-view (+ 1 new-view))
                                          (range new-view (+ 1 old-view)))),
-                                  
+
             put-list              (if (< old-view new-view)
                                     (into [new-view] (range old-view new-view))
                                     (conj (vec (range (+ 1 new-view) (+ 1 old-view))) new-view)),
@@ -463,13 +463,13 @@
                                            (range (count grab-list))),
 
             new-index-to-view-map (map-invert new-view-to-index-map)
-              
+
             new-view-to-index     (fn [x]
-                                    (if (and (>= x 0) (< x row-count)) 
+                                    (if (and (>= x 0) (< x row-count))
                                       (new-view-to-index-map x)
                                       x)),
             new-index-to-view     (fn [x]
-                                    (if (and (>= x 0) (< x row-count)) 
+                                    (if (and (>= x 0) (< x row-count))
                                       (new-index-to-view-map x)
                                       x)),
             new-row-permutator    [new-view-to-index new-index-to-view],
@@ -584,7 +584,7 @@
         pane            (JScrollPane. table
                                       JScrollPane/VERTICAL_SCROLLBAR_AS_NEEDED
                                       JScrollPane/HORIZONTAL_SCROLLBAR_AS_NEEDED),
-        
+
         keystroke-copy  (KeyStroke/getKeyStroke KeyEvent/VK_C
                                                 ActionEvent/CTRL_MASK false),
         keystroke-cut   (KeyStroke/getKeyStroke KeyEvent/VK_X
@@ -593,7 +593,7 @@
                                                 ActionEvent/CTRL_MASK false),
 
         hooks           (:hooks (make-hookable)),
-        widget          (table-control. pane table hooks model 
+        widget          (table-control. pane table hooks model
                                         (ref [identity identity])),
 
         cell-editor     (proxy [DefaultCellEditor] [(JTextField.)]
@@ -633,7 +633,7 @@
       (.setTableHeader nil)
       (.setCellEditor cell-editor)
       (.setDefaultEditor java.lang.Object cell-editor)
-      (.setDefaultRenderer java.lang.Object cell-renderer))    
+      (.setDefaultRenderer java.lang.Object cell-renderer))
     (doto widget
       (add-hook "table-changed"        (fn [c f l t]
                                          (table-change-hook widget c f l t)))
@@ -643,7 +643,7 @@
       (add-hook "set-cell-value"       (fn [x y z] "."))
       (add-hook "mouse-click-cell-editable-hook"
                                        (constantly false))
-      (add-hook "cell-renderer-hook"   (fn [component view-row view-col is-selected has-focus value] 
+      (add-hook "cell-renderer-hook"   (fn [component view-row view-col is-selected has-focus value]
                                          component))
       (set-resize-mode :off)
       (set-cell-selection-mode :cells)
