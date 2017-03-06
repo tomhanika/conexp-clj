@@ -9,10 +9,13 @@
 (ns conexp.fca.misc
   "More on FCA."
   (:require [conexp.base :refer :all]
+            [clojure.core.reducers :as r]
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]
              [implications :refer :all]]))
+
+(def ^:dynamic *fast-computation* nil)
 
 ;;; Compatible Subcontexts
 
@@ -235,3 +238,40 @@
                                    0)))))]
     (/ (counter #{} extent)
        (expt 2 (count extent)))))
+
+
+
+(defn concept-probability
+  "Compute the probability of a `concept' in `context' 𝕂 in the following manner.
+  Let pₘ be the relative frequence of attribute m in context. Then the
+  probability of a subset B ⊆ M in 𝕂 is the product of all pₘ for m ∈ B.
+  Then, the probability of a concep is defined by pr(A,B):=pr(B=B'')
+  which is: $\\sum_{k=0}^n {n\\choose k} p_B^k(1-p_B)^{n-k}\\prod_{m\\in
+  M\\setminus B}(1-p_m^k).$"
+  [context concept]
+  (let [nr_of_objects (count (objects context))
+        n  (if *fast-computation* (double nr_of_objects) nr_of_objects)
+        M (attributes context)
+        B (second concept) ; intent of concept
+        P_M_B (mapv #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
+        p_B (r/fold * (map #(/ (count (attribute-derivation context #{%})) n) B))
+        one_minus_p_B_n (expt (- 1 p_B) n)]
+    (loop [
+           k 1  ;; since for k=0 the last term is 0, we can start with 1
+           result 0
+           binomial n ;; since k=0 the start binomial is n
+           p_B_k  p_B
+           one_minus_p_B_k  (/ one_minus_p_B_n (- 1 p_B))
+           P_M_B_k P_M_B ]
+      (if (or (== k n) (== p_B_k 0)) ;; either done or underflowed probability (double)
+        result
+        (let [new_res
+              (* binomial p_B_k one_minus_p_B_k
+                 (r/fold * (map #(- 1 %) P_M_B_k)))]
+          (recur
+           (inc k)
+           (+ new_res result)
+           (* binomial (/ (- n k) (inc k)))
+           (* p_B_k p_B)
+           (/ one_minus_p_B_k (- 1 p_B))
+           (mapv (partial *) P_M_B_k P_M_B)))))))

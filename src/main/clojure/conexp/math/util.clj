@@ -76,6 +76,22 @@
                 (apply f (advance-coord-by args n (- precision))))
              (* 2 precision)))))))
 
+
+;;; Combinatorics
+(defn binomial-coefficient
+   "Straight forward computing of ${n\\choose k}$ by multiplying
+  all (n-k) factors, where `run' is incremented up to k, divided by
+  the incrementing divisor `run'"
+  [n k]
+  (assert (>= n k))
+  (assert (>= k 0))
+  (let [target (inc n)]
+    (loop [run 1 result 1]
+      (if (> run k)
+        result
+        (recur (inc run) (* (/ (- target run) run) result))))))
+
+
 ;;;
 
 nil
