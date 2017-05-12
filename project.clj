@@ -26,6 +26,7 @@
                  [org.clojure/data.xml            "0.0.8"]
                  [org.clojure/core.async          "0.2.391"]]
   :main conexp.main
+  :aot [conexp.main]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
