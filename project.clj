@@ -22,9 +22,7 @@
                  [seesaw                          "1.4.5"]
                  [reply                           "0.3.7"
                   :exclusions [org.clojure/clojure
-                               net.cgrand.parsley]]
-                 [net.cgrand/parsley              "0.9.3"
-                  :exclusions [org.clojure/clojure]]
+                               com.cemerick/drawbridge]]
                  [org.clojure/data.xml            "0.0.8"]
                  [org.clojure/core.async          "0.2.391"]]
   :main conexp.main
