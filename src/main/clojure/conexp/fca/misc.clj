@@ -202,7 +202,7 @@
                           x (difference base-set base-sets))
                   respects?)))
 
-;;; Concept Stability
+;;; Concept Stability and the like
 
 (defn concept-stability
   "Compute the concept stability of `concept' in `context'."
@@ -239,13 +239,11 @@
     (/ (counter #{} extent)
        (expt 2 (count extent)))))
 
-
-
 (defn concept-probability
   "Compute the probability of a `concept' in `context' 𝕂 in the following manner.
-  Let pₘ be the relative frequence of attribute m in context. Then the
+  Let pₘ be the relative frequence of attribute m in context.  The
   probability of a subset B ⊆ M in 𝕂 is the product of all pₘ for m ∈ B.
-  Then, the probability of a concep is defined by pr(A,B):=pr(B=B'')
+  Then the probability of a concept is defined by pr(A,B):=pr(B=B'')
   which is: $\\sum_{k=0}^n {n\\choose k} p_B^k(1-p_B)^{n-k}\\prod_{m\\in
   M\\setminus B}(1-p_m^k).$"
   [context concept]
@@ -256,8 +254,7 @@
         P_M_B (mapv #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
         p_B (r/fold * (map #(/ (count (attribute-derivation context #{%})) n) B))
         one_minus_p_B_n (expt (- 1 p_B) n)]
-    (loop [
-           k 1  ;; since for k=0 the last term is 0, we can start with 1
+    (loop [k 1  ;; since for k=0 the last term is 0, we can start with 1
            result 0
            binomial n ;; since k=0 the start binomial is n
            p_B_k  p_B
