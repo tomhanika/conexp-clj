@@ -219,7 +219,7 @@
           (.set D j false))))
     [C, D]))
 
-(defn vychodil-generate-from
+(defn- vychodil-generate-from
   [output, object-count, attribute-count, incidence-matrix, rows, ^BitSet A, ^BitSet B, y]
   (>!! output [A, B])
   (when (and (not (== attribute-count (.cardinality B)))
@@ -239,8 +239,6 @@
                               object-count attribute-count,
                               incidence-matrix rows,
                               C D (inc j)))))
-
-(alter-meta! (var vychodil-generate-from) assoc :private true)
 
 (defmethod concepts :vychodil
   [_ context]
