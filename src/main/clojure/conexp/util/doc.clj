@@ -91,6 +91,7 @@
    file '[conexp.main
           conexp.util.exec
           conexp.util.doc
+          conexp.util.profiler
           conexp.layouts
           conexp.layouts.base
           conexp.layouts.common
@@ -99,10 +100,7 @@
           conexp.layouts.layered
           conexp.layouts.util
           conexp.contrib.draw
-          conexp.contrib.factor-analysis
-          conexp.contrib.gui
-          conexp.contrib.profiler
-          ]))
+          conexp.gui]))
 
 ;;;
 
