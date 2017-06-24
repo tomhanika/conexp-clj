@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.profiler
+(ns conexp.util.profiler
   "Provides simple function for statistical and instrumental profiling."
   (:use [clojure.pprint :only (pprint, cl-format)]))
 
