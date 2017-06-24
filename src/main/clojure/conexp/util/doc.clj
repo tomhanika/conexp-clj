@@ -6,8 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.doc
-  (:use conexp.main)
+(ns conexp.util.doc
+  (:use [conexp.main :only (conexp-clj-namespaces)])
   (:use [clojure.string :only (split replace)
                         :rename {replace replace-str}]
         [clojure.pprint :only (cl-format)]
@@ -96,7 +96,6 @@
           conexp.layouts.freese
           conexp.layouts.layered
           conexp.layouts.util
-          conexp.contrib.concept-approximation
           conexp.contrib.doc
           conexp.contrib.fuzzy.fca
           conexp.contrib.fuzzy.logics
@@ -105,10 +104,7 @@
           conexp.contrib.exec
           conexp.contrib.factor-analysis
           conexp.contrib.gui
-          conexp.contrib.java
-          conexp.contrib.nonsense
           conexp.contrib.profiler
-          conexp.contrib.retracts
           ]))
 
 ;;;
