@@ -1,4 +1,4 @@
-(ns conexp.gui.draw.lattices
+(ns conexp.gui.draw
   "This namespace provides a lattice editor and a convenience function to draw lattices."
   (:require [conexp.fca.lattices :refer :all]
             [conexp.gui.draw.control.file-exporter :refer :all]

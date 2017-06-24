@@ -1,6 +1,6 @@
 (ns conexp.gui.repl-utils
   (:require [conexp.base :refer :all]
-            [conexp.gui.draw.lattices :refer :all]
+            [conexp.gui.draw :refer :all]
             [conexp.gui.editors.context-editor.context-editor :as context-editor]
             [conexp.gui.util :as util]
             [conexp.layouts :refer :all]))

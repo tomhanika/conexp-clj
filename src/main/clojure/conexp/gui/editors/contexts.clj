@@ -3,7 +3,7 @@
   (:require [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.lattices :refer :all]
-            [conexp.gui.draw.lattices :refer :all]
+            [conexp.gui.draw :refer :all]
             [conexp.gui.editors.context-editor.context-editor :refer :all]
             [conexp.gui.plugins.base :refer :all]
             [conexp.gui.util :refer :all]
