@@ -127,8 +127,7 @@ metadata (as provided by def) merged into the metadata of the original."
                conexp.contrib.tests.algorithms.generators
                conexp.contrib.tests.algorithms.titanic
                conexp.contrib.tests.factor-analysis
-               conexp.contrib.tests.fuzzy.sets
-               conexp.contrib.tests.retracts]]
+               conexp.contrib.tests.fuzzy.sets]]
      (apply require nss)
      (apply clojure.test/run-tests nss))))
 
