@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.exec
+(ns conexp.util.exec
   "Executing external programs with a common interface."
   (:use [conexp.base :only (illegal-state)]
         [conexp.io.contexts :only (write-context)]
