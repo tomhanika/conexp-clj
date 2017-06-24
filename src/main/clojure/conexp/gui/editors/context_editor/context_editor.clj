@@ -1,26 +1,13 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-;; This file has been written by Immanuel Albrecht, with modifications by DB
-
-(ns conexp.contrib.gui.editors.context-editor.context-editor
-  (:use [conexp.base :exclude (select)]
-        conexp.fca.contexts
-        conexp.contrib.gui.util
-        conexp.contrib.gui.editors.context-editor.widgets
-        conexp.contrib.gui.editors.context-editor.table-control
-        conexp.contrib.gui.editors.context-editor.editable-contexts
-        conexp.contrib.gui.editors.context-editor.context-editor-control)
-  (:use seesaw.core)
-  (:import [javax.swing KeyStroke Box JTable]
-           [java.awt.event KeyEvent ActionEvent])
-  (:import conexp.contrib.gui.editors.context_editor.context_editor_control.context-editor-widget))
-
+(ns conexp.gui.editors.context-editor.context-editor
+  (:require [conexp.base :refer :all]
+            [conexp.fca.contexts :refer :all]
+            [conexp.gui.editors.context-editor.context-editor-control :refer :all]
+            [conexp.gui.editors.context-editor.editable-contexts :refer :all]
+            [conexp.gui.editors.context-editor.table-control :refer :all]
+            [conexp.gui.editors.context-editor.widgets :refer :all]
+            [conexp.gui.util :refer :all])
+  (:import [java.awt.event ActionEvent KeyEvent]
+           [javax.swing Box JTable KeyStroke]))
 
 ;;; Functions implementing button actions
 
@@ -111,7 +98,7 @@
 (defn-swing fill-selection-with-X
   "Fills the selected cells from the table widget with 'X's"
   [obj]
-  (assert (keyword-isa? obj conexp.contrib.gui.editors.context_editor.table_control.table-control))
+  (assert (keyword-isa? obj conexp.gui.editors.context_editor.table_control.table-control))
   (let [^JTable control (get-control obj),
         sel-columns (-> control .getSelectedColumns seq),
         sel-rows    (-> control .getSelectedRows seq),

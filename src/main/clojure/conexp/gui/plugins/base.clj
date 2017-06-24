@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.gui.plugins.base
+(ns conexp.gui.plugins.base
   "Implements plugin frameworks used for conexp-clj's standard GUI."
   (:use [conexp.base :only (illegal-argument)]))
 

@@ -1,22 +1,10 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-(ns conexp.contrib.gui.repl
-  (:import [javax.swing.text PlainDocument]
-           [java.io PushbackReader StringReader PipedWriter PipedReader
-                    PrintWriter CharArrayWriter PrintStream]
-           [javax.swing KeyStroke AbstractAction JTextArea JScrollPane JFrame
-                        JComponent]
-           [java.awt Font Color Graphics Graphics2D RenderingHints])
-  (:use [conexp.base :only (def-)])
-  (:use conexp.contrib.gui.util)
-  (:require [conexp.contrib.gui.repl-utils :as repl-utils])
-  (:require clojure.main))
+(ns conexp.gui.repl
+  (:require [conexp.base :refer :all]
+            [conexp.gui.repl-utils :as repl-utils])
+  (:import [java.awt Color Font Graphics Graphics2D RenderingHints]
+           [java.io CharArrayWriter PipedReader PipedWriter PrintStream PrintWriter PushbackReader StringReader]
+           [javax.swing AbstractAction JComponent JFrame JScrollPane JTextArea KeyStroke]
+           javax.swing.text.PlainDocument))
 
 ;;; REPL Process
 
@@ -66,7 +54,7 @@
                               :init (fn []
                                       (require 'conexp.main)
                                       (in-ns 'conexp.main)
-                                      (require '[conexp.contrib.gui.repl-utils :as gui]))
+                                      (require '[conexp.gui.repl-utils :as gui]))
                               :caught (fn [^Throwable e]
                                         (if *print-stack-trace-on-error*
                                           (.printStackTrace e ^PrintStream *out*)
@@ -143,7 +131,7 @@
         repl-thread (create-clojure-repl-process frame),
 
         ^PlainDocument
-        repl-container (proxy [PlainDocument conexp.contrib.gui.repl.ReplProcess] []
+        repl-container (proxy [PlainDocument conexp.gui.repl.ReplProcess] []
                          (getReplThreadMap []
                            repl-thread)
                          (remove [off len]
@@ -237,7 +225,7 @@
                                           (satisfies? ReplProcess
                                                       (.getDocument ^JTextArea thing)))))]
     (when repl-container
-      (let [^conexp.contrib.gui.repl.ReplProcess repl-process (.getDocument repl-container)]
+      (let [^conexp.gui.repl.ReplProcess repl-process (.getDocument repl-container)]
         (.getReplThreadMap repl-process)))))
 
 ;;;

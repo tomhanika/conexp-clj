@@ -1,25 +1,14 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-(ns conexp.contrib.gui.base
+(ns conexp.gui.base
   "Provides basic definitions for the standard conexp-clj GUI."
-  (:import [java.awt event.WindowEvent])
-  (:use [conexp.base :only (illegal-state
-                            unsupported-operation
-                            conexp-version)]
-        conexp.contrib.gui.util
-        conexp.contrib.gui.plugins
-        [conexp.contrib.gui.plugins.base :only (load-plugin)]
-        [conexp.contrib.gui.editors.contexts :only (context-editor)]
-        [conexp.contrib.gui.editors.lattices :only (lattice-editor)]
-        [conexp.contrib.gui.editors.code :only (code-editor)])
-  (:require [clojure.java.io :as io])
-  (:use seesaw.core))
+  (:require [clojure.java.io :as io]
+            [conexp.base :refer :all]
+            [conexp.gui.editors.code :refer :all]
+            [conexp.gui.editors.contexts :refer :all]
+            [conexp.gui.editors.lattices :refer :all]
+            [conexp.gui.plugins :refer :all]
+            [conexp.gui.plugins.base :refer :all]
+            [conexp.gui.util :refer :all])
+  (:import java.awt.event.WindowEvent))
 
 ;;; Helper Functions
 

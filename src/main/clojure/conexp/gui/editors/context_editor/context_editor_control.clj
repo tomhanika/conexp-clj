@@ -1,26 +1,15 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-;; This file has been written by Immanuel Albrecht, with modifications by DB
-
-(ns conexp.contrib.gui.editors.context-editor.context-editor-control
-  (:use conexp.fca.contexts
-        conexp.contrib.gui.util
-        conexp.contrib.gui.editors.context-editor.widgets
-        conexp.contrib.gui.editors.context-editor.table-control
-        conexp.contrib.gui.editors.context-editor.editable-contexts)
+(ns conexp.gui.editors.context-editor.context-editor-control
+  (:require [conexp.fca.contexts :refer :all]
+            [conexp.gui.editors.context-editor.editable-contexts :refer :all]
+            [conexp.gui.editors.context-editor.table-control :refer :all]
+            [conexp.gui.editors.context-editor.widgets :refer :all]
+            [conexp.gui.util :refer :all])
   (:import [java.awt Color Font]
-           [javax.swing JLabel SwingConstants JTable JComponent]))
-
+           [javax.swing JComponent JLabel JTable SwingConstants]))
 
 ;;; Context editor control
 
-(defwidget context-editor-widget [conexp.contrib.gui.editors.context_editor.widgets.widget]
+(defwidget context-editor-widget [conexp.gui.editors.context_editor.widgets.widget]
   [widget table e-ctx])
 
 (defmethod get-table (class-to-keyword context-editor-widget)
@@ -149,8 +138,8 @@
   "Adds a context-editor-widget to an editable context, and sets the
    editor windows table to represent the new context."
   [e-ctx editor]
-  (assert (keyword-isa? e-ctx conexp.contrib.gui.editors.context_editor.editable_contexts.editable-context))
-  (assert (keyword-isa? editor conexp.contrib.gui.editors.context_editor.widgets.widget))
+  (assert (keyword-isa? e-ctx conexp.gui.editors.context_editor.editable_contexts.editable-context))
+  (assert (keyword-isa? editor conexp.gui.editors.context_editor.widgets.widget))
   (let [ctx          (get-context e-ctx),
         att-cols     (:attr-cols e-ctx),
         obj-rows     (:obj-rows e-ctx),

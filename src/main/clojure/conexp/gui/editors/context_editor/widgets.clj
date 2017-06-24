@@ -1,22 +1,11 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-;; This file has been written by Immanuel Albrecht, with modifications by DB
-
-(ns conexp.contrib.gui.editors.context-editor.widgets
-  (:import [javax.swing JSplitPane JScrollPane JOptionPane JToolBar JButton
-                        JComponent]
-           [java.awt Toolkit Dimension Insets FlowLayout]
-           [java.awt.event ActionListener]
-           [java.awt.datatransfer DataFlavor StringSelection])
-  (:use [conexp.base :exclude (join)]
-        conexp.contrib.gui.util)
-  (:require [clojure.string :as string]))
+(ns conexp.gui.editors.context-editor.widgets
+  (:require [clojure.string :as string]
+            [conexp.base :refer :all]
+            [conexp.gui.util :refer :all])
+  (:import [java.awt Dimension FlowLayout Insets Toolkit]
+           [java.awt.datatransfer DataFlavor StringSelection]
+           java.awt.event.ActionListener
+           [javax.swing JButton JComponent JOptionPane JScrollPane JSplitPane JToolBar]))
 
 ;;; util
 
@@ -208,7 +197,7 @@
 
 (defn- managed-by-conexp-gui-editors-util?
   "Returns true if the object given as parameter is managed by the
-   conexp.contrib.gui.editors.util module."
+   conexp.gui.editors.util module."
   [thing]
   (or (and (map? thing)
            (contains? thing :managed-by-conexp-gui-editors-util))

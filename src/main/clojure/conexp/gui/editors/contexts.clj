@@ -1,29 +1,16 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-;; This file has been written by Immanuel Albrecht, with modifications by DB
-
-(ns conexp.contrib.gui.editors.contexts
+(ns conexp.gui.editors.contexts
   "Provides context-editor, a plugin for contexts for the standard GUI of conexp-clj."
-  (:use [conexp.base :exclude (select)]
-        conexp.fca.contexts
-        conexp.fca.lattices
-        conexp.io.contexts
-        conexp.layouts
-        [conexp.layouts.base :only (lattice)]
-        conexp.contrib.draw.lattices
-        conexp.contrib.gui.util
-        conexp.contrib.gui.editors.context-editor.context-editor
-        conexp.contrib.gui.plugins.base)
-  (:use seesaw.core)
-  (:use [clojure.string :only (replace)
-         :rename {replace replace-str}])
-  (:import [java.io File]))
+  (:require [conexp.base :refer :all]
+            [conexp.contrib.draw.lattices :refer :all]
+            [conexp.fca.contexts :refer :all]
+            [conexp.fca.lattices :refer :all]
+            [conexp.gui.editors.context-editor.context-editor :refer :all]
+            [conexp.gui.plugins.base :refer :all]
+            [conexp.gui.util :refer :all]
+            [conexp.io.contexts :refer :all]
+            [conexp.layouts :refer :all]
+            [conexp.layouts.base :refer :all])
+  (:import java.io.File))
 
 ;;; The Plugin
 

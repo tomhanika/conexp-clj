@@ -1,28 +1,12 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-;; This file has been written by Immanuel Albrecht, with modifications by DB
-
-(ns conexp.contrib.gui.editors.context-editor.table-control
-  (:use [conexp.base :exclude (join)]
-        conexp.contrib.gui.util
-        conexp.contrib.gui.editors.context-editor.widgets)
-  (:use [clojure.string :only (join split-lines split)])
-  (:import [javax.swing JComponent AbstractAction JTable
-                        JScrollPane KeyStroke DefaultCellEditor JTextField]
-           [javax.swing.event TableModelListener TableModelEvent]
-           [java.awt.event ActionListener KeyEvent ActionEvent MouseEvent
-             InputEvent]
-           [javax.swing.event MouseInputAdapter]
-           [java.awt Point]
-           [javax.swing.table DefaultTableModel TableCellEditor
-             DefaultTableCellRenderer]))
-
+(ns conexp.gui.editors.context-editor.table-control
+  (:require [conexp.base :refer :all]
+            [conexp.gui.editors.context-editor.widgets :refer :all]
+            [conexp.gui.util :refer :all])
+  (:import [java.awt.event ActionEvent ActionListener InputEvent KeyEvent MouseEvent]
+           java.awt.Point
+           [javax.swing AbstractAction DefaultCellEditor JComponent JScrollPane JTable JTextField KeyStroke]
+           [javax.swing.event MouseInputAdapter TableModelEvent TableModelListener]
+           [javax.swing.table DefaultTableCellRenderer DefaultTableModel TableCellEditor]))
 
 ;;; mouse-click-interface-helpers
 
@@ -89,8 +73,8 @@
 
 ;;;  Table
 
-(defwidget table-control [conexp.contrib.gui.editors.context_editor.widgets.control,
-                          conexp.contrib.gui.editors.context_editor.widgets.hookable]
+(defwidget table-control [conexp.gui.editors.context_editor.widgets.control,
+                          conexp.gui.editors.context_editor.widgets.hookable]
   [widget control hooks model row-permutator])
 ;; row-permutator is a ref to an two-element vector of functions,
 ;; where the first-row element transforms view-rows to index-rows
