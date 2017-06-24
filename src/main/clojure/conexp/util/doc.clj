@@ -89,6 +89,8 @@
   [file]
   (public-api-to-file
    file '[conexp.main
+          conexp.util.exec
+          conexp.util.doc
           conexp.layouts
           conexp.layouts.base
           conexp.layouts.common
@@ -96,12 +98,7 @@
           conexp.layouts.freese
           conexp.layouts.layered
           conexp.layouts.util
-          conexp.contrib.doc
-          conexp.contrib.fuzzy.fca
-          conexp.contrib.fuzzy.logics
-          conexp.contrib.fuzzy.sets
           conexp.contrib.draw
-          conexp.contrib.exec
           conexp.contrib.factor-analysis
           conexp.contrib.gui
           conexp.contrib.profiler
