@@ -10,7 +10,8 @@
   "Concept Approximation as described by C. Meschke."
   (:use conexp.base
         conexp.fca.contexts
-        [conexp.fca.exploration :only (default-handler-for-complete-counterexamples)]
+        [conexp.fca.exploration :only [default-handler-for-complete-counterexamples
+                                       explore-attributes]]
         [conexp.fca.misc :only (smallest-bond)]))
 
 ;;;
