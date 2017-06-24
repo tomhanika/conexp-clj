@@ -7,14 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.freese
-  (:use conexp.layouts.base
-        conexp.layouts.freese
-        conexp.contrib.draw.control.util
-        conexp.contrib.draw.scenes
-        conexp.contrib.draw.scene-layouts
-        conexp.contrib.gui.util)
-  (:use seesaw.core)
-  (:import [javax.swing JButton JSpinner JFrame]))
+  (:require [conexp.contrib.draw.control.util :refer :all]
+            [conexp.contrib.draw.scene-layouts :refer :all]
+            [conexp.contrib.draw.scenes :refer :all]
+            [conexp.gui.util :refer :all]
+            [conexp.layouts.base :refer :all]
+            [conexp.layouts.freese :refer :all])
+  (:import [javax.swing JButton JFrame JSpinner]))
 
 ;;; Freese layout
 

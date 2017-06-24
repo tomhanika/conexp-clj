@@ -7,14 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.util
-  (:use [conexp.base :exclude (select)]
-        conexp.contrib.gui.util)
-  (:use seesaw.core)
-  (:import [javax.swing JPanel JButton JTextField JLabel
-                        JSeparator SwingConstants Box JComboBox
-                        JSlider SpinnerNumberModel JSpinner
-                        BoxLayout JFrame JComponent]
-           [java.awt Dimension Component event.ActionEvent]))
+  (:require [conexp.base :refer :all]
+            [conexp.gui.util :refer :all])
+  (:import [java.awt Component Dimension]
+           java.awt.event.ActionEvent
+           [javax.swing Box BoxLayout JButton JComboBox JComponent JFrame JLabel JPanel JSeparator JSlider JSpinner JTextField SpinnerNumberModel SwingConstants]))
 
 ;;;
 

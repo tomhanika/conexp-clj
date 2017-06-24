@@ -8,16 +8,15 @@
 
 (ns conexp.contrib.draw.scene-layouts
   "Basic namespace for drawing lattice."
-  (:use [conexp.base :only (illegal-argument, reduce!)]
-        [conexp.layouts.base :only (positions, connections,
-                                    nodes, update-positions, annotation)]
-        [conexp.layouts.util :only (enclosing-rectangle)]
-        conexp.contrib.draw.nodes-and-connections
-        conexp.contrib.draw.scenes
-        conexp.contrib.gui.util)
-  (:import [javax.swing JFrame JButton JPanel JLabel]
-           [java.awt Dimension BorderLayout Color]
-           [no.geosoft.cc.graphics GWindow GScene GStyle]))
+  (:require [conexp.base :refer :all]
+            [conexp.contrib.draw.nodes-and-connections :refer :all]
+            [conexp.contrib.draw.scenes :refer :all]
+            [conexp.gui.util :refer :all]
+            [conexp.layouts.base :refer :all]
+            [conexp.layouts.util :refer :all])
+  (:import [java.awt BorderLayout Color Dimension]
+           [javax.swing JButton JFrame JLabel JPanel]
+           [no.geosoft.cc.graphics GScene GStyle GWindow]))
 
 ;;; get diagram from scene
 

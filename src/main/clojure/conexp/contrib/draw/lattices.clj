@@ -8,27 +8,22 @@
 
 (ns conexp.contrib.draw.lattices
   "This namespace provides a lattice editor and a convenience function to draw lattices."
-  (:use [conexp.fca.lattices               :only (concept-lattice)]
-        [conexp.layouts                    :only (standard-layout)]
-        [conexp.layouts.util               :only (scale-layout)]
-        [conexp.io.layouts                 :only (write-layout)]
-        [conexp.contrib.draw.scenes        :only (scene-canvas,
-                                                  add-scrollbars
-                                                  save-image)]
-        [conexp.contrib.draw.scene-layouts :only (draw-on-scene,
-                                                  get-layout-from-scene
-                                                  fit-scene-to-layout)]
-        [conexp.contrib.draw.control util
-                                     parameters
-                                     freese
-                                     file-exporter
-                                     force-layout
-                                     snapshots
-                                     zoom-move]
-        conexp.contrib.gui.util)
-  (:use seesaw.core)
-  (:import [javax.swing JFrame JPanel BoxLayout JScrollBar JScrollPane]
-           [java.awt Dimension BorderLayout]))
+  (:require [conexp.contrib.draw.control.file-exporter :refer :all]
+            [conexp.contrib.draw.control.force-layout :refer :all]
+            [conexp.contrib.draw.control.freese :refer :all]
+            [conexp.contrib.draw.control.parameters :refer :all]
+            [conexp.contrib.draw.control.snapshots :refer :all]
+            [conexp.contrib.draw.control.util :refer :all]
+            [conexp.contrib.draw.control.zoom-move :refer :all]
+            [conexp.contrib.draw.scene-layouts :refer :all]
+            [conexp.contrib.draw.scenes :refer :all]
+            [conexp.fca.lattices :refer :all]
+            [conexp.gui.util :refer :all]
+            [conexp.io.layouts :refer :all]
+            [conexp.layouts :refer :all]
+            [conexp.layouts.util :refer :all])
+  (:import [java.awt BorderLayout Dimension]
+           [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]))
 
 ;;; Lattice Editor
 

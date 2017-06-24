@@ -7,20 +7,17 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.parameters
-  (:use [conexp.math.util                  :only (with-doubles)]
-        [conexp.layouts                    :only (standard-layout,
-                                                  inf-additive-layout)]
-        [conexp.layouts.util               :only (scale-layout)]
-        [conexp.layouts.base               :only (lattice)]
-        [conexp.layouts.layered            :only (simple-layered-layout,
-                                                  as-chain)]
-        conexp.contrib.gui.util
-        conexp.contrib.draw.scenes
-        conexp.contrib.draw.scene-layouts
-        conexp.contrib.draw.nodes-and-connections
-        conexp.contrib.draw.control.util)
-  (:use seesaw.core)
-  (:import [javax.swing JButton JTextField JComboBox]))
+  (:require [conexp.contrib.draw.control.util :refer :all]
+            [conexp.contrib.draw.nodes-and-connections :refer :all]
+            [conexp.contrib.draw.scene-layouts :refer :all]
+            [conexp.contrib.draw.scenes :refer :all]
+            [conexp.gui.util :refer :all]
+            [conexp.layouts :refer :all]
+            [conexp.layouts.base :refer :all]
+            [conexp.layouts.layered :refer :all]
+            [conexp.layouts.util :refer :all]
+            [conexp.math.util :refer :all])
+  (:import [javax.swing JButton JComboBox JTextField]))
 
 ;;;
 

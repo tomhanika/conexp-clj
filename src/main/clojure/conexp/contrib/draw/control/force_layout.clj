@@ -7,12 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.force-layout
-  (:use conexp.layouts.force
-        conexp.contrib.draw.scene-layouts
-        conexp.contrib.draw.control.util
-        conexp.contrib.gui.util)
-  (:use seesaw.core)
-  (:import [javax.swing JTextField JButton]))
+  (:require [conexp.contrib.draw.control.util :refer :all]
+            [conexp.contrib.draw.scene-layouts :refer :all]
+            [conexp.gui.util :refer :all]
+            [conexp.layouts.force :refer :all])
+  (:import [javax.swing JButton JTextField]))
 
 ;;;
 

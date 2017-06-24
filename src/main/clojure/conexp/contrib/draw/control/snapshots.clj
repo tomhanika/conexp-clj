@@ -7,13 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.snapshots
-  (:use [conexp.base :only (now)]
-        conexp.contrib.draw.control.util
-        conexp.contrib.gui.util
-        conexp.contrib.draw.scenes
-        conexp.contrib.draw.scene-layouts)
-  (:use seesaw.core)
-  (:import [javax.swing JComboBox JButton]))
+  (:require [conexp.base :refer :all]
+            [conexp.contrib.draw.control.util :refer :all]
+            [conexp.contrib.draw.scene-layouts :refer :all]
+            [conexp.contrib.draw.scenes :refer :all]
+            [conexp.gui.util :refer :all])
+  (:import [javax.swing JButton JComboBox]))
 
 ;;;
 

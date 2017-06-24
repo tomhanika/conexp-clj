@@ -11,7 +11,7 @@
 Vychodil, which can compute context intents in parallel."
   (:use [conexp.base :only (set-of)]
         [conexp.fca.contexts :only (objects attributes incidence make-context)]
-        conexp.contrib.exec
+        conexp.util.exec
         [conexp.io.util :only (tmpfile)]
         [conexp.contrib.algorithms.util :only (string-to-ints)])
   (:use [clojure.string :only (split-lines split)]

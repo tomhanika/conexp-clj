@@ -7,13 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.draw.control.file-exporter
-  (:use conexp.contrib.draw.scenes
-        conexp.contrib.draw.control.util
-        conexp.contrib.gui.util)
-  (:use seesaw.core)
-  (:import [javax.swing JButton JFileChooser]
-           [javax.swing.filechooser FileNameExtensionFilter]
-           [java.io File]))
+  (:require [conexp.contrib.draw.control.util :refer :all]
+            [conexp.contrib.draw.scenes :refer :all]
+            [conexp.gui.util :refer :all])
+  (:import java.io.File
+           [javax.swing JButton JFileChooser]
+           javax.swing.filechooser.FileNameExtensionFilter))
 
 ;;;
 
