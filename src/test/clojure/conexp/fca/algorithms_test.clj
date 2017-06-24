@@ -1,4 +1,4 @@
-(ns conexp.contrib.algorithms-test
+(ns conexp.fca.algorithms-test
   (:require [clojure.test :refer :all]
             [conexp.base :refer [def- set-of-range]]
             [conexp.fca.algorithms :refer [canonical-base concepts]]

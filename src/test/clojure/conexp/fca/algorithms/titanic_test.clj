@@ -1,4 +1,4 @@
-(ns conexp.contrib.algorithms.titanic-test
+(ns conexp.fca.algorithms.titanic-test
   (:require [clojure.test :refer [deftest]]
             [conexp.base :refer :all]
             [conexp.fca.algorithms.titanic :refer :all]
