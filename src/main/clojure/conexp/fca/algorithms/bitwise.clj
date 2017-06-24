@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.algorithms.bitwise
+(ns conexp.fca.algorithms.bitwise
   (:import [java.util BitSet])
   (:import [java.util.concurrent SynchronousQueue])
   (:use [conexp.fca.contexts :only (objects attributes incidence)]))

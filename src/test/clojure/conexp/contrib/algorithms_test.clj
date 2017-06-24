@@ -1,22 +1,12 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
 (ns conexp.contrib.algorithms-test
-  (:use clojure.test)
-  (:use [conexp.base :only (def- set-of-range)]
-        [conexp.fca.contexts :only (rand-context
-                                    random-context
-                                    random-contexts
-                                    make-context-from-matrix)]
-        [conexp.fca.implications :only (make-implication impl)]
-        [conexp.contrib.exec :only (program-exists?)]
-        conexp.contrib.algorithms))
-
+  (:require [clojure.test :refer :all]
+            [conexp.base :refer [def- set-of-range]]
+            [conexp.fca.algorithms :refer [canonical-base concepts]]
+            [conexp.fca.contexts
+             :refer
+             [make-context-from-matrix rand-context random-context]]
+            [conexp.fca.implications :refer [impl make-implication]]
+            [conexp.util.exec :refer [program-exists?]]))
 
 ;;; Concept Calculations
 

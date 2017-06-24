@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.algorithms.util
+(ns conexp.fca.algorithms.util
   "Utility functions for algorithms.")
 
 ;;;

@@ -1,22 +1,19 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-(ns conexp.contrib.algorithms
+(ns conexp.fca.algorithms
   "Provides some optimized versions of the standard algorithms of conexp-clj"
   (:require [clojure.core.async :refer [<!! >!! chan close! thread]]
             [conexp.base :refer [illegal-argument improve-basic-order]]
-            [conexp.contrib.algorithms
-             [bitwise :refer :all]
-             [close-by-one :as cbo]
-             [next-closure :as nc]]
-            [conexp.fca
-             [contexts :refer [attribute-derivation attributes context-attribute-closure context? incidence objects]]
-             [implications :refer [make-implication]]])
+            [conexp.fca.algorithms.bitwise :refer :all]
+            [conexp.fca.algorithms.close-by-one :as cbo]
+            [conexp.fca.algorithms.next-closure :as nc]
+            [conexp.fca.contexts
+             :refer
+             [attribute-derivation
+              attributes
+              context-attribute-closure
+              context?
+              incidence
+              objects]]
+            [conexp.fca.implications :refer [make-implication]])
   (:import conexp.fca.implications.Implication
            [java.util ArrayList BitSet LinkedList List ListIterator]))
 
