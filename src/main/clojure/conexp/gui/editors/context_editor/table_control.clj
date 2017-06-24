@@ -6,6 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; This code has been written by Immanuel Albrecht
+
 (ns conexp.gui.editors.context-editor.table-control
   (:require [clojure.string :refer [split split-lines]]
             [conexp.base :refer :all]

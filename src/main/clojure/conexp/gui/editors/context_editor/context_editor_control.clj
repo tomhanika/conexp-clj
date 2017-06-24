@@ -6,6 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
+;; This code has been written by Immanuel Albrecht
+
 (ns conexp.gui.editors.context-editor.context-editor-control
   (:require [conexp.fca.contexts :refer :all]
             [conexp.gui.editors.context-editor.editable-contexts :refer :all]
