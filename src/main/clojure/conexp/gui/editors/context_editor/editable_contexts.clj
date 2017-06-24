@@ -7,10 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.gui.editors.context-editor.editable-contexts
-  (:require [conexp.fca.contexts :refer :all]
+  (:require [clojure.set :refer [map-invert]]
+            [clojure.string :refer [join]]
+            [conexp.fca.contexts :refer :all]
             [conexp.gui.editors.context-editor.table-control :refer :all]
-            [conexp.gui.editors.context-editor.widgets :refer :all]
-            [conexp.gui.util :refer :all]))
+            [conexp.gui.editors.context-editor.widgets :refer :all]))
 
 ;;; Helpers
 

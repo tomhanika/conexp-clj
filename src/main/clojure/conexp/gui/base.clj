@@ -15,7 +15,20 @@
             [conexp.gui.editors.lattices :refer :all]
             [conexp.gui.plugins :refer :all]
             [conexp.gui.plugins.base :refer :all]
-            [conexp.gui.util :refer :all])
+            [conexp.gui.util :refer :all]
+            [seesaw.core
+             :refer
+             [config!
+              dialog
+              editor-pane
+              frame
+              label
+              menu
+              menu-item
+              scrollable
+              show!
+              tabbed-panel
+              vertical-panel]])
   (:import java.awt.event.WindowEvent))
 
 ;;; Helper Functions

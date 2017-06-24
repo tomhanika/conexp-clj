@@ -10,7 +10,8 @@
   (:require [conexp.base :refer :all]
             [conexp.gui.plugins.base :refer :all]
             [conexp.gui.repl :refer :all]
-            [conexp.gui.util :refer :all]))
+            [conexp.gui.util :refer :all]
+            [seesaw.core :refer [menu menu-item]]))
 
 ;;;
 

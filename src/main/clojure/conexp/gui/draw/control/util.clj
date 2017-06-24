@@ -8,7 +8,8 @@
 
 (ns conexp.gui.draw.control.util
   (:require [conexp.base :refer :all]
-            [conexp.gui.util :refer :all])
+            [conexp.gui.util :refer :all]
+            [seesaw.core :refer [listen]])
   (:import [java.awt Component Dimension]
            java.awt.event.ActionEvent
            [javax.swing Box BoxLayout JButton JComboBox JComponent JFrame JLabel JPanel JSeparator JSlider JSpinner JTextField SpinnerNumberModel SwingConstants]))

@@ -2,7 +2,7 @@
   (:require [conexp.gui.draw.control.util :refer :all]
             [conexp.gui.draw.nodes-and-connections :refer :all]
             [conexp.gui.draw.scenes :refer :all]
-            [conexp.gui.util :refer :all])
+            [seesaw.core :refer [listen]])
   (:import [javax.swing JButton JLabel]))
 
 ;;;

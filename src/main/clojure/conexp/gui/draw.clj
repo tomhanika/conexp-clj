@@ -1,3 +1,11 @@
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
+;; The use and distribution terms for this software are covered by the
+;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;; which can be found in the file LICENSE at the root of this distribution.
+;; By using this software in any fashion, you are agreeing to be bound by
+;; the terms of this license.
+;; You must not remove this notice, or any other, from this software.
+
 (ns conexp.gui.draw
   "This namespace provides a lattice editor and a convenience function to draw lattices."
   (:require [conexp.fca.lattices :refer :all]
@@ -10,10 +18,10 @@
             [conexp.gui.draw.control.zoom-move :refer :all]
             [conexp.gui.draw.scene-layouts :refer :all]
             [conexp.gui.draw.scenes :refer :all]
-            [conexp.gui.util :refer :all]
             [conexp.io.layouts :refer :all]
             [conexp.layouts :refer :all]
-            [conexp.layouts.util :refer :all])
+            [conexp.layouts.util :refer :all]
+            [seesaw.core :refer [listen]])
   (:import [java.awt BorderLayout Dimension]
            [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]))
 
@@ -31,7 +39,7 @@
 
         scn          (draw-on-scene layout),
         canvas       (scene-canvas scn),
-        main-panel   (proxy [JPanel conexp.contrib.draw.lattices.WithScene] [(BorderLayout.)]
+        main-panel   (proxy [JPanel conexp.gui.draw.WithScene] [(BorderLayout.)]
                        (getScene []
                          scn)),
 
@@ -83,8 +91,8 @@
   "If the given panel contains a lattice editor, returns the
   corresponding scene, nil otherwise."
   [panel]
-  (when (instance? conexp.contrib.draw.lattices.WithScene panel)
-    (.getScene ^conexp.contrib.draw.lattices.WithScene panel)))
+  (when (instance? conexp.gui.draw.WithScene panel)
+    (.getScene ^conexp.gui.draw.WithScene panel)))
 
 (defn get-layout-from-panel
   "If the given panel contains a lattice editor, return the

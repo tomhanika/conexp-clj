@@ -9,7 +9,8 @@
             [conexp.gui.util :refer :all]
             [conexp.io.contexts :refer :all]
             [conexp.layouts :refer :all]
-            [conexp.layouts.base :refer :all])
+            [conexp.layouts.base :refer :all]
+            [seesaw.core :refer [menu menu-item]])
   (:import java.io.File))
 
 ;;; The Plugin
@@ -101,8 +102,7 @@
                 :separator
                 (menu :text "Save Context",
                       :items (vec (map (fn [format]
-                                         (menu-item :text (str (replace-str (str format) ":" "")
-                                                               " format"),
+                                         (menu-item :text (str format " format"),
                                                     :listen [:action
                                                              (fn [_]
                                                                (save-context-and-go

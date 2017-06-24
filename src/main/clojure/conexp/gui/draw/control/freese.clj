@@ -4,8 +4,9 @@
             [conexp.gui.draw.scenes :refer :all]
             [conexp.gui.util :refer :all]
             [conexp.layouts.base :refer :all]
-            [conexp.layouts.freese :refer :all])
-  (:import [javax.swing JButton JFrame JSpinner]))
+            [conexp.layouts.freese :refer :all]
+            [seesaw.core :refer [listen]])
+  (:import [javax.swing JButton JSpinner]))
 
 ;;; Freese layout
 

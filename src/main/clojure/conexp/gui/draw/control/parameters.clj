@@ -3,12 +3,12 @@
             [conexp.gui.draw.nodes-and-connections :refer :all]
             [conexp.gui.draw.scene-layouts :refer :all]
             [conexp.gui.draw.scenes :refer :all]
-            [conexp.gui.util :refer :all]
             [conexp.layouts :refer :all]
             [conexp.layouts.base :refer :all]
             [conexp.layouts.layered :refer :all]
             [conexp.layouts.util :refer :all]
-            [conexp.math.util :refer :all])
+            [conexp.math.util :refer :all]
+            [seesaw.core :refer [listen]])
   (:import [javax.swing JButton JComboBox JTextField]))
 
 ;;;

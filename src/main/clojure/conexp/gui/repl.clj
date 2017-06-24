@@ -8,10 +8,11 @@
 
 (ns conexp.gui.repl
   (:require [conexp.base :refer :all]
-            [conexp.gui.repl-utils :as repl-utils])
+            [conexp.gui.repl-utils :as repl-utils]
+            [conexp.gui.util :refer [do-swing get-component]])
   (:import [java.awt Color Font Graphics Graphics2D RenderingHints]
-           [java.io CharArrayWriter PipedReader PipedWriter PrintStream PrintWriter PushbackReader StringReader]
-           [javax.swing AbstractAction JComponent JFrame JScrollPane JTextArea KeyStroke]
+           [java.io CharArrayWriter PipedReader PipedWriter PrintStream PrintWriter]
+           [javax.swing AbstractAction JComponent JScrollPane JTextArea KeyStroke]
            javax.swing.text.PlainDocument))
 
 ;;; REPL Process

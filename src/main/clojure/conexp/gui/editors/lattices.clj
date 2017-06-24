@@ -1,7 +1,6 @@
 (ns conexp.gui.editors.lattices
   "Provides lattice-editor, a plugin for lattices for the standard GUI of conexp-clj."
   (:require [conexp.base :refer :all]
-            [conexp.fca.contexts :refer :all]
             [conexp.fca.lattices :refer :all]
             [conexp.gui.draw :refer :all]
             [conexp.gui.editors.context-editor.context-editor :refer :all]
@@ -11,7 +10,8 @@
             [conexp.io.lattices :refer :all]
             [conexp.io.layouts :refer :all]
             [conexp.layouts :refer :all]
-            [conexp.layouts.base :refer :all])
+            [conexp.layouts.base :refer :all]
+            [seesaw.core :refer [menu menu-item]])
   (:import java.io.File))
 
 ;;; The Plugin

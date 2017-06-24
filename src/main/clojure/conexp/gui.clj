@@ -6,9 +6,10 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.gui
+(ns conexp.gui
   "Provides standard gui for conexp-clj."
-  (:require [conexp.gui.base :refer :all]))
+  (:require [conexp.gui.base :refer :all]
+            [seesaw.core :refer [native! show!]]))
 
 ;;;
 

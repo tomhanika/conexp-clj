@@ -13,7 +13,8 @@
             [conexp.gui.editors.context-editor.editable-contexts :refer :all]
             [conexp.gui.editors.context-editor.table-control :refer :all]
             [conexp.gui.editors.context-editor.widgets :refer :all]
-            [conexp.gui.util :refer :all])
+            [conexp.gui.util :refer :all]
+            [seesaw.core :refer [button toolbar top-bottom-split]])
   (:import [java.awt.event ActionEvent KeyEvent]
            [javax.swing Box JTable KeyStroke]))
 
@@ -240,7 +241,7 @@
                                            (get-widget table)
                                            :divider-location 40)
           e-ctx          @ectx,
-          widget         (context-editor-widget. root table ectx),
+          widget         (conexp.gui.editors.context_editor.context_editor_control.context-editor-widget. root table ectx),
           keystroke-fill (KeyStroke/getKeyStroke KeyEvent/VK_SPACE
                                                  ActionEvent/CTRL_MASK false)]
       (register-keyboard-action table fill-selection-with-X "Fill-X" keystroke-fill :focus)

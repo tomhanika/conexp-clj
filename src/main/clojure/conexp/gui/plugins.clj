@@ -7,10 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.gui.plugins
-  (:require [conexp.base :refer :all]
-            [conexp.gui.plugins.base :refer :all]
-            [conexp.gui.plugins.browse :refer :all]
-            [conexp.gui.util :refer :all]))
+  (:require [conexp.gui.plugins.base :refer :all]
+            [conexp.gui.util :refer :all]
+            [seesaw.core :refer [menu menu-item]]))
 
 ;;; Plugin Managers for Frames
 

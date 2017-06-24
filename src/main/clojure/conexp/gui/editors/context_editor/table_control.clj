@@ -7,14 +7,15 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.gui.editors.context-editor.table-control
-  (:require [conexp.base :refer :all]
+  (:require [clojure.string :refer [split split-lines]]
+            [conexp.base :refer :all]
             [conexp.gui.editors.context-editor.widgets :refer :all]
             [conexp.gui.util :refer :all])
   (:import [java.awt.event ActionEvent ActionListener InputEvent KeyEvent MouseEvent]
            java.awt.Point
            [javax.swing AbstractAction DefaultCellEditor JComponent JScrollPane JTable JTextField KeyStroke]
            [javax.swing.event MouseInputAdapter TableModelEvent TableModelListener]
-           [javax.swing.table DefaultTableCellRenderer DefaultTableModel TableCellEditor]))
+           [javax.swing.table DefaultTableCellRenderer DefaultTableModel]))
 
 ;;; mouse-click-interface-helpers
 
