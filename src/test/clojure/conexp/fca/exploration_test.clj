@@ -10,8 +10,7 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
-        conexp.fca.exploration
-        conexp.fca.exploration.util)
+        conexp.fca.exploration)
   (:use clojure.test))
 
 ;;;
