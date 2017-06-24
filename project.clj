@@ -6,12 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-;;;
-
 (defproject conexp-clj "2.0.0-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/exot/conexp-clj/"
+  :scm {:url "git@github.com:exot/conexp-clj.git"}
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure             "1.8.0"]
@@ -34,9 +33,4 @@
   :resource-paths ["src/main/resources"]
   :target-path "builds/%s"
   :compile-path "%s/classes/"
-  :scm {:url "git@github.com:exot/conexp-clj.git"}
   :java-opts ["-Dawt.useSystemAAFontSettings=on"])
-
-;;;
-
-nil
