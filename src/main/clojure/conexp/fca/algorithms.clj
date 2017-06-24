@@ -9,10 +9,8 @@
 (ns conexp.fca.algorithms
   "Provides some optimized versions of the standard algorithms of conexp-clj"
   (:require [clojure.core.async :refer [<!! >!! chan close! thread]]
-            [conexp.base :refer [illegal-argument improve-basic-order]]
+            [conexp.base :refer [illegal-argument improve-basic-order set-of]]
             [conexp.fca.algorithms.bitwise :refer :all]
-            [conexp.fca.algorithms.close-by-one :as cbo]
-            [conexp.fca.algorithms.next-closure :as nc]
             [conexp.fca.contexts
              :refer
              [attribute-derivation
@@ -20,10 +18,65 @@
               context-attribute-closure
               context?
               incidence
+              make-context
               objects]]
-            [conexp.fca.implications :refer [make-implication]])
+            [conexp.fca.implications :refer [make-implication]]
+            [conexp.io.util :refer :all]
+            [conexp.util.exec :refer :all])
   (:import conexp.fca.implications.Implication
            [java.util ArrayList BitSet LinkedList List ListIterator]))
+
+;;; Next Closure
+
+(defn- lectic-<_i
+  "Returns true iff A is lectically smaller than B at position i."
+  [^long i, ^BitSet A, ^BitSet B]
+  (and (.get B i)
+       (not (.get A i))
+       (loop [j (long (dec i))]
+         (cond
+          (< j 0)
+          true,
+          (not= (.get A j) (.get B j))
+          false,
+          :else
+          (recur (dec j))))))
+
+(defn- bitwise-context-attribute-closure
+  "Computes the closure of A in the context given by the parameters."
+  [^long object-count, ^long attribute-count, incidence-matrix, ^BitSet A]
+  (let [^BitSet A (.clone A),
+        ^BitSet B (BitSet.)]
+    (dotimes [obj object-count]
+      (when (forall-in-bitset [att A]
+              (== 1 (deep-aget ints incidence-matrix obj att)))
+        (.set B obj)))
+    (dotimes [att attribute-count]
+      (when (and (not (.get A att))
+                 (forall-in-bitset [obj B]
+                   (== 1 (deep-aget ints incidence-matrix obj att))))
+        (.set A att)))
+    A))
+
+(defn next-closed-set
+  "Computes the next closed set of closure after A. Returns nil if there is none."
+  [^long attribute-count, closure, ^BitSet A]
+  (let [^BitSet B (.clone A)]
+    (loop [i (dec attribute-count)]
+      (cond
+       (== -1 i)
+       nil,
+       (.get B i)
+       (do (.clear B i)
+           (recur (dec i))),
+       :else
+       (do (.set B i)
+           (let [A_i (closure B)]
+             (if (lectic-<_i i A A_i)
+               A_i
+               (do (.clear B i)
+                   (recur (dec i))))))))))
+
 
 ;;; Computing Canonical Base efficiently
 
@@ -57,10 +110,9 @@
         (recur new impls)
         new))))
 
-(defn clop-by-implications
+(defn- clop-by-implications
   [implications]
   (partial close-under-implications implications))
-
 
 (defn canonical-base
   ([ctx]
@@ -72,12 +124,12 @@
                                              (to-bitset attribute-vector (.conclusion impl))))
                              background-knowledge),
            next-closure (fn [implications last]
-                          (nc/next-closed-set attribute-count
-                                              (clop-by-implications implications)
-                                              last)),
+                          (next-closed-set attribute-count
+                                           (clop-by-implications implications)
+                                           last)),
            runner       (fn runner [implications, ^BitSet candidate]
                           (when candidate
-                            (let [conclusions (nc/bitwise-context-attribute-closure
+                            (let [conclusions (bitwise-context-attribute-closure
                                                object-count
                                                attribute-count
                                                incidence-matrix
@@ -96,6 +148,7 @@
             (lazy-seq (runner (vec bg-knowledge)
                               (close-under-implications bg-knowledge
                                                         (to-bitset attribute-vector #{})))))))))
+
 
 ;;; Compute Concepts of Formal Contexts efficiently
 
@@ -136,12 +189,12 @@
         a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
         start   (o-prime (a-prime (BitSet.))),
         intents (take-while identity
-                            (iterate #(nc/next-closed-set attribute-count
-                                                          (partial nc/bitwise-context-attribute-closure
-                                                                   object-count
-                                                                   attribute-count
-                                                                   incidence-matrix)
-                                                          %)
+                            (iterate #(next-closed-set attribute-count
+                                                       (partial bitwise-context-attribute-closure
+                                                                object-count
+                                                                attribute-count
+                                                                incidence-matrix)
+                                                       %)
                                      start))]
     (map (fn [bitset]
            [(to-hashset object-vector (a-prime bitset)),
@@ -276,24 +329,136 @@
               (to-hashset attribute-vector B)])
            As Bs))))
 
+
 ;;; Parallel-Close-by-One (:pcbo)
+
+(defn- string-to-ints
+  "Given a string of numbers and spaces, and a vector returns the
+  elements of the vector whose indices are represented by the string,
+  in that order."
+  [vec str]
+  (loop [str         str,
+         current-int -1,
+         ints        (transient #{})]
+    (if (empty? str)
+      (if (neg? current-int)
+        (persistent! ints)
+        (persistent! (conj! ints (nth vec current-int))))
+      (let [next-char (first str)]
+        (if (= \space next-char)
+          (recur (rest str)
+                 -1
+                 (if (neg? current-int)
+                   ints
+                   (conj! ints (nth vec current-int))))
+          (recur (rest str)
+                 (let [next-int (int (Character/digit ^Character next-char 10))]
+                   (long (+ (* 10 (max 0 current-int)) next-int)))
+                 ints))))))
+
+(defn- to-fcalgs-context
+  "Transforms ctx to a context suitable for the :fcalgs context
+  format, returns a vector [context object-vector attribute-vector]."
+  [ctx]
+  (let [object-vector    (vec (objects ctx)),
+        attribute-vector (vec (attributes ctx)),
+
+        new-objects      (range (count object-vector)),
+        new-attributes   (range (count attribute-vector)),
+        new-incidence    (set-of [g m] [g new-objects,
+                                        m new-attributes,
+                                        :when (contains? (incidence ctx)
+                                                         [(nth object-vector g)
+                                                          (nth attribute-vector m)])])]
+    [(make-context new-objects new-attributes new-incidence),
+     object-vector,
+     attribute-vector]))
+
+(define-external-program pcbo-external
+  pcbo :threads :depth :min-support :verbosity :input-file :fcalgs :output-file)
+(alter-meta! (var pcbo-external) assoc :private true)
+
+(defn- pcbo
+  "Runs pcbo and returns the file where the concepts have been written
+  to."
+  [threads depth min-support verbosity context]
+  (let [^java.io.File output-file (tmpfile)]
+    (pcbo-external (str "-P" threads)
+                   (str "-L" depth)
+                   (str "-S" (float (* min-support 100)))
+                   (str "-V" verbosity)
+                   context (.getAbsolutePath output-file))
+    output-file))
+
+(defn parallel-intents
+  "Computes the intents of context using parallel close-by-one (PCbO)."
+  [threads depth min-support context]
+  (let [[ctx _ att-vec] (to-fcalgs-context context),
+        output-file     (pcbo threads depth min-support 1 ctx),
+        intents         (line-seq (reader output-file)),
+        transform-back  #(string-to-ints att-vec %)]
+    (if (= "" (first intents))
+      (cons #{} (map transform-back (rest intents)))
+      (map transform-back intents))))
+
+(defn parallel-count-intents
+  "Counts the intents of context using parallel close-by-one (PCbO)."
+  [threads depth min-support context]
+  (-> (pcbo threads depth min-support 1 (first (to-fcalgs-context context)))
+      reader
+      line-seq
+      count))
 
 (defmethod concepts :pcbo
   [_ context]
   (map #(vector (attribute-derivation context %) ;this is slow
                 %)
-       (cbo/parallel-intents (* 2 (.availableProcessors (Runtime/getRuntime)))
-                             3
-                             0
-                             context)))
+       (parallel-intents (* 2 (.availableProcessors (Runtime/getRuntime)))
+                         3
+                         0
+                         context)))
+
 
 ;;; Fast Close-by-One (:fcbo)
+
+(define-external-program fcbo-external
+  pcbo :min-support :verbosity :input-file :fcalgs :output-file)
+(alter-meta! (var fcbo-external) assoc :private true)
+
+(defn- fcbo
+  "Runs fcbo and returns the file where the concepts have been written
+  to."
+  [min-support verbosity context]
+  (let [^java.io.File output-file (tmpfile)]
+    (fcbo-external (str "-S" (float (* min-support 100)))
+                   (str "-V" verbosity)
+                   context (.getAbsolutePath output-file))
+    output-file))
+
+(defn fast-intents
+  "Computes the intents of context using fast close-by-one (FCbO)."
+  [min-support context]
+  (let [[ctx _ att-vec] (to-fcalgs-context context),
+        output-file     (fcbo min-support 1 ctx),
+        intents         (line-seq (reader output-file)),
+        transform-back  #(string-to-ints att-vec %)]
+    (if (= "" (first intents))
+      (cons #{} (map transform-back (rest intents)))
+      (map transform-back intents))))
+
+(defn fast-count-intents
+  "Counts the intents of context using parallel close-by-one (CbO)."
+  [min-support context]
+  (-> (fcbo min-support 1 (first (to-fcalgs-context context)))
+      reader
+      line-seq
+      count))
 
 (defmethod concepts :fcbo
   [_ context]
   (map #(vector (attribute-derivation context %) ;this is slow
                 %)
-       (cbo/fast-intents 0 context)))
+       (fast-intents 0 context)))
 
 ;;;
 
