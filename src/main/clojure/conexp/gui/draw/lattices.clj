@@ -1,23 +1,15 @@
-;; Copyright ⓒ the conexp-clj developers; all rights reserved.
-;; The use and distribution terms for this software are covered by the
-;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
-;; which can be found in the file LICENSE at the root of this distribution.
-;; By using this software in any fashion, you are agreeing to be bound by
-;; the terms of this license.
-;; You must not remove this notice, or any other, from this software.
-
-(ns conexp.contrib.draw.lattices
+(ns conexp.gui.draw.lattices
   "This namespace provides a lattice editor and a convenience function to draw lattices."
-  (:require [conexp.contrib.draw.control.file-exporter :refer :all]
-            [conexp.contrib.draw.control.force-layout :refer :all]
-            [conexp.contrib.draw.control.freese :refer :all]
-            [conexp.contrib.draw.control.parameters :refer :all]
-            [conexp.contrib.draw.control.snapshots :refer :all]
-            [conexp.contrib.draw.control.util :refer :all]
-            [conexp.contrib.draw.control.zoom-move :refer :all]
-            [conexp.contrib.draw.scene-layouts :refer :all]
-            [conexp.contrib.draw.scenes :refer :all]
-            [conexp.fca.lattices :refer :all]
+  (:require [conexp.fca.lattices :refer :all]
+            [conexp.gui.draw.control.file-exporter :refer :all]
+            [conexp.gui.draw.control.force-layout :refer :all]
+            [conexp.gui.draw.control.freese :refer :all]
+            [conexp.gui.draw.control.parameters :refer :all]
+            [conexp.gui.draw.control.snapshots :refer :all]
+            [conexp.gui.draw.control.util :refer :all]
+            [conexp.gui.draw.control.zoom-move :refer :all]
+            [conexp.gui.draw.scene-layouts :refer :all]
+            [conexp.gui.draw.scenes :refer :all]
             [conexp.gui.util :refer :all]
             [conexp.io.layouts :refer :all]
             [conexp.layouts :refer :all]

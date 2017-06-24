@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.draw.scenes
+(ns conexp.gui.draw.scenes
   "Namespace for scene abstraction."
   (:use [conexp.base :only (illegal-argument, def-)])
   (:use [seesaw.core :only (listen)])
