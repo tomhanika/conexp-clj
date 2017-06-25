@@ -22,7 +22,7 @@
     conexp.fca.implications
     conexp.fca.exploration
     conexp.fca.lattices
-    conexp.fca.misc
+    conexp.fca.more
     conexp.io.latex
     conexp.io.contexts
     conexp.io.lattices

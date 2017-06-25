@@ -6,14 +6,13 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fca.misc-test
-  (:use conexp.base
-        conexp.fca.contexts
-        conexp.fca.implications
-        conexp.fca.misc
-        conexp.fca.contexts-test)
-  (:require [conexp.fca.implications-test :as impls])
-  (:use clojure.test))
+(ns conexp.fca.more-test
+  (:require [conexp.base :refer :all]
+            [conexp.fca.contexts :refer :all]
+            [conexp.fca.contexts-test :refer :all]
+            [conexp.fca.implications :refer :all]
+            [conexp.fca.implications-test :as impls]
+            [conexp.fca.more :refer :all]))
 
 ;;; Bonds
 

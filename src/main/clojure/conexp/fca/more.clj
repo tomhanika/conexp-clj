@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fca.misc
+(ns conexp.fca.more
   "More on FCA."
   (:require [conexp.base :refer :all]
             [clojure.core.reducers :as r]
@@ -14,8 +14,6 @@
              [contexts :refer :all]
              [exploration :refer :all]
              [implications :refer :all]]))
-
-(def ^:dynamic *fast-computation* nil)
 
 ;;; Bonds
 
@@ -45,7 +43,7 @@
         (recur (make-context-nc (objects ctx-1) (attributes ctx-2) next-rel))))))
 
 (defn bond?
-  "Checks whether context ctx is a context between ctx-1 and ctx-2."
+  "Checks whether context ctx is a bond between ctx-1 and ctx-2."
   [ctx-1 ctx-2 ctx]
   (and (context? ctx)
        (context? ctx-1)
@@ -207,13 +205,17 @@
     (/ (counter #{} extent)
        (expt 2 (count extent)))))
 
+(def ^:dynamic *fast-computation*
+  "Enable computation of concept probability with floating point arithmetic
+  instead of rationals"
+  nil)
+
 (defn concept-probability
   "Compute the probability of a `concept' in `context' 𝕂 in the following manner.
   Let pₘ be the relative frequence of attribute m in context.  The
   probability of a subset B ⊆ M in 𝕂 is the product of all pₘ for m ∈ B.
-  Then the probability of a concept is defined by pr(A,B):=pr(B=B'')
-  which is: $\\sum_{k=0}^n {n\\choose k} p_B^k(1-p_B)^{n-k}\\prod_{m\\in
-  M\\setminus B}(1-p_m^k).$"
+  Then the probability of a concept is defined by pr(A,B) := pr(B=B'')
+  which is ∑_{k=0}^n {n choose k}·p_Bᵏ·(1-p_B)ⁿ⁻ᵏ·∏_{m ∈ M ∖ B}(1-p_mᵏ)."
   [context concept]
   (let [nr_of_objects (count (objects context))
         n  (if *fast-computation* (double nr_of_objects) nr_of_objects)
@@ -240,3 +242,7 @@
            (* p_B_k p_B)
            (/ one_minus_p_B_k (- 1 p_B))
            (mapv (partial *) P_M_B_k P_M_B)))))))
+
+;;;
+
+true

@@ -110,7 +110,7 @@ metadata (as provided by def) merged into the metadata of the original."
                conexp.tests.fca.implications
                conexp.tests.fca.lattices
                conexp.tests.fca.many-valued-contexts
-               conexp.tests.fca.misc
+               conexp.tests.fca.more
                conexp.tests.io.contexts
                conexp.tests.io.lattices
                conexp.tests.io.layouts
