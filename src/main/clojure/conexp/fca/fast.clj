@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fca.algorithms
+(ns conexp.fca.fast
   "Provides some optimized versions of the standard algorithms of conexp-clj"
   (:require [clojure.core.async :refer [<!! >!! chan close! thread]]
             [conexp.base :refer [illegal-argument improve-basic-order set-of]]
@@ -221,8 +221,8 @@
             (recur changed?)))))))
 
 (defn- close-under-implications
-  "Yields new bitset that is the closure of the input bitset under the given collection of
-  implications of bitsetsn"
+  "Yields new bitset that is the closure of the input bitset under the given
+  collection of implications of bitsets"
   [implications, ^BitSet set]
   (loop [set   (.clone set),
          impls (LinkedList. implications)]
@@ -582,7 +582,3 @@
   (map #(vector (attribute-derivation context %) ;this is slow
                 %)
        (fast-intents 0 context)))
-
-;;;
-
-true
