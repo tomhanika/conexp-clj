@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.more-test
-  (:require [conexp.base :refer :all]
+  (:require [clojure.test :refer [deftest is]]
+            [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.contexts-test :refer :all]
             [conexp.fca.implications :refer :all]
