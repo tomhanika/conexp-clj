@@ -242,7 +242,3 @@
            (* p_B_k p_B)
            (/ one_minus_p_B_k (- 1 p_B))
            (mapv (partial *) P_M_B_k P_M_B)))))))
-
-;;;
-
-true
