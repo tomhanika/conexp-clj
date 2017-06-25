@@ -15,27 +15,6 @@
   (:require [conexp.fca.implications-test :as impls])
   (:use clojure.test))
 
-;;; Subcontexts
-
-(deftest test-compatible-subcontext?
-  (with-testing-data [ctx testing-data]
-    (and (compatible-subcontext? ctx ctx)
-         (compatible-subcontext? empty-context ctx))))
-
-(deftest test-compatible-subcontexts
-  (are [ctx nr] (let [ctx (reduce-context ctx)
-                      sct (compatible-subcontexts ctx)]
-                  (and (every? #(compatible-subcontext? % ctx)
-                               (compatible-subcontexts ctx))
-                       (= nr (count sct))))
-       test-ctx-01 3
-       test-ctx-04 1
-       test-ctx-06 2
-       test-ctx-07 10
-       test-ctx-08 10)
-  (is (let [some-context (make-context #{1 2 3} '#{c d e} '#{[1 c] [2 c] [2 e] [3 e]})]
-        (some #(= some-context %) (compatible-subcontexts test-ctx-08)))))
-
 ;;; Bonds
 
 (def small-contexts [test-ctx-01, test-ctx-04, test-ctx-07, test-ctx-08])
