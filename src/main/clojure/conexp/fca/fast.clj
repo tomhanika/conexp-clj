@@ -23,7 +23,8 @@
             [conexp.io.util :refer :all]
             [conexp.util.exec :refer :all])
   (:import conexp.fca.implications.Implication
-           [java.util ArrayList BitSet LinkedList List ListIterator]))
+           [java.util ArrayList BitSet LinkedList List ListIterator]
+           [clojure.lang IFn PersistentHashSet PersistentVector]))
 
 
 ;;; Helpers to convert to and from BitSets
@@ -60,7 +61,7 @@
 
 (defn filter-bitset
   "Returns a new bitset of all bits in bitset for which predicate returns true."
-  [predicate, ^BitSet bitset]
+  [^IFn predicate, ^BitSet bitset]
   (let [result (BitSet.)]
     (dobits [i bitset]
       (when (predicate i)
@@ -71,28 +72,29 @@
   "Converts hashset to a BitSet. Elements are associated with indices
   as given by element-vector (i.e. the order in this vector is the
   order of the elements in the resulting BitSet."
-  [element-vector hashset]
-  (let [^BitSet bs (BitSet. (count element-vector))]
-    (loop [elements (seq element-vector)
-           index    0]
-      (if elements
-        (let [elt (first elements)]
-          (when (contains? hashset elt)
+  ^BitSet [^PersistentVector element-vector ^PersistentHashSet hashset]
+  (let [nr-elements (int (count element-vector))
+        ^BitSet bs (BitSet. nr-elements)]
+    (loop [index nr-elements]
+      (if (zero? index)
+        bs
+        (let [dec-index (dec index)
+              elt (.get element-vector dec-index)]
+          (when (.contains hashset elt)
             (.set bs index))
-          (recur (next elements) (inc index)))
-        bs))))
+          (recur dec-index))))))
 
 (defn to-hashset
   "Converts given bitset to a set, where element-vector gives the
   actual objects to be collected, i.e. element v at position p in
   element-vector is included in the result iff p is set in bitset."
-  [element-vector, ^BitSet bitset]
+  [^PersistentVector element-vector, ^BitSet bitset]
   (loop [pos    (int (.nextSetBit bitset 0)),
          result (transient #{})]
     (if (== -1 pos)
       (persistent! result)
       (recur (.nextSetBit bitset (inc pos))
-             (conj! result (nth element-vector pos))))))
+             (conj! result (.get element-vector pos))))))
 
 (defn to-binary-matrix
   "Converts the incidence-relation to a binary matrix (in the sense of
@@ -153,20 +155,6 @@
 
 ;;; Next Closure
 
-(defn- lectic-<_i
-  "Returns true iff A is lectically smaller than B at position i."
-  [^long i, ^BitSet A, ^BitSet B]
-  (and (.get B i)
-       (not (.get A i))
-       (loop [j (long (dec i))]
-         (cond
-          (< j 0)
-          true,
-          (not= (.get A j) (.get B j))
-          false,
-          :else
-          (recur (dec j))))))
-
 (defn- bitwise-context-attribute-closure
   "Computes the closure of A in the context given by the parameters."
   [^long object-count, ^long attribute-count, incidence-matrix, ^BitSet A]
@@ -184,23 +172,31 @@
     A))
 
 (defn next-closed-set
-  "Computes the next closed set of closure after A. Returns nil if there is none."
+  "Computes the next closed set of closure after A.
+  Returns nil if there is none."
   [^long attribute-count, closure, ^BitSet A]
   (let [^BitSet B (.clone A)]
     (loop [i (dec attribute-count)]
       (cond
-       (== -1 i)
-       nil,
-       (.get B i)
-       (do (.clear B i)
-           (recur (dec i))),
-       :else
-       (do (.set B i)
-           (let [A_i (closure B)]
-             (if (lectic-<_i i A A_i)
-               A_i
-               (do (.clear B i)
-                   (recur (dec i))))))))))
+        (== -1 i)
+        nil,
+        (.get B i)
+        (do (.clear B i)
+            (recur (dec i))),
+        :else
+        (do (.set B i)
+            (let [^BitSet A_i (closure B)]
+              (if (loop [j (long (dec i))]
+                    (cond
+                      (< j 0)
+                      true,
+                      (not= (.get A j) (.get A_i j))
+                      false,
+                      :else
+                      (recur (dec j))))
+                A_i
+                (do (.clear B i)
+                    (recur (dec i))))))))))
 
 
 ;;; Computing Canonical Base efficiently
