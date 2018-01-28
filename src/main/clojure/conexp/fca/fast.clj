@@ -306,30 +306,24 @@
 
 (defmethod concepts :next-closure
   [_ context]
-  (let [object-vector    (vec (objects context)),
-        attribute-vector (vec (improve-basic-order (attributes context)
-                                                   #(context-attribute-closure context %))),
-        object-count     (count object-vector),
-        attribute-count  (count attribute-vector),
-        incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context)),
-
-        o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
-        a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
-        start   (o-prime (a-prime (BitSet.))),
-        intents (take-while identity
-                            (iterate #(next-closed-set attribute-count
-                                                       (partial bitwise-context-attribute-closure
-                                                                object-count
-                                                                attribute-count
-                                                                incidence-matrix)
-                                                       %)
-                                     start))]
-    (if *concepts-do-conversion*
-      (map (fn [bitset]
-             [(to-hashset object-vector (a-prime bitset)),
-              (to-hashset attribute-vector bitset)])
-           intents)
-      intents)))
+  (with-binary-context context
+    (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
+          a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
+          start   (o-prime (a-prime (BitSet.))),
+          intents (take-while identity
+                              (iterate #(next-closed-set attribute-count
+                                                         (partial bitwise-context-attribute-closure
+                                                                  object-count
+                                                                  attribute-count
+                                                                  incidence-matrix)
+                                                         %)
+                                       start))]
+      (if *concepts-do-conversion*
+        (map (fn [bitset]
+               [(to-hashset object-vector (a-prime bitset)),
+                (to-hashset attribute-vector bitset)])
+             intents)
+        intents))))
 
 
 ;;; Vychodil (:vychodil)
