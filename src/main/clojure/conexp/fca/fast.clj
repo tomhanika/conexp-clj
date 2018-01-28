@@ -273,13 +273,20 @@
 
 ;;; Compute Concepts of Formal Contexts efficiently
 
+;; XXX: This does not yet apply to the external programs
+(def ^:dynamic *concepts-do-conversion*
+  "When set to anything true (the default), concepts will return proper concepts.
+  Otherwise, the function returns a list of pairs of BitSets.  This does not yet
+  apply to the :fcbo and :pcbo methods."
+  true)
+
 (defmulti concepts
   "Computes concepts with various algorithms, given as first
   argument. Default is :next-closure."
   {:arglists '([algorithm context] [context])}
   (fn [& args]
     (when-not (<= 1 (count args) 2)
-      (illegal-argument "Wrong number of args passed to c.c.algorithms.concepts."))
+      (illegal-argument "Wrong number of args."))
     (when (and (= 1 (count args))
                (not (context? (first args))))
       (illegal-argument "Argument of concepts is not a context."))
@@ -317,10 +324,12 @@
                                                                 incidence-matrix)
                                                        %)
                                      start))]
-    (map (fn [bitset]
-           [(to-hashset object-vector (a-prime bitset)),
-            (to-hashset attribute-vector bitset)])
-         intents)))
+    (if *concepts-do-conversion*
+      (map (fn [bitset]
+             [(to-hashset object-vector (a-prime bitset)),
+              (to-hashset attribute-vector bitset)])
+           intents)
+      intents)))
 
 
 ;;; Vychodil (:vychodil)
@@ -390,11 +399,14 @@
                                       empty-down-up
                                       0)
               (close! output))
-      (map (fn [pair]
-             [(to-hashset object-vector (first pair))
-              (to-hashset attribute-vector (second pair))])
-           (take-while (comp not nil?)
-                       (repeatedly #(<!! output)))))))
+      (if *concepts-do-conversion*
+        (map (fn [pair]
+               [(to-hashset object-vector (first pair))
+                (to-hashset attribute-vector (second pair))])
+             (take-while (comp not nil?)
+                         (repeatedly #(<!! output))))
+        (take-while (comp not nil?)
+                    (repeatedly #(<!! output)))))))
 
 
 ;;; In-Close (:in-close)
@@ -443,10 +455,12 @@
       (.set ^BitSet (.get As 0) 0 (int object-count))
       (.add Bs 0 (BitSet.))
       (in-close attribute-count incidence-matrix As Bs last 0 0)
-      (map (fn [A B]
-             [(to-hashset object-vector A),
-              (to-hashset attribute-vector B)])
-           As Bs))))
+      (if *concepts-do-conversion*
+        (map (fn [A B]
+               [(to-hashset object-vector A),
+                (to-hashset attribute-vector B)])
+             As Bs)
+        (map vector As Bs)))))
 
 
 ;;; Parallel-Close-by-One (:pcbo)
