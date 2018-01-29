@@ -81,7 +81,7 @@
         (let [dec-index (dec index)
               elt (.get element-vector dec-index)]
           (when (.contains hashset elt)
-            (.set bs index))
+            (.set bs dec-index))
           (recur dec-index))))))
 
 (defn to-hashset
