@@ -157,4 +157,21 @@
       (= (concept-robustness cpt conceptsr2 (/ 1 2)) (concept-stability rctx2 cpt)))))
 
 ;;;
+
+(deftest test-average-concept-robustness
+  (let [ctx1 (make-context-from-matrix 3 3
+                                    [0 0 1
+                                     1 0 1
+                                     1 1 0])]
+    (is (= (average-concept-robustness (concepts ctx1) 0.5) 0.5))
+    (is (= (average-concept-robustness (concepts ctx1) (/ 1 3)) (/ 10 27))))
+  
+  (with-testing-data [ctx (random-contexts 5 8)]
+    (let [cpts (concepts ctx)]
+      (= (average-concept-robustness cpts (/ 1 2)) 
+         (/ (reduce (fn [y cpt] (+ y (concept-stability ctx cpt))) 0 cpts)
+            (count cpts))))))
+
+
+;;;
 nil
