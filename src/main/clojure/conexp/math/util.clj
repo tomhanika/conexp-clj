@@ -92,6 +92,20 @@
         (recur (inc run) (* (/ (- target run) run) result))))))
 
 
-;;;
+;;;; Evaluation of Polynomials.
 
+(defn eval-polynomial
+  "Evaluates the polynomial p, represented by it`s Coefficient-vector,
+  at the point value. The function uses the 'Horner Schema', see:
+  https://de.wikipedia.org/wiki/Horner-Schema."
+  [coefficients value]
+  (assert (and (sequential? coefficients) (not (empty? coefficients))) "First argument must be a list of coefficients.")
+  (assert (number? value) "Second argument must be a real number.")
+  (reduce
+    (fn [x y]
+      (+ (* value x) y))
+    0
+    (reverse coefficients)))
+
+;;;;
 nil
