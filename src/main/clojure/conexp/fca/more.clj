@@ -302,5 +302,25 @@
   ([concept concepts alpha]
    (concept-robustness concept concepts alpha false)))
 
+;;; Average robustness of all concepts of a context.
+
+(defn average-concept-robustness
+  "Takes the seq `concepts' which should contain the concepts of a context
+   and computes the average concept robustness with parmater `alpha'."
+  [concepts alpha]
+  (assert (<= 0 alpha 1) "Second argument must be between 0 and 1!")
+  (let [sortedconcepts (sort-by
+                         #(count (second %))
+                         concepts)
+        n (count sortedconcepts)
+        robustness-values (map
+                            #(concept-robustness
+                               (nth sortedconcepts %)
+                               (drop % sortedconcepts)
+                               alpha
+                               true)
+                            (range 0 n))]
+    (/ (reduce + robustness-values) n)))
+
 ;;;
 nil
