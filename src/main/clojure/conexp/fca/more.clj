@@ -297,7 +297,7 @@
    This function uses the function concept-robustness-polynomial."
   ([concept concepts alpha sorted?]
    (assert (<= 0 alpha 1) "Third argument must be between 0 and 1!")
-   (assert (or (true? sorted?) (false? sorted?)) "Fourth argument must be between 0 and 1!")
+   (assert (or (true? sorted?) (false? sorted?)) "Fourth argument must be a boolean value!")
    (eval-polynomial (concept-robustness-polynomial concept concepts sorted?) (- 1 alpha)))
   ([concept concepts alpha]
    (concept-robustness concept concepts alpha false)))
