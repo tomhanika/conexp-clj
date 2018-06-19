@@ -261,11 +261,11 @@
 (defn concept-robustness-polynomial
   "For the given `concept' of a context, the polynomial p, corresponding to the robustness,
    is computed by using the seq `concepts' of all concepts of the context.
-   The optional boolean parameter `sorted?' allows, to declare the list of concepts
+   The optional boolean parameter `sorted?' allows, to declare the seq of concepts
    as beeing already sorted by increasing attributeset.
    See Finding Robust Itemsets under Subsampling from Tatti, Moerchen and Calders
    https://dl.acm.org/citation.cfm?doid=2676651.2656261 (page 17-19) for details.
-   If v is the result of (robustness-polynom concept concepts),
+   If v is the result of (robustness-polynomial concept concepts),
    then (eval-polynomial v (- 1 alpha)) computes the robustness with parameter alpha."
   ([concept concepts sorted?]
    (assert (or (true? sorted?) (false? sorted?)) "Third argument must be a boolean!")
@@ -274,13 +274,13 @@
                               (filter #(subset? B (second %)) concepts)
                               (sort-by #(count (second %))
                                        (filter #(subset? B (second %)) concepts))))
-       concepts-with-values (reduce ;Stores for all subconcepts (C_A,C_B) of 'concept' the vector [C, e(C_B, 'concept')].
+       concepts-with-values (reduce ;Stores for all subconcepts (C_A,C_B) of `concept' the vector [C, e(C_B, `concept')].
                                 (fn [x y]
                                 (addnextentry y x))
                               [[concept, 1]]
                               usedconcepts)
        sup (count (first concept))]
-     (reduce ;Use the above computed values [C, e(C_B, 'concept')] to compute the polynomial.
+     (reduce ;Use the above computed values [C, e(C_B, `concept')] to compute the polynomial.
         (fn [oldcoefficients entry]
           (let [index (- sup (count (first (first entry))))]
             (assoc oldcoefficients index (+ (nth oldcoefficients index) (second entry)))))
@@ -292,8 +292,8 @@
 (defn concept-robustness
   "Computes the robustness of a `concept' in a context with parameter `alpha'
    by using the seq `concepts', which contains all concepts of the context.
-   The optional boolean parameter `sorted' allows to declare the list of concepts
-   as beeing already sorted by increasing size of the attributeset.?
+   The optional boolean parameter `sorted?' allows to declare the seq of concepts
+   as beeing already sorted by increasing size of the attributeset.
    This function uses the function concept-robustness-polynomial."
   ([concept concepts alpha sorted?]
    (assert (<= 0 alpha 1) "Third argument must be between 0 and 1!")
