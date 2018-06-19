@@ -120,3 +120,41 @@
                         (concepts context)))
          (expt 2 (count (objects context)))))))
 
+;;;
+
+(deftest test-concept-robustness
+  (let [ctx1 (make-context-from-matrix 3 3
+                                       [0 0 1
+                                        1 0 1
+                                        1 1 0])
+        cpt1 [#{0 1} #{2}]
+        ctx2 (make-context-from-matrix ['a 'b 'c 'd 'e 'f]
+                                       ['a 'b 'c 'd 'e 'f]
+                                       [1 1 1 0 1 1
+                                        0 1 0 0 1 0
+                                        0 0 1 0 0 1
+                                        0 0 0 1 1 1
+                                        0 0 0 0 1 0
+                                        0 0 0 0 0 1])
+        concepts1 (concepts ctx1)
+        concepts2 (concepts ctx2)
+        cpt2 [#{'d} #{'d 'e 'f}]
+        cpt3 [#{'a 'd} #{'e 'f}]
+        rctx (random-context 10 0.5)
+        conceptsr1 (concepts rctx)
+        rctx2 (random-context 15 0.3)
+        conceptsr2 (concepts rctx2)]
+    
+    (is (= (concept-robustness cpt1 concepts1 (/ 1 3)) (/ 1 3)))
+    (is (= (concept-robustness cpt2 concepts2 (/ 3 4)) (/ 3 4)))
+    (is (= (concept-robustness cpt3 concepts2 (/ 1 2)) (/ 1 4)))
+    
+    (with-testing-data [cpt conceptsr1]
+      (and (<= 0 (concept-robustness cpt conceptsr1 0.42))
+           (<= (concept-robustness cpt conceptsr1 0.13) 1)))
+    
+    (with-testing-data [cpt conceptsr2]
+      (= (concept-robustness cpt conceptsr2 (/ 1 2)) (concept-stability rctx2 cpt)))))
+
+;;;
+nil
