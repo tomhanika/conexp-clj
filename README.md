@@ -137,7 +137,7 @@ See [AUTHORS.md](AUTHORS.md).
 
 ## License
 
-Copyright ⓒ 2009—2017 Daniel Borchmann
+Copyright ⓒ 2009—2018 Daniel Borchmann
 
 Distributed under the Eclipse Public License.
 
