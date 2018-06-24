@@ -144,19 +144,17 @@
         conceptsr1 (concepts rctx)
         rctx2 (random-context 15 0.3)
         conceptsr2 (concepts rctx2)]
-    
+
     (is (= (concept-robustness cpt1 concepts1 (/ 1 3)) (/ 1 3)))
     (is (= (concept-robustness cpt2 concepts2 (/ 3 4)) (/ 3 4)))
     (is (= (concept-robustness cpt3 concepts2 (/ 1 2)) (/ 1 4)))
-    
+
     (with-testing-data [cpt conceptsr1]
       (and (<= 0 (concept-robustness cpt conceptsr1 0.42))
            (<= (concept-robustness cpt conceptsr1 0.13) 1)))
-    
+
     (with-testing-data [cpt conceptsr2]
       (= (concept-robustness cpt conceptsr2 (/ 1 2)) (concept-stability rctx2 cpt)))))
-
-;;;
 
 (deftest test-average-concept-robustness
   (let [ctx1 (make-context-from-matrix 3 3
@@ -165,10 +163,10 @@
                                      1 1 0])]
     (is (= (average-concept-robustness (concepts ctx1) 0.5) 0.5))
     (is (= (average-concept-robustness (concepts ctx1) (/ 1 3)) (/ 10 27))))
-  
+
   (with-testing-data [ctx (random-contexts 5 8)]
     (let [cpts (concepts ctx)]
-      (= (average-concept-robustness cpts (/ 1 2)) 
+      (= (average-concept-robustness cpts (/ 1 2))
          (/ (reduce (fn [y cpt] (+ y (concept-stability ctx cpt))) 0 cpts)
             (count cpts))))))
 

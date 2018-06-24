@@ -78,8 +78,9 @@
 
 
 ;;; Combinatorics
+
 (defn binomial-coefficient
-   "Straight forward computing of ${n\\choose k}$ by multiplying
+  "Straight forward computing of ${n\\choose k}$ by multiplying
   all (n-k) factors, where `run' is incremented up to k, divided by
   the incrementing divisor `run'"
   [n k]
@@ -91,21 +92,24 @@
         result
         (recur (inc run) (* (/ (- target run) run) result))))))
 
-
-;;;; Evaluation of Polynomials.
+;;; Evaluation of Polynomials.
 
 (defn eval-polynomial
-  "Evaluates the polynomial p, represented by it`s Coefficient-vector,
-  at the point value. The function uses the 'Horner Schema', see:
+  "Evaluates the polynomial p, represented by it's Coefficient-vector,
+  at the point value. The function uses the `Horner Schema', see:
   https://de.wikipedia.org/wiki/Horner-Schema."
   [coefficients value]
-  (assert (and (sequential? coefficients) (not (empty? coefficients))) "First argument must be a list of coefficients.")
-  (assert (number? value) "Second argument must be a real number.")
+  (assert (and (sequential? coefficients)
+               (not (empty? coefficients)))
+          "First argument must be a list of coefficients.")
+  (assert (number? value)
+          "Second argument must be a real number.")
   (reduce
     (fn [x y]
       (+ (* value x) y))
     0
     (reverse coefficients)))
 
-;;;;
+;;;
+
 nil
