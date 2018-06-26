@@ -94,5 +94,90 @@
          (drop % attribute-derivations-of-context))
       (range 0 n))))
 
+;;; Average-shortest-path
+
+(defn- floyd-step
+  "This is a helper-function for average-shortest-path:
+  Do one overwriting in the floyd-algorithm, see
+  https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall or
+  https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm for Details."
+  [matrix k i j]
+  (assert (<= i j) "No computation under the diagonalelements possible!")
+  (let [A_ij (nth (nth matrix i) (- j i))
+        A_ik (if (<= i k)
+               (nth (nth matrix i) (- k i))
+               (nth (nth matrix k) (- i k)))
+        A_kj (if (<= k j)
+               (nth (nth matrix k) (- j k))
+               (nth (nth matrix j) (- k j)))
+        newvalue (cond
+                   (and (= A_ij 0) (or (= A_ik 0) (=  A_kj 0))) 0
+                   (= A_ij 0) (+ A_ik A_kj)
+                   (or (= A_ik 0) (=  A_kj 0)) A_ij
+                   :else (min A_ij (+ A_ik A_kj)))]
+    (assoc matrix
+           i
+           (assoc (nth matrix i) (- j i) newvalue))))
+
+(defn average-shortest-path
+  "Computes the average-shortest path for a given `context' and a `projection'.
+  The projection f should map a context to the upper half of the adjacency-matrix
+  of the corresponding undirected graph.
+  To compute the path-lenghts, the floyd-algorithm:
+  https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall,
+  https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm is used
+  with one modification: Because the graph is undirected, just the upper triangle
+  (including diagonal-elements) of the adjacency-matrix
+  has to be stored.
+  Paths from a vertice to itself are discarded.
+  If there are no edges and therefore no paths
+  in the graph, nil is returned."
+  [context projection]
+  (assert (context? context) "Argument is not a formal context!")
+  (let [matrix (projection context)
+        n (count matrix)
+        paths (loop [k 0
+                     i 0
+                     j 0
+                     matrix matrix]
+                (if (< k n)
+                  (if (< i n)
+                    (if (< j n)
+                      (recur k i (inc j) (floyd-step matrix k i j))
+                      (recur k (inc i) (inc i) matrix))
+                    (recur (inc k) 0 0 matrix))
+                  ;;If we are finished, we discard all
+                  ;; entrys of length 0 (they stand for verticies
+                  ;; which are not connected!) and all shortest-path-lengths
+                  ;; of a vertice to itself.
+                  (remove zero?
+                          (mapcat
+                            #(drop 1 %)
+                            matrix))))]
+    (if (empty? paths)
+      nil
+      (/ (reduce + paths) (count paths)))))
+
+(defn average-shortest-path-objects-and-attributes
+  "Computes for a `context' the average-shortest-path of the graph,
+   which has as verticies the objects and attributes of the context
+   and in which the edges are defined through the incidence-relation."
+  [context]
+  (average-shortest-path context adjacency-matrix-for-object-and-attribute-projection))
+
+(defn average-shortest-path-objects
+  "Computes fo a `context' the average-shortest-path of the graph,
+   which has as verticies the objects of the context and in which
+   two objects share an edge if they share an attribute."
+  [context]
+  (average-shortest-path context adjacency-matrix-for-object-projection))
+
+(defn average-shortest-path-attributes
+  "Computes for a `context' the average-shortest-path of the graph,
+   which has as verticies the attributes of the context and in which
+   two attributes share an edge if they share an object."
+  [context]
+  (average-shortest-path context adjacency-matrix-for-attribute-projection))
+
 ;;;
 nil
