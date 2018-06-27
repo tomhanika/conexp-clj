@@ -293,5 +293,58 @@
   [context]
   (average-shortest-path context adjacency-matrix-for-attribute-projection))
 
+;;;Vertice-degrees
+
+(defn vertice-degrees
+  "For a given `context' and a `projection', which maps
+  contexts to graphs, represented by adjacency-maps,
+  the seq of vertice-degrees of (projection context) is returned."
+  [context projection]
+  (assert (context? context) "First argument must be a formal context!")
+  (map
+    count
+    (vals (projection context))))
+
+(defn vertice-degrees-objects-and-attributes
+  "For a given `context', the seq of vertice-degrees
+  of the graph, which has as verticies the objects
+  and attributes of the context and in which the edges
+  are defined through the incidence-relation, is returned."
+  [context]
+  ;; Note that this function does not use
+  ;; the above vertice-degrees function
+  ;; for airbitary projections.
+  ;; The reason therefore is,
+  ;; that the special construction of
+  ;; this specific graph allows to directly
+  ;; compute the list of the vertice-degrees
+  ;; from the context.
+  (assert (context? context) "Argument must be a formal context!")
+  (concat
+    (map
+      #(count (object-derivation context #{%}))
+      (objects context))
+    (map
+      #(count (attribute-derivation context #{%}))
+      (attributes context))))
+
+(defn vertice-degrees-objects
+  "For a given `context', this function returns
+  the vertice-degrees of the graph, which has
+  as verticies the objects of the context
+  and in which two objects share an edge if they share
+  an attribute."
+  [context]
+  (vertice-degrees context object-projection))
+
+(defn vertice-degrees-attributes
+  "For a given `context', this function returns
+  the vertice-degrees of the graph, which has
+  as verticies the attributes of the context and
+  in which two attributes share an edge if they share
+  an object."
+  [context]
+  (vertice-degrees context attribute-projection))
+
 ;;;
 nil
