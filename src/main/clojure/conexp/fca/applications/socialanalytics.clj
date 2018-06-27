@@ -9,7 +9,8 @@
 (ns conexp.fca.applications.socialanalytics
   "Provides some functionallity for Socialanalytics."
   (:require [conexp.fca.contexts :refer :all]
-            [clojure.set :refer [intersection]]))
+            [clojure.set :refer [intersection
+                                 union]]))
 
 ;;;;Functions to compute adjacency-matricies
 
@@ -93,6 +94,119 @@
          (nth attribute-derivations-of-context %)
          (drop % attribute-derivations-of-context))
       (range 0 n))))
+
+;;; Functions to compute adjacency-maps.
+;;; The following functions take a context as argument and return
+;;; graphs, represented by adjacency-maps in the form
+;;; {node1 set-of-neighbours, node2 set-of-neighbours...}.
+
+(defn object-and-attribute-projection
+  "Computes for a given `context' the adjacency-map
+  of the graph, which has as verticies the objects
+  and attributes and in which the edges are defined
+  through the incidence-relation.
+  As it is possible for an object and an attribute
+  to have the same name, the verticies belonging to objects
+  are renamed from object1, object2 to
+  obj-object1, obj-object2,... and verticies belonging to
+  attributes are renamed from attribute1,attribute2 to
+  atr-attribute1,atr-attribute2..."
+  [context]
+  (let [object-nodes
+        ;; Computes the successors
+        ;; for all verticies, which
+        ;; correspond to objects.
+        (reduce
+          (fn [hmap obj]
+            (assoc hmap (str 'obj- obj)
+                   (set
+                     (map
+                       #(str 'atr- %)
+                       (object-derivation context #{obj})))))
+          {}
+          (objects context))
+        attribute-nodes
+        ;; Computes the successors
+        ;; for all verticies, which
+        ;; correspond to attributes.
+        (reduce
+          (fn [hmap atr]
+            (assoc hmap (str 'atr- atr)
+                   (set
+                     (map
+                       #(str 'obj- %)
+                       (attribute-derivation context #{atr})))))
+          {}
+          (attributes context))]
+    (merge object-nodes attribute-nodes)))
+
+(defn- add-edges
+  "This is a helper-function to compute
+  the objects-projection and the attributes-projection
+  of a context.
+
+  It takes a map `hmap' and a `set' and adds all elements
+  of set to all those keys of hmap, whose are elements of
+  set themselves."
+  [hmap set]
+  (reduce
+    (fn [currenthmap element]
+      (update-in currenthmap
+                 [element]
+                 union
+                 set))
+    hmap
+    set))
+
+(defn object-projection
+  "Computes for a `context' the adjacency-map
+  of the graph which has as verticies
+  the objects of a context and in which
+  two objects share an edge if they share an
+  attribute."
+  [context]
+  (let [init-verticies
+        ;; We initialize all objects
+        ;; of the context as verticies
+        ;; without edges.
+        (reduce
+          (fn [hmap object]
+            (assoc hmap object #{}))
+          {}
+          (objects context))]
+    ;; Iterate through all attributes `attribute' to
+    ;; add the edges o1<->02 for all objects
+    ;; o1,o2 that have the `attribute'.
+    (reduce
+      (fn [hmap attribute]
+        (add-edges hmap (attribute-derivation context #{attribute})))
+      init-verticies
+      (attributes context))))
+
+(defn attribute-projection
+  "Computes for a `context' the adjacency-map
+  of the graph which has as verticies
+  the attributes of a context and in which
+  two attributes share an edge if they share an
+  object."
+  [context]
+  (let [init-verticies
+        ;; We initialize all attributes
+        ;; of the context as verticies
+        ;; without edges.
+        (reduce
+          (fn [hmap attribute]
+            (assoc hmap attribute #{}))
+          {}
+          (attributes context))]
+    ;; Iterate through all objects `object' to
+    ;; add the edges a1<->a2 for all attributes
+    ;; a1,a2 that this `object' has.
+    (reduce
+      (fn [hmap object]
+        (add-edges hmap (object-derivation context #{object})))
+      init-verticies
+      (objects context))))
 
 ;;; Average-shortest-path
 
