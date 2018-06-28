@@ -8,7 +8,12 @@
 
 (ns conexp.fca.applications.socialanalytics
   "Provides some functionallity for Socialanalytics."
-  (:require [conexp.fca.contexts :refer :all]
+  (:require [conexp.fca.contexts :refer [objects
+                                         attributes
+                                         object-derivation
+                                         attribute-derivation
+                                         context?
+                                         incident?]]
             [clojure.set :refer [intersection
                                  union]]))
 
