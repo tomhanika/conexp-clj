@@ -9,3 +9,4 @@ Additional Contributors are
 * Tom Hanika        (Concept Probability)
 * Gleb Kanterov     (interval-scale)
 * Johannes Wollbold (bug reports, feature requests)
+* Maximilian Stubbemann (concept-robustness)
