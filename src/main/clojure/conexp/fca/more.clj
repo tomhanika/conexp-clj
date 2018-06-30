@@ -265,7 +265,7 @@
     (conj cache [concept, newvalue])))
 
 (defn concept-robustness-polynomial
-  "Return the coefficients of the robustness polynmial of `concept'.
+  "Return the coefficients of the robustness polynomial of `concept'.
 
   For the given `concept' of a context, the coefficients of the polynomial p
   corresponding to the robustness is computed by using the seq `concepts' of
@@ -306,7 +306,7 @@
   "Computes the robustness of a `concept' in a context with parameter `alpha' by
   using the seq `concepts' consisting of all concepts of the context.  The
   optional boolean parameter `sorted?' allows to declare the seq of concepts as
-  beeing already sorted by increasing size of the attributeset.  This function
+  beeing already sorted by increasing size of the attribute set.  This function
   uses the function concept-robustness-polynomial."
   ([concept concepts alpha sorted?]
    (assert (and (number? alpha)
