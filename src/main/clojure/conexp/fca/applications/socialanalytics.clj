@@ -340,6 +340,35 @@
   [context]
   (vertex-degrees context attribute-projection))
 
+;;;k-cores
+
+(defn- k-cores-elimination
+"For a given `graph', returns the maximial subgraph,
+  in which every vertice has at least `k' edges."
+[graph k]
+(assert (and (integer? k) (>= k 0)) "K must be a non-negative integer!")
+(let [keys-to-remove (set (filter #(< (count (graph %)) k) (keys graph)))]
+  (if (empty? keys-to-remove)
+    graph
+    (let [graph-with-removed-verticies (apply dissoc graph keys-to-remove)
+          graph-with-removed-verticies-and-edges
+          (reduce
+            (fn [hmap key]
+              (update hmap key #(set (remove keys-to-remove %))))
+            graph-with-removed-verticies
+            (keys graph-with-removed-verticies))]
+      (k-cores-elimination graph-with-removed-verticies-and-edges k)))))
+
+(defn k-cores
+  "Returns for a given `graph' the `k'-cores.
+  These are the connected components of the maximal
+  subgraph, in which all veticies have at least `k' edges."
+  [graph k]
+  (assert (and (integer? k) (>= k 0)) "K must be a non-negative integer!")
+  (map
+    #(set (keys %))
+    (connected-components (k-cores-elimination graph k))))
+
 ;;;
 
 nil
