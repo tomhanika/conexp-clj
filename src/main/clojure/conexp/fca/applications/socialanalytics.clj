@@ -178,6 +178,26 @@
                       (objects context)))
 
 
+;;; Breadth-first-search
+
+(defn breadth-first-search
+  "For a `graph', given as adjacency-map, this function returns a map
+  of all reachable nodes from node as keys and the distances to node
+  as values."
+  [graph node]
+  (assert (contains? graph node) "Second argument must be a node of the graph!")
+  (let [do-bfs
+        (fn [visited queue]
+          (if (empty? queue)
+            visited
+            (let [[current-node current-depth] (peek queue)
+                  new-nodes (map
+                              #(vector % (+ 1 current-depth))
+                              (remove visited (graph current-node)))]
+              (recur (apply conj visited new-nodes) (apply conj (pop queue) new-nodes)))))]
+    (do-bfs {node 0} (conj clojure.lang.PersistentQueue/EMPTY [node 0]))))
+
+
 ;;; Average-shortest-path
 
 ;; The following two marcros are adapted from
