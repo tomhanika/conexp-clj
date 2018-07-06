@@ -197,6 +197,15 @@
               (recur (apply conj visited new-nodes) (apply conj (pop queue) new-nodes)))))]
     (do-bfs {node 0} (conj clojure.lang.PersistentQueue/EMPTY [node 0]))))
 
+(defn connected-components
+  "Returns for a given `graph', represented as an adjacency-map,
+  a list of the connected components."
+  [graph]
+  (if (empty? graph)
+    '()
+    (let [component (select-keys graph (keys (breadth-first-search graph (first (keys graph)))))]
+      (cons component (connected-components (apply dissoc graph (keys component)))))))
+
 
 ;;; Average-shortest-path
 
