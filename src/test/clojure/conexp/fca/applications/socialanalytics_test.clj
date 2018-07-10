@@ -153,6 +153,25 @@
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
 
+;;k-cores
+
+(deftest test-k-cores
+  (let [graph1 {0 #{1} 1 #{0 2 3} 2 #{1 3}
+                3 #{1 2 4 5} 4#{3} 5 #{3}}
+        graph2 {'a #{'b 'c 'd} 'b #{ 'a 'c 'd}
+                'c #{'a 'b 'd} 'd #{'a 'b 'c 'e}
+                'e #{'d 'f} 'f #{'e 'g 'h 'i}
+                'g #{'f 'h 'i} 'h #{'f 'g 'i}
+                'i #{'f 'g 'h}}]
+   (is (= (k-cores graph1 2)
+      (list 
+        #{1 2 3})))
+   (is (= (k-cores graph2 1)
+          (list (set (keys graph2)))))
+   (is (= (set (k-cores graph2 3))
+          #{#{'a 'b 'c 'd }
+            #{'f 'g 'h 'i}}))))
+
 ;;;
 
 nil
