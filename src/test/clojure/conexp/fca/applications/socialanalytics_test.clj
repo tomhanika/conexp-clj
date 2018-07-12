@@ -84,7 +84,7 @@
                   value
                   (count (attributes ctx)))))))
 
-(deftest test-vertice-degrees
+(deftest test-vertex-degrees
   (let [ctx (make-context-from-matrix 5 3
                                       [1 1 0
                                        0 1 0
@@ -96,19 +96,19 @@
                                         0 1 1
                                         1 0 0
                                         0 1 0])]
-    (is (= (sort (vertice-degrees-objects-and-attributes ctx))
+    (is (= (sort (vertex-degrees-objects-and-attributes ctx))
            '(1 1 2 2 2 2 3 3)))
-    (is (= (sort (vertice-degrees-objects-and-attributes ctx1))
+    (is (= (sort (vertex-degrees-objects-and-attributes ctx1))
            '(1 1 1 2 2 2 3))))
 
   (with-testing-data [ctx (random-contexts 7 150)]
-                     (let [degrees (vertice-degrees-objects-and-attributes ctx)
+                     (let [degrees (vertex-degrees-objects-and-attributes ctx)
                            m (count (objects ctx))
                            n (count (attributes ctx))]
                        (and (= (count degrees) (+ m n))
                             (every? #(<= 0 % (max m n)) degrees)))))
 
-(deftest test-vertice-degrees-objects
+(deftest test-vertex-degrees-objects
   (let [ctx (make-context-from-matrix 5 3
                                       [1 1 0
                                        0 1 0
@@ -120,18 +120,18 @@
                                         0 1 1
                                         1 0 0
                                         0 1 0])]
-    (is (= (sort (vertice-degrees-objects ctx))
+    (is (= (sort (vertex-degrees-objects ctx))
            '(3 3 4 4 5)))
-    (is (= (sort (vertice-degrees-objects ctx1))
+    (is (= (sort (vertex-degrees-objects ctx1))
            '(2 3 3 4))))
 
   (with-testing-data [ctx (random-contexts 7 150)]
-                     (let [degrees (vertice-degrees-objects ctx)
+                     (let [degrees (vertex-degrees-objects ctx)
                            n (count (objects ctx))]
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
 
-(deftest test-vertice-degrees-attributes
+(deftest test-vertex-degrees-attributes
   (let [ctx (make-context-from-matrix 5 3
                                       [1 1 0
                                        0 1 0
@@ -142,13 +142,13 @@
                                        [1 0 0 1 0
                                         1 1 1 0 0
                                         0 0 0 1 0])]
-    (is (= (sort (vertice-degrees-attributes ctx))
+    (is (= (sort (vertex-degrees-attributes ctx))
            '(3 3 3)))
-    (is (= (sort (vertice-degrees-attributes ctx1))
+    (is (= (sort (vertex-degrees-attributes ctx1))
            '(0 2 3 3 4))))
 
   (with-testing-data [ctx (random-contexts 7 150)]
-                     (let [degrees (vertice-degrees-attributes ctx)
+                     (let [degrees (vertex-degrees-attributes ctx)
                            n (count (attributes ctx))]
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
