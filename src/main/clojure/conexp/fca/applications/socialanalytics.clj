@@ -21,7 +21,7 @@
 
 (defn adjacency-matrix-for-object-and-attribute-projection
   "Computes the adjacency-matrix of the graph which has the objects and 
-  attributes as verticies and the edges defined via the incidence-relation.
+  attributes as vertices and the edges defined via the incidence-relation.
   The edges of the graph have no direction, therefore just the upper entrys
   a_ij with i<=j have to be stored."
   [context]
@@ -68,7 +68,7 @@
 
 (defn adjacency-matrix-for-object-projection
   "Computes the adjacency-matrix for the graph, which has
-  the objects of a `context' as verticies and in which two
+  the objects of a `context' as vertices and in which two
   objects share an edge if they share an attribute.
   The edges of the graph have no direction, therefore just
   the upper entrys a_ij with i<=j have to be stored."
@@ -85,7 +85,7 @@
 
 (defn adjacency-matrix-for-attribute-projection
   "Computes the adjacency-matrix for the graph, which has
-  the attributes of a `context' as verticies and in which two attributes
+  the attributes of a `context' as vertices and in which two attributes
   share an edge if they share an object.
   The edges of the graph have no direction, therefore just the upper
   entrys a_ij with i<=j have to be stored"
@@ -107,19 +107,19 @@
 
 (defn object-and-attribute-projection
   "Computes for a given `context' the adjacency-map
-  of the graph, which has as verticies the objects
+  of the graph, which has as vertices the objects
   and attributes and in which the edges are defined
   through the incidence-relation.
   As it is possible for an object and an attribute
-  to have the same name, the verticies belonging to objects
+  to have the same name, the vertices belonging to objects
   are renamed from object1, object2 to
-  obj-object1, obj-object2,... and verticies belonging to
+  obj-object1, obj-object2,... and vertices belonging to
   attributes are renamed from attribute1,attribute2 to
   atr-attribute1,atr-attribute2..."
   [context]
   (let [object-nodes
         ;; Computes the successors
-        ;; for all verticies, which
+        ;; for all vertices, which
         ;; correspond to objects.
         (reduce
           (fn [hmap obj]
@@ -132,7 +132,7 @@
           (objects context))
         attribute-nodes
         ;; Computes the successors
-        ;; for all verticies, which
+        ;; for all vertices, which
         ;; correspond to attributes.
         (reduce
           (fn [hmap atr]
@@ -165,14 +165,14 @@
 
 (defn object-projection
   "Computes for a `context' the adjacency-map
-  of the graph which has as verticies
+  of the graph which has as vertices
   the objects of a context and in which
   two objects share an edge if they share an
   attribute."
   [context]
-  (let [init-verticies
+  (let [init-vertices
         ;; We initialize all objects
-        ;; of the context as verticies
+        ;; of the context as vertices
         ;; without edges.
         (reduce
           (fn [hmap object]
@@ -185,19 +185,19 @@
     (reduce
       (fn [hmap attribute]
         (add-edges hmap (attribute-derivation context #{attribute})))
-      init-verticies
+      init-vertices
       (attributes context))))
 
 (defn attribute-projection
   "Computes for a `context' the adjacency-map
-  of the graph which has as verticies
+  of the graph which has as vertices
   the attributes of a context and in which
   two attributes share an edge if they share an
   object."
   [context]
-  (let [init-verticies
+  (let [init-vertices
         ;; We initialize all attributes
-        ;; of the context as verticies
+        ;; of the context as vertices
         ;; without edges.
         (reduce
           (fn [hmap attribute]
@@ -210,7 +210,7 @@
     (reduce
       (fn [hmap object]
         (add-edges hmap (object-derivation context #{object})))
-      init-verticies
+      init-vertices
       (objects context))))
 
 ;;; Average-shortest-path
@@ -248,7 +248,7 @@
   with one modification: Because the graph is undirected, just the upper triangle
   (including diagonal-elements) of the adjacency-matrix
   has to be stored.
-  Paths from a vertice to itself are discarded. 
+  Paths from a vertex to itself are discarded. 
   If there are no edges and therefore no paths
   in the graph, nil is returned."
   [context projection]
@@ -266,9 +266,9 @@
                       (recur k (inc i) (inc i) matrix))
                     (recur (inc k) 0 0 matrix))
                   ;;If we are finished, we discard all
-                  ;; entrys of length 0 (they stand for verticies
+                  ;; entrys of length 0 (they stand for vertices
                   ;; which are not connected!) and all shortest-path-lengths
-                  ;; of a vertice to itself.
+                  ;; of a vertex to itself.
                   (remove zero?
                           (mapcat
                             #(drop 1 %)
@@ -279,50 +279,50 @@
 
 (defn average-shortest-path-objects-and-attributes
   "Computes for a `context' the average-shortest-path of the graph,
-   which has as verticies the objects and attributes of the context
+   which has as vertices the objects and attributes of the context
    and in which the edges are defined through the incidence-relation."
   [context]
   (average-shortest-path context adjacency-matrix-for-object-and-attribute-projection))
 
 (defn average-shortest-path-objects
   "Computes fo a `context' the average-shortest-path of the graph,
-   which has as verticies the objects of the context and in which
+   which has as vertices the objects of the context and in which
    two objects share an edge if they share an attribute."
   [context]
   (average-shortest-path context adjacency-matrix-for-object-projection))
 
 (defn average-shortest-path-attributes
   "Computes for a `context' the average-shortest-path of the graph,
-   which has as verticies the attributes of the context and in which
+   which has as vertices the attributes of the context and in which
    two attributes share an edge if they share an object."
   [context]
   (average-shortest-path context adjacency-matrix-for-attribute-projection))
 
-;;;Vertice-degrees
+;;;vertex-degrees
 
-(defn vertice-degrees
+(defn vertex-degrees
   "For a given `context' and a `projection', which maps
   contexts to graphs, represented by adjacency-maps,
-  the seq of vertice-degrees of (projection context) is returned."
+  the seq of vertex-degrees of (projection context) is returned."
   [context projection]
   (assert (context? context) "First argument must be a formal context!")
   (map
     count
     (vals (projection context))))
 
-(defn vertice-degrees-objects-and-attributes
-  "For a given `context', the seq of vertice-degrees
-  of the graph, which has as verticies the objects
+(defn vertex-degrees-objects-and-attributes
+  "For a given `context', the seq of vertex-degrees
+  of the graph, which has as vertices the objects
   and attributes of the context and in which the edges
   are defined through the incidence-relation, is returned."
   [context]
   ;; Note that this function does not use
-  ;; the above vertice-degrees function
+  ;; the above vertex-degrees function
   ;; for airbitary projections.
   ;; The reason therefore is,
   ;; that the special construction of
   ;; this specific graph allows to directly
-  ;; compute the list of the vertice-degrees
+  ;; compute the list of the vertex-degrees
   ;; from the context.
   (assert (context? context) "Argument must be a formal context!")
   (concat
@@ -333,23 +333,23 @@
       #(count (attribute-derivation context #{%}))
       (attributes context))))
 
-(defn vertice-degrees-objects
+(defn vertex-degrees-objects
   "For a given `context', this function returns
-  the vertice-degrees of the graph, which has
-  as verticies the objects of the context
+  the vertex-degrees of the graph, which has
+  as vertices the objects of the context
   and in which two objects share an edge if they share
   an attribute."
   [context]
-  (vertice-degrees context object-projection))
+  (vertex-degrees context object-projection))
 
-(defn vertice-degrees-attributes
+(defn vertex-degrees-attributes
   "For a given `context', this function returns
-  the vertice-degrees of the graph, which has
-  as verticies the attributes of the context and
+  the vertex-degrees of the graph, which has
+  as vertices the attributes of the context and
   in which two attributes share an edge if they share
   an object."
   [context]
-  (vertice-degrees context attribute-projection))
+  (vertex-degrees context attribute-projection))
 
 ;;;
 nil
