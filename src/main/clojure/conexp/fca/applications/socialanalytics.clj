@@ -19,7 +19,7 @@
 
 ;;;;Functions to compute adjacency-matricies
 
-(defn adjacency-matrix-for-object-and-attribute-projection
+(defn combined-projection-adjacency-matrix
   "Computes the adjacency-matrix of the graph which has the objects and
   attributes as vertices and the edges defined via the incidence-relation.
   The edges of the graph have no direction, therefore just the upper entrys
@@ -66,7 +66,7 @@
        (if (empty? sharedthings) 0 1))
     object-or-attribute-derivations))
 
-(defn adjacency-matrix-for-object-projection
+(defn object-projection-adjacency-matrix
   "Computes the adjacency-matrix for the graph, which has
   the objects of a `context' as vertices and in which two
   objects share an edge if they share an attribute.
@@ -83,7 +83,7 @@
          (drop % object-derivations-of-context))
       (range 0 n))))
 
-(defn adjacency-matrix-for-attribute-projection
+(defn attribute-projection-adjacency-matrix
   "Computes the adjacency-matrix for the graph, which has
   the attributes of a `context' as vertices and in which two attributes
   share an edge if they share an object.
@@ -105,7 +105,7 @@
 ;;; graphs, represented by adjacency-maps in the form
 ;;; {node1 set-of-neighbours, node2 set-of-neighbours...}.
 
-(defn object-and-attribute-projection
+(defn combined-projection
   "Computes for a given `context' the adjacency-map
   of the graph, which has as vertices the objects
   and attributes and in which the edges are defined
@@ -277,26 +277,26 @@
       nil
       (/ (reduce + paths) (count paths)))))
 
-(defn average-shortest-path-objects-and-attributes
+(defn combined-projection-average-shortest-path
   "Computes for a `context' the average-shortest-path of the graph,
    which has as vertices the objects and attributes of the context
    and in which the edges are defined through the incidence-relation."
   [context]
-  (average-shortest-path context adjacency-matrix-for-object-and-attribute-projection))
+  (average-shortest-path context combined-projection-adjacency-matrix))
 
-(defn average-shortest-path-objects
+(defn object-projection-average-shortest-path
   "Computes fo a `context' the average-shortest-path of the graph,
    which has as vertices the objects of the context and in which
    two objects share an edge if they share an attribute."
   [context]
-  (average-shortest-path context adjacency-matrix-for-object-projection))
+  (average-shortest-path context object-projection-adjacency-matrix))
 
-(defn average-shortest-path-attributes
+(defn attribute-projection-average-shortest-path
   "Computes for a `context' the average-shortest-path of the graph,
    which has as vertices the attributes of the context and in which
    two attributes share an edge if they share an object."
   [context]
-  (average-shortest-path context adjacency-matrix-for-attribute-projection))
+  (average-shortest-path context attribute-projection-adjacency-matrix))
 
 ;;;vertex-degrees
 
@@ -310,7 +310,7 @@
     count
     (vals (projection context))))
 
-(defn vertex-degrees-objects-and-attributes
+(defn combined-projection-vertex-degrees
   "For a given `context', the seq of vertex-degrees
   of the graph, which has as vertices the objects
   and attributes of the context and in which the edges
@@ -333,7 +333,7 @@
       #(count (attribute-derivation context #{%}))
       (attributes context))))
 
-(defn vertex-degrees-objects
+(defn object-projection-vertex-degrees
   "For a given `context', this function returns
   the vertex-degrees of the graph, which has
   as vertices the objects of the context
@@ -342,7 +342,7 @@
   [context]
   (vertex-degrees context object-projection))
 
-(defn vertex-degrees-attributes
+(defn attribute-projection-vertex-degrees
   "For a given `context', this function returns
   the vertex-degrees of the graph, which has
   as vertices the attributes of the context and
