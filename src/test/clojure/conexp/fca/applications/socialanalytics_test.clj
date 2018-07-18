@@ -18,7 +18,7 @@
 
 ;Average-shortest-path
 
-(deftest test-average-shortest-path-objects-and-attributes
+(deftest test-combined-projection-average-shortest-path
   (let [ctx (make-context-from-matrix 4 3
                           [1 0 1
                            0 1 0
@@ -28,12 +28,12 @@
                                 [0 0 0
                                  0 1 0
                                  1 0 1])]
-    (is (= (average-shortest-path-objects-and-attributes ctx) (/ 50 21)))
-    (is (= (average-shortest-path-objects-and-attributes ctx1) (/ 5 4)))
-    (is (= (average-shortest-path-objects-and-attributes (random-context 50 0)) nil)))
+    (is (= (combined-projection-average-shortest-path ctx) (/ 50 21)))
+    (is (= (combined-projection-average-shortest-path ctx1) (/ 5 4)))
+    (is (= (combined-projection-average-shortest-path (random-context 50 0)) nil)))
   
   (with-testing-data [ctx (random-contexts 5 50)]
-    (let [value (average-shortest-path-objects-and-attributes ctx)]
+    (let [value (combined-projection-average-shortest-path ctx)]
       (or (nil? value)
           (<= 1
               value
@@ -51,18 +51,18 @@
                                         1 1 0
                                         0 1 1
                                         0 0 1])]
-    (is (= (average-shortest-path-objects ctx) 1))
-    (is (= (average-shortest-path-objects ctx1) (/ 13 10)))
-    (is (nil? (average-shortest-path-objects (random-context 50 0)))))
+    (is (= (object-projection-average-shortest-path ctx) 1))
+    (is (= (object-projection-average-shortest-path ctx1) (/ 13 10)))
+    (is (nil? (object-projection-average-shortest-path (random-context 50 0)))))
   
   (with-testing-data [ctx (random-contexts 5 60)]
-    (let [value (average-shortest-path-objects ctx)]
+    (let [value (object-projection-average-shortest-path ctx)]
       (or (nil? value)
           (<= 1
               value
               (count (objects ctx)))))))
 
-(deftest test-average-shortest-path-attributes
+(deftest test-attribute-projection-average-shortest-path
   (let [ctx (make-context-from-matrix 4 5
                                       [1 0 1 1 0
                                        0 1 1 0 0
@@ -73,18 +73,18 @@
                                        1 1 0 0
                                        0 1 1 0
                                        0 0 1 1])]
-    (is (= (average-shortest-path-attributes ctx) (/ 7 5)))
-    (is (= (average-shortest-path-attributes ctx1) (/ 5 3)))
-    (is (nil? (average-shortest-path-attributes (random-context 60 0)))))
+    (is (= (attribute-projection-average-shortest-path ctx) (/ 7 5)))
+    (is (= (attribute-projection-average-shortest-path ctx1) (/ 5 3)))
+    (is (nil? (attribute-projection-average-shortest-path (random-context 60 0)))))
   
   (with-testing-data [ctx (random-contexts 7 50)]
-    (let [value (average-shortest-path-attributes ctx)]
+    (let [value (attribute-projection-average-shortest-path ctx)]
           (or (nil? value)
               (<= 1
                   value
                   (count (attributes ctx)))))))
 
-(deftest test-vertex-degrees
+(deftest test-combined-projection-vertex-degrees
   (let [ctx (make-context-from-matrix 5 3
                                       [1 1 0
                                        0 1 0
@@ -96,19 +96,19 @@
                                         0 1 1
                                         1 0 0
                                         0 1 0])]
-    (is (= (sort (vertex-degrees-objects-and-attributes ctx))
+    (is (= (sort (combined-projection-vertex-degrees ctx))
            '(1 1 2 2 2 2 3 3)))
-    (is (= (sort (vertex-degrees-objects-and-attributes ctx1))
+    (is (= (sort (combined-projection-vertex-degrees ctx1))
            '(1 1 1 2 2 2 3))))
   
   (with-testing-data [ctx (random-contexts 7 150)]
-                     (let [degrees (vertex-degrees-objects-and-attributes ctx)
+                     (let [degrees (combined-projection-vertex-degrees ctx)
                            m (count (objects ctx))
                            n (count (attributes ctx))]
                        (and (= (count degrees) (+ m n))
                             (every? #(<= 0 % (max m n)) degrees)))))
 
-(deftest test-vertex-degrees-objects
+(deftest test-object-projection-vertex-degrees
   (let [ctx (make-context-from-matrix 5 3
                                       [1 1 0
                                        0 1 0
@@ -120,18 +120,18 @@
                                         0 1 1
                                         1 0 0
                                         0 1 0])]
-    (is (= (sort (vertex-degrees-objects ctx))
+    (is (= (sort (object-projection-vertex-degrees ctx))
            '(3 3 4 4 5)))
-    (is (= (sort (vertex-degrees-objects ctx1))
+    (is (= (sort (object-projection-vertex-degrees ctx1))
            '(2 3 3 4))))
   
   (with-testing-data [ctx (random-contexts 7 150)]
-                     (let [degrees (vertex-degrees-objects ctx)
+                     (let [degrees (object-projection-vertex-degrees ctx)
                            n (count (objects ctx))]
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
 
-(deftest test-vertex-degrees-attributes
+(deftest test-attribute-projection-vertex-degrees
   (let [ctx (make-context-from-matrix 5 3
                                       [1 1 0
                                        0 1 0
@@ -142,13 +142,13 @@
                                        [1 0 0 1 0
                                         1 1 1 0 0
                                         0 0 0 1 0])]
-    (is (= (sort (vertex-degrees-attributes ctx))
+    (is (= (sort (attribute-projection-vertex-degrees ctx))
            '(3 3 3)))
-    (is (= (sort (vertex-degrees-attributes ctx1))
+    (is (= (sort (attribute-projection-vertex-degrees ctx1))
            '(0 2 3 3 4))))
   
   (with-testing-data [ctx (random-contexts 7 150)]
-                     (let [degrees (vertex-degrees-attributes ctx)
+                     (let [degrees (attribute-projection-vertex-degrees ctx)
                            n (count (attributes ctx))]
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
