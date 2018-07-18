@@ -24,7 +24,7 @@
   attributes as vertices and the edges defined via the incidence-relation.
   The edges of the graph have no direction, therefore just the upper entrys
   a_ij with i<=j have to be stored."
-  [context]
+  ^"[[I" [context]
   (assert (context? context) "Argument must be a formal context!")
   (let [objects (vec (objects context))
         attributes (vec (attributes context))
@@ -35,22 +35,22 @@
                                  ;; in the adjacency-matrix: Decides with which
                                  ;; of the `attributes' the object has an edge with.
                                  ;; Starts the row with `i' zeros.
-                                 (vec (concat (take i (repeat 0))
-                                              (map
-                                                (fn [attribute]
-                                                  (if (incident? context object attribute)
-                                                    1
-                                                    0))
-                                                attributes))))]
-    (vec (concat
-           ;; Concat the rows corresponding to an object...
-           (map #(compute-row-for-object (objects %)
-                                         attributes
-                                         (- m %))
-                (range 0 m))
-           ;; ... with the rows correpsonding to attributes.
-           (map #(vec (take (- n %) (repeat 0)))
-                (range 0 n))))))
+                                 (concat (take i (repeat 0))
+                                         (map
+                                           (fn [attribute]
+                                             (if (incident? context object attribute)
+                                               1
+                                               0))
+                                           attributes)))]
+    (into-array (map int-array (concat
+                                 ;; Concat the rows corresponding to an object...
+                                 (map #(compute-row-for-object (objects %)
+                                                               attributes
+                                                               (- m %))
+                                      (range 0 m))
+                                 ;; ... with the rows correpsonding to attributes.
+                                 (map #(take (- n %) (repeat 0))
+                                      (range 0 n)))))))
 
 (defn- compute-row-for-object-or-attribute-matrix
   "Tis is a helper-function to initialize the adjacency-matrix
@@ -72,16 +72,17 @@
   objects share an edge if they share an attribute.
   The edges of the graph have no direction, therefore just
   the upper entrys a_ij with i<=j have to be stored."
-  [context]
+  ^"[[I" [context]
   (let [object-derivations-of-context (mapv
                                         #(object-derivation context #{%})
                                         (objects context))
         n (count object-derivations-of-context)]
-    (mapv
-      #(compute-row-for-object-or-attribute-matrix
-         (nth object-derivations-of-context %)
-         (drop % object-derivations-of-context))
-      (range 0 n))))
+    (into-array
+      (map int-array (map
+                       #(compute-row-for-object-or-attribute-matrix
+                          (nth object-derivations-of-context %)
+                          (drop % object-derivations-of-context))
+                       (range 0 n))))))
 
 (defn attribute-projection-adjacency-matrix
   "Computes the adjacency-matrix for the graph, which has
@@ -89,16 +90,16 @@
   share an edge if they share an object.
   The edges of the graph have no direction, therefore just the upper
   entrys a_ij with i<=j have to be stored"
-  [context]
+  ^"[[I"[context]
   (let [attribute-derivations-of-context (mapv
                                            #(attribute-derivation context #{%})
                                            (attributes context))
         n (count attribute-derivations-of-context)]
-    (mapv
-      #(compute-row-for-object-or-attribute-matrix
-         (nth attribute-derivations-of-context %)
-         (drop % attribute-derivations-of-context))
-      (range 0 n))))
+    (into-array (map int-array (map
+                                 #(compute-row-for-object-or-attribute-matrix
+                                    (nth attribute-derivations-of-context %)
+                                    (drop % attribute-derivations-of-context))
+                                 (range 0 n))))))
 
 ;;; Functions to compute adjacency-maps.
 ;;; The following functions take a context as argument and return
@@ -215,28 +216,35 @@
 
 ;;; Average-shortest-path
 
+;;The following two marcros are adapted from
+;;http://clojure-goes-fast.com/blog/java-arrays-and-unchecked-math/.
+(defmacro two-dimensional-aget [a i j]
+  `(aget ^"[I" (aget ~a ~i) ~j))
+
+(defmacro two-dimensional-aset [a i j v]
+  `(aset ^"[I" (aget ~a ~i) ~j ~v))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn- floyd-step
   "This is a helper-function for average-shortest-path:
   Do one overwriting in the floyd-algorithm, see
   https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall or
   https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm for Details."
-  [matrix k i j]
+  [^"[[I" matrix ^Integer k ^Integer i ^Integer j]
   (assert (<= i j) "No computation under the diagonalelements possible!")
-  (let [A_ij (nth (nth matrix i) (- j i))
+  (let [A_ij (two-dimensional-aget matrix i (- j i))
         A_ik (if (<= i k)
-               (nth (nth matrix i) (- k i))
-               (nth (nth matrix k) (- i k)))
+               (two-dimensional-aget matrix i (- k i))
+               (two-dimensional-aget matrix k (- i k)))
         A_kj (if (<= k j)
-               (nth (nth matrix k) (- j k))
-               (nth (nth matrix j) (- k j)))
-        newvalue (cond
-                   (and (= A_ij 0) (or (= A_ik 0) (=  A_kj 0))) 0
-                   (= A_ij 0) (+ A_ik A_kj)
-                   (or (= A_ik 0) (=  A_kj 0)) A_ij
-                   :else (min A_ij (+ A_ik A_kj)))]
-    (assoc matrix
-           i
-           (assoc (nth matrix i) (- j i) newvalue))))
+               (two-dimensional-aget matrix k (- j k))
+               (two-dimensional-aget matrix j (- k j)))
+        ^Integer newvalue (cond
+                            (and (= A_ij 0) (or (= A_ik 0) (=  A_kj 0))) 0
+                            (= A_ij 0) (+ A_ik A_kj)
+                            (or (= A_ik 0) (=  A_kj 0)) A_ij
+                            :else (min A_ij (+ A_ik A_kj)))]
+    (two-dimensional-aset matrix i (- j i) newvalue)))
 
 (defn average-shortest-path
   "Computes the average-shortest path for a given `context' and a `projection'.
@@ -253,26 +261,15 @@
   in the graph, nil is returned."
   [context projection]
   (assert (context? context) "Argument is not a formal context!")
-  (let [matrix (projection context)
+  (let [^"[[I" matrix (projection context)
         n (count matrix)
-        paths (loop [k 0
-                     i 0
-                     j 0
-                     matrix matrix]
-                (if (< k n)
-                  (if (< i n)
-                    (if (< j n)
-                      (recur k i (inc j) (floyd-step matrix k i j))
-                      (recur k (inc i) (inc i) matrix))
-                    (recur (inc k) 0 0 matrix))
-                  ;;If we are finished, we discard all
-                  ;; entrys of length 0 (they stand for vertices
-                  ;; which are not connected!) and all shortest-path-lengths
-                  ;; of a vertex to itself.
-                  (remove zero?
-                          (mapcat
-                            #(drop 1 %)
-                            matrix))))]
+        paths (do
+                (dorun
+                  (for [k (range 0 n) i (range 0 n) j (range i n)]
+                    (floyd-step matrix k i j)))
+                (remove zero?
+                        (mapcat #(drop 1 %)
+                                matrix)))]
     (if (empty? paths)
       nil
       (/ (reduce + paths) (count paths)))))
