@@ -52,19 +52,30 @@
                                  (map #(take (- n %) (repeat 0))
                                       (range 0 n)))))))
 
-(defn- compute-row-for-object-or-attribute-matrix
-  "Tis is a helper-function to initialize the adjacency-matrix
-  for the object- and attribute-projection.
-  This function takes the derivation `object-or-attribute-derivation' of
-  an object or attribute x1 and a seq `object-or-attribute-derivations'
-  of derivations of objects or attributes to decide which objects
-  or attributes of the seq share an edge with x1."
-  [object-or-attribute-derivation object-or-attribute-derivations]
-  (mapv
-    #(let [sharedthings
-           (intersection object-or-attribute-derivation %)]
-       (if (empty? sharedthings) 0 1))
-    object-or-attribute-derivations))
+(defn- general-adjacency-matrix
+  "This is a helper function to compute the adjacency matricies of the object- and
+  the attribute-projection.
+
+  Computes the upper half of the adjacency matrix of the undirected graph
+  with the nodeset `nodeset' and in which two nodes n1, n2 share an edge if
+  the intersection of (derivation `context' n1) and (derivation `context' n2)
+  is not empty."
+  ^"[[I" [context derivation nodeset]
+  (let [derivations (mapv
+                      #(derivation context #{%})
+                      nodeset)
+        n (count derivations)
+        compute-row  (fn [dev devs] (mapv
+                                      #(let [sharedthings
+                                             (intersection dev %)]
+                                         (if (empty? sharedthings) 0 1))
+                                      devs))]
+    (into-array
+      (map int-array (map
+                       #(compute-row
+                          (nth derivations %)
+                          (drop % derivations))
+                       (range 0 n))))))
 
 (defn object-projection-adjacency-matrix
   "Computes the adjacency-matrix for the graph, which has
@@ -73,16 +84,7 @@
   The edges of the graph have no direction, therefore just
   the upper entrys a_ij with i<=j have to be stored."
   ^"[[I" [context]
-  (let [object-derivations-of-context (mapv
-                                        #(object-derivation context #{%})
-                                        (objects context))
-        n (count object-derivations-of-context)]
-    (into-array
-      (map int-array (map
-                       #(compute-row-for-object-or-attribute-matrix
-                          (nth object-derivations-of-context %)
-                          (drop % object-derivations-of-context))
-                       (range 0 n))))))
+  (general-adjacency-matrix context object-derivation (objects context)))
 
 (defn attribute-projection-adjacency-matrix
   "Computes the adjacency-matrix for the graph, which has
@@ -91,15 +93,7 @@
   The edges of the graph have no direction, therefore just the upper
   entrys a_ij with i<=j have to be stored"
   ^"[[I"[context]
-  (let [attribute-derivations-of-context (mapv
-                                           #(attribute-derivation context #{%})
-                                           (attributes context))
-        n (count attribute-derivations-of-context)]
-    (into-array (map int-array (map
-                                 #(compute-row-for-object-or-attribute-matrix
-                                    (nth attribute-derivations-of-context %)
-                                    (drop % attribute-derivations-of-context))
-                                 (range 0 n))))))
+  (general-adjacency-matrix context attribute-derivation (attributes context)))
 
 ;;; Functions to compute adjacency-maps.
 ;;; The following functions take a context as argument and return
