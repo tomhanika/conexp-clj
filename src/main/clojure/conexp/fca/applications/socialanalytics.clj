@@ -140,23 +140,47 @@
           (attributes context))]
     (merge object-nodes attribute-nodes)))
 
-(defn- add-edges
-  "This is a helper-function to compute
-  the objects-projection and the attributes-projection
-  of a context.
-
-  It takes a map `hmap' and a `set' and adds all elements
-  of set to all those keys of hmap, whose are elements of
-  set themselves."
-  [hmap set]
-  (reduce
-    (fn [currenthmap element]
-      (update-in currenthmap
-                 [element]
-                 union
-                 set))
-    hmap
-    set))
+(defn general-projection
+  "This is a helper function for object-projection and
+  attriube-projection to avoid unnecessary doubled code.
+  
+  Computes the graph with the nodes `node-set' and in 
+  which two nodes n1 and n2 share an edge if there is an c
+  in `connection-set' with n1,n2 in
+  (derivation context #{c})."
+  [context derivation node-set connection-set]
+  (let [init-vertices
+        ;; We initialize all nodes
+        ;; of the context as verticies
+        ;; without edges.
+        (reduce
+          (fn [hmap node]
+            (assoc hmap node #{}))
+          {}
+          node-set)
+        add-edges
+        ;; This function takes a map `hmap'
+        ;; and a `set' and adds all elements
+        ;; of set to all those keys of hmap,
+        ;; whose are elements of set
+        ;; themselves.]
+        (fn [hmap set]
+          (reduce
+            (fn [currenthmap element]
+              (update-in currenthmap
+                         [element]
+                         union
+                         set))
+            hmap
+            set))]
+    ;; Iterate now through all elements `connection'
+    ;; in connection-set to find the edges n1<->n2
+    ;; for all n1, n2 in (derivation context connection).
+    (reduce
+      (fn [hmap connection]
+        (add-edges hmap (derivation context #{connection})))
+      init-vertices
+      connection-set)))
 
 (defn object-projection
   "Computes for a `context' the adjacency-map
@@ -165,23 +189,10 @@
   two objects share an edge if they share an
   attribute."
   [context]
-  (let [init-vertices
-        ;; We initialize all objects
-        ;; of the context as vertices
-        ;; without edges.
-        (reduce
-          (fn [hmap object]
-            (assoc hmap object #{}))
-          {}
-          (objects context))]
-    ;; Iterate through all attributes `attribute' to
-    ;; add the edges o1<->02 for all objects
-    ;; o1,o2 that have the `attribute'.
-    (reduce
-      (fn [hmap attribute]
-        (add-edges hmap (attribute-derivation context #{attribute})))
-      init-vertices
-      (attributes context))))
+  (general-projection context
+                      attribute-derivation
+                      (objects context)
+                      (attributes context)))
 
 (defn attribute-projection
   "Computes for a `context' the adjacency-map
@@ -190,23 +201,10 @@
   two attributes share an edge if they share an
   object."
   [context]
-  (let [init-vertices
-        ;; We initialize all attributes
-        ;; of the context as vertices
-        ;; without edges.
-        (reduce
-          (fn [hmap attribute]
-            (assoc hmap attribute #{}))
-          {}
-          (attributes context))]
-    ;; Iterate through all objects `object' to
-    ;; add the edges a1<->a2 for all attributes
-    ;; a1,a2 that this `object' has.
-    (reduce
-      (fn [hmap object]
-        (add-edges hmap (object-derivation context #{object})))
-      init-vertices
-      (objects context))))
+  (general-projection context
+                      object-derivation
+                      (attributes context)
+                      (objects context)))
 
 ;;; Average-shortest-path
 
