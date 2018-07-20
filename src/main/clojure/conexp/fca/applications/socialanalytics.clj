@@ -238,8 +238,8 @@
                             :else (min A_ij (+ A_ik A_kj)))]
     (two-dimensional-aset matrix i (- j i) newvalue)))
 
-(defn average-shortest-path
-  "Computes the average-shortest path for a given `context' and a `projection'.
+(defn distance-matrix
+  "Computes the distance-matrix for a given `context' and a `projection'.
   The projection f should map a context to the upper half of the adjacency-matrix
   of the corresponding undirected graph.
   To compute the path-lenghts, the floyd-algorithm:
@@ -251,41 +251,58 @@
   Paths from a vertex to itself are discarded. 
   If there are no edges and therefore no paths
   in the graph, nil is returned."
-  [context projection]
-  (assert (context? context) "Argument is not a formal context!")
+  ^"[[I" [context projection]
+  (assert (context? context) "Fist argument must be a formal context")
   (let [^"[[I" matrix (projection context)
-        n (count matrix)
-        paths (do
-                (dorun
-                  (for [k (range 0 n) i (range 0 n) j (range i n)]
-                    (floyd-step matrix k i j)))
-                (remove zero?
-                        (mapcat #(drop 1 %)
-                                matrix)))]
-    (if (empty? paths)
-      nil
-      (/ (reduce + paths) (count paths)))))
+        n (count matrix)]
+    (do (dorun
+          (for [k (range 0 n) i (range 0 n) j (range i n)]
+            (floyd-step matrix k i j)))
+      matrix)))
+
+(defn average-shortest-path
+  "Takes the upper half of a distance-matrix `matrix' and computes the average-shortest-path
+  of the corresponding undirected graph.
+  To compute the path-lenghts, the floyd-algorithm:
+  https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall,
+  https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm is used
+  with one modification: Because the graph is undirected, just the upper triangle
+  (including diagonal-elements) of the adjacency-matrix
+  has to be stored.
+  Paths from a vertex to itself are discarded. 
+  If there are no edges and therefore no paths
+  in the graph, nil is returned."
+  [matrix]
+  (let [distances (remove zero?
+                          (mapcat #(drop 1 %)
+                                  matrix))]
+  (if (empty? distances)
+    nil
+    (/ (reduce + distances) (count distances)))))
 
 (defn combined-projection-average-shortest-path
   "Computes for a `context' the average-shortest-path of the graph,
    which has as vertices the objects and attributes of the context
    and in which the edges are defined through the incidence-relation."
   [context]
-  (average-shortest-path context combined-projection-adjacency-matrix))
+  (average-shortest-path (distance-matrix context
+                                          combined-projection-adjacency-matrix)))
 
 (defn object-projection-average-shortest-path
   "Computes fo a `context' the average-shortest-path of the graph,
    which has as vertices the objects of the context and in which
    two objects share an edge if they share an attribute."
   [context]
-  (average-shortest-path context object-projection-adjacency-matrix))
+  (average-shortest-path (distance-matrix context
+                                          object-projection-adjacency-matrix)))
 
 (defn attribute-projection-average-shortest-path
   "Computes for a `context' the average-shortest-path of the graph,
    which has as vertices the attributes of the context and in which
    two attributes share an edge if they share an object."
   [context]
-  (average-shortest-path context attribute-projection-adjacency-matrix))
+  (average-shortest-path (distance-matrix context
+                                          attribute-projection-adjacency-matrix)))
 
 ;;;vertex-degrees
 
