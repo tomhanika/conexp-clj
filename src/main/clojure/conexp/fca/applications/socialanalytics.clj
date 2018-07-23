@@ -20,12 +20,11 @@
 ;;;;Functions to compute adjacency-matricies
 
 (defn combined-projection-adjacency-matrix
-  "Computes the adjacency-matrix of the graph which has the objects and
+  "Computes the adjacency matrix of the graph which has the objects and
   attributes as vertices and the edges defined via the incidence-relation.
   The edges of the graph have no direction, therefore just the upper entrys
   a_ij with i<=j have to be stored."
   ^"[[I" [context]
-  (assert (context? context) "Argument must be a formal context!")
   (let [objects (vec (objects context))
         attributes (vec (attributes context))
         m (count objects)
@@ -53,17 +52,17 @@
                                       (range 0 n)))))))
 
 (defn- general-adjacency-matrix
-  "This is a helper function to compute the adjacency matricies of the object- and
+  "This is a helper function to compute the adjacency matrices of the object- and
   the attribute-projection.
 
   Computes the upper half of the adjacency matrix of the undirected graph
-  with the nodeset `nodeset' and in which two nodes n1, n2 share an edge if
+  with the node set `node-set' and in which two nodes n1, n2 share an edge if
   the intersection of (derivation `context' n1) and (derivation `context' n2)
   is not empty."
-  ^"[[I" [context derivation nodeset]
+  ^"[[I" [context derivation node-set]
   (let [derivations (mapv
                       #(derivation context #{%})
-                      nodeset)
+                      node-set)
         n (count derivations)
         compute-row  (fn [dev devs] (mapv
                                       #(let [sharedthings
@@ -78,7 +77,7 @@
                        (range 0 n))))))
 
 (defn object-projection-adjacency-matrix
-  "Computes the adjacency-matrix for the graph, which has
+  "Computes the adjacency matrix for the graph, which has
   the objects of a `context' as vertices and in which two
   objects share an edge if they share an attribute.
   The edges of the graph have no direction, therefore just
@@ -87,12 +86,12 @@
   (general-adjacency-matrix context object-derivation (objects context)))
 
 (defn attribute-projection-adjacency-matrix
-  "Computes the adjacency-matrix for the graph, which has
+  "Computes the adjacency matrix for the graph, which has
   the attributes of a `context' as vertices and in which two attributes
   share an edge if they share an object.
   The edges of the graph have no direction, therefore just the upper
   entrys a_ij with i<=j have to be stored"
-  ^"[[I"[context]
+  ^"[[I" [context]
   (general-adjacency-matrix context attribute-derivation (attributes context)))
 
 ;;; Functions to compute adjacency-maps.
@@ -101,7 +100,7 @@
 ;;; {node1 set-of-neighbours, node2 set-of-neighbours...}.
 
 (defn combined-projection
-  "Computes for a given `context' the adjacency-map
+  "Computes for a given `context' the adjacency map
   of the graph, which has as vertices the objects
   and attributes and in which the edges are defined
   through the incidence-relation.
@@ -150,8 +149,8 @@
   (derivation context #{c})."
   [context derivation node-set connection-set]
   (let [init-vertices
-        ;; We initialize all nodes
-        ;; of the context as verticies
+        ;; We initialize all elements
+        ;; of the `node-set' as verticies
         ;; without edges.
         (reduce
           (fn [hmap node]
@@ -175,7 +174,7 @@
             set))]
     ;; Iterate now through all elements `connection'
     ;; in connection-set to find the edges n1<->n2
-    ;; for all n1, n2 in (derivation context connection).
+    ;; for all n1, n2 in (derivation context #{connection}).
     (reduce
       (fn [hmap connection]
         (add-edges hmap (derivation context #{connection})))
@@ -183,7 +182,7 @@
       connection-set)))
 
 (defn object-projection
-  "Computes for a `context' the adjacency-map
+  "Computes for a `context' the adjacency map
   of the graph which has as vertices
   the objects of a context and in which
   two objects share an edge if they share an
@@ -195,7 +194,7 @@
                       (attributes context)))
 
 (defn attribute-projection
-  "Computes for a `context' the adjacency-map
+  "Computes for a `context' the adjacency map
   of the graph which has as vertices
   the attributes of a context and in which
   two attributes share an edge if they share an
@@ -240,17 +239,14 @@
 
 (defn distance-matrix
   "Computes the distance-matrix for a given `context' and a `projection'.
-  The projection f should map a context to the upper half of the adjacency-matrix
+  The projection should map a context to the upper half of the adjacency matrix
   of the corresponding undirected graph.
   To compute the path-lenghts, the floyd-algorithm:
   https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall,
   https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm is used
   with one modification: Because the graph is undirected, just the upper triangle
-  (including diagonal-elements) of the adjacency-matrix
-  has to be stored.
-  Paths from a vertex to itself are discarded.
-  If there are no edges and therefore no paths
-  in the graph, nil is returned."
+  (including diagonal-elements) of the adjacency matrix
+  has to be stored."
   ^"[[I" [context projection]
   (assert (context? context) "Fist argument must be a formal context")
   (let [^"[[I" matrix (projection context)
@@ -261,8 +257,8 @@
       matrix)))
 
 (defn average-shortest-path
-  "Takes the upper half of a distance-matrix `matrix' and computes the average-shortest-path
-  of the corresponding undirected graph.
+  "Takes the upper half of a distance-matrix `matrix' and computes the average shortest
+  path lenght of the corresponding undirected graph.
   To compute the path-lenghts, the floyd-algorithm:
   https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall,
   https://en.wikipedia.org/wiki/Floyd-Warshall_algorithm is used
@@ -281,35 +277,38 @@
     (/ (reduce + distances) (count distances)))))
 
 (defn combined-projection-average-shortest-path
-  "Computes for a `context' the average-shortest-path of the graph,
+  "Computes for a `context' the average shortest path lenght of the graph,
    which has as vertices the objects and attributes of the context
    and in which the edges are defined through the incidence-relation."
   [context]
+  (assert (context? context) "Argument must be a formal context!")
   (average-shortest-path (distance-matrix context
                                           combined-projection-adjacency-matrix)))
 
 (defn object-projection-average-shortest-path
-  "Computes fo a `context' the average-shortest-path of the graph,
+  "Computes fo a `context' the average shortest path length of the graph,
    which has as vertices the objects of the context and in which
    two objects share an edge if they share an attribute."
   [context]
+  (assert (context? context) "Argument must be a formal context!")
   (average-shortest-path (distance-matrix context
                                           object-projection-adjacency-matrix)))
 
 (defn attribute-projection-average-shortest-path
-  "Computes for a `context' the average-shortest-path of the graph,
+  "Computes for a `context' the average shortest path length of the graph,
    which has as vertices the attributes of the context and in which
    two attributes share an edge if they share an object."
   [context]
+  (assert (context? context) "Argument must be a formal context!")
   (average-shortest-path (distance-matrix context
                                           attribute-projection-adjacency-matrix)))
 
-;;;vertex-degrees
+;;;Vertex-degrees
 
 (defn vertex-degrees
   "For a given `context' and a `projection', which maps
-  contexts to graphs, represented by adjacency-maps,
-  the seq of vertex-degrees of (projection context) is returned."
+  contexts to graphs, represented by adjacency maps,
+  the seq of vertex degrees of (projection context) is returned."
   [context projection]
   (assert (context? context) "First argument must be a formal context!")
   (map
@@ -317,10 +316,10 @@
     (vals (projection context))))
 
 (defn combined-projection-vertex-degrees
-  "For a given `context', the seq of vertex-degrees
+  "For a given `context', the seq of vertex degrees
   of the graph, which has as vertices the objects
   and attributes of the context and in which the edges
-  are defined through the incidence-relation, is returned."
+  are defined through the incidence relation, is returned."
   [context]
   ;; Note that this function does not use
   ;; the above vertex-degrees function
@@ -328,7 +327,7 @@
   ;; The reason therefore is,
   ;; that the special construction of
   ;; this specific graph allows to directly
-  ;; compute the list of the vertex-degrees
+  ;; compute the list of the vertex degrees
   ;; from the context.
   (assert (context? context) "Argument must be a formal context!")
   (concat
@@ -341,7 +340,7 @@
 
 (defn object-projection-vertex-degrees
   "For a given `context', this function returns
-  the vertex-degrees of the graph, which has
+  the vertex degrees of the graph, which has
   as vertices the objects of the context
   and in which two objects share an edge if they share
   an attribute."
@@ -350,7 +349,7 @@
 
 (defn attribute-projection-vertex-degrees
   "For a given `context', this function returns
-  the vertex-degrees of the graph, which has
+  the vertex degrees of the graph, which has
   as vertices the attributes of the context and
   in which two attributes share an edge if they share
   an object."
