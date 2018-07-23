@@ -12,9 +12,9 @@
                                          make-context-from-matrix
                                          objects
                                          attributes]]
-          [conexp.fca.applications.socialanalytics :refer :all]
-          [clojure.test :refer [deftest is]]
-          [conexp.base :refer [with-testing-data]]))
+            [conexp.fca.applications.socialanalytics :refer :all]
+            [clojure.test :refer [deftest is]]
+            [conexp.base :refer [with-testing-data]]))
 
 ;Average-shortest-path
 
@@ -40,7 +40,7 @@
               (+ (count (objects ctx))
                  (count (attributes ctx))))))))
 
-(deftest test-average-shortest-paths-objects
+(deftest test-object-projection-average-shortest-paths
   (let [ctx (make-context-from-matrix 3 3
                                [1 0 0
                                 1 1 1
