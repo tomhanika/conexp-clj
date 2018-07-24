@@ -172,6 +172,90 @@
           #{#{'a 'b 'c 'd }
             #{'f 'g 'h 'i}}))))
 
+(deftest test-context-graph-k-cores
+  (let [ctx (make-context-from-matrix 5 4
+                                      [1 0 0 0
+                                       1 1 0 0
+                                       1 1 0 0
+                                       0 0 1 0
+                                       0 0 0 1])
+        ctx1 (make-context-from-matrix [0 1 2]
+                                       ['a 'b 'c 'd]
+                                       [1 0 0 1
+                                        1 1 0 1
+                                        0 0 1 0])]
+
+    (let [one-cores (context-graph-k-cores ctx 1)
+          two-cores (context-graph-k-cores ctx 2)]
+      (is (= (set one-cores) #{#{"obj-4", "atr-3"} #{"obj-3" "atr-2"}
+                               #{"obj-0" "obj-1" "obj-2" "atr-1" "atr-0"}}))
+      (is (= two-cores (list #{"obj-1" "obj-2" "atr-0" "atr-1"})))
+
+    (let [one-cores (context-graph-k-cores ctx1 1)
+          two-cores (context-graph-k-cores ctx1 2)]
+      (is (= (set one-cores)
+             #{#{"obj-2" "atr-c"} #{"obj-0" "obj-1" "atr-a" "atr-b" "atr-d"}}))
+      (is (= two-cores
+             (list #{"obj-0" "obj-1" "atr-a" "atr-d"}))))))
+    (with-testing-data [ctx (random-contexts 10 100)]
+      (empty? (context-graph-k-cores ctx 101))))
+
+(deftest test-object-projection-k-cores
+  (let [ctx (make-context-from-matrix 5 4
+                                    [1 0 0 0
+                                     1 1 0 0
+                                     1 1 0 0
+                                     0 0 1 0
+                                     0 0 0 1])
+      ctx1 (make-context-from-matrix [0 1 2]
+                                     ['a 'b 'c 'd]
+                                     [1 0 0 1
+                                      1 1 0 1
+                                      0 0 1 0])]
+
+    (let [one-cores (object-projection-k-cores ctx 1)
+          two-cores (object-projection-k-cores ctx 2)]
+      (is (= (set one-cores) #{#{4} #{3} #{0 1 2}}))
+      (is (= two-cores '(#{0 1 2})))
+      (is (= two-cores (object-projection-k-cores ctx 3))))
+
+    (let [one-cores (object-projection-k-cores ctx1 1)
+          two-cores (object-projection-k-cores ctx1 2)]
+      (is (= (set one-cores) #{#{2} #{0 1}}))
+      (is (= two-cores '(#{0 1})))
+      (is (empty? (object-projection-k-cores ctx1 3)))))
+
+  (with-testing-data [ctx (random-contexts 10 75)]
+    (is (empty? (object-projection-k-cores ctx 76)))))
+
+(deftest test-attribute-projection-k-cores
+  (let [ctx (make-context-from-matrix 5 4
+                                    [1 0 0 0
+                                     1 1 0 0
+                                     1 1 0 0
+                                     0 0 1 0
+                                     0 0 0 1])
+      ctx1 (make-context-from-matrix [0 1 2]
+                                     ['a 'b 'c 'd]
+                                     [1 0 0 1
+                                      1 1 0 1
+                                      0 0 1 0])]
+
+    (let [one-cores (attribute-projection-k-cores ctx 1)
+          two-cores (attribute-projection-k-cores ctx 2)]
+      (is (= (set one-cores) #{#{0 1} #{2} #{3}}))
+      (is (= two-cores '(#{0 1})))
+      (is (empty? (attribute-projection-k-cores ctx 3))))
+
+    (let [one-cores (attribute-projection-k-cores ctx1 1)
+          two-cores (attribute-projection-k-cores ctx1 2)]
+      (is (= (set one-cores) #{#{'c} #{'a 'b 'd}}))
+      (is (= two-cores (list #{'a 'b 'd})))
+      (is (= two-cores (attribute-projection-k-cores ctx1 3)))))
+
+  (with-testing-data [ctx (random-contexts 20 42)]
+    (is (empty? (attribute-projection-k-cores ctx 43)))))
+
 ;;;
 
 nil
