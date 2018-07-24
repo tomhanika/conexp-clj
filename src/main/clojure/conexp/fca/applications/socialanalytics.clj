@@ -369,6 +369,30 @@
     #(set (keys %))
     (connected-components (k-cores-elimination graph k))))
 
+(defn context-graph-k-cores
+  "Returns fo a given `context' the `k'-cores of the graph
+  which has as vertices the objects and attributes and in which
+  the edges are defined through the incidence-relation."
+  [context k]
+  (assert (context? context) "First argument must be a formal context!")
+  (k-cores (context-graph context) k))
+
+(defn object-projection-k-cores
+  "Returns for a given `context' the `k'-cores of the graph
+  which has as vertices the objects and in which two vertices
+  share an edge if they share an attribute."
+  [context k]
+  (assert (context? context) "First argument must be a formal context!")
+  (k-cores (object-projection context) k))
+
+(defn attribute-projection-k-cores
+  "Returns for a given `context' the `k'-cores of the graph
+  which has as vertices the attributes and in which two vertices
+  share an edge if they share an object."
+  [context k]
+  (assert (context? context) "First argument must be a formal context!")
+  (k-cores (attribute-projection context) k))
+
 ;;;
 
 nil
