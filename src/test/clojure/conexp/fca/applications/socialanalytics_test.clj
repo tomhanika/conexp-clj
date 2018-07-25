@@ -18,7 +18,7 @@
 
 ;Average-shortest-path
 
-(deftest test-combined-projection-average-shortest-path
+(deftest test-context-graph-average-shortest-path
   (let [ctx (make-context-from-matrix 4 3
                           [1 0 1
                            0 1 0
@@ -28,12 +28,12 @@
                                 [0 0 0
                                  0 1 0
                                  1 0 1])]
-    (is (= (combined-projection-average-shortest-path ctx) (/ 50 21)))
-    (is (= (combined-projection-average-shortest-path ctx1) (/ 5 4)))
-    (is (= (combined-projection-average-shortest-path (random-context 50 0)) nil)))
+    (is (= (context-graph-average-shortest-path ctx) (/ 50 21)))
+    (is (= (context-graph-average-shortest-path ctx1) (/ 5 4)))
+    (is (= (context-graph-average-shortest-path (random-context 50 0)) nil)))
   
   (with-testing-data [ctx (random-contexts 5 50)]
-    (let [value (combined-projection-average-shortest-path ctx)]
+    (let [value (context-graph-average-shortest-path ctx)]
       (or (nil? value)
           (<= 1
               value
@@ -84,7 +84,7 @@
                   value
                   (count (attributes ctx)))))))
 
-(deftest test-combined-projection-vertex-degrees
+(deftest test-context-graph-vertex-degrees
   (let [ctx (make-context-from-matrix 5 3
                                       [1 1 0
                                        0 1 0
@@ -96,13 +96,13 @@
                                         0 1 1
                                         1 0 0
                                         0 1 0])]
-    (is (= (sort (combined-projection-vertex-degrees ctx))
+    (is (= (sort (context-graph-vertex-degrees ctx))
            '(1 1 2 2 2 2 3 3)))
-    (is (= (sort (combined-projection-vertex-degrees ctx1))
+    (is (= (sort (context-graph-vertex-degrees ctx1))
            '(1 1 1 2 2 2 3))))
   
   (with-testing-data [ctx (random-contexts 7 150)]
-                     (let [degrees (combined-projection-vertex-degrees ctx)
+                     (let [degrees (context-graph-vertex-degrees ctx)
                            m (count (objects ctx))
                            n (count (attributes ctx))]
                        (and (= (count degrees) (+ m n))
