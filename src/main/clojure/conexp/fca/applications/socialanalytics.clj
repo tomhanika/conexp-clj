@@ -19,7 +19,7 @@
 
 ;;;;Functions to compute adjacency-matricies
 
-(defn combined-projection-adjacency-matrix
+(defn context-graph-adjacency-matrix
   "Computes the adjacency matrix of the graph which has the objects and
   attributes as vertices and the edges defined via the incidence-relation.
   The edges of the graph have no direction, therefore just the upper entrys
@@ -99,7 +99,7 @@
 ;;; graphs, represented by adjacency-maps in the form
 ;;; {node1 set-of-neighbours, node2 set-of-neighbours...}.
 
-(defn combined-projection
+(defn context-graph
   "Computes for a given `context' the adjacency map
   of the graph, which has as vertices the objects
   and attributes and in which the edges are defined
@@ -276,14 +276,14 @@
     nil
     (/ (reduce + distances) (count distances)))))
 
-(defn combined-projection-average-shortest-path
+(defn context-graph-average-shortest-path
   "Computes for a `context' the average shortest path lenght of the graph,
    which has as vertices the objects and attributes of the context
    and in which the edges are defined through the incidence-relation."
   [context]
   (assert (context? context) "Argument must be a formal context!")
   (average-shortest-path (distance-matrix context
-                                          combined-projection-adjacency-matrix)))
+                                          context-graph-adjacency-matrix)))
 
 (defn object-projection-average-shortest-path
   "Computes fo a `context' the average shortest path length of the graph,
@@ -315,7 +315,7 @@
     count
     (vals (projection context))))
 
-(defn combined-projection-vertex-degrees
+(defn context-graph-vertex-degrees
   "For a given `context', the seq of vertex degrees
   of the graph, which has as vertices the objects
   and attributes of the context and in which the edges
