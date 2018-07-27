@@ -238,8 +238,8 @@
     (two-dimensional-aset matrix i (- j i) newvalue)))
 
 (defn distance-matrix
-  "Computes the distance-matrix for a given `context' and a `projection'.
-  The projection should map a context to the upper half of the adjacency matrix
+  "Computes the distance-matrix for a given `context' and a function `fn'.
+  `fn' should map a context to the upper half of the adjacency matrix
   of the corresponding undirected graph.
   To compute the path-lenghts, the floyd-algorithm:
   https://de.wikipedia.org/wiki/Algorithmus_von_Floyd_und_Warshall,
@@ -247,9 +247,9 @@
   with one modification: Because the graph is undirected, just the upper triangle
   (including diagonal-elements) of the adjacency matrix
   has to be stored."
-  ^"[[I" [context projection]
+  ^"[[I" [context fn]
   (assert (context? context) "Fist argument must be a formal context")
-  (let [^"[[I" matrix (projection context)
+  (let [^"[[I" matrix (fn context)
         n (count matrix)]
     (do (dorun
           (for [k (range 0 n) i (range 0 n) j (range i n)]
@@ -306,14 +306,14 @@
 ;;;Vertex-degrees
 
 (defn vertex-degrees
-  "For a given `context' and a `projection', which maps
+  "For a given `context' and a function `fn', which maps
   contexts to graphs, represented by adjacency maps,
   the seq of vertex degrees of (projection context) is returned."
-  [context projection]
+  [context fn]
   (assert (context? context) "First argument must be a formal context!")
   (map
     count
-    (vals (projection context))))
+    (vals (fn context))))
 
 (defn context-graph-vertex-degrees
   "For a given `context', the seq of vertex degrees
