@@ -305,7 +305,63 @@
   (average-shortest-path (distance-matrix context
                                           attribute-projection-adjacency-matrix)))
 
-
+
+;;; Average-shortest-path-via-breadth-first search
+;;; Efficent for graphs with a low density.
+
+(defn average-shortest-path-via-bfs
+  "Computes for a given undirected `graph' the average shortest path length
+  via breadth-first search. If the graph has no paths, nil is returned.
+  Paths from a vertex to itself are discarded.
+  If there are no paths in the graph, nil is returned.
+
+  This function is efficient for graphs with a low density."
+  [graph]
+  (let [[sum-of-path-lengths amount-of-paths] (reduce (fn [[sum counter] x] [(+ sum x) (inc counter)])
+                                                      [0 0]
+                                                      (mapcat
+                                                        #(vals (dissoc (breadth-first-search graph %) %))
+                                                        (keys graph)))]
+    (if (= 0 amount-of-paths)
+      nil
+      (/ sum-of-path-lengths amount-of-paths))))
+
+(defn context-graph-average-shortest-path-via-bfs
+  "Computes for a `context' the average shortest path length
+  of the undirected graph which has as vertices the objects
+  and attributes of the context and in which the edges are
+  defined through the incidence relation.
+
+  This function uses breadth-first search and therefore is efficent
+  for contexts with a low density."
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (average-shortest-path-via-bfs (context-graph context)))
+
+(defn object-projection-average-shortest-path-via-bfs
+  "Computes for a `context' the average shortest path length
+  of the graph which has the objects as vertices and in which
+  two objects share an edge if they share an attribute.
+
+ This function uses breadth-first search and therefore is efficent
+  for contexts with a low density."
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (average-shortest-path-via-bfs (object-projection context)))
+
+(defn attribute-projection-average-shortest-path-via-bfs
+  "Computes for a `context' the average shortest path length
+  of the graph which has the attributes as vertices and in which
+  two attributes share an edge if they share an object.
+
+  This function uses breadth-first search and therefore is efficent
+  for contexts with a low density."
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (average-shortest-path-via-bfs (attribute-projection context)))
+
+
+
 ;;; Vertex-degrees
 
 (defn vertex-degrees
