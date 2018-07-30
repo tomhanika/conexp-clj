@@ -182,7 +182,7 @@
 
 (defn breadth-first-search
   "For a `graph', given as adjacency-map, this function returns a map
-  of all reachable nodes from node as keys and the distances to node
+  of all reachable nodes from `node' as keys and the distances to `node'
   as values."
   [graph node]
   (assert (contains? graph node) "Second argument must be a node of the graph!")
@@ -194,8 +194,10 @@
                   new-nodes (map
                               #(vector % (+ 1 current-depth))
                               (remove visited (graph current-node)))]
-              (recur (apply conj visited new-nodes) (apply conj (pop queue) new-nodes)))))]
-    (do-bfs {node 0} (conj clojure.lang.PersistentQueue/EMPTY [node 0]))))
+              (recur (apply conj visited new-nodes)
+                     (apply conj (pop queue) new-nodes)))))]
+    (do-bfs {node 0}
+            (conj clojure.lang.PersistentQueue/EMPTY [node 0]))))
 
 (defn connected-components
   "Returns for a given `graph', represented as an adjacency-map,
@@ -203,8 +205,11 @@
   [graph]
   (if (empty? graph)
     '()
-    (let [component (select-keys graph (keys (breadth-first-search graph (first (keys graph)))))]
-      (cons component (connected-components (apply dissoc graph (keys component)))))))
+    (let [component (select-keys graph
+                                 (keys (breadth-first-search graph
+                                                             (first (keys graph)))))]
+      (cons component
+            (connected-components (apply dissoc graph (keys component)))))))
 
 
 ;;; Average-shortest-path
@@ -340,29 +345,30 @@
   [context]
   (vertex-degrees context attribute-projection))
 
-;;;k-cores
 
-(defn- k-cores-elimination
-"For a given `graph', returns the maximial subgraph,
+;;; K-cores
+
+(defn k-cores-elimination
+  "Returns for a given `graph' the maximial subgraph
   in which every vertice has at least `k' edges."
-[graph k]
-(assert (and (integer? k) (>= k 0)) "K must be a non-negative integer!")
-(let [keys-to-remove (set (filter #(< (count (graph %)) k) (keys graph)))]
-  (if (empty? keys-to-remove)
-    graph
-    (let [graph-with-removed-verticies (apply dissoc graph keys-to-remove)
-          graph-with-removed-verticies-and-edges
-          (reduce
-            (fn [hmap key]
-              (update hmap key #(set (remove keys-to-remove %))))
-            graph-with-removed-verticies
-            (keys graph-with-removed-verticies))]
-      (k-cores-elimination graph-with-removed-verticies-and-edges k)))))
+  [graph k]
+  (assert (and (integer? k) (>= k 0)) "K must be a non-negative integer!")
+  (let [keys-to-remove (set (filter #(< (count (graph %)) k) (keys graph)))]
+    (if (empty? keys-to-remove)
+      graph
+      (let [graph-with-removed-vertices (apply dissoc graph keys-to-remove)
+            graph-with-removed-vertices-and-edges
+            (reduce
+              (fn [hmap key]
+                (update hmap key #(set (remove keys-to-remove %))))
+              graph-with-removed-vertices
+              (keys graph-with-removed-vertices))]
+        (k-cores-elimination graph-with-removed-vertices-and-edges k)))))
 
 (defn k-cores
   "Returns for a given `graph' the `k'-cores.
   These are the connected components of the maximal
-  subgraph, in which all veticies have at least `k' edges."
+  subgraph, in which all vertices have at least `k' edges."
   [graph k]
   (assert (and (integer? k) (>= k 0)) "K must be a non-negative integer!")
   (map
