@@ -256,6 +256,74 @@
   (with-testing-data [ctx (random-contexts 20 42)]
     (is (empty? (attribute-projection-k-cores ctx 43)))))
 
+;;;Average-shortest-path-via-bfs
+
+(deftest test-context-graph-average-shortest-path-via-bfs
+  (let [ctx (make-context-from-matrix 4 3
+                          [1 0 1
+                           0 1 0
+                           1 0 0
+                           1 1 0])
+        ctx1 (make-context-from-matrix 3 3
+                                [0 0 0
+                                 0 1 0
+                                 1 0 1])]
+    (is (= (context-graph-average-shortest-path-via-bfs ctx) (/ 50 21)))
+    (is (= (context-graph-average-shortest-path-via-bfs ctx1) (/ 5 4)))
+    (is (= (context-graph-average-shortest-path-via-bfs (random-context 50 0)) nil)))
+  
+  (with-testing-data [ctx (random-contexts 5 50)]
+    (let [value (context-graph-average-shortest-path-via-bfs ctx)]
+      (or (nil? value)
+          (<= 1
+              value
+              (+ (count (objects ctx))
+                 (count (attributes ctx))))))))
+
+(deftest test-object-projection-average-shortest-path-via-bfss
+  (let [ctx (make-context-from-matrix 3 3
+                               [1 0 0
+                                1 1 1
+                                0 0 0])
+        ctx1 (make-context-from-matrix ['a 'b 'c 'd 'e] ['a 'b 'c]
+                                       [1 0 1
+                                        0 1 0
+                                        1 1 0
+                                        0 1 1
+                                        0 0 1])]
+    (is (= (object-projection-average-shortest-path-via-bfs ctx) 1))
+    (is (= (object-projection-average-shortest-path-via-bfs ctx1) (/ 13 10)))
+    (is (nil? (object-projection-average-shortest-path-via-bfs (random-context 50 0)))))
+  
+  (with-testing-data [ctx (random-contexts 5 60)]
+    (let [value (object-projection-average-shortest-path-via-bfs ctx)]
+      (or (nil? value)
+          (<= 1
+              value
+              (count (objects ctx)))))))
+
+(deftest test-attribute-projection-average-shortest-path-via-bfs
+  (let [ctx (make-context-from-matrix 4 5
+                                      [1 0 1 1 0
+                                       0 1 1 0 0
+                                       1 0 0 1 0
+                                       0 1 1 0 1])
+        ctx1 (make-context-from-matrix 4 4
+                                      [1 0 0 0
+                                       1 1 0 0
+                                       0 1 1 0
+                                       0 0 1 1])]
+    (is (= (attribute-projection-average-shortest-path-via-bfs ctx) (/ 7 5)))
+    (is (= (attribute-projection-average-shortest-path-via-bfs ctx1) (/ 5 3)))
+    (is (nil? (attribute-projection-average-shortest-path-via-bfs (random-context 60 0)))))
+  
+  (with-testing-data [ctx (random-contexts 7 50)]
+    (let [value (attribute-projection-average-shortest-path-via-bfs ctx)]
+          (or (nil? value)
+              (<= 1
+                  value
+                  (count (attributes ctx)))))))
+
 ;;;
 
 nil
