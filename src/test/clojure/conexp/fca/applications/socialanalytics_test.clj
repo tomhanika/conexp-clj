@@ -153,7 +153,7 @@
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
 
-;;k-cores
+;;; K-cores
 
 (deftest test-k-cores
   (let [graph1 {0 #{1} 1 #{0 2 3} 2 #{1 3}
