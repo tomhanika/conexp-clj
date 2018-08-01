@@ -153,6 +153,7 @@
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
 
+
 ;;; K-cores
 
 (deftest test-k-cores
@@ -323,6 +324,94 @@
               (<= 1
                   value
                   (count (attributes ctx)))))))
+
+
+;;; Clustering-coefficients
+
+(deftest test-local-clustering-coefficient
+  (let [g {0 #{1 2} 1 #{0 3} 2 #{0 3 4} 3 #{1 2 4} 4 #{2 3}}
+        h {'a #{'a 'b 'c} 'b #{'a 'c} 'c #{'a 'b 0} 0 #{'c 'd 0}
+           'd #{0 'e 'f} 'e #{'d 'f} 'f #{'d 'e}}]
+    (is (= (set (map #(local-clustering-coefficient g %)
+                     (keys g)))
+           #{0 (/ 1 3) 1}))
+    (is (= (set (map #(local-clustering-coefficient h %)
+                     (keys h)))
+           #{0 1 (/ 1 3)})))
+
+  (with-testing-data [ctx (random-contexts 10 100)]
+    (let [g (context-graph ctx)]
+      (or (empty? g)
+          (= (set (map #(local-clustering-coefficient g %)
+                       (keys g)))
+             #{0}))))
+
+  (with-testing-data [ctx (take 10 (repeat (random-context 50 1.0)))]
+    (let [g (attribute-projection ctx)]
+      (or (empty? g)
+          (= (set (map #(local-clustering-coefficient g %)
+                       (keys g)))
+             #{1})))))
+
+(deftest test-clustering-coefficient
+  (let [g {0 #{1 2} 1 #{0 3} 2 #{0 3 4} 3 #{1 2 4} 4 #{2 3}}
+        h {'a #{'a 'b 'c} 'b #{'a 'c} 'c #{'a 'b 0} 0 #{'c 'd 0}
+           'd #{0 'e 'f} 'e #{'d 'f} 'f #{'d 'e}}]
+    (is (= (clustering-coefficient g)
+           (/ 1 3))
+        (= (clustering-coefficient h)
+           (/ 2 3))))
+
+  (with-testing-data [ctx (random-contexts 7 100)]
+    (or (empty? (context-graph ctx))
+        (= (clustering-coefficient (context-graph ctx))
+           0)))
+
+  (with-testing-data [ctx (take 10 (repeat (random-context 50 1.0)))]
+    (= (clustering-coefficient (object-projection ctx))
+       1)))
+
+(deftest test-object-projection-clustering-coefficient
+  (let [ctx (make-context-from-matrix 5 3 [1 1 0
+                                           0 1 0
+                                           0 0 1
+                                           0 1 1
+                                           1 0 1])
+        ctx1 (make-context-from-matrix 4 3 [1 1 0
+                                            0 1 1
+                                            1 0 0
+                                            0 1 0])]
+
+    (is (= (object-projection-clustering-coefficient ctx)
+           (/ 23 30)))
+    (is (= (object-projection-clustering-coefficient ctx1)
+           (/ 7 12))))
+
+  (with-testing-data [ctx (random-contexts 7 100)]
+    (or (empty? (object-projection ctx))
+        (<= 0 (object-projection-clustering-coefficient ctx) 1))))
+
+(deftest test-attribute-projection-average-locac-clustering-coefficient
+  (let [ctx (make-context-from-matrix 3 5
+                                      [1 0 0 1 0
+                                       1 1 1 0 0
+                                       0 0 0 1 0])
+        ctx1 (make-context-from-matrix ['a 'b 'c 'd] 5
+                                       [1 1 0 0 0
+                                        0 1 1 0 0
+                                        0 0 1 1 0
+                                        1 0 0 1 1])]
+
+    (is (= (attribute-projection-clustering-coefficient ctx)
+           (/ 7 15)))
+    (is (= (attribute-projection-clustering-coefficient ctx1)
+           (/ 1 3))))
+
+  (with-testing-data [ctx (random-contexts 7 100)]
+    (or (empty? (attribute-projection ctx))
+        (<= 0
+            (attribute-projection-clustering-coefficient ctx)
+            1))))
 
 ;;;
 
