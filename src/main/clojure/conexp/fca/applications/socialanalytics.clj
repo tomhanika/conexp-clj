@@ -455,6 +455,67 @@
   (assert (context? context) "First argument must be a formal context!")
   (k-cores (attribute-projection context) k))
 
+
+;;;Clustering Coefficients
+
+(defn local-clustering-coefficient
+  "Returns for a given `graph' and a given `node'
+  the local clustering coefficient.
+  If the node has at most one neighbour, 0 is returned.
+  The graph should be represented by a hash-map with nodes as keys
+  and sets of neighbours as values.
+  See https://en.wikipedia.org/wiki/Clustering_coefficient
+  for more information."
+  [graph node]
+  (let [neighbours (disj (graph node) node)
+        n (count neighbours)
+        count-neighbours
+        ;; This function takes a node n1 that should be a
+        ;; neighbour of node and counts how many of the other
+        ;; neighbours of node share an edge with n1.
+        (fn [node1]
+          (let [neighbours-of-node1 (graph node1)]
+            (count (intersection (disj neighbours-of-node1 node1)
+                                 neighbours))))]
+    (if (<= n 1)
+      0
+      (/ (reduce (fn [a node1]
+                   (+ a (count-neighbours node1)))
+                 0
+                 neighbours),
+       (* n (- n 1))))))
+
+(defn clustering-coefficient
+  "Returns for a given graph the average local
+  clustering coefficient.
+  See https://en.wikipedia.org/wiki/Clustering_coefficient for
+  informations. Graphs should be represented by maps with
+  nodes as keys and sets of neighbours as values."
+  [graph]
+  (assert (not (empty? graph)) "Graph has no nodes!")
+  (/ (reduce + (map
+                 #(local-clustering-coefficient graph %)
+                 (keys graph)))
+     (count (keys graph))))
+
+(defn object-projection-clustering-coefficient
+  "Returns for a given `context' the average local
+  clusteringc oefficient of the graph which has as
+  vertices the objects of the context and in which
+  two objects share an edge if they share an attribute."
+  [context]
+  (assert (context? context) "Argument must be a formal context!")
+  (clustering-coefficient (object-projection context)))
+
+(defn attribute-projection-clustering-coefficient
+  "Returns for a given `context' the average local
+  clustering coefficient of the graph which has as
+  vertices the attributes of the graph and in which
+  two attributes share an edge if they share an object."
+  [context]
+  (assert (context? context) "Argument must be a formal context!")
+  (clustering-coefficient (attribute-projection context)))
+
 ;;;
 
 nil
