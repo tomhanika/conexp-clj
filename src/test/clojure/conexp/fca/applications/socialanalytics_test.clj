@@ -413,6 +413,56 @@
             (attribute-projection-clustering-coefficient ctx)
             1))))
 
+
+(deftest test-two-mode-local-clustering-coefficient
+  (let [g { 'u #{ 1 2 3 4 5} 'v #{3 4 5 6 7 8} 1 #{'u}
+           2 #{'u} 3 #{'u 'v} 4 #{ 'u 'v} 5 #{'u 'v}
+           6 #{'v} 7 #{'v} 8 #{'v}}]
+    (is (= (set (map #(two-mode-local-clustering-coefficient g %)
+                     (keys g)))
+           #{(/ 1 2) (/ 3 5) 1 (/ 9 14)})))
+
+  (with-testing-data [ctx (random-contexts 5 50)]
+    (let [g (context-graph ctx)]
+      (every? #(<= 0 (two-mode-local-clustering-coefficient g %) 1)
+              (keys g)))))
+
+(deftest test-two-mode-clustering-coefficient
+  (let [g { 'u #{ 1 2 3 4 5} 'v #{3 4 5 6 7 8} 1 #{'u}
+           2 #{'u} 3 #{'u 'v} 4 #{ 'u 'v} 5 #{'u 'v}
+           6 #{'v} 7 #{'v} 8 #{'v}}
+        h { 1 #{'a 'b} 2 #{'c} 3 #{'b 'e} 4 #{'d 'e}
+           'a #{1} 'b #{1 3} 'c #{ 2} 'd #{4} 'e #{3 4}}]
+
+    (is (= (two-mode-clustering-coefficient g)
+           (/ 281 350)))
+    (is (= (two-mode-clustering-coefficient h)
+           (/ 1 2))))
+
+  (with-testing-data [ctx (random-contexts 5 50)]
+    (let [g (context-graph ctx)]
+      (<= 0 (two-mode-clustering-coefficient g) 1))))
+
+(deftest test-context-graph-clustering-coefficient
+  (let [ctx (make-context-from-matrix 4 4
+                                      [1 0 1 0
+                                       0 1 0 1
+                                       0 1 0 0
+                                       0 0 1 1])
+        ctx1 (make-context-from-matrix ['a 'b 'c]
+                                       [7 8 9 10]
+                                       [1 0 0 1
+                                        1 1 0 1
+                                        0 0 1 0])]
+    (is (= (context-graph-clustering-coefficient ctx)
+           (/ 5 8)))
+    (is (= (context-graph-clustering-coefficient ctx1)
+           (/ 25 42))))
+
+  (with-testing-data [ctx (random-contexts 7 100)]
+    (<= 0 (context-graph-clustering-coefficient ctx) 1)))
+
+
 ;;;
 
 nil
