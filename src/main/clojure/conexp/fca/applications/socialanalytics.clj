@@ -516,6 +516,63 @@
   (assert (context? context) "Argument must be a formal context!")
   (clustering-coefficient (attribute-projection context)))
 
+(defn two-mode-local-clustering-coefficient
+  "Computes for a `node' of a bipartite `graph'
+  the local clustering coefficient in the following
+  manner:
+  If for a node u N(U) is the neighbourhood, we define
+  for all v in N(N(u) with v!=u the overlapping
+  cc(u,v):= |N(u) intersection N(v)| / |N(u)|
+  and the local clustering coefficient of u is then the
+  average of all values cc(u,v) over all v in N(N(u))
+  with v!=u.
+  
+  This is a modification of the coefficient in
+  https://arxiv.org/pdf/cond-mat/0611631.pdf, page 12.
+
+  A Graph should be represented by a map with the nodes as keys and the
+  sets of neighbours as values."
+  [graph node]
+  (let [n (count (graph node))
+        considerd-nodes (disj (apply union
+                                     (vals (select-keys graph
+                                                        (graph node))))
+                              node)
+        compute-overlapping (fn [node1]
+                              (count (intersection (graph node)
+                                                   (graph node1))))]
+    (if (empty? considerd-nodes)
+      0
+      (/ (reduce (fn [val current-node]
+                   (+ val (compute-overlapping current-node)))
+                 0
+                 considerd-nodes)
+         (* n (count considerd-nodes))))))
+
+(defn two-mode-clustering-coefficient
+  "Computes for a given bipartite `graph' the average
+  local clustering coefficient.
+
+  A Graph should be represented by a map with the nodes as keys and
+  the sets of neighbours as values."
+  [graph]
+  (assert (not (empty? graph)) "Graph has no nodes!")
+  (let [nodes (keys graph)]
+    (/ (reduce (fn [val current-node]
+                 (+ val
+                    (two-mode-local-clustering-coefficient graph
+                                                           current-node)))
+                 0
+                 nodes)
+       (count nodes))))
+
+(defn context-graph-clustering-coefficient
+  "Computes for a given `context' the average local 
+  clustering coefficient of the bipartite context graph."
+  [context]
+  (assert (context? context) "Argument must be a formal context!")
+  (two-mode-clustering-coefficient (context-graph context)))
+
 ;;;
 
 nil
