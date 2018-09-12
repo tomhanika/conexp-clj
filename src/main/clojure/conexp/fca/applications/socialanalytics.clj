@@ -573,6 +573,125 @@
   (assert (context? context) "Argument must be a formal context!")
   (two-mode-clustering-coefficient (context-graph context)))
 
+
+;;; Betweenes-centrality
+
+(defn- betweenes-centrality-step
+  "Do one step in the brandes-algorithm to compute the betweenes-centrality
+  of the graph `graph'
+
+  See ``A Faster Algorithm for Betweenes Centrality`` by Ulrik Brandes for
+  more information."
+  [graph node values]
+  (let [nodes (keys graph)]
+    (loop [queue (conj clojure.lang.PersistentQueue/EMPTY node)
+           stack []
+           P (zipmap nodes (repeat (list)))
+           sigma (assoc (zipmap nodes (repeat 0))
+                        node
+                        1)
+           distance (assoc (zipmap nodes (repeat -1))
+                           node
+                           0)]
+      (if (empty? queue)
+        (loop [stack stack
+               gamma (zipmap nodes (repeat 0))
+               values values]
+          (if (empty? stack)
+            values
+            (let [w (peek stack)
+                  new-gamma (reduce (fn [hmap node]
+                                      (assoc hmap node
+                                             (+ (hmap node)
+                                                (* (double (/ (sigma node) (sigma w))) (+ 1 (gamma w))))))
+                                    gamma
+                                    (P w))]
+              (recur (pop stack)
+                     new-gamma
+                     (if (= node w)
+                       values
+                       (assoc values w (+ (values w) (new-gamma w))))))))
+        (let [v (peek queue)
+             [queue-new P-new sigma-new distance-new]
+             (loop [queue (pop queue)
+                    distance distance
+                    P P
+                    sigma sigma
+                    neighbours (graph v)]
+               (if (empty? neighbours)
+                     [queue P sigma distance]
+                     (let [w (first neighbours)]
+                       (cond (< (distance w) 0)
+                             (recur (conj queue w)
+                                    (assoc distance
+                                           w
+                                           (+ 1
+                                              (distance v)))
+                                    (assoc P w (conj (P w) v))
+                                    (assoc sigma w (+ (sigma w) (sigma v)))
+                                    (disj neighbours w))
+                             ;;;
+                             (= (distance w) (inc (distance v)))
+                             (recur queue
+                                    distance
+                                    (assoc P w (conj (P w) v))
+                                    (assoc sigma w (+ (sigma w) (sigma v)))
+                                    (disj neighbours w))
+                             ;;;
+                             :else (recur queue
+                                          distance
+                                          P
+                                          sigma
+                                          (disj neighbours w))))))]
+          (recur queue-new
+                 (conj stack v)
+                 P-new
+                 sigma-new
+                 distance-new))))))
+
+(defn betweenes-centrality
+  "Computes for a given `graph', represented as
+  adjacency-map, the betweenes-cenrality of all nodes
+  by using brandes algorithm.
+
+  See ``A Faster Algorithm for Betweenes Centrality`` by
+  Ulrik Brandes for more information."
+  [graph]
+  (let [init-values (zipmap (keys graph) (repeat 0))]
+  (reduce (fn [values node]
+            (betweenes-centrality-step graph node values))
+          init-values
+          (keys graph))))
+
+(defn betweenes-centrality-normalized
+  "Computes for a given `graph', represented as
+  adjacency-map, the betweenes-centrality of all nodes
+  by using brandes algorithm and normalizes the result.
+
+   See ``A Faster algorithm for Betweenes Centrality`` by
+  Ulrik Brandes for more information."
+  [graph]
+  (if (empty? graph)
+    {}
+    (let [centrality (betweenes-centrality graph)
+          map-max (apply max (vals centrality))
+          map-min (apply min (vals centrality))
+          diff (- map-max map-min)]
+      (cond (= 0 map-max)
+            centrality
+            ;;;
+            (= 0 diff)
+            (zipmap (keys centrality) (repeat 0))
+            ;;;
+            :else
+            (reduce (fn [hmap node]
+                      (assoc hmap
+                             node
+                             (/ (- (hmap node) map-min) diff)))
+                    centrality
+                    (keys centrality))))))
+
+
 ;;;
 
 nil
