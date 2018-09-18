@@ -336,6 +336,14 @@
                             (range 0 n))]
     (/ (reduce + robustness-values) n)))
 
+
+;;; Similarity Measures for Concepts
+
+(defn jaccard-index
+  "Calculates the Jaccard index of two sets. This is |x ∩ y| / |x ∪ y|."
+  [x y]
+  (/ (double (count (intersection x y))) (count (union x y))))
+
 ;;;
 
 nil
