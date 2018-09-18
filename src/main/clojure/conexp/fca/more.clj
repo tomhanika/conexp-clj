@@ -344,6 +344,20 @@
   [x y]
   (/ (double (count (intersection x y))) (count (union x y))))
 
+(defn sorensen-coefficient
+  "Computes the Sorensen coefficient of two sets.
+  This is 2 * |x ∩ y| / (|x| + |y|)."
+  [x y]
+  (/ (* 2.0 (count (intersection x y))) (+ (count x) (count y))))
+
+(defn symmetric-difference
+  "Computes the symmetric difference of two sets.
+  This is 1 - (|(x\y) ∪ (y\x)| / |x ∪ y|)."
+  [x y]
+  (- 1.0 (/
+          (count (union (difference x y) (difference y x)))
+          (count (union x y)))))
+
 (defn weighted-concept-similarity
   "Computes a weighted concept similarity for a given similatity measure, two
   concepts and an optional weigth (default is 0.5)."
