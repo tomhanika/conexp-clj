@@ -337,12 +337,24 @@
     (/ (reduce + robustness-values) n)))
 
 
-;;; Similarity Measures for Concepts
+;;; Similarity Measures for Concepts (implemented by Anselm von Wangenheim)
 
 (defn jaccard-index
-  "Calculates the Jaccard index of two sets. This is |x ∩ y| / |x ∪ y|."
+  "Computes the Jaccard index of two sets. This is |x ∩ y| / |x ∪ y|."
   [x y]
   (/ (double (count (intersection x y))) (count (union x y))))
+
+(defn weighted-concept-similarity
+  "Computes a weighted concept similarity for a given similatity measure, two
+  concepts and an optional weigth (default is 0.5)."
+  ([sim [C1 C2]] (weighted-concept-similarity sim [C1 C2] 0.5))
+  ([sim [C1 C2] w]
+   (assert (and (number? w)
+                (<= 0 w 1))
+           "Thrid argument must be between 0 and 1!")
+   (+
+    (* w       (sim (C1 0) (C2 0)))
+    (* (- 1 w) (sim (C1 1) (C2 1))))))
 
 ;;;
 
