@@ -117,6 +117,21 @@ metadata (as provided by def) merged into the metadata of the original."
                    (clojure.test/is true))))
             body)))
 
+(defn close?
+  "Tests if the distance of `x' and `y' is not greater
+  then the given tolerance `epsilon'.
+
+  If no third parameter `epsilon' is provided,
+  epsilon is set to 0.0001
+
+  Inspired by:
+  https://stackoverflow.com/questions/17711308/
+  how-to-test-if-two-numbers-are-close-in-clojure"
+  ([x y epsilon]
+   (<= (Math/abs (double (- x y))) epsilon))
+  ([x y]
+   (close? x y 0.0001)))
+
 ;;; Types
 
 (def clojure-set clojure.lang.PersistentHashSet)
