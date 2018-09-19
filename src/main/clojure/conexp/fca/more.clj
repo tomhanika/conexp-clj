@@ -360,17 +360,17 @@
 
 (defn weighted-concept-similarity
   "Computes a weighted concept similarity for a given similatity measure `sim',
-  two concepts [`C1' `C2'] and an optional weight `w' (default is 0.5).
+  two concepts [`ctx-1' `ctx-2'] and an optional weight `w' (default is 0.5).
   That is the weighted average of the similarity of the extents/object sets
   (weight `w') and the intents/attribute sets (weight 1-`w')"
-  ([sim [C1 C2]] (weighted-concept-similarity sim [C1 C2] 0.5))
-  ([sim [C1 C2] w]
+  ([sim [ctx-1 ctx-2]] (weighted-concept-similarity sim [ctx-1 ctx-2] 0.5))
+  ([sim [ctx-1 ctx-2] w]
    (assert (and (number? w)
                 (<= 0 w 1))
            "Thrid argument must be between 0 and 1!")
    (+
-    (* w       (sim (C1 0) (C2 0)))
-    (* (- 1 w) (sim (C1 1) (C2 1))))))
+    (* w       (sim (ctx-1 0) (ctx-2 0)))
+    (* (- 1 w) (sim (ctx-1 1) (ctx-2 1))))))
 
 ;;;
 
