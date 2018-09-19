@@ -13,8 +13,8 @@
                                          objects
                                          attributes]]
             [conexp.fca.applications.socialanalytics :refer :all]
-            [clojure.test :refer [deftest is]]
-            [conexp.base :refer [with-testing-data]]))
+            [clojure.test :refer [deftest is are]]
+            [conexp.base :refer [with-testing-data close?]]))
 
 ;Average-shortest-path
 
@@ -461,6 +461,64 @@
 
   (with-testing-data [ctx (random-contexts 7 100)]
     (<= 0 (context-graph-clustering-coefficient ctx) 1)))
+
+
+;Betweenes-centrality
+
+(deftest test-betweenes-centrality
+  (let [g {1 #{2 3 4 5} 2 #{1 3} 3 #{1 2 5}
+           4 #{1} 5#{1 3}}
+        h {1 #{5} 2 #{4} 3 #{4} 4 #{2 3 5} 5#{1 4 6}
+           6 #{5 7 8} 7 #{6 8 9} 8 #{6 7 9} 9 #{7 8}}
+        i {'a #{'b 'c 'd} 'b #{'a 'e} 'c #{'a 'e}
+           'd #{'a 'e} 'e #{'b 'c 'd}}
+        j (zipmap (range 1 100) (repeat #{}))
+        centrality-i (betweenes-centrality i)]
+    (is (= (betweenes-centrality g) {1 7.0 2 0 3 1.0 4 0 5 0}))
+    (is (= (betweenes-centrality h) {1 0 2 0 3 0 4 26.0 5 38.0 6 30.0
+                                     7 6.0 8 6.0 9 0}))
+    (are [x y] (close? x y 0.1)
+         (centrality-i 'a) 3
+         (centrality-i 'e) 3
+         (centrality-i 'b) 0.66
+         (centrality-i 'c) 0.66
+         (centrality-i 'd) 0.66)
+    (is (= (set (vals (betweenes-centrality j))) #{0}))))
+
+(deftest test-betweenes-centrality-normalized
+  (let [centrality-g (betweenes-centrality-normalized
+                       {1 #{2 3 4 5} 2 #{1 3} 3 #{1 2 5}
+                        4 #{1} 5#{1 3}})
+        centrality-h (betweenes-centrality-normalized
+                       {1 #{5} 2 #{4} 3 #{4} 4 #{2 3 5} 5#{1 4 6}
+                        6 #{5 7 8} 7 #{6 8 9} 8 #{6 7 9} 9 #{7 8}})
+        centrality-i (betweenes-centrality-normalized
+                       {'a #{'b 'c 'd} 'b #{'a 'e} 'c #{'a 'e}
+                        'd #{'a 'e} 'e #{'b 'c 'd}})
+        j (zipmap (range 1 100) (repeat #{}))]
+    (are [x y] (close? x y 0.1)
+         (centrality-g 1) 1
+         (centrality-g 2) 0
+         (centrality-g 3) (/ 1 7)
+         (centrality-g 4) 0
+         (centrality-g 5) 0
+         ;;;
+         (centrality-h 1) 0
+         (centrality-h 2) 0
+         (centrality-h 3) 0
+         (centrality-h 4) (/ 26 38)
+         (centrality-h 5) 1
+         (centrality-h 6) (/ 30 38)
+         (centrality-h 7) (/ 6 30)
+         (centrality-h 8) (/ 6 30)
+         (centrality-h 9) 0
+         ;;;
+         (centrality-i 'a) 1
+         (centrality-i 'b) 0
+         (centrality-i 'c) 0
+         (centrality-i 'd) 0
+         (centrality-i 'e) 1)
+    (is (= (set (vals (betweenes-centrality-normalized j)))) #{0})))
 
 
 ;;;
