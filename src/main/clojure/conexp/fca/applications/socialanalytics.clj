@@ -692,6 +692,49 @@
                     (keys centrality))))))
 
 
+(defn context-graph-betweenes-centrality
+  "Computes for a given `context' the betweenes-centrality of the
+  context-graph"
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (betweenes-centrality (context-graph context)))
+
+(defn object-projection-betweenes-centrality
+  "Computes for a given `context' the betweenes-centrality of
+  the object-projection of the context-graph"
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (betweenes-centrality (object-projection context)))
+
+(defn attribute-projection-betweenes-centrality
+  "Computes for a given `context' the betweenes-centrality of
+  the attribute-projection of the context-graph"
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (betweenes-centrality (attribute-projection context)))
+
+(defn context-graph-betweenes-centrality-normalized
+  "Computes for a given `context' the normalized betweenes-centrality of the
+  context-graph"
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (betweenes-centrality-normalized (context-graph context)))
+
+(defn object-projection-betweenes-centrality-normalized
+  "Computes for a given `context' the normalized betweenes-centrality of
+  the object-projection of the context-graph"
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (betweenes-centrality-normalized (object-projection context)))
+
+(defn attribute-projection-betweenes-centrality-normalized
+  "Computes for a given `context' the normalized betweenes-centrality of
+  the attribute-projection of the context-graph"
+  [context]
+  (assert (context? context) "Argument must be a formal context.")
+  (betweenes-centrality-normalized (attribute-projection context)))
+
+
 ;;;
 
 nil
