@@ -521,6 +521,155 @@
     (is (= (set (vals (betweenes-centrality-normalized j)))) #{0})))
 
 
+(deftest test-context-graph-betweenes-centrality
+  (let [centrality-ctx (context-graph-betweenes-centrality
+                         (make-context-from-matrix 5 4
+                                                  [1 0 0 0
+                                                   1 1 0 0
+                                                   1 1 0 0
+                                                   0 0 1 0
+                                                   0 0 0 1 ]))
+        solution-ctx {"obj-0" 0 "obj-1" 2.0 "obj-2" 2.0
+                      "obj-3" 0 "obj-4" 0 "atr-0" 7.0
+                      "atr-1" 1.0 "atr-2" 0 "atr-3" 0}
+        centrality-ctx1 (context-graph-betweenes-centrality
+                          (make-context-from-matrix ['a 'b 'c]
+                                                    [2 4 6]
+                                                    [1 0 0
+                                                     1 1 0
+                                                     0 1 1]))
+        solution-ctx1 {"obj-a" 0 "obj-b" 12.0 "obj-c" 8.0
+                       "atr-2" 8.0 "atr-4" 12.0 "atr-6" 0}]
+    (is (every? #(= (centrality-ctx %) (solution-ctx %))
+                (keys centrality-ctx)))
+    (is (every? #(= (centrality-ctx1 %) (solution-ctx1 %))
+                (keys centrality-ctx1))))
+  (with-testing-data [ctx (random-contexts 20 20)]
+    (let [ctx-graph-centrality (context-graph-betweenes-centrality ctx)
+          centrality (betweenes-centrality (context-graph ctx))]
+      (every? #(= (ctx-graph-centrality %) (centrality %))
+              (keys ctx-graph-centrality)))))
+
+(deftest test-object-projection-betweenes-centrality
+  (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
+                                           1 1 0 0
+                                           1 1 0 0
+                                           0 0 1 0
+                                           0 0 0 1])
+        centrality-ctx1 (object-projection-betweenes-centrality
+                          (make-context-from-matrix ['a 'b 'c] [2 4 6]
+                                                    [1 0 0
+                                                     1 1 0
+                                                     0 1 1]))]
+    (is (= (set (vals (object-projection-betweenes-centrality ctx)))
+           #{0}))
+    (are [x y] (= x y)
+         (centrality-ctx1 'a) 0
+         (centrality-ctx1 'b) 2.0
+         (centrality-ctx1 'c) 0))
+  (with-testing-data [ctx (random-contexts 20 20)]
+    (let [obj-centrality (object-projection-betweenes-centrality ctx)
+          centrality (betweenes-centrality (object-projection ctx))]
+      (every? #(= (obj-centrality %) (centrality %))
+              (keys (object-projection ctx))))))
+
+(deftest test-attribute-projection-betweenes-centrality
+  (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
+                                           1 1 0 0
+                                           1 1 0 0
+                                           0 0 1 0
+                                           0 0 0 1])
+        centrality-ctx1 (attribute-projection-betweenes-centrality
+                          (make-context-from-matrix ['a 'b 'c] [2 4 6]
+                                                    [1 0 0
+                                                     1 1 0
+                                                     0 1 1]))]
+    (is (= (set (vals (attribute-projection-betweenes-centrality ctx)))
+           #{0}))
+    (are [x y] (= x y)
+         (centrality-ctx1 2) 0
+         (centrality-ctx1 4) 2.0
+         (centrality-ctx1 6) 0))
+  (with-testing-data [ctx (random-contexts 20 20)]
+    (let [atr-centrality (attribute-projection-betweenes-centrality ctx)
+          centrality (betweenes-centrality (attribute-projection ctx))]
+      (every? #(= (atr-centrality %) (centrality %))
+              (keys (attribute-projection ctx))))))
+
+(deftest test-context-graph-betweenes-centrality-normalized
+  (let [centrality-ctx (context-graph-betweenes-centrality-normalized
+                         (make-context-from-matrix 5 4
+                                                  [1 0 0 0
+                                                   1 1 0 0
+                                                   1 1 0 0
+                                                   0 0 1 0
+                                                   0 0 0 1 ]))
+        solution-ctx {"obj-0" 0 "obj-1" (/ 2 7) "obj-2" (/ 2 7)
+                      "obj-3" 0 "obj-4" 0 "atr-0" 1
+                      "atr-1" (/ 1 7) "atr-2" 0 "atr-3" 0}
+        centrality-ctx1 (context-graph-betweenes-centrality-normalized
+                          (make-context-from-matrix ['a 'b 'c]
+                                                    [2 4 6]
+                                                    [1 0 0
+                                                     1 1 0
+                                                     0 1 1]))
+        solution-ctx1 {"obj-a" 0 "obj-b" 1 "obj-c" (/ 2 3)
+                       "atr-2" (/ 2 3) "atr-4" 1 "atr-6" 0}]
+    (is (every? #(close? (centrality-ctx %) (solution-ctx %) 0.01)
+                (keys centrality-ctx)))
+    (is (every? #(close? (centrality-ctx1 %) (solution-ctx1 %) 0.01)
+               (keys centrality-ctx1))))
+  (with-testing-data [ctx (random-contexts 20 20)]
+                     (let [hmap (context-graph-betweenes-centrality-normalized ctx)]
+                       (or (empty? hmap)
+                           (= #{0} (set (vals hmap)))
+                           (= #{1} (set (vals hmap)))
+                           (and (close? 1.0 (apply max (vals hmap)) 0.001)
+                                (close? 0.0 (apply min (vals hmap)) 0.001))))))
+
+(deftest test-object-projection-betweenes-centrality-normalized
+  (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
+                                           1 1 0 0
+                                           1 1 0 0
+                                           0 0 1 0
+                                           0 0 0 1])
+        centrality-ctx1 (object-projection-betweenes-centrality-normalized
+                          (make-context-from-matrix ['a 'b 'c] [2 4 6]
+                                                    [1 0 0
+                                                     1 1 0
+                                                     0 1 1]))]
+    (is (= #{0} (set (vals (object-projection-betweenes-centrality-normalized ctx)))))
+    (is (= centrality-ctx1 {'a 0.0 'b 1.0 'c 0.0})))
+  (with-testing-data [ctx (random-contexts 20 20)]
+                     (let [hmap (object-projection-betweenes-centrality-normalized ctx)]
+                       (or (empty? hmap)
+                           (= 0 (apply max (vals hmap)))
+                           (= 1 (apply min (vals hmap)))
+                           (and (close? 1.0 (apply max (vals hmap)) 0.001)
+                                (close? 0.0 (apply min (vals hmap)) 0.001))))))
+
+(deftest test-attribute-projection-betweenes-centrality-normalized
+  (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
+                                           1 1 0 0
+                                           1 1 0 0
+                                           0 0 1 0
+                                           0 0 0 1])
+        centrality-ctx1 (attribute-projection-betweenes-centrality-normalized
+                          (make-context-from-matrix ['a 'b 'c] [2 4 6]
+                                                    [1 0 0
+                                                     1 1 0
+                                                     0 1 1]))]
+    (is (= #{0} (set (vals (attribute-projection-betweenes-centrality-normalized ctx)))))
+    (is (= centrality-ctx1 {2 0.0 4 1.0 6 0.0})))
+  (with-testing-data [ctx (random-contexts 20 20)]
+                     (let [hmap (attribute-projection-betweenes-centrality-normalized ctx)]
+                       (or (empty? hmap)
+                           (= 0 (apply max (vals hmap)))
+                           (= 1 (apply min (vals hmap)))
+                           (and (close? 1.0 (apply max (vals hmap)) 0.001)
+                                (close? 0.0 (apply min (vals hmap)) 0.001))))))
+
+
 ;;;
 
 nil
