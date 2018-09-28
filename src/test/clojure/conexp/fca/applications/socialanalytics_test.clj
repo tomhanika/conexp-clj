@@ -477,12 +477,12 @@
     (is (= (betweenes-centrality g) {1 7.0 2 0 3 1.0 4 0 5 0}))
     (is (= (betweenes-centrality h) {1 0 2 0 3 0 4 26.0 5 38.0 6 30.0
                                      7 6.0 8 6.0 9 0}))
-    (are [x y] (close? x y 0.1)
+    (are [x y] (close? x y)
          (centrality-i 'a) 3
          (centrality-i 'e) 3
-         (centrality-i 'b) 0.66
-         (centrality-i 'c) 0.66
-         (centrality-i 'd) 0.66)
+         (centrality-i 'b) (/ 2 3)
+         (centrality-i 'c) (/ 2 3)
+         (centrality-i 'd) (/ 2 3))
     (is (= (set (vals (betweenes-centrality j))) #{0}))))
 
 (deftest test-betweenes-centrality-normalized
@@ -624,8 +624,8 @@
                        (or (empty? hmap)
                            (= #{0} (set (vals hmap)))
                            (= #{1} (set (vals hmap)))
-                           (and (close? 1.0 (apply max (vals hmap)) 0.001)
-                                (close? 0.0 (apply min (vals hmap)) 0.001))))))
+                           (and (close? 1.0 (apply max (vals hmap)))
+                                (close? 0.0 (apply min (vals hmap))))))))
 
 (deftest test-object-projection-betweenes-centrality-normalized
   (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
@@ -645,8 +645,8 @@
                        (or (empty? hmap)
                            (= 0 (apply max (vals hmap)))
                            (= 1 (apply min (vals hmap)))
-                           (and (close? 1.0 (apply max (vals hmap)) 0.001)
-                                (close? 0.0 (apply min (vals hmap)) 0.001))))))
+                           (and (close? 1.0 (apply max (vals hmap)))
+                                (close? 0.0 (apply min (vals hmap))))))))
 
 (deftest test-attribute-projection-betweenes-centrality-normalized
   (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
@@ -666,8 +666,8 @@
                        (or (empty? hmap)
                            (= 0 (apply max (vals hmap)))
                            (= 1 (apply min (vals hmap)))
-                           (and (close? 1.0 (apply max (vals hmap)) 0.001)
-                                (close? 0.0 (apply min (vals hmap)) 0.001))))))
+                           (and (close? 1.0 (apply max (vals hmap)))
+                                (close? 0.0 (apply min (vals hmap))))))))
 
 
 ;;;
