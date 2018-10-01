@@ -26,9 +26,9 @@ conexp-clj features include:
 * A bit of Fuzzy-FCA
 * Interface for sage
 
-Note that conexp-clj is not a high-performance tool for Formal Concept Analysis.  If you
-want this, check out Uta Priss'
-[website on FCA software](http://www.fcahome.org.uk/fcasoftware.html).
+Note that conexp-clj is not a high-performance tool for Formal Concept Analysis.
+If you want this, check out Uta Priss' [website on FCA
+software](http://www.upriss.org.uk/fca/fcasoftware.html).
 
 
 ## Prerequisites
@@ -87,22 +87,22 @@ Additional Documentation:
 
 - Advances example files:
 
- * [Attribute Exploration](doc/examples/exploration.clj)
-   a demonstration how attribute exploration can be done in conexp-clj.
- * [Fuzzy FCA](doc/examples/fuzzy.clj),
-   a sample file to show how to use fuzzy FCA with conexp-clj
- * [Factor Analysis](doc/examples/factor-analysis.clj),
-   a small program that demonstrates how to use conexp-clj for factorizing contexts
- * [Formal Contexts for Implications](doc/examples/implication-closure.clj),
-   computing a context for a set of implications
- * A
-   [Formal Context of Functions](doc/examples/function-context.clj),
-   see the paper by Artem Revenko and Sergej Kuznetzov for the CLA2010
- * [Permutations as Formal Context](doc/examples/permutation-context.clj),
-   computes a context whose concept lattice is isomorphic to the lattice of permutations on the set
-   \{0,...,n\}.
- * [Tamari Lattice](doc/examples/tamari-lattice.clj),
-   the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
+  * [Attribute Exploration](doc/examples/exploration.clj)
+    a demonstration how attribute exploration can be done in conexp-clj.
+  * [Fuzzy FCA](doc/examples/fuzzy.clj),
+    a sample file to show how to use fuzzy FCA with conexp-clj
+  * [Factor Analysis](doc/examples/factor-analysis.clj),
+    a small program that demonstrates how to use conexp-clj for factorizing contexts
+  * [Formal Contexts for Implications](doc/examples/implication-closure.clj),
+    computing a context for a set of implications
+  * A
+    [Formal Context of Functions](doc/examples/function-context.clj),
+    see the paper by Artem Revenko and Sergej Kuznetzov for the CLA2010
+  * [Permutations as Formal Context](doc/examples/permutation-context.clj),
+    computes a context whose concept lattice is isomorphic to the lattice of permutations on the set
+    \{0,...,n\}.
+  * [Tamari Lattice](doc/examples/tamari-lattice.clj),
+    the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
 
 - A [Tutorial](doc/icfca-2013-tutorial), given
   at the 11th International Conference on Formal Concept Analysis
@@ -133,20 +133,11 @@ conexp-clj. You can also run this compiled version directly by invoking
 
 ## Contributing Authors
 
-Currently conexp-clj is developed and maintained by
-
-  * Daniel Borchmann
-
-Additional Contributors are
-
-  * Immanuel Albrecht (Context Editor Plugin for the GUI)
-  * Stefan Borgwardt  (Shared Intents)
-  * Gleb Kanterov     (interval-scale)
-  * Johannes Wollbold (bug reports, feature requests)
+See [AUTHORS.md](AUTHORS.md).
 
 ## License
 
-Copyright ⓒ 2009—2016 Daniel Borchmann
+Copyright ⓒ 2009—2018 Daniel Borchmann
 
 Distributed under the Eclipse Public License.
 

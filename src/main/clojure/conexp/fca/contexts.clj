@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -795,6 +795,39 @@
                    (disj min-attrs m)
                    neighbours))))))
 
+
+;;; Compatible Subcontexts
+
+(defn compatible-subcontext?
+  "Tests whether ctx-1 is a compatible subcontext of ctx-2."
+  [ctx-1 ctx-2]
+  (and (subcontext? ctx-1 ctx-2)
+       (forall [[h m] (up-arrows ctx-2)]
+         (=> (contains? (objects ctx-1) h)
+             (contains? (attributes ctx-1) m)))
+       (forall [[g n] (down-arrows ctx-2)]
+         (=> (contains? (attributes ctx-1) n)
+             (contains? (objects ctx-1) g)))))
+
+(defn compatible-subcontexts
+  "Returns all compatible subcontexts of ctx. ctx has to be reduced."
+  [ctx]
+  (if (not (context-reduced? ctx))
+    (illegal-argument "Context given to compatible-subcontexts has to be reduced."))
+  (let [up-arrows         (up-arrows ctx)
+        down-arrows       (down-arrows ctx)
+        transitive-arrows (transitive-closure
+                           (union (set-of [[g 0] [m 1]] | [g m] up-arrows)
+                                  (set-of [[m 1] [g 0]] | [g m] down-arrows)))
+        down-down         (set-of [g m] [[[m idx-m] [g idx-g]] transitive-arrows
+                                         :when (and (= 1 idx-m) (= 0 idx-g))])
+        compatible-ctx    (make-context (objects ctx)
+                                        (attributes ctx)
+                                        (fn [g m]
+                                          (not (contains? down-down [g m]))))]
+    (for [[G-H N] (concepts compatible-ctx)]
+      (make-context-nc (difference (objects ctx) G-H) N (incidence ctx)))))
+
 ;;;
 
-nil
+true
