@@ -352,7 +352,7 @@
 
 (defn symmetric-difference
   "Computes the symmetric difference of two sets.
-  This is 1 - (|(x\y) ∪ (y\x)| / |x ∪ y|)."
+  This is 1 - (|(x setminus y) ∪ (y setminus x)| / |x ∪ y|)."
   [x y]
   (- 1.0 (/
           (count (union (difference x y) (difference y x)))
