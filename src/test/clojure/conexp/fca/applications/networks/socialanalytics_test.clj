@@ -13,6 +13,9 @@
                                          objects
                                          attributes]]
             [conexp.fca.applications.networks.socialanalytics :refer :all]
+            [conexp.fca.applications.networks.structure :refer [context-graph
+                                                                object-projection
+                                                                attribute-projection]]
             [clojure.test :refer [deftest is are]]
             [conexp.base :refer [with-testing-data close?]]))
 
