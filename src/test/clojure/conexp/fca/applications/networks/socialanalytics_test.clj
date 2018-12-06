@@ -6,13 +6,13 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fca.applications.socialanalytics-test
+(ns conexp.fca.applications.networks.socialanalytics-test
   (:require [conexp.fca.contexts :refer [random-context
                                          random-contexts
                                          make-context-from-matrix
                                          objects
                                          attributes]]
-            [conexp.fca.applications.socialanalytics :refer :all]
+            [conexp.fca.applications.networks.socialanalytics :refer :all]
             [clojure.test :refer [deftest is are]]
             [conexp.base :refer [with-testing-data close?]]))
 
