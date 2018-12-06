@@ -51,14 +51,10 @@
     (two-dimensional-aset matrix i j newvalue)))
 
 (defn distance-matrix
-  "Computes the distance-matrix for a given `context' and a function `fn'.
-  `fn' should map a context to the upper half of the adjacency matrix of the
-  corresponding undirected graph.  To compute the path lengths, the
-  Floyd-Warshall-Algorithm is used."
-  ^"[[I" [context fn]
-  (assert (context? context) "Fist argument must be a formal context")
-  (let [^"[[I" matrix (fn context)
-        n (count matrix)]
+  "Computes the distance-matrix from a given adjacency-matrix `matrix.
+  To compute the path lengths, the Floyd-Warshall-Algorithm is used."
+  ^"[[I" [^"[[I" matrix]
+  (let [n (count matrix)]
     (do (dorun
           (for [k (range 0 n) i (range 0 n) j (range 0 n)]
             (floyd-step matrix k i j)))
@@ -68,12 +64,12 @@
       matrix)))
 
 (defn average-shortest-path
-  "Takes the upper half of a distance-matrix `matrix' and computes the average
-  shortest path length of the corresponding undirected graph.  To compute the
-  path-lengths, the Floyd-Warshall-Algorithm is used. If there are no edges and therefore no paths
-  in the graph, nil is returned."
+  "Takes the adjacency-matrix of a graph and computes the average shortest path length.
+  To compute the path-lengths, the Floyd-Warshall-Algorithm is used.
+  If there are no edges and therefore no paths in the graph, nil is returned."
   [matrix]
-  (let [distances (remove zero? (reduce concat matrix))]
+  (let [distances (remove zero? (reduce concat
+                                        (distance-matrix matrix)))]
     (if (empty? distances)
       nil
       (/ (reduce + distances) (count distances)))))
@@ -84,8 +80,7 @@
   edges are defined through the incidence-relation."
   [context]
   (assert (context? context) "Argument must be a formal context.")
-  (average-shortest-path (distance-matrix context
-                                          context-graph-adjacency-matrix)))
+  (average-shortest-path (context-graph-adjacency-matrix context)))
 
 (defn object-projection-average-shortest-path
   "Computes fo a `context' the average shortest path length of the graph that
@@ -93,8 +88,7 @@
   edge if they share an attribute."
   [context]
   (assert (context? context) "Argument must be a formal context.")
-  (average-shortest-path (distance-matrix context
-                                          object-projection-adjacency-matrix)))
+  (average-shortest-path (object-projection-adjacency-matrix context)))
 
 (defn attribute-projection-average-shortest-path
   "Computes for a `context' the average shortest path length of the graph that
@@ -102,8 +96,7 @@
   share an edge if they share an object."
   [context]
   (assert (context? context) "Argument must be a formal context.")
-  (average-shortest-path (distance-matrix context
-                                          attribute-projection-adjacency-matrix)))
+  (average-shortest-path (attribute-projection-adjacency-matrix context)))
 
 
 ;;; Average-shortest-path-via-breadth-first search
