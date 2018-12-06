@@ -33,14 +33,9 @@
 (defn- floyd-step
   "Do one overwriting in the Floyd-Warshall-Algorithm."
   [^"[[I" matrix, ^Integer k, ^Integer i, ^Integer j]
-  (assert (<= i j) "No computation under the diagonalelements possible.")
-  (let [A_ij (two-dimensional-aget matrix i (- j i))
-        A_ik (if (<= i k)
-               (two-dimensional-aget matrix i (- k i))
-               (two-dimensional-aget matrix k (- i k)))
-        A_kj (if (<= k j)
-               (two-dimensional-aget matrix k (- j k))
-               (two-dimensional-aget matrix j (- k j)))
+  (let [A_ij (two-dimensional-aget matrix i j)
+        A_ik (two-dimensional-aget matrix i k)
+        A_kj (two-dimensional-aget matrix k j)
         ^Integer newvalue (cond
                             (and (= A_ij 0) (or (= A_ik 0) (=  A_kj 0)))
                             0
@@ -53,34 +48,32 @@
                             ;;
                             :else
                             (min A_ij (+ A_ik A_kj)))]
-    (two-dimensional-aset matrix i (- j i) newvalue)))
+    (two-dimensional-aset matrix i j newvalue)))
 
 (defn distance-matrix
   "Computes the distance-matrix for a given `context' and a function `fn'.
   `fn' should map a context to the upper half of the adjacency matrix of the
   corresponding undirected graph.  To compute the path lengths, the
-  Floyd-Warshall-Algorithm is used with one modification: because the graph is
-  undirected, just the upper triangle (including diagonal elements) of the
-  adjacency matrix has to be stored."
+  Floyd-Warshall-Algorithm is used."
   ^"[[I" [context fn]
   (assert (context? context) "Fist argument must be a formal context")
   (let [^"[[I" matrix (fn context)
         n (count matrix)]
     (do (dorun
-          (for [k (range 0 n) i (range 0 n) j (range i n)]
+          (for [k (range 0 n) i (range 0 n) j (range 0 n)]
             (floyd-step matrix k i j)))
+      (dorun
+        (for [i (range 0 n)]
+          (two-dimensional-aset matrix i i 0)))
       matrix)))
 
 (defn average-shortest-path
   "Takes the upper half of a distance-matrix `matrix' and computes the average
   shortest path length of the corresponding undirected graph.  To compute the
-  path-lengths, the Floyd-Warshall-Algorithm is used with one modification:
-  because the graph is undirected, just the upper triangle (including
-  diagonal-elements) of the adjacency-matrix has to be stored.  Paths from a
-  vertex to itself are discarded.  If there are no edges and therefore no paths
+  path-lengths, the Floyd-Warshall-Algorithm is used. If there are no edges and therefore no paths
   in the graph, nil is returned."
   [matrix]
-  (let [distances (remove zero? (mapcat #(drop 1 %) matrix))]
+  (let [distances (remove zero? (reduce concat matrix))]
     (if (empty? distances)
       nil
       (/ (reduce + distances) (count distances)))))

@@ -25,65 +25,60 @@
   "Computes the adjacency matrix of the context graph of `context'.
   The context graph has the objects and attributes of `context' as vertices and
   two verticies are connected if the pair is contained in the incidence
-  relation.  As the edges of the graph have no direction, just the upper entrys
-  a_ij with i ≤ j have to be stored."
+  relation."
+  ^"[[I" [context]
   ^"[[I" [context]
   (let [objects (vec (objects context))
-        attributes (vec (attributes context))
         m (count objects)
-        n (count attributes)
-        compute-row-for-object (fn [object attributes i]
-                                 ;; Computes for an `object' the row in the
-                                 ;; adjacency-matrix: Decides with which of the
-                                 ;; `attributes' the object has an edge with.
-                                 ;; Starts the row with `i' zeros.
-                                 (concat (take i (repeat 0))
-                                         (map
-                                          (fn [attribute]
-                                            (if (incident? context object attribute)
-                                              1
-                                              0))
-                                          attributes)))]
+        attributes (vec (attributes context))
+        n (count attributes)]
     (into-array
-     (map int-array (concat
-                     ;; Concat the rows corresponding to an object...
-                     (map #(compute-row-for-object (objects %) attributes (- m %))
-                          (range 0 m))
-                     ;; ... with the rows correpsonding to attributes.
-                     (map #(take (- n %) (repeat 0))
-                          (range 0 n)))))))
+      (map int-array (concat
+                       ;; Concat the rows corresponding to an object...
+                       (map
+                         (fn [object]
+                           (concat (take m (repeat 0))
+                                   (map (fn [attribute]
+                                          (if (incident? context object attribute) 1 0))
+                                        attributes)))
+                       objects)
+                       ;; with the rows corresponding to attributes
+                       (map
+                         (fn [attribute]
+                           (concat (map (fn [object]
+                                          (if (incident? context object attribute) 1 0))
+                                        objects)
+                                   (take n (repeat 0))))
+                         attributes)
+                         )))))
 
 (defn- general-adjacency-matrix
   "This is a helper function to compute the adjacency matrices of object- and
   attribute-projection.
 
-  Computes the upper half of the adjacency matrix of the undirected graph with
+  Computes the adjacency matrix of the undirected graph with
   the node set `node-set' and in which two nodes n₁, n₂ share an edge if the
   intersection of (derivation `context' n₁) and (derivation `context' n₂) is not
   empty."
   ^"[[I" [context derivation node-set]
   (let [derivations (mapv #(derivation context #{%}) node-set)
         n (count derivations)
-        compute-row (fn [dev devs]
+        compute-row (fn [dev]
                       (int-array (map #(if (empty? (intersection dev %)) 0 1)
-                                      devs)))]
+                                      derivations)))]
     (into-array
-     (map #(compute-row (nth derivations %) (drop % derivations))
-          (range 0 n)))))
+      (map #(compute-row %) derivations))))
 
 (defn object-projection-adjacency-matrix
   "Computes the adjacency matrix for the graph that has the objects of a `context'
-  as vertices and in which two objects share an edge if they share an attribute.
-  The edges of the graph have no direction, therefore just the upper entrys a_ij
-  with i<=j have to be stored."
+  as vertices and in which two objects share an edge if they share an attribute."
   ^"[[I" [context]
   (general-adjacency-matrix context object-derivation (objects context)))
 
 (defn attribute-projection-adjacency-matrix
   "Computes the adjacency matrix for the graph that has the attributes of a
   `context' as vertices and in which two attributes share an edge if they share
-  an object.  The edges of the graph have no direction, therefore just the upper
-  entrys a_ij with i<=j have to be stored"
+  an object."
   ^"[[I" [context]
   (general-adjacency-matrix context attribute-derivation (attributes context)))
 
