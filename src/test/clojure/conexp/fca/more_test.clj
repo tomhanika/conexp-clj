@@ -170,6 +170,59 @@
          (/ (reduce (fn [y cpt] (+ y (concept-stability ctx cpt))) 0 cpts)
             (count cpts))))))
 
+(deftest test-jaccard-index
+  (let [a #{1 2 3 4 5}
+        b #{0 2 4 8}
+        e #{}]
+    (is (= (jaccard-index a a) 1))
+    (is (= (jaccard-index e e) 1))
+    (is (= (jaccard-index a e) 0))
+    (is (= (jaccard-index a b) (/ 2 7)))))
+
+(deftest test-sorensen-coefficient
+  (let [a #{1 2 3 4 5}
+        b #{0 2 4 8}
+        e #{}]
+    (is (= (sorensen-coefficient a a) 1))
+    (is (= (sorensen-coefficient e e) 1))
+    (is (= (sorensen-coefficient a e) 0))
+    (is (= (sorensen-coefficient a b) (/ 4 9)))))
+
+(deftest test-symmetric-difference
+  (let [a #{1 2 3 4 5}
+        b #{0 2 4 8}
+        e #{}]
+    (is (= (symmetric-difference a a) 1))
+    (is (= (symmetric-difference e e) 1))
+    (is (= (symmetric-difference a e) 0))
+    (is (= (symmetric-difference a b) (/ 2 7)))))
+
+(deftest test-weighted-concept-similarity
+  (let [c1 [#{1 2 3} #{4 5 6}]
+        c2 [#{2} #{4 6}]
+        c3 [#{} #{4 5 6 7}]
+        c4 [#{1 2 3} #{}]
+        c5 [#{:a :b} #{:c :d}]]
+
+    (doseq [sim [jaccard-index sorensen-coefficient symmetric-difference]]
+      (is (= (weighted-concept-similarity sim [c1 c1]) 1))
+      (is (= (weighted-concept-similarity sim [c3 c3]) 1))
+      (is (= (weighted-concept-similarity sim [c3 c4]) 0))
+      (is (= (weighted-concept-similarity sim [c1 c5]) 0))
+      (is (= (weighted-concept-similarity sim [c3 c5]) 0))
+      (doseq [cother [c2 c3 c4]] (is (< 0 (weighted-concept-similarity sim [c1 cother]) 1))))
+
+    (is (= (weighted-concept-similarity jaccard-index [c1 c2]) (/ 1 2)))
+    (is (= (weighted-concept-similarity sorensen-coefficient [c1 c2]) (/ 13 20)))
+    (is (= (weighted-concept-similarity symmetric-difference [c1 c2]) (/ 1 2)))
+
+    (is (= (weighted-concept-similarity jaccard-index [c1 c2] (/ 1 3)) (/ 5 9)))
+    (is (= (weighted-concept-similarity sorensen-coefficient [c1 c2] (/ 1 3)) (/ 14 20)))
+    (is (= (weighted-concept-similarity symmetric-difference [c1 c2] (/ 1 3)) (/ 5 9)))
+
+    (is (= (weighted-concept-similarity jaccard-index [c1 c3]) (/ 3 8)))
+    (is (= (weighted-concept-similarity sorensen-coefficient [c1 c3]) (/ 3 7)))
+    (is (= (weighted-concept-similarity symmetric-difference [c1 c3]) (/ 3 8)))))
 
 ;;;
 nil
