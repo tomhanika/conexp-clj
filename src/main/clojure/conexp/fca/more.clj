@@ -340,37 +340,51 @@
 ;;; Similarity Measures for Concepts (implemented by Anselm von Wangenheim)
 
 (defn jaccard-index
-  "Computes the Jaccard index of two sets. This is |x ∩ y| / |x ∪ y|."
+  "Computes the Jaccard index of two sets. This is |x ∩ y| / |x ∪ y|.
+  Returns 1 if both sets are empty."
   [x y]
-  (/ (double (count (intersection x y))) (count (union x y))))
+  (if (and (empty? x) (empty? y))
+    1
+    (/ (count (intersection x y)) (count (union x y)))))
 
 (defn sorensen-coefficient
   "Computes the Sorensen coefficient of two sets.
-  This is 2 * |x ∩ y| / (|x| + |y|)."
+  This is 2 * |x ∩ y| / (|x| + |y|).
+  Returns 1 if both sets are empty."
   [x y]
-  (/ (* 2.0 (count (intersection x y))) (+ (count x) (count y))))
+  (if (and (empty? x) (empty? y))
+    1
+    (/ (* 2 (count (intersection x y))) (+ (count x) (count y)))))
 
 (defn symmetric-difference
   "Computes the symmetric difference of two sets.
-  This is 1 - (|(x setminus y) ∪ (y setminus x)| / |x ∪ y|)."
+  This is 1 - (|(x setminus y) ∪ (y setminus x)| / |x ∪ y|).
+  Returns 1 if both sets are empty."
   [x y]
-  (- 1.0 (/
+  (if (and (empty? x) (empty? y))
+    1
+    (- 1 (/
           (count (union (difference x y) (difference y x)))
-          (count (union x y)))))
+          (count (union x y))))))
 
 (defn weighted-concept-similarity
   "Computes a weighted concept similarity for a given similatity measure `sim',
-  two concepts [`ctx-1' `ctx-2'] and an optional weight `w' (default is 0.5).
+  two concepts [`c1' `c2'] and an optional weight `w' (default is 1/2).
+
   That is the weighted average of the similarity of the extents/object sets
-  (weight `w') and the intents/attribute sets (weight 1-`w')"
-  ([sim [ctx-1 ctx-2]] (weighted-concept-similarity sim [ctx-1 ctx-2] 0.5))
-  ([sim [ctx-1 ctx-2] w]
+  (weight `w') and the intents/attribute sets (weight 1-`w').
+
+  This is from Alqadah, F. & Bhatnagar, R. (2011), 'Similarity measures in
+  formal concept analysis.', Ann. Math. Artif. Intell. 61 (3), 249,
+  https://doi.org/10.1007/s10472-011-9257-7"
+  ([sim [c1 c2]] (weighted-concept-similarity sim [c1 c2] (/ 1 2)))
+  ([sim [c1 c2] w]
    (assert (and (number? w)
                 (<= 0 w 1))
            "Thrid argument must be between 0 and 1!")
    (+
-    (* w       (sim (ctx-1 0) (ctx-2 0)))
-    (* (- 1 w) (sim (ctx-1 1) (ctx-2 1))))))
+    (* w       (sim (c1 0) (c2 0)))
+    (* (- 1 w) (sim (c1 1) (c2 1))))))
 
 ;;;
 
