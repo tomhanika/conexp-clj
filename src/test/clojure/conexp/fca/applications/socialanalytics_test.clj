@@ -16,7 +16,7 @@
             [clojure.test :refer [deftest is]]
             [conexp.base :refer [with-testing-data]]))
 
-;Average-shortest-path
+;; Average-shortest-path
 
 (deftest test-context-graph-average-shortest-path
   (let [ctx (make-context-from-matrix 4 3
@@ -153,7 +153,7 @@
                        (and (= (count degrees) n)
                             (every? #(<= 0 % n) degrees)))))
 
-;;; K-cores
+;; K-cores
 
 (deftest test-k-cores
   (let [graph1 {0 #{1} 1 #{0 2 3} 2 #{1 3}
@@ -256,6 +256,6 @@
   (with-testing-data [ctx (random-contexts 20 42)]
     (is (empty? (attribute-projection-k-cores ctx 43)))))
 
-;;;
+;;
 
-nil
+true
