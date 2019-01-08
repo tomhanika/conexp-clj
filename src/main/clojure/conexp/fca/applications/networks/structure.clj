@@ -206,3 +206,6 @@
                                                              (first (keys graph)))))]
       (cons component
             (connected-components (apply dissoc graph (keys component)))))))
+
+;;;
+nil
