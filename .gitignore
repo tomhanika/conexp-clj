@@ -11,6 +11,8 @@
 /.lein*
 /.cake*
 /target
+.idea
+*.iml
 .nrepl-port
 /pom.xml.asc
 /builds
