@@ -29,8 +29,18 @@
 
 (defn make-directed-graph
   "Constructs a directed graph."
-  [nodes neighbour-fn]
-  (struct directed-graph nodes neighbour-fn))
+  [nodes neighbor-fn]
+  (struct directed-graph nodes neighbor-fn))
+
+(defn nodes
+  "all nodes of the graph"
+  [g]
+  (:nodes g))
+
+(defn neighbor-fn
+  "A function that maps from nodes to their neighbors"
+  [g]
+  (:neighbors g))
 
 (defn get-neighbors
   "Get the neighbors of a node."
