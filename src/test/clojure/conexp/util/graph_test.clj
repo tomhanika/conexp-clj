@@ -16,9 +16,9 @@
 (deftest test-mk-graph
   (let [g1 (make-directed-graph #{1 2 3} (fn [x] (if (< x 3) #{3} #{1 2})))
         g2 (make-directed-graph [1 2 3] (fn [x] (if (< x 3) [3] [1 2])))]
-    (is (= (get-neighbors g1 1) #{3}))
-    (is (= (get-neighbors g1 2) #{3}))
-    (is (= (get-neighbors g1 3) #{1 2}))
+    (is (= (set (get-neighbors g1 1)) #{3}))
+    (is (= (set (get-neighbors g1 2)) #{3}))
+    (is (= (set (get-neighbors g1 3)) #{1 2}))
     (is (= (set (nodes g1)) (set (nodes g2))))
     (doseq [n (nodes g1)]
       (is (= (set (get-neighbors g1 n)) (set (get-neighbors g2 n)))))
@@ -40,12 +40,12 @@
   (is (= (nodes (:g3 some-graphs)) (nodes (reverse-graph (:g3 some-graphs)))))
   (doseq [n1 #{1 2 3}
           n2 #{1 2 3}]
-    (is (<=> (contains? (get-neighbors (:g1 some-graphs) n1) n2)
-             (contains? (get-neighbors (reverse-graph (:g1 some-graphs)) n2) n1)))
-    (is (<=> (contains? (get-neighbors (:g2 some-graphs) n1) n2)
-             (contains? (get-neighbors (reverse-graph (:g2 some-graphs)) n2) n1)))
-    (is (<=> (contains? (get-neighbors (:g3 some-graphs) n1) n2)
-             (contains? (get-neighbors (reverse-graph (:g3 some-graphs)) n2) n1)))))
+    (is (<=> (contains? (set (get-neighbors (:g1 some-graphs) n1)) n2)
+             (contains? (set (get-neighbors (reverse-graph (:g1 some-graphs)) n2)) n1)))
+    (is (<=> (contains? (set (get-neighbors (:g2 some-graphs) n1)) n2)
+             (contains? (set (get-neighbors (reverse-graph (:g2 some-graphs)) n2)) n1)))
+    (is (<=> (contains? (set (get-neighbors (:g3 some-graphs) n1)) n2)
+             (contains? (set (get-neighbors (reverse-graph (:g3 some-graphs)) n2)) n1)))))
 
 (deftest test-loops
   (let [g (:g2 some-graphs)
@@ -55,12 +55,12 @@
     (doseq [n #{1 2 3}
             n2 #{1 2 3}]
       (if (= n n2)
-        (do (is (contains? (get-neighbors gWith n) n))
-            (is (not (contains? (get-neighbors gWithout1 n) n)))
-            (is (not (contains? (get-neighbors gWithout2 n) n))))
-        (do (is (<=> (contains? (get-neighbors gWith n) n2) (contains? (get-neighbors g n) n2)))
-            (is (<=> (contains? (get-neighbors gWithout1 n) n2) (contains? (get-neighbors g n) n2)))
-            (is (<=> (contains? (get-neighbors gWithout2 n) n2) (contains? (get-neighbors g n) n2))))))))
+        (do (is (contains? (set (get-neighbors gWith n)) n))
+            (is (not (contains? (set (get-neighbors gWithout1 n)) n)))
+            (is (not (contains? (set (get-neighbors gWithout2 n)) n))))
+        (do (is (<=> (contains? (set (get-neighbors gWith n)) n2) (contains? (set (get-neighbors g n)) n2)))
+            (is (<=> (contains? (set (get-neighbors gWithout1 n)) n2) (contains? (set (get-neighbors g n)) n2)))
+            (is (<=> (contains? (set (get-neighbors gWithout2 n)) n2) (contains? (set (get-neighbors g n)) n2))))))))
 
 (deftest test-transitive-closure
   (let [tc1 (transitive-closure (:g1 some-graphs))
@@ -81,14 +81,14 @@
   (is (= (set (scc (:g4 some-graphs))) #{#{1 2} #{3}})))
 
 (deftest test-component-graph
-  (is (= (nodes (component-graph (:g1 some-graphs))) #{#{1 2 3}}))
-  (is (= (nodes (component-graph (:g2 some-graphs))) #{#{1} #{2} #{3}}))
-  (is (= (nodes (component-graph (:g3 some-graphs))) #{#{1} #{2} #{3}}))
-  (is (= (nodes (component-graph (:g4 some-graphs))) #{#{1 2} #{3}}))
-  (is (= (get-neighbors (component-graph (:g1 some-graphs)) #{1 2 3}) #{#{1 2 3}}))
-  (is (= (get-neighbors (component-graph (:g2 some-graphs)) #{1}) #{#{3}}))
-  (is (= (get-neighbors (component-graph (:g3 some-graphs)) #{1}) #{}))
-  (is (= (get-neighbors (component-graph (:g4 some-graphs)) #{1 2}) #{#{1 2}})))
+  (is (= (set (nodes (component-graph (:g1 some-graphs)))) #{#{1 2 3}}))
+  (is (= (set (nodes (component-graph (:g2 some-graphs)))) #{#{1} #{2} #{3}}))
+  (is (= (set (nodes (component-graph (:g3 some-graphs)))) #{#{1} #{2} #{3}}))
+  (is (= (set (nodes (component-graph (:g4 some-graphs)))) #{#{1 2} #{3}}))
+  (is (= (set (get-neighbors (component-graph (:g1 some-graphs)) #{1 2 3})) #{#{1 2 3}}))
+  (is (= (set (get-neighbors (component-graph (:g2 some-graphs)) #{1})) #{#{3}}))
+  (is (= (set (get-neighbors (component-graph (:g3 some-graphs)) #{1})) #{}))
+  (is (= (set (get-neighbors (component-graph (:g4 some-graphs)) #{1 2})) #{#{1 2}})))
 
 (deftest test-self-recursive-sets
   (is (= (set (self-recursive-sets (:g1 some-graphs))) #{#{1 2 3}}))

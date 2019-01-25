@@ -14,38 +14,38 @@
 ;; Created 23 June 2009
 ;;
 ;; with modifications by D. Borchmann for conexp-clj
+;; and more modifications for use with loom/ubergraph
 
 (ns
     #^{:author "Jeffrey Straszheim",
        :doc "Basic graph theory algorithms"}
   conexp.util.graph
+  (:require [ubergraph.core :as uber]
+            [loom.graph :as lg])
   (:use [clojure.set :only (union)]))
 
-
-(defstruct directed-graph
-  :nodes ; The nodes of the graph, a collection
-  :neighbors) ; A function that, given a node returns a collection
-                                        ; neighbor nodes.
 
 (defn make-directed-graph
   "Constructs a directed graph."
   [nodes neighbor-fn]
-  (struct directed-graph nodes neighbor-fn))
+  (uber/add-directed-edges*
+    (uber/add-nodes-with-attrs* (uber/digraph) (map (fn [n] [n {}]) nodes))
+    (mapcat (fn [x] (map (fn [y] [x y]) (neighbor-fn x))) nodes)))
 
 (defn nodes
   "all nodes of the graph"
   [g]
-  (:nodes g))
+  (lg/nodes g))
 
 (defn neighbor-fn
   "A function that maps from nodes to their neighbors"
   [g]
-  (:neighbors g))
+  (fn [n] (lg/successors* g n)))
 
 (defn get-neighbors
   "Get the neighbors of a node."
   [g n]
-  ((:neighbors g) n))
+  (lg/successors* g n))
 
 
 ;; Graph Modification
@@ -59,24 +59,24 @@ order of the edges reversed."
                    am (fn [m val]
                         (assoc m val (conj (get m val #{}) idx)))]
                (reduce am rna ns)))
-        rn (reduce op {} (:nodes g))]
-    (struct directed-graph (:nodes g) rn)))
+        rn (reduce op {} (nodes g))]
+    (make-directed-graph (nodes g) rn)))
 
 (defn add-loops
   "For each node n, add the edge n->n if not already present."
   [g]
-  (struct directed-graph
-          (:nodes g)
+  (make-directed-graph
+          (nodes g)
           (into {} (map (fn [n]
-                          [n (conj (set (get-neighbors g n)) n)]) (:nodes g)))))
+                          [n (conj (set (get-neighbors g n)) n)]) (nodes g)))))
 
 (defn remove-loops
   "For each node n, remove any edges n->n."
   [g]
-  (struct directed-graph
-          (:nodes g)
+  (make-directed-graph
+          (nodes g)
           (into {} (map (fn [n]
-                          [n (disj (set (get-neighbors g n)) n)]) (:nodes g)))))
+                          [n (disj (set (get-neighbors g n)) n)]) (nodes g)))))
 
 
 ;; Graph Walk
@@ -105,9 +105,9 @@ behavior, call (-> g transitive-closure add-loops)"
   [g]
   (let [nns (fn [n]
               [n (delay (lazy-walk g (get-neighbors g n) #{}))])
-        nbs (into {} (map nns (:nodes g)))]
-    (struct directed-graph
-            (:nodes g)
+        nbs (into {} (map nns (nodes g)))]
+    (make-directed-graph
+            (nodes g)
             (fn [n] (force (nbs n))))))
 ;; Strongly Connected Components
 
@@ -126,7 +126,7 @@ behavior, call (-> g transitive-closure add-loops)"
   [g]
   (fnext (reduce #(post-ordered-visit g %2 %1)
                  [#{} []]
-                 (:nodes g))))
+                 (nodes g))))
 
 (defn scc
   "Returns, as a sequence of sets, the strongly connected components of g."
@@ -159,7 +159,7 @@ be the union of the corresponding edges of the prior graph."
                                   nbs3 (apply union nbs2)]
                               (set (map find-node-set nbs3))))
            nm (into {} (map (fn [ns] [ns (find-neighbors ns)]) sccs))]
-       (struct directed-graph (set sccs) nm))))
+       (make-directed-graph (set sccs) nm))))
 
 (defn recursive-component?
   "Is the component (recieved from scc) self recursive?"
@@ -208,9 +208,9 @@ much be acyclic) has an edge a->b when a depends on b."
                (let [update (fn [n]
                               (inc (apply max -1 (map d (get-neighbors g n)))))]
                  (into {} (map (fn [[k v]] [k (update k)]) d))))
-        counts (fixed-point (zipmap (:nodes g) (repeat 0))
+        counts (fixed-point (zipmap (nodes g) (repeat 0))
                             step
-                            (inc (count (:nodes g)))
+                            (inc (count (nodes g)))
                             =)]
     (fold-into-sets counts)))
 (defn stratification-list
@@ -220,16 +220,16 @@ have cycles) provides a partial-dependency relation. If node a
 depends on node b (meaning an edge a->b exists) in the second
 graph, node a must be equal or later in the sequence."
   [g1 g2]
-  (assert (= (-> g1 :nodes set) (-> g2 :nodes set)))
+  (assert (= (-> g1 nodes set) (-> g2 nodes set)))
   (let [step (fn [d]
                (let [update (fn [n]
                               (max (inc (apply max -1
                                                (map d (get-neighbors g1 n))))
                                    (apply max -1 (map d (get-neighbors g2 n)))))]
                  (into {} (map (fn [[k v]] [k (update k)]) d))))
-        counts (fixed-point (zipmap (:nodes g1) (repeat 0))
+        counts (fixed-point (zipmap (nodes g1) (repeat 0))
                             step
-                            (inc (count (:nodes g1)))
+                            (inc (count (nodes g1)))
                             =)]
     (fold-into-sets counts)))
 
