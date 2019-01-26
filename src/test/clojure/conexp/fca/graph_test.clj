@@ -75,12 +75,14 @@
 
 
 (deftest test-strictness
-  (let [less (strict (fn [x y] (<= x y)))
+  (let [less (strict <)
         le (non-strict <)]
     (is (less 1 2))
+    (is (less [1 2]))
     (is (not (less 1 1)))
     (is (not (less 1 0)))
     (is (le 1 2))
+    (is (le [1 2]))
     (is (le 1 1))
     (is (not (le 1 0)))))
 

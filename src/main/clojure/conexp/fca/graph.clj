@@ -27,10 +27,17 @@
         base-set))))
 
 (defn graph->lattice-nc
+  "Converts a directed graph to a lattice.
+  Note: This method does no checks, so the lattice may be invalid is the graph
+  does not represent one. Use with care."
   [g]
   (lat/make-lattice-nc (lg/nodes g) (fn [u v] (or (= u v) (lg/has-edge? g u v)))))
 
 (defn graph->lattice
+  "Converts a directed graph to a lattice.
+  Note: This function will test the resulting lattice for being one,
+  which may take some time. If you don't want this, use
+  make-lattice-nc."
   [g]
   (lat/make-lattice (lg/nodes g) (fn [u v] (or (= u v) (lg/has-edge? g u v)))))
 
@@ -38,31 +45,31 @@
 ;;; (co)comparability
 
 (defn comparability
-  "Given a set and a (strict) ordering, generates a graph of comparable elements.
-  For elements u,v, there will be an edge u<->v iff u < v or v < u.
-  Note: If the ordering is not strict, u<->u for all u in the set."
-  [base-set <]
+  "Given a set and a relation, generates a graph of comparable elements.
+  For elements u,v, there will be an edge u<->v iff (u,v) or (v,u) in R.
+  Note: If the ordering is reflexive, u<->u for all u in the set."
+  [base-set relation]
   (uber/add-undirected-edges*
     (uber/graph)
     (mapcat
       (fn [x] (map
                 (fn [y] [x y])
-                (filter #(< x %) base-set)))
+                (filter #(relation x %) base-set)))
       base-set)))
 
 (defn co-comparability
-  "Given a set and a (strict) ordering, generates a graph of incomparable elements.
-  For elements u,v, there will be an edge u<->v iff neither u < v, nor v < u.
-  Note: If the ordering is strict, u<->u for all u in the set."
-  [base-set <]
+  "Given a set and a relation, generates a graph of incomparable elements.
+  For elements u,v, there will be an edge u<->v iff neither (u,v) nor (v,u) in R.
+  Note: If the ordering not reflexive, u<->u for all u in the set."
+  [base-set relation]
   (uber/add-undirected-edges*
     (uber/graph)
     (mapcat
       (fn [x] (map
                 (fn [y] [x y])
                 (filter
-                  (fn [y] (and (not (< x y))
-                               (not (< y x))))
+                  (fn [y] (and (not (relation x y))
+                               (not (relation y x))))
                   base-set)))
       base-set)))
 
