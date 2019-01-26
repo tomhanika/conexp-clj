@@ -1,7 +1,8 @@
 (ns conexp.fca.graph
   (:require [ubergraph.core :as uber]
             [loom.graph :as lg]
-            [conexp.fca.lattices :as lat])
+            [conexp.fca.lattices :as lat]
+            [conexp.util.graph :exclude [transitive-closure] :refer :all])
   (:use conexp.base)
   (:use loom.io))
 
@@ -13,18 +14,7 @@
   For concepts u,v, there will be an edge u->v iff v <= u.
   (This implies that the only loops will be u->u for all u.)"
   [lat]
-  (let
-    [<= (lat/order lat)
-     base-set (lat/base-set lat)]
-    (uber/add-directed-edges*
-      (uber/digraph)
-      (mapcat
-        (fn [x] (map
-                  (fn [y] [x y])
-                  (filter
-                    (fn [y] (<= x y))
-                    base-set)))
-        base-set))))
+  (make-digraph-from-condition (lat/base-set lat) (lat/order lat)))
 
 (defn graph->lattice-nc
   "Converts a directed graph to a lattice.
@@ -46,32 +36,19 @@
 
 (defn comparability
   "Given a set and a relation, generates a graph of comparable elements.
-  For elements u,v, there will be an edge u<->v iff (u,v) or (v,u) in R.
-  Note: If the ordering is reflexive, u<->u for all u in the set."
+  For elements u,v, there will be an edge u<->v iff (u,v) or (v,u) in relation.
+  Note: If the relation is reflexive, u<->u for all u in the set."
   [base-set relation]
-  (uber/add-undirected-edges*
-    (uber/graph)
-    (mapcat
-      (fn [x] (map
-                (fn [y] [x y])
-                (filter #(relation x %) base-set)))
-      base-set)))
+  (make-graph-from-condition base-set relation))
 
 (defn co-comparability
   "Given a set and a relation, generates a graph of incomparable elements.
-  For elements u,v, there will be an edge u<->v iff neither (u,v) nor (v,u) in R.
-  Note: If the ordering not reflexive, u<->u for all u in the set."
+  For elements u,v, there will be an edge u<->v iff neither (u,v) nor (v,u) in
+  relation.
+  Note: If the relation not reflexive, u<->u for all u in the set."
   [base-set relation]
-  (uber/add-undirected-edges*
-    (uber/graph)
-    (mapcat
-      (fn [x] (map
-                (fn [y] [x y])
-                (filter
-                  (fn [y] (and (not (relation x y))
-                               (not (relation y x))))
-                  base-set)))
-      base-set)))
+  (make-graph-from-condition base-set #(and (not (relation %1 %2))
+                                            (not (relation %2 %1)))))
 
 (defn strict
   "Make a strict ordering < of an ordering <=."

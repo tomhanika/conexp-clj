@@ -26,11 +26,38 @@
 
 
 (defn make-directed-graph
-  "Constructs a directed graph."
+  "Constructs a directed graph from a set of nodes and a function that maps a
+   node to its neighbors."
   [nodes neighbor-fn]
   (uber/add-directed-edges*
     (uber/add-nodes-with-attrs* (uber/digraph) (map (fn [n] [n {}]) nodes))
     (mapcat (fn [x] (map (fn [y] [x y]) (neighbor-fn x))) nodes)))
+
+(defn make-graph-from-condition
+  "Constructs an undirected graph from a set of nodes and a condition that tests
+   if two nodes shall get an edge.
+   Edges are undirected, so there will be an edge u<->v iff the condition holds
+   for either (u,v) or (v,u) or both."
+  [nodes condition]
+  (uber/add-undirected-edges*
+    (uber/graph)
+    (mapcat
+      (fn [x] (map
+                (fn [y] [x y])
+                (filter #(condition x %) nodes)))
+      nodes)))
+
+(defn make-digraph-from-condition
+  "Constructs a directed graph from a set of nodes and a condition that tests
+   if two nodes shall get an edge."
+  [nodes condition]
+  (uber/add-directed-edges*
+    (uber/digraph)
+    (mapcat
+      (fn [x] (map
+                (fn [y] [x y])
+                (filter #(condition x %) nodes)))
+      nodes)))
 
 (defn nodes
   "all nodes of the graph"
