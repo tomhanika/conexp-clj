@@ -17,8 +17,8 @@
 ;; and more modifications for use with loom/ubergraph
 
 (ns
-    #^{:author "Jeffrey Straszheim",
-       :doc "Basic graph theory algorithms"}
+  #^{:author "Jeffrey Straszheim",
+     :doc    "Basic graph theory algorithms"}
   conexp.util.graph
   (:require [ubergraph.core :as uber]
             [loom.graph :as lg])
@@ -66,17 +66,17 @@ order of the edges reversed."
   "For each node n, add the edge n->n if not already present."
   [g]
   (make-directed-graph
-          (nodes g)
-          (into {} (map (fn [n]
-                          [n (conj (set (get-neighbors g n)) n)]) (nodes g)))))
+    (nodes g)
+    (into {} (map (fn [n]
+                    [n (conj (set (get-neighbors g n)) n)]) (nodes g)))))
 
 (defn remove-loops
   "For each node n, remove any edges n->n."
   [g]
   (make-directed-graph
-          (nodes g)
-          (into {} (map (fn [n]
-                          [n (disj (set (get-neighbors g n)) n)]) (nodes g)))))
+    (nodes g)
+    (into {} (map (fn [n]
+                    [n (disj (set (get-neighbors g n)) n)]) (nodes g)))))
 
 
 ;; Graph Walk
@@ -86,13 +86,13 @@ order of the edges reversed."
 provide a set of visited notes (v) and a collection of nodes to
 visit (ns)."
   ([g n]
-     (lazy-walk g [n] #{}))
+   (lazy-walk g [n] #{}))
   ([g ns v]
-     (lazy-seq (let [s (seq (drop-while v ns))
-                     n (first s)
-                     ns (rest s)]
-                 (when s
-                   (cons n (lazy-walk g (concat (get-neighbors g n) ns) (conj v n))))))))
+   (lazy-seq (let [s (seq (drop-while v ns))
+                   n (first s)
+                   ns (rest s)]
+               (when s
+                 (cons n (lazy-walk g (concat (get-neighbors g n) ns) (conj v n))))))))
 
 (defn transitive-closure
   "Returns the transitive closure of a graph. The neighbors are lazily computed.
@@ -107,8 +107,8 @@ behavior, call (-> g transitive-closure add-loops)"
               [n (delay (lazy-walk g (get-neighbors g n) #{}))])
         nbs (into {} (map nns (nodes g)))]
     (make-directed-graph
-            (nodes g)
-            (fn [n] (force (nbs n))))))
+      (nodes g)
+      (fn [n] (force (nbs n))))))
 ;; Strongly Connected Components
 
 (defn- post-ordered-visit
@@ -139,7 +139,7 @@ behavior, call (-> g transitive-closure add-loops)"
                  (let [[nv comp] (post-ordered-visit rev
                                                      (first stack)
                                                      [visited #{}])
-                       ns (doall (remove nv stack))] ;doall prevents StackOverflow
+                       ns (doall (remove nv stack))]        ;doall prevents StackOverflow
                    (recur ns nv (conj acc comp)))))]
     (step po #{} [])))
 
@@ -149,17 +149,17 @@ Each node in the new graph will be a set of nodes from the old.
 These sets are the strongly connected components. Each edge will
 be the union of the corresponding edges of the prior graph."
   ([g]
-     (component-graph g (scc g)))
+   (component-graph g (scc g)))
   ([g sccs]
-     (let [find-node-set (fn [n]
-                           (some #(if (% n) % nil) sccs))
-           find-neighbors (fn [ns]
-                            (let [nbs1 (map (partial get-neighbors g) ns)
-                                  nbs2 (map set nbs1)
-                                  nbs3 (apply union nbs2)]
-                              (set (map find-node-set nbs3))))
-           nm (into {} (map (fn [ns] [ns (find-neighbors ns)]) sccs))]
-       (make-directed-graph (set sccs) nm))))
+   (let [find-node-set (fn [n]
+                         (some #(if (% n) % nil) sccs))
+         find-neighbors (fn [ns]
+                          (let [nbs1 (map (partial get-neighbors g) ns)
+                                nbs2 (map set nbs1)
+                                nbs3 (apply union nbs2)]
+                            (set (map find-node-set nbs3))))
+         nm (into {} (map (fn [ns] [ns (find-neighbors ns)]) sccs))]
+     (make-directed-graph (set sccs) nm))))
 
 (defn recursive-component?
   "Is the component (recieved from scc) self recursive?"
