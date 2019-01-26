@@ -10,7 +10,8 @@
 
 (defn lattice->graph
   "Converts a lattice to a directed graph.
-  For concepts u,v, there will be an edge u->v iff v <= u."
+  For concepts u,v, there will be an edge u->v iff v <= u.
+  (This implies that the only loops will be u->u for all u.)"
   [lat]
   (let
     [<= (lat/order lat)
@@ -70,14 +71,14 @@
   [<=]
   (fn
     <
-    [x y] (and (<= x y) (not= x y))
-    [vec] (< (first vec) (second vec))))
+    ([x y] (and (<= x y) (not= x y)))
+    ([vec] (< (first vec) (second vec)))))
 
 (defn non-strict
   "Make a non-strict ordering <= of a strict ordering <."
   [<]
   (fn
     <=
-    [x y] (or (< x y) (= x y))
-    [vec] (< (first vec) (second vec))))
+    ([x y] (or (< x y) (= x y)))
+    ([vec] (< (first vec) (second vec)))))
 
