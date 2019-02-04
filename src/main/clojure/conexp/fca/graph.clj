@@ -38,17 +38,23 @@
   "Given a set and a relation, generates a graph of comparable elements.
   For elements u,v, there will be an edge u<->v iff (u,v) or (v,u) in relation.
   Note: If the relation is reflexive, u<->u for all u in the set."
-  [base-set relation]
-  (make-graph-from-condition base-set relation))
+  ([lattice] (comparability
+               (conexp.fca.lattices/base-set lattice)
+               (conexp.fca.lattices/order lattice)))
+  ([base-set relation]
+   (make-graph-from-condition base-set relation)))
 
 (defn co-comparability
   "Given a set and a relation, generates a graph of incomparable elements.
   For elements u,v, there will be an edge u<->v iff neither (u,v) nor (v,u) in
   relation.
   Note: If the relation not reflexive, u<->u for all u in the set."
-  [base-set relation]
-  (make-graph-from-condition base-set #(and (not (relation %1 %2))
-                                            (not (relation %2 %1)))))
+  ([lattice] (co-comparability
+               (conexp.fca.lattices/base-set lattice)
+               (conexp.fca.lattices/order lattice)))
+  ([base-set relation]
+   (make-graph-from-condition base-set #(and (not (relation %1 %2))
+                                             (not (relation %2 %1))))))
 
 (defn strict
   "Make a strict ordering < of an ordering <=."
