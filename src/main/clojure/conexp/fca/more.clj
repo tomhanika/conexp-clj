@@ -356,17 +356,6 @@
     1
     (/ (* 2 (count (intersection x y))) (+ (count x) (count y)))))
 
-(defn symmetric-difference
-  "Computes the symmetric difference of two sets.
-  This is 1 - (|(x setminus y) ∪ (y setminus x)| / |x ∪ y|).
-  Returns 1 if both sets are empty."
-  [x y]
-  (if (and (empty? x) (empty? y))
-    1
-    (- 1 (/
-          (count (union (difference x y) (difference y x)))
-          (count (union x y))))))
-
 (defn weighted-concept-similarity
   "Computes a weighted concept similarity for a given similatity measure `sim',
   two concepts [`c1' `c2'] and an optional weight `w' (default is 1/2).
