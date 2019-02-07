@@ -75,7 +75,7 @@
 
 
 (deftest test-strictness
-  (let [less (strict <)
+  (let [less (strict <=)
         le (non-strict <)]
     (is (less 1 2))
     (is (less [1 2]))
