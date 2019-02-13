@@ -124,18 +124,25 @@ visit (ns)."
 (defn transitive-closure
   "Returns the transitive closure of a graph. The neighbors are lazily computed.
 
-Note: some version of this algorithm return all edges a->a
-regardless of whether such loops exist in the original graph. This
-version does not. Loops will be included only if produced by
-cycles in the graph. If you have code that depends on such
-behavior, call (-> g transitive-closure add-loops)"
+  This implementation uses the (Floyd-)Warshall algorithm which is based on
+  dynamic programming to compute the closure.
+
+  Note: some version of this algorithm return all edges a->a
+  regardless of whether such loops exist in the original graph. This
+  version does not. Loops will be included only if produced by
+  cycles in the graph. If you have code that depends on such
+  behavior, call (-> g transitive-closure add-loops)"
   [g]
-  (let [nns (fn [n]
-              [n (delay (lazy-walk g (get-neighbors g n) #{}))])
-        nbs (into {} (map nns (nodes g)))]
-    (make-directed-graph
-      (nodes g)
-      (fn [n] (force (nbs n))))))
+  (let [nodes (nodes g)
+        current-graph (atom g)]
+    (doseq [k nodes
+            i nodes]
+      (if (lg/has-edge? @current-graph i k)
+        (doseq [j nodes]
+          (if (lg/has-edge? @current-graph k j)
+            (swap! current-graph (fn [g] (uber/add-directed-edges g [i j])))))))
+    @current-graph))
+
 ;; Strongly Connected Components
 
 (defn- post-ordered-visit
