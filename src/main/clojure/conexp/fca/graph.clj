@@ -2,9 +2,8 @@
   (:require [ubergraph.core :as uber]
             [loom.graph :as lg]
             [conexp.fca.lattices :as lat]
-            [conexp.util.graph :exclude [transitive-closure] :refer :all])
-  (:use conexp.base)
-  (:use loom.io))
+            [conexp.util.graph :refer :all]
+            [conexp.base :exclude [transitive-closure] :refer :all]))
 
 
 ;;; graph <-> lattice
@@ -55,6 +54,47 @@
   ([base-set relation]
    (make-graph-from-condition base-set #(and (not (relation %1 %2))
                                              (not (relation %2 %1))))))
+
+;;; consistency graph
+
+(defn consistency-digraph-nc
+  "Same as consistency-digraph, but does not check if the graph is transitive.
+  Use with care!
+
+  Given, a transitive graph g, computes the consistency-digraph.
+
+  The nodes of the consistency-digraph are oriented incomparable pairs of nodes
+  from g. From each node n=[a b] (a,b are nodes in g), edges go to all nodes
+  corresponding to edges in g that would be comparable if [a b] would be
+  introduced in g.
+
+  See Definition 2.2 in https://doi.org/10.1006/jagm.1998.0974"
+  [g]
+  (let [incompat-nodes
+        (set (map (fn [e] [(uber/src e) (uber/dest e)])
+                  (uber/edges (co-comparability (nodes g) #(lg/has-edge? g %1 %2)))))]
+    (make-directed-graph incompat-nodes
+                         (fn [x0y0] (let [x0 (x0y0 0)
+                                          y0 (x0y0 1)
+                                          x (distinct (cons x0 (lg/predecessors* g x0)))
+                                          y (distinct (cons y0 (lg/successors* g y0)))]
+                                      (for [xi x
+                                            yj y :when (contains? incompat-nodes [xi yj])]
+                                        [xi yj]))))))
+
+(defn consistency-digraph
+  "Given, a transitive graph g, computes the consistency-digraph.
+
+  The nodes of the consistency-digraph are oriented incomparable pairs of nodes
+  from g. From each node n=[a b] (a,b are nodes in g), edges go to all nodes
+  corresponding to edges in g that would be comparable if [a b] would be
+  introduced in g.
+
+  See Definition 2.2 in https://doi.org/10.1006/jagm.1998.0974"
+  [g]
+  (assert (= g (transitive-closure g)) "graph must be transitive!")
+  (consistency-digraph-nc g))
+
 
 (defn strict
   "Make a strict ordering < of an ordering <=."
