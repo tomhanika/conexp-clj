@@ -54,6 +54,25 @@
   (is (thrown? IllegalArgumentException (graph->lattice (uber/digraph [1 2] [2 3]))))
   (is (graph->lattice-nc (uber/digraph [1 2] [2 3]))))      ;note that no Exception is thrown
 
+(deftest test-fail-illegal-graph->lattice
+  "tests a graph that is transitive, but does not represent a lattice:
+       6
+      / \\
+     4   5
+     |\\ /|
+     | X |
+     |/ \\|
+     2   3
+      \\ /
+       1
+  Note that \\ is only a single edge. X is just the cross of two edges, *not* a
+  node.
+  This is not a representation of a lattice, because sup(2,3) is not defined
+  properly."
+  (let [g (transitive-closure
+            (add-loops
+              (uber/digraph [1 2] [1 3] [2 4] [2 5] [3 4] [3 5] [4 6] [5 6])))]
+    (is (thrown? IllegalArgumentException (graph->lattice g)))))
 
 (deftest test-comparability
   (assert-equal-graphs (comparability [1 2 3] (fn [a b] (contains? #{[1 1] [1 2] [2 3]} [a b])))
