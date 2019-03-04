@@ -122,7 +122,7 @@ visit (ns)."
                  (cons n (lazy-walk g (concat (get-neighbors g n) ns) (conj v n))))))))
 
 (defn transitive-closure
-  "Returns the transitive closure of a graph. The neighbors are lazily computed.
+  "Returns the transitive closure of a graph.
 
   This implementation uses the (Floyd-)Warshall algorithm which is based on
   dynamic programming to compute the closure.
