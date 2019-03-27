@@ -1,28 +1,36 @@
 (ns conexp.fca.applications.wikidata
-  (:require [conexp.fca.contexts :refer [attributes objects make-context incidence-relation]]
-            [conexp.fca.implications :refer [make-implication premise conclusion]]
+  (:require [conexp.fca.contexts :refer [attributes objects
+                                         make-context incidence-relation]]
+            [conexp.fca.implications :refer [make-implication premise
+                                             conclusion]]
             [conexp.fca.fast :refer :all]
             [conexp.io.contexts :refer :all]
             [clojure.java.io :as io]
+            [clojure.string :as str]
             [clojure.set :refer :all]
             [clj-http.client :as client]
             [clojure.data.json :as json])
   (:import org.apache.http.impl.client.HttpClientBuilder))
 
 (def ^:dynamic *sparql-endpoint*
+  "Wikidata SPARQL query endpoint URI"
   "https://query.wikidata.org/bigdata/namespace/wdq/sparql")
 
 (def ^:dynamic *tool-banner*
+  "tool banner to send with SPARQL queries"
   "#TOOL:conexp-clj, https://github.com/exot/conexp-clj")
 
 (def ^:dynamic *max-entities-per-query*
-  500)
+  "maximum number of entities requested in a single query (entities
+  will be split over multiple queries if above this threshold)" 500)
 
 (def ^:dynamic *query-delay*
+  "delay between two queries, in milliseconds"
   500)
 
 (defn- disable-cookies [^HttpClientBuilder builder
                         request]
+  "helper to disable cookie management in HTTP requests"
   (.disableCookieManagement builder))
 
 (defn sparql-query
@@ -56,14 +64,14 @@
 (defn- entity-id-from-uri
   "retrieve an entity id from a Wikidata entity URI"
   [uri]
-  (let [slash (clojure.string/last-index-of uri "/")]
+  (let [slash (str/last-index-of uri "/")]
     (subs uri (+ 1 slash))))
 
 (defn- label-query-for-entities
-  ""
+  "construct a query that retrieves labels for a list of entities, in a given language (default english)"
   [entities & {:keys [lang] :or {lang "en"}}]
   (str "SELECT ?entity ?label WHERE { VALUES ?entity {"
-       (clojure.string/join " "
+       (str/join " "
                             (map entity-add-sparql-prefix entities))
        "} ?entity rdfs:label ?label FILTER(LANG(?label)=\""
        lang
@@ -124,8 +132,8 @@
   [label]
   (subs label
         (+ 1
-           (clojure.string/last-index-of label "("))
-        (clojure.string/last-index-of label ")")))
+           (str/last-index-of label "("))
+        (str/last-index-of label ")")))
 
 (defn- unlabel-implication
   "turn an implication on labels into an implication on ids"
@@ -133,7 +141,6 @@
   (make-implication
    (map id-from-label (premise implication))
    (map id-from-label (conclusion implication))))
-
 
 (defn- pattern-for-premise
   "generate a graph pattern matching a premise"
@@ -143,7 +150,7 @@
                          property
                          " []"))]
     (str "?entity "
-         (clojure.string/join
+         (str/join
           ";\n    "
           (map to-clause premise))
          " .")))
@@ -173,7 +180,7 @@
      " WHERE {\n  "
      (pattern-for-premise body)
      "\n  "
-     (clojure.string/join
+     (str/join
       " UNION\n  "
       (map pattern-for-conclusion
            head))
