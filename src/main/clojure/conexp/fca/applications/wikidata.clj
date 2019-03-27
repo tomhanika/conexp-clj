@@ -2,7 +2,7 @@
   (:require [conexp.fca.contexts :refer [attributes objects
                                          make-context incidence-relation]]
             [conexp.fca.implications :refer [make-implication premise
-                                             conclusion]]
+                                             conclusion tautology?]]
             [conexp.fca.fast :refer :all]
             [conexp.io.contexts :refer :all]
             [clojure.java.io :as io]
@@ -164,8 +164,11 @@
 
 (defn counterexample-query-for-implication
   "generate a query to check for counterexamples to the implication"
-  [implication & {:keys [amount limit]}]
-  {:pre [(if limit
+  [implication & {:keys [amount limit ask-only]}]
+  {:pre [(if ask-only
+           (not (or amount limit))
+           true)
+         (if limit
            (and (integer? limit)
                 (< 0 limit))
            true)]}
@@ -173,10 +176,13 @@
         body (premise impl)
         head (conclusion impl)]
     (str
-     "SELECT "
+     (if ask-only
+       "ASK "
+       "SELECT ")
      (if amount
        "(COUNT(?entity) AS ?entities)"
-       "?entity")
+       (when-not ask-only
+               "?entity"))
      " WHERE {\n  "
      (pattern-for-premise body)
      "\n  "
@@ -188,36 +194,53 @@
      (when limit
        (str " LIMIT " limit)))))
 
+(defmacro tautology-or-counterexample
+  [implication & body]
+  `(if (tautology? ~implication)
+     nil
+     ~@body))
+
 (defn counterexample?
   "check whether there is a counterexample to the given implication"
   [implication]
-  (with-sparql-bindings
-    (counterexample-query-for-implication implication :limit 1)
-    (< 0 (count bindings))))
+  (tautology-or-counterexample
+   implication
+   (-> implication
+       (counterexample-query-for-implication :ask-only true)
+       (sparql-query)
+       (get :body)
+       (json/read-str)
+       (get "boolean"))))
 
 (defn counterexample
   "find a counterexample to the given implication, or nil if there is none"
   [implication]
-  (with-sparql-bindings
-    (counterexample-query-for-implication implication :limit 1)
-    (let [[{entity "entity"}] bindings]
-      entity)))
+  (tautology-or-counterexample
+   implication
+   (with-sparql-bindings
+     (counterexample-query-for-implication implication :limit 1)
+     (let [[{entity "entity"}] bindings]
+       entity))))
 
 (defn counterexamples
   "find all counterexample to the given implication, or nil if there is none"
   [implication]
-  (with-sparql-bindings
-    (counterexample-query-for-implication implication)
-    (map (fn [{entity "entity"}]
-           entity)
-         bindings)))
+  (tautology-or-counterexample
+   implication
+   (with-sparql-bindings
+     (counterexample-query-for-implication implication)
+     (map (fn [{entity "entity"}]
+            entity)
+          bindings))))
 
 (defn number-of-counterexamples
   "find the number of all counterexamples to the given implication"
   [implication]
-  (with-sparql-bindings
-    (counterexample-query-for-implication implication :amount true)
-    (let [[{{value "value"} "entities"}] bindings]
-      (if value
-        (read-string value)
-        0))))
+  (if (tautology? implication)
+    0
+    (with-sparql-bindings
+      (counterexample-query-for-implication implication :amount true)
+      (let [[{{value "value"} "entities"}] bindings]
+        (if value
+          (read-string value)
+          0)))))
