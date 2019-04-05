@@ -122,6 +122,11 @@
                        [[3 1] [3 1]] [[3 1] [3 2]] [[3 1] [4 1]] [[3 1] [4 2]]
                        [[3 2] [3 2]] [[3 2] [3 1]] [[3 2] [4 2]] [[3 2] [4 1]]))))
 
+(deftest test-incompatibility-graph
+  (let [g2 (transitive-closure (add-loops (uber/digraph [1 3] [1 4] [2 3] [2 4] [3 4] [5 4] 6)))]
+    (is (= (incompatibility-graph g2)
+           (uber/graph [[4 6] [6 5]] [[3 5] [5 2]] [[3 5] [5 1]]
+                       [[6 1] [4 6]] [[6 2] [4 6]] [[1 2] [2 1]])))))
 
 (deftest test-strictness
   (let [less (strict <=)

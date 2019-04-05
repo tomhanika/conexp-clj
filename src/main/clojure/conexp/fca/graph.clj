@@ -96,6 +96,21 @@
   (consistency-digraph-nc g))
 
 
+;;; Incompatibility Graph
+
+(defn incompatibility-graph
+  "See Definition 3.2 in https://doi.org/10.1006/jagm.1998.0974"
+  [p]
+  (let [g (consistency-digraph p)
+        V* (filter #(subset? (set (lg/predecessors* g %)) #{%}) (nodes g))] ; edge-nodes with no predecessor
+    (make-graph-from-condition
+      V*
+      (fn [a b] (some #(some #{(reverse %)} (lg/successors* g b))
+                      (lg/successors* g a))))))
+
+
+;;;
+
 (defn strict
   "Make a strict ordering < of an ordering <=."
   [<=]
