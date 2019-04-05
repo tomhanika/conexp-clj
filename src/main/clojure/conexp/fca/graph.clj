@@ -55,6 +55,125 @@
    (make-graph-from-condition base-set #(and (not (relation %1 %2))
                                              (not (relation %2 %1))))))
 
+(defn implication-classes
+  "Given a transitive digraph g, computes the implication classes.
+
+  See Golumbic 1976,
+  \"The Complexity of Comparability Graph Recognition and Coloring\".
+
+  The implication classes are returned as a graph on the edges of g,
+  where two edges are connected iff they are in the same implication class.
+
+  These are classes of edges for which the directions in a transitive
+  orientation depend on each other.
+  Example for the following graph:
+  b   c
+  \\ / \\
+    a - d
+  The implication classes are {b--a, c--a, d--a} and {c--d},
+  because e.g. the direction b->a would imply c->a and d->a
+  (Otherwise, if e.g. b->a and a->c were applied, due to transitivity, b->c
+  would also be comparable, but this edge is not in the original graph)."
+  [g]
+  (transitive-closure
+    (make-graph-from-condition
+      (lg/edges g)
+      (fn [e1 e2]
+        (let [a (lg/src e1)
+              b (lg/dest e1)
+              a' (lg/src e2)
+              b' (lg/dest e2)]
+          (or (and (= a a') (not (lg/has-edge? g b b')))
+              (and (= b b') (not (lg/has-edge? g a a')))))))))
+
+(defn- valid-collection-of-implication-classes?
+  "Tests whether for a given graph g, a given set of implication classes allows
+  the construction of a transitive orientation."
+  [g impl-classes]
+  (if (empty? (lg/nodes impl-classes))
+    true
+    (let [an-edge-of-g (first (lg/nodes impl-classes))
+          the-reversed-edge (uber/find-edge g (lg/dest an-edge-of-g) (lg/src an-edge-of-g))]
+      (if (lg/has-edge? impl-classes an-edge-of-g the-reversed-edge)
+        false                                               ; is only comparability-graph if classes of an-edge-of-g and the-reversed-edge are disjoint
+        (let [A1 (lg/successors impl-classes an-edge-of-g)  ; includes an-edge-of-g
+              A1-inv (lg/successors impl-classes the-reversed-edge)
+              new-impl-classes (lg/remove-nodes* (lg/remove-nodes* impl-classes A1) A1-inv)]
+          (assert (not= new-impl-classes impl-classes))     ; at least an-edge-of-g and the-reversed-edge should have been removed
+          (recur g new-impl-classes))))))
+
+(defn comparability-graph?
+  "Tests whether a given graph g is a comparability graph.
+
+  Returns true iff there exists a digraph d s.t. g is the comparability graph
+  of d."
+  [g]
+  (valid-collection-of-implication-classes?
+    g (implication-classes g)))
+
+(defn implication-class
+  ([g edge]
+   (println edge)
+   (implication-class g #{} #{} #{edge} #{edge}))
+  ([g closed-src closed-dest open-src open-dest]
+   ;(println closed-src closed-dest open-src open-dest)
+   (if (and (empty? open-src) (empty? open-dest))
+     (union closed-src closed-dest)
+     (if (not (empty? open-src))
+       (let [new-edges (set (mapcat (fn [e] (filter (fn [d] (not (lg/has-edge? g (lg/dest e) (lg/dest d))))
+                                                    (uber/find-edges g {:src (lg/src e)})))
+                                    open-src))
+             new-srcs (difference new-edges closed-src open-src)
+             new-dests (difference new-edges closed-dest open-dest)]
+         ;(println new-edges)
+         ;(println (map lg/src new-srcs))
+         ;(println (map lg/dest new-dests))
+         (recur g (union closed-src open-src) closed-dest new-srcs (union open-dest new-dests)))
+       (let [new-edges (set (mapcat (fn [e] (filter (fn [d] (not (lg/has-edge? g (lg/src e) (lg/src d))))
+                                                    (uber/find-edges g {:dest (lg/dest e)})))
+                                    open-dest))
+             new-srcs (difference new-edges closed-src open-src)
+             new-dests (difference new-edges closed-dest open-dest)]
+         ;(println new-edges)
+         ;(println (map lg/src new-srcs))
+         ;(println (map lg/dest new-dests))
+         (recur g closed-src (union closed-dest open-dest) (union open-src new-srcs) new-dests))))))
+
+(defn- decompose
+  ([g decomp]
+   (decompose g decomp #(first (lg/edges %))))
+  ([g decomp edge-selection]
+   (if (empty? (lg/edges g))
+     decomp
+     (let [e (edge-selection g)
+           B (implication-class g e)
+           B-inv (implication-class g (uber/other-direction g e))
+           B-overline (union B B-inv)
+           g-next (lg/remove-edges* g B-overline)]
+       (recur g-next (conj decomp [B B-overline]) edge-selection)))))
+
+(defn- graph-decomposition
+  ([g]
+   (decompose g []))
+  ([g scheme]
+   (decompose g []
+              (fn [gr]
+                (first (concat (filter #(lg/has-edge? gr (lg/src %) (lg/dest %))
+                                       ;(map #(uber/edge-description->edge g %) scheme)
+                                       scheme)
+                               (lg/edges gr)))))))
+
+(defn transitive-orientation
+  ([g scheme]
+   (uber/add-directed-edges*
+     (uber/digraph)
+     (mapcat first (graph-decomposition g scheme))))
+  ([g]
+   (uber/add-directed-edges*
+     (uber/digraph)
+     (mapcat first (graph-decomposition g)))))
+
+
 ;;; consistency graph
 
 (defn consistency-digraph-nc
@@ -71,8 +190,8 @@
   See Definition 2.2 in https://doi.org/10.1006/jagm.1998.0974"
   [g]
   (let [incompat-nodes
-        (set (map (fn [e] [(uber/src e) (uber/dest e)])
-                  (uber/edges (co-comparability (nodes g) #(lg/has-edge? g %1 %2)))))]
+        (set (map (fn [e] [(lg/src e) (lg/dest e)])
+                  (lg/edges (co-comparability (nodes g) #(lg/has-edge? g %1 %2)))))]
     (make-directed-graph incompat-nodes
                          (fn [x0y0] (let [x0 (x0y0 0)
                                           y0 (x0y0 1)
