@@ -9,6 +9,8 @@
 ;;;
 
 (defn graph->json
+  "Given a graph g (loom or ubergraph), returns the json representation of the
+  graph as required by https://sigmajs.org/."
   ([g]
    (graph->json g (fn [_] [(clojure.core/rand) (clojure.core/rand)])))
   ([g node-positions]
