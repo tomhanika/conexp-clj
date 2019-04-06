@@ -4,7 +4,8 @@
             [conexp.fca.lattices :as lat]
             [conexp.fca.graph :refer :all]
             [conexp.util.graph :refer :all]
-            [conexp.base :exclude [transitive-closure] :refer :all]))
+            [conexp.base :exclude [transitive-closure] :refer :all]
+            [rolling-stones.core :as sat :refer :all]))
 
 (defn compute-conjugate-order
   [P <=]
@@ -86,5 +87,10 @@
 (draw-ascii (compute-coordinates
               #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
 
+(defn sat-test
+  []
+  (println (sat/solve [[1] [1 2] [-1 2 -3]])))
+
+(sat-test)
 
 nil
