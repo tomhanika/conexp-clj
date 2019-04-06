@@ -74,6 +74,9 @@
   [g n]
   (lg/successors* g n))
 
+(defn edge->vec
+  [e]
+  [(:src e) (:dest e)])
 
 ;; Graph Modification
 
