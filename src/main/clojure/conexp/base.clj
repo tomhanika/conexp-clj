@@ -144,17 +144,6 @@ metadata (as provided by def) merged into the metadata of the original."
   [name & decls]
   (list* `defmacro (with-meta name (assoc (meta name) :private true)) decls))
 
-(defn seqable?                          ; from clojure.core.incubator
-  "Returns true if (seq x) will succeed, false otherwise."
-  [x]
-  (or (seq? x)
-      (instance? clojure.lang.Seqable x)
-      (nil? x)
-      (instance? Iterable x)
-      (-> ^Object x .getClass .isArray)
-      (string? x)
-      (instance? java.util.Map x)))
-
 (defn proper-subset?
   "Returns true iff set-1 is a proper subset of set-2."
   [set-1 set-2]
