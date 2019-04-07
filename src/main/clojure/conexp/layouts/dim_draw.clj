@@ -7,6 +7,76 @@
             [conexp.base :exclude [transitive-closure] :refer :all]
             [rolling-stones.core :as sat :refer :all]))
 
+(defn- lt-seq
+  ([xs k]
+   (lt-seq xs k (Math/random)))
+  ([xs k prefix]
+   (if (> k 0)
+     (let [n (count xs)
+           s prefix]
+       (concat
+         [[(! (xs 0)) [:tmp s 0 0]]]
+         (map #(vec [(! [:tmp s 0 %])])
+              (vec (range 1 k)))
+         (mapcat (fn [i] (concat [
+                                  [(! (xs i)) [:tmp s i 0]]
+                                  [(! [:tmp s (- i 1) 0]) [:tmp s i 0]]]
+                                 (mapcat (fn [j] [
+                                                  [(! (xs i)) (! [:tmp s (- i 1) (- j 1)]) [:tmp s i j]]
+                                                  [(! [:tmp s (- i 1) j]) [:tmp s i j]]])
+                                         (vec (range 1 k)))
+                                 [[(! (xs i)) (! [:tmp s (- i 1) (- k 1)])]]))
+                 (vec (range 1 (- n 1))))
+         [[(! (xs (- n 1))) (! [:tmp s (- n 2) (- k 1)])]]))
+     (vec (map #(vec [(! %)]) xs)))))
+
+(def cnf (lt-seq [:x1 :x2 :x3] 0 "s"))
+(println cnf)
+(println)
+(doseq [line (sat/solutions-symbolic-cnf cnf)]
+  (println line))
+
+(defn sat-reduction
+  ([g]
+   (first (drop-while #(= % nil) (map #(sat-reduction g %) (range)))))
+  ([g k]
+   (let [node-clauses (mapcat
+                        #(vec [[[% 1] [% 2] [% 3]]          ;either V_{i,1}, V_{i,2}, or V_{i,3} is true
+                               [(! [% 1]) (! [% 2])]        ;but not two of them
+                               [(! [% 2]) (! [% 3])]
+                               [(! [% 3]) (! [% 1])]])
+                        (nodes g))
+         ;edge-clauses (mapcat
+         ;               #(let [vi (:src %) vj (:dest %)]
+         ;                  [[[vi 1] [vj 1]] [[vi 2] [vj 2]]])
+         ;               (lg/edges g))
+         edge-clauses (mapcat
+                        #(let [vi (:src %) vj (:dest %)]
+                           [[[vi 1] [vj 1] [vi 2] [vj 2]]
+                            [[vi 2] [vj 2] [vi 3] [vj 3]]
+                            [[vi 3] [vj 3] [vi 1] [vj 1]]])
+                        (lg/edges g))
+         no-more-than-k-bad-edges-clauses (lt-seq
+                                            (vec (map #(vec [% 3]) (nodes g)))
+                                            k "s")
+         clauses (concat node-clauses edge-clauses no-more-than-k-bad-edges-clauses)
+         expected [[[:a 1]] [[:b 2]] [[:c 2]] [[:e 3]]]
+         ]
+     (println node-clauses)
+     (println edge-clauses)
+     (println no-more-than-k-bad-edges-clauses)
+     (println "solved:")
+     (println (sat/solve-symbolic-cnf clauses))
+     (println (sat/solve-symbolic-cnf (concat expected node-clauses)))
+     (println (sat/solve-symbolic-cnf (concat expected edge-clauses)))
+     (println (sat/solve-symbolic-cnf (concat expected no-more-than-k-bad-edges-clauses)))
+     (println (sat/solve-symbolic-cnf (concat expected node-clauses edge-clauses)))
+     (println (sat/solve-symbolic-cnf (concat expected edge-clauses no-more-than-k-bad-edges-clauses)))
+     (println (sat/solve-symbolic-cnf (concat expected no-more-than-k-bad-edges-clauses node-clauses)))
+     )))
+
+(sat-reduction (uber/digraph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
+
 (defn compute-conjugate-order
   [P <=]
   (let [C (co-comparability P <=)]
@@ -87,10 +157,6 @@
 (draw-ascii (compute-coordinates
               #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
 
-(defn sat-test
-  []
-  (println (sat/solve [[1] [1 2] [-1 2 -3]])))
 
-(sat-test)
 
 nil
