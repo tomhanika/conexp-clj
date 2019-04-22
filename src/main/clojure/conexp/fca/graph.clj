@@ -112,11 +112,19 @@
     g (implication-classes g)))
 
 (defn implication-class
+  "Returns the implication class in `g` containing `edge`.
+
+  `g` must be an undirected graph, `edge` an edge not in `g`, but
+  connecting two vertices of `g`.
+  Then, this method returns the implication class containing `edge`.
+
+  Implication classes are classes of edges for which the directions in a transitive
+  orientation depend on each other, see also `implication-classes`.
+  They are described in Golumbic 1976,
+  \"The Complexity of Comparability Graph Recognition and Coloring\"."
   ([g edge]
-   ;(println edge)
    (implication-class g #{} #{} #{edge} #{edge}))
   ([g closed-src closed-dest open-src open-dest]
-   ;(println closed-src closed-dest open-src open-dest)
    (if (and (empty? open-src) (empty? open-dest))
      (union closed-src closed-dest)
      (if (not (empty? open-src))
@@ -125,21 +133,17 @@
                                     open-src))
              new-srcs (difference new-edges closed-src open-src)
              new-dests (difference new-edges closed-dest open-dest)]
-         ;(println new-edges)
-         ;(println (map lg/src new-srcs))
-         ;(println (map lg/dest new-dests))
          (recur g (union closed-src open-src) closed-dest new-srcs (union open-dest new-dests)))
        (let [new-edges (set (mapcat (fn [e] (filter (fn [d] (not (lg/has-edge? g (lg/src e) (lg/src d))))
                                                     (uber/find-edges g {:dest (lg/dest e)})))
                                     open-dest))
              new-srcs (difference new-edges closed-src open-src)
              new-dests (difference new-edges closed-dest open-dest)]
-         ;(println new-edges)
-         ;(println (map lg/src new-srcs))
-         ;(println (map lg/dest new-dests))
          (recur g closed-src (union closed-dest open-dest) (union open-src new-srcs) new-dests))))))
 
 (defn- decompose
+  "Recursively decomposes graphs as described in Golumbic 1976,
+  \"The Complexity of Comparability Graph Recognition and Coloring\"."
   ([g decomp]
    (decompose g decomp #(first (lg/edges %))))
   ([g decomp edge-selection]
@@ -153,6 +157,8 @@
        (recur g-next (conj decomp [B B-overline]) edge-selection)))))
 
 (defn- graph-decomposition
+  "Decomposes graphs as described in Golumbic 1976,
+  \"The Complexity of Comparability Graph Recognition and Coloring\"."
   ([g]
    (decompose g []))
   ([g scheme]
@@ -164,6 +170,16 @@
                                (lg/edges gr)))))))
 
 (defn transitive-orientation
+  "Generates a transitive orientation for an undirected graph.
+
+  `g` must be an undirected graph, the method returns a directed transitive
+  copy of `g`.
+
+  Optionally, a decomposition scheme may be given. This is a vector of edges
+  describing the order in which to take the edges.
+
+  See Golumbic 1976,
+  \"The Complexity of Comparability Graph Recognition and Coloring\"."
   ([g scheme]
    (uber/add-directed-edges*
      (uber/digraph)
