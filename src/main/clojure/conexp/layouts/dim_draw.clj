@@ -79,12 +79,6 @@
       (map edge->vec (lg/edges (transitive-orientation C)))
       nil)))
 
-(defn maximum-bipartite-subgraph
-  [I]
-  42)
-
-(def ?? nil)
-(def ??remove-nodes nil)
 
 (defn compute-coordinates
   [P <=]
@@ -93,8 +87,7 @@
         (let [<=C' (compute-conjugate-order P <=)]
           (if (= <=C' nil)
             (let [I (incompatibility-graph P <=)
-                  B (maximum-bipartite-subgraph I)
-                  C (?? (??remove-nodes I B))]
+                  C (sat-reduction I)]
               (compute-conjugate-order P (union <= (transitive-closure C))))
             <=C'))
         <=1 (union <=as-set <=C)
