@@ -60,22 +60,17 @@
                                             (vec (map #(vec [% 3]) (nodes g)))
                                             k "s")
          clauses (concat node-clauses edge-clauses no-more-than-k-bad-edges-clauses)
-         expected [[[:a 1]] [[:b 2]] [[:c 2]] [[:e 3]]]
-         ]
+         raw-solution (sat/solve-symbolic-cnf clauses)
+         C (map first (filter #(and (sat/positive? %) (= (% 1) 3)) raw-solution))]
      (println node-clauses)
      (println edge-clauses)
      (println no-more-than-k-bad-edges-clauses)
      (println "solved:")
-     (println (sat/solve-symbolic-cnf clauses))
-     (println (sat/solve-symbolic-cnf (concat expected node-clauses)))
-     (println (sat/solve-symbolic-cnf (concat expected edge-clauses)))
-     (println (sat/solve-symbolic-cnf (concat expected no-more-than-k-bad-edges-clauses)))
-     (println (sat/solve-symbolic-cnf (concat expected node-clauses edge-clauses)))
-     (println (sat/solve-symbolic-cnf (concat expected edge-clauses no-more-than-k-bad-edges-clauses)))
-     (println (sat/solve-symbolic-cnf (concat expected no-more-than-k-bad-edges-clauses node-clauses)))
-     )))
+     (println raw-solution)
+     (println C)
+     C)))
 
-(sat-reduction (uber/digraph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
+(sat-reduction (uber/graph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
 
 (defn compute-conjugate-order
   [P <=]
@@ -107,8 +102,7 @@
         elements-less (fn [le elem] (- (count (filter #(some #{[% elem]} le) P)) 1))
         coords (map #(let
                        [x1 (elements-less <=1 %) x2 (elements-less <=2 %)]
-                       [% [x1 x2]]) P)
-        ]
+                       [% [x1 x2]]) P)]
     coords))
 
 (println (compute-conjugate-order
@@ -156,6 +150,9 @@
 
 (draw-ascii (compute-coordinates
               #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
+
+(draw-ascii (compute-coordinates
+              #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2) (and (= %1 2) (= %2 3))))))
 
 
 
