@@ -8,6 +8,11 @@
             [rolling-stones.core :as sat :refer :all]))
 
 (defn- lt-seq
+  "Constructs a constraint stating that at most `k` of the given variables `xs` are true.
+
+  This is from ??.
+
+  Could be replaced by `rolling-stones.core/at-most`."      ; todo paper name
   ([xs k]
    (lt-seq xs k (Math/random)))
   ([xs k prefix]
@@ -37,6 +42,10 @@
   (println line))
 
 (defn sat-reduction
+  "Reduces the problem of finding a maximum bipartite subgraph to satisfiability.
+
+
+  As described in Section 5.2 of Dominik's paper."          ; todo paper name
   ([g]
    (first (drop-while #(= % nil) (map #(sat-reduction g %) (range)))))
   ([g k]
@@ -62,12 +71,12 @@
          clauses (concat node-clauses edge-clauses no-more-than-k-bad-edges-clauses)
          raw-solution (sat/solve-symbolic-cnf clauses)
          C (map first (filter #(and (sat/positive? %) (= (% 1) 3)) raw-solution))]
-     (println node-clauses)
-     (println edge-clauses)
-     (println no-more-than-k-bad-edges-clauses)
-     (println "solved:")
-     (println raw-solution)
-     (println C)
+     ;(println node-clauses)
+     ;(println edge-clauses)
+     ;(println no-more-than-k-bad-edges-clauses)
+     ;(println "solved:")
+     ;(println raw-solution)
+     ;(println C)
      C)))
 
 (sat-reduction (uber/graph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
@@ -81,6 +90,14 @@
 
 
 (defn compute-coordinates
+  "Given a set `P` and a binary relation `<=`, computes coordinates for each
+  element of the set s.t. placing the elements to the coordinates gives a clear
+  image of the relation.
+
+  The coordinates are returned in the form `[[e1 [x1 y1]] [e2 [x2 y2]] ...]`
+  where e is the element, and x and y are the corresponding coordinates.
+
+  See paper of Dominik (2019)"                              ;todo paper name
   [P <=]
   (let [<=as-set (map edge->vec (lg/edges (make-digraph-from-condition P <=)))
         <=C
@@ -110,8 +127,7 @@
 
 (defn draw-ascii
   [coords]
-  (let [
-        x-step 2
+  (let [x-step 2
         size (count coords)
         spaces (.substring (replicate-str "   " (* size x-step)) (* size x-step))
         line-contents (map (fn [i] (filter
@@ -126,8 +142,7 @@
         positioned-lines (map (fn [line] (map #(vec [(first %)
                                                      (* (- (last %) min-x) x-step)])
                                               line))
-                              lines)
-        ]
+                              lines)]
     (doseq [pos-line positioned-lines]
       (println (reduce
                  (fn [l p]
