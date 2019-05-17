@@ -91,17 +91,17 @@
   [P <=]
   (let [<=as-set (map edge->vec (lg/edges (make-digraph-from-condition P <=)))
         <=C
-        (let [<=C' (compute-conjugate-order P <=)]
-          (println "<=C': " <=C')
-          (if (= <=C' nil)
-            (let [I (incompatibility-graph P <=)
-                  C (sat-reduction I)
-                  C-bar-graph (transitive-closure (apply uber/digraph C))]
-              (uber/pprint I)
-              (println C-bar-graph)
-              (compute-conjugate-order P #(or (<= %1 %2) (lg/has-edge? C-bar-graph %1 %2)))
-              )
-            <=C'))
+        (let [<=C' (atom (compute-conjugate-order P <=))]
+          (println "<=C': " @<=C')
+          (while (= @<=C' nil)
+            (swap! <=C'
+                   (fn [<=C''] (let [I (incompatibility-graph P <=) ; the loop cannot terminate as "<=C'" depends on constant parameters
+                         C (sat-reduction I)
+                         C-bar-graph (transitive-closure (apply uber/digraph C))]
+                     (uber/pprint I)
+                     (println C-bar-graph)
+                     (compute-conjugate-order P #(or (<= %1 %2) (lg/has-edge? C-bar-graph %1 %2)))))))
+          @<=C')
         <=1 (union <=as-set <=C)
         <=2 (union <=as-set (map reverse <=C))
         elements-less (fn [le elem] (- (count (filter #(some #{[% elem]} le) P)) 1))
