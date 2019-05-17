@@ -7,7 +7,7 @@
             [conexp.base :exclude [transitive-closure] :refer :all]
             [rolling-stones.core :as sat :refer :all]))
 
-(defn- lt-seq
+(defn lt-seq
   "Constructs a constraint stating that at most `k` of the given variables `xs` are true.
 
   This is from ??.
@@ -16,7 +16,8 @@
   ([xs k]
    (lt-seq xs k (Math/random)))
   ([xs k prefix]
-   (if (> k 0)
+   (assert (>= k 0))
+   (if (and (> k 0) (not (empty? xs)))
      (let [n (count xs)
            s prefix]
        (concat
@@ -35,11 +36,6 @@
          [[(! (xs (- n 1))) (! [:tmp s (- n 2) (- k 1)])]]))
      (vec (map #(vec [(! %)]) xs)))))
 
-(def cnf (lt-seq [:x1 :x2 :x3] 0 "s"))
-(println cnf)
-(println)
-(doseq [line (sat/solutions-symbolic-cnf cnf)]
-  (println line))
 
 (defn sat-reduction
   "Reduces the problem of finding a maximum bipartite subgraph to satisfiability.
@@ -50,12 +46,8 @@
    (first (drop-while #(= % nil) (map #(sat-reduction g %) (range)))))
   ([g k]
    (let [node-clauses (mapcat
-                        #(vec [[[% 1] [% 2] [% 3]]])        ;either V_{i,1}, V_{i,2}, or V_{i,3} is true
+                        #(vec [[[% 1] [% 2] [% 3]]])        ; alt least one of V_{i,1}, V_{i,2}, or V_{i,3} is true
                         (nodes g))
-         ;edge-clauses (mapcat
-         ;               #(let [vi (:src %) vj (:dest %)]
-         ;                  [[[vi 1] [vj 1]] [[vi 2] [vj 2]]])
-         ;               (lg/edges g))
          edge-clauses (mapcat
                         #(let [vi (:src %) vj (:dest %)]
                            [[(! [vi 1]) (! [vj 1])]
@@ -66,7 +58,9 @@
                                             k "s")
          clauses (concat node-clauses edge-clauses no-more-than-k-bad-edges-clauses)
          raw-solution (sat/solve-symbolic-cnf clauses)
-         C (map first (filter #(and (sat/positive? %) (= (% 1) 3)) raw-solution))]
+         C (if (= raw-solution nil)
+             nil
+             (map first (filter #(and (sat/positive? %) (= (% 1) 3)) raw-solution)))]
      ;(println node-clauses)
      ;(println edge-clauses)
      ;(println no-more-than-k-bad-edges-clauses)
@@ -75,7 +69,7 @@
      ;(println C)
      C)))
 
-(sat-reduction (uber/graph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
+;(sat-reduction (uber/graph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
 
 (defn compute-conjugate-order
   [P <=]
@@ -98,10 +92,15 @@
   (let [<=as-set (map edge->vec (lg/edges (make-digraph-from-condition P <=)))
         <=C
         (let [<=C' (compute-conjugate-order P <=)]
+          (println "<=C': " <=C')
           (if (= <=C' nil)
             (let [I (incompatibility-graph P <=)
-                  C (sat-reduction I)]
-              (compute-conjugate-order P (union <= (transitive-closure C))))
+                  C (sat-reduction I)
+                  C-bar-graph (transitive-closure (apply uber/digraph C))]
+              (uber/pprint I)
+              (println C-bar-graph)
+              (compute-conjugate-order P #(or (<= %1 %2) (lg/has-edge? C-bar-graph %1 %2)))
+              )
             <=C'))
         <=1 (union <=as-set <=C)
         <=2 (union <=as-set (map reverse <=C))
@@ -111,11 +110,11 @@
                        [% [x1 x2]]) P)]
     coords))
 
-(println (compute-conjugate-order
-           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
-
-(println (compute-coordinates
-           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
+;(println (compute-conjugate-order
+;           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
+;
+;(println (compute-coordinates
+;           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
 
 (defn- replicate-str
   [s i]
@@ -125,7 +124,7 @@
   [coords]
   (let [x-step 2
         size (count coords)
-        spaces (.substring (replicate-str "   " (* size x-step)) (* size x-step))
+        spaces (replicate-str "  " (* size x-step))
         line-contents (map (fn [i] (filter
                                      #(= i (+ (first (last %)) (last (last %))))
                                      coords))
@@ -134,7 +133,9 @@
                                           (- (first (last %)) (last (last %)))])
                                    line))
                    line-contents)
-        min-x (apply min (map #(apply min (cons 0 (map last %))) lines))
+        min-x (if (empty? lines)
+                0
+                (apply min (map #(apply min (cons 0 (map last %))) lines)))
         positioned-lines (map (fn [line] (map #(vec [(first %)
                                                      (* (- (last %) min-x) x-step)])
                                               line))
@@ -148,16 +149,13 @@
                        0
                        (last p))
                      (first p)))
-                 "" pos-line))
-      )
-    ))
+                 "" (sort-by last pos-line))))))
 
-(draw-ascii (compute-coordinates
-              #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
-
-(draw-ascii (compute-coordinates
-              #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2) (and (= %1 2) (= %2 3))))))
-
+;(draw-ascii (compute-coordinates
+;              #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
+;
+;(draw-ascii (compute-coordinates
+;              #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2) (and (= %1 2) (= %2 3))))))
 
 
 nil
