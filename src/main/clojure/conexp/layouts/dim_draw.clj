@@ -50,10 +50,7 @@
    (first (drop-while #(= % nil) (map #(sat-reduction g %) (range)))))
   ([g k]
    (let [node-clauses (mapcat
-                        #(vec [[[% 1] [% 2] [% 3]]          ;either V_{i,1}, V_{i,2}, or V_{i,3} is true
-                               [(! [% 1]) (! [% 2])]        ;but not two of them
-                               [(! [% 2]) (! [% 3])]
-                               [(! [% 3]) (! [% 1])]])
+                        #(vec [[[% 1] [% 2] [% 3]]])        ;either V_{i,1}, V_{i,2}, or V_{i,3} is true
                         (nodes g))
          ;edge-clauses (mapcat
          ;               #(let [vi (:src %) vj (:dest %)]
@@ -61,9 +58,8 @@
          ;               (lg/edges g))
          edge-clauses (mapcat
                         #(let [vi (:src %) vj (:dest %)]
-                           [[[vi 1] [vj 1] [vi 2] [vj 2]]
-                            [[vi 2] [vj 2] [vi 3] [vj 3]]
-                            [[vi 3] [vj 3] [vi 1] [vj 1]]])
+                           [[(! [vi 1]) (! [vj 1])]
+                            [(! [vi 2]) (! [vj 2])]])
                         (lg/edges g))
          no-more-than-k-bad-edges-clauses (lt-seq
                                             (vec (map #(vec [% 3]) (nodes g)))
