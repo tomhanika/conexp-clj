@@ -88,27 +88,41 @@
   where e is the element, and x and y are the corresponding coordinates.
 
   See paper of Dominik (2019)"                              ;todo paper name
-  [P <=]
-  (let [<=as-set (map edge->vec (lg/edges (make-digraph-from-condition P <=)))
-        <=C
-        (let [<=C' (atom (compute-conjugate-order P <=))]
-          (println "<=C': " @<=C')
-          (while (= @<=C' nil)
-            (swap! <=C'
-                   (fn [<=C''] (let [I (incompatibility-graph P <=) ; the loop cannot terminate as "<=C'" depends on constant parameters
-                         C (sat-reduction I)
-                         C-bar-graph (transitive-closure (apply uber/digraph C))]
-                     (uber/pprint I)
-                     (println C-bar-graph)
-                     (compute-conjugate-order P #(or (<= %1 %2) (lg/has-edge? C-bar-graph %1 %2)))))))
-          @<=C')
-        <=1 (union <=as-set <=C)
-        <=2 (union <=as-set (map reverse <=C))
-        elements-less (fn [le elem] (- (count (filter #(some #{[% elem]} le) P)) 1))
-        coords (map #(let
-                       [x1 (elements-less <=1 %) x2 (elements-less <=2 %)]
-                       [% [x1 x2]]) P)]
-    coords))
+  ([graph]
+   (compute-coordinates (lg/nodes graph) #(lg/has-edge? graph %1 %2)))
+  ([P <=]
+   (let [<=as-set (map edge->vec (lg/edges (make-digraph-from-condition P <=)))
+         <=C (let [<=CAtom (atom (compute-conjugate-order P <=))
+                   CAtom (atom ())]
+               (println "<=CAtom: " @<=CAtom)
+               (while (= @<=CAtom nil)
+                 (swap! CAtom
+                        (fn [C] (let [I (incompatibility-graph (transitive-edge-union P <= C))]
+                                  (println "(transitive-edge-union P <= C):")
+                                  (uber/pprint (transitive-edge-union P <= C))
+                                  (println "I:")
+                                  (uber/pprint I)
+                                  (println C (sat-reduction I))
+                                  (union C (sat-reduction I)))))
+                 (let [C @CAtom
+                       C-bar-graph (transitive-closure (apply uber/digraph C))
+                       ;<=CNew (compute-conjugate-order P #(or (<= %1 %2) (lg/has-edge? C-bar-graph %2 %1)))] ;why \bar C? why not union?
+                       ;<=CNew (compute-conjugate-order (transitive-edge-union P <= #(lg/has-edge? C-bar-graph %1 %2)))]
+                       <=CNew (compute-conjugate-order (transitive-edge-union P <= #(lg/has-edge? C-bar-graph %2 %1)))]
+                   (println "C: " C)
+                   (println "C-bar-graph:")
+                   (uber/pprint C-bar-graph)
+                   (println "<=CNew: " <=CNew)
+                   (reset! <=CAtom
+                           <=CNew)))
+               @<=CAtom)
+         <=1 (map edge->vec (lg/edges (transitive-edge-union P <= <=C)))
+         <=2 (map edge->vec (lg/edges (transitive-edge-union P <= (map reverse <=C))))
+         elements-less (fn [le elem] (- (count (filter #(some #{[% elem]} le) P)) 1))
+         coords (map #(let
+                        [x1 (elements-less <=1 %) x2 (elements-less <=2 %)]
+                        [% [x1 x2]]) P)]
+     coords)))
 
 ;(println (compute-conjugate-order
 ;           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
