@@ -72,11 +72,13 @@
 ;(sat-reduction (uber/graph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
 
 (defn compute-conjugate-order
-  [P <=]
-  (let [C (co-comparability P <=)]
-    (if (comparability-graph? C)
-      (map edge->vec (lg/edges (transitive-orientation C)))
-      nil)))
+  ([graph]
+    (compute-conjugate-order (lg/nodes graph) #(lg/has-edge? graph %1 %2)))
+  ([P <=]
+   (let [C (co-comparability P <=)]
+     (if (comparability-graph? C)                           ; has transitive orientation?
+       (map edge->vec (lg/edges (transitive-orientation C)))
+       nil))))
 
 
 (defn compute-coordinates
