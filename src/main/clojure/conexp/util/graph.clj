@@ -40,7 +40,7 @@
    for either (u,v) or (v,u) or both."
   [nodes condition]
   (uber/add-undirected-edges*
-    (uber/graph)
+    (apply lg/add-nodes (uber/graph) nodes)
     (mapcat
       (fn [x] (map
                 (fn [y] [x y])
@@ -52,7 +52,7 @@
    if two nodes shall get an edge."
   [nodes condition]
   (uber/add-directed-edges*
-    (uber/digraph)
+    (apply lg/add-nodes (uber/digraph) nodes)
     (mapcat
       (fn [x] (map
                 (fn [y] [x y])
