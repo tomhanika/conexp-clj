@@ -10,9 +10,13 @@
 (defn lt-seq
   "Constructs a constraint stating that at most `k` of the given variables `xs` are true.
 
-  This is from ??.
+  Input: A list `xs` of variables and a number `k`
+  Output: A CNF stating that at most k of the variables are true,
+  usable for rolling-stones sat solver.
 
-  Could be replaced by `rolling-stones.core/at-most`."      ; todo paper name
+  This is from \"Towards an optimal CNF Encoding of Boolean Cardinality
+  Constraints\", Carsten Sinz (2005).
+  Could be replaced by `rolling-stones.core/at-most`."
   ([xs k]
    (lt-seq xs k (Math/random)))
   ([xs k prefix]
@@ -38,10 +42,17 @@
 
 
 (defn sat-reduction
-  "Reduces the problem of finding a maximum bipartite subgraph to satisfiability.
+  "Reduces the problem of finding a maximum bipartite subgraph to satisfiability
+  and solves it.
 
+  The vertices of the graph get partitioned in 3 sets: `P_1`, `P_2` and `C`, s.t.
+  `P_1` and `P_2` constitute the bipartite graph and `C` has cardinality at most k.
 
-  As described in Section 5.2 of Dominik's paper."          ; todo paper name
+  Input: An undirected graph and optionally a maximum cardinality for `C`.
+  Output: The set to be removed from the graph s.t. the graph becomes bipartite.
+  nil, if there is no such set of cardinality at most `k`.
+
+  See Section 5.2, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   ([g]
    (first (drop-while #(= % nil) (map #(sat-reduction g %) (range)))))
   ([g k]
@@ -61,17 +72,16 @@
          C (if (= raw-solution nil)
              nil
              (map first (filter #(and (sat/positive? %) (= (% 1) 3)) raw-solution)))]
-     ;(println node-clauses)
-     ;(println edge-clauses)
-     ;(println no-more-than-k-bad-edges-clauses)
-     ;(println "solved:")
-     ;(println raw-solution)
-     ;(println C)
      C)))
 
 ;(sat-reduction (uber/graph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
 
 (defn compute-conjugate-order
+  "For a given ordered set, computes the conjugate order.
+  This is a transitive orientation on the not-yet oriented pairs.
+  If that is not possible, returns nil.
+
+  See Section 5.2, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   ([graph]
     (compute-conjugate-order (lg/nodes graph) #(lg/has-edge? graph %1 %2)))
   ([P <=]
@@ -89,7 +99,7 @@
   The coordinates are returned in the form `[[e1 [x1 y1]] [e2 [x2 y2]] ...]`
   where e is the element, and x and y are the corresponding coordinates.
 
-  See paper of Dominik (2019)"                              ;todo paper name
+  See Section 5.2, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   ([graph]
    (compute-coordinates (lg/nodes graph) #(lg/has-edge? graph %1 %2)))
   ([P <=]
