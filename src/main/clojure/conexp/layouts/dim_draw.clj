@@ -104,16 +104,11 @@
                                   (uber/pprint (transitive-edge-union P <= C))
                                   (println "I:")
                                   (uber/pprint I)
-                                  (println C (sat-reduction I))
-                                  (union C (sat-reduction I)))))
+                                  (println C " <-- C ; new -->" (sat-reduction I))
+                                  (union C (map reverse (sat-reduction I))))))
                  (let [C @CAtom
-                       C-bar-graph (transitive-closure (apply uber/digraph C))
-                       ;<=CNew (compute-conjugate-order P #(or (<= %1 %2) (lg/has-edge? C-bar-graph %2 %1)))] ;why \bar C? why not union?
-                       ;<=CNew (compute-conjugate-order (transitive-edge-union P <= #(lg/has-edge? C-bar-graph %1 %2)))]
-                       <=CNew (compute-conjugate-order (transitive-edge-union P <= #(lg/has-edge? C-bar-graph %2 %1)))]
+                       <=CNew (compute-conjugate-order (transitive-edge-union P <= C))]
                    (println "C: " C)
-                   (println "C-bar-graph:")
-                   (uber/pprint C-bar-graph)
                    (println "<=CNew: " <=CNew)
                    (reset! <=CAtom
                            <=CNew)))
