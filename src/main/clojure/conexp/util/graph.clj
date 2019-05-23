@@ -270,6 +270,38 @@ graph, node a must be equal or later in the sequence."
                             =)]
     (fold-into-sets counts)))
 
+;; Set Operations
+
+
+(defn transitive-edge-union
+  ([base]
+   (if (satisfies? loom.graph/Digraph base)
+     (transitive-closure base)
+     (transitive-closure (apply lg/add-nodes (uber/digraph) base))))
+  ([base edges1]
+   (if (instance? clojure.lang.Sequential edges1)
+     (transitive-closure
+       (uber/add-directed-edges* (transitive-edge-union base)
+                                 edges1))
+     (transitive-closure
+       (uber/add-directed-edges* (transitive-edge-union base)
+                                 (mapcat
+                                   (fn [x] (map
+                                             (fn [y] [x y])
+                                             (filter #(edges1 x %) base)))
+                                   base)))))
+  ([base edges1 & more-edges]
+   (if (instance? clojure.lang.Sequential edges1)
+     (transitive-closure
+       (uber/add-directed-edges* (apply transitive-edge-union base more-edges)
+                                 edges1))
+     (transitive-closure
+       (uber/add-directed-edges* (apply transitive-edge-union base more-edges)
+                                 (mapcat
+                                   (fn [x] (map
+                                             (fn [y] [x y])
+                                             (filter #(edges1 x %) base)))
+                                   base))))))
 
 ;; End of file
 
