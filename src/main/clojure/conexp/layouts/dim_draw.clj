@@ -131,6 +131,30 @@
                         [% [x1 x2]]) P)]
      coords)))
 
+(defn dim-draw-layout
+  "Returns a layout for a given lattice.
+
+  The positions in the layout are computed using DimDraw, see
+  Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
+  [lattice]
+  (let [g (lattice->graph lattice)
+        coordinates (map #(vector (first %)
+                                  (let [x1x2 (second %)
+                                        x (- (first x1x2) (second x1x2))
+                                        y (+ (first x1x2) (second x1x2))]
+                                    [x y]))
+                         (compute-coordinates g))
+        positions (reduce conj {} coordinates)]
+    (lay/make-layout-nc lattice
+                    positions
+                    (map edge->vec (lg/edges g)))))
+
+;(def lat1
+;  (lat/make-lattice [1 2 3] [[1 1] [2 2] [3 3]
+;                             [1 2] [2 3] [1 3]]))
+;
+;(println (dim-draw-layout lat1))
+
 ;(println (compute-conjugate-order
 ;           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
 ;
