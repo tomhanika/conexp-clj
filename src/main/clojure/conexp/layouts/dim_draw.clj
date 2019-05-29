@@ -100,8 +100,6 @@
              (map first (filter #(and (sat/positive? %) (= (% 1) 3)) raw-solution)))]
      C)))
 
-;(sat-reduction (uber/graph [:a :b] [:a :c] [:b :e] [:c :e] [:a :e]) 1)
-
 (defn compute-conjugate-order
   "For a given ordered set, computes the conjugate order.
   This is a transitive orientation on the not-yet oriented pairs.
@@ -129,23 +127,23 @@
   ([graph]
    (compute-coordinates (lg/nodes graph) #(lg/has-edge? graph %1 %2)))
   ([P <=]
-   (let [<=as-set (map edge->vec (lg/edges (make-digraph-from-condition P <=)))
-         <=C (let [<=CAtom (atom (compute-conjugate-order P <=))
+   (let [<=C (let [<=CAtom (atom (compute-conjugate-order P <=))
                    CAtom (atom ())]
-               (println "<=CAtom: " @<=CAtom)
+               ;(println "<=CAtom: " @<=CAtom)
                (while (= @<=CAtom nil)
                  (swap! CAtom
                         (fn [C] (let [I (tig (transitive-edge-union P <= C))]
-                                  (println "(transitive-edge-union P <= C):")
-                                  (uber/pprint (transitive-edge-union P <= C))
-                                  (println "I:")
-                                  (uber/pprint I)
-                                  (println C " <-- C ; new -->" (sat-reduction I))
+                                  ;(println "(transitive-edge-union P <= C):")
+                                  ;(uber/pprint (transitive-edge-union P <= C))
+                                  ;(println "I:")
+                                  ;(uber/pprint I)
+                                  ;(println C " <-- C ; new -->" (sat-reduction I))
                                   (union C (map reverse (sat-reduction I))))))
                  (let [C @CAtom
                        <=CNew (compute-conjugate-order (transitive-edge-union P <= C))]
-                   (println "C: " C)
-                   (println "<=CNew: " <=CNew)
+                   ;(println "C: " C)
+                   ;(println "C size: " (count C))
+                   ;(println "<=CNew: " <=CNew)
                    (reset! <=CAtom
                            <=CNew)))
                @<=CAtom)
@@ -176,18 +174,6 @@
                     (mapcat (fn [n] (map #(vector n %)
                                          (lat/lattice-upper-neighbours lattice n)))
                             (lat/base-set lattice)))))
-
-;(def lat1
-;  (lat/make-lattice [1 2 3] [[1 1] [2 2] [3 3]
-;                             [1 2] [2 3] [1 3]]))
-;
-;(println (dim-draw-layout lat1))
-
-;(println (compute-conjugate-order
-;           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
-;
-;(println (compute-coordinates
-;           #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
 
 (defn- replicate-str
   [s i]
@@ -223,12 +209,5 @@
                        (last p))
                      (first p)))
                  "" (sort-by last pos-line))))))
-
-;(draw-ascii (compute-coordinates
-;              #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2)))))
-;
-;(draw-ascii (compute-coordinates
-;              #{1 2 3 4 5} (non-strict #(or (= 1 %1) (= 5 %2) (and (= %1 2) (= %2 3))))))
-
 
 nil
