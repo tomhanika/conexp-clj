@@ -4,6 +4,7 @@
             [conexp.fca.lattices :as lat]
             [conexp.fca.graph :refer :all]
             [conexp.util.graph :refer :all]
+            [conexp.layouts.base :as lay]
             [conexp.base :exclude [transitive-closure] :refer :all]
             [rolling-stones.core :as sat :refer :all]))
 
@@ -39,6 +40,31 @@
                  (vec (range 1 (- n 1))))
          [[(! (xs (- n 1))) (! [:tmp s (- n 2) (- k 1)])]]))
      (vec (map #(vec [(! %)]) xs)))))
+
+
+(defn is-compatible
+  [digraph e1 e2]
+  (let [tc (transitive-closure
+             (uber/add-directed-edges digraph e1 e2))]
+    (forall [e (lg/edges tc)]
+            (or (= (lg/src e) (lg/dest e))
+                (not (lg/has-edge? tc (lg/dest e) (lg/src e)))))))
+
+(defn tig
+  [graph]
+  (let [ccg (co-comparability (lg/nodes graph) #(lg/has-edge? graph %1 %2))
+        tig-nodes (map edge->vec (lg/edges ccg))]
+    (reduce
+      (fn [g-outer e1]
+        (reduce
+          (fn [g-inner e2]
+            (if (is-compatible graph e1 e2)
+              g-inner
+              (uber/add-undirected-edges g-inner [e1 e2])))
+          g-outer
+          tig-nodes))
+      (lg/add-nodes* (uber/graph) tig-nodes)               ; empty graph
+      tig-nodes)))
 
 
 (defn sat-reduction
@@ -109,7 +135,7 @@
                (println "<=CAtom: " @<=CAtom)
                (while (= @<=CAtom nil)
                  (swap! CAtom
-                        (fn [C] (let [I (incompatibility-graph (transitive-edge-union P <= C))]
+                        (fn [C] (let [I (tig (transitive-edge-union P <= C))]
                                   (println "(transitive-edge-union P <= C):")
                                   (uber/pprint (transitive-edge-union P <= C))
                                   (println "I:")
