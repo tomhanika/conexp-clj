@@ -173,7 +173,9 @@
         positions (reduce conj {} coordinates)]
     (lay/make-layout-nc lattice
                     positions
-                    (map edge->vec (lg/edges g)))))
+                    (mapcat (fn [n] (map #(vector n %)
+                                         (lat/lattice-upper-neighbours lattice n)))
+                            (lat/base-set lattice)))))
 
 ;(def lat1
 ;  (lat/make-lattice [1 2 3] [[1 1] [2 2] [3 3]
