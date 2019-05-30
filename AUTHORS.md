@@ -8,5 +8,6 @@ Additional Contributors are
 * Stefan Borgwardt  (Shared Intents)
 * Tom Hanika        (Concept Probability)
 * Gleb Kanterov     (interval-scale)
-* Johannes Wollbold (bug reports, feature requests)
 * Maximilian Stubbemann (concept-robustness)
+* Anselm von Wangenheim (DimDraw)
+* Johannes Wollbold (bug reports, feature requests)
