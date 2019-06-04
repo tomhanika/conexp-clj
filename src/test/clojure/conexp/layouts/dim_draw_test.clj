@@ -287,4 +287,4 @@
 
 
 ;; test drawing layout
-(conexp.gui.draw/draw-layout (dim-draw-layout (graph->lattice g-dominik's-favorite)))
+;(conexp.gui.draw/draw-layout (dim-draw-layout (graph->lattice g-dominik's-favorite)))
