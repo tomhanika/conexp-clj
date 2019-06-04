@@ -86,9 +86,9 @@
   (assert-equal-graphs (comparability #{1} (fn [_ _] true))
                        (uber/graph [1 1]))
   (assert-equal-graphs (comparability #{1} (fn [_ _] false))
-                       (uber/graph))
+                       (uber/graph 1))
   (assert-equal-graphs (co-comparability #{1} (fn [_ _] true))
-                       (uber/graph))
+                       (uber/graph 1))
   (assert-equal-graphs (co-comparability #{1} (fn [_ _] false))
                        (uber/graph [1 1])))
 
