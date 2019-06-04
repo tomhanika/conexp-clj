@@ -43,6 +43,11 @@
 
 
 (defn is-compatible
+  "Checks if two edges are compatible.
+
+  For an ordering given as graph and two edges e1 and e2 this means that the
+  transitive closure of the graph with both edges added does not contain a
+  (non-trivial) cycle."
   [digraph e1 e2]
   (let [tc (transitive-closure
              (uber/add-directed-edges digraph e1 e2))]
@@ -51,6 +56,10 @@
                 (not (lg/has-edge? tc (lg/dest e) (lg/src e)))))))
 
 (defn tig
+  "Returns the \"transitive incompatibility graph\" (tig) for a given ordering
+  (given ad graph).
+
+  See Section 3, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   [graph]
   (let [ccg (co-comparability (lg/nodes graph) #(lg/has-edge? graph %1 %2))
         tig-nodes (map edge->vec (lg/edges ccg))]
@@ -131,7 +140,7 @@
                    CAtom (atom ())]
                ;(println "<=CAtom: " @<=CAtom)
                (while (= @<=CAtom nil)
-                 (swap! CAtom
+                 (swap! CAtom                               ; update C in each iteration
                         (fn [C] (let [I (tig (transitive-edge-union P <= C))]
                                   ;(println "(transitive-edge-union P <= C):")
                                   ;(uber/pprint (transitive-edge-union P <= C))
@@ -140,20 +149,20 @@
                                   ;(println C " <-- C ; new -->" (sat-reduction I))
                                   (union C (map reverse (sat-reduction I))))))
                  (let [C @CAtom
-                       <=CNew (compute-conjugate-order (transitive-edge-union P <= C))]
+                       <=CNew (compute-conjugate-order (transitive-edge-union P <= C))] ; compute new value for <=C
                    ;(println "C: " C)
                    ;(println "C size: " (count C))
                    ;(println "<=CNew: " <=CNew)
-                   (reset! <=CAtom
+                   (reset! <=CAtom                          ; set new value
                            <=CNew)))
                @<=CAtom)
          <=1 (map edge->vec (lg/edges (transitive-edge-union P <= <=C)))
          <=2 (map edge->vec (lg/edges (transitive-edge-union P <= (map reverse <=C))))
-         elements-less (fn [le elem] (- (count (filter #(some #{[% elem]} le) P)) 1))
+         elements-less (fn [le elem] (- (count (filter #(some #{[% elem]} le) P)) 1)) ; util function used to compute |{x' | x' <= x}| - 1 for given <= and x
          coords (map #(let
                         [x1 (elements-less <=1 %) x2 (elements-less <=2 %)]
                         [% [x1 x2]]) P)]
-     coords)))
+     coords)))                                              ; return coordinates in x1-x2-coordinate-system
 
 (defn dim-draw-layout
   "Returns a layout for a given lattice.
@@ -180,6 +189,8 @@
   (if (> i 1) (replicate-str (str s s) (/ i 2)) s))
 
 (defn draw-ascii
+  "Given coordinates in the form `[[e1 [x1 y1]] [e2 [x2 y2]] ...]`, prints
+  the elements in the console."
   [coords]
   (let [x-step 2
         size (count coords)
