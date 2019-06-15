@@ -1,4 +1,4 @@
-# conexp-clj [![Build Status](https://travis-ci.org/exot/conexp-clj.svg?branch=dev)](https://travis-ci.org/exot/conexp-clj)
+# conexp-clj [![Build Status](https://travis-ci.org/tomhanika/conexp-clj.svg?branch=dev)](https://travis-ci.org/tomhanika/conexp-clj)
 
 This is conexp-clj, a general purpose software tool for [Formal Concept
 Analysis](http://www.upriss.org.uk/fca/fca.html).

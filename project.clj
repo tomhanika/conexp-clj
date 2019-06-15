@@ -24,6 +24,8 @@
                                com.cemerick/drawbridge]]
                  [org.clojure/data.xml            "0.0.8"]
                  [org.clojure/core.async          "0.4.490"]]
+                 [ubergraph                       "0.5.2"]
+                 [rolling-stones                  "1.0.0"]]
   :profiles {:uberjar {:main conexp.main
                        :aot :all}}
   :keep-non-project-classes true
