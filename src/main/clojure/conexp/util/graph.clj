@@ -14,65 +14,28 @@
 ;; Created 23 June 2009
 ;;
 ;; with modifications by D. Borchmann for conexp-clj
-;; and more modifications for use with loom/ubergraph
 
 (ns
-  #^{:author "Jeffrey Straszheim",
-     :doc    "Basic graph theory algorithms"}
+    #^{:author "Jeffrey Straszheim",
+       :doc "Basic graph theory algorithms"}
   conexp.util.graph
-  (:require [ubergraph.core :as uber]
-            [loom.graph :as lg])
   (:use [clojure.set :only (union)]))
 
 
+(defstruct directed-graph
+  :nodes ; The nodes of the graph, a collection
+  :neighbors) ; A function that, given a node returns a collection
+                                        ; neighbor nodes.
+
 (defn make-directed-graph
-  "Constructs a directed graph from a set of nodes and a function that maps a
-   node to its neighbors."
-  [nodes neighbor-fn]
-  (uber/add-directed-edges*
-    (uber/add-nodes-with-attrs* (uber/digraph) (map (fn [n] [n {}]) nodes))
-    (mapcat (fn [x] (map (fn [y] [x y]) (neighbor-fn x))) nodes)))
-
-(defn make-graph-from-condition
-  "Constructs an undirected graph from a set of nodes and a condition that tests
-   if two nodes shall get an edge.
-   Edges are undirected, so there will be an edge u<->v iff the condition holds
-   for either (u,v) or (v,u) or both."
-  [nodes condition]
-  (uber/add-undirected-edges*
-    (uber/graph)
-    (mapcat
-      (fn [x] (map
-                (fn [y] [x y])
-                (filter #(condition x %) nodes)))
-      nodes)))
-
-(defn make-digraph-from-condition
-  "Constructs a directed graph from a set of nodes and a condition that tests
-   if two nodes shall get an edge."
-  [nodes condition]
-  (uber/add-directed-edges*
-    (uber/digraph)
-    (mapcat
-      (fn [x] (map
-                (fn [y] [x y])
-                (filter #(condition x %) nodes)))
-      nodes)))
-
-(defn nodes
-  "all nodes of the graph"
-  [g]
-  (lg/nodes g))
-
-(defn neighbor-fn
-  "A function that maps from nodes to their neighbors"
-  [g]
-  (fn [n] (lg/successors* g n)))
+  "Constructs a directed graph."
+  [nodes neighbour-fn]
+  (struct directed-graph nodes neighbour-fn))
 
 (defn get-neighbors
   "Get the neighbors of a node."
   [g n]
-  (lg/successors* g n))
+  ((:neighbors g) n))
 
 
 ;; Graph Modification
@@ -86,24 +49,24 @@ order of the edges reversed."
                    am (fn [m val]
                         (assoc m val (conj (get m val #{}) idx)))]
                (reduce am rna ns)))
-        rn (reduce op {} (nodes g))]
-    (make-directed-graph (nodes g) rn)))
+        rn (reduce op {} (:nodes g))]
+    (struct directed-graph (:nodes g) rn)))
 
 (defn add-loops
   "For each node n, add the edge n->n if not already present."
   [g]
-  (make-directed-graph
-    (nodes g)
-    (into {} (map (fn [n]
-                    [n (conj (set (get-neighbors g n)) n)]) (nodes g)))))
+  (struct directed-graph
+          (:nodes g)
+          (into {} (map (fn [n]
+                          [n (conj (set (get-neighbors g n)) n)]) (:nodes g)))))
 
 (defn remove-loops
   "For each node n, remove any edges n->n."
   [g]
-  (make-directed-graph
-    (nodes g)
-    (into {} (map (fn [n]
-                    [n (disj (set (get-neighbors g n)) n)]) (nodes g)))))
+  (struct directed-graph
+          (:nodes g)
+          (into {} (map (fn [n]
+                          [n (disj (set (get-neighbors g n)) n)]) (:nodes g)))))
 
 
 ;; Graph Walk
@@ -113,13 +76,13 @@ order of the edges reversed."
 provide a set of visited notes (v) and a collection of nodes to
 visit (ns)."
   ([g n]
-   (lazy-walk g [n] #{}))
+     (lazy-walk g [n] #{}))
   ([g ns v]
-   (lazy-seq (let [s (seq (drop-while v ns))
-                   n (first s)
-                   ns (rest s)]
-               (when s
-                 (cons n (lazy-walk g (concat (get-neighbors g n) ns) (conj v n))))))))
+     (lazy-seq (let [s (seq (drop-while v ns))
+                     n (first s)
+                     ns (rest s)]
+                 (when s
+                   (cons n (lazy-walk g (concat (get-neighbors g n) ns) (conj v n))))))))
 
 (defn transitive-closure
   "Returns the transitive closure of a graph. The neighbors are lazily computed.
@@ -132,10 +95,10 @@ behavior, call (-> g transitive-closure add-loops)"
   [g]
   (let [nns (fn [n]
               [n (delay (lazy-walk g (get-neighbors g n) #{}))])
-        nbs (into {} (map nns (nodes g)))]
-    (make-directed-graph
-      (nodes g)
-      (fn [n] (force (nbs n))))))
+        nbs (into {} (map nns (:nodes g)))]
+    (struct directed-graph
+            (:nodes g)
+            (fn [n] (force (nbs n))))))
 ;; Strongly Connected Components
 
 (defn- post-ordered-visit
@@ -153,7 +116,7 @@ behavior, call (-> g transitive-closure add-loops)"
   [g]
   (fnext (reduce #(post-ordered-visit g %2 %1)
                  [#{} []]
-                 (nodes g))))
+                 (:nodes g))))
 
 (defn scc
   "Returns, as a sequence of sets, the strongly connected components of g."
@@ -166,7 +129,7 @@ behavior, call (-> g transitive-closure add-loops)"
                  (let [[nv comp] (post-ordered-visit rev
                                                      (first stack)
                                                      [visited #{}])
-                       ns (doall (remove nv stack))]        ;doall prevents StackOverflow
+                       ns (doall (remove nv stack))] ;doall prevents StackOverflow
                    (recur ns nv (conj acc comp)))))]
     (step po #{} [])))
 
@@ -176,17 +139,17 @@ Each node in the new graph will be a set of nodes from the old.
 These sets are the strongly connected components. Each edge will
 be the union of the corresponding edges of the prior graph."
   ([g]
-   (component-graph g (scc g)))
+     (component-graph g (scc g)))
   ([g sccs]
-   (let [find-node-set (fn [n]
-                         (some #(if (% n) % nil) sccs))
-         find-neighbors (fn [ns]
-                          (let [nbs1 (map (partial get-neighbors g) ns)
-                                nbs2 (map set nbs1)
-                                nbs3 (apply union nbs2)]
-                            (set (map find-node-set nbs3))))
-         nm (into {} (map (fn [ns] [ns (find-neighbors ns)]) sccs))]
-     (make-directed-graph (set sccs) nm))))
+     (let [find-node-set (fn [n]
+                           (some #(if (% n) % nil) sccs))
+           find-neighbors (fn [ns]
+                            (let [nbs1 (map (partial get-neighbors g) ns)
+                                  nbs2 (map set nbs1)
+                                  nbs3 (apply union nbs2)]
+                              (set (map find-node-set nbs3))))
+           nm (into {} (map (fn [ns] [ns (find-neighbors ns)]) sccs))]
+       (struct directed-graph (set sccs) nm))))
 
 (defn recursive-component?
   "Is the component (recieved from scc) self recursive?"
@@ -235,9 +198,9 @@ much be acyclic) has an edge a->b when a depends on b."
                (let [update (fn [n]
                               (inc (apply max -1 (map d (get-neighbors g n)))))]
                  (into {} (map (fn [[k v]] [k (update k)]) d))))
-        counts (fixed-point (zipmap (nodes g) (repeat 0))
+        counts (fixed-point (zipmap (:nodes g) (repeat 0))
                             step
-                            (inc (count (nodes g)))
+                            (inc (count (:nodes g)))
                             =)]
     (fold-into-sets counts)))
 (defn stratification-list
@@ -247,16 +210,16 @@ have cycles) provides a partial-dependency relation. If node a
 depends on node b (meaning an edge a->b exists) in the second
 graph, node a must be equal or later in the sequence."
   [g1 g2]
-  (assert (= (-> g1 nodes set) (-> g2 nodes set)))
+  (assert (= (-> g1 :nodes set) (-> g2 :nodes set)))
   (let [step (fn [d]
                (let [update (fn [n]
                               (max (inc (apply max -1
                                                (map d (get-neighbors g1 n))))
                                    (apply max -1 (map d (get-neighbors g2 n)))))]
                  (into {} (map (fn [[k v]] [k (update k)]) d))))
-        counts (fixed-point (zipmap (nodes g1) (repeat 0))
+        counts (fixed-point (zipmap (:nodes g1) (repeat 0))
                             step
-                            (inc (count (nodes g1)))
+                            (inc (count (:nodes g1)))
                             =)]
     (fold-into-sets counts)))
 
