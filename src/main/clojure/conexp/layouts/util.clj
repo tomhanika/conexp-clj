@@ -72,12 +72,12 @@
   "Converts given lattice to it's corresponding graph with loops
   removed."
   [lattice]
-  (-> (struct-map graph/directed-graph
-        :nodes (base-set lattice)
-        :neighbors (memoize
-                    (fn [x]
-                      (let [order (order lattice)]
-                        (filter #(order [x %]) (base-set lattice))))))
+  (-> (graph/make-directed-graph
+        (base-set lattice)
+        (memoize
+          (fn [x]
+            (let [order (order lattice)]
+              (filter #(order [x %]) (base-set lattice))))))
       graph/remove-loops))
 
 (defn layers
@@ -119,11 +119,11 @@
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
   [layout]
-  (let [graph (struct-map graph/directed-graph
-                :nodes (keys (positions layout))
-                :neighbors (memoize (fn [x]
-                                      (map second (filter (fn [[a b]] (= a x))
-                                                          (connections layout))))))]
+  (let [graph (graph/make-directed-graph
+                (keys (positions layout))
+                (memoize (fn [x]
+                           (map second (filter (fn [[a b]] (= a x))
+                                               (connections layout))))))]
     (apply concat (graph/dependency-list graph))))
 
 ;;; grid adjustment
