@@ -49,11 +49,9 @@
   transitive closure of the graph with both edges added does not contain a
   (non-trivial) cycle."
   [digraph e1 e2]
-  (let [tc (transitive-closure
-             (uber/add-directed-edges digraph e1 e2))]
-    (forall [e (lg/edges tc)]
-            (or (= (lg/src e) (lg/dest e))
-                (not (lg/has-edge? tc (lg/dest e) (lg/src e)))))))
+   (not(and
+       (lg/has-edge? digraph (lg/dest e2) (lg/src e1))
+       (lg/has-edge? digraph (lg/dest e1) (lg/src e2)))))
 
 (defn tig
   "Returns the \"transitive incompatibility graph\" (tig) for a given ordering
