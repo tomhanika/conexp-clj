@@ -84,6 +84,11 @@
   [impl ctx]
   (subset? (conclusion impl) (adprime ctx (premise impl))))
 
+(defn tautology?
+  "Returns true iff impl has empty conclusion."
+  [impl]
+  (empty? (conclusion impl)))
+
 (defn- implication-graph
   "Compute setup for Downing-Gallier"
   [implications]
