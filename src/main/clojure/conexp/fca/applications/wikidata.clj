@@ -18,7 +18,7 @@
 
 (def ^:dynamic *tool-banner*
   "tool banner to send with SPARQL queries"
-  "#TOOL:conexp-clj, https://github.com/exot/conexp-clj")
+  "#TOOL:conexp-clj, https://github.com/tomhanika/conexp-clj")
 
 (def ^:dynamic *max-entities-per-query*
   "maximum number of entities requested in a single query (entities
