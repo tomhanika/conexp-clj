@@ -12,6 +12,7 @@
             [conexp.gui.draw.control.file-exporter :refer :all]
             [conexp.gui.draw.control.force-layout :refer :all]
             [conexp.gui.draw.control.freese :refer :all]
+            [conexp.gui.draw.control.dim-draw :refer :all]
             [conexp.gui.draw.control.parameters :refer :all]
             [conexp.gui.draw.control.snapshots :refer :all]
             [conexp.gui.draw.control.util :refer :all]
@@ -56,7 +57,8 @@
     (with-layout-modifiers frame scn buttons
       toggle-zoom-move
       change-parameters,
-      (control-choice "Freese" freese,
+      (control-choice "DimDraw" dimdraw
+                      "Freese" freese,
                       "Force"  improve-layout-by-force),
       snapshot-saver,
       export-as-file)
