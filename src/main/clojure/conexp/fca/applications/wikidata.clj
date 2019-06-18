@@ -5,6 +5,7 @@
                                              conclusion tautology?]]
             [conexp.fca.fast :refer :all]
             [conexp.io.contexts :refer :all]
+            [conexp.base :refer [conexp-version]]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.set :refer :all]
@@ -16,9 +17,21 @@
   "Wikidata SPARQL query endpoint URI"
   "https://query.wikidata.org/bigdata/namespace/wdq/sparql")
 
+(def ^:dynamic *tool-uri*
+  "URI to include in tool banner and HTTP user agent header"
+  "https://github.com/tomhanika/conexp-clj")
+
 (def ^:dynamic *tool-banner*
   "tool banner to send with SPARQL queries"
-  "#TOOL:conexp-clj, https://github.com/tomhanika/conexp-clj")
+  (str "#TOOL:conexp-clj, " *tool-uri*))
+
+(def ^:dynamic *tool-agent*
+  "user agent to send with SPARQL queries"
+  (str "conexp-clj/"
+       (conexp-version)
+       " ("
+       *tool-uri*
+       ")"))
 
 (def ^:dynamic *max-entities-per-query*
   "maximum number of entities requested in a single query (entities
@@ -43,6 +56,7 @@
                    (str *tool-banner*
                         "\n"
                         qry)}
+    :headers {"User-Agent" *tool-agent*}
     :http-builder-fns [disable-cookies]}))
 
 (defmacro with-sparql-bindings
