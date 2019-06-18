@@ -53,7 +53,7 @@
        (sparql-query ~v)
        (get ~v :body)
        (json/read-str ~v)
-       (let [{{bindings "bindings"} "results"} ~v]
+       (let [{{~'bindings "bindings"} "results"} ~v]
          ~@body))))
 
 (defn- entity-add-sparql-prefix
