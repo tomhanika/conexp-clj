@@ -13,11 +13,10 @@
 (defn dimdraw
   "Installs DimDraw Layout control."
   [frame scn buttons]
-  (let [^JButton btn    (make-button buttons "DimDraw"),
-        layout          (dim-draw-layout (lattice (get-layout-from-scene scn)))]
+  (let [^JButton btn    (make-button buttons "DimDraw")]
     (listen btn :action
             (fn [_]
-              (update-layout-of-scene scn layout)
+              (update-layout-of-scene scn (dim-draw-layout (lattice (get-layout-from-scene scn))))
               (fit-scene-to-layout scn)))))
 
 ;;;
