@@ -14,22 +14,26 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure             "1.9.0"]
-                 [org.clojure/tools.cli           "0.3.5"]
-                 [org.clojure/math.combinatorics  "0.1.3"]
+                 [org.clojure/tools.cli           "0.4.1"]
+                 [org.clojure/math.combinatorics  "0.1.5"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.apache.commons/commons-math "2.2"]
-                 [seesaw                          "1.4.5"]
-                 [reply                           "0.3.7"
+                 [seesaw                          "1.5.0"]
+                 [reply                           "0.4.3"
                   :exclusions [org.clojure/clojure
+                               clojure-complete
                                com.cemerick/drawbridge]]
                  [org.clojure/data.xml            "0.0.8"]
                  [org.clojure/core.async          "0.4.490"]
-                 [ubergraph                       "0.5.2"]
-                 [rolling-stones                  "1.0.0"]
-                 [clj-http "3.9.1"]
+                 [ubergraph                       "0.5.2"
+                  :exclusions [potemkin]]
+                 [rolling-stones                  "1.0.1"
+                  :exclusions [org.clojure/clojure]]
+                 [clj-http "3.10.0"]
                  [org.clojure/data.json "0.2.6"]]
   :profiles {:uberjar {:main conexp.main
                        :aot :all}}
+  :plugins [[org.clojars.benfb/lein-gorilla "0.5.2"]]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
