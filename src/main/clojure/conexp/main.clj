@@ -58,12 +58,12 @@
        {:custom-eval '(do
                         (in-ns 'conexp.main)
                         (use 'clojure.repl)
-                        (require '[conexp.contrib.gui.repl-utils :as gui])
-                        (require 'conexp.contrib.gui)
+                        (require '[conexp.gui.repl-utils :as gui])
+                        (require 'conexp.gui)
                         (alter-var-root
                          (var gui/*main-frame*)
                          (fn [_]
-                           (conexp.contrib.gui/gui
+                           (conexp.gui/gui
                             :default-close-operation :exit))))
         :custom-help ""})
       ;;
