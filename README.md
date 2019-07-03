@@ -43,16 +43,16 @@ You need
 ## How to Run
 
 The recommended way to run conexp-clj is to download a
-[pre-compiled version](https://wwwtcs.inf.tu-dresden.de/~borch/downloads/conexp-clj/),
-unpacking the zip file and puting the contained `bin` directory into you path.
-You can then run
+[pre-compiled version](http://algebra20.de/conexp-clj-2.0.0-RC1.jar/).
 
-    $ conexp-clj
+You can then run it through
+
+    $ java -jar conexp-clj-2.0.0-RC1.jar
 
 from you command line (without the "$") to get a bare conexp-clj repl.  If you want to try
 the experimental GUI, you can use
 
-    $ conexp-clj --gui
+    $ java -jar conexp-clj-2.0.0-RC1.jar -g
 
 instead.
 
