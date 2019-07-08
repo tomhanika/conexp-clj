@@ -34,7 +34,7 @@
                  [clojure-complete "0.2.5"]]
   :profiles {:uberjar {:main conexp.main
                        :aot :all}}
-  :plugins [[org.clojars.benfb/lein-gorilla "0.5.2"]]
+  :plugins [[org.clojars.benfb/lein-gorilla "0.6.0"]]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
