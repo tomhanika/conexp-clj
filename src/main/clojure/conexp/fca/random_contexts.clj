@@ -6,7 +6,11 @@
             [clojure.set :refer [subset?]]
             [clojure.math.numeric-tower :refer :all]            
             )
-  (:import [org.apache.commons.math3.distribution GammaDistribution EnumeratedIntegerDistribution UniformIntegerDistribution EnumeratedDistribution]
+  (:import [org.apache.commons.math3.distribution 
+            GammaDistribution 
+            EnumeratedIntegerDistribution 
+            UniformIntegerDistribution 
+            EnumeratedDistribution]
            [org.apache.commons.math3.util Pair]
            )
   (:gen-class) 
@@ -22,50 +26,14 @@
   (let [ sum (reduce + v)] (map #(/ % sum) v))
 )
 
-(defn- dispatch-makeContext 
-  [att obj obj_att_nums]
-  (cond    
-    (and (pos-int? att) (pos-int? obj))
-    :att-num-obj-num
-    (and (coll? att) (coll? obj))
-    :att-coll-obj-coll
-    (and (coll? att) (int? obj))
-    :att-coll-obj-num))
 
-
-(defmulti ^:private  make-context-from-attribute-numbers-per-object 
-  "generate random context for given number of attributes, objects and 
-  a vector containing the numbers of attributes for each object"
-  dispatch-makeContext
-  )
-
-(defalias ^:private makeContext make-context-from-attribute-numbers-per-object)
-
-(defmethod ^:private make-context-from-attribute-numbers-per-object :att-num-obj-num 
-  [att obj obj_att_nums]
-  (contexts/make-context-from-matrix
-   (vec (range obj))
-   (vec (range att))
-   (flatten (map #(shuffle (into (vec (take %1 (repeat 1))) (vec (take (- att %1) (repeat 0))))) 
-                 obj_att_nums))))
-
-
-(defmethod ^:private make-context-from-attribute-numbers-per-object :att-coll-obj-coll
+(defn-  make-context-from-attribute-numbers-per-object
   [att obj obj_att_nums]
   (let [matrix (flatten (map #(shuffle (into (vec (take % (repeat 1))) 
-                                             (vec (take (- (count  att) %) (repeat 0))))) obj_att_nums))]
+                                             (vec (take (- (count  att) %) 
+                                                        (repeat 0))))) obj_att_nums))]
     (contexts/make-context-from-matrix
      (into [] obj)
-     (into [] att)
-     matrix)))
-
-
-(defmethod ^:private make-context-from-attribute-numbers-per-object :att-coll-obj-num
-  [att obj obj_att_nums]
-  (let [matrix (flatten (map #(shuffle (into (vec (take % (repeat 1))) 
-                                             (vec (take (- (count  att) %) (repeat 0))))) obj_att_nums))]
-    (contexts/make-context-from-matrix
-     (vec (range obj))
      (into [] att)
      matrix)))
 
@@ -75,6 +43,7 @@
    ([] (.sample (GammaDistribution. 1 1)))
    ([alpha] (if (> alpha 0) (.sample (GammaDistribution. alpha 1)) 0))
 )
+
 
 (defn- createDirichletDistr
   "
@@ -98,14 +67,14 @@
 (defn- createCategoricalDistribution
   "given a vector of categories and a probabilities vector returns a categorical distribution"
   ([categories-probabilities-vector]
-   (EnumeratedDistribution. (map #(Pair. (first %) (double (second %))) categories-probabilities-vector))
-   )
-
+   (EnumeratedDistribution. (map #(Pair. (first %) (double (second %))) 
+                                 categories-probabilities-vector)))
   ([categories probabilities]
    {:pre [(= (count categories) (count probabilities))
           (vector? categories)
           (vector? probabilities)]}
-   (EnumeratedDistribution. (map #(Pair. (first %) (double (second %))) (map vector categories probabilities)))))
+   (EnumeratedDistribution. (map #(Pair. (first %) (double (second %))) 
+                                 (map vector categories probabilities)))))
 
 
 (defn- createCategoricalDistributionFromDirichlet
@@ -118,20 +87,23 @@
       precision-parameter :precision-parameter 
       :or {base-measure [1] 
            precision-parameter 1}}] 
-  (let [dirichlet_rvs (double-array (createDirichletDistr :base-measure base-measure :precision-parameter precision-parameter))
+  (let [dirichlet_rvs (double-array (createDirichletDistr :base-measure base-measure 
+                                                          :precision-parameter precision-parameter))
         values (int-array (range (count dirichlet_rvs)))]
     (EnumeratedIntegerDistribution. values dirichlet_rvs)
     ))
 
 
 (defn dispatch-random-dirichlet-context
-  ""
+  "dispatch function for the random dirichlet context generator"
   [& {:keys [attributes objects base-measure precision-parameter]}]
   {:pre [(or (coll? attributes) (pos-int? attributes))
          (or (coll? objects) (pos-int? objects) (= 0 objects) (nil? objects))
          (or (number? precision-parameter) (nil? precision-parameter))
          (or (vector? base-measure) (nil? base-measure))
-         (if (vector? base-measure) (= (count base-measure) (+ 1 (if (coll? attributes) (count attributes) attributes))) (nil? base-measure))
+         (if (vector? base-measure) 
+           (= (count base-measure) (+ 1 (if (coll? attributes) (count attributes) attributes)))
+           (nil? base-measure))
          ]}
   (cond
     (and (coll? attributes) (coll? objects))
@@ -164,7 +136,7 @@
 
 
 (defn- init-precision-parameter
-  ""
+  "initializes the precision parameter as 0.1 * (dimension of the base measure) such that the initial vector is [0.1 ... 0.1]"
   [precision-parameter base-measure]
   (if precision-parameter precision-parameter (* 0.1 (count base-measure))))
 
@@ -173,21 +145,25 @@
   [& {:keys [attributes objects base-measure precision-parameter]}] 
   (let [base-measure (init-base-measure base-measure (count attributes))
         precision-parameter (init-precision-parameter precision-parameter base-measure)
-        cat_dist (createCategoricalDistributionFromDirichlet :base-measure base-measure :precision-parameter precision-parameter)
+        cat_dist (createCategoricalDistributionFromDirichlet :base-measure base-measure 
+                                                             :precision-parameter precision-parameter)
         obj_attr_numbers (for [i (range (count objects))] (.sample cat_dist))] 
-    (makeContext attributes objects obj_attr_numbers)
+    (make-context-from-attribute-numbers-per-object attributes objects obj_attr_numbers)
     ))
 
 
 (defmethod random-dirichlet-context :attr-coll-obj-num
   [& {:keys [attributes objects base-measure precision-parameter]}] 
   (let [objects (if objects objects 
-                    (.sample (UniformIntegerDistribution. (count attributes) (expt 2 (count attributes)))))
+                    (.sample (UniformIntegerDistribution. (count attributes) 
+                                                          (expt 2 (count attributes)))))
         base-measure (init-base-measure base-measure (count attributes))
         precision-parameter (if precision-parameter precision-parameter (* 0.1 (count base-measure)))
-        cat_dist (createCategoricalDistributionFromDirichlet :base-measure base-measure :precision-parameter precision-parameter)
-        obj_attr_numbers (for [i (range objects)] (.sample cat_dist))] 
-    (makeContext attributes objects obj_attr_numbers)
+        cat_dist (createCategoricalDistributionFromDirichlet :base-measure base-measure 
+                                                             :precision-parameter precision-parameter)
+        obj_attr_numbers (for [i (range objects)] (.sample cat_dist))
+        object-coll (range objects)] 
+    (make-context-from-attribute-numbers-per-object attributes object-coll obj_attr_numbers)
     ))
 
 
@@ -197,12 +173,13 @@
                     (.sample (UniformIntegerDistribution. attributes (expt 2 attributes))))
         base-measure (init-base-measure base-measure attributes)
         precision-parameter (init-precision-parameter precision-parameter base-measure)
-        cat_dist (createCategoricalDistributionFromDirichlet :base-measure base-measure :precision-parameter precision-parameter)
+        cat_dist (createCategoricalDistributionFromDirichlet :base-measure base-measure 
+                                                             :precision-parameter precision-parameter)
         obj_attr_numbers (for [i (range objects)] (.sample cat_dist))
         attribute-coll (map #(format "att_%s" %) (range attributes))
         object-coll (range objects)]
-    (makeContext attribute-coll object-coll obj_attr_numbers)
+    (make-context-from-attribute-numbers-per-object attribute-coll object-coll obj_attr_numbers)
     ))
 
 
-
+nil
