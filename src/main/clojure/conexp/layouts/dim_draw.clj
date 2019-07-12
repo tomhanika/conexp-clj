@@ -6,13 +6,14 @@
             [conexp.util.graph :refer :all]
             [conexp.layouts.base :as lay]
             [conexp.base :exclude [transitive-closure] :refer :all]
-            [rolling-stones.core :as sat :refer :all]))
+            [rolling-stones.core :as sat :refer :all])
+  (:import [org.dimdraw Bipartite]))
 
 (defn in-odd-cycle?
   "Returns true, if vertex is in an odd cycle with subset in g"
   [graph subset vertex]
-  (loop [to-check [vertex]
-         coloring {vertex 1}]
+   (loop [to-check [vertex]
+         coloring  {vertex 1}]
     (let [first (peek to-check)
           color-first  (coloring first)
           color (mod (+ 1 color-first) 2)
@@ -40,9 +41,11 @@
              final subset]
         (let [first (peek remaining)
               popped (pop remaining)
-              can-insert (not (in-odd-cycle? graph final first))
+              newsub (conj final first)
+              ;;              can-insert  (not (in-odd-cycle? graph newsub first))
+              can-insert  (not (. Bipartite isInOddCycle (:adj graph) newsub first))
               next-subset (if can-insert
-                            (conj final first)
+                            newsub
                             final)]
           (if (not (empty? popped))
             (recur popped next-subset)
@@ -152,8 +155,9 @@
   (non-trivial) cycle."
   [digraph e1 e2]
    (not(and
-       (lg/has-edge? digraph (lg/dest e2) (lg/src e1))
-       (lg/has-edge? digraph (lg/dest e1) (lg/src e2)))))
+        (or (= (lg/dest e2) (lg/src e1)) (lg/has-edge? digraph (lg/dest e2) (lg/src e1)))
+        (or (= (lg/dest e1) (lg/src e2)) (lg/has-edge? digraph (lg/dest e1) (lg/src e2))))))
+
 
 (defn tig
   "Returns the \"transitive incompatibility graph\" (tig) for a given ordering
@@ -161,20 +165,28 @@
 
   See Section 3, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   [graph]
-  (let [ccg (co-comparability (lg/nodes graph) #(lg/has-edge? graph %1 %2))
-        tig-nodes (map edge->vec (lg/edges ccg))]
-    (reduce
-      (fn [g-outer e1]
-        (reduce
-          (fn [g-inner e2]
-            (if (is-compatible graph e1 e2)
-              g-inner
-              (uber/add-undirected-edges g-inner [e1 e2])))
-          g-outer
-          tig-nodes))
-      (lg/add-nodes* (uber/graph) tig-nodes)               ; empty graph
-      tig-nodes)))
-
+  (let [pairs     (filter #(not (= (first %) (peek %)))
+                          (reduce concat (for [x (lg/nodes graph)]
+                                           (for [y (lg/nodes graph)] [x y]))))
+        inc       (filter #(not (or (lg/has-edge? graph (first %) (peek  %))
+                                    (lg/has-edge? graph (peek %)  (first %))))
+                          pairs)
+        alledges  (reduce concat (for [x (range (count inc))]
+                                   (for [y (range (+ x 1) (count inc))]
+                                     [(nth inc x) (nth inc y)])))
+        incedges (filter #(not (is-compatible graph (first %) (peek %))) alledges)
+        ;;       graphmap (zipmap inc (map #(for [edge incedges]) inc))
+        graph    (zipmap inc
+                         (for [node inc]
+                           (vec (filter #(not (= nil %))
+                                        (for [edge incedges]
+                                          (cond
+                                            (= (first edge) node) (peek edge)
+                                            (= (peek edge ) node) (first edge)
+                                            :else nil))))))]
+    (if (empty? inc)
+      (lg/graph)
+      (lg/graph graph))))
 
 (defn sat-reduction
   "Reduces the problem of finding a maximum bipartite subgraph to satisfiability
@@ -195,7 +207,7 @@
                         #(vec [[[% 1] [% 2] [% 3]]])        ; alt least one of V_{i,1}, V_{i,2}, or V_{i,3} is true
                         (nodes g))
          edge-clauses (mapcat
-                        #(let [vi (:src %) vj (:dest %)]
+                        #(let [vi (lg/src %) vj (lg/dest %)]
                            [[(! [vi 1]) (! [vj 1])]
                             [(! [vi 2]) (! [vj 2])]])
                         (lg/edges g))
