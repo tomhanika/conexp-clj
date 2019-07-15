@@ -43,7 +43,7 @@ You need
 ## How to Run
 
 The recommended way to run conexp-clj is to download a
-[pre-compiled version](http://algebra20.de/conexp-clj-2.0.0-RC1.jar/).
+[pre-compiled version](http://algebra20.de/conexp-clj-2.0.0-RC1.jar).
 
 You can then run it through
 
