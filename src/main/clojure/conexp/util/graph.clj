@@ -22,7 +22,8 @@
   conexp.util.graph
   (:require [ubergraph.core :as uber]
             [loom.graph :as lg])
-  (:use [clojure.set :only (union)]))
+  (:use [clojure.set :only (union)])
+  (:import [org.dimdraw Transitive]))
 
 
 (defn make-directed-graph
@@ -136,15 +137,34 @@ visit (ns)."
   cycles in the graph. If you have code that depends on such
   behavior, call (-> g transitive-closure add-loops)"
   [g]
-  (let [nodes (nodes g)
-        current-graph (atom g)]
-    (doseq [k nodes
-            i nodes]
-      (if (lg/has-edge? @current-graph i k)
-        (doseq [j nodes]
-          (if (lg/has-edge? @current-graph k j)
-            (swap! current-graph (fn [g] (uber/add-directed-edges g [i j])))))))
-    @current-graph))
+  (if (= 0 (count (lg/nodes g)))
+    g
+    (let [len   (count (lg/nodes g))
+          nodes (range len)
+          dict  (zipmap (range) (lg/nodes g))
+          graph (into-array (for [u (range (count dict))]
+                              (into-array Boolean/TYPE
+                                          (for [v (range (count dict))]
+                                            (lg/has-edge? g (dict u) (dict v))))))
+          pairs (reduce concat (for [u nodes]
+                                 (for [v nodes] [u v])))
+          ;; graph (reduce (fn [graph [k i]]
+          ;;                 (if (nth (nth graph i) k)
+          ;;                   (reduce #(if (nth (nth %1 k) %2)
+          ;;                              (assoc-in %1 [i %2] true)
+          ;;                              %1)
+          ;;                           graph nodes)
+          ;;                   graph))
+          ;; graph pairs)
+
+          graph (. Transitive hull graph)]
+      (reduce (fn [g u]
+                (reduce (fn [g v]
+                          (if (nth (nth graph u) v)
+                            (lg/add-edges g [(dict u) (dict v)])
+                            g))
+                        g (range len)))
+              g (range len)))))
 
 ;; Strongly Connected Components
 

@@ -258,31 +258,31 @@
 
 
 (deftest test-compute-coordinates
-  (is (= (compute-coordinates g1)
+  (is (= (compute-coordinates g1 nil)
          '()))
-  (is (= (compute-coordinates g2)
+  (is (= (compute-coordinates g2 nil)
          '([0 [0 0]])))
-  (is (= (compute-coordinates g5)
+  (is (= (compute-coordinates g5 nil)
          '([0 [0 0]] [1 [1 2]] [2 [2 1]] [3 [3 3]])))
-  (is (= (compute-coordinates g686)
+  (is (= (compute-coordinates g686 nil)
          '([0 [0 0]] [1 [1 1]] [2 [2 4]] [4 [4 3]] [7 [7 2]] [3 [3 5]] [5 [5 6]] [6 [6 7]] [8 [8 8]])))
-  (is (= (compute-coordinates g774)
+  (is (= (compute-coordinates g774 nil)
          '([0 [0 0]] [1 [2 3]] [2 [4 1]] [5 [1 5]] [4 [7 4]] [6 [3 7]] [3 [6 2]] [7 [5 6]] [8 [8 8]])))
-  (is (= (compute-coordinates g44995)
+  (is (= (compute-coordinates g44995 nil)
          '([0 [0 0]] [7 [4 8]] [1 [1 1]] [4 [9 4]] [6 [3 7]] [3 [7 3]] [2 [6 2]] [9 [8 9]] [5 [2 6]] [10 [10 10]] [8 [5 5]])))
-  (is (= (compute-coordinates g-dominik's-favorite)
+  (is (= (compute-coordinates g-dominik's-favorite nil)
          '([0 [18 18]] [7 [3 14]] [1 [7 17]] [4 [17 7]] [15 [2 8]] [13 [12 3]]
             [6 [13 6]] [17 [8 2]] [3 [11 12]] [12 [4 10]] [2 [16 15]] [11 [15 4]]
             [9 [6 11]] [5 [5 16]] [14 [1 13]] [16 [14 1]] [10 [9 9]] [18 [0 0]] [8 [10 5]])))
-  (is (= (compute-coordinates hyper-cube-like-graph)
+  (is (= (compute-coordinates hyper-cube-like-graph nil)
          '([0 [0 0]] [7 [7 14]] [1 [2 4]] [4 [4 2]] [15 [15 15]] [13 [14 7]]
             [6 [5 10]] [3 [3 12]] [12 [12 3]] [2 [1 8]] [11 [11 13]] [9 [10 5]]
             [5 [6 6]] [14 [13 11]] [10 [9 9]] [8 [8 1]])))
-  (is (= (compute-coordinates gLongChains)
+  (is (= (compute-coordinates gLongChains nil)
          '([0 [0 0]] [1 [1 4]] [2 [2 5]] [3 [3 6]] [4 [7 7]] [5 [4 1]] [6 [5 2]] [7 [6 3]])))
-  (is (= (compute-coordinates gThreeLongChains)
+  (is (= (compute-coordinates gThreeLongChains nil)
          '([0 [0 0]] [7 [3 9]] [1 [4 4]] [4 [10 10]] [6 [2 8]] [3 [6 6]] [2 [5 5]] [9 [8 2]] [5 [1 7]] [10 [9 3]] [8 [7 1]])))
-  (is (= (compute-coordinates gParallel)
+  (is (= (compute-coordinates gParallel nil)
          '([0 [0 0]] [1 [1 4]] [5 [5 5]] [2 [2 3]] [3 [3 2]] [4 [4 1]]))))
 
 
