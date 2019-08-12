@@ -227,8 +227,11 @@
        (get "boolean"))))
 
 (defn counterexample
-  "find a counterexample to the given implication, or nil if there is none"
+  "Find n counterexample to the given implication, or nil if there is none. If no
+  n is provided, use 1."
   [implication]
+  (counterexample 1)
+  [implication n]
   (tautology-or-counterexample
    implication
    (with-sparql-bindings
