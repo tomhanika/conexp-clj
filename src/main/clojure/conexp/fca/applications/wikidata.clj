@@ -163,11 +163,13 @@
                     (str "wdt:"
                          property
                          " []"))]
-    (str "?entity "
-         (str/join
-          ";\n    "
-          (map to-clause premise))
-         " .")))
+    (if premise
+      (str "?entity "
+           (str/join
+            ";\n    "
+            (map to-clause premise))
+           " .")
+      "?entity ?someProperty [] \n [] wikibase:directClaim ?someProperty")))
 
 (defn- pattern-for-conclusion
   "generate a graph pattern not matching the given conclusion"
