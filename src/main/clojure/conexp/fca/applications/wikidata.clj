@@ -231,27 +231,28 @@
 (defn counterexample
   "Find n counterexample to the given implication, or nil if there is none. If no
   n is provided, use 1."
-  ([implication]
-   (counterexample implication 1))
-  ([implication n]
-  (assert (number? n) "non number provided in counterexample function")
+  [implication]
   (tautology-or-counterexample
    implication
    (with-sparql-bindings
-     (counterexample-query-for-implication implication :limit n)
+     (counterexample-query-for-implication implication :limit 1)
      (let [[{entity "entity"}] bindings]
        entity)))))
 
 (defn counterexamples
   "find all counterexample to the given implication, or nil if there is none"
-  [implication]
-  (tautology-or-counterexample
-   implication
-   (with-sparql-bindings
-     (counterexample-query-for-implication implication)
-     (map (fn [{entity "entity"}]
-            entity)
-          bindings))))
+  ([implication]
+   (counterexamples implication -1))
+  ([implication n]
+   (tautology-or-counterexample
+    implication
+    (with-sparql-bindings
+      (if (< n 0)
+      (counterexample-query-for-implication implication)
+      (counterexample-query-for-implication implication :limit n))
+      (map (fn [{entity "entity"}]
+             entity)
+           bindings)))))
 
 (defn number-of-counterexamples
   "find the number of all counterexamples to the given implication"
