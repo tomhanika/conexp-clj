@@ -232,7 +232,7 @@
   "Find n counterexample to the given implication, or nil if there is none. If no
   n is provided, use 1."
   ([implication]
-   (counterexample 1))
+   (counterexample implication 1))
   ([implication n]
   (assert (number? n) "non number provided in counterexample function")
   (tautology-or-counterexample
