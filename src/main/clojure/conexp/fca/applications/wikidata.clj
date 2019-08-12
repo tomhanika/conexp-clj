@@ -229,18 +229,18 @@
        (get "boolean"))))
 
 (defn counterexample
-  "Find n counterexample to the given implication, or nil if there is none. If no
-  n is provided, use 1."
+  "find n counterexample to the given implication, or nil if there is none"
   [implication]
   (tautology-or-counterexample
    implication
    (with-sparql-bindings
      (counterexample-query-for-implication implication :limit 1)
      (let [[{entity "entity"}] bindings]
-       entity)))))
+       entity))))
 
 (defn counterexamples
-  "find all counterexample to the given implication, or nil if there is none"
+  "Find all counterexamples to the given implication, or nil if there is none. If n
+  is provided, find only n counterexamples "
   ([implication]
    (counterexamples implication -1))
   ([implication n]
