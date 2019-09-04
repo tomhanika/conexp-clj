@@ -9,6 +9,6 @@ Additional Contributors are
 * Tom Hanika            (Concept Probability)
 * Gleb Kanterov         (interval-scale)
 * Maximilian Marx       (Wikidata)
-* Maximilian Stubbemann (concept-robustness)
+* Maximilian Stubbemann (concept robustness, social analytics)
 * Anselm von Wangenheim (DimDraw)
 * Johannes Wollbold     (bug reports, feature requests)
