@@ -31,9 +31,17 @@
                  [rolling-stones                  "1.0.1"
                   :exclusions [org.clojure/clojure]]
                  [clj-http "3.10.0"]
-                 [clojure-complete "0.2.5"]]
+                 [clojure-complete "0.2.5"]
+                 [ring/ring-devel "1.7.1"]
+                 [ring/ring-core "1.7.1"]
+                 [ring/ring-json "0.5.0"]
+                 [http-kit "2.3.0"]]
   :profiles {:uberjar {:main conexp.main
-                       :aot :all}}
+                       :aot :all}
+             :dev {:main conexp.main
+                   :dependencies [[javax.servlet/servlet-api "2.5"]
+                                    [org.clojure/data.json "0.2.6"]
+                                    [ring/ring-mock "0.4.0"]]}}
   :plugins [[org.clojars.benfb/lein-gorilla "0.6.0"]]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
