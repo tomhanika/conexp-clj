@@ -9,12 +9,39 @@
 (ns conexp.api.handler
   (:require [ring.util.response :refer [response]]))
 
-;;; TODO
+;;; Macros
+
+(defn read-data [data] nil)
+
+;;; Handler
+
+;;TODO check if valid request by my definition?
+;;TODO read data macro
+;;TODO process-function function
+;;TODO qutomatic sort parameters?
+;;TODO add error messages
+
+(defn process-function 
+  "Tries to either apply the given parameters to the function as is or search
+  for it in a list of pre-defined shorthands. If both fail one of the following
+  error messages is applied:
+  "
+  [function data]
+  nil)
 
 (defn handler
   "Handles the JSON request and constructs the JSON response."
   [request]
-  (response "test"))
+  (response
+    (apply hash-map
+      (flatten
+        (list
+         ;; an basic id is just copied if provided
+         (let [id (:id (:body request))] (if id (list :id id) (list)))
+         ;; tries to parse each object in body besides id and function as data
+         ;; afterwards tries to run each function with the data
+         (let [data (read-data (:body request))] 
+          (map #(process-function % data) (:functions (:body request)))))))))
 
 ;;;
 

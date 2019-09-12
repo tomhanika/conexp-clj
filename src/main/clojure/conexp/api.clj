@@ -24,7 +24,7 @@
       (wrap-json-body)
       (wrap-json-response {:pretty true}))
     (-> handler 
-      (wrap-json-body)
+      (wrap-json-body {:keywords? true})
       (wrap-json-response {:pretty true}))))
 
 (defonce server (atom nil))
