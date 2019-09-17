@@ -21,11 +21,11 @@
   (if dev
     (-> #'handler
       (wrap-reload)
-      (wrap-json-body)
+      (wrap-json-body {:keywords? true})
       (wrap-json-response {:pretty true}))
     (-> handler 
       (wrap-json-body {:keywords? true})
-      (wrap-json-response {:pretty true}))))
+      (wrap-json-response {:pretty false}))))
 
 (defonce server (atom nil))
 

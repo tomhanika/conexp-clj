@@ -9,11 +9,19 @@
 (ns conexp.api.handler
   (:require [ring.util.response :refer [response]]))
 
-;;; Macros
+;;; Process Data
 
-;;TODO read data macro
+(defn read-data 
+  "Reads in strings and converts data into formats used by Clojure."
+  [data]
+  (condp = (:type data)
+    (:data data)))
 
-(defn read-data [data] data)
+(defn write-data 
+  "Takes formats used in Clojure and converts them in more general formats."
+  [data]
+  (cond
+    :else data))
 
 ;;; Shorthand functions
 
@@ -29,13 +37,14 @@
         id (:id function)
         args (:args function)]
    ;; use namestring as function and args as keys in datamap
-   (apply (resolve (symbol namestring)) (map data (map keyword args)))))
+   (write-data
+     (apply (resolve (symbol namestring)) (map data (map keyword args))))))
 
 (defn process-function 
   "Tries to run the function and return a map with the result or error.
   The status is either 0 on succes or 1 on error."
   [function data]
-  ;; run function an get either a result or error message
+  ;; run function and get either a result or error message
   (let [result (try {:result (run-function function data)}
                 (catch Exception e {:msg (.getMessage e)}))]
    ;; add an corresponding status to the map
@@ -54,7 +63,7 @@
          ;; tries to parse each object in body besides id and function as data
          ;; afterwards tries to run each function with the data
          (let [body (:body request)
-               data (read-data body)
+               data (into {} (for [[k v] body] [k (read-data v)]))
                id (:id body)] 
           (map #(list (keyword (str id (if id "/") (:name %))) 
                       (process-function % data)) 
