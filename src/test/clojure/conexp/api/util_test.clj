@@ -9,17 +9,21 @@
 (ns conexp.api.util-test
   (:use conexp.base
         conexp.api)
-  (:use ring.mock.request))
+  (:use ring.mock.request)
+  (:require [clojure.data.json :refer [read-str]]))
 
 ;;;
 
 (defn mock-request
   "Builds a JSON request with any map."
   [body]
-  ((set-middleware false)
-   (json-body
-    (request :post "/")
-    body)))
+  (read-str
+    (:body
+      ((set-middleware false)
+       (json-body
+       (request :post "/")
+       body)))
+     :key-fn keyword))
 
 ;;;
 

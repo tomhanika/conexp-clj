@@ -7,15 +7,23 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.api.handler
-  (:require [ring.util.response :refer [response]]))
+  (:use conexp.base
+        conexp.fca.contexts
+        conexp.io.contexts)
+  (:require [ring.util.response :refer [response]]
+            [clojure.java.io :as io]))
 
 ;;; Process Data
 
 (defn read-data 
   "Reads in strings and converts data into formats used by Clojure."
   [data]
-  (condp = (:type data)
-    (:data data)))
+  (let [raw (:data data)]
+    (condp = (:type data)
+      "ctx" (read-context (char-array raw))
+      raw)))
+
+;(with-open [r (io/reader (char-array "hello"))] (slurp r))
 
 (defn write-data 
   "Takes formats used in Clojure and converts them in more general formats."
@@ -34,11 +42,10 @@
   function."
   [function data]
   (let [namestring (:name function)
-        id (:id function)
         args (:args function)]
    ;; use namestring as function and args as keys in datamap
    (write-data
-     (apply (resolve (symbol namestring)) (map data (map keyword args))))))
+     (apply (ns-resolve 'conexp.api.handler (symbol namestring)) (map data (map keyword args))))))
 
 (defn process-function 
   "Tries to run the function and return a map with the result or error.
@@ -63,11 +70,10 @@
          ;; tries to parse each object in body besides id and function as data
          ;; afterwards tries to run each function with the data
          (let [body (:body request)
-               data (into {} (for [[k v] body] [k (read-data v)]))
-               id (:id body)] 
-          (map #(list (keyword (str id (if id "/") (:name %))) 
-                      (process-function % data)) 
-               (:functions body))))))))
+               data (into {} (for [[k v] body] [k (read-data v)]))] 
+          (map #(list (keyword (str (:id %) (if (:id %) ".") (:name %))) 
+                        (process-function % data)) 
+                 (:functions body))))))))
 
 ;;;
 
