@@ -23,8 +23,6 @@
       "ctx" (read-context (char-array raw))
       raw)))
 
-;(with-open [r (io/reader (char-array "hello"))] (slurp r))
-
 (defn write-data 
   "Takes formats used in Clojure and converts them in more general formats."
   [data]
@@ -35,7 +33,7 @@
 
 
 
-;;; Handler
+;;; Process functions
 
 (defn run-function
   "Given a function object and a collection of data tries to run the 
@@ -45,35 +43,52 @@
         args (:args function)]
    ;; use namestring as function and args as keys in datamap
    (write-data
-     (apply (ns-resolve 'conexp.api.handler (symbol namestring)) (map data (map keyword args))))))
+     (apply 
+      (ns-resolve 'conexp.api.handler (symbol namestring)) 
+      (map data (map keyword args))))))
 
-(defn process-function 
-  "Tries to run the function and return a map with the result or error.
-  The status is either 0 on succes or 1 on error."
-  [function data]
-  ;; run function and get either a result or error message
-  (let [result (try {:result (run-function function data)}
-                (catch Exception e {:msg (.getMessage e)}))]
-   ;; add an corresponding status to the map
-   (merge (if (contains? result :result) {:status 0} {:status 1})
-          result))) 
+(defn process-functions 
+  "Loops over each function object and tries to run it. Returned is a map with
+  the old keys and the return value or error as value."
+  [functions data]
+  (loop [unprocessed functions
+         processed {}]
+    (if (empty? unprocessed)
+      processed
+      (let [next-function (first unprocessed)
+            result {(first next-function)
+                    (try (run-function (last next-function) 
+                                       (merge data processed))
+                      (catch Exception e (.getMessage e)))}]
+        (recur (drop 1 unprocessed) (merge processed result))))))
+
+;;; Handler
+
+(defn build-map
+  "Transforms any result value into a map with an added type an status."
+  [result]
+  (cond 
+    (string? result) {:status 1 :msg result}
+    (nil? result)    {:status 2 :msg "Return value is nil." :result nil}
+    :else            {:status 0 :result result}))
 
 (defn handler
   "Handles the JSON request and constructs the JSON response."
   [request]
-  (response
-    (apply hash-map
-      (flatten
-        (list
-         ;; an basic id is just copied if provided
-         (let [id (:id (:body request))] (if id (list :id id) (list)))
-         ;; tries to parse each object in body besides id and function as data
-         ;; afterwards tries to run each function with the data
-         (let [body (:body request)
-               data (into {} (for [[k v] body] [k (read-data v)]))] 
-          (map #(list (keyword (str (:id %) (if (:id %) ".") (:name %))) 
-                        (process-function % data)) 
-                 (:functions body))))))))
+  (let [body (:body request)
+        id (:id body) ;an id is just copied if provided
+        ;; each obejct that not a function type is sent through "read-data"
+        data (into {} (for [[k v] body :when (not (= "function" (:type v)))] 
+                           [k (read-data v)]))
+        ;; each name from function types is run as an acutal function
+        results (process-functions 
+                   (filter #(= "function" (:type (val %))) body)
+                   data)]
+    (response 
+      (merge
+        (if id {:id id})
+        (into {} (for [[k v] results] 
+                      [k (build-map (write-data v))]))))))
 
 ;;;
 

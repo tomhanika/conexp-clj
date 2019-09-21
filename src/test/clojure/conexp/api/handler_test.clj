@@ -19,55 +19,72 @@
   (is (= (mock-request {}) {})))
 
 (deftest test-generic-request 
-  (is (= (mock-request {:functions [{:name "+" :args ["eins", "zwei"]}] 
+  (is (= (mock-request {:function {:type "function"
+                                   :name "+" 
+                                   :args ["eins", "zwei"]} 
                         :eins {:type "int" :data 1}
                         :zwei {:type "int" :data 2}}) 
-         {:+ {:status 0
-              :result 3}})))
+         {:function {:status 0
+                     :result 3}})))
 
-(deftest test-generic-request-multiple-functions 
-  (is (= (mock-request {:functions [{:name "+" :args ["eins", "zwei"]}
-                                    {:name "-" :args ["eins", "zwei"]}] 
+(deftest test-generic-request-multiple-independent-functions 
+  (is (= (mock-request {:function1 {:type "function"
+                                    :name "+" 
+                                    :args ["eins", "zwei"]}
+                        :function2 {:type "function"
+                                    :name "-" 
+                                    :args ["eins", "zwei"]} 
                         :eins {:type "int" :data 1}
                         :zwei {:type "int" :data 2}}) 
-         {:+ {:status 0
+         {:function1 {:status 0
               :result 3}
-          :- {:status 0
+          :function2 {:status 0
               :result -1}})))
 
+(deftest test-generic-request-multiple-dependent-functions 
+  (is (= (mock-request {:function1 {:type "function"
+                                    :name "+" 
+                                    :args ["eins", "zwei"]}
+                        :function2 {:type "function"
+                                    :name "-" 
+                                    :args ["function1", "zwei"]} 
+                        :eins {:type "int" :data 1}
+                        :zwei {:type "int" :data 2}}) 
+         {:function1 {:status 0
+              :result 3}
+          :function2 {:status 0
+              :result 1}})))
+
 (deftest test-generic-request-id
-  (is (= (mock-request {:functions [{:name "+" :args ["eins", "zwei"]}] 
+  (is (= (mock-request {:function {:type "function"
+                                   :name "+" 
+                                   :args ["eins", "zwei"]} 
                         :id 42
                         :eins {:type "int" :data 1}
                         :zwei {:type "int" :data 2}}) 
-         {:+ {:status 0
-              :result 3}
+         {:function {:status 0
+                     :result 3}
           :id 42})))
 
-(deftest test-generic-request-function-id 
-  (is (= (mock-request {:functions [{:name "+" 
-                                     :args ["eins", "zwei"] 
-                                     :id 42}]
-                        :eins {:type "int" :data 1}
-                        :zwei {:type "int" :data 2}}) 
-         {:42.+ {:status 0
-                 :result 3}})))
-
 (deftest test-generic-request-error
-  (is (= (mock-request {:functions [{:name "+" :args ["eins"]}] 
+  (is (= (mock-request {:function {:type "function"
+                                   :name "+" 
+                                   :args ["eins"]} 
                         :eins {:type "int" :data "a"}}) 
-         {:+ {:status 1
-              :msg (try (+ "a") (catch Exception e (.getMessage e)))}})))
+         {:function {:status 1
+                     :msg (try (+ "a") 
+                           (catch Exception e (.getMessage e)))}})))
 
 ;;; Conexp functions
 ;; one test per accepted data type
 
 (deftest test-single-context-request
-  (is (= (mock-request {:functions [{:name "concepts"
-                                     :args ["ctx1"]}]
+  (is (= (mock-request {:function {:type "function"
+                                   :name "concepts"
+                                   :args ["ctx1"]}
                         :ctx1 {:type "ctx"
                                :data (slurp "testing-data/Animals.ctx")}})
-         {:concepts {:status 0
+         {:function {:status 0
                      :result (mapv 
                               #(mapv vec %) 
                               (concepts (read-context 
