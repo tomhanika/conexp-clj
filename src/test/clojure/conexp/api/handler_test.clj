@@ -7,11 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.           
 
 (ns conexp.api.handler-test
-	(:use conexp.base
-        conexp.fca.contexts
-        conexp.io.contexts
+	(:use conexp.main
+        conexp.api.handler
         conexp.api.util-test)
 	(:use clojure.test))
+
+(apply use conexp-clj-namespaces)
 
 ;;; Generic tests
 
@@ -76,19 +77,47 @@
                            (catch Exception e (.getMessage e)))}})))
 
 ;;; Conexp functions
-;; one test per accepted data type
+;; if one conexp-clj operation works with a data type it's assumed all do
 
 (deftest test-single-context-request
   (is (= (mock-request {:function {:type "function"
                                    :name "concepts"
                                    :args ["ctx1"]}
-                        :ctx1 {:type "ctx"
+                        :ctx1 {:type "context"
                                :data (slurp "testing-data/Animals.ctx")}})
          {:function {:status 0
                      :result (mapv 
                               #(mapv vec %) 
                               (concepts (read-context 
                                          "testing-data/Animals.ctx")))}})))
+
+(deftest test-lattice-write
+  (let [result (mock-request {:function {:type "function"
+                                         :name "concept-lattice"
+                                         :args ["ctx1"]}
+                              :ctx1 {:type "context"
+                                     :data (slurp "testing-data/myctx.cxt")}})
+        lat (:result (:function result))]
+    (is (= (make-lattice-nc (map #(mapv set %) (first lat)) 
+                            (map 
+                             (fn [a] (map (fn [b] (mapv set b))a))
+                             (last lat)))
+           (concept-lattice (read-context "testing-data/myctx.cxt"))))))
+
+(deftest test-lattice-read
+  (let [data (concept-lattice (read-context "testing-data/myctx.cxt"))
+        result (mock-request {:function {:type "function"
+                                         :name "dual-lattice"
+                                         :args ["lat1"]}
+                              :lat1 {:type "lattice"
+                                     :data (write-data data)}})
+        lat (:result (:function result))]
+    (is (= (make-lattice-nc (map #(mapv set %) (first lat)) 
+                            (map 
+                             (fn [a] (map (fn [b] (mapv set b))a))
+                             (last lat)))
+           (dual-lattice data)))))
+
 
 ;;; Conexp Shorthands
 

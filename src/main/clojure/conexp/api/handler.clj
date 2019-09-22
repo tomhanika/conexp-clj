@@ -7,11 +7,12 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.api.handler
-  (:use conexp.base
-        conexp.fca.contexts
-        conexp.io.contexts)
+  (:use conexp.main)
   (:require [ring.util.response :refer [response]]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io])
+  (:import conexp.fca.lattices.Lattice))
+
+(apply use conexp-clj-namespaces)
 
 ;;; Process Data
 
@@ -20,17 +21,22 @@
   [data]
   (let [raw (:data data)]
     (condp = (:type data)
-      "ctx" (read-context (char-array raw))
+      "lattice" (make-lattice (first raw) (last raw))
+      "context" (read-context (char-array raw))
       raw)))
 
 (defn write-data 
   "Takes formats used in Clojure and converts them in more general formats."
   [data]
-  (cond
-    :else data))
+  (condp instance? data
+    Lattice [(base-set data)
+             (set-of [x y]
+                     [x (base-set data)
+                      y (base-set data)
+                      :when ((order data) [x y])])]
+    data))
 
 ;;; Shorthand functions
-
 
 
 ;;; Process functions
