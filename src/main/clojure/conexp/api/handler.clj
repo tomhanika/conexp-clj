@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.api.handler
-  (:use conexp.main)
+  (:use conexp.main
+        conexp.api.namespace)
   (:require [ring.util.response :refer [response]]
             [clojure.java.io :as io])
   (:import conexp.fca.lattices.Lattice))
@@ -36,9 +37,6 @@
                       :when ((order data) [x y])])]
     data))
 
-;;; Shorthand functions
-
-
 ;;; Process functions
 
 (defn run-function
@@ -47,11 +45,13 @@
   [function data]
   (let [namestring (:name function)
         args (:args function)]
-   ;; use namestring as function and args as keys in datamap
-   (write-data
-     (apply 
-      (ns-resolve 'conexp.api.handler (symbol namestring)) 
-      (map data (map keyword args))))))
+   (if (whitelist-names namestring)
+     ;; use namestring as function and args as keys in datamap
+     (write-data
+       (apply 
+        (ns-resolve (symbol "conexp.api.handler") (symbol namestring)) 
+        (map data (map keyword args))))
+     (throw (Exception. "Function name not allowed.")))))
 
 (defn process-functions 
   "Loops over each function object and tries to run it. Returned is a map with
