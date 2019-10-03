@@ -124,6 +124,55 @@
     (is (= (map #(mapv set %) ctx)
            (concepts (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]]))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(deftest test-mv-context-file-read
+  (is (= (mock-request {:function {:type "function"
+                                   :name "values-of-attribute"
+                                   :args ["ctx1" "zwei"]}
+                        :ctx1 {:type "mv_context_file"
+                               :data (slurp "testing-data/house-votes-84.data")}
+                        :zwei {:type "int"
+                               :data 10}})
+         {:function {:status 0
+                     :result (map str (values-of-attribute 
+                                       (read-mv-context 
+                                       "testing-data/house-votes-84.data")
+                                       10))}})))
+
+(deftest test-mv-context-write
+  (let [result (mock-request {:function {:type "function"
+                                         :name "make-mv-context"
+                                         :args ["objs" "atts" "inc"]}
+                              :objs {:type "list"
+                                     :data ["a"]} 
+                              :atts {:type "list"
+                                     :data ["1" "2"]} 
+                              :inc {:type "map"
+                                     :data {["a" "1"] 2 ["a" "2"] 5}}})
+        ctx (:result (:function result))]
+    (is (= ctx 
+           [["a"]
+            ["1" "2"]
+            {(keyword (str ["a" "1"])) 2 (keyword (str ["a" "2"])) 5}]))))
+
+(deftest test-mv-context-read
+  (let [result (mock-request {:function {:type "function"
+                                         :name "values-of-object"
+                                         :args ["ctx1" "zwei"]}
+                              :ctx1 {:type "mv_context"
+                                     :data [["a"]
+                                            ["1" "2"]
+                                            {["a" "1"] 2 ["a" "2"] 5}]}
+                              :zwei {:type "string"
+                                     :data "a"}})
+        values (:result (:function result))]
+    (is (= values
+           (write-data 
+            (values-of-object 
+             (make-mv-context 
+              ["a"]["1" "2"]{["a" "1"] 2 ["a" "2"] 5})
+             "a"))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (deftest test-lattice-write
   (let [result (mock-request {:function {:type "function"

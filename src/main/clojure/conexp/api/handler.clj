@@ -11,8 +11,9 @@
         conexp.api.namespace)
   (:require [ring.util.response :refer [response]]
             [clojure.java.io :as io])
-  (:import conexp.fca.lattices.Lattice
-           conexp.fca.contexts.Formal-Context
+  (:import conexp.fca.contexts.Formal-Context
+           conexp.fca.many_valued_contexts.Many-Valued-Context
+           conexp.fca.lattices.Lattice
            conexp.fca.implications.Implication))
 
 (apply use conexp-clj-namespaces)
@@ -24,8 +25,16 @@
   [data]
   (let [raw (:data data)]
     (condp = (:type data)
+      ;; remove colons from map
+      "map" (into {} (for [[k v] raw] [(read-string (name k)) v]))
       "context" (apply make-context raw)
       "context_file" (read-context (char-array raw))
+      "mv_context" (make-mv-context 
+                     (first raw) 
+                     (second raw) 
+                     (into {} 
+                      (for [[k v] (last raw)] [(read-string (name k)) v])))
+      "mv_context_file" (read-mv-context (char-array raw))
       "lattice" (apply make-lattice raw)
       "implication" (apply make-implication raw)
       "implications" (map #(apply make-implication %) raw)
@@ -41,6 +50,9 @@
       Formal-Context [(objects data)
                       (attributes data)
                       (incidence data)]
+      Many-Valued-Context [(objects data)
+                           (attributes data)
+                           (incidence data)]
       Lattice [(base-set data)
                (set-of [x y]
                        [x (base-set data)
