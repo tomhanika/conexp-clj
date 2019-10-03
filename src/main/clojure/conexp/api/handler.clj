@@ -11,7 +11,8 @@
         conexp.api.namespace)
   (:require [ring.util.response :refer [response]]
             [clojure.java.io :as io])
-  (:import conexp.fca.lattices.Lattice))
+  (:import conexp.fca.lattices.Lattice
+           conexp.fca.contexts.Formal-Context))
 
 (apply use conexp-clj-namespaces)
 
@@ -22,19 +23,25 @@
   [data]
   (let [raw (:data data)]
     (condp = (:type data)
+      "context" (make-context (first raw) (second raw) (last raw))
+      "context_file" (read-context (char-array raw))
       "lattice" (make-lattice (first raw) (last raw))
-      "context" (read-context (char-array raw))
+      "implications" (map make-implication raw)
       raw)))
 
 (defn write-data 
   "Takes formats used in Clojure and converts them in more general formats."
   [data]
   (condp instance? data
+    Formal-Context [(objects data)
+                    (attributes data)
+                    (incidence data)]
     Lattice [(base-set data)
              (set-of [x y]
                      [x (base-set data)
                       y (base-set data)
                       :when ((order data) [x y])])]
+    ;Implication
     data))
 
 ;;; Process functions

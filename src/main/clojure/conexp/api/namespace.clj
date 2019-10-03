@@ -14,11 +14,13 @@
 
 (def functions
   (concat
+    ;; get all functions defined in standard conexp-clj namespaces 
     (map name
       (keys 
         (merge 
           (apply merge (map ns-publics conexp-clj-namespaces))
           (ns-publics (symbol "conexp.api.shorthands")))))
+    ;; just all wanted core functions
     (list "count" "+" "-" "/" "*")))
 
 (defn whitelist-names

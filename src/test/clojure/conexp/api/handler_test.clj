@@ -76,14 +76,21 @@
                      :msg (try (+ "a") 
                            (catch Exception e (.getMessage e)))}})))
 
-;;; Conexp functions
+(deftest test-whitelist-error
+  (is (= (mock-request {:function {:type "function"
+                                   :name "map"
+                                   :args []}})
+         {:function {:status 1
+                     :msg "Function name not allowed."}})))
+
+;;; Conexp data types
 ;; if one conexp-clj operation works with a data type it's assumed all do
 
-(deftest test-single-context-request
+(deftest test-context-file-read
   (is (= (mock-request {:function {:type "function"
                                    :name "concepts"
                                    :args ["ctx1"]}
-                        :ctx1 {:type "context"
+                        :ctx1 {:type "context_file"
                                :data (slurp "testing-data/Animals.ctx")}})
          {:function {:status 0
                      :result (mapv 
@@ -91,11 +98,39 @@
                               (concepts (read-context 
                                          "testing-data/Animals.ctx")))}})))
 
+(deftest test-context-write
+  (let [result (mock-request {:function {:type "function"
+                                         :name "make-context"
+                                         :args ["objs" "atts" "inc"]}
+                              :objs {:type "list"
+                                     :data ["a" "b"]} 
+                              :atts {:type "list"
+                                     :data ["1" "2"]} 
+                              :inc {:type "list"
+                                     :data [["a" "1"]["b" "2"]]}})
+        ctx (:result (:function result))]
+    (is (= (make-context (first ctx)(second ctx)(last ctx))
+           (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]])))))
+
+(deftest test-context-read
+  (let [data (concept-lattice (read-context "testing-data/myctx.cxt"))
+        result (mock-request {:function {:type "function"
+                                         :name "concepts"
+                                         :args ["ctx1"]}
+                              :ctx1 {:type "context"
+                                     :data [["a" "b"]
+                                            ["1" "2"]
+                                            [["a" "1"]["b" "2"]]]}})
+        ctx (:result (:function result))]
+    (is (= (map #(mapv set %) ctx)
+           (concepts (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]]))))))
+
+
 (deftest test-lattice-write
   (let [result (mock-request {:function {:type "function"
                                          :name "concept-lattice"
                                          :args ["ctx1"]}
-                              :ctx1 {:type "context"
+                              :ctx1 {:type "context_file"
                                      :data (slurp "testing-data/myctx.cxt")}})
         lat (:result (:function result))]
     (is (= (make-lattice-nc (map #(mapv set %) (first lat)) 
@@ -117,9 +152,6 @@
                              (fn [a] (map (fn [b] (mapv set b))a))
                              (last lat)))
            (dual-lattice data)))))
-
-
-;;; Conexp Shorthands
 
 ;;;
 
