@@ -113,8 +113,7 @@
            (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]])))))
 
 (deftest test-context-read
-  (let [data (concept-lattice (read-context "testing-data/myctx.cxt"))
-        result (mock-request {:function {:type "function"
+  (let [result (mock-request {:function {:type "function"
                                          :name "concepts"
                                          :args ["ctx1"]}
                               :ctx1 {:type "context"
@@ -152,6 +151,53 @@
                              (fn [a] (map (fn [b] (mapv set b))a))
                              (last lat)))
            (dual-lattice data)))))
+
+(deftest test-implication-write
+  (let [result (mock-request {:function {:type "function"
+                                         :name "make-implication"
+                                         :args ["premise" "conclusion"]}
+                              :premise {:type "list"
+                                        :data ["a" "b"]} 
+                              :conclusion {:type "list"
+                                           :data ["2" "1"]}})
+        impl (:result (:function result))]
+    (is (= (make-implication (first impl)(second impl))
+           (make-implication ["a" "b"]["2" "1"])))))
+
+(deftest test-implication-read
+  (let [result (mock-request {:function {:type "function"
+                                         :name "premise"
+                                         :args ["impl1"]}
+                              :impl1 {:type "implication"
+                                     :data [["a"] ["b"]]}})
+        premise (:result (:function result))]
+    (is (= premise
+           ["a"]))))
+
+
+(deftest test-implications-write
+  (let [context (read-context "testing-data/myctx.cxt")
+        result (mock-request {:function {:type "function"
+                                         :name "canonical-base"
+                                         :args ["ctx1"]}
+                              :ctx1 {:type "context"
+                                     :data (write-data context)}})
+        impls (:result (:function result))]
+    (is (= (map #(make-implication (first %) (last %)) impls)
+           (canonical-base context)))))
+
+(deftest test-implications-read
+  (let [result (mock-request {:function {:type "function"
+                                         :name "minimal-implication-set?"
+                                         :args ["impl1"]}
+                              :impl1 {:type "implications"
+                                     :data [[["a"] ["b"]]
+                                            [["1"] ["2"]]]}})
+        impls (:result (:function result))]
+    (is (= impls
+           (minimal-implication-set? 
+            #{(make-implication ["a"] ["b"]) 
+              (make-implication ["1"] ["2"])})))))
 
 ;;;
 
