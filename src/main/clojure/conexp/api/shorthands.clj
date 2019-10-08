@@ -17,3 +17,7 @@
 ;(defn sh-implication-graph
 ;  [ctx]
 ;  (implication-graph (canonincal-base (concept-lattice ctx))))
+
+;;;
+
+nil

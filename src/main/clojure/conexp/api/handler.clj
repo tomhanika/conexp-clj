@@ -8,25 +8,28 @@
 
 (ns conexp.api.handler
   (:use conexp.main
+        conexp.layouts.base
         conexp.api.namespace)
   (:require [ring.util.response :refer [response]]
             [clojure.java.io :as io])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.many_valued_contexts.Many-Valued-Context
            conexp.fca.lattices.Lattice
-           conexp.fca.implications.Implication))
+           conexp.fca.implications.Implication
+           conexp.layouts.base.Layout))
 
 (apply use conexp-clj-namespaces)
 
 ;;; Process Data
 
 (defn read-data 
-  "Reads in strings and converts data into formats used by Clojure."
+  "Converts data into formats used by Clojure."
   [data]
   (let [raw (:data data)]
     (condp = (:type data)
       ;; remove colons from map
-      "map" (into {} (for [[k v] raw] [(read-string (name k)) v]))
+      "map" (if (some? raw)
+                (into {} (for [[k v] raw] [(read-string (name k)) v])))
       "context" (apply make-context raw)
       "context_file" (read-context (char-array raw))
       "mv_context" (make-mv-context 
@@ -38,14 +41,24 @@
       "lattice" (apply make-lattice raw)
       "implication" (apply make-implication raw)
       "implications" (map #(apply make-implication %) raw)
+      "layout" (apply make-layout 
+                (filterv 
+                  some?
+                  (assoc 
+                    raw 
+                    0 (read-data (hash-map :type "lattice" :data (first raw)))
+                    1 (read-data (hash-map :type "map" :data (second raw)))
+                    3 (read-data (hash-map :type "map" :data (nth raw 3)))
+                    4 (read-data (hash-map :type "map" :data (nth raw 4))))))
       raw)))
 
 (defn write-data 
-  "Takes formats used in Clojure and converts them in more general formats."
+  "Takes formats used in Clojure and converts them into formats useable by 
+  JSON."
   [data]
   ;; some functions return sets of Implications etc.
   (if (and (coll? data)(not (map? data)))
-    (map write-data data)
+    (mapv write-data data)
     (condp instance? data
       Formal-Context [(objects data)
                       (attributes data)
@@ -59,6 +72,11 @@
                         y (base-set data)
                         :when ((order data) [x y])])]
       Implication [(premise data)(conclusion data)]
+      Layout [(write-data (.lattice data)) 
+              (.positions data) 
+              (.connections data)
+              (.upper-labels data) 
+              (.lower-labels data)]
       data)))
 
 ;;; Process functions

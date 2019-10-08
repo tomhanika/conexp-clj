@@ -8,6 +8,7 @@
 
 (ns conexp.api.handler-test
 	(:use conexp.main
+        conexp.layouts.base
         conexp.api.handler
         conexp.api.util-test)
 	(:use clojure.test))
@@ -86,6 +87,7 @@
 ;;; Conexp data types
 ;; if one conexp-clj operation works with a data type it's assumed all do
 
+;;Context
 (deftest test-context-file-read
   (is (= (mock-request {:function {:type "function"
                                    :name "concepts"
@@ -124,7 +126,7 @@
     (is (= (map #(mapv set %) ctx)
            (concepts (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]]))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Many valued context
 (deftest test-mv-context-file-read
   (is (= (mock-request {:function {:type "function"
                                    :name "values-of-attribute"
@@ -172,8 +174,8 @@
              (make-mv-context 
               ["a"]["1" "2"]{["a" "1"] 2 ["a" "2"] 5})
              "a"))))))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Lattice
 (deftest test-lattice-write
   (let [result (mock-request {:function {:type "function"
                                          :name "concept-lattice"
@@ -201,6 +203,7 @@
                              (last lat)))
            (dual-lattice data)))))
 
+;;Implications
 (deftest test-implication-write
   (let [result (mock-request {:function {:type "function"
                                          :name "make-implication"
@@ -247,6 +250,89 @@
            (minimal-implication-set? 
             #{(make-implication ["a"] ["b"]) 
               (make-implication ["1"] ["2"])})))))
+
+;Layout
+(deftest test-layout-write
+  (let [lat (make-lattice #{1 2 3 4}
+                          #{[1 2][1 3][2 4][3 4][1 4][1 1][2 2][3 3][4 4]})
+        pos (hash-map 1 [0 0] 2 [-1 1] 3 [1 1] 4 [0 2])
+        edge #{[1 2][1 3][2 4][3 4]}
+        result (mock-request {:function {:type "function"
+                                         :name "make-layout"
+                                         :args ["lattice" "positions" "edges"]}
+                              :lattice {:type "lattice"
+                                        :data (write-data lat)}
+                              :positions {:type "map"
+                                          :data pos}
+                              :edges {:type "list"
+                                      :data edge}})
+        layout (:result (:function result))]
+    (is (= (apply make-layout-nc 
+             (assoc 
+               layout 
+               ;; Layout object
+               0 (apply make-lattice-nc (first layout)) 
+               ;; remove colons from keys
+               1 (read-data {:type "map" :data (second layout)})
+               ;; cast vector to set, as JSON only supports lists
+               2 (into #{} (nth layout 2))))
+           (make-layout lat pos edge)))))
+
+(deftest test-layout-read
+  (let [lat (make-lattice #{1 2 3 4}
+                          #{[1 2][1 3][2 4][3 4][1 4][1 1][2 2][3 3][4 4]})
+        pos (hash-map 1 [0 0] 2 [-1 1] 3 [1 1] 4 [0 2])
+        new-pos (hash-map 1 [0 0] 2 [-1 1] 3 [1 1] 4 [0 3])
+        edge #{[1 2][1 3][2 4][3 4]}
+        result (mock-request {:function {:type "function"
+                                         :name "update-positions"
+                                         :args ["layout" "new-pos"]}
+                              :layout {:type "layout"
+                                       :data (write-data 
+                                              (make-layout lat pos edge))}
+                              :new-pos {:type "map"
+                                        :data new-pos}})
+        layout (:result (:function result))]
+    (is (= (apply make-layout-nc 
+             (assoc 
+               layout 
+               ;; Layout object
+               0 (apply make-lattice-nc (first layout)) 
+               ;; remove colons from keys
+               1 (read-data {:type "map" :data (second layout)})
+               ;; cast vector to set, as JSON only supports lists
+               2 (into #{} (nth layout 2))))
+           (make-layout lat new-pos edge)))))
+
+(deftest test-layout-read-write-label
+  (let [lat (make-lattice #{1 2 3 4}
+                          #{[1 2][1 3][2 4][3 4][1 4][1 1][2 2][3 3][4 4]})
+        pos (hash-map 1 [0 0] 2 [-1 1] 3 [1 1] 4 [0 2])
+        new-pos (hash-map 1 [0 0] 2 [-2 1] 3 [1 1] 4 [0 2])
+        edge #{[1 2][1 3][2 4][3 4]}
+        up (hash-map 1 ["a" nil] 2 ["b" nil] 3 ["c" nil] 4 ["d" nil])
+        lo (hash-map 1 ["e" nil] 2 ["f" nil] 3 ["g" nil] 4 ["h" nil])
+        result (mock-request {:function {:type "function"
+                                         :name "update-positions"
+                                         :args ["lay" "new-pos"]}
+                              :lay {:type "layout"
+                                    :data (write-data 
+                                           (make-layout lat pos edge up lo))}
+                              :new-pos {:type "map"
+                                        :data new-pos}})
+        layout (:result (:function result))]
+    (is (= (apply make-layout-nc 
+             (assoc 
+               layout 
+               ;; Layout object
+               0 (apply make-lattice-nc (first layout)) 
+               ;; remove colons from keys
+               1 (read-data {:type "map" :data (second layout)})
+               ;; cast vector to set, as JSON only supports lists
+               2 (into #{} (nth layout 2))
+               3 (read-data {:type "map" :data (nth layout 3)})
+               4 (read-data {:type "map" :data (nth layout 4)})))
+           (make-layout lat new-pos edge up lo)))))
 
 ;;;
 
