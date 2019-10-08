@@ -31,12 +31,15 @@
       "map" (if (some? raw)
                 (into {} (for [[k v] raw] [(read-string (name k)) v])))
       "context" (apply make-context raw)
+      ;;casting its content to char-array is the same as using the filename
       "context_file" (read-context (char-array raw))
-      "mv_context" (make-mv-context 
-                     (first raw) 
-                     (second raw) 
-                     (into {} 
-                      (for [[k v] (last raw)] [(read-string (name k)) v])))
+      "mv_context" (apply make-mv-context 
+                     (assoc 
+                       raw
+                       ;;remove colons
+                       2 (into {} 
+                          (for [[k v] (last raw)] 
+                               [(read-string (name k)) v]))))
       "mv_context_file" (read-mv-context (char-array raw))
       "lattice" (apply make-lattice raw)
       "implication" (apply make-implication raw)
@@ -56,7 +59,8 @@
   "Takes formats used in Clojure and converts them into formats useable by 
   JSON."
   [data]
-  ;; some functions return sets of Implications etc.
+  ;; some functions return sets of implications eg.
+  ;; but since JSON knows maps (objs) you should not convert those to vectors
   (if (and (coll? data)(not (map? data)))
     (mapv write-data data)
     (condp instance? data
@@ -91,6 +95,7 @@
      ;; use namestring as function and args as keys in datamap
      (write-data
        (apply 
+        ;; the used namespace consists mainly of only conexp-clj functions
         (ns-resolve (symbol "conexp.api.handler") (symbol namestring)) 
         (map data (map keyword args))))
      (throw (Exception. "Function name not allowed.")))))
@@ -99,6 +104,8 @@
   "Loops over each function object and tries to run it. Returned is a map with
   the old keys and the return value or error as value."
   [functions data]
+  ;; each iteration uses the prior ones as possible arguments
+  ;; one could sort functions in the very next line based on dependencies
   (loop [unprocessed functions
          processed {}]
     (if (empty? unprocessed)
@@ -107,7 +114,7 @@
             result {(first next-function)
                     (try (run-function (last next-function) 
                                        (merge data processed))
-                      (catch Exception e (.getMessage e)))}]
+                      (catch Exception e e))}]
         (recur (drop 1 unprocessed) (merge processed result))))))
 
 ;;; Handler
@@ -116,7 +123,7 @@
   "Transforms any result value into a map with an added type an status."
   [result]
   (cond 
-    (string? result) {:status 1 :msg result}
+    (instance? Exception result) {:status 1 :msg (.getMessage result)}
     (nil? result)    {:status 2 :msg "Return value is nil." :result nil}
     :else            {:status 0 :result result}))
 
