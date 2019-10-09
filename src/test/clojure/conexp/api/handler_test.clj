@@ -244,7 +244,7 @@
   (let [result (mock-request {:function {:type "function"
                                          :name "minimal-implication-set?"
                                          :args ["impl1"]}
-                              :impl1 {:type "implications"
+                              :impl1 {:type "implication_set"
                                      :data [[["a"] ["b"]]
                                             [["1"] ["2"]]]}})
         impls (:result (:function result))]

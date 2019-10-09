@@ -45,7 +45,7 @@
                   (:nodes raw)
                   (:edges raw))
       "implication" (apply make-implication raw)
-      "implications" (map #(apply make-implication %) raw)
+      "implication_set" (map #(apply make-implication %) raw)
       "layout" (apply make-layout 
                 (filter 
                   some?
