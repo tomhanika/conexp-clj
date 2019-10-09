@@ -40,8 +40,8 @@
 (defn start-server
   "Starts a restful server. If boolean argument is true it will support hot 
   code reload."
-  [dev]
-  (reset! server ( run-server (set-middleware dev) {:port 8080})))
+  [dev port]
+  (reset! server ( run-server (set-middleware dev) {:port port})))
 
 ;;;
 
