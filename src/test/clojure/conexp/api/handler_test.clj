@@ -111,7 +111,7 @@
                               :inc {:type "list"
                                      :data [["a" "1"]["b" "2"]]}})
         ctx (:result (:function result))]
-    (is (= (make-context (first ctx)(second ctx)(last ctx))
+    (is (= (make-context (:objects ctx)(:attributes ctx)(:incidence ctx))
            (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]])))))
 
 (deftest test-context-read
@@ -119,9 +119,9 @@
                                          :name "concepts"
                                          :args ["ctx1"]}
                               :ctx1 {:type "context"
-                                     :data [["a" "b"]
-                                            ["1" "2"]
-                                            [["a" "1"]["b" "2"]]]}})
+                                     :data {:objects ["a" "b"]
+                                            :attributes ["1" "2"]
+                                            :incidence [["a" "1"]["b" "2"]]}}})
         ctx (:result (:function result))]
     (is (= (map #(mapv set %) ctx)
            (concepts (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]]))))))
@@ -153,18 +153,20 @@
                                      :data {["a" "1"] 2 ["a" "2"] 5}}})
         ctx (:result (:function result))]
     (is (= ctx 
-           [["a"]
-            ["1" "2"]
-            {(keyword (str ["a" "1"])) 2 (keyword (str ["a" "2"])) 5}]))))
+           {:objects ["a"]
+            :attributes ["1" "2"]
+            :incidence {(keyword (str ["a" "1"])) 2 
+                        (keyword (str ["a" "2"])) 5}}))))
 
 (deftest test-mv-context-read
   (let [result (mock-request {:function {:type "function"
                                          :name "values-of-object"
                                          :args ["ctx1" "zwei"]}
                               :ctx1 {:type "mv_context"
-                                     :data [["a"]
-                                            ["1" "2"]
-                                            {["a" "1"] 2 ["a" "2"] 5}]}
+                                     :data {:objects ["a"]
+                                            :attributes ["1" "2"]
+                                            :incidence
+                                             {["a" "1"] 2 ["a" "2"] 5}}}
                               :zwei {:type "string"
                                      :data "a"}})
         values (:result (:function result))]
@@ -172,7 +174,7 @@
            (write-data 
             (values-of-object 
              (make-mv-context 
-              ["a"]["1" "2"]{["a" "1"] 2 ["a" "2"] 5})
+               ["a"]["1" "2"]{["a" "1"] 2 ["a" "2"] 5})
              "a"))))))
 
 ;Lattice
@@ -183,10 +185,10 @@
                               :ctx1 {:type "context_file"
                                      :data (slurp "testing-data/myctx.cxt")}})
         lat (:result (:function result))]
-    (is (= (make-lattice-nc (map #(mapv set %) (first lat)) 
+    (is (= (make-lattice-nc (map #(mapv set %) (:nodes lat)) 
                             (map 
                              (fn [a] (map (fn [b] (mapv set b))a))
-                             (last lat)))
+                             (:edges lat)))
            (concept-lattice (read-context "testing-data/myctx.cxt"))))))
 
 (deftest test-lattice-read
@@ -197,10 +199,10 @@
                               :lat1 {:type "lattice"
                                      :data (write-data data)}})
         lat (:result (:function result))]
-    (is (= (make-lattice-nc (map #(mapv set %) (first lat)) 
+    (is (= (make-lattice-nc (map #(mapv set %) (:nodes lat)) 
                             (map 
                              (fn [a] (map (fn [b] (mapv set b))a))
-                             (last lat)))
+                             (:edges lat)))
            (dual-lattice data)))))
 
 ;;Implications
@@ -267,15 +269,14 @@
                               :edges {:type "list"
                                       :data edge}})
         layout (:result (:function result))]
-    (is (= (apply make-layout-nc 
-             (assoc 
-               layout 
-               ;; Layout object
-               0 (apply make-lattice-nc (first layout)) 
+    (is (= (make-layout-nc 
+               ;; Lattice object
+               (make-lattice-nc (:nodes (:lattice layout))
+                                (:edges (:lattice layout))) 
                ;; remove colons from keys
-               1 (read-data {:type "map" :data (second layout)})
+               (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists
-               2 (into #{} (nth layout 2))))
+               (into #{} (:connections layout)))
            (make-layout lat pos edge)))))
 
 (deftest test-layout-read
@@ -293,15 +294,14 @@
                               :new-pos {:type "map"
                                         :data new-pos}})
         layout (:result (:function result))]
-    (is (= (apply make-layout-nc 
-             (assoc 
-               layout 
-               ;; Layout object
-               0 (apply make-lattice-nc (first layout)) 
+    (is (= (make-layout-nc 
+               ;; Lattice object
+               (make-lattice-nc (:nodes (:lattice layout))
+                                (:edges (:lattice layout))) 
                ;; remove colons from keys
-               1 (read-data {:type "map" :data (second layout)})
+               (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists
-               2 (into #{} (nth layout 2))))
+               (into #{} (:connections layout)))
            (make-layout lat new-pos edge)))))
 
 (deftest test-layout-read-write-label
@@ -321,17 +321,16 @@
                               :new-pos {:type "map"
                                         :data new-pos}})
         layout (:result (:function result))]
-    (is (= (apply make-layout-nc 
-             (assoc 
-               layout 
-               ;; Layout object
-               0 (apply make-lattice-nc (first layout)) 
+    (is (= (make-layout-nc 
+               ;; Lattice object
+               (make-lattice-nc (:nodes (:lattice layout))
+                                (:edges (:lattice layout))) 
                ;; remove colons from keys
-               1 (read-data {:type "map" :data (second layout)})
+               (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists
-               2 (into #{} (nth layout 2))
-               3 (read-data {:type "map" :data (nth layout 3)})
-               4 (read-data {:type "map" :data (nth layout 4)})))
+               (into #{} (:connections layout))
+               (read-data {:type "map" :data (:upper-labels layout)})
+               (read-data {:type "map" :data (:lower-labels layout)}))
            (make-layout lat new-pos edge up lo)))))
 
 ;;;

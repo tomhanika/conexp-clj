@@ -30,29 +30,31 @@
       ;; remove colons from map
       "map" (if (some? raw)
                 (into {} (for [[k v] raw] [(read-string (name k)) v])))
-      "context" (apply make-context raw)
+      "context" (make-context 
+                  (:objects raw) 
+                  (:attributes raw) 
+                  (:incidence raw))
       ;;casting its content to char-array is the same as using the filename
       "context_file" (read-context (char-array raw))
-      "mv_context" (apply make-mv-context 
-                     (assoc 
-                       raw
-                       ;;remove colons
-                       2 (into {} 
-                          (for [[k v] (last raw)] 
-                               [(read-string (name k)) v]))))
+      "mv_context" (make-mv-context 
+                     (:objects raw)
+                     (:attributes raw)
+                     (read-data {:type "map" :data (:incidence raw)}))
       "mv_context_file" (read-mv-context (char-array raw))
-      "lattice" (apply make-lattice raw)
+      "lattice" (make-lattice 
+                  (:nodes raw)
+                  (:edges raw))
       "implication" (apply make-implication raw)
       "implications" (map #(apply make-implication %) raw)
       "layout" (apply make-layout 
-                (filterv 
+                (filter 
                   some?
-                  (assoc 
-                    raw 
-                    0 (read-data (hash-map :type "lattice" :data (first raw)))
-                    1 (read-data (hash-map :type "map" :data (second raw)))
-                    3 (read-data (hash-map :type "map" :data (nth raw 3)))
-                    4 (read-data (hash-map :type "map" :data (nth raw 4))))))
+                  (list 
+                    (read-data {:type "lattice" :data (:lattice raw)}) 
+                    (read-data {:type "map" :data (:positions raw)})
+                    (:connections raw)
+                    (read-data {:type "map" :data (:upper-labels raw)})
+                    (read-data {:type "map" :data (:lower-labels raw)}))))
       raw)))
 
 (defn write-data 
@@ -64,23 +66,23 @@
   (if (and (coll? data)(not (map? data)))
     (mapv write-data data)
     (condp instance? data
-      Formal-Context [(objects data)
-                      (attributes data)
-                      (incidence data)]
-      Many-Valued-Context [(objects data)
-                           (attributes data)
-                           (incidence data)]
-      Lattice [(base-set data)
-               (set-of [x y]
-                       [x (base-set data)
-                        y (base-set data)
-                        :when ((order data) [x y])])]
+      Formal-Context {:objects (objects data)
+                      :attributes (attributes data)
+                      :incidence (incidence data)}
+      Many-Valued-Context {:objects (objects data)
+                           :attributes (attributes data)
+                           :incidence (incidence data)}
+      Lattice {:nodes (base-set data)
+               :edges (set-of [x y]
+                              [x (base-set data)
+                               y (base-set data)
+                               :when ((order data) [x y])])}
       Implication [(premise data)(conclusion data)]
-      Layout [(write-data (.lattice data)) 
-              (.positions data) 
-              (.connections data)
-              (.upper-labels data) 
-              (.lower-labels data)]
+      Layout {:lattice (write-data (.lattice data)) 
+              :positions (.positions data) 
+              :connections (.connections data)
+              :upper-labels (.upper-labels data) 
+              :lower-labels (.lower-labels data)}
       data)))
 
 ;;; Process functions
