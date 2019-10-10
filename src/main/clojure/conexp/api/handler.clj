@@ -11,7 +11,8 @@
         conexp.layouts.base
         conexp.api.namespace)
   (:require [ring.util.response :refer [response]]
-            [clojure.edn :refer [read-string]]
+            [clojure.edn :as edn]
+            [clojure.string :refer [split, lower-case]]
             [clojure.java.io :as io])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.many_valued_contexts.Many-Valued-Context
@@ -30,7 +31,7 @@
     (condp = (:type data)
       ;; remove colons from map
       "map" (if (some? raw)
-                (into {} (for [[k v] raw] [(read-string (name k)) v])))
+                (into {} (for [[k v] raw] [(edn/read-string (name k)) v])))
       "context" (make-context 
                   (:objects raw) 
                   (:attributes raw) 
@@ -96,11 +97,10 @@
         args (:args function)]
    (if (whitelist-names namestring)
      ;; use namestring as function and args as keys in datamap
-     (write-data
-       (apply 
-        ;; the used namespace consists mainly of only conexp-clj functions
-        (ns-resolve (symbol "conexp.api.handler") (symbol namestring)) 
-        (map data (map keyword args))))
+     (apply 
+      ;; the used namespace consists mainly of only conexp-clj functions
+      (ns-resolve (symbol "conexp.api.handler") (symbol namestring)) 
+      (map data (map keyword args)))
      (throw (Exception. "Function name not allowed.")))))
 
 (defn process-functions 
@@ -120,15 +120,40 @@
                       (catch Exception e e))}]
         (recur (drop 1 unprocessed) (merge processed result))))))
 
-;;; Handler
+;;; Build response
+
+(defn get-type
+  "Gets the type for the result and makes it more readable."
+  [result]
+  ;; split string before capital letters and use the last word
+  ;; eg. "class clojure.lang.PersistentHashSet" -> "set"
+  (let [typename (lower-case (last (split (str (type result)) #"(?=[A-Z])")))]
+    ;; collections other than maps don't mix elements
+    ;; therefore add the element type
+    (cond 
+      (symbol? result) "string"
+      (and (coll? result) (not (map? result)))
+        (str (get-type (first result)) "_set")
+      :else (str typename))))
 
 (defn build-map
   "Transforms any result value into a map with an added type an status."
   [result]
   (cond 
-    (instance? Exception result) {:status 1 :msg (.getMessage result)}
-    (nil? result)    {:status 2 :msg "Return value is nil." :result nil}
-    :else            {:status 0 :result result}))
+    (instance? Exception result) {:status 1
+                                  :type (get-type result) 
+                                  :msg (.getMessage result)    
+                                  :result nil}
+    (nil? result) {:status 2                    
+                   :type (get-type result) 
+                   :msg "Return value is nil."  
+                   :result nil}
+    :else {:status 0                    
+           :type (get-type result) 
+           :msg nil                     
+           :result (write-data result)}))
+
+;;; Handler
 
 (defn handler
   "Handles the JSON request and constructs the JSON response."
@@ -146,7 +171,7 @@
       (merge
         (if id {:id id})
         (into {} (for [[k v] results] 
-                      [k (build-map (write-data v))]))))))
+                      [k (build-map v)]))))))
 
 ;;;
 

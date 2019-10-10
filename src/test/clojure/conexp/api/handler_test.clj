@@ -24,9 +24,11 @@
   (is (= (mock-request {:function {:type "function"
                                    :name "+" 
                                    :args ["eins", "zwei"]} 
-                        :eins {:type "int" :data 1}
-                        :zwei {:type "int" :data 2}}) 
+                        :eins {:type "integer" :data 1}
+                        :zwei {:type "integer" :data 2}}) 
          {:function {:status 0
+                     :type "long"
+                     :msg nil
                      :result 3}})))
 
 (deftest test-generic-request-multiple-independent-functions 
@@ -36,12 +38,16 @@
                         :function2 {:type "function"
                                     :name "-" 
                                     :args ["eins", "zwei"]} 
-                        :eins {:type "int" :data 1}
-                        :zwei {:type "int" :data 2}}) 
+                        :eins {:type "integer" :data 1}
+                        :zwei {:type "integer" :data 2}}) 
          {:function1 {:status 0
-              :result 3}
+                      :type "long"
+                      :msg nil
+                      :result 3}
           :function2 {:status 0
-              :result -1}})))
+                      :type "long"
+                      :msg nil
+                      :result -1}})))
 
 (deftest test-generic-request-multiple-dependent-functions 
   (is (= (mock-request {:function1 {:type "function"
@@ -50,21 +56,27 @@
                         :function2 {:type "function"
                                     :name "-" 
                                     :args ["function1", "zwei"]} 
-                        :eins {:type "int" :data 1}
-                        :zwei {:type "int" :data 2}}) 
+                        :eins {:type "integer" :data 1}
+                        :zwei {:type "integer" :data 2}}) 
          {:function1 {:status 0
-              :result 3}
+                      :type "long"
+                      :msg nil
+                      :result 3}
           :function2 {:status 0
-              :result 1}})))
+                      :type "long"
+                      :msg nil
+                      :result 1}})))
 
 (deftest test-generic-request-id
   (is (= (mock-request {:function {:type "function"
                                    :name "+" 
                                    :args ["eins", "zwei"]} 
                         :id 42
-                        :eins {:type "int" :data 1}
-                        :zwei {:type "int" :data 2}}) 
+                        :eins {:type "integer" :data 1}
+                        :zwei {:type "integer" :data 2}}) 
          {:function {:status 0
+                     :type "long"
+                     :msg nil
                      :result 3}
           :id 42})))
 
@@ -72,8 +84,10 @@
   (is (= (mock-request {:function {:type "function"
                                    :name "+" 
                                    :args ["eins"]} 
-                        :eins {:type "int" :data "a"}}) 
+                        :eins {:type "integer" :data "a"}}) 
          {:function {:status 1
+                     :type "exception"
+                     :result nil
                      :msg (try (+ "a") 
                            (catch Exception e (.getMessage e)))}})))
 
@@ -82,6 +96,8 @@
                                    :name "map"
                                    :args []}})
          {:function {:status 1
+                     :type "exception"
+                     :result nil
                      :msg "Function name not allowed."}})))
 
 ;;; Conexp data types
@@ -95,6 +111,8 @@
                         :ctx1 {:type "context_file"
                                :data (slurp "testing-data/Animals.ctx")}})
          {:function {:status 0
+                     :type "string_set_set_set"
+                     :msg nil
                      :result (mapv 
                               #(mapv vec %) 
                               (concepts (read-context 
@@ -112,7 +130,8 @@
                                      :data [["a" "1"]["b" "2"]]}})
         ctx (:result (:function result))]
     (is (= (make-context (:objects ctx)(:attributes ctx)(:incidence ctx))
-           (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]])))))
+           (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]])))
+    (is (= (:type (:function result)) "context"))))
 
 (deftest test-context-read
   (let [result (mock-request {:function {:type "function"
@@ -124,7 +143,8 @@
                                             :incidence [["a" "1"]["b" "2"]]}}})
         ctx (:result (:function result))]
     (is (= (map #(mapv set %) ctx)
-           (concepts (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]]))))))
+           (concepts (make-context ["a" "b"]["1" "2"][["a" "1"]["b" "2"]]))))
+    (is (= (:type (:function result)) "string_set_set_set"))))
 
 ;;Many valued context
 (deftest test-mv-context-file-read
@@ -136,6 +156,8 @@
                         :zwei {:type "int"
                                :data 10}})
          {:function {:status 0
+                     :type "string_set"
+                     :msg nil
                      :result (map str (values-of-attribute 
                                        (read-mv-context 
                                        "testing-data/house-votes-84.data")
@@ -156,7 +178,8 @@
            {:objects ["a"]
             :attributes ["1" "2"]
             :incidence {(keyword (str ["a" "1"])) 2 
-                        (keyword (str ["a" "2"])) 5}}))))
+                        (keyword (str ["a" "2"])) 5}}))
+    (is (= (:type (:function result)) "context"))))
 
 (deftest test-mv-context-read
   (let [result (mock-request {:function {:type "function"
@@ -175,7 +198,8 @@
             (values-of-object 
              (make-mv-context 
                ["a"]["1" "2"]{["a" "1"] 2 ["a" "2"] 5})
-             "a"))))))
+             "a"))))
+    (is (= (:type (:function result)) "integer_set"))))
 
 ;Lattice
 (deftest test-lattice-write
@@ -189,7 +213,8 @@
                             (map 
                              (fn [a] (map (fn [b] (mapv set b))a))
                              (:edges lat)))
-           (concept-lattice (read-context "testing-data/myctx.cxt"))))))
+           (concept-lattice (read-context "testing-data/myctx.cxt"))))
+    (is (= (:type (:function result)) "lattice"))))
 
 (deftest test-lattice-read
   (let [data (concept-lattice (read-context "testing-data/myctx.cxt"))
@@ -203,7 +228,8 @@
                             (map 
                              (fn [a] (map (fn [b] (mapv set b))a))
                              (:edges lat)))
-           (dual-lattice data)))))
+           (dual-lattice data)))
+    (is (= (:type (:function result)) "lattice"))))
 
 ;;Implications
 (deftest test-implication-write
@@ -216,7 +242,8 @@
                                            :data ["2" "1"]}})
         impl (:result (:function result))]
     (is (= (make-implication (first impl)(second impl))
-           (make-implication ["a" "b"]["2" "1"])))))
+           (make-implication ["a" "b"]["2" "1"])))
+    (is (= (:type (:function result)) "implication"))))
 
 (deftest test-implication-read
   (let [result (mock-request {:function {:type "function"
@@ -226,7 +253,8 @@
                                      :data [["a"] ["b"]]}})
         premise (:result (:function result))]
     (is (= premise
-           ["a"]))))
+           ["a"]))
+    (is (= (:type (:function result)) "string_set"))))
 
 
 (deftest test-implications-write
@@ -238,7 +266,8 @@
                                      :data (write-data context)}})
         impls (:result (:function result))]
     (is (= (map #(make-implication (first %) (last %)) impls)
-           (canonical-base context)))))
+           (canonical-base context)))
+    (is (= (:type (:function result)) "implication_set"))))
 
 (deftest test-implications-read
   (let [result (mock-request {:function {:type "function"
@@ -251,7 +280,8 @@
     (is (= impls
            (minimal-implication-set? 
             #{(make-implication ["a"] ["b"]) 
-              (make-implication ["1"] ["2"])})))))
+              (make-implication ["1"] ["2"])})))
+    (is (= (:type (:function result)) "boolean"))))
 
 ;Layout
 (deftest test-layout-write
@@ -277,7 +307,8 @@
                (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists
                (into #{} (:connections layout)))
-           (make-layout lat pos edge)))))
+           (make-layout lat pos edge)))
+    (is (= (:type (:function result)) "layout"))))
 
 (deftest test-layout-read
   (let [lat (make-lattice #{1 2 3 4}
@@ -302,7 +333,8 @@
                (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists
                (into #{} (:connections layout)))
-           (make-layout lat new-pos edge)))))
+           (make-layout lat new-pos edge)))
+    (is (= (:type (:function result)) "layout"))))
 
 (deftest test-layout-read-write-label
   (let [lat (make-lattice #{1 2 3 4}
@@ -331,7 +363,8 @@
                (into #{} (:connections layout))
                (read-data {:type "map" :data (:upper-labels layout)})
                (read-data {:type "map" :data (:lower-labels layout)}))
-           (make-layout lat new-pos edge up lo)))))
+           (make-layout lat new-pos edge up lo)))
+    (is (= (:type (:function result)) "layout"))))
 
 ;;;
 
