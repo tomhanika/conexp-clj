@@ -13,7 +13,7 @@
 
 ;;;
 
-;TODO
+;TODO Needed shorthands will be determined by use, this is merely an example
 ;(defn sh-implication-graph
 ;  [ctx]
 ;  (implication-graph (canonincal-base (concept-lattice ctx))))

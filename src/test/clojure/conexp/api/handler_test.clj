@@ -26,7 +26,7 @@
                                    :args ["eins", "zwei"]} 
                         :eins {:type "integer" :data 1}
                         :zwei {:type "integer" :data 2}}) 
-         {:function {:status 0
+         {:function {:status 200
                      :type "long"
                      :msg nil
                      :result 3}})))
@@ -40,11 +40,11 @@
                                     :args ["eins", "zwei"]} 
                         :eins {:type "integer" :data 1}
                         :zwei {:type "integer" :data 2}}) 
-         {:function1 {:status 0
+         {:function1 {:status 200
                       :type "long"
                       :msg nil
                       :result 3}
-          :function2 {:status 0
+          :function2 {:status 200
                       :type "long"
                       :msg nil
                       :result -1}})))
@@ -58,11 +58,25 @@
                                     :args ["function1", "zwei"]} 
                         :eins {:type "integer" :data 1}
                         :zwei {:type "integer" :data 2}}) 
-         {:function1 {:status 0
+         {:function1 {:status 200
                       :type "long"
                       :msg nil
                       :result 3}
-          :function2 {:status 0
+          :function2 {:status 200
+                      :type "long"
+                      :msg nil
+                      :result 1}})))
+
+(deftest test-generic-request-multiple-dependent-functions 
+  (is (= (mock-request {:function1 {:type "silent-function"
+                                    :name "+" 
+                                    :args ["eins", "zwei"]}
+                        :function2 {:type "function"
+                                    :name "-" 
+                                    :args ["function1", "zwei"]} 
+                        :eins {:type "integer" :data 1}
+                        :zwei {:type "integer" :data 2}}) 
+         {:function2 {:status 200
                       :type "long"
                       :msg nil
                       :result 1}})))
@@ -74,7 +88,7 @@
                         :id 42
                         :eins {:type "integer" :data 1}
                         :zwei {:type "integer" :data 2}}) 
-         {:function {:status 0
+         {:function {:status 200
                      :type "long"
                      :msg nil
                      :result 3}
@@ -85,7 +99,7 @@
                                    :name "+" 
                                    :args ["eins"]} 
                         :eins {:type "integer" :data "a"}}) 
-         {:function {:status 1
+         {:function {:status 400
                      :type "exception"
                      :result nil
                      :msg (try (+ "a") 
@@ -95,7 +109,7 @@
   (is (= (mock-request {:function {:type "function"
                                    :name "map"
                                    :args []}})
-         {:function {:status 1
+         {:function {:status 400
                      :type "exception"
                      :result nil
                      :msg "Function name not allowed."}})))
@@ -110,7 +124,7 @@
                                    :args ["ctx1"]}
                         :ctx1 {:type "context_file"
                                :data (slurp "testing-data/Animals.ctx")}})
-         {:function {:status 0
+         {:function {:status 200
                      :type "string_set_set_set"
                      :msg nil
                      :result (mapv 
@@ -155,7 +169,7 @@
                                :data (slurp "testing-data/house-votes-84.data")}
                         :zwei {:type "int"
                                :data 10}})
-         {:function {:status 0
+         {:function {:status 200
                      :type "string_set"
                      :msg nil
                      :result (map str (values-of-attribute 

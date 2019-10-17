@@ -10,7 +10,7 @@
   (:use conexp.main
         conexp.layouts.base
         conexp.api.namespace)
-  (:require [ring.util.response :refer [response]]
+  (:require [ring.util.response :refer [response, status]]
             [clojure.edn :as edn]
             [clojure.string :refer [split, lower-case]]
             [clojure.java.io :as io])
@@ -140,18 +140,25 @@
   "Transforms any result value into a map with an added type an status."
   [result]
   (cond 
-    (instance? Exception result) {:status 1
+    (instance? Exception result) {:status 400
                                   :type (get-type result) 
                                   :msg (.getMessage result)    
                                   :result nil}
-    (nil? result) {:status 2                    
+    (nil? result) {:status 204                    
                    :type (get-type result) 
                    :msg "Return value is nil."  
                    :result nil}
-    :else {:status 0                    
+    :else {:status 200                    
            :type (get-type result) 
            :msg nil                     
            :result (write-data result)}))
+
+(defn http-status
+  "Based on the whole body updates the overall http status."
+  [body]
+  (if (empty? body)
+    204
+    (apply max (for [[k v] body] (:status v)))))
 
 ;;; Handler
 
@@ -161,17 +168,22 @@
   (let [body (:body request)
         id (:id body) ;an id is just copied if provided
         ;; each obejct that not a function type is sent through "read-data"
-        data (into {} (for [[k v] body :when (not (= "function" (:type v)))] 
+        fn-types (list "function" "silent-function")
+        data (into {} (for [[k v] body 
+                            :when (not (some #{(:type v)} fn-types))] 
                            [k (read-data v)]))
         ;; each name from function types is run as an acutal function
         results (process-functions 
-                   (filter #(= "function" (:type (val %))) body)
-                   data)]
-    (response 
-      (merge
-        (if id {:id id})
-        (into {} (for [[k v] results] 
-                      [k (build-map v)]))))))
+                   (filter (fn [a](some #{(:type (val a))} fn-types)) body)
+                   data)
+        ;; the body map is build with all executed funtion types, their result
+        ;; and status
+        result-map (into {} (for [[k v] results
+                                    :when (= "function" (:type (k body)))] 
+                                 [k (build-map v)]))]
+    (status 
+      (response (merge (if id {:id id}) result-map))
+      (http-status result-map))))
 
 ;;;
 
