@@ -36,7 +36,7 @@
                   (:objects raw) 
                   (:attributes raw) 
                   (:incidence raw))
-      ;;casting its content to char-array is the same as using the filename
+      ;; casting its content to char-array is the same as using the filename
       "context_file" (read-context (char-array raw))
       "mv_context" (make-mv-context 
                      (:objects raw)
@@ -63,7 +63,7 @@
   "Takes formats used in Clojure and converts them into formats useable by 
   JSON."
   [data]
-  ;; some functions return sets of implications eg.
+  ;; some functions return sets of implications e.g.
   ;; but since JSON knows maps (objs) you should not convert those to vectors
   (if (and (coll? data)(not (map? data)))
     (mapv write-data data)
@@ -153,22 +153,23 @@
            :msg nil                     
            :result (write-data result)}))
 
-(defn http-status
+;;; Handler
+
+(defn get-http-status
   "Based on the whole body updates the overall http status."
   [body]
   (if (empty? body)
     204
     (apply max (for [[k v] body] (:status v)))))
 
-;;; Handler
-
 (defn handler
   "Handles the JSON request and constructs the JSON response."
   [request]
   (let [body (:body request)
         id (:id body) ;an id is just copied if provided
-        ;; each obejct that not a function type is sent through "read-data"
+        ;; types defines for JSON objects
         fn-types (list "function" "silent-function")
+        ;; each obejct that not a function type is sent through "read-data"
         data (into {} (for [[k v] body 
                             :when (not (some #{(:type v)} fn-types))] 
                            [k (read-data v)]))
@@ -179,11 +180,11 @@
         ;; the body map is build with all executed funtion types, their result
         ;; and status
         result-map (into {} (for [[k v] results
-                                    :when (= "function" (:type (k body)))] 
+                                   :when (= "function" (:type (k body)))] 
                                  [k (build-map v)]))]
     (status 
       (response (merge (if id {:id id}) result-map))
-      (http-status result-map))))
+      (get-http-status result-map))))
 
 ;;;
 

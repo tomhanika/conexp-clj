@@ -23,15 +23,22 @@
       (keys 
         (merge 
           (apply merge (map ns-publics conexp-clj-namespaces))
-          (ns-publics (symbol "conexp.layouts.base"))
-          (ns-publics (symbol "conexp.layouts.common"))
-          (ns-publics (symbol "conexp.layouts.force"))
-          (ns-publics (symbol "conexp.layouts.freese"))
-          (ns-publics (symbol "conexp.layouts.layered"))
-          (ns-publics (symbol "conexp.layouts.dim-draw"))
-          (ns-publics (symbol "conexp.api.shorthands")))))
+          (apply merge (map 
+                         #(ns-publics (symbol %)) 
+                         (list 
+                           "conexp.layouts.base"
+                           "conexp.layouts.common"
+                           "conexp.layouts.force"
+                           "conexp.layouts.freese"
+                           "conexp.layouts.layered"
+                           "conexp.layouts.dim-draw"
+                           "conexp.api.shorthands"))))))
     ;; just all wanted core functions
-    (list "count" "+" "-" "*" "/")))
+    (list "count" 
+          "+" 
+          "-" 
+          "*" 
+          "/")))
 
 (defn whitelist-names
   "Gathers all relevants functions across conexp-clj and tests any input."
