@@ -16,23 +16,22 @@
 
 ;;;
 
+(def extended-conexp-clj-namespaces
+  (apply merge conexp-clj-namespaces
+               '[conexp.layouts.base
+                 conexp.layouts.common
+                 conexp.layouts.force
+                 conexp.layouts.freese
+                 conexp.layouts.layered
+                 conexp.layouts.dim-draw
+                 conexp.api.shorthands]))
+
 (def functions
   (concat
     ;; get all functions defined in standard conexp-clj namespaces 
     (map name
       (keys 
-        (merge 
-          (apply merge (map ns-publics conexp-clj-namespaces))
-          (apply merge (map 
-                         #(ns-publics (symbol %)) 
-                         (list 
-                           "conexp.layouts.base"
-                           "conexp.layouts.common"
-                           "conexp.layouts.force"
-                           "conexp.layouts.freese"
-                           "conexp.layouts.layered"
-                           "conexp.layouts.dim-draw"
-                           "conexp.api.shorthands"))))))
+        (apply merge (map ns-publics extended-conexp-clj-namespaces))))
     ;; just all wanted core functions
     (list "count" 
           "+" 

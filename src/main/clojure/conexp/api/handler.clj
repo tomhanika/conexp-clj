@@ -8,7 +8,6 @@
 
 (ns conexp.api.handler
   (:use conexp.main
-        conexp.layouts.base
         conexp.api.namespace)
   (:require [ring.util.response :refer [response, status]]
             [clojure.edn :as edn]
@@ -20,7 +19,7 @@
            conexp.fca.implications.Implication
            conexp.layouts.base.Layout))
 
-(apply use conexp-clj-namespaces)
+(apply use extended-conexp-clj-namespaces)
 
 ;;; Process Data
 
