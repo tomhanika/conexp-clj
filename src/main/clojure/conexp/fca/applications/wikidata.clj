@@ -163,11 +163,14 @@
                     (str "wdt:"
                          property
                          " []"))]
-    (str "?entity "
-         (str/join
-          ";\n    "
-          (map to-clause premise))
-         " .")))
+    (if (empty? premise)
+      "?entity ?someProperty [] .\n [] wikibase:directClaim ?someProperty"
+      (str "?entity "
+           (str/join
+            ";\n    "
+            (map to-clause premise))
+           " .")
+      )))
 
 (defn- pattern-for-conclusion
   "generate a graph pattern not matching the given conclusion"
@@ -227,7 +230,7 @@
        (get "boolean"))))
 
 (defn counterexample
-  "find a counterexample to the given implication, or nil if there is none"
+  "find n counterexample to the given implication, or nil if there is none"
   [implication]
   (tautology-or-counterexample
    implication
@@ -237,15 +240,20 @@
        entity))))
 
 (defn counterexamples
-  "find all counterexample to the given implication, or nil if there is none"
-  [implication]
-  (tautology-or-counterexample
-   implication
-   (with-sparql-bindings
-     (counterexample-query-for-implication implication)
-     (map (fn [{entity "entity"}]
-            entity)
-          bindings))))
+  "Find all counterexamples to the given implication, or nil if there is none. If n
+  is provided, find only n counterexamples "
+  ([implication]
+   (counterexamples implication -1))
+  ([implication n]
+   (tautology-or-counterexample
+    implication
+    (with-sparql-bindings
+      (if (< n 0)
+      (counterexample-query-for-implication implication)
+      (counterexample-query-for-implication implication :limit n))
+      (map (fn [{entity "entity"}]
+             entity)
+           bindings)))))
 
 (defn number-of-counterexamples
   "find the number of all counterexamples to the given implication"

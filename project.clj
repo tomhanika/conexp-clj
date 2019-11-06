@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(defproject conexp-clj "2.0.0-SNAPSHOT"
+(defproject conexp-clj "2.0.2-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/tomhanika/conexp-clj/"
@@ -16,7 +16,7 @@
   :dependencies [[org.clojure/clojure             "1.9.0"]
                  [org.clojure/core.async          "0.4.490"]
                  [org.clojure/data.xml            "0.0.8"]
-                 [org.clojure/data.json           "0.2.6"]                 
+                 [org.clojure/data.json           "0.2.6"]
                  [org.clojure/math.combinatorics  "0.1.5"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.clojure/tools.cli           "0.4.1"]
