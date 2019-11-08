@@ -4,7 +4,7 @@
             [conexp.base :refer [set-of exists forall => defalias]]
             [conexp.fca.contexts :as contexts]
             [clojure.set :refer [subset?]]
-            [clojure.math.numeric-tower :refer :all]            
+            [clojure.math.numeric-tower :refer :all] 
             )
   (:import [org.apache.commons.math3.distribution 
             GammaDistribution 
@@ -27,15 +27,53 @@
 )
 
 
-(defn-  make-context-from-attribute-numbers-per-object
+(defn- dispatch-makeContext 
+  [att obj obj_att_nums]
+  (cond    
+    (and (pos-int? att) (pos-int? obj))
+    :att-num-obj-num
+    (and (coll? att) (coll? obj))
+    :att-coll-obj-coll
+    (and (coll? att) (int? obj))
+    :att-coll-obj-num))
+
+
+(defmulti make-context-from-attribute-numbers-per-object 
+  "generate random context for given number of attributes, objects and 
+  a vector containing the numbers of attributes for each object"
+  dispatch-makeContext
+  )
+
+(defalias makeContext make-context-from-attribute-numbers-per-object)
+
+(defmethod make-context-from-attribute-numbers-per-object :att-num-obj-num 
+  [att obj obj_att_nums]
+  (contexts/make-context-from-matrix
+   (vec (range obj))
+   (vec (range att))
+   (flatten (map #(shuffle (into (vec (take %1 (repeat 1))) (vec (take (- att %1) (repeat 0))))) 
+                 obj_att_nums))))
+
+
+(defmethod make-context-from-attribute-numbers-per-object :att-coll-obj-coll
   [att obj obj_att_nums]
   (let [matrix (flatten (map #(shuffle (into (vec (take % (repeat 1))) 
-                                             (vec (take (- (count  att) %) 
-                                                        (repeat 0))))) obj_att_nums))]
+                                             (vec (take (- (count  att) %) (repeat 0))))) obj_att_nums))]
     (contexts/make-context-from-matrix
      (into [] obj)
      (into [] att)
      matrix)))
+
+
+(defmethod make-context-from-attribute-numbers-per-object :att-coll-obj-num
+  [att obj obj_att_nums]
+  (let [matrix (flatten (map #(shuffle (into (vec (take % (repeat 1))) 
+                                             (vec (take (- (count  att) %) (repeat 0))))) obj_att_nums))]
+    (contexts/make-context-from-matrix
+     (vec (range obj))
+     (into [] att)
+     matrix)))
+
 
 
 (defn- createGammaDistr
@@ -181,5 +219,46 @@
     (make-context-from-attribute-numbers-per-object attribute-coll object-coll obj_attr_numbers)
     ))
 
+
+(defn imitate-context-with-dirichlet
+  "imitate using dirichlet"
+  [ctx]
+  (let [attr  (contexts/attributes ctx) 
+        num_attr (count attr)
+        objects  (contexts/objects ctx)
+        num_objects (count objects)
+        freq (frequencies (map #(count (contexts/object-derivation ctx [%])) objects))
+        base-measure (->> (range (+ 1 num_attr)) (map #(freq %)) (map #(if % % 0)) (vec))
+        precision-parameter (*  1000 num_attr)]
+    (random-dirichlet-context :attributes attr 
+                              :objects objects 
+                              :base-measure base-measure 
+                              :precision-parameter precision-parameter)))
+    
+
+(defn imitate-context-with-categorical
+  "imitate context using relative frequencies as probabilities of categorical distribution"
+  [ctx]
+  (let [attr  (contexts/attributes ctx) 
+        num_attr (count attr)
+        objects  (contexts/objects ctx)
+        num_objects (count objects)
+        freq (frequencies (map #(count (contexts/object-derivation ctx [%])) objects))
+        ; freqs are being normalized internally ... (should be done before)
+        probabilities (into {} (for [[k v] freq] [k (/ v (reduce + (vals freq)))]))
+        cat_distr (createCategoricalDistribution probabilities)]
+    (makeContext num_attr num_objects (for [i (range num_objects)] (.sample cat_distr)))))
+
+
+(defn imitate-context-with-cointoss
+  "imitate context based on density using cointosses (bernoulli experiments for each incidence)"
+  [ctx]
+  (let [attr  (contexts/attributes ctx) 
+        num_attr (count attr)
+        objects  (contexts/objects ctx)
+        num_objects (count objects)
+        density (/ (count (contexts/incidence-relation ctx)) (* num_attr num_objects))
+        ]
+    (contexts/random-context objects attr density)))
 
 nil
