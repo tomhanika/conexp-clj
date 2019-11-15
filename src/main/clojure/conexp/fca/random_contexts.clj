@@ -6,15 +6,13 @@
             [clojure.set :refer [subset?]]
             [clojure.math.numeric-tower :refer :all] 
             )
-  (:import [org.apache.commons.math3.distribution 
+  (:import [org.apache.commons.math3.distribution
             GammaDistribution 
             EnumeratedIntegerDistribution 
             UniformIntegerDistribution 
             EnumeratedDistribution]
            [org.apache.commons.math3.util Pair]
-           )
-  (:gen-class) 
-)
+           ))
 
 
 
@@ -23,8 +21,7 @@
   [v]
   {:pre [(every? #(>= % 0) v)
          (some #(> % 0 ) v)]}
-  (let [ sum (reduce + v)] (map #(/ % sum) v))
-)
+  (let [ sum (reduce + v)] (map #(/ % sum) v)))
 
 
 (defn- dispatch-makeContext 
@@ -132,7 +129,7 @@
     ))
 
 
-(defn dispatch-random-dirichlet-context
+(defn- dispatch-random-dirichlet-context
   "dispatch function for the random dirichlet context generator"
   [& {:keys [attributes objects base-measure precision-parameter]}]
   {:pre [(or (coll? attributes) (pos-int? attributes))
@@ -221,7 +218,7 @@
 
 
 (defn imitate-context-with-dirichlet
-  "imitate using dirichlet"
+  "imitate using dirichlet random contexts with relative frequencies of numbers of attributes as base measure and a high precision parameter"
   [ctx]
   (let [attr  (contexts/attributes ctx) 
         num_attr (count attr)
@@ -240,14 +237,12 @@
   "imitate context using relative frequencies as probabilities of categorical distribution"
   [ctx]
   (let [attr  (contexts/attributes ctx) 
-        num_attr (count attr)
         objects  (contexts/objects ctx)
         num_objects (count objects)
         freq (frequencies (map #(count (contexts/object-derivation ctx [%])) objects))
-        ; freqs are being normalized internally ... (should be done before)
         probabilities (into {} (for [[k v] freq] [k (/ v (reduce + (vals freq)))]))
         cat_distr (createCategoricalDistribution probabilities)]
-    (makeContext num_attr num_objects (for [i (range num_objects)] (.sample cat_distr)))))
+    (makeContext attr objects (for [i (range num_objects)] (.sample cat_distr)))))
 
 
 (defn imitate-context-with-cointoss
@@ -257,8 +252,23 @@
         num_attr (count attr)
         objects  (contexts/objects ctx)
         num_objects (count objects)
-        density (/ (count (contexts/incidence-relation ctx)) (* num_attr num_objects))
-        ]
+        density (/ (count (contexts/incidence-relation ctx)) (* num_attr num_objects))]
     (contexts/random-context objects attr density)))
+
+
+(defn imitate-context-with-resampling
+  "imitate context using resampling of objects"
+  [ctx]
+  (let [attr (contexts/attributes ctx)
+        num_attr (count attr)
+        objects (contexts/objects ctx)
+        num_objects (count objects)
+        samples (for [i (map inc (range num_objects))] [i (rand-nth (seq objects))])
+        new-incidence (reduce into [] (for [[i obj] samples] 
+                                        (for [att (contexts/object-derivation ctx #{obj})] 
+                                          [i att])))]
+    (contexts/make-context (map inc (range num_objects)) attr  new-incidence)))
+
+
 
 nil
