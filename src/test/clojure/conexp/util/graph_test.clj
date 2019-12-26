@@ -7,10 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.util.graph-test
-  (:require [conexp.base :exclude [transitive-closure] :refer :all])
-  (:require [clojure.test :refer :all])
-  (:require [conexp.util.graph :refer :all]
-            [ubergraph.core :as uber]))
+  (:require [conexp.base :exclude [transitive-closure] :refer :all]
+            [loom.graph :as lg]
+            [clojure.test :refer :all]
+            [conexp.util.graph :refer :all]))
 
 ;;;
 
@@ -74,7 +74,7 @@
     (is (= (set (get-neighbors tc3 3)) #{1 2 3}))
     (is (= (set (get-neighbors tc3 1)) #{}))
     (is (= (transitive-closure (make-directed-graph [1 2 3] (fn [x] (if (< x 3) [(+ x 1)] []))))
-           (uber/digraph [1 2] [1 3] [2 3])))
+           (lg/digraph [1 2] [1 3] [2 3])))
     (is (= (transitive-closure (make-directed-graph [0 1 2] (fn [x] [(mod (+ x 1) 3)])))
            (make-digraph-from-condition [0 1 2] (fn [_, _] true))))
     ))
