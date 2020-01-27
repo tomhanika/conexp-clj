@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>context-descriptions</title>
+<!-- 2020-01-27 Mon 18:46 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Maximilian Felde" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">context-descriptions</h1>
+<p>
+List of contexts and how they were obtained:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="left" />
+
+<col  class="left" />
+
+<col  class="left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="left">Context</th>
+<th scope="col" class="left">Source</th>
+<th scope="col" class="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="left">Bird-Diet</td>
+<td class="left">Found in lecture notes of Gerd Stumme.</td>
+<td class="left">A context of birds and what they eat.</td>
+</tr>
+
+<tr>
+<td class="left">Brunson-Club</td>
+<td class="left">Context created from the network found at <a href="http://konect.uni-koblenz.de/networks/brunson_club-membership">http://konect.uni-koblenz.de/networks/brunson_club-membership</a>.</td>
+<td class="left">Membership information of corporate executive officers in social organisations.</td>
+</tr>
+
+<tr>
+<td class="left">Diagnosis</td>
+<td class="left">Context scaled from the data found at <a href="https://archive.ics.uci.edu/ml/datasets/Acute+Inflammations">https://archive.ics.uci.edu/ml/datasets/Acute+Inflammations</a>.</td>
+<td class="left">The data was created by a medical expert as a data set to test the expert system, which will perform the presumptive diagnosis of two diseases of the urinary system. The temperature attribute is interval-scaled.</td>
+</tr>
+
+<tr>
+<td class="left">Dolphins</td>
+<td class="left">Context created from a network found at <a href="http://konect.uni-koblenz.de/networks/dolphins">http://konect.uni-koblenz.de/networks/dolphins</a>.</td>
+<td class="left">A formal context created from a directed social network of bottlenose dolphins living in a fjord in New Zealand. A relation indicates frequent association based on observations between 1994 and 2001.</td>
+</tr>
+
+<tr>
+<td class="left">Forum-Romanum</td>
+<td class="left">This context can be found in the standard work on FCA.</td>
+<td class="left">A context based on ratings of monuments on the Forum Romanum in different travel guides and scaled ordinally.</td>
+</tr>
+
+<tr>
+<td class="left">Living-Beings-and-Water</td>
+<td class="left">This context can be found in the standard work on FCA.</td>
+<td class="left">The first formal context in the standard work on FCA (the yellow book) by Ganter and Wille.</td>
+</tr>
+
+<tr>
+<td class="left">Olympic-Disciplines</td>
+<td class="left">Context taken from <a href="https://arxiv.org/abs/1908.08740">https://arxiv.org/abs/1908.08740</a></td>
+<td class="left">This context is about the disciplines of the Summer Olympic Games 2020.</td>
+</tr>
+
+<tr>
+<td class="left">Seasoning-Planner</td>
+<td class="left">Found in lecture notes of Gerd Stumme.</td>
+<td class="left">This context contains foods that are related to recommended seasonings based on a chart published by the spice company Fuchs Group.</td>
+</tr>
+
+<tr>
+<td class="left">Southern-Woman</td>
+<td class="left">Context created from a network found at <a href="http://konect.uni-koblenz.de/networks/opsahl-southernwomen">http://konect.uni-koblenz.de/networks/opsahl-southernwomen</a></td>
+<td class="left">Participation of 18 white women in 14 social events over a nine-month period, collected in the Southern United States of America in the 1930s.</td>
+</tr>
+
+<tr>
+<td class="left">Wood-Properties</td>
+<td class="left">Found in lecture notes of Gerd Stumme.</td>
+<td class="left">A context about properties of different kinds of wood.</td>
+</tr>
+
+<tr>
+<td class="left">Cointoss-1</td>
+<td class="left">generated</td>
+<td class="left">Artificially generated using coin-tossing.</td>
+</tr>
+
+<tr>
+<td class="left">Cointoss-2</td>
+<td class="left">generated</td>
+<td class="left">Artificially generated using coin-tossing.</td>
+</tr>
+
+<tr>
+<td class="left">Dirichlet-1</td>
+<td class="left">generated</td>
+<td class="left">Artificially generated using dirichlet distributions.</td>
+</tr>
+
+<tr>
+<td class="left">Dirichlet-2</td>
+<td class="left">generated</td>
+<td class="left">Artificially generated using dirichlet distributions.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Maximilian Felde</p>
+<p class="date">Created: 2020-01-27 Mon 18:46</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.2.2 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
