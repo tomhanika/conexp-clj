@@ -31,7 +31,8 @@
                  [rolling-stones                  "1.0.1"
                   :exclusions [org.clojure/clojure]]
                  [clj-http "3.10.0"]
-                 [clojure-complete "0.2.5"]]
+                 [clojure-complete "0.2.5"]
+                 [org.apache.commons/commons-math3 "3.6.1"]]
   :profiles {:uberjar {:main conexp.main
                        :aot :all}}
   :plugins [[org.clojars.benfb/lein-gorilla "0.6.0"]]
