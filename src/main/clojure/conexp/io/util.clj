@@ -53,7 +53,6 @@
     (.deleteOnExit file)
     file))
 
-
 ;;; Format dispatch framework macro
 
 (defmacro define-format-dispatch

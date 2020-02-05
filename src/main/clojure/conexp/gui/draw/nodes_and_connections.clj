@@ -213,7 +213,52 @@
         (alter (.getUserData x) update-in [:upper] conj c)
         (alter (.getUserData y) update-in [:lower] conj c)))))
 
+;;; draw grid
 
+(def- default-point-style
+  "Default point style."
+  (doto (GStyle.)
+    (.setLineWidth 3.0)
+    (.setForegroundColor Color/GRAY)))
+
+(defn grid-point
+  "Draws single element of grid."
+  [^GScene scn, x y]
+  (let [point  (GSegment.)]
+    (doto point 
+      (.setStyle default-point-style))
+    (let [c (proxy [GObject] []
+               (draw []
+                 (.setGeometry point
+                               (double x) (double y)
+                               (double x) (double y))))]
+      (doto scn
+        (.add c))
+      (doto c
+        (.addSegment point)
+        (.toBack)
+        (.setUserData (ref {:type :grid,
+                            :name (str x "-" y)}))))))
+
+(defn draw-grid
+  "Draws grid over existing scene."
+  [^GScene scn, pos grid]
+  (let [height  (scene-height scn)
+        width   (scene-width scn)
+        x       (atom 0)
+        y       (atom 0)
+        ;offset 
+        [ox oy] pos]
+    (while (< @x width)
+      (do (while (< @y height) 
+            (do (grid-point scn (+ ox @x) (+ oy @y))
+                (grid-point scn (- ox @x) (+ oy @y))
+                (grid-point scn (- ox @x) (- oy @y))
+                (grid-point scn (+ ox @x) (- oy @y))
+                (swap! y #(- % (second grid)))))
+           (swap! x #(- % (first grid)))
+           (reset! y 0)))))
+  
 ;;; move nodes around
 
 (defn- height-of-lower-neighbors

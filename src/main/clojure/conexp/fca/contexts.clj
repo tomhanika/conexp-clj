@@ -490,7 +490,8 @@
   [ctx]
   (make-context-nc (attributes ctx)
                    (objects ctx)
-                   (fn [[m g]] ((incidence ctx) [g m]))))
+                   (fn ([[m g]] ((incidence ctx) [g m]))
+                     ([m g] ((incidence ctx) [g m])))))
 
 (defn invert-context
   "Inverts context ctx, that is (G,M,I) gets (G,M,(G x M) \\ I)."
@@ -762,6 +763,16 @@
             (recur (rest atts)
                    (disj min-attrs m)
                    neighbours))))))
+
+(defn subconcept? 
+  "Tests if 'a is a subset of 'b, but not equal."
+  [a b]
+  (subset? (first a) (first b)))
+
+(defn subconceptneq? 
+  "Tests if 'a is a subset of 'b, but not equal."
+  [a b]
+  (and (not (= (first a) (first b))) (subconcept?  a  b)))
 
 
 ;;; Compatible Subcontexts
