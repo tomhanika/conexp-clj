@@ -197,9 +197,9 @@
        "ASK "
        "SELECT ")
      (if amount
-       "(COUNT(?entity) AS ?entities)"
+       "(COUNT(DISTINCT ?entity) AS ?entities)"
        (when-not ask-only
-               "?entity"))
+         "DISTINCT ?entity"))
      " WHERE {\n  "
      (pattern-for-premise body)
      "\n  "
