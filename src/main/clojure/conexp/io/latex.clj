@@ -16,6 +16,26 @@
 
 ;;;
 
+(defn tex-escape
+  "Escapes all significant characters used by LaTeX."
+  [string]
+  (clojure.string/escape 
+    string 
+    {\& "\\&"
+     \% "\\%"
+     \$ "\\$"
+     \# "\\#"
+     \_ "\\_"
+     \{ "\\{"
+     \} "\\}"
+     \< "\\textless "
+     \> "\\textgreater "
+     \~ "\\textasciitilde "
+     \^ "\\textasciicircum "
+     \\ "\\textbackslash "}))
+
+;;;
+
 (defprotocol LaTeX
   "Implements conversion to latex code."
   (latex [this] [this choice] "Returns a string representation of this."))
@@ -40,17 +60,34 @@
    ([this choice]
       (case choice
         :plain (with-out-str
+                 (println "$")
                  (println (str "\\begin{array}{l||*{" (count (attributes this)) "}{c|}}"))
-                 (doseq [m (attributes this)]
-                   (print (str "& \\text{" m "}")))
+                 (doseq [m (map tex-escape (attributes this))]
+                   (print (str "& " m)))
                  (println "\\\\\\hline\\hline")
                  (doseq [g (objects this)]
-                   (print (str g))
+                   (print (tex-escape (str g)))
                    (doseq [m (attributes this)]
                      (print (str "& " (if ((incidence this) [g m]) "\\times" "\\cdot"))))
                    (println "\\\\\\hline"))
-                 (println (str "\\end{array}")))
-        true   (illegal-argument "Unsupported latex format " choice " for contexts.")))))
+                 (println (str "\\end{array}"))
+                 (println "$"))
+        :fca   (with-out-str
+                 (println "\\begin{cxt}%")
+                 (println "  \\cxtName{}%")
+                 (doseq [m (attributes this)]
+                   (if (>= 2 (count m))
+                     (println (str "  \\att{" (tex-escape m) "}%"))
+                     (println (str "  \\atr{" (tex-escape m) "}%"))))
+                 (let [inz (incidence this)]
+                   (doseq [g (objects this)]
+                     (print "  \\obj{") 
+                     (doseq [m (attributes this)]
+                       (print (if (inz [g m]) "x" ".")))
+                     (println (str "}{" (tex-escape g) "}"))))
+                 (println "\\end{cxt}"))
+        true   (illegal-argument 
+                 "Unsupported latex format " choice " for contexts.")))))
 
 
 ;;; Layouts
@@ -122,7 +159,7 @@
       (println "      \\foreach \\nodename/\\labelpos/\\labelopts/\\labelcontent in {%")
       (let [ann       (annotation layout),
             ann-lines (mapcat (fn [v]
-                                (let [[u l] (ann v),
+                                (let [[u l] (map tex-escape (ann v)),
                                       lines (if-not (= "" u)
                                               (list (str "        " (vertex-idx v) "/above//{" u "}"))
                                               ()),
