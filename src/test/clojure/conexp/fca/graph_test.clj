@@ -12,9 +12,10 @@
             [conexp.fca.graph :refer :all]
             [conexp.util.graph :refer :all]
             [conexp.fca.lattices :as lat]
-            [ubergraph.core :as uber]))
+            [loom.graph :as lg]
+            [loom.io :as li]))
 
-;;; helper function
+;; helper function
 
 (defn assert-equal-graphs
   ([graphs]
@@ -23,8 +24,8 @@
   ([g1 g2]
    (if (= g1 g2) (is true)                                  ; if equal: count as valid test
                  (do (println "graphs that do not match:")  ; else: print graphs and ...
-                     (uber/pprint g1)
-                     (uber/pprint g2)
+                     (print (li/dot-str g1))
+                     (print (li/dot-str g2))
                      (is (= g1 g2))))))                     ; ...do the test to report the fail
 
 ;;;
@@ -41,18 +42,18 @@
 (deftest test-lattice<->graph
   (assert-equal-graphs [
                         (lattice->graph lat1)
-                        (add-loops (uber/digraph [1 2] [2 3] [1 3]))
-                        (uber/digraph [1 1] [2 2] [3 3] [1 2] [2 3] [1 3])
-                        (lattice->graph (graph->lattice (uber/digraph [1 2] [2 3] [1 3])))
+                        (add-loops (lg/digraph [1 2] [2 3] [1 3]))
+                        (lg/digraph [1 1] [2 2] [3 3] [1 2] [2 3] [1 3])
+                        (lattice->graph (graph->lattice (lg/digraph [1 2] [2 3] [1 3])))
                         ])
   (assert-equal-graphs [
                         (lattice->graph lat2)
-                        (add-loops (uber/digraph [1 2] [1 3] [1 4] [2 4] [3 4]))
-                        (uber/digraph [1 1] [2 2] [3 3] [4 4] [1 2] [1 3] [1 4] [2 4] [3 4])
-                        (lattice->graph (graph->lattice (uber/digraph [1 2] [1 3] [1 4] [2 4] [3 4])))
+                        (add-loops (lg/digraph [1 2] [1 3] [1 4] [2 4] [3 4]))
+                        (lg/digraph [1 1] [2 2] [3 3] [4 4] [1 2] [1 3] [1 4] [2 4] [3 4])
+                        (lattice->graph (graph->lattice (lg/digraph [1 2] [1 3] [1 4] [2 4] [3 4])))
                         ])
-  (is (thrown? IllegalArgumentException (graph->lattice (uber/digraph [1 2] [2 3]))))
-  (is (graph->lattice-nc (uber/digraph [1 2] [2 3]))))      ;note that no Exception is thrown
+  (is (thrown? IllegalArgumentException (graph->lattice (lg/digraph [1 2] [2 3]))))
+  (is (graph->lattice-nc (lg/digraph [1 2] [2 3]))))      ;note that no Exception is thrown
 
 (deftest test-fail-illegal-graph->lattice
   "tests a graph that is transitive, but does not represent a lattice:
@@ -71,33 +72,33 @@
   properly."
   (let [g (transitive-closure
             (add-loops
-              (uber/digraph [1 2] [1 3] [2 4] [2 5] [3 4] [3 5] [4 6] [5 6])))]
+              (lg/digraph [1 2] [1 3] [2 4] [2 5] [3 4] [3 5] [4 6] [5 6])))]
     (is (thrown? IllegalArgumentException (graph->lattice g)))))
 
 (deftest test-comparability
   (assert-equal-graphs (comparability [1 2 3] (fn [a b] (contains? #{[1 1] [1 2] [2 3]} [a b])))
-                       (uber/graph [1 1] [1 2] [2 3]))
+                       (lg/graph [1 1] [1 2] [2 3]))
   (assert-equal-graphs (co-comparability [1 2 3] (fn [a b] (contains? #{[1 1] [1 2] [2 3]} [a b])))
-                       (uber/graph [1 3] [2 2] [3 3]))
+                       (lg/graph [1 3] [2 2] [3 3]))
   (assert-equal-graphs (comparability #{} (fn [_ _] (assert false "should not be called")))
-                       (uber/graph))
+                       (lg/graph))
   (assert-equal-graphs (co-comparability #{} (fn [_ _] (assert false "should not be called")))
-                       (uber/graph))
+                       (lg/graph))
   (assert-equal-graphs (comparability #{1} (fn [_ _] true))
-                       (uber/graph [1 1]))
+                       (lg/graph [1 1]))
   (assert-equal-graphs (comparability #{1} (fn [_ _] false))
-                       (uber/graph 1))
+                       (lg/graph 1))
   (assert-equal-graphs (co-comparability #{1} (fn [_ _] true))
-                       (uber/graph 1))
+                       (lg/graph 1))
   (assert-equal-graphs (co-comparability #{1} (fn [_ _] false))
-                       (uber/graph [1 1])))
+                       (lg/graph [1 1])))
 
 (deftest test-consistency-digraph
   (let [cube-like-graph
         (transitive-closure
           (add-loops
-            (uber/digraph [1 2] [1 3] [2 4] [3 4] [1 5] [2 6] [3 7] [4 8] [5 6] [5 7] [6 8] [7 8])))
-        consistency (uber/digraph [[7 6] [7 6]] [[7 6] [3 6]] [[2 3] [2 3]] [[2 3] [2 7]]
+            (lg/digraph [1 2] [1 3] [2 4] [3 4] [1 5] [2 6] [3 7] [4 8] [5 6] [5 7] [6 8] [7 8])))
+        consistency (lg/digraph [[7 6] [7 6]] [[7 6] [3 6]] [[2 3] [2 3]] [[2 3] [2 7]]
                                   [[2 5] [2 5]] [[2 5] [2 7]] [[7 2] [7 2]] [[7 2] [7 4]]
                                   [[7 2] [7 6]] [[7 2] [3 2]] [[7 2] [3 6]] [[7 2] [5 2]]
                                   [[7 2] [5 4]] [[6 7] [6 7]] [[6 7] [2 7]] [[7 4] [7 4]]
@@ -111,9 +112,9 @@
                                   [[3 5] [3 5]] [[3 5] [3 6]] [[3 2] [3 2]] [[3 2] [3 6]])]
     (is (= (consistency-digraph cube-like-graph)
                consistency)))
-  (is (thrown? AssertionError (consistency-digraph (uber/digraph [1 2] [2 3]))))
-  (is (= (consistency-digraph (transitive-closure (uber/graph [1 2] [3 4]))) ; consistency-digraph also works on undirected graphs! (may be useful when having equivalent nodes (a <= b && b <= a))
-         (uber/digraph [[2 3] [2 3]] [[2 3] [2 4]] [[2 3] [1 3]] [[2 3] [1 4]]
+  (is (thrown? AssertionError (consistency-digraph (lg/digraph [1 2] [2 3]))))
+  (is (= (consistency-digraph (transitive-closure (lg/graph [1 2] [3 4]))) ; consistency-digraph also works on undirected graphs! (may be useful when having equivalent nodes (a <= b && b <= a))
+         (lg/digraph [[2 3] [2 3]] [[2 3] [2 4]] [[2 3] [1 3]] [[2 3] [1 4]]
                        [[4 2] [4 2]] [[4 2] [4 1]] [[4 2] [3 2]] [[4 2] [3 1]]
                        [[4 1] [4 1]] [[4 1] [4 2]] [[4 1] [3 1]] [[4 1] [3 2]]
                        [[1 4] [1 4]] [[1 4] [1 3]] [[1 4] [2 4]] [[1 4] [2 3]]
@@ -123,9 +124,9 @@
                        [[3 2] [3 2]] [[3 2] [3 1]] [[3 2] [4 2]] [[3 2] [4 1]]))))
 
 (deftest test-incompatibility-graph
-  (let [g2 (transitive-closure (add-loops (uber/digraph [1 3] [1 4] [2 3] [2 4] [3 4] [5 4] 6)))]
+  (let [g2 (transitive-closure (add-loops (lg/digraph [1 3] [1 4] [2 3] [2 4] [3 4] [5 4] 6)))]
     (is (= (incompatibility-graph g2)
-           (uber/graph [[4 6] [6 5]] [[3 5] [5 2]] [[3 5] [5 1]]
+           (lg/graph [[4 6] [6 5]] [[3 5] [5 2]] [[3 5] [5 1]]
                        [[6 1] [4 6]] [[6 2] [4 6]] [[1 2] [2 1]])))))
 
 (deftest test-strictness

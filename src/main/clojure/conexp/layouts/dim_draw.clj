@@ -1,6 +1,5 @@
 (ns conexp.layouts.dim-draw
-  (:require [ubergraph.core :as uber]
-            [loom.graph :as lg]
+  (:require [loom.graph :as lg]
             [conexp.fca.lattices :as lat]
             [conexp.fca.graph :refer :all]
             [conexp.util.graph :refer :all]
@@ -42,7 +41,6 @@
         (let [first (peek remaining)
               popped (pop remaining)
               newsub (conj final first)
-              ;;              can-insert  (not (in-odd-cycle? graph newsub first))
               can-insert  (not (. Bipartite isInOddCycle (:adj graph) newsub first))
               next-subset (if can-insert
                             newsub
@@ -232,9 +230,34 @@
   ([P <=]
    (let [C (co-comparability P <=)]
      (if (comparability-graph? C)                           ; has transitive orientation?
-       (map edge->vec (lg/edges (transitive-orientation C)))
+       (lg/edges (transitive-orientation C))
        nil))))
 
+(defn compute-coordinates-helper
+  ([P relation args]
+    (let [conjugate (atom (compute-conjugate-order P relation))
+          base      (atom ())]
+      (while 
+        (= @conjugate nil)
+        (swap! base
+               (fn [nodes] 
+                 (let [graph (tig (transitive-edge-union P relation nodes))]
+                   (union nodes 
+                          (map reverse
+                            (cond 
+                              (= (first args) "greedy")
+                                (difference (set (lg/nodes graph)
+                                            (fill-graph graph #{})))
+                              (= (first args) "genetic")
+                                (genetic-bipartite-subgraph graph 
+                                                            (nth args 1)
+                                                            (nth args 2))
+                              :else
+                                (sat-reduction graph)))))))
+        (reset! conjugate 
+                (compute-conjugate-order 
+                  (transitive-edge-union P relation @base))))
+      @conjugate)))
 
 (defn compute-coordinates
   "Given a set `P` and a binary relation `<=`, computes coordinates for each
@@ -246,46 +269,18 @@
 
   See Section 5.2, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   ([graph args]
-   (let [P (lg/nodes graph)
-         <= #(lg/has-edge? graph %1 %2)]
-     (let [<=C (let [<=CAtom (atom (compute-conjugate-order P <=))
-                     CAtom (atom ())]
-                                        ;(println "<=CAtom: " @<=CAtom)
-                 (while (= @<=CAtom nil)
-                   (swap! CAtom         ; update C in each iteration
-                          (fn [C] (let [I (tig (transitive-edge-union P <= C))]
-                                        ;(println "(transitive-edge-union P <= C):")
-                                        ;(uber/pprint (transitive-edge-union P <= C))
-                                        ;(println "I:")
-                                        ;(uber/pprint I)
-                                        ;(println C " <-- C ; new -->" (sat-reduction I))
-                                    ;;(union C (map reverse (sat-reduction I)))
-                                    (union C (map reverse
-                                                  (cond
-                                                    (= (first args) "greedy")
-                                                    (difference (set (lg/nodes I)) (fill-graph I #{}))
-                                                    (= (first args) "genetic")
-                                                    (genetic-bipartite-subgraph I
-                                                                                (nth args 1)
-                                                                                (nth args 2))
-                                                    :else
-                                                    (sat-reduction I))))
-                                    )))
-                   (let [C @CAtom
-                         <=CNew (compute-conjugate-order (transitive-edge-union P <= C))] ; compute new value for <=C
-                                        ;(println "C: " C)
-                                        ;(println "C size: " (count C))
-                                        ;(println "<=CNew: " <=CNew)
-                     (reset! <=CAtom    ; set new value
-                             <=CNew)))
-                 @<=CAtom)
-           <=1 (map edge->vec (lg/edges (transitive-edge-union P <= <=C)))
-           <=2 (map edge->vec (lg/edges (transitive-edge-union P <= (map reverse <=C))))
-           elements-less (fn [le elem] (- (count (filter #(some #{[% elem]} le) P)) 1)) ; util function used to compute |{x' | x' <= x}| - 1 for given <= and x
-           coords (map #(let
-                            [x1 (elements-less <=1 %) x2 (elements-less <=2 %)]
-                            [% [x1 x2]]) P)]
-       coords))))                                              ; return coordinates in x1-x2-coordinate-system
+    (let [P        (lg/nodes graph)
+          relation #(lg/has-edge? graph %1 %2)
+          C        (compute-coordinates-helper P relation args)
+          x-edges  (lg/edges (transitive-edge-union P relation C))  
+          y-edges  (lg/edges 
+                     (transitive-edge-union P relation (map reverse C))) 
+          get-pos  (fn [edges elem] 
+                     (- (count (filter #(some #{[% elem]} edges) P)) 1))
+          coords   (map 
+                     #(vector % [(get-pos x-edges %) (get-pos y-edges %)])
+                     P)]
+      coords)))
 
 (defn dim-draw-layout
   "Returns a layout for a given lattice.

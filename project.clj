@@ -26,8 +26,7 @@
                   :exclusions [org.clojure/clojure
                                clojure-complete
                                com.cemerick/drawbridge]]
-                 [ubergraph                       "0.5.2"
-                  :exclusions [potemkin]]
+                 [aysylu/loom "1.0.2"]
                  [rolling-stones                  "1.0.1"
                   :exclusions [org.clojure/clojure]]
                  [clj-http "3.10.0"]
