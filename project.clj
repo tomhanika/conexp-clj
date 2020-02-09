@@ -34,7 +34,7 @@
                  [ring/ring-devel "1.7.1"]
                  [ring/ring-core "1.7.1"]
                  [ring/ring-json "0.5.0"]
-                 [http-kit "2.3.0"]]
+                 [http-kit "2.3.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]]
   :profiles {:uberjar {:main conexp.main
                        :aot :all}
