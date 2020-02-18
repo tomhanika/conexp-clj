@@ -117,7 +117,7 @@ metadata (as provided by def) merged into the metadata of the original."
                    (clojure.test/is true))))
             body)))
 
-(defn close?
+(defn near?
   "Tests if the distance of `x' and `y' is not greater
   then the given tolerance `epsilon'.
 
@@ -130,7 +130,7 @@ metadata (as provided by def) merged into the metadata of the original."
   ([x y epsilon]
    (<= (Math/abs (double (- x y))) epsilon))
   ([x y]
-   (close? x y 0.0001)))
+   (near? x y 0.0001)))
 
 ;;; Types
 

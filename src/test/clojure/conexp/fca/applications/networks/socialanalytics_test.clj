@@ -17,7 +17,7 @@
                                                                 object-projection
                                                                 attribute-projection]]
             [clojure.test :refer [deftest is are]]
-            [conexp.base :refer [with-testing-data close?]]))
+            [conexp.base :refer [with-testing-data near?]]))
 
 ;Average-shortest-path
 
@@ -480,7 +480,7 @@
     (is (= (betweenes-centrality g) {1 7.0 2 0 3 1.0 4 0 5 0}))
     (is (= (betweenes-centrality h) {1 0 2 0 3 0 4 26.0 5 38.0 6 30.0
                                      7 6.0 8 6.0 9 0}))
-    (are [x y] (close? x y)
+    (are [x y] (near? x y)
          (centrality-i 'a) 3
          (centrality-i 'e) 3
          (centrality-i 'b) (/ 2 3)
@@ -499,7 +499,7 @@
                        {'a #{'b 'c 'd} 'b #{'a 'e} 'c #{'a 'e}
                         'd #{'a 'e} 'e #{'b 'c 'd}})
         j (zipmap (range 1 100) (repeat #{}))]
-    (are [x y] (close? x y 0.1)
+    (are [x y] (near? x y 0.1)
          (centrality-g 1) 1
          (centrality-g 2) 0
          (centrality-g 3) (/ 1 7)
@@ -618,17 +618,17 @@
                                                      0 1 1]))
         solution-ctx1 {"obj-a" 0 "obj-b" 1 "obj-c" (/ 2 3)
                        "atr-2" (/ 2 3) "atr-4" 1 "atr-6" 0}]
-    (is (every? #(close? (centrality-ctx %) (solution-ctx %) 0.01)
+    (is (every? #(near? (centrality-ctx %) (solution-ctx %) 0.01)
                 (keys centrality-ctx)))
-    (is (every? #(close? (centrality-ctx1 %) (solution-ctx1 %) 0.01)
+    (is (every? #(near? (centrality-ctx1 %) (solution-ctx1 %) 0.01)
                (keys centrality-ctx1))))
   (with-testing-data [ctx (random-contexts 20 20)]
                      (let [hmap (context-graph-betweenes-centrality-normalized ctx)]
                        (or (empty? hmap)
                            (= #{0} (set (vals hmap)))
                            (= #{1} (set (vals hmap)))
-                           (and (close? 1.0 (apply max (vals hmap)))
-                                (close? 0.0 (apply min (vals hmap))))))))
+                           (and (near? 1.0 (apply max (vals hmap)))
+                                (near? 0.0 (apply min (vals hmap))))))))
 
 (deftest test-object-projection-betweenes-centrality-normalized
   (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
@@ -648,8 +648,8 @@
                        (or (empty? hmap)
                            (= 0 (apply max (vals hmap)))
                            (= 1 (apply min (vals hmap)))
-                           (and (close? 1.0 (apply max (vals hmap)))
-                                (close? 0.0 (apply min (vals hmap))))))))
+                           (and (near? 1.0 (apply max (vals hmap)))
+                                (near? 0.0 (apply min (vals hmap))))))))
 
 (deftest test-attribute-projection-betweenes-centrality-normalized
   (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
@@ -669,8 +669,8 @@
                        (or (empty? hmap)
                            (= 0 (apply max (vals hmap)))
                            (= 1 (apply min (vals hmap)))
-                           (and (close? 1.0 (apply max (vals hmap)))
-                                (close? 0.0 (apply min (vals hmap))))))))
+                           (and (near? 1.0 (apply max (vals hmap)))
+                                (near? 0.0 (apply min (vals hmap))))))))
 
 
 ;;;
