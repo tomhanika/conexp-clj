@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.pqcores-test
-  (:use conexp.fca.cores.pqcores conexp.fca.cores.cover)
+  (:use conexp.fca.pqcores conexp.fca.cover)
   (:use conexp.fca.contexts)
   (:use clojure.test))
 
