@@ -12,3 +12,4 @@ Additional Contributors are
 * Maximilian Stubbemann (concept-robustness)
 * Anselm von Wangenheim (DimDraw)
 * Johannes Wollbold     (bug reports, feature requests)
+* Sebastian Benner      (API)

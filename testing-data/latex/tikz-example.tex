@@ -1,0 +1,42 @@
+\colorlet{mivertexcolor}{blue}
+\colorlet{jivertexcolor}{red}
+\colorlet{vertexcolor}{mivertexcolor!50}
+\colorlet{bordercolor}{black!80}
+\colorlet{linecolor}{gray}
+\tikzset{vertexbase/.style={semithick, shape=circle, inner sep=2pt, outer sep=0pt, draw=bordercolor},%
+  vertex/.style={vertexbase, fill=vertexcolor!45},%
+  mivertex/.style={vertexbase, fill=mivertexcolor!45},%
+  jivertex/.style={vertexbase, fill=jivertexcolor!45},%
+  divertex/.style={vertexbase, top color=mivertexcolor!45, bottom color=jivertexcolor!45},%
+  conn/.style={-, thick, color=linecolor}%
+}
+\begin{tikzpicture}
+  \begin{scope} %for scaling and the like
+    \begin{scope} %draw vertices
+      \foreach \nodename/\nodetype/\xpos/\ypos in {%
+        0/vertex/0/0,
+        1/divertex/-1/1,
+        2/divertex/1/1,
+        3/vertex/0/2
+      } \node[\nodetype] (\nodename) at (\xpos, \ypos) {};
+    \end{scope}
+    \begin{scope} %draw connections
+      \path (2) edge[conn] (3);
+      \path (0) edge[conn] (2);
+      \path (1) edge[conn] (3);
+      \path (0) edge[conn] (1);
+    \end{scope}
+    \begin{scope} %add labels
+      \foreach \nodename/\labelpos/\labelopts/\labelcontent in {%
+        0/below//{\$e\%},
+        0/above//{\textasciicircum a\&},
+        1/below//{\#f},
+        1/above//{\textless b},
+        2/below//{\{g\}},
+        2/above//{\_c\textasciitilde },
+        3/below//{\textbackslash h},
+        3/above//{\textgreater d}
+      } \coordinate[label={[\labelopts]\labelpos:{\labelcontent}}](c) at (\nodename);
+    \end{scope}
+  \end{scope}
+\end{tikzpicture}
