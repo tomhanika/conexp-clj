@@ -6,8 +6,8 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fca.cores.cover-test
-  (:use conexp.fca.cores.pqcores conexp.fca.cores.cover
+(ns conexp.fca.cover-test
+  (:use conexp.fca.pqcores conexp.fca.cover
         conexp.fca.contexts)
   (:use conexp.fca.contexts)
   (:use clojure.test clojure.set))
