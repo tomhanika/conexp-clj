@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fca.cores.pqcores-test
+(ns conexp.fca.pqcores-test
   (:use conexp.fca.cores.pqcores conexp.fca.cores.cover)
   (:use conexp.fca.contexts)
   (:use clojure.test))
