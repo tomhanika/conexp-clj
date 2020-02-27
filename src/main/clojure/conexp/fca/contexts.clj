@@ -490,7 +490,8 @@
   [ctx]
   (make-context-nc (attributes ctx)
                    (objects ctx)
-                   (fn [[m g]] ((incidence ctx) [g m]))))
+                   (fn ([[m g]] ((incidence ctx) [g m]))
+                     ([m g] ((incidence ctx) [g m])))))
 
 (defn invert-context
   "Inverts context ctx, that is (G,M,I) gets (G,M,(G x M) \\ I)."
