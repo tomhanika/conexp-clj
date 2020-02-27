@@ -115,13 +115,18 @@
   "Returns [object-vector, attribute-vector, object-count,
   attribute-count, incidence-matrix] of context with the obvious
   definitions."
-  [context]
-  (let [object-vector    (vec (objects context)),
-        attribute-vector (vec (attributes context)),
-        object-count     (count object-vector),
-        attribute-count  (count attribute-vector),
-        incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))]
-    [object-vector attribute-vector object-count attribute-count incidence-matrix]))
+  ([context]
+   (let [object-vector    (vec (objects context)),
+         attribute-vector (vec (attributes context)),
+         object-count     (count object-vector),
+         attribute-count  (count attribute-vector),
+         incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))]
+     [object-vector attribute-vector object-count attribute-count incidence-matrix]))
+  ([object-vector attribute-vector incidence] ;; if you need a specific order on the objects or attributes
+   (let [object-count     (count object-vector)
+         attribute-count  (count attribute-vector)
+         incidence-matrix (to-binary-matrix object-vector attribute-vector incidence)]
+     [object-vector attribute-vector object-count attribute-count incidence-matrix])))
 
 (defmacro with-binary-context
   "For a given context defines object-vector, attribute-vector,
@@ -129,7 +134,7 @@
   way."
   [context & body]
   `(let [[~'object-vector ~'attribute-vector ~'object-count ~'attribute-count ~'incidence-matrix]
-         (to-binary-context ~context)]
+         (if (context? ~context) (to-binary-context ~context) ~context)]
      ~@body))
 
 (defn bitwise-object-derivation
@@ -155,7 +160,7 @@
 
 ;;; Next Closure
 
-(defn- bitwise-context-attribute-closure
+(defn bitwise-context-attribute-closure
   "Computes the closure of A in the context given by the parameters."
   [^long object-count, ^long attribute-count, incidence-matrix, ^BitSet A]
   (let [^BitSet A (.clone A),

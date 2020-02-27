@@ -159,6 +159,40 @@
   (let [inz (incidence mv-ctx)]
     (set-of (inz [g m]) [m (attributes mv-ctx)])))
 
+(defn incidences-of-object
+  "For a given many-valued context mv-ctx and a given object g,
+  returns the set of all values of g in mv-ctx."
+  [mv-ctx g]
+  (when-not (contains? (objects mv-ctx) g)
+    (illegal-argument "Given element is not an object of the given many-valued context."))
+  (apply merge 
+         (map #(hash-map (get-in % [0 1]) (second %)) 
+                (filter #(= g (get-in % [0 0])) 
+                        (incidence mv-ctx)))))
+
+(defn object-by-incidence
+  "For a given many-valued context mv-ctx and an attribute-value map,
+  returns all objects having these values."
+  [mv-ctx values]
+  (when-not (subset? (set (keys values)) (attributes mv-ctx))
+    (illegal-argument "Values must only contain attributes of the context."))
+  (set (filter #(every? (fn [a] (= ((incidences-of-object mv-ctx %) a) (values a))) (keys values)) 
+               (objects mv-ctx))))
+
+(defn make-mv-subcontext
+  "For a given many-valued context, returns the induced subcontext given
+  by the object and attribute set."
+  [mv-ctx objs attrs]
+  (when-not (and (subset? objs (objects mv-ctx))
+                 (subset? attrs (attributes mv-ctx)))
+    (illegal-argument "The attributes and objects have to be subsets
+    of the many-valued contexts attributes and objects."))
+  (make-mv-context objs attrs
+                   (apply merge 
+                          (map #(hash-map (first %) (second %)) 
+                               (filter #(and (contains? objs (get-in % [0 0]))
+                                         (contains? attrs (get-in % [0 1])))
+                                       (apply list (incidence mv-ctx)))))))
 ;;;
 
 (defn scale-mv-context
