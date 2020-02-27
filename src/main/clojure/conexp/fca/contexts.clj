@@ -764,6 +764,16 @@
                    (disj min-attrs m)
                    neighbours))))))
 
+(defn subconcept? 
+  "Tests if 'a is a subset of 'b, but not equal."
+  [a b]
+  (subset? (first a) (first b)))
+
+(defn subconceptneq? 
+  "Tests if 'a is a subset of 'b, but not equal."
+  [a b]
+  (and (not (= (first a) (first b))) (subconcept?  a  b)))
+
 
 ;;; Compatible Subcontexts
 

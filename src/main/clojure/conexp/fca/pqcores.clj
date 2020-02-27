@@ -12,7 +12,7 @@
             [conexp.fca.lattices :refer 
              [concept-lattice base-set]]
             [conexp.fca.fast :as fast]
-            [conexp.fca.cores.cover :refer :all]
+            [conexp.fca.cover :refer :all]
             [clojure.core.reducers :as r]))
 
 ;;; compute pq-core

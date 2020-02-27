@@ -277,12 +277,6 @@
      second-objects)))
 
 ;;;;;;;;;;;;;;;;;;;;; Cover Methods for Concepts ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; comperator
-(defn- subconceptneq? 
-  "Tests if 'a is a subset of 'b, but not equal."
-  [a b]
-  (and (not (= (first a) (first b))) (subset? (first a) (first b))))
-
 ;;; helper
 
 (defn- dual-entry 
