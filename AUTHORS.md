@@ -13,3 +13,4 @@ Additional Contributors are
 * Anselm von Wangenheim (DimDraw)
 * Johannes Wollbold     (bug reports, feature requests)
 * Sebastian Benner      (API)
+* Johannes Hirth        (pq-cores)
