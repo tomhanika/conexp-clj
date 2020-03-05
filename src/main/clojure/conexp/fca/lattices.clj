@@ -433,6 +433,25 @@
       intents
       (remove #{(attributes context)} intents))))
 
+(defn iceberg-lattice
+  "Returns for a given context ctx its iceberg lattice."
+  ([ctx]
+    (iceberg-lattice ctx 0))
+  ([ctx minsupp]
+    (let [intents  (titanic-iceberg-intent-seq ctx minsupp)
+          concepts (map
+                     #(vector (attribute-derivation ctx %) %)
+                     intents)]
+      (make-lattice-nc concepts
+                       (fn <= [[A _] [C _]]
+                         (subset? A C))
+                       (fn inf [[A _] [C _]]
+                         (let [A+C (intersection A C)]
+                           [A+C (object-derivation ctx A+C)]))
+                       (fn sup [[_ B] [_ D]]
+                         (let [B+D (intersection B D)]
+                           [(attribute-derivation ctx B+D) B+D]))))))
+
 ;;;
 
 nil
