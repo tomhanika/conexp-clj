@@ -31,8 +31,13 @@
   (scale [this] scale)
   (measure [this] measure))
 
+
+
 (defn make-smeasure-nc [ctx scale m]
   (ScaleMeasure. ctx scale m))
+
+(defn make-id-smeasure [ctx]
+  (make-smeasure-nc ctx ctx identity))
 
 (defn- pre-image-measure 
   "Returns the pre-image map of a scale measures function."
@@ -50,17 +55,15 @@
 (defn original-extents [sm]
   (let [scale-extents (extents (scale sm))
         pre-image (pre-image-measure sm)]
-    (map #(reduce into (map pre-image %))
+    (map #(set (reduce into (map pre-image %)))
             scale-extents)))
 
 (defn valid-scale-measure?
   "Checks if the input is a valid scale measure."
   [sm]
-  (let [scale-extents (extents (scale sm))
-        pre-image (pre-image-measure sm)]
-    (every? #(extent? (context sm)
-              (reduce into (map pre-image %)))
-            scale-extents)))
+  (let [pre-extents (original-extents sm)]
+    (every? #(extent? (context sm) %)
+            pre-extents)))
 
 
 (defn smeasure?
@@ -68,3 +71,31 @@
   [sm]
   (and (instance? ScaleMeasure sm)
        (valid-scale-measure? sm)))
+
+(defn cluster-attributes-ex [sm attr]
+  (let [ctx (context sm)
+        s (scale sm)]
+    (make-smeasure-nc (context sm) 
+                      (make-context (objects s) 
+                                    (conj (difference (set (attributes s)) attr)
+                                          attr) 
+                                    (fn [a b] 
+                                      (if (set? b) 
+                                        (some #((incidence s) [a %]) 
+                                              b) 
+                                        ((incidence s) [a b])))) 
+                      identity)))
+
+(defn cluster-attributes-all [sm attr]
+  (let [ctx (context sm)
+        s (scale sm)]
+    (make-smeasure-nc (context sm) 
+                      (make-context (objects s) 
+                                    (conj (difference (set (attributes s)) attr)
+                                          attr) 
+                                    (fn [a b] 
+                                      (if (set? b) 
+                                        (every? #((incidence s) [a %]) 
+                                              b) 
+                                        ((incidence s) [a b])))) 
+                      identity)))
