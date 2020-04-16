@@ -99,3 +99,33 @@
                                               b) 
                                         ((incidence s) [a b])))) 
                       identity)))
+
+
+(defn cluster-objects-ex [sm obj]
+  (let [ctx (context sm)
+        s (scale sm)]
+    (make-smeasure-nc (context sm) 
+                      (make-context (conj (difference (set (objects s)) obj)
+                                          obj) 
+                                    (attributes s)  
+                                    (fn [a b] 
+                                      (if (set? a) 
+                                        (some #((incidence s) [% b]) 
+                                              a) 
+                                        ((incidence s) [a b])))) 
+                      (fn [a] (if (get obj a) obj a)))))
+
+(defn cluster-objects-all [sm obj]
+  (let [ctx (context sm)
+        s (scale sm)]
+    (make-smeasure-nc (context sm) 
+                      (make-context (conj (difference (set (objects s)) obj)
+                                          obj) 
+                                    (attributes s)  
+                                    (fn [a b] 
+                                      (if (set? a) 
+                                        (every? #((incidence s) [% b]) 
+                                              a) 
+                                        ((incidence s) [a b])))) 
+                      (fn [a] (if (get obj a) obj a)))))
+
