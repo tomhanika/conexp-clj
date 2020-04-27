@@ -764,7 +764,6 @@ metadata (as provided by def) merged into the metadata of the original."
   [base-set]
   (map set (comb/subsets (seq base-set))))
 
-
 ;;; Next Closure
 
 (defn lectic-<_i
