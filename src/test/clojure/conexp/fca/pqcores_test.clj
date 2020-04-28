@@ -73,16 +73,3 @@
            (count (concepts (compute-core ctx (dec p) 1)))))
     (is (< 3 
            (count (concepts (compute-core ctx 1 (dec q))))))))
-
-(deftest test-transform-bv
-  (let [ctx1 (make-context (range 5) (range 5) <=)
-;        ctx2 (make-context (range 3 7) (range 3 7) <=)
-;        ctx3 (make-context (range 3) (range 3) <=)
-        ctx4 (make-context (range 7) (range 7) <=)
-        bv1 (generate-concept-cover (concepts ctx1))
-;        bv2 (generate-concept-cover (concepts ctx2))
-;        bv3 (generate-concept-cover (concepts ctx3))
-        bv4 (generate-concept-cover (concepts ctx4))]
-;    (is (= (transform-bv ctx1 ctx2 bv1) bv2))
-;    (is (= (transform-bv ctx1 ctx3 bv1) bv3))
-    (is (= (transform-bv ctx1 ctx4 bv1) bv4))))

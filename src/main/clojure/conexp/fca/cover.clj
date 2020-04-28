@@ -253,11 +253,11 @@
                                           (fn ([a b] ((incidence old-ctx) [a b]))
                                             ([[a b]] ((incidence old-ctx) [a b]))))
           bin-ctx [obj-vec attr-order (count obj-vec) attr-count  bin-incidence]
-          attribute-concepts (for [i del-attributes] 
-                               (let [a (BitSet. attr-count)] 
-                                 (.set a (.indexOf attr-order i))
-                                 (to-hashset attr-order 
-                                             (bitwise-context-attribute-closure (count obj-vec) (count attr-order) bin-incidence a))))
+          attribute-concepts  (for [i del-attributes] 
+                                (let [a (BitSet. attr-count)] 
+                                  (.set a (.indexOf attr-order i))
+                                  (to-hashset attr-order 
+                                              (bitwise-context-attribute-closure (count obj-vec) (count attr-order) bin-incidence a))))
           toupdate (find-all-updates attribute-concepts cover)]
       (loop [cur (first toupdate) other (rest toupdate) newcover {}]
         (let [updated-newcover (cover-merger newcover (intersecter cur (get cover cur) prev-attributes))]
@@ -378,19 +378,20 @@
   already included in new-context and are further given by
   new-attributes."
   [cover new-ctx new-attributes]
-  (let [intent-chan (next-intent-async new-ctx new-attributes :exlusive)
-        prev-attributes (difference 
+  (if (empty? new-attributes) cover
+      (let [intent-chan (next-intent-async new-ctx new-attributes :exlusive)
+            prev-attributes (difference 
                              (attributes new-ctx)
                              new-attributes)
-        cur-lattice (agent cover)]
-    (loop [next-intent (<!! intent-chan)]
-      (if (= :fin next-intent) (do (await cur-lattice) @cur-lattice)
-          (let [old (intersection next-intent prev-attributes)]
-            ;; async update cover
-            (send-off cur-lattice insert-concept next-intent (attribute-derivation new-ctx next-intent))
-            
-            (send-off cur-lattice 
-                      #(if (= old (context-attribute-closure new-ctx old))
-                         %
-                         (reassign-cover % old)))
-            (recur (<!! intent-chan)))))))
+            cur-lattice (agent cover)]
+        (loop [next-intent (<!! intent-chan)]
+          (if (= :fin next-intent) (do (await cur-lattice) @cur-lattice)
+              (let [old (intersection next-intent prev-attributes)]
+                ;; async update cover
+                (send-off cur-lattice insert-concept next-intent (attribute-derivation new-ctx next-intent))
+                
+                (send-off cur-lattice 
+                          #(if (= old (context-attribute-closure new-ctx old))
+                             %
+                             (reassign-cover % old)))
+                (recur (<!! intent-chan))))))))

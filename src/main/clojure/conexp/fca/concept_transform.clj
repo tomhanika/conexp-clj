@@ -41,7 +41,7 @@
         shared-objects (intersection (objects ctx1) (objects ctx2))
         dual-ctx (dual-context attr-intermediate-ctx)
         remove-ctx1-objects-bv (attribute-deletion-cover 
-                                dual-bv (make-context shared-objects (attributes dual-ctx) (incidence dual-ctx)) 
+                                dual-bv dual-ctx
                                 (difference (objects ctx1) shared-objects))
         ctx2-only-objects (difference (objects ctx2) (objects ctx1))
         insert-ctx2-objects-bv (attribute-insertion-cover remove-ctx1-objects-bv (dual-context ctx2) ctx2-only-objects)]
