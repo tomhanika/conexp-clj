@@ -35,7 +35,7 @@
   (measure [this] measure))
 
 (defn- pre-image-measure 
-  "Returns the pre-image map of a scale measures function."
+  "Returns the pre-image map of a scale measures function sigma."
   [sm]
   (let [m (measure sm)]
     (if (map? m)
@@ -46,7 +46,11 @@
                              [obj ((measure sm) obj)]))]
         (apply (partial merge-with into) {} 
              (for [[k v] mapified] {v #{k}}))))))
-(defn original-extents [sm]
+
+(defn original-extents 
+  "Returns the pre-image of all extents whichs image is closed in the
+  scale."
+  [sm]
   (let [scale-extents (extents (scale sm))
         pre-image (pre-image-measure sm)]
     (map #(set (reduce into (map pre-image %)))
@@ -66,26 +70,38 @@
   (and (instance? ScaleMeasure sm)
        (valid-scale-measure? sm)))
 
-(defn make-smeasure [ctx scale m]
+(defn make-smeasure 
+  "Returns a scale-measure object of the input is a valid scale measure."
+  [ctx scale m]
   (let [sm (ScaleMeasure. ctx scale m)]
     (assert (valid-scale-measure? sm) "The Input is no valid Scale Measure")
     sm))
 
-(defn make-smeasure-nc [ctx scale m]
+(defn make-smeasure-nc 
+  "Generates a scale measure object without checking the validity."
+  [ctx scale m]
   (ScaleMeasure. ctx scale m))
 
-(defn make-id-smeasure [ctx]
+(defn make-id-smeasure
+  "Generates a scale-measure with the identity map and the context as scale."
+  [ctx]
   (make-smeasure-nc ctx ctx identity))
 
-(defn remove-attributes-sm [sm attr]
+(defn remove-attributes-sm 
+  "Removes 'attr attributes from the scale."
+  [sm attr]
   (let [s (scale sm)
         new-scale (make-context (objects s) 
-                              (disj (attributes s))
+                              (disj (attributes s) attr)
                               (incidence s))]
     (make-smeasure-nc (context sm) new-scale (measure sm))))
 
 
-(defn cluster-attributes-all [sm attr]
+(defn cluster-attributes-all 
+  "Clusters 'attr attributes in the scale context.
+  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
+  The new incidence is build such that (g, [attr]) if (g,m) for all m in attr." 
+  [sm attr]
   (let [ctx (context sm)
         s (scale sm)]
     (make-smeasure-nc (context sm) 
@@ -99,14 +115,22 @@
                                         ((incidence s) [a b])))) 
                       (measure sm))))
 
-(defn- valid-cluster [scale original]
+(defn- valid-cluster 
+  "This function is a predicate factory for valid scale measure clustering."
+  [scale original]
   (let [get-exts (fn [cover] (set (map #(get-in cover [% :extent]) (keys cover))))
         ext (get-exts original)]
     (fn [clustered-scale] 
       (let [ext-new (get-exts (transform-bv-cover scale clustered-scale original))]
         (subset? ext-new ext)))))
 
-(defn cluster-attributes-ex [sm attr]
+(defn cluster-attributes-ex 
+  "Clusters 'attr attributes in the scale context.
+  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
+  The new incidence is build such that (g, [attr]) if (g,m) for some m
+  in attr.  If the 'attr cluster does not form a valid scale measure,
+  a sequence of valid supersets of lowest cardinality is returned." 
+  [sm attr]
   (let [s (scale sm)
         apply-cluster (fn [at] (make-context (objects s) 
                                            (conj (difference (attributes s) attr) at) 
@@ -124,7 +148,13 @@
           (recur (inc i))
           (map #(into attr %) valids))))))
 
-(defn cluster-objects-all [sm obj]
+(defn cluster-objects-all 
+  "Clusters 'obj objects in the scale context.
+  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
+  The new incidence is build such that ([obj],m) if (g,m) for all g
+  in obj.  If the 'obj cluster does not form a valid scale measure,
+  a sequence of valid supersets of lowest cardinality is returned." 
+  [sm obj]
   (let [s (scale sm)
         apply-cluster (fn [o] (make-context (conj (difference (objects s) obj) o) 
                                            (attributes s)
@@ -143,7 +173,13 @@
           (map #(into obj %) valids))))))
 
 
-(defn cluster-objects-ex [sm obj]
+(defn cluster-objects-ex 
+  "Clusters 'obj objects in the scale context.
+  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
+  The new incidence is build such that ([obj],m) if (g,m) for some g
+  in obj.  If the 'obj cluster does not form a valid scale measure,
+  a sequence of valid supersets of lowest cardinality is returned." 
+  [sm obj]
   (let [s (scale sm)
         apply-cluster (fn [o] (make-context (conj (difference (objects s) obj) o) 
                                            (attributes s)
