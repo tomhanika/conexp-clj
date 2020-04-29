@@ -92,7 +92,7 @@
   [sm attr]
   (let [s (scale sm)
         new-scale (make-context (objects s) 
-                              (disj (attributes s) attr)
+                              (difference (attributes s) attr)
                               (incidence s))]
     (make-smeasure-nc (context sm) new-scale (measure sm))))
 
@@ -223,6 +223,30 @@
                                               (incidence-relation new-scale))
                                 (comp comp-scale-image (measure sm))))
             (map #(into obj %) valids)))))))
+
+(defn rename-scale-objects
+  "Renames objects in the scale. Input the renaming as function on the
+  set of objects or as key value pairs."
+  ([sm rename-fn]
+   (make-smeasure-nc (context sm) 
+                       (rename-objects (scale sm) rename-fn)
+                       (comp rename-fn (measure sm))))
+  ([sm key val & keyvals]
+   (let [rename-map (apply hash-map key val keyvals)
+         rename-fn  (fn [o] (or (get rename-map o) o))]
+     (rename-scale-objects sm rename-fn))))
+
+(defn rename-scale-attributes
+  "Renames attribute in the scale. Input the renaming as function on the
+  set of attributes or as key value pairs."
+  ([sm rename-fn]
+   (make-smeasure-nc (context sm) 
+                     (rename-attributes (scale sm) rename-fn)
+                     (measure sm)))
+  ([sm key val & keyvals]
+   (let [rename-map (apply hash-map key val keyvals)
+         rename-fn  (fn [a] (or (get rename-map a) a))]
+     (rename-scale-attributes sm rename-fn))))
 
 ;; (defn cluster-attributes-ex [sm attr]
 ;;   (let [ctx (context sm)
