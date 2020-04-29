@@ -120,9 +120,9 @@
   [scale original]
   (let [get-exts (fn [cover] (set (map #(get-in cover [% :extent]) (keys cover))))
         ext (get-exts original)]
-    (fn [clustered-scale] 
+    (fn [clustered-scale pre-image] 
       (let [ext-new (get-exts (transform-bv-cover scale clustered-scale original))]
-        (subset? ext-new ext)))))
+        (subset? (set (map pre-image ext-new)) ext)))))
 
 (defn cluster-attributes-ex 
   "Clusters 'attr attributes in the scale context.
@@ -133,20 +133,29 @@
   [sm attr]
   (let [s (scale sm)
         apply-cluster (fn [at] (make-context (objects s) 
-                                           (conj (difference (attributes s) attr) at) 
-                                       (fn [a b] 
-                                         (if (set? b) 
-                                           (some #((incidence s) [a %]) 
-                                                 b) 
-                                           ((incidence s) [a b])))))
+                                           (conj (difference (attributes s) at) at) 
+                                           (fn [a b] 
+                                             (if (set? b) 
+                                               (some #((incidence s) [a %]) 
+                                                     b) 
+                                               ((incidence s) [a b])))))
         original (generate-concept-cover (concepts s))
+        comp-scale-image identity
+        scale-pre-image identity
         valid-cluster? (valid-cluster s original)]
-    (loop [i 1]
+    (loop [i 0]
       (let [candidates (comb/combinations (seq (difference (attributes s) attr)) i)
-            valids (filter #(valid-cluster? (apply-cluster (into attr %))) candidates)]
+            valids (filter #(valid-cluster? (apply-cluster (into attr %)) scale-pre-image) candidates)]
         (if (empty? valids)
           (recur (inc i))
-          (map #(into attr %) valids))))))
+          (if (empty? (first valids))
+            (let [new-scale (apply-cluster attr)]
+              (make-smeasure-nc (context sm) 
+                                (make-context (objects new-scale)
+                                              (attributes new-scale)
+                                              (incidence-relation new-scale))
+                                (comp comp-scale-image (measure sm))))
+            (map #(into attr %) valids)))))))
 
 (defn cluster-objects-all 
   "Clusters 'obj objects in the scale context.
@@ -156,7 +165,7 @@
   a sequence of valid supersets of lowest cardinality is returned." 
   [sm obj]
   (let [s (scale sm)
-        apply-cluster (fn [o] (make-context (conj (difference (objects s) obj) o) 
+        apply-cluster (fn [o] (make-context (conj (difference (objects s) o) o) 
                                            (attributes s)
                                            (fn [a b] 
                                              (if (set? a) 
@@ -164,13 +173,22 @@
                                                      a) 
                                                ((incidence s) [a b])))))
         original (generate-concept-cover (concepts s))
+        comp-scale-image (fn [g] (if (get obj g) obj g))
+        scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
         valid-cluster? (valid-cluster s original)]
     (loop [i 0]
       (let [candidates (comb/combinations (seq (difference (objects s) obj)) i)
-            valids (filter #(valid-cluster? (apply-cluster (into obj %))) candidates)]
+            valids (filter #(valid-cluster? (apply-cluster (into obj %)) (scale-pre-image (into obj %))) candidates)]
         (if (empty? valids)
           (recur (inc i))
-          (map #(into obj %) valids))))))
+          (if (empty? (first valids))
+            (let [new-scale (apply-cluster obj)]
+              (make-smeasure-nc (context sm) 
+                                (make-context (objects new-scale)
+                                              (attributes new-scale)
+                                              (incidence-relation new-scale))
+                                (comp comp-scale-image (measure sm))))
+            (map #(into obj %) valids)))))))
 
 
 (defn cluster-objects-ex 
@@ -181,7 +199,7 @@
   a sequence of valid supersets of lowest cardinality is returned." 
   [sm obj]
   (let [s (scale sm)
-        apply-cluster (fn [o] (make-context (conj (difference (objects s) obj) o) 
+        apply-cluster (fn [o] (make-context (conj (difference (objects s) o) o) 
                                            (attributes s)
                                            (fn [a b] 
                                              (if (set? a) 
@@ -189,13 +207,22 @@
                                                      a) 
                                                ((incidence s) [a b])))))
         original (generate-concept-cover (concepts s))
+        comp-scale-image (fn [g] (if (get obj g) obj g))
+        scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
         valid-cluster? (valid-cluster s original)]
     (loop [i 0]
       (let [candidates (comb/combinations (seq (difference (objects s) obj)) i)
-            valids (filter #(valid-cluster? (apply-cluster (into obj %))) candidates)]
+            valids (filter #(valid-cluster? (apply-cluster (into obj %)) (scale-pre-image (into obj %))) candidates)]
         (if (empty? valids)
           (recur (inc i))
-          (map #(into obj %) valids))))))
+          (if (empty? (first valids))
+            (let [new-scale (apply-cluster obj)]
+              (make-smeasure-nc (context sm) 
+                                (make-context (objects new-scale)
+                                              (attributes new-scale)
+                                              (incidence-relation new-scale))
+                                (comp comp-scale-image (measure sm))))
+            (map #(into obj %) valids)))))))
 
 ;; (defn cluster-attributes-ex [sm attr]
 ;;   (let [ctx (context sm)
