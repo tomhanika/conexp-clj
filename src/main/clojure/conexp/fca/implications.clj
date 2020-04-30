@@ -22,7 +22,7 @@
   (hashCode [this]
     (hash-combine-hash Implication premise conclusion))
   (toString [this]
-    (str "(" premise " ⟶ " conclusion ")")))
+    (str "(" premise " ⟶  " conclusion ")")))
 
 (defmulti premise
   "Returns premise of given object."
