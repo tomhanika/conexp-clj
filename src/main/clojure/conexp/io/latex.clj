@@ -20,7 +20,7 @@
   "Escapes all significant characters used by LaTeX."
   [string]
   (clojure.string/escape 
-    string 
+    (str string) 
     {\& "\\&"
      \% "\\%"
      \$ "\\$"
