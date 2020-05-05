@@ -173,7 +173,7 @@
                                                      a) 
                                                ((incidence s) [a b])))))
         original (generate-concept-cover (concepts s))
-        comp-scale-image (fn [g] (if (get obj g) obj g))
+        comp-scale-image (fn [g] (if (contains? obj g) obj g))
         scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
         valid-cluster? (valid-cluster s original)]
     (loop [i 0]
@@ -207,7 +207,7 @@
                                                      a) 
                                                ((incidence s) [a b])))))
         original (generate-concept-cover (concepts s))
-        comp-scale-image (fn [g] (if (get obj g) obj g))
+        comp-scale-image (fn [g] (if (contains? obj g) obj g))
         scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
         valid-cluster? (valid-cluster s original)]
     (loop [i 0]
@@ -248,63 +248,193 @@
          rename-fn  (fn [a] (or (get rename-map a) a))]
      (rename-scale-attributes sm rename-fn))))
 
-;; (defn cluster-attributes-ex [sm attr]
-;;   (let [ctx (context sm)
-;;         s (scale sm)]
-;;     (make-smeasure-nc (context sm) 
-;;                       (make-context (objects s) 
-;;                                     (conj (difference (set (attributes s)) attr)
-;;                                           attr) 
-;;                                     (fn [a b] 
-;;                                       (if (set? b) 
-;;                                         (some #((incidence s) [a %]) 
-;;                                               b) 
-;;                                         ((incidence s) [a b])))) 
-;;                       identity)))
 
 
-;; (defn cluster-objects-ex [sm obj]
-;;   (let [ctx (context sm)
-;;         s (scale sm)]
-;;     (make-smeasure-nc (context sm) 
-;;                       (make-context (conj (difference (set (objects s)) obj)
-;;                                           obj) 
-;;                                     (attributes s)  
-;;                                     (fn [a b] 
-;;                                       (if (set? a) 
-;;                                         (some #((incidence s) [% b]) 
-;;                                               a) 
-;;                                         ((incidence s) [a b])))) 
-;;                       (fn [a] (if (get obj a) obj a)))))
+;;; Declare REPL commands
+(defmulti run-repl-command
+  "Runs a command for the counterexample REPL."
+  (fn [& args] (first args)))
+(alter-meta! #'run-repl-command assoc :private true)
 
-;; (defn cluster-objects-all-nc [sm obj]
-;;   (let [ctx (context sm)
-;;         s (scale sm)]
-;;     (make-smeasure-nc (context sm) 
-;;                       (make-context (conj (difference (set (objects s)) obj)
-;;                                           obj) 
-;;                                     (attributes s)  
-;;                                     (fn [a b] 
-;;                                       (if (set? a) 
-;;                                         (every? #((incidence s) [% b]) 
-;;                                               a) 
-;;                                         ((incidence s) [a b])))) 
-;;                       (fn [a] (if (get obj a) obj a)))))
+(defmulti help-repl-command
+  "Returns the help string of the given command."
+  (fn [& args] (first args)))
+(alter-meta! #'help-repl-command assoc :private true)
 
-;; (defn- build-obj-all-cluster [obj exts]
-;;   (let [new-cluster (reduce into obj
-;;                                 (filter #(and (not (empty? (intersection obj %)))
-;;                                               (proper-subset? (intersection obj %) obj))
-;;                                         exts))]
-;;         (if (= obj new-cluster)
-;;           obj
-;;           (build-obj-all-cluster new-cluster exts))))
+(defn- suitable-repl-commands
+  "Returns all known repl commands for query, which can be a symbol or
+  a string."
+  [query]
+  (let [str-query (str query)]
+    (filter #(.startsWith (str %) str-query)
+            (remove #{:default} (keys (methods run-repl-command))))))
 
-;; (defn cluster-objects-all [sm obj]
-;;   (let [cluster (build-obj-all-cluster obj (extents (scale sm)))]
-;;     (println cluster)
-;;     (assert 
-;;      (not (some #(= (attributes (scale sm)) (object-derivation (scale sm) #{%})) cluster))
-;;      "No valid Object Clustering possible.")
-;;     (cluster-objects-all-nc sm cluster)))
+(def ^:private abortion-sentinal (Exception. "You should never see this"))
 
+(defn- eval-command
+  "Runs the given REPL command query with state, in the case the query uniquely
+  determines a command.  If not, an error message is printed and state is
+  returned."
+  [query state]
+  (if (= query 'abort)
+    (throw abortion-sentinal)
+    (let [suitable-methods (suitable-repl-commands query)]
+      (cond
+       (second suitable-methods)
+       (do
+         (println "Ambigious command, suitable methods are")
+         (doseq [name suitable-methods]
+           (println "  " name))
+         state),
+       (empty? suitable-methods)
+       (do
+         (println "Unknown command")
+         state)
+       :else
+       (try
+         (run-repl-command (first suitable-methods) state)
+         (catch Throwable t
+           (print "Encountered Error: ")
+           (println t)
+           state))))))
+
+(defmacro- define-repl-fn [name doc & body]
+  `(do
+     (defmethod run-repl-command '~name
+       ~'[_ state]
+       (let [~'smeasure (:smeasure ~'state)
+             
+             ~'scale (scale ~'smeasure)]
+         ~@body))
+     (defmethod help-repl-command '~name
+       ~'[_]
+       ~doc)))
+
+(define-repl-fn done
+  "Ends the Scale Exploration."
+  (assoc state :done true))
+
+(define-repl-fn clear
+  "Clears the current state and restarts from scratch."
+    (assoc state :smeasure (make-id-smeasure (context scale))))
+
+(define-repl-fn truncate
+  "Enter an attribute that should be removed from the scale."
+  (assoc state :smeasure
+         (remove-attributes-sm smeasure 
+                               (ask (str "Please enter all to be removed attribute spereated by ';': \n")
+                                    #(map read-string (clojure.string/split (str (read-line)) #";"))
+                                    #(subset? % (attributes scale))
+                                    "The attributes are not all present, please enter an existing attribute: \n"))))
+
+(define-repl-fn rename
+  "Renames objects or attributes in the scale."
+  (let [rename-kind (ask (str "Please enter if you want to rename attributes (:attributes) or objects (:objects): \n")
+                         #(read-string (str (read-line)))
+                         #(or (= :objects %) (= :attributes  %))
+                         "The input must be :attributes or :objects: \n")
+        rename-method (get {:objects rename-scale-objects :attributes rename-scale-attributes}
+                           rename-kind)
+        rename-content (ask (str "Please all " (rename-kind {:attributes "attributes" :objects "objects"})
+                                 " that should be renamed and their new name with ; seperator (name1;new-name1;name2;...): \n")
+                            #(map read-string (clojure.string/split (str (read-line)) #";"))
+                            (fn [input] (and (even? (count input))
+                                             (every? 
+                                              #(contains? ((rename-kind {:attributes attributes :objects objects}) scale) %)
+                                              (take-nth 2 input))))
+                            (str "Input must be ; seperated an contain only " (rename-kind {:attributes "attributes" :objects "objects"}) "of the scale and their new name:\n"))]
+    (if (empty? rename-content) state
+        (assoc state :smeasure (apply rename-method smeasure rename-content)))))
+
+(define-repl-fn cluster
+  "Apply a clustering to the scales objects or attributes."
+  (let [cluster-kind (ask (str "Please enter if you want to cluster attributes (:attributes) or objects (:objects): \n")
+                          #(read-string (str (read-line)))
+                          #(or (= :objects %) (= :attributes  %))
+                          "The input must be :attributes or :objects: \n")
+        cluster-incidence (ask (str "Please enter if their  common (:all) or conjoined (:ex) incidence is used as new cluster incidences: \n")
+                               #(read-string (str (read-line)))
+                               #(or (= :all %) (= :ex  %))
+                               "The input must be :all or :ex: \n")
+        cluster-method (get-in {:objects {:ex cluster-objects-ex :all cluster-objects-all} 
+                                :attributes {:ex cluster-attributes-ex :all cluster-attributes-all}} 
+                               [cluster-kind cluster-incidence])
+        cluster-content (ask (str "Please enter all "  (cluster-kind {:attributes "attributes" :objects "objects"}) " to be clustered with ; seperator: \n")
+                             #(set (map read-string (clojure.string/split (str (read-line)) #";")))
+                             (fn [input] (every? 
+                                          #(contains? ((cluster-kind {:attributes attributes :objects objects}) scale) %)
+                                          input))
+                             (str "Input must be ; seperated an contain only " (cluster-kind {:attributes "attributes" :objects "objects"}) "of the scale:\n"))]
+    (if (empty? cluster-content) state
+        (let [clustered (cluster-method smeasure cluster-content)]
+          (if (smeasure? clustered)
+            (assoc state :smeasure clustered)
+            (let [decision (ask (str "Your input does not form a valid Scale Measure. Here are some valid super-sets of your input with lowest possible cardinality: \n"
+                                     (clojure.string/join ", " 
+                                                          (map (partial apply str) 
+                                                               (seq (zipmap 
+                                                                     (map #(str "(" % "): ") (range (count clustered)))
+                                                                     clustered))))"\n"
+                                     "Enter the number of one of these clusters or -1 for none of them: \n")
+                                #(read-string (str (read-line)))
+                                #(and (<= -1 %) (< % (count clustered)))
+                                (str"The input must a number between -1 and " (count clustered) "\n"))]
+              (if (= -1 decision)
+                state
+                (assoc state :smeasure (cluster-method smeasure (nth clustered decision))))))))))
+
+(define-repl-fn show
+  "Prints the current scale context, attributes or objects."
+  [state]
+  (let [toshow (ask (str "Please enter if you want display the scale (:context) its attributes (:attributes) or objects (:objects): \n")
+                    #(read-string (str (read-line)))
+                    #(or (= :objects %) (= :attributes  %) (= :context %))
+                    "The input must be :context, :attributes or :objects: \n")]
+    (println "\n" ((toshow {:context identity
+                            :attributes (comp (partial clojure.string/join "; ") attributes)
+                            :objects (comp (partial clojure.string/join "; ") objects)}) 
+                   scale))
+    state))
+
+(define-repl-fn help
+  "Prints help."
+  (let [commands (suitable-repl-commands "")]
+    (println "Type «abort» to abort exploration.")
+    (println "Any other command can be abbreviated, as long as this is unambigious.")
+    (doseq [cmd commands]
+      (println (str "  " cmd))
+      (println (str "    -> " (help-repl-command cmd))))
+    state))
+;;; Scale Exploration 
+
+(defn scale-exploration 
+  "Exploration for a scale context to measure a given context.
+  The exploration is done with online editing methods.
+
+  - rename:   Rename objects or attributes of the scale
+  - cluster:  Clusters objects or attributes in the scale
+              The cluster incidence is set as either the common
+              or conjoined incidences of all entries
+  - truncate: Removes attributes form the scale 
+  - clear:    Restarts the exploration
+
+  general functions for exploration interaction
+  - show: prints the current scale
+  - done: finishes exploration
+  - help: prints doc string"
+  [ctx]
+  (assert (context? ctx) "Input must be a Context.")
+  (println (:doc (meta #'scale-exploration)) "\n\n\n")
+  (println "Start scale exploration for:\n" ctx)
+  (loop [state {:smeasure (make-id-smeasure ctx)}]
+    (let [evaluated (eval-command (ask (str "Please enter an operation:\n")
+                                       #(read-string (str (read-line)))
+                                       (constantly true)
+                                       "Input must be a valid command: \n") state)]
+      (if (:done evaluated) 
+        (:smeasure  evaluated)
+        (recur  evaluated)))))
+
+
+; todo 2D begriffsverband wenn nicht kreuz graph bipartite
+; rotes buch
