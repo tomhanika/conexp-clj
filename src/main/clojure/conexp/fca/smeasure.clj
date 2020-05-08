@@ -11,7 +11,9 @@
             [conexp.fca.contexts :refer :all]
             [conexp.fca.concept-transform :refer :all]
             [conexp.fca.cover :refer [generate-concept-cover]]
-            [clojure.math.combinatorics :as comb]))
+            [clojure.math.combinatorics :as comb]
+            [loom.graph :as lg]
+            [loom.alg :as la]))
 
 (defprotocol Smeasure
   (context [sm] "Returns the original context that is measured.")
@@ -437,4 +439,119 @@
 
 
 ; todo 2D begriffsverband wenn nicht kreuz graph bipartite
-; rotes buch
+; rotes buch Satz 36 page 134
+; Genau dann ist die Ferrersdimension von (G, M, I) höchstens zwei, wenn der Un-
+; verträglichkeitsgraph bipartit ist.
+
+
+(defn cross-graph 
+  "For a formal context (G,M,I) the graph is defined
+  as (I,E), with (g,m)(h,n) in E, if and only if (g,n) not in I
+  and (h,m) not in I." 
+  [cxt] 
+  (let [obj (objects cxt) atr (attributes cxt) 
+        vert (filter (incidence cxt)
+                     (reduce concat (for [g obj] (for [m atr] [g m]))))
+        incidences (zipmap vert (for [v1 vert] 
+                                  (filter (fn [v2] 
+                                            (and (not ((incidence cxt) [(first v1) (peek v2)])) 
+                                                 (not (( incidence cxt) [(first v2) (peek v1)]))))
+                                          vert)))] 
+    (lg/graph incidences)))
+
+
+;;genetic algorithm
+
+(defn- two-ferres-covering
+  "Given a formal context compute a covering of the incidence relation
+  by two ferres relations."
+  [ctx]
+
+  )
+
+(defn- fill-individual
+  "Inserts as many objects/ attributes to the context as possible".
+  [ctx ind]
+  (let [tofill-obj (difference (objects ctx) (objects ind))
+        tofill-attr (difference (attributes ctx) (attributes ind))
+        tofill (concept (zip (repeat :attr) tofill-attr)
+                  (zip (repeat :obj) tofill-obj))
+        recreate-individual (fn [param] (make-context 
+                                         (:obj param) (:attr param) 
+                                         (incidence ctx)))]
+    (->> tofill
+         shuffle
+         (reduce #(if (fit??? %1 %2) ;todo
+                    (update %1 (first %2) conj (second %2))
+                    %1)
+                 {:attr (attributes ind)
+                  :obj (objects ind)})
+         recreate-individual)))
+
+(defn- breeding 
+  "Given two individuals, i.e. contexts, breeds a next new individual by
+  first computing the context of common attributes and
+  objects. Secondly as many attributes/objects of ctx are inserted
+  without increasing the order dimension of the new individual."
+  [ctx ind1 ind2]
+  (->> (make-context 
+       (intersection (objects ind1) (objects ind2))
+       (intersection (attributes ind1) (attributes ind2))
+       (incidence ctx))
+      (fill-individual ctx)))
+
+(defn- breed-next-generation
+  "Given the current generation of contexts, breeds the next generation."
+  [ctx generation]
+  (let [survivors (->> generation
+                     (sort-by #(* (count (objects %))
+                                  (count (attributes %)))))
+        [suvivors ]]
+    
+    )
+  
+
+  )
+
+(defn- first-generation
+  "Computes a first random generation of contexts with order dimension
+  at most two."
+  [ctx])
+
+(defn- genetic-2d-subctx
+  "Genetic algorithm to determine a maximal sub-context with order
+  dimension at most two.  Maximal in terms of number of objects times
+  number of attributes."
+  [ctx])
+
+;; post processing
+
+(defn- fit-rest
+  "This method is a helper method for suggest_2d and given a scale
+  context and an original context, fits as many missing
+  objects/attributes to the scale by clustering without increasing the order
+  dimension of the scale concept lattice."
+  [ctx scale]
+  ; compute ferres covering
+  ; loop over attribtues/objects
+  )
+
+;; Suggest Scale
+
+(defn suggest_2d 
+  "This Method is a genetic algorithm to determine a scale whichs
+  concept lattice is of order dimension 2D. The methods simulated by
+  this algorithm are cluster methods only and for comprehensibility we
+  use only one cluster variation (:all, :or) at a time. Further note
+  that nested clusters of the same type (:all, :ex) are equivalent to
+  their flattened correspondence. This method uses a genetic algorithm
+  that determines a large sub-context, i.e. the number of objects
+  times attributes, whichs concept lattice is of order dimension at
+  most two. After that missing attributes are combined with existing
+  objects, attributes such that they preserve the order dimension."
+  [ctx]
+  ; first determine subcontext by genetic algorithm
+  ; second fill in all missing attributes objects
+  (-> ctx
+      genetic-2d-subctx
+      (fit-rest ctx)))
