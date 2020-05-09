@@ -103,7 +103,7 @@
   "Prints the result of applying smeasure-to-string to the given
    smeasure."
   [sm]
-  (print (apply smeasure-to-string sm)))
+  (print (smeasure-to-string sm)))
 
 (defmethod print-method ScaleMeasure [sm out]
   (.write ^java.io.Writer out
