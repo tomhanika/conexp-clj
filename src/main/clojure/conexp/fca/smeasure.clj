@@ -13,7 +13,8 @@
             [conexp.fca.cover :refer [generate-concept-cover]]
             [clojure.math.combinatorics :as comb]
             [loom.graph :as lg]
-            [loom.alg :as la]))
+            [loom.alg :as la])
+  (:import [org.dimdraw Bipartite]))
 
 (defprotocol Smeasure
   (context [sm] "Returns the original context that is measured.")
@@ -442,87 +443,159 @@
 ; rotes buch Satz 36 page 134
 ; Genau dann ist die Ferrersdimension von (G, M, I) höchstens zwei, wenn der Un-
 ; verträglichkeitsgraph bipartit ist.
+(defn incompatibility-graph
+  "For a formal context computes the imcompatibility graph of its
+  incidence relation."
+  [ctx]
+  (let [nodes (difference (cross-product (objects ctx) (attributes ctx))
+                          (incidence-relation ctx))
+        incompatible? (fn [[[g m] [h n]]]
+                       (and ((incidence ctx) [g n])
+                            ((incidence ctx) [h m])))
+        edges (filter incompatible? (cross-product nodes nodes))]
+    (apply lg/graph edges)))
 
 
-(defn cross-graph 
-  "For a formal context (G,M,I) the graph is defined
-  as (I,E), with (g,m)(h,n) in E, if and only if (g,n) not in I
-  and (h,m) not in I." 
-  [cxt] 
-  (let [obj (objects cxt) atr (attributes cxt) 
-        vert (filter (incidence cxt)
-                     (reduce concat (for [g obj] (for [m atr] [g m]))))
-        incidences (zipmap vert (for [v1 vert] 
-                                  (filter (fn [v2] 
-                                            (and (not ((incidence cxt) [(first v1) (peek v2)])) 
-                                                 (not (( incidence cxt) [(first v2) (peek v1)]))))
-                                          vert)))] 
-    (lg/graph incidences)))
+(defmulti addable? 
+  "For a bipartite 'Unverstraeglichkeitsgraph' of a subset of attributes
+  and objects of a context, computes if adding an object/attribute
+  preserves the bipartite property."
+  (fn [& args] (first args)))
+
+(defmethod addable? :object
+  [_ graph subset obj]
+  (let [obj-nodes (filter #(= obj (first %)) (lg/nodes graph))]
+    (loop [[cur & other] obj-nodes 
+           added subset]
+      (if (nil? cur) added
+          (if (la/bipartite? (lg/subgraph graph (conj subset cur)))
+              ;(not (. Bipartite isInOddCycle (:adj graph) added cur))
+            (recur other (conj added cur))
+            false)))))
+
+(defmethod addable? :attribute
+  [_ graph subset attr]
+  (let [attr-nodes (filter #(= attr (second %)) (lg/nodes graph))]
+    (loop [[cur & other] attr-nodes 
+           added subset]
+      (if (nil? cur) added
+          (if (not (. Bipartite isInOddCycle (:adj graph) added cur))
+            (recur other (conj added cur))
+            false)))))
+
+
+(defn fill-individual
+  "Inserts as many objects/attributes to the individual as possible.
+  An individual is a set of nodes of the contexts incompatibility graph."
+  [ctx graph ind]
+  (let [;; missing objects and attributes in the individual
+        tofill-obj (difference (objects ctx) (into #{} (map first ind)))
+        tofill-attr (difference (attributes ctx) (into #{} (map second ind)))
+        tofill (into [] (concat (zip (repeat :attribute) tofill-attr)
+                                (zip (repeat :object) tofill-obj)))
+        ;; add if addable 
+        add-if-addable (fn [tmp-ind [kind toadd]] 
+                         (let [added (addable? kind graph tmp-ind toadd)]
+                           (if added added tmp-ind)))]
+    (->> tofill
+         shuffle
+         (reduce add-if-addable ind))))
 
 
 ;;genetic algorithm
 
-(defn- two-ferres-covering
-  "Given a formal context compute a covering of the incidence relation
-  by two ferres relations."
-  [ctx]
+(def- generation-size 10)
+(def- generations 7)
+(def- survival-ratio 0.3)
+(def- mutation-rate 0)
 
-  )
+(def- survival-count (int (* generation-size survival-ratio)))
 
-(defn- fill-individual
-  "Inserts as many objects/ attributes to the context as possible".
-  [ctx ind]
-  (let [tofill-obj (difference (objects ctx) (objects ind))
-        tofill-attr (difference (attributes ctx) (attributes ind))
-        tofill (concept (zip (repeat :attr) tofill-attr)
-                  (zip (repeat :obj) tofill-obj))
-        recreate-individual (fn [param] (make-context 
-                                         (:obj param) (:attr param) 
-                                         (incidence ctx)))]
-    (->> tofill
-         shuffle
-         (reduce #(if (fit??? %1 %2) ;todo
-                    (update %1 (first %2) conj (second %2))
-                    %1)
-                 {:attr (attributes ind)
-                  :obj (objects ind)})
-         recreate-individual)))
+(defn- fitness 
+  "Computes the fitness of an individual."
+  [ind]
+  (let [distinct-obj (->> ind
+                         (map first)
+                         set count)
+        distinct-attr (->> ind
+                          (map second)
+                          set count)]
+    (* distinct-attr
+       distinct-obj)))
+
+(defn- mutation
+  "Mutates the current individual by removing an object or attribute
+  given a probability."
+  [ctx graph ind]
+  (let [ind-obj  (map first ind)
+        ind-attr  (map second ind)
+        mutated-obj  (random-sample (- 1 mutation-rate) ind-obj)
+        mutated-attr  (random-sample (- 1 mutation-rate) ind-attr)]
+    (into #{} (filter #(and (some #{(first %)} mutated-obj)
+                       (some #{(second %)} mutated-attr)) ind))))
 
 (defn- breeding 
   "Given two individuals, i.e. contexts, breeds a next new individual by
   first computing the context of common attributes and
   objects. Secondly as many attributes/objects of ctx are inserted
   without increasing the order dimension of the new individual."
-  [ctx ind1 ind2]
-  (->> (make-context 
-       (intersection (objects ind1) (objects ind2))
-       (intersection (attributes ind1) (attributes ind2))
-       (incidence ctx))
-      (fill-individual ctx)))
+  [ctx graph ind1 ind2]
+  (->> (intersection ind1 ind2)
+       ;(mutation ctx graph)
+       (fill-individual ctx graph)))
 
-(defn- breed-next-generation
+(defn- next-generation
   "Given the current generation of contexts, breeds the next generation."
-  [ctx generation]
-  (let [survivors (->> generation
-                     (sort-by #(* (count (objects %))
-                                  (count (attributes %)))))
-        [suvivors ]]
-    
-    )
-  
-
-  )
+  [ctx graph generation]
+  (let [fitness (->> generation
+                     (sort-by fitness)
+                     (take survival-count))
+        survivals (take survival-count fitness)
+        pairing (->> survivals
+                    shuffle
+                    (partition 2))
+        rand-pair (fn [] (->> survivals
+                             shuffle
+                             (take 2)))]
+    (into [] 
+     (concat survivals
+             (->> (concat pairing (repeat (rand-pair)))
+                 (take (- generation-size survival-count))
+                 (into [])
+                 (map #(apply breeding ctx graph %)))))))
 
 (defn- first-generation
   "Computes a first random generation of contexts with order dimension
   at most two."
-  [ctx])
+  [ctx graph]
+  (into [] 
+        (for [_ (range generation-size)]
+          (fill-individual ctx graph #{}))))
 
-(defn- genetic-2d-subctx
+(defn fitness 
+  "Returns the fitness of an individual."  
+  [ind]
+  (* (count (set (map first ind)))    ; number of distinct objects
+     (count (set (map second ind))))) ; number of distinct attributes
+
+(defn genetic-2d-subctx
   "Genetic algorithm to determine a maximal sub-context with order
   dimension at most two.  Maximal in terms of number of objects times
   number of attributes."
-  [ctx])
+  [ctx]
+  (let [graph (incompatibility-graph ctx)
+        ind2subctx (fn [ind] 
+                        (make-context 
+                         (set (map first ind))
+                         (set (map second ind))
+                         (incidence ctx)))]
+    (loop [n generations 
+           generation (first-generation ctx graph)]
+      (if (= n 0)
+        (->> generation 
+            (apply max-key fitness)
+            ind2subctx)
+        (recur (dec n) (next-generation ctx graph generation))))))
 
 ;; post processing
 
@@ -532,6 +605,7 @@
   objects/attributes to the scale by clustering without increasing the order
   dimension of the scale concept lattice."
   [ctx scale]
+  scale
   ; compute ferres covering
   ; loop over attribtues/objects
   )
@@ -555,3 +629,11 @@
   (-> ctx
       genetic-2d-subctx
       (fit-rest ctx)))
+
+
+;; (defn- two-ferres-covering
+;;   "Given a formal context compute a covering of the incidence relation
+;;   by two ferres relations."
+;;   [ctx]
+
+;;   )
