@@ -456,47 +456,81 @@
     (apply lg/graph edges)))
 
 
-(defmulti addable? 
-  "For a bipartite 'Unverstraeglichkeitsgraph' of a subset of attributes
+(defmulti add-if-bipartite 
+  "For a bipartite incompatibility graph of a subset of attributes
   and objects of a context, computes if adding an object/attribute
   preserves the bipartite property."
   (fn [& args] (first args)))
 
-(defmethod addable? :object
-  [_ graph subset obj]
-  (let [obj-nodes (filter #(= obj (first %)) (lg/nodes graph))]
-    (loop [[cur & other] obj-nodes 
-           added subset]
-      (if (nil? cur) added
-          (if (la/bipartite? (lg/subgraph graph (conj subset cur)))
-              ;(not (. Bipartite isInOddCycle (:adj graph) added cur))
-            (recur other (conj added cur))
-            false)))))
+(defmethod add-if-bipartite :object
+  [_ graph {iobjs :objects iattr :attributes :as ind} add-objs]
+  (let [old-nodes (into #{}
+                        (filter #(and (contains? iattr (second %)) 
+                                      (contains? iobjs (first %))) (lg/nodes graph)))
+        {new-objs :objects :as new-ind} (update ind :objects conj add-objs)
+        new-nodes (into #{}
+                       (filter #(and (contains? new-objs (first %))
+                                     (contains? iattr (second %))) (lg/nodes graph)))
+        ;; A node can be added if it is not in an odd cycle with itself
+        not-addable? (fn [n] 
+                       (. Bipartite isInOddCycle (:adj graph) (disj new-nodes n) n))]
+    (if (->> (difference new-nodes old-nodes)
+             (some not-addable?))
+      ind new-ind)))
 
-(defmethod addable? :attribute
-  [_ graph subset attr]
-  (let [attr-nodes (filter #(= attr (second %)) (lg/nodes graph))]
-    (loop [[cur & other] attr-nodes 
-           added subset]
-      (if (nil? cur) added
-          (if (not (. Bipartite isInOddCycle (:adj graph) added cur))
-            (recur other (conj added cur))
-            false)))))
+(defmethod add-if-bipartite :attribute
+  [_ graph {iobjs :objects iattr :attributes :as ind} add-attr]
+  (let [old-nodes (into #{} 
+                        (filter #(and (contains? iattr (second %)) 
+                                      (contains? iobjs (first %))) (lg/nodes graph)))
+        {new-attr :attributes :as new-ind} (update ind :attributes conj add-attr)
+        new-nodes (into #{} 
+                        (filter #(and (contains? new-attr (second %))
+                                      (contains? iobjs (first %))) (lg/nodes graph)))
+        ;; A node can be added if it is not in an odd cycle with itself
+        not-addable? (fn [n] 
+                       (. Bipartite isInOddCycle (:adj graph) (disj new-nodes n) n))]
+    (if (->> (difference new-nodes old-nodes)
+             (some not-addable?))
+      ind new-ind)))
+
+
+;; (defmethod add-if-bipartite :object
+;;   [_ graph {iobjs :objects iattr :attributes :as ind} add-objs]
+;;   (let [;; old-nodes (filter #(and (contains? iattr (second %)) 
+;;         ;;                          (contains? iobjs (first %))) (lg/nodes graph))
+;;         {new-objs :objects :as new-ind} (update ind :objects conj add-objs)
+;;         new-nodes (filter #(and (contains? iattr (second %)) 
+;;                                  (contains? new-objs (first %))) (lg/nodes graph))]
+;;     (if (la/bipartite? (lg/subgraph graph new-nodes))
+;;       new-ind
+;;       ind)))
+
+
+;; (defmethod add-if-bipartite :attribute
+;;   [_ graph {iobjs :objects iattr :attributes :as ind} add-attr]
+;;   (let [;; old-nodes (filter #(and (contains? iattr (second %)) 
+;;         ;;                          (contains iobjs (first %))) (lg/nodes graph))
+;;         {new-attr :attributes :as new-ind} (update ind :attributes conj add-attr)
+;;         new-nodes (filter #(and (contains? iobjs (first %)) 
+;;                                  (contains? new-attr (second %))) (lg/nodes graph))]
+;;     (if (la/bipartite? (lg/subgraph graph new-nodes))
+;;       new-ind
+;;       ind)))
 
 
 (defn fill-individual
   "Inserts as many objects/attributes to the individual as possible.
   An individual is a set of nodes of the contexts incompatibility graph."
-  [ctx graph ind]
+  [ctx graph {iobjs :objects iattr :attributes :as ind}]
   (let [;; missing objects and attributes in the individual
-        tofill-obj (difference (objects ctx) (into #{} (map first ind)))
-        tofill-attr (difference (attributes ctx) (into #{} (map second ind)))
+        tofill-obj (difference (objects ctx) iobjs)
+        tofill-attr (difference (attributes ctx) iattr)
         tofill (into [] (concat (zip (repeat :attribute) tofill-attr)
                                 (zip (repeat :object) tofill-obj)))
         ;; add if addable 
         add-if-addable (fn [tmp-ind [kind toadd]] 
-                         (let [added (addable? kind graph tmp-ind toadd)]
-                           (if added added tmp-ind)))]
+                         (add-if-bipartite kind graph tmp-ind toadd))]
     (->> tofill
          shuffle
          (reduce add-if-addable ind))))
@@ -504,98 +538,125 @@
 
 ;;genetic algorithm
 
-(def- generation-size 10)
-(def- generations 7)
-(def- survival-ratio 0.3)
-(def- mutation-rate 0)
+(defn- make-args-map 
+  "Returns default args updated by user input."
+  [args]
+  (let [default-args {:generation-size 30 :generations 30
+                      :survival-ratio 0.1 :mutation-rate 0.3
+                      :fresh-chance 0.05 
+                      :init {:objects #{} :attributes #{}}}]
+    (assert (and (:init args) 
+                 (not (la/bipartite? (incompatibility-graph (:init args)))))
+            "Inputted initial Context must have a concept lattice of
+              order dimension two.")
+    (-> (reduce #(assoc %1 %2 (%2 args)) default-args (keys args))
+        (assoc :survival-count (int (* generation-size survival-ratio)))
+        (update :init #(if (context? %) 
+                         {:objects (objects %) :attributes (attributes %)}
+                           %)))))
 
-(def- survival-count (int (* generation-size survival-ratio)))
+(defmulti fitness
+  "For a bipartite incompatibility graph of a subset of attributes
+  and objects of a context, computes if adding an object/attribute
+  preserves the bipartite property."
+  (fn [& args] (:mode (first args))))
 
-(defn- fitness 
-  "Computes the fitness of an individual."
-  [ind]
-  (let [distinct-obj (->> ind
-                         (map first)
-                         set count)
-        distinct-attr (->> ind
-                          (map second)
-                          set count)]
-    (* distinct-attr
-       distinct-obj)))
+(defmethod fitness :concepts
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (-> (make-context iobjs iattr (incidence ctx))
+         concepts
+         count))
+
+(defmethod fitness :ctx-nontrivia
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (let [sub-ctx (make-context iobjs iattr (incidence ctx))
+        nontrivia-obj (filter #(not (empty? (object-derivation sub-ctx #{%}))) 
+                              (objects sub-ctx))
+        nontrivia-attr (filter #(not (empty? (attribute-derivation sub-ctx #{%})))
+                               (attributes sub-ctx))]
+    (* (count nontrivia-obj)
+       (count nontrivia-attr))))
+
+(defmethod fitness :incidence
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (let [sub-ctx (make-context iobjs iattr (incidence ctx))]
+    (count (incidence-relation sub-ctx))))
+
+(defmethod fitness :default
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (* (count iobjs)
+     (count iattr)))
 
 (defn- mutation
   "Mutates the current individual by removing an object or attribute
   given a probability."
-  [ctx graph ind]
-  (let [ind-obj  (map first ind)
-        ind-attr  (map second ind)
-        mutated-obj  (random-sample (- 1 mutation-rate) ind-obj)
-        mutated-attr  (random-sample (- 1 mutation-rate) ind-attr)]
-    (into #{} (filter #(and (some #{(first %)} mutated-obj)
-                       (some #{(second %)} mutated-attr)) ind))))
+  [args ctx graph {iobjs :objects iattr :attributes :as ind}]
+  (if (> fresh-chance (rand))
+    (fill-individual ctx graph (:init args))
+    (let [mutated-obj  (into #{} (random-sample (- 1 (:mutation-rate args)) iobjs))
+          mutated-attr  (into #{} (random-sample (- 1 (:mutation-rate args)) iattr))]
+      (-> ind 
+          (assoc :objects mutated-obj)
+          (assoc :attributes mutated-attr)))))
 
 (defn- breeding 
   "Given two individuals, i.e. contexts, breeds a next new individual by
   first computing the context of common attributes and
   objects. Secondly as many attributes/objects of ctx are inserted
   without increasing the order dimension of the new individual."
-  [ctx graph ind1 ind2]
-  (->> (intersection ind1 ind2)
-       ;(mutation ctx graph)
+  [args ctx graph 
+   {iobjs :objects iattr :attributes} {iobjs2 :objects iattr2 :attributes}]
+  (->> {:objects (intersection iobjs iobjs2) :attributes (intersection iattr iattr2)}
+       (mutation args ctx graph)
        (fill-individual ctx graph)))
 
 (defn- next-generation
   "Given the current generation of contexts, breeds the next generation."
-  [ctx graph generation]
-  (let [fitness (->> generation
-                     (sort-by fitness)
-                     (take survival-count))
-        survivals (take survival-count fitness)
+  [args ctx graph generation]
+  (let [fitness-vals (->> generation
+                          (sort-by (partial fitness args ctx))
+                          (take (:survival-count args)))
+        survivals (take (:survival-count args) fitness-vals)
         pairing (->> survivals
-                    shuffle
-                    (partition 2))
+                     shuffle
+                     (partition 2))
         rand-pair (fn [] (->> survivals
-                             shuffle
-                             (take 2)))]
+                              shuffle
+                              (take 2)))]
     (into [] 
      (concat survivals
              (->> (concat pairing (repeat (rand-pair)))
-                 (take (- generation-size survival-count))
-                 (into [])
-                 (map #(apply breeding ctx graph %)))))))
+                  (take (- generation-size survival-count))
+                  (into [])
+                  (map #(apply breeding args ctx graph %)))))))
 
 (defn- first-generation
   "Computes a first random generation of contexts with order dimension
   at most two."
-  [ctx graph]
+  [args ctx graph]
   (into [] 
-        (for [_ (range generation-size)]
-          (fill-individual ctx graph #{}))))
+        (for [_ (range (:generation-size args))]
+          (fill-individual ctx graph 
+                           (:init args)))))
 
-(defn fitness 
-  "Returns the fitness of an individual."  
-  [ind]
-  (* (count (set (map first ind)))    ; number of distinct objects
-     (count (set (map second ind))))) ; number of distinct attributes
 
 (defn genetic-2d-subctx
   "Genetic algorithm to determine a maximal sub-context with order
   dimension at most two.  Maximal in terms of number of objects times
   number of attributes."
-  [ctx]
-  (let [graph (incompatibility-graph ctx)
-        ind2subctx (fn [ind] 
-                        (make-context 
-                         (set (map first ind))
-                         (set (map second ind))
-                         (incidence ctx)))]
-    (loop [n generations 
-           generation (first-generation ctx graph)]
+  [ctx & [args]]
+  (let [args (make-args-map args)
+        graph (incompatibility-graph ctx)
+        ind2subctx (fn [{iobjs :objects iattr :attributes}]
+                        (make-context iobjs iattr (incidence ctx)))]
+    (loop [n (:generations args) 
+           generation (first-generation args ctx graph)]
       (if (= n 0)
         (->> generation 
-            (apply max-key fitness)
-            ind2subctx)
-        (recur (dec n) (next-generation ctx graph generation))))))
+             (apply max-key (partial fitness args ctx))
+             ;ind2subctx
+             )
+        (recur (dec n) (next-generation args ctx graph generation))))))
 
 ;; post processing
 
