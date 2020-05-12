@@ -654,8 +654,7 @@
       (if (= n 0)
         (->> generation 
              (apply max-key (partial fitness args ctx))
-             ;ind2subctx
-             )
+             ind2subctx)
         (recur (dec n) (next-generation args ctx graph generation))))))
 
 ;; post processing
