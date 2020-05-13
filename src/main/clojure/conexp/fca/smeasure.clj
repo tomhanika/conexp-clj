@@ -158,6 +158,17 @@
                                                (some #((incidence ctx) [% b]) 
                                                      a) 
                                                ((incidence ctx) [a b]))))))
+(defn- flattened-cluster-applier
+  "Returns a cluster method depending on the 'kind and 'quant specifier."
+  [ctx kind quant]
+  (fn [cl] (-> cl
+               (cluster-applier kind quant ctx)
+               (rename-objects (fn [o] 
+                                 (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
+                                         #{} o)))
+               (rename-attributes (fn [a] 
+                                 (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
+                                         #{} a))))))
 
 (defn- cluster-until-valid
   "This is a helper method, that applies a certain clustering until a
@@ -240,6 +251,16 @@
     (cluster-until-valid
      sm obj apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
 
+(defn- flattened-cluster
+  "This is a wrapper method to flatten the cluster result."
+  [kind quant sm thing]
+  (let [result (cluster kind quant sm thing)]
+    (if (coll? result)
+      (map (partial reduce #(if (coll? %2) (into %1 %2) (conj %1 %2)) #{})
+           result)
+      (rename kind (fn [k] 
+                     (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
+                             #{} k))))))
 
 (defmulti repair-cluster 
   "Given a scale context constructs a valid smeasure scale by using as
@@ -260,15 +281,15 @@
                        #(if (contains? % o) % false) (objects broken-scale)))
         broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality
     (if broken
-      (let [apply-flattened-cluster (fn [cl] (-> cl
-                                                 (cluster-applier :objects :all s)
-                                                 (rename-objects (fn [o] 
-                                                                   (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
-                                                                           #{} o)))))
+      (let [apply-flattened-cluster (flattened-cluster-applier :objects :all broken-scale)
             missing (map image (difference (:original broken) (:new broken)))
             tocluster (conj (reduce conj #{} missing) (:obj broken))]
         (repair-cluster :all ctx (apply-flattened-cluster broken-scale tocluster)))
       broken-scale)))
+
+;; (defmethod repair-cluster :ex
+;;   [_ ctx broken-scale]
+;;   TODO)
 
 
 (defmulti rename-scale
@@ -354,6 +375,79 @@
              (some not-addable?))
       ind new-ind)))
 
+(defn- cluster-ind-intersecter 
+  "This method computed the intersection between two cluster individuals by computing the splittance."
+  [{iobjs1 :objects iattr1 :attributes :as ind1} 
+   {iobjs2 :objects iattr2 :attributes :as ind2}]
+  {:objects (->> iobjs2 
+                 ;; computes splitance 
+                 (reduce (fn [tmp-ind cl] (union (map #(difference % cl) tmp-ind) 
+                                                 (map #(intersection % cl) tmp-ind)))
+                         iobjs1)
+                 ;; remove empty fragment
+                 #(disj % #{}))
+   :attributes (->> iattr2 
+                 ;; computes splitance 
+                 (reduce (fn [tmp-ind cl] (union (map #(difference % cl) tmp-ind) 
+                                                 (map #(intersection % cl) tmp-ind)))
+                         iattr1)
+                 ;; remove empty fragment
+                 #(disj % #{}))})
+
+;; first gen needs to convert each attribute/objects into a set
+(defn- ind2clustered-ctx
+  "This is a helper method to apply the by the individual specified clustering."
+  [args ctx {iobjs :objects iattr :attributes :as ind}]
+  (let [apply-cluster-obj (fn [tocluster-ctx cl] ((cluster-applier :objects (:obj-cl-quantifier args) tocluster-ctx) cl))
+        apply-cluster-attr (fn [tocluster-ctx cl] ((cluster-applier :attributes (:attr-cl-quantifier args) tocluster-ctx) cl))] 
+    (-> ctx 
+        #(reduce apply-cluster-attr % iattr)
+        #(reduce apply-cluster-obj % iobjj))))
+
+(defn- apply-small-rand-cluster 
+  "This is a helper method to apply the smallest clustering out of a few
+  random valid clusterings."
+  [args scale]
+  (let [candidates (if (rand-nth [true false])
+                     (zip (repeat :object) 
+                          (take 3 (partition 2 (shuffle (objects ctx)))))
+                     (zip (repeat :attribute)
+                          (take 3 (partition 2 (shuffle (attributes ctx))))))
+        ;; how large the clusters become
+        key-fkt (fn [[kind thing]] 
+                  (let [result (flattened-cluster kind (:quantifier args) 
+                                 (make-smeasure-nc (:ctx args) scale 
+                                                   (fn [o] 
+                                                     (some #(if (contains? % o) % false)
+                                                      (objects broken-scale)))) 
+                                        thing)]
+                    (if (coll? result) (count (first)) 
+                        (apply + (map count thing))))) 
+        smallest (min-key key-fkt candidates)
+        ]
+    (-> (flattened-cluster (first smallest) (:quantifier args) 
+                           (make-smeasure-nc (:ctx args) scale 
+                                             (fn [o] 
+                                               (some 
+                                                #(if (contains? % o) % false)
+                                                (objects broken-scale)))) 
+                           (second smallest)))))
+
+(defn- fill-individual-cluster
+  "Inserts as many objects/attributes to the individual as possible.
+  An individual is a set of nodes of the contexts incompatibility graph."
+  [args ctx {iobjs :objects iattr :attributes :as ind}]
+  (let [repaired-ind (->> ind 
+                          (ind2clustered-ctx args ctx)
+                          (repair-cluster :all))
+        make-ind-map #(hash-map :objects (objects %) :attributes (attributes %))
+        2dcontext? (comp la/bipartite? incompatibility-graph)
+        apply-rand-cluster (fn [c] (flattened-cluster-applier :objects :all c))]
+    (loop [tmp-ind repaired-ind]      ;; apply small clusters until 2D
+      (if (2dcontext? tmp-ind)
+        (make-ind-map tmp-ind)
+        (recur (apply-small-rand-cluster args))))))
+
 (defn- fill-individual
   "Inserts as many objects/attributes to the individual as possible.
   An individual is a set of nodes of the contexts incompatibility graph."
@@ -369,6 +463,7 @@
     (->> tofill
          shuffle
          (reduce add-if-addable ind))))
+
 
 
 
@@ -399,6 +494,10 @@
   preserves the bipartite property."
   (fn [& args] (:mode (first args))))
 (alter-meta! #'fitness assoc :private true)
+
+(defmethod fitness :clustered
+  [& args]
+  (apply fitness args))
 
 (defmethod fitness :concepts
   [_ ctx {iobjs :objects iattr :attributes :as ind}]
@@ -732,42 +831,3 @@
         (recur  evaluated)))))
 
 
-;; (defn- cluster-ind-intersecter 
-;;   "This method computed the intersection between two cluster individuals by computing the splittance."
-;;   [{iobjs1 :objects iattr1 :attributes :as ind1} 
-;;    {iobjs2 :objects iattr2 :attributes :as ind2}]
-;;   {:objects (->> iobjs2 
-;;                  ;; computes splitance 
-;;                  (reduce (fn [tmp-ind cl] (union (map #(difference % cl) tmp-ind) 
-;;                                                  (map #(intersection % cl) tmp-ind)))
-;;                          iobjs1)
-;;                  ;; remove empty fragment
-;;                  #(disj % #{}))
-;;    :attributes (->> iattr2 
-;;                  ;; computes splitance 
-;;                  (reduce (fn [tmp-ind cl] (union (map #(difference % cl) tmp-ind) 
-;;                                                  (map #(intersection % cl) tmp-ind)))
-;;                          iattr1)
-;;                  ;; remove empty fragment
-;;                  #(disj % #{}))})
-
-;; ;; first gen needs to convert each attribute/objects into a set
-;; (defn- ind2clustered-ctx
-;;   "This is a helper method to apply the by the individual specified clustering."
-;;   [args ctx {iobjs :objects iattr :attributes :as ind}]
-;;   (let [apply-cluster-obj (fn [tocluster-ctx cl] ((cluster-applier :objects (:obj-cl-quantifier args) tocluster-ctx) cl))
-;;         apply-cluster-attr (fn [tocluster-ctx cl] ((cluster-applier :attributes (:attr-cl-quantifier args) tocluster-ctx) cl))] 
-;;     (-> ctx 
-;;         #(reduce apply-cluster-attr % iattr)
-;;         #(reduce apply-cluster-obj % iobjj))))
-
-;; (defn- fill-individual-cluster
-;;   "Inserts as many objects/attributes to the individual as possible.
-;;   An individual is a set of nodes of the contexts incompatibility graph."
-;;   [args ctx {iobjs :objects iattr :attributes :as init-ind}]
-;;   (let [apply-cluster-obj (fn [tocluster-ctx cl] (if (coll? cl) ((cluster-applier :objects (:obj-cl-quantifier args) tocluster-ctx) cl) tocluster-ctx))
-;;         apply-cluster-attr (fn [tocluster-ctx cl] (if (coll? cl) ((cluster-applier :attributes (:attr-cl-quantifier args) tocluster-ctx) cl) tocluster-ctx))]
-;;     (loop [ind (ind2clustered-ctx args ctx init-ind)]
-;;       ;; cluster until valid and 2D
-;;       ))
-;;   )
