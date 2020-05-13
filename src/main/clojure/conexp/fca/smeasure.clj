@@ -110,12 +110,13 @@
 
 (defmulti cluster-applier
   "Clusters attributes or objects in the scale context.
-  For example the set #{1 2 3} become #{[1 2] 3} in the scale.  The
+  For exaegawegaewrgaewrgsfagfagewgwegwegwegmple the set #{1 2 3} become #{[1 2] 3} in the scale.  The
   new incidence is build such that (g, [1 2]) if (g,m) for all/some m
   in [1 2] in the case of attributes. Possible clusters are
   attribute/object clusters with existential and all quantified
   incidence."
   (fn [type quantifier & args] [type quantifier]))
+(alter-meta! #'cluster-applier assoc :private true)
 
 (defmethod cluster-applier [:attributes :ex]
   [_ _ ctx]
@@ -164,8 +165,8 @@
   valid candidates."
   [sm init-cluster apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image]
   (loop [i 0]
-    (let [candidates (build-candidates i); (comb/combinations (seq (difference (objects s) obj)) i)
-          valids (filter valid-cluster? ;#(valid-cluster? (apply-cluster (into obj %)) (scale-pre-image (into obj %)))
+    (let [candidates (build-candidates i) 
+          valids (filter valid-cluster? 
                            candidates)]
         (if (empty? valids)
           (recur (inc i))
@@ -186,6 +187,7 @@
   attribute/object clusters with existential and all quantified
   incidence."
   (fn [type quantifier & args] [type quantifier]))
+(alter-meta! #'cluster assoc :private true)
 
 (defmethod cluster [:attributes :all]
   [_ _ sm attr]
@@ -238,10 +240,42 @@
     (cluster-until-valid
      sm obj apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
 
+
+(defmulti repair-cluster 
+  "Given a scale context constructs a valid smeasure scale by using as
+  few cluster methods as possible. 'quantifier specifies the cluster
+  quantifier used by the clustering methods."
+  (fn [quantifier & args] quantifier))
+(alter-meta! #'repair-cluster assoc :private true)
+
+(defmethod repair-cluster :all
+  [_ ctx broken-scale]
+  (let [br-exts (map #(hash-map :new ((comp first object-concept) %) :obj %) (objects broken-scale)) ;  TODO sufficient? all attributes are valid for :all
+        pre-images (sort-by count 
+                            (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
+                                 br-exts)) 
+        not-closed? (fn [e] (let [orig-e (context-object-closure ctx (:new e))]
+                              (if (= orig-e e) false (assoc e :original orig-e))))
+        image (fn [o] (some 
+                       #(if (contains? % o) % false) (objects broken-scale)))
+        broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality
+    (if broken
+      (let [apply-flattened-cluster (fn [cl] (-> cl
+                                                 (cluster-applier :objects :all s)
+                                                 (rename-objects (fn [o] 
+                                                                   (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
+                                                                           #{} o)))))
+            missing (map image (difference (:original broken) (:new broken)))
+            tocluster (conj (reduce conj #{} missing) (:obj broken))]
+        (repair-cluster :all ctx (apply-flattened-cluster broken-scale tocluster)))
+      broken-scale)))
+
+
 (defmulti rename-scale
   "Renames objects or attributes in the scale. Input the renaming as function on the
   set of objects or as key value pairs."
   (fn [type & args] type))
+(alter-meta! #'rename-scale assoc :private true)
 
 (defmethod rename-scale :objects
   ([_ sm rename-fn]
@@ -268,7 +302,7 @@
 ; rotes buch Satz 36 page 134
 ; Genau dann ist die Ferrersdimension von (G, M, I) höchstens zwei, wenn der Un-
 ; verträglichkeitsgraph bipartit ist.
-(defn incompatibility-graph
+(defn- incompatibility-graph
   "For a formal context computes the imcompatibility graph of its
   incidence relation."
   [ctx]
@@ -286,6 +320,7 @@
   and objects of a context, computes if adding an object/attribute
   preserves the bipartite property."
   (fn [& args] (first args)))
+(alter-meta! #'add-if-bipartite assoc :private true)
 
 (defmethod add-if-bipartite :object
   [_ graph {iobjs :objects iattr :attributes :as ind} add-objs]
@@ -335,19 +370,7 @@
          shuffle
          (reduce add-if-addable ind))))
 
-;; (defn- ind2ctx 
-;;   []
-;;   )
 
-;; (defn- fill-individual-cluster
-;;   "Inserts as many objects/attributes to the individual as possible.
-;;   An individual is a set of nodes of the contexts incompatibility graph."
-;;   [args ctx {iobjs :objects iattr :attributes :as init-ind}]
-;;   (let [ind-ctx])
-;;   (loop [ind init-ind]
-
-;;     )
-;;   )
 
 ;;genetic algorithm
 
@@ -375,6 +398,7 @@
   and objects of a context, computes if adding an object/attribute
   preserves the bipartite property."
   (fn [& args] (:mode (first args))))
+(alter-meta! #'fitness assoc :private true)
 
 (defmethod fitness :concepts
   [_ ctx {iobjs :objects iattr :attributes :as ind}]
@@ -618,7 +642,7 @@
                                #(read-string (str (read-line)))
                                #(or (= :all %) (= :ex  %))
                                "The input must be :all or :ex: \n")
-        cluster-method (partial cluster [cluster-kind cluster-incidence])
+        cluster-method (partial cluster cluster-kind cluster-incidence)
         cluster-content (ask (str "Please enter all "  (cluster-kind {:attributes "attributes" :objects "objects"}) " to be clustered with ; seperator: \n")
                              #(set (map read-string (clojure.string/split (str (read-line)) #";")))
                              (fn [input] (every? 
@@ -708,3 +732,42 @@
         (recur  evaluated)))))
 
 
+;; (defn- cluster-ind-intersecter 
+;;   "This method computed the intersection between two cluster individuals by computing the splittance."
+;;   [{iobjs1 :objects iattr1 :attributes :as ind1} 
+;;    {iobjs2 :objects iattr2 :attributes :as ind2}]
+;;   {:objects (->> iobjs2 
+;;                  ;; computes splitance 
+;;                  (reduce (fn [tmp-ind cl] (union (map #(difference % cl) tmp-ind) 
+;;                                                  (map #(intersection % cl) tmp-ind)))
+;;                          iobjs1)
+;;                  ;; remove empty fragment
+;;                  #(disj % #{}))
+;;    :attributes (->> iattr2 
+;;                  ;; computes splitance 
+;;                  (reduce (fn [tmp-ind cl] (union (map #(difference % cl) tmp-ind) 
+;;                                                  (map #(intersection % cl) tmp-ind)))
+;;                          iattr1)
+;;                  ;; remove empty fragment
+;;                  #(disj % #{}))})
+
+;; ;; first gen needs to convert each attribute/objects into a set
+;; (defn- ind2clustered-ctx
+;;   "This is a helper method to apply the by the individual specified clustering."
+;;   [args ctx {iobjs :objects iattr :attributes :as ind}]
+;;   (let [apply-cluster-obj (fn [tocluster-ctx cl] ((cluster-applier :objects (:obj-cl-quantifier args) tocluster-ctx) cl))
+;;         apply-cluster-attr (fn [tocluster-ctx cl] ((cluster-applier :attributes (:attr-cl-quantifier args) tocluster-ctx) cl))] 
+;;     (-> ctx 
+;;         #(reduce apply-cluster-attr % iattr)
+;;         #(reduce apply-cluster-obj % iobjj))))
+
+;; (defn- fill-individual-cluster
+;;   "Inserts as many objects/attributes to the individual as possible.
+;;   An individual is a set of nodes of the contexts incompatibility graph."
+;;   [args ctx {iobjs :objects iattr :attributes :as init-ind}]
+;;   (let [apply-cluster-obj (fn [tocluster-ctx cl] (if (coll? cl) ((cluster-applier :objects (:obj-cl-quantifier args) tocluster-ctx) cl) tocluster-ctx))
+;;         apply-cluster-attr (fn [tocluster-ctx cl] (if (coll? cl) ((cluster-applier :attributes (:attr-cl-quantifier args) tocluster-ctx) cl) tocluster-ctx))]
+;;     (loop [ind (ind2clustered-ctx args ctx init-ind)]
+;;       ;; cluster until valid and 2D
+;;       ))
+;;   )
