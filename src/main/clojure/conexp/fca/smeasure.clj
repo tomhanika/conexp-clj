@@ -99,25 +99,6 @@
                               (incidence s))]
     (make-smeasure-nc (context sm) new-scale (measure sm))))
 
-
-(defn cluster-attributes-all 
-  "Clusters 'attr attributes in the scale context.
-  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
-  The new incidence is build such that (g, [attr]) if (g,m) for all m in attr." 
-  [sm attr]
-  (let [ctx (context sm)
-        s (scale sm)]
-    (make-smeasure-nc (context sm) 
-                      (make-context (objects s) 
-                                    (conj (difference (set (attributes s)) attr)
-                                          attr) 
-                                    (fn [a b] 
-                                      (if (set? b) 
-                                        (every? #((incidence s) [a %]) 
-                                              b) 
-                                        ((incidence s) [a b])))) 
-                      (measure sm))))
-
 (defn- valid-cluster 
   "This function is a predicate factory for valid scale measure clustering."
   [scale original]
@@ -127,121 +108,152 @@
       (let [ext-new (get-exts (transform-bv-cover scale clustered-scale original))]
         (subset? (set (map pre-image ext-new)) ext)))))
 
-(defn cluster-attributes-ex 
-  "Clusters 'attr attributes in the scale context.
-  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
-  The new incidence is build such that (g, [attr]) if (g,m) for some m
-  in attr.  If the 'attr cluster does not form a valid scale measure,
-  a sequence of valid supersets of lowest cardinality is returned." 
-  [sm attr]
-  (let [s (scale sm)
-        apply-cluster (fn [at] (make-context (objects s) 
-                                           (conj (difference (attributes s) at) at) 
+(defmulti cluster-applier
+  "Clusters attributes or objects in the scale context.
+  For example the set #{1 2 3} become #{[1 2] 3} in the scale.  The
+  new incidence is build such that (g, [1 2]) if (g,m) for all/some m
+  in [1 2] in the case of attributes. Possible clusters are
+  attribute/object clusters with existential and all quantified
+  incidence."
+  (fn [type quantifier & args] [type quantifier]))
+
+(defmethod cluster-applier [:attributes :ex]
+  [_ _ ctx]
+  (fn [attr] (make-context (objects ctx) 
+                         (conj (difference (attributes ctx) attr) attr) 
+                         (fn [a b] 
+                           (if (set? b) 
+                             (some #((incidence ctx) [a %]) 
+                                   b) 
+                             ((incidence ctx) [a b]))))))
+
+(defmethod cluster-applier [:attributes :ex]
+  [_ _ ctx]
+  (fn [attr] 
+    (make-context (objects ctx) 
+                  (conj (difference (set (attributes ctx)) attr)
+                        attr) 
+                  (fn [a b] 
+                    (if (set? b) 
+                      (every? #((incidence ctx) [a %]) 
+                              b) 
+                      ((incidence ctx) [a b]))))))
+
+(defmethod cluster-applier [:objects :all]
+  [_ _ ctx]
+  (fn [obj] (make-context (conj (difference (objects ctx) obj) obj) 
+                                           (attributes ctx)
                                            (fn [a b] 
-                                             (if (set? b) 
-                                               (some #((incidence s) [a %]) 
-                                                     b) 
-                                               ((incidence s) [a b])))))
+                                             (if (set? a) 
+                                               (every? #((incidence ctx) [% b]) 
+                                                     a) 
+                                               ((incidence ctx) [a b]))))))
+(defmethod cluster-applier [:objects :ex]
+  [_ _ ctx]
+  (fn [obj] (make-context (conj (difference (objects ctx) obj) obj) 
+                                           (attributes ctx)
+                                           (fn [a b] 
+                                             (if (set? a) 
+                                               (some #((incidence ctx) [% b]) 
+                                                     a) 
+                                               ((incidence ctx) [a b]))))))
+
+(defn- cluster-until-valid
+  "This is a helper method, that applies a certain clustering until a
+  valid scale measure is outputted. If not unique, returns a seq of
+  valid candidates."
+  [sm init-cluster apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image]
+  (loop [i 0]
+    (let [candidates (build-candidates i); (comb/combinations (seq (difference (objects s) obj)) i)
+          valids (filter valid-cluster? ;#(valid-cluster? (apply-cluster (into obj %)) (scale-pre-image (into obj %)))
+                           candidates)]
+        (if (empty? valids)
+          (recur (inc i))
+          (if (empty? (first valids))
+            (let [new-scale (apply-cluster init-cluster)]
+              (make-smeasure-nc (context sm) 
+                                (make-context (objects new-scale)
+                                              (attributes new-scale)
+                                              (incidence-relation new-scale))
+                                (comp comp-scale-image (measure sm))))
+            (map #(into init-cluster %) valids))))))
+
+(defmulti cluster 
+  "Clusters attributes or objects in the scale context.
+  For example the set #{1 2 3} become #{[1 2] 3} in the scale.  The
+  new incidence is build such that (g, [1 2]) if (g,m) for all/some m
+  in [1 2] in the case of attributes. Possible clusters are
+  attribute/object clusters with existential and all quantified
+  incidence."
+  (fn [type quantifier & args] [type quantifier]))
+
+(defmethod cluster [:attributes :all]
+  [_ _ sm attr]
+  (let [ctx (context sm)
+        s (scale sm)
+        apply-cluster (cluster-applier :attributes :all s)]
+    (make-smeasure-nc (context sm) (apply-cluster attr) (measure sm))))
+
+(defmethod cluster [:attributes :ex]
+  [_ _ sm attr]
+  (let [s (scale sm)
+        apply-cluster (cluster-applier :attributes :ex s)
         original (generate-concept-cover (concepts s))
         comp-scale-image identity
         scale-pre-image identity
-        valid-cluster? (valid-cluster s original)]
-    (loop [i 0]
-      (let [candidates (comb/combinations (seq (difference (attributes s) attr)) i)
-            valids (filter #(valid-cluster? (apply-cluster (into attr %)) scale-pre-image) candidates)]
-        (if (empty? valids)
-          (recur (inc i))
-          (if (empty? (first valids))
-            (let [new-scale (apply-cluster attr)]
-              (make-smeasure-nc (context sm) 
-                                (make-context (objects new-scale)
-                                              (attributes new-scale)
-                                              (incidence-relation new-scale))
-                                (comp comp-scale-image (measure sm))))
-            (map #(into attr %) valids)))))))
+        valid-cluster? (valid-cluster s original)
 
-(defn cluster-objects-all 
-  "Clusters 'obj objects in the scale context.
-  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
-  The new incidence is build such that ([obj],m) if (g,m) for all g
-  in obj.  If the 'obj cluster does not form a valid scale measure,
-  a sequence of valid supersets of lowest cardinality is returned." 
-  [sm obj]
+        valid-cluster? (fn [additional-attr] ((valid-cluster s original) 
+                                             (apply-cluster (into attr additional-attr)) 
+                                             (scale-pre-image (into attr additional-attr))))
+        build-candidates (fn [i] (comb/combinations (seq (difference (attributes s) attr)) i))]
+    (cluster-until-valid
+     sm attr apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
+
+(defmethod cluster [:objects :all]
+  [_ _ sm obj]
   (let [s (scale sm)
-        apply-cluster (fn [o] (make-context (conj (difference (objects s) o) o) 
-                                           (attributes s)
-                                           (fn [a b] 
-                                             (if (set? a) 
-                                               (every? #((incidence s) [% b]) 
-                                                     a) 
-                                               ((incidence s) [a b])))))
+        apply-cluster (cluster-applier :objects :all s)
         original (generate-concept-cover (concepts s))
         comp-scale-image (fn [g] (if (contains? obj g) obj g))
         scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
-        valid-cluster? (valid-cluster s original)]
-    (loop [i 0]
-      (let [candidates (comb/combinations (seq (difference (objects s) obj)) i)
-            valids (filter #(valid-cluster? (apply-cluster (into obj %)) (scale-pre-image (into obj %))) candidates)]
-        (if (empty? valids)
-          (recur (inc i))
-          (if (empty? (first valids))
-            (let [new-scale (apply-cluster obj)]
-              (make-smeasure-nc (context sm) 
-                                (make-context (objects new-scale)
-                                              (attributes new-scale)
-                                              (incidence-relation new-scale))
-                                (comp comp-scale-image (measure sm))))
-            (map #(into obj %) valids)))))))
+        valid-cluster? (fn [additional-obj] ((valid-cluster s original) 
+                                             (apply-cluster (into obj additional-obj)) 
+                                             (scale-pre-image (into obj additional-obj))))
+        build-candidates (fn [i] (comb/combinations (seq (difference (objects s) obj)) i))]
+    (cluster-until-valid
+     sm obj apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
 
-
-(defn cluster-objects-ex 
-  "Clusters 'obj objects in the scale context.
-  For example the attributes #{1 2 3} become #{[1 2] 3} in the scale.
-  The new incidence is build such that ([obj],m) if (g,m) for some g
-  in obj.  If the 'obj cluster does not form a valid scale measure,
-  a sequence of valid supersets of lowest cardinality is returned." 
-  [sm obj]
+(defmethod cluster [:objects :ex]
+  [_ _ sm obj]
   (let [s (scale sm)
-        apply-cluster (fn [o] (make-context (conj (difference (objects s) o) o) 
-                                           (attributes s)
-                                           (fn [a b] 
-                                             (if (set? a) 
-                                               (some #((incidence s) [% b]) 
-                                                     a) 
-                                               ((incidence s) [a b])))))
+        apply-cluster (cluster-applier :objects :ex s)
         original (generate-concept-cover (concepts s))
         comp-scale-image (fn [g] (if (contains? obj g) obj g))
         scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
-        valid-cluster? (valid-cluster s original)]
-    (loop [i 0]
-      (let [candidates (comb/combinations (seq (difference (objects s) obj)) i)
-            valids (filter #(valid-cluster? (apply-cluster (into obj %)) (scale-pre-image (into obj %))) candidates)]
-        (if (empty? valids)
-          (recur (inc i))
-          (if (empty? (first valids))
-            (let [new-scale (apply-cluster obj)]
-              (make-smeasure-nc (context sm) 
-                                (make-context (objects new-scale)
-                                              (attributes new-scale)
-                                              (incidence-relation new-scale))
-                                (comp comp-scale-image (measure sm))))
-            (map #(into obj %) valids)))))))
+        valid-cluster? (fn [additional-obj] ((valid-cluster s original) 
+                                             (apply-cluster (into obj additional-obj)) 
+                                             (scale-pre-image (into obj additional-obj))))
+        build-candidates (fn [i] (comb/combinations (seq (difference (objects s) obj)) i))]
+    (cluster-until-valid
+     sm obj apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
 
-(defn rename-scale-objects
-  "Renames objects in the scale. Input the renaming as function on the
+(defmulti rename-scale
+  "Renames objects or attributes in the scale. Input the renaming as function on the
   set of objects or as key value pairs."
-  ([sm rename-fn]
+  (fn [type & args] type))
+
+(defmethod rename-scale :objects
+  ([_ sm rename-fn]
    (make-smeasure-nc (context sm) 
                        (rename-objects (scale sm) rename-fn)
                        (comp rename-fn (measure sm))))
-  ([sm key val & keyvals]
+  ([_ sm key val & keyvals]
    (let [rename-map (apply hash-map key val keyvals)
          rename-fn  (fn [o] (or (get rename-map o) o))]
-     (rename-scale-objects sm rename-fn))))
-
-(defn rename-scale-attributes
-  "Renames attribute in the scale. Input the renaming as function on the
-  set of attributes or as key value pairs."
+     (rename-scale :objects sm rename-fn))))
+ 
+(defmethod rename-scale :attributes
   ([sm rename-fn]
    (make-smeasure-nc (context sm) 
                      (rename-attributes (scale sm) rename-fn)
@@ -249,9 +261,257 @@
   ([sm key val & keyvals]
    (let [rename-map (apply hash-map key val keyvals)
          rename-fn  (fn [a] (or (get rename-map a) a))]
-     (rename-scale-attributes sm rename-fn))))
+     (rename-scale :attributes sm rename-fn))))
 
 
+; todo 2D begriffsverband wenn nicht kreuz graph bipartite
+; rotes buch Satz 36 page 134
+; Genau dann ist die Ferrersdimension von (G, M, I) höchstens zwei, wenn der Un-
+; verträglichkeitsgraph bipartit ist.
+(defn incompatibility-graph
+  "For a formal context computes the imcompatibility graph of its
+  incidence relation."
+  [ctx]
+  (let [nodes (difference (cross-product (objects ctx) (attributes ctx))
+                          (incidence-relation ctx))
+        incompatible? (fn [[[g m] [h n]]]
+                       (and ((incidence ctx) [g n])
+                            ((incidence ctx) [h m])))
+        edges (filter incompatible? (cross-product nodes nodes))]
+    (apply lg/graph edges)))
+
+
+(defmulti add-if-bipartite 
+  "For a bipartite incompatibility graph of a subset of attributes
+  and objects of a context, computes if adding an object/attribute
+  preserves the bipartite property."
+  (fn [& args] (first args)))
+
+(defmethod add-if-bipartite :object
+  [_ graph {iobjs :objects iattr :attributes :as ind} add-objs]
+  (let [old-nodes (into #{}
+                        (filter #(and (contains? iattr (second %)) 
+                                      (contains? iobjs (first %))) (lg/nodes graph)))
+        {new-objs :objects :as new-ind} (update ind :objects conj add-objs)
+        new-nodes (into #{}
+                       (filter #(and (contains? new-objs (first %))
+                                     (contains? iattr (second %))) (lg/nodes graph)))
+        ;; A node can be added if it is not in an odd cycle with itself
+        not-addable? (fn [n] 
+                       (. Bipartite isInOddCycle (:adj graph) (disj new-nodes n) n))]
+    (if (->> (difference new-nodes old-nodes)
+             (some not-addable?))
+      ind new-ind)))
+
+(defmethod add-if-bipartite :attribute
+  [_ graph {iobjs :objects iattr :attributes :as ind} add-attr]
+  (let [old-nodes (into #{} 
+                        (filter #(and (contains? iattr (second %)) 
+                                      (contains? iobjs (first %))) (lg/nodes graph)))
+        {new-attr :attributes :as new-ind} (update ind :attributes conj add-attr)
+        new-nodes (into #{} 
+                        (filter #(and (contains? new-attr (second %))
+                                      (contains? iobjs (first %))) (lg/nodes graph)))
+        ;; A node can be added if it is not in an odd cycle with itself
+        not-addable? (fn [n] 
+                       (. Bipartite isInOddCycle (:adj graph) (disj new-nodes n) n))]
+    (if (->> (difference new-nodes old-nodes)
+             (some not-addable?))
+      ind new-ind)))
+
+(defn- fill-individual
+  "Inserts as many objects/attributes to the individual as possible.
+  An individual is a set of nodes of the contexts incompatibility graph."
+  [ctx graph {iobjs :objects iattr :attributes :as ind}]
+  (let [;; missing objects and attributes in the individual
+        tofill-obj (difference (objects ctx) iobjs)
+        tofill-attr (difference (attributes ctx) iattr)
+        tofill (into [] (concat (zip (repeat :attribute) tofill-attr)
+                                (zip (repeat :object) tofill-obj)))
+        ;; add if addable 
+        add-if-addable (fn [tmp-ind [kind toadd]] 
+                         (add-if-bipartite kind graph tmp-ind toadd))]
+    (->> tofill
+         shuffle
+         (reduce add-if-addable ind))))
+
+;; (defn- ind2ctx 
+;;   []
+;;   )
+
+;; (defn- fill-individual-cluster
+;;   "Inserts as many objects/attributes to the individual as possible.
+;;   An individual is a set of nodes of the contexts incompatibility graph."
+;;   [args ctx {iobjs :objects iattr :attributes :as init-ind}]
+;;   (let [ind-ctx])
+;;   (loop [ind init-ind]
+
+;;     )
+;;   )
+
+;;genetic algorithm
+
+(defn- make-args-map 
+  "Returns default args updated by user input."
+  [args]
+  (let [default-args {:generation-size 30 :generations 30
+                      :survival-ratio 0.1 :mutation-rate 0.3
+                      :fresh-chance 0.05 
+                      :init {:objects #{} :attributes #{}}}]
+    (assert (and (:init args) 
+                 (not (la/bipartite? (incompatibility-graph (:init args)))))
+            "Inputted initial Context must have a concept lattice of
+              order dimension two.")
+    (let [combined-args 
+          (-> (reduce #(assoc %1 %2 (%2 args)) default-args (keys args))
+              (update :init #(if (context? %) 
+                               {:objects (objects %) :attributes (attributes %)}
+                               %)))]
+      (assoc :survival-count (int (* (:generation-size combined-args)
+                                     (:survival-ratio combined-args)))))))
+
+(defmulti fitness
+  "For a bipartite incompatibility graph of a subset of attributes
+  and objects of a context, computes if adding an object/attribute
+  preserves the bipartite property."
+  (fn [& args] (:mode (first args))))
+
+(defmethod fitness :concepts
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (-> (make-context iobjs iattr (incidence ctx))
+         concepts
+         count))
+
+(defmethod fitness :ctx-nontrivia
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (let [sub-ctx (make-context iobjs iattr (incidence ctx))
+        nontrivia-obj (filter #(not (empty? (object-derivation sub-ctx #{%}))) 
+                              (objects sub-ctx))
+        nontrivia-attr (filter #(not (empty? (attribute-derivation sub-ctx #{%})))
+                               (attributes sub-ctx))]
+    (* (count nontrivia-obj)
+       (count nontrivia-attr))))
+
+(defmethod fitness :incidence
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (let [sub-ctx (make-context iobjs iattr (incidence ctx))]
+    (count (incidence-relation sub-ctx))))
+
+(defmethod fitness :default
+  [_ ctx {iobjs :objects iattr :attributes :as ind}]
+  (* (count iobjs)
+     (count iattr)))
+
+(defn- mutation
+  "Mutates the current individual by removing an object or attribute
+  given a probability."
+  [args ctx graph {iobjs :objects iattr :attributes :as ind}]
+  (if (> (:fresh-chance args) (rand))
+    (fill-individual ctx graph (:init args))
+    (let [mutated-obj  (into #{} (random-sample (- 1 (:mutation-rate args)) iobjs))
+          mutated-attr  (into #{} (random-sample (- 1 (:mutation-rate args)) iattr))]
+      (-> ind 
+          (assoc :objects mutated-obj)
+          (assoc :attributes mutated-attr)))))
+
+(defn- breeding 
+  "Given two individuals, i.e. contexts, breeds a next new individual by
+  first computing the context of common attributes and
+  objects. Secondly as many attributes/objects of ctx are inserted
+  without increasing the order dimension of the new individual."
+  [args ctx graph 
+   {iobjs :objects iattr :attributes} {iobjs2 :objects iattr2 :attributes}]
+  (->> {:objects (intersection iobjs iobjs2) :attributes (intersection iattr iattr2)}
+       (mutation args ctx graph)
+       (fill-individual ctx graph)))
+
+(defn- next-generation
+  "Given the current generation of contexts, breeds the next generation."
+  [args ctx graph generation]
+  (let [fitness-vals (->> generation
+                          (sort-by (partial fitness args ctx))
+                          (take (:survival-count args)))
+        survivals (take (:survival-count args) fitness-vals)
+        pairing (->> survivals
+                     shuffle
+                     (partition 2))
+        rand-pair (fn [] (->> survivals
+                              shuffle
+                              (take 2)))]
+    (into [] 
+     (concat survivals
+             (->> (concat pairing (repeat (rand-pair)))
+                  (take (- (:generation-size args) (:survival-count args)))
+                  (into [])
+                  (map #(apply breeding args ctx graph %)))))))
+
+(defn- first-generation
+  "Computes a first random generation of contexts with order dimension
+  at most two."
+  [args ctx graph]
+  (into [] 
+        (for [_ (range (:generation-size args))]
+          (fill-individual ctx graph 
+                           (:init args)))))
+
+
+(defn genetic-2d-subctx
+  "Genetic algorithm to determine a maximal sub-context with order
+  dimension at most two.  Maximal in terms of number of objects times
+  number of attributes."
+  [ctx & [args]]
+  (let [args (make-args-map args)
+        graph (incompatibility-graph ctx)
+        ind2subctx (fn [{iobjs :objects iattr :attributes}]
+                        (make-context iobjs iattr (incidence ctx)))]
+    (loop [n (:generations args) 
+           generation (first-generation args ctx graph)]
+      (if (= n 0)
+        (->> generation 
+             (apply max-key (partial fitness args ctx))
+             ind2subctx)
+        (recur (dec n) (next-generation args ctx graph generation))))))
+
+;; post processing
+
+(defn- fit-rest
+  "This method is a helper method for suggest_2d and given a scale
+  context and an original context, fits as many missing
+  objects/attributes to the scale by clustering without increasing the order
+  dimension of the scale concept lattice."
+  [ctx scale]
+  scale
+  ; compute ferres covering
+  ; loop over attribtues/objects
+  )
+
+;; Suggest Scale
+
+(defn suggest_2d 
+  "This Method is a genetic algorithm to determine a scale whichs
+  concept lattice is of order dimension 2D. The methods simulated by
+  this algorithm are cluster methods only and for comprehensibility we
+  use only one cluster variation (:all, :or) at a time. Further note
+  that nested clusters of the same type (:all, :ex) are equivalent to
+  their flattened correspondence. This method uses a genetic algorithm
+  that determines a large sub-context, i.e. the number of objects
+  times attributes, whichs concept lattice is of order dimension at
+  most two. After that missing attributes are combined with existing
+  objects, attributes such that they preserve the order dimension."
+  [ctx]
+  ; first determine subcontext by genetic algorithm
+  ; second fill in all missing attributes objects
+  (-> ctx
+      genetic-2d-subctx
+      (fit-rest ctx)))
+
+
+;; (defn- two-ferres-covering
+;;   "Given a formal context compute a covering of the incidence relation
+;;   by two ferres relations."
+;;   [ctx]
+
+;;   )
 
 ;;; Declare REPL commands
 (defmulti run-repl-command
@@ -336,8 +596,7 @@
                          #(read-string (str (read-line)))
                          #(or (= :objects %) (= :attributes  %))
                          "The input must be :attributes or :objects: \n")
-        rename-method (get {:objects rename-scale-objects :attributes rename-scale-attributes}
-                           rename-kind)
+        rename-method (partial rename rename-kind)
         rename-content (ask (str "Please all " (rename-kind {:attributes "attributes" :objects "objects"})
                                  " that should be renamed and their new name with ; seperator (name1;new-name1;name2;...): \n")
                             #(map read-string (clojure.string/split (str (read-line)) #";"))
@@ -359,9 +618,7 @@
                                #(read-string (str (read-line)))
                                #(or (= :all %) (= :ex  %))
                                "The input must be :all or :ex: \n")
-        cluster-method (get-in {:objects {:ex cluster-objects-ex :all cluster-objects-all} 
-                                :attributes {:ex cluster-attributes-ex :all cluster-attributes-all}} 
-                               [cluster-kind cluster-incidence])
+        cluster-method (partial cluster [cluster-kind cluster-incidence])
         cluster-content (ask (str "Please enter all "  (cluster-kind {:attributes "attributes" :objects "objects"}) " to be clustered with ; seperator: \n")
                              #(set (map read-string (clojure.string/split (str (read-line)) #";")))
                              (fn [input] (every? 
@@ -408,6 +665,18 @@
       (println (str "  " cmd))
       (println (str "    -> " (help-repl-command cmd))))
     state))
+
+(define-repl-fn suggest
+  "Suggests a scale with two dimensional concept lattice."
+  (let [suggestion (suggest_2d (context smeasure))]
+    (println suggestion)
+    (if (= 1 (ask "Do you wish to continue with the suggested scale? 1: yes, 0: no:"
+                  #(read-string (str (read-line)))
+                  (constantly true)
+                  ""))
+      (assoc state :smeasure (make-smeasure-nc (context smeasure) suggestion))
+      state)))
+
 ;;; Scale Exploration 
 
 (defn scale-exploration 
@@ -439,261 +708,3 @@
         (recur  evaluated)))))
 
 
-; todo 2D begriffsverband wenn nicht kreuz graph bipartite
-; rotes buch Satz 36 page 134
-; Genau dann ist die Ferrersdimension von (G, M, I) höchstens zwei, wenn der Un-
-; verträglichkeitsgraph bipartit ist.
-(defn incompatibility-graph
-  "For a formal context computes the imcompatibility graph of its
-  incidence relation."
-  [ctx]
-  (let [nodes (difference (cross-product (objects ctx) (attributes ctx))
-                          (incidence-relation ctx))
-        incompatible? (fn [[[g m] [h n]]]
-                       (and ((incidence ctx) [g n])
-                            ((incidence ctx) [h m])))
-        edges (filter incompatible? (cross-product nodes nodes))]
-    (apply lg/graph edges)))
-
-
-(defmulti add-if-bipartite 
-  "For a bipartite incompatibility graph of a subset of attributes
-  and objects of a context, computes if adding an object/attribute
-  preserves the bipartite property."
-  (fn [& args] (first args)))
-
-(defmethod add-if-bipartite :object
-  [_ graph {iobjs :objects iattr :attributes :as ind} add-objs]
-  (let [old-nodes (into #{}
-                        (filter #(and (contains? iattr (second %)) 
-                                      (contains? iobjs (first %))) (lg/nodes graph)))
-        {new-objs :objects :as new-ind} (update ind :objects conj add-objs)
-        new-nodes (into #{}
-                       (filter #(and (contains? new-objs (first %))
-                                     (contains? iattr (second %))) (lg/nodes graph)))
-        ;; A node can be added if it is not in an odd cycle with itself
-        not-addable? (fn [n] 
-                       (. Bipartite isInOddCycle (:adj graph) (disj new-nodes n) n))]
-    (if (->> (difference new-nodes old-nodes)
-             (some not-addable?))
-      ind new-ind)))
-
-(defmethod add-if-bipartite :attribute
-  [_ graph {iobjs :objects iattr :attributes :as ind} add-attr]
-  (let [old-nodes (into #{} 
-                        (filter #(and (contains? iattr (second %)) 
-                                      (contains? iobjs (first %))) (lg/nodes graph)))
-        {new-attr :attributes :as new-ind} (update ind :attributes conj add-attr)
-        new-nodes (into #{} 
-                        (filter #(and (contains? new-attr (second %))
-                                      (contains? iobjs (first %))) (lg/nodes graph)))
-        ;; A node can be added if it is not in an odd cycle with itself
-        not-addable? (fn [n] 
-                       (. Bipartite isInOddCycle (:adj graph) (disj new-nodes n) n))]
-    (if (->> (difference new-nodes old-nodes)
-             (some not-addable?))
-      ind new-ind)))
-
-
-;; (defmethod add-if-bipartite :object
-;;   [_ graph {iobjs :objects iattr :attributes :as ind} add-objs]
-;;   (let [;; old-nodes (filter #(and (contains? iattr (second %)) 
-;;         ;;                          (contains? iobjs (first %))) (lg/nodes graph))
-;;         {new-objs :objects :as new-ind} (update ind :objects conj add-objs)
-;;         new-nodes (filter #(and (contains? iattr (second %)) 
-;;                                  (contains? new-objs (first %))) (lg/nodes graph))]
-;;     (if (la/bipartite? (lg/subgraph graph new-nodes))
-;;       new-ind
-;;       ind)))
-
-
-;; (defmethod add-if-bipartite :attribute
-;;   [_ graph {iobjs :objects iattr :attributes :as ind} add-attr]
-;;   (let [;; old-nodes (filter #(and (contains? iattr (second %)) 
-;;         ;;                          (contains iobjs (first %))) (lg/nodes graph))
-;;         {new-attr :attributes :as new-ind} (update ind :attributes conj add-attr)
-;;         new-nodes (filter #(and (contains? iobjs (first %)) 
-;;                                  (contains? new-attr (second %))) (lg/nodes graph))]
-;;     (if (la/bipartite? (lg/subgraph graph new-nodes))
-;;       new-ind
-;;       ind)))
-
-
-(defn fill-individual
-  "Inserts as many objects/attributes to the individual as possible.
-  An individual is a set of nodes of the contexts incompatibility graph."
-  [ctx graph {iobjs :objects iattr :attributes :as ind}]
-  (let [;; missing objects and attributes in the individual
-        tofill-obj (difference (objects ctx) iobjs)
-        tofill-attr (difference (attributes ctx) iattr)
-        tofill (into [] (concat (zip (repeat :attribute) tofill-attr)
-                                (zip (repeat :object) tofill-obj)))
-        ;; add if addable 
-        add-if-addable (fn [tmp-ind [kind toadd]] 
-                         (add-if-bipartite kind graph tmp-ind toadd))]
-    (->> tofill
-         shuffle
-         (reduce add-if-addable ind))))
-
-
-;;genetic algorithm
-
-(defn- make-args-map 
-  "Returns default args updated by user input."
-  [args]
-  (let [default-args {:generation-size 30 :generations 30
-                      :survival-ratio 0.1 :mutation-rate 0.3
-                      :fresh-chance 0.05 
-                      :init {:objects #{} :attributes #{}}}]
-    (assert (and (:init args) 
-                 (not (la/bipartite? (incompatibility-graph (:init args)))))
-            "Inputted initial Context must have a concept lattice of
-              order dimension two.")
-    (-> (reduce #(assoc %1 %2 (%2 args)) default-args (keys args))
-        (assoc :survival-count (int (* generation-size survival-ratio)))
-        (update :init #(if (context? %) 
-                         {:objects (objects %) :attributes (attributes %)}
-                           %)))))
-
-(defmulti fitness
-  "For a bipartite incompatibility graph of a subset of attributes
-  and objects of a context, computes if adding an object/attribute
-  preserves the bipartite property."
-  (fn [& args] (:mode (first args))))
-
-(defmethod fitness :concepts
-  [_ ctx {iobjs :objects iattr :attributes :as ind}]
-  (-> (make-context iobjs iattr (incidence ctx))
-         concepts
-         count))
-
-(defmethod fitness :ctx-nontrivia
-  [_ ctx {iobjs :objects iattr :attributes :as ind}]
-  (let [sub-ctx (make-context iobjs iattr (incidence ctx))
-        nontrivia-obj (filter #(not (empty? (object-derivation sub-ctx #{%}))) 
-                              (objects sub-ctx))
-        nontrivia-attr (filter #(not (empty? (attribute-derivation sub-ctx #{%})))
-                               (attributes sub-ctx))]
-    (* (count nontrivia-obj)
-       (count nontrivia-attr))))
-
-(defmethod fitness :incidence
-  [_ ctx {iobjs :objects iattr :attributes :as ind}]
-  (let [sub-ctx (make-context iobjs iattr (incidence ctx))]
-    (count (incidence-relation sub-ctx))))
-
-(defmethod fitness :default
-  [_ ctx {iobjs :objects iattr :attributes :as ind}]
-  (* (count iobjs)
-     (count iattr)))
-
-(defn- mutation
-  "Mutates the current individual by removing an object or attribute
-  given a probability."
-  [args ctx graph {iobjs :objects iattr :attributes :as ind}]
-  (if (> fresh-chance (rand))
-    (fill-individual ctx graph (:init args))
-    (let [mutated-obj  (into #{} (random-sample (- 1 (:mutation-rate args)) iobjs))
-          mutated-attr  (into #{} (random-sample (- 1 (:mutation-rate args)) iattr))]
-      (-> ind 
-          (assoc :objects mutated-obj)
-          (assoc :attributes mutated-attr)))))
-
-(defn- breeding 
-  "Given two individuals, i.e. contexts, breeds a next new individual by
-  first computing the context of common attributes and
-  objects. Secondly as many attributes/objects of ctx are inserted
-  without increasing the order dimension of the new individual."
-  [args ctx graph 
-   {iobjs :objects iattr :attributes} {iobjs2 :objects iattr2 :attributes}]
-  (->> {:objects (intersection iobjs iobjs2) :attributes (intersection iattr iattr2)}
-       (mutation args ctx graph)
-       (fill-individual ctx graph)))
-
-(defn- next-generation
-  "Given the current generation of contexts, breeds the next generation."
-  [args ctx graph generation]
-  (let [fitness-vals (->> generation
-                          (sort-by (partial fitness args ctx))
-                          (take (:survival-count args)))
-        survivals (take (:survival-count args) fitness-vals)
-        pairing (->> survivals
-                     shuffle
-                     (partition 2))
-        rand-pair (fn [] (->> survivals
-                              shuffle
-                              (take 2)))]
-    (into [] 
-     (concat survivals
-             (->> (concat pairing (repeat (rand-pair)))
-                  (take (- generation-size survival-count))
-                  (into [])
-                  (map #(apply breeding args ctx graph %)))))))
-
-(defn- first-generation
-  "Computes a first random generation of contexts with order dimension
-  at most two."
-  [args ctx graph]
-  (into [] 
-        (for [_ (range (:generation-size args))]
-          (fill-individual ctx graph 
-                           (:init args)))))
-
-
-(defn genetic-2d-subctx
-  "Genetic algorithm to determine a maximal sub-context with order
-  dimension at most two.  Maximal in terms of number of objects times
-  number of attributes."
-  [ctx & [args]]
-  (let [args (make-args-map args)
-        graph (incompatibility-graph ctx)
-        ind2subctx (fn [{iobjs :objects iattr :attributes}]
-                        (make-context iobjs iattr (incidence ctx)))]
-    (loop [n (:generations args) 
-           generation (first-generation args ctx graph)]
-      (if (= n 0)
-        (->> generation 
-             (apply max-key (partial fitness args ctx))
-             ind2subctx)
-        (recur (dec n) (next-generation args ctx graph generation))))))
-
-;; post processing
-
-(defn- fit-rest
-  "This method is a helper method for suggest_2d and given a scale
-  context and an original context, fits as many missing
-  objects/attributes to the scale by clustering without increasing the order
-  dimension of the scale concept lattice."
-  [ctx scale]
-  scale
-  ; compute ferres covering
-  ; loop over attribtues/objects
-  )
-
-;; Suggest Scale
-
-(defn suggest_2d 
-  "This Method is a genetic algorithm to determine a scale whichs
-  concept lattice is of order dimension 2D. The methods simulated by
-  this algorithm are cluster methods only and for comprehensibility we
-  use only one cluster variation (:all, :or) at a time. Further note
-  that nested clusters of the same type (:all, :ex) are equivalent to
-  their flattened correspondence. This method uses a genetic algorithm
-  that determines a large sub-context, i.e. the number of objects
-  times attributes, whichs concept lattice is of order dimension at
-  most two. After that missing attributes are combined with existing
-  objects, attributes such that they preserve the order dimension."
-  [ctx]
-  ; first determine subcontext by genetic algorithm
-  ; second fill in all missing attributes objects
-  (-> ctx
-      genetic-2d-subctx
-      (fit-rest ctx)))
-
-
-;; (defn- two-ferres-covering
-;;   "Given a formal context compute a covering of the incidence relation
-;;   by two ferres relations."
-;;   [ctx]
-
-;;   )
