@@ -208,6 +208,7 @@
     (let [candidates (build-candidates i) 
           valids (filter valid-cluster? 
                            candidates)]
+      (if candidates
         (if (empty? valids)
           (recur (inc i))
           (if (empty? (first valids))
@@ -217,7 +218,8 @@
                                               (attributes new-scale)
                                               (incidence-relation new-scale))
                                 (comp comp-scale-image (measure sm))))
-            (map #(into init-cluster %) valids))))))
+            (map #(into init-cluster %) valids)))
+        nil))))
 
 (defmulti cluster 
   "Clusters attributes or objects in the scale context.
@@ -284,12 +286,14 @@
   "This is a wrapper method to flatten the cluster result."
   [kind quant sm thing]
   (let [result (cluster kind quant sm thing)]
-    (if (coll? result)
-      (map (partial reduce #(if (coll? %2) (into %1 %2) (conj %1 %2)) #{})
-           result)
-      (rename-scale kind result (fn [k] 
-                                  (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
-                                          #{} k))))))
+    (if result
+      (if (coll? result)
+        (map (partial reduce #(if (coll? %2) (into %1 %2) (conj %1 %2)) #{})
+             result)
+        (rename-scale kind result (fn [k] 
+                                    (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
+                                            #{} k))))
+      nil)))
 
 (defmulti repair-cluster 
   "Given a scale context constructs a valid smeasure scale by using as
@@ -298,7 +302,7 @@
   (fn [quantifier & args] quantifier))
 (alter-meta! #'repair-cluster assoc :private true)
 
-(defmethod repair-cluster :all  ;; todo stackoverflow
+(defmethod repair-cluster :all 
   [_ ctx s]
   (loop [broken-scale s]
     (let [br-exts (extents broken-scale)
@@ -316,6 +320,23 @@
           (recur (apply-flattened-cluster fixed-extent)))
         broken-scale))))
 
+(defmethod repair-cluster :ex
+  [_ ctx s]
+  (loop [broken-scale s]
+    (let [br-exts (extents broken-scale)
+          pre-images (sort-by count 
+                              (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
+                                   br-exts)) 
+          not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
+                                (if (= orig-e e) nil orig-e)))
+          image (fn [o] (some 
+                         #(if (contains? % o) % false) (objects broken-scale)))
+          broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
+      (if broken
+        (let [apply-flattened-cluster (flattened-cluster-applier broken-scale :objects :ex)
+              fixed-extent (reduce conj #{} (map image broken))]
+          (recur (apply-flattened-cluster fixed-extent)))
+        broken-scale))))
 ;; (defmethod repair-cluster :ex
 ;;   [_ ctx broken-scale]
 ;;   TODO)
@@ -409,8 +430,8 @@
                 (:attr-cl-quantifier args)
                 (:obj-cl-quantifier args))
         candidates (if (= :objects kind) 
-                     (map set (take 3 (partition 2 (shuffle (objects scale-ctx)))))
-                     (map set (take 3 (partition 2 (shuffle (attributes scale-ctx))))))
+                     (map set (take 5 (partition 2 (shuffle (objects scale-ctx)))))
+                     (map set (take 5 (partition 2 (shuffle (attributes scale-ctx))))))
         ;; how large the clusters get
         sm (make-smeasure-nc ctx scale-ctx 
                              (fn [o] 
@@ -421,13 +442,18 @@
                   (let [result (flattened-cluster kind 
                                                   quant
                                                   sm thing)]
-                    (if (coll? result) (count (first result)) 
-                        (apply + (map count thing)))))
+                    (if result
+                      (if (coll? result) (count (first result)) 
+                          (apply + (map count thing)))
+                      Integer/MAX_VALUE)))
         smallest (apply min-key key-fkt candidates)
         flat-clustered (cluster kind quant sm smallest)]
-          (if (coll? flat-clustered) ;;clustering was not valid, but returned a list of valid superclusters
-                (scale (flattened-cluster kind quant sm (first flat-clustered)))
-                (scale (flattened-cluster kind quant sm smallest)))))
+    (if flat-clustered
+      (if (coll? flat-clustered) ;;clustering was not valid, but returned a list of valid superclusters
+        (scale (flattened-cluster kind quant sm (first flat-clustered)))
+        (scale (flattened-cluster kind quant sm smallest)))
+      (make-context #{(set (objects ctx))} #{(set (attributes ctx))} 
+                    #{[#{(set (objects ctx))} #{(set (attributes ctx))}]})))) ;TODO fix incidence
 
 (defn- fill-individual-cluster
   "Inserts as many objects/attributes to the individual as possible.
@@ -435,7 +461,7 @@
   [args ctx {iobjs :objects iattr :attributes :as ind}]
   (let [repaired-ind (->> ind 
                           (ind2clustered-ctx args ctx)
-                          (repair-cluster :all ctx))
+                          (repair-cluster (:obj-cl-quantifier args) ctx))
         make-ind-map #(hash-map :objects (objects %) :attributes (attributes %))
         context2d? (comp la/bipartite? incompatibility-graph)]
     (loop [tmp-ind repaired-ind]      ;; apply small clusters until 2D
@@ -614,7 +640,7 @@
              (->> (concat pairing (repeat (rand-pair)))
                   (take (- (:generation-size args) (:survival-count args)))
                   (into [])
-                  (map (fn [[ind1 ind2]] (breeding-cluster args ctx ind1 ind2))))))))
+                  (pmap (fn [[ind1 ind2]] (breeding-cluster args ctx ind1 ind2))))))))
 
 (defn- next-generation
   "Given the current generation of contexts, breeds the next generation."
@@ -641,9 +667,10 @@
   at most two."
   [args ctx]
   (into [] 
-        (for [i (range (:generation-size args))]
-          (fill-individual-cluster args ctx
-                                   ((:init-cluster args) ctx)))))
+        (pmap (fn [i]
+                (fill-individual-cluster args ctx
+                                         ((:init-cluster args) ctx))) 
+              (range (:generation-size args)))))
 
 (defn- first-generation
   "Computes a first random generation of contexts with order dimension
