@@ -1,0 +1,224 @@
+B
+
+84
+51
+
+Obj 1
+Obj 2
+Obj 3
+Obj 4
+Obj 5
+Obj 6
+Obj 7
+Obj 8
+Obj 9
+Obj 10
+Obj 11
+Obj 12
+Obj 13
+Obj 14
+Obj 15
+Obj 16
+Obj 17
+Obj 18
+Obj 19
+Obj 20
+Obj 21
+Obj 22
+Obj 23
+Obj 24
+Obj 25
+Obj 26
+Obj 27
+Obj 28
+Obj 29
+Obj 30
+Obj 31
+Obj 32
+Obj 33
+Obj 34
+Obj 35
+Obj 36
+Obj 37
+Obj 38
+Obj 39
+Obj 40
+Obj 41
+Obj 42
+Obj 43
+Obj 44
+Obj 45
+Obj 46
+Obj 47
+Obj 48
+Obj 49
+Obj 50
+Obj 51
+Obj 52
+Obj 53
+Obj 54
+Obj 55
+Obj 56
+Obj 57
+Obj 58
+Obj 59
+Obj 60
+Obj 61
+Obj 62
+Obj 63
+Obj 64
+Obj 65
+Obj 66
+Obj 67
+Obj 68
+Obj 69
+Obj 70
+Obj 71
+Obj 72
+Obj 73
+Obj 74
+Obj 75
+Obj 76
+Obj 77
+Obj 78
+Obj 79
+Obj 80
+Obj 81
+Obj 82
+Obj 83
+Obj 84
+Boolean
+Stone
+dually Stone
+Browerian
+distributive
+join-distributive
+meet-distributive
+SD-meet
+SD-join
+0-distributive
+1-distributive
+c-condition
+dual c-condition
+pseudocomplemented
+dually pseudocomplemented
+modular
+locally modular
+dually locally modular
+M-symmetric
+dually M-symmetric
+upper semimodular
+lower semimodular
+balanced
+upper balanced
+lower balanced
+graded
+Kurosh-Ore property
+dual Kurosh-Ore property
+uniquely complemented
+relatively complemented
+relatively semicomplemented
+dually relatively semicomplemented
+sectionally complemented
+dually sectionally complemented
+complemented
+sectionally semicomplemented
+dually sectionally semicomplemented
+semicomplemented
+almost complemented
+dually semicomplemented
+dually almost complemented
+geometric
+dually geometric
+atomistic
+coatomistic
+metric
+finite
+self-dual
+width:2
+width:3
+breadth:2
+.......XXXXXXXX...........XX......X..XXXX.....XXX.X
+...............XXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXX.XX
+.....X.X.X.XXX..X.X.X..X.XXX........X..XX...X.X..XX
+..................X.X.XXXX.X.XXXXXXXXXXXXX.XX.X....
+......X.X.XXX.X..X.X.X..XXXX.......X.XX....X..X..XX
+..XXXXXXXXXXXXXXXXXXXXXXXXXX.................XX.X.X
+.......XXXXXXXX..........XXX......X..XXXX.....XXX.X
+..................X.X..X.X.......XX.XXXXX...X.X....
+...................X.X..XX......X.XX.XXXX..X..X....
+...................X.XXXXXX..XXXXXXXXXXXX.XXX.X....
+.........X...X.XXXXXXXXXXXXX.................XX..XX
+......X.XXXXXXX..X.X.X..XXXX..................X..XX
+...............XXXXXXXXXXXXX.XXXXXXXXXXXXXXXXX.X..X
+.........X...X.........X..XX........X..XX...X.X...X
+........XXXXXXX..........XXX......X..XXXX.....X...X
+.......X.XXXXXX..........XXX......X..XXXX.....X...X
+.........X...X..X.X.X..X.XXX........X..XX...X.....X
+.........X...X.........X.XXX........X..XX...X.X...X
+.........XX..XX..........XXX......X..XXXX......X..X
+.........XX..XX..........XXX......X..XXXX.....XX..X
+.........X...X..X.X.X..X.XXX........X..XX...X.X...X
+......................XXXX.........XXXXXX..XX.XX...
+.XXXXXXXXXXXXXXXXXXXXXXXXXXX.................XXXX.X
+.....X.X.X.XXX..X.X.X..X.XXX...........XX.....X..XX
+.....X.X.XXXXXX.X.X.X..X.XXX..................X..XX
+..........X...X..X.X.X..XXXX.......X.XX....X......X
+..........X...X.........X.XX.......X.XX....X..X...X
+.X.XXXXXXXXXXXXXXXXXXXXXXXXX.................XX.X.X
+..........X...XXXXXXXXXXXXXX.................XX..XX
+..........X...X.........XXXX.......X.XX....X..X...X
+..........X...X..X.X.X..XXXX.......X.XX....X..X...X
+......X.X.XXX.X..X.X.X..XXXX.........XX.......X..XX
+......................XXX.XX.XXXXXXXXXXXX..XX.XX..X
+........................X.XX....X.XX.XXXX..X..X..XX
+.......................X..XX.....XX.XXXXX...X.X..XX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.X.
+...........XX............XXX..................XX.XX
+.........XX..XXXXXXXXXXXXXXX.................X.X..X
+.........XX..XX.......XXX.XX..................XX..X
+.........XX..XX........X..XX..................X..XX
+.........XX..XX.........X.XX..................X..XX
+.........XXXXXX..........XXX..................XX.XX
+.XXXXXXXXXXXXXXXXXXXXXXXXXXX.................XXX.XX
+.......XXXXXXXX...........XX......X..XXXX.....XX.XX
+.........................XXX.........XXXX.....XX..X
+......................XXXXXX.XXXXXXXXXXXX..XX.XX..X
+.........XX..XX.......XXXXXX..................XX..X
+.........XX..XXXXXXXXXXXXXXX.................XXX.XX
+.......XXXXXXXX..........XXX......X..XXXX.....XX.XX
+.......................X.XXX.....XX.XXXXX...X.X...X
+.........XXXXXX..........XXX......X..XXXX.....XX..X
+.......XXXXXXXX..........XXX......X..XXXX.....X..XX
+.........XX..XX...X.X.XXXX.X..................X....
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.X
+.........XX..XX....X.XXXXXX...................X....
+...XXXXXXXXXXXXXXXXXXXXXXXXX.................XXXX.X
+...XXXXXXXXXXXXXXXXXXXXXXXXX.................XXX.XX
+..XXXXXXXXXXXXXXXXXXXXXXXXXX.................XX..XX
+.X.XXXXXXXXXXXXXXXXXXXXXXXXX.................XX..XX
+.XXXXXXXXXXXXXXXXXXXXXXXXXXX.................XX.X.X
+.XXXXXXXXXXXXXXXXXXXXXXXXXXX.................XX..XX
+......................XXXXXX.XXXXXXXXXXXX..XX.X...X
+......................XXXXXX......XXXXXXX..XX.XX..X
+........................XXXX....X.XX.XXXX..X..X...X
+......................XXXXXX.....XXXXXXXX..XX.X...X
+......................XXXXXX....X.XXXXXXX..XX.X...X
+......................XXXXXX....XXXXXXXXX..XX.XX..X
+...............XXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXX....
+......X.X.XXX.X..X.X.X..XX.X.......X.XX....X..X....
+.....X.X.X.XXX..X.X.X..X.XX.........X..XX...X.X....
+.......................X.XXX........XXXXX...X.X....
+.......XXXXXXXX..........X........X..XXXX.....XX.X.
+.......XXXXXXXX..........X.X......X..XXXX.....X..X.
+.......XXXXXXXX..........XX.......X..XXXX.....X..X.
+.........XX..XX.......XXXX....................XX...
+.....X.X.XXXXXX.X.X.X..X.XX...................X....
+.........X...X....X.X..X.X.X........X..XX...X.X....
+..........X...X....X.X..XXX........X.XX....X..X....
+......X.XXXXXXX..X.X.X..XX.X..................X....
+........................XXXX.......X.XXXX..X..X....
+......................XXXX.X.......XXXXXX..XX.X....
+......................XXXXX........XXXXXX..XX.X....
+......................XXXX...XXXXXXXXXXXX..XX.XX...
+......................XXXXXX.......XXXXXX..XX.XX...
