@@ -14,7 +14,7 @@
             [clojure.math.combinatorics :as comb]
             [loom.graph :as lg]
             [loom.alg :as la]
-            [clojure.core.reducers :as :r])
+            [clojure.core.reducers :as r])
   (:import [org.dimdraw Bipartite]))
 
 (require '[taoensso.tufte :as tufte :refer (defnp p profiled profile)])
@@ -306,15 +306,11 @@
   "Given a scale context constructs a valid smeasure scale by using as
   few cluster methods as possible. 'quantifier specifies the cluster
   quantifier used by the clustering methods."
-  (fn [kind quantifier & args] [kind quantifier]))
+  (fn [quantifier & args] quantifier))
 (alter-meta! #'repair-cluster assoc :private true)
 
-(defmethod repair-cluster [:attributes :all] 
-  [_ _ ctx s]
-  s) ;; attribute :all clusters are always valid
-
-(defmethod repair-cluster [:objects :all] 
-  [_ _ ctx s]
+(defmethod repair-cluster :all
+  [_ ctx s]
   (loop [broken-scale s]
     (let [br-exts (extents broken-scale)
           pre-images (sort-by count 
@@ -322,61 +318,38 @@
                                    br-exts)) 
           not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
                                 (if (= orig-e e) nil orig-e)))
-;          not-closedd? (fn [e] (let [orig-e (context-object-closure ctx e)]
-          ;                      (if (= orig-e e) nil e)))
           image (fn [o] (some 
                          #(if (contains? % o) % false) (objects broken-scale)))
-          broken (some not-closed? pre-images)
-          ;; old (some not-closedd? pre-images)
-          ;; o (println broken-scale "\n" broken old)
-          ] ; returns first non extent of lowest cardinality 
+          broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
       (if broken
-        (let [;o (println "entered" broken)
-              apply-flattened-cluster (flattened-cluster-applier broken-scale :objects :all)
-              fixed-extent (reduce conj #{} (map image broken))]
-          (recur (apply-flattened-cluster fixed-extent)))
-        ;(do (println "entered " s "\n returned" broken-scale)
-            broken-scale
-          ;  )
-        ))))
+        (let [fixed-intent (object-derivation s (reduce conj #{} (map image broken)))
+              fixed-extent (reduce conj #{} (map image broken))
+              [kind fixed-cluster] (first (filter #(-> % second count (> 1)) ;get smallest greater 1
+                                               (sort-by (comp count second) [[:objects fixed-extent] [:attributes fixed-intent]])))
+              apply-flattened-cluster (flattened-cluster-applier broken-scale kind :all)]
+          (recur (apply-flattened-cluster fixed-cluster)))
+        broken-scale))))
 
-(defmethod repair-cluster [:objects :ex]
-  [_ _ ctx s]
+(defmethod repair-cluster :ex
+  [_ ctx s]
   (loop [broken-scale s]
-    (if (-> s attributes count (= 1)) (repair-cluster :attributes :ex ctx broken-scale)
-        (let [br-exts (extents broken-scale)
-              pre-images (sort-by count 
-                                  (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
-                                       br-exts)) 
-              not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
-                                    (if (= orig-e e) nil orig-e)))
-              image (fn [o] (some 
-                             #(if (contains? % o) % false) (objects broken-scale)))
-              broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
-          (if broken
-            (let [apply-flattened-cluster (flattened-cluster-applier broken-scale :objects :ex)
-                  fixed-extent (reduce conj #{} (map image broken))]
-              (recur (apply-flattened-cluster fixed-extent)))
-            broken-scale)))))
-
-(defmethod repair-cluster [:attributes :ex]
-  [_ _ ctx s]
-  (loop [broken-scale s]
-    (if (-> s attributes count (= 1)) (repair-cluster :objects :ex ctx broken-scale)
-        (let [br-exts (extents broken-scale)
-              pre-images (sort-by count 
-                                  (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
-                                       br-exts)) 
-              not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
-                                    (if (= orig-e e) nil orig-e)))
-              image (fn [o] (some 
-                             #(if (contains? % o) % false) (objects broken-scale)))
-              broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
-          (if broken
-            (let [apply-flattened-cluster (flattened-cluster-applier broken-scale :attributes :ex)
-                  fixed-intent (object-derivation s (reduce conj #{} (map image broken)))]
-              (recur (apply-flattened-cluster fixed-intent)))
-            broken-scale)))))
+    (let [br-exts (extents broken-scale)
+          pre-images (sort-by count 
+                              (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
+                                   br-exts)) 
+          not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
+                                (if (= orig-e e) nil orig-e)))
+          image (fn [o] (some 
+                         #(if (contains? % o) % false) (objects broken-scale)))
+          broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
+      (if broken
+        (let [fixed-intent (object-derivation s (reduce conj #{} (map image broken)))
+              fixed-extent (reduce conj #{} (map image broken))
+              [kind fixed-cluster] (first (filter #(-> % second count (> 1)) ;get smallest greater 1
+                                               (sort-by (comp count second) [[:objects fixed-extent] [:attributes fixed-intent]])))
+              apply-flattened-cluster (flattened-cluster-applier broken-scale kind :ex)]
+          (recur (apply-flattened-cluster fixed-cluster)))
+        broken-scale))))
 
 
 (defnp incompatibility-graph
@@ -487,7 +460,7 @@
                             (+ (count (difference da db))
                                (count (difference db da)))))
         most-in-common (apply min-key key-fkt candidates)
-        smallest (repair-cluster kind quant ctx (apply-flattened-cluster (set most-in-common)))
+        smallest (repair-cluster quant ctx (apply-flattened-cluster (set most-in-common)))
 
         ;; how large the clusters get
         ;; sm (make-smeasure-nc ctx scale-ctx 
@@ -515,11 +488,9 @@
   "Inserts as many objects/attributes to the individual as possible.
   An individual is a set of nodes of the contexts incompatibility graph."
   [args ctx graph {iobjs :objects iattr :attributes :as ind}]
-  (let [repair-kind (if (= (:quant args) :ex) 
-                      (rand-nth [:attributes :objects]) :objects)
-        repaired-ind  (->> ind 
+  (let [repaired-ind  (->> ind 
                            (ind2clustered-ctx args ctx)
-                           (repair-cluster repair-kind (:quant args) ctx))
+                           (repair-cluster (:quant args) ctx))
         make-ind-map #(hash-map :objects (objects %) :attributes (attributes %))
         new-graph (updated-incompatibility-graph graph repaired-ind)
         context2d? (comp la/bipartite? (partial updated-incompatibility-graph new-graph))]
