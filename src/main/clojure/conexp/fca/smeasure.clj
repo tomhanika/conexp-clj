@@ -200,6 +200,7 @@
                                  (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
                                          #{} a))))))
 
+; todo check if smast cluster works after ordinary cluster
 (defmulti repair-cluster 
   "Given a scale context constructs a valid smeasure scale by using as
   few cluster methods as possible. 'quantifier specifies the cluster
@@ -290,11 +291,18 @@
 
 (defmethod cluster [:attributes :ex]
   [_ _ sm attr & [smart]]
-  (let [s (scale sm)
-        apply-cluster (cluster-applier :attributes :ex s)] 
+  (let [s (scale sm)]
     (if smart
-      (repair-cluster :ex (context sm) (apply-cluster attr))
-      (let [original (generate-concept-cover (concepts s))
+      (let [encode (fn [ctx] (-> ctx
+                                 (rename-attributes  (fn [a] #{a}))
+                                 (rename-objects  (fn [b] #{b}))))
+            decode (fn [ctx] (-> ctx
+                                 (rename-attributes  (fn [a] (if (< 1 (count a)) a (first a))))
+                                 (rename-objects  (fn [b] (if (< 1 (count b)) b (first b))))))
+            apply-flattened-cluster (flattened-cluster-applier :attributes :ex (encode s))]
+        (decode (repair-cluster :all (context sm) (apply-flattened-cluster attr))))
+      (let [apply-cluster (cluster-applier :attributes :ex s)
+            original (generate-concept-cover (concepts s))
             comp-scale-image identity
             scale-pre-image (constantly identity)
                                         ;valid-cluster? (valid-cluster s original)
@@ -309,11 +317,18 @@
     
 (defmethod cluster [:objects :all]
   [_ _ sm obj & [smart]]
-  (let [s (scale sm)
-        apply-cluster (cluster-applier :objects :all s)] 
+  (let [s (scale sm)]
     (if smart
-      (repair-cluster :all (context sm) (apply-cluster obj))
-      (let [original (generate-concept-cover (concepts s))
+      (let [encode (fn [ctx] (-> ctx
+                                 (rename-attributes  (fn [a] #{a}))
+                                 (rename-objects  (fn [b] #{b}))))
+            decode (fn [ctx] (-> ctx
+                                 (rename-attributes  (fn [a] (if (< 1 (count a)) a (first a))))
+                                 (rename-objects  (fn [b] (if (< 1 (count b)) b (first b))))))
+            apply-flattened-cluster (flattened-cluster-applier :objects :all (encode s))]
+        (decode (repair-cluster :all (context sm) (apply-flattened-cluster obj))))
+      (let [apply-cluster (cluster-applier :objects :all s)
+            original (generate-concept-cover (concepts s))
             comp-scale-image (fn [g] (if (contains? obj g) obj g))
             scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
             valid-cluster? (fn [additional-obj] (if ((valid-cluster s original) 
@@ -326,11 +341,18 @@
 
 (defmethod cluster [:objects :ex]
   [_ _ sm obj & [smart]]
-  (let [s (scale sm)
-        apply-cluster (cluster-applier :objects :ex s)] 
+  (let [s (scale sm)] 
     (if smart
-      (repair-cluster :all (context sm) (apply-cluster obj))
-      (let [original (generate-concept-cover (concepts s))
+      (let [encode (fn [ctx] (-> ctx
+                                 (rename-attributes  (fn [a] #{a}))
+                                 (rename-objects  (fn [b] #{b}))))
+            decode (fn [ctx] (-> ctx
+                                 (rename-attributes  (fn [a] (if (< 1 (count a)) a (first a))))
+                                 (rename-objects  (fn [b] (if (< 1 (count b)) b (first b))))))
+            apply-flattened-cluster (flattened-cluster-applier :objects :ex (encode s))]
+        (decode (repair-cluster :all (context sm) (apply-flattened-cluster obj))))
+      (let [apply-cluster (cluster-applier :objects :ex s)
+            original (generate-concept-cover (concepts s))
             comp-scale-image (fn [g] (if (contains? obj g) obj g))
             scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
             valid-cluster? (fn [additional-obj] (if ((valid-cluster s original) 
@@ -570,14 +592,18 @@
   [ctx & [args]]
   (let [args (make-args-map (if (nil? args) {} args))
         init-ind ((:init-cluster args) ctx)
-        graph (incompatibility-graph (ind2clustered-ctx args ctx init-ind))]
+        graph (incompatibility-graph (ind2clustered-ctx args ctx init-ind))
+        decode (fn [ctx] (-> ctx
+                             (rename-attributes  (fn [a] (if (< 1 (count a)) a (first a))))
+                             (rename-objects  (fn [b] (if (< 1 (count b)) b (first b))))))]
     (loop [n (:generations args) 
            generation (first-generation args ctx init-ind graph)]
       (println "Generation: " (- (:generations args) n))
       (if (= n 0)
         (->> generation 
              (apply max-key (partial fitness args ctx))
-             (ind2clustered-ctx args ctx))
+             (ind2clustered-ctx args ctx)
+             decode)
         (recur (dec n) (next-generation args ctx graph generation))))))
 
 
