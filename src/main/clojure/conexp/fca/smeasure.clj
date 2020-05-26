@@ -13,8 +13,12 @@
             [conexp.fca.cover :refer [generate-concept-cover]]
             [clojure.math.combinatorics :as comb]
             [loom.graph :as lg]
-            [loom.alg :as la])
+            [loom.alg :as la]
+            [clojure.core.reducers :as :r])
   (:import [org.dimdraw Bipartite]))
+
+(require '[taoensso.tufte :as tufte :refer (defnp p profiled profile)])
+(tufte/add-basic-println-handler! {})
 
 (defprotocol Smeasure
   (context [sm] "Returns the original context that is measured.")
@@ -132,7 +136,7 @@
         ext (get-exts original)]
     (fn [clustered-scale pre-image] 
       (let [ext-new (get-exts (transform-bv-cover scale clustered-scale original))]
-        (subset? (set (map pre-image ext-new)) ext)))))
+        (subset? (set (map pre-image) ext-new) ext)))))
 
 (defmulti cluster-applier
   "Clusters attributes or objects in the scale context.
@@ -199,7 +203,7 @@
                                  (reduce #(if (coll? %2) (into %1 %2) (conj %1 %2))
                                          #{} a))))))
 
-(defn- cluster-until-valid
+(defnp cluster-until-valid
   "This is a helper method, that applies a certain clustering until a
   valid scale measure is outputted. If not unique, returns a seq of
   valid candidates."
@@ -244,12 +248,13 @@
         apply-cluster (cluster-applier :attributes :ex s)
         original (generate-concept-cover (concepts s))
         comp-scale-image identity
-        scale-pre-image identity
-        valid-cluster? (valid-cluster s original)
+        scale-pre-image (constantly identity)
+        ;valid-cluster? (valid-cluster s original)
 
-        valid-cluster? (fn [additional-attr] ((valid-cluster s original) 
-                                             (apply-cluster (into attr additional-attr)) 
-                                             (scale-pre-image (into attr additional-attr))))
+        valid-cluster? (fn [additional-attr] (if ((valid-cluster s original) 
+                                                  (apply-cluster (into attr additional-attr)) 
+                                                  (scale-pre-image (into attr additional-attr)))
+                                               additional-attr false))
         build-candidates (fn [i] (comb/combinations (seq (difference (attributes s) attr)) i))]
     (cluster-until-valid
      sm attr apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
@@ -261,9 +266,10 @@
         original (generate-concept-cover (concepts s))
         comp-scale-image (fn [g] (if (contains? obj g) obj g))
         scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
-        valid-cluster? (fn [additional-obj] ((valid-cluster s original) 
-                                             (apply-cluster (into obj additional-obj)) 
-                                             (scale-pre-image (into obj additional-obj))))
+        valid-cluster? (fn [additional-obj] (if ((valid-cluster s original) 
+                                                 (apply-cluster (into obj additional-obj)) 
+                                                 (scale-pre-image (into obj additional-obj)))
+                                              additional-obj false))
         build-candidates (fn [i] (comb/combinations (seq (difference (objects s) obj)) i))]
     (cluster-until-valid
      sm obj apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
@@ -275,9 +281,10 @@
         original (generate-concept-cover (concepts s))
         comp-scale-image (fn [g] (if (contains? obj g) obj g))
         scale-pre-image (fn [o] (fn [oset] (reduce #(if (= o %2) (into %1 %2) (conj %1 %2)) #{} oset)))
-        valid-cluster? (fn [additional-obj] ((valid-cluster s original) 
-                                             (apply-cluster (into obj additional-obj)) 
-                                             (scale-pre-image (into obj additional-obj))))
+        valid-cluster? (fn [additional-obj] (if ((valid-cluster s original) 
+                                                 (apply-cluster (into obj additional-obj)) 
+                                                 (scale-pre-image (into obj additional-obj)))
+                                              additional-obj false))
         build-candidates (fn [i] (comb/combinations (seq (difference (objects s) obj)) i))]
     (cluster-until-valid
      sm obj apply-cluster valid-cluster? build-candidates comp-scale-image scale-pre-image)))
@@ -299,11 +306,15 @@
   "Given a scale context constructs a valid smeasure scale by using as
   few cluster methods as possible. 'quantifier specifies the cluster
   quantifier used by the clustering methods."
-  (fn [quantifier & args] quantifier))
+  (fn [kind quantifier & args] [kind quantifier]))
 (alter-meta! #'repair-cluster assoc :private true)
 
-(defmethod repair-cluster :all 
-  [_ ctx s]
+(defmethod repair-cluster [:attributes :all] 
+  [_ _ ctx s]
+  s) ;; attribute :all clusters are always valid
+
+(defmethod repair-cluster [:objects :all] 
+  [_ _ ctx s]
   (loop [broken-scale s]
     (let [br-exts (extents broken-scale)
           pre-images (sort-by count 
@@ -311,37 +322,64 @@
                                    br-exts)) 
           not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
                                 (if (= orig-e e) nil orig-e)))
+;          not-closedd? (fn [e] (let [orig-e (context-object-closure ctx e)]
+          ;                      (if (= orig-e e) nil e)))
           image (fn [o] (some 
                          #(if (contains? % o) % false) (objects broken-scale)))
-          broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
+          broken (some not-closed? pre-images)
+          ;; old (some not-closedd? pre-images)
+          ;; o (println broken-scale "\n" broken old)
+          ] ; returns first non extent of lowest cardinality 
       (if broken
-        (let [apply-flattened-cluster (flattened-cluster-applier broken-scale :objects :all)
+        (let [;o (println "entered" broken)
+              apply-flattened-cluster (flattened-cluster-applier broken-scale :objects :all)
               fixed-extent (reduce conj #{} (map image broken))]
           (recur (apply-flattened-cluster fixed-extent)))
-        broken-scale))))
+        ;(do (println "entered " s "\n returned" broken-scale)
+            broken-scale
+          ;  )
+        ))))
 
-(defmethod repair-cluster :ex
-  [_ ctx s]
+(defmethod repair-cluster [:objects :ex]
+  [_ _ ctx s]
   (loop [broken-scale s]
-    (let [br-exts (extents broken-scale)
-          pre-images (sort-by count 
-                              (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
-                                   br-exts)) 
-          not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
-                                (if (= orig-e e) nil orig-e)))
-          image (fn [o] (some 
-                         #(if (contains? % o) % false) (objects broken-scale)))
-          broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
-      (if broken
-        (let [apply-flattened-cluster (flattened-cluster-applier broken-scale :objects :ex)
-              fixed-extent (reduce conj #{} (map image broken))]
-          (recur (apply-flattened-cluster fixed-extent)))
-        broken-scale))))
-;; (defmethod repair-cluster :ex
-;;   [_ ctx broken-scale]
-;;   TODO)
+    (if (-> s attributes count (= 1)) (repair-cluster :attributes :ex ctx broken-scale)
+        (let [br-exts (extents broken-scale)
+              pre-images (sort-by count 
+                                  (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
+                                       br-exts)) 
+              not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
+                                    (if (= orig-e e) nil orig-e)))
+              image (fn [o] (some 
+                             #(if (contains? % o) % false) (objects broken-scale)))
+              broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
+          (if broken
+            (let [apply-flattened-cluster (flattened-cluster-applier broken-scale :objects :ex)
+                  fixed-extent (reduce conj #{} (map image broken))]
+              (recur (apply-flattened-cluster fixed-extent)))
+            broken-scale)))))
 
-(defn- incompatibility-graph
+(defmethod repair-cluster [:attributes :ex]
+  [_ _ ctx s]
+  (loop [broken-scale s]
+    (if (-> s attributes count (= 1)) (repair-cluster :objects :ex ctx broken-scale)
+        (let [br-exts (extents broken-scale)
+              pre-images (sort-by count 
+                                  (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
+                                       br-exts)) 
+              not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
+                                    (if (= orig-e e) nil orig-e)))
+              image (fn [o] (some 
+                             #(if (contains? % o) % false) (objects broken-scale)))
+              broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
+          (if broken
+            (let [apply-flattened-cluster (flattened-cluster-applier broken-scale :attributes :ex)
+                  fixed-intent (object-derivation s (reduce conj #{} (map image broken)))]
+              (recur (apply-flattened-cluster fixed-intent)))
+            broken-scale)))))
+
+
+(defnp incompatibility-graph
   "For a formal context computes the imcompatibility graph of its
   incidence relation."
   [ctx]
@@ -350,9 +388,20 @@
         incompatible? (fn [[[g m] [h n]]]
                        (and ((incidence ctx) [g n])
                             ((incidence ctx) [h m])))
-        edges (filter incompatible? (cross-product nodes nodes))]
+        edges (r/foldcat (r/filter incompatible? (cross-product nodes nodes)))]
     (apply lg/graph edges)))
 
+(defn- updated-incompatibility-graph 
+  [graph scale]
+  (let [new-nodes (difference (cross-product (objects scale) (attributes scale))
+                              (incidence-relation scale))
+        sub (lg/subgraph graph (intersection (lg/nodes graph) new-nodes))
+        
+        incompatible? (fn [[[g m] [h n]]]
+                        (and ((incidence scale) [g n])
+                             ((incidence scale) [h m])))
+        new-edges (filter incompatible? (cross-product (difference new-nodes (lg/nodes graph)) new-nodes))]
+    (apply lg/add-edges sub new-edges)))
 
 (defmulti add-if-bipartite 
   "For a bipartite incompatibility graph of a subset of attributes
@@ -416,8 +465,8 @@
 (defn- ind2clustered-ctx
   "This is a helper method to apply the by the individual specified clustering."
   [args ctx {iobjs :objects iattr :attributes :as ind}]
-  (let [apply-cluster-obj (fn [tocluster-ctx cl] ((cluster-applier :objects (:obj-cl-quantifier args) tocluster-ctx) cl))
-        apply-cluster-attr (fn [tocluster-ctx cl] ((cluster-applier :attributes (:attr-cl-quantifier args) tocluster-ctx) cl))] 
+  (let [apply-cluster-obj (fn [tocluster-ctx cl] ((cluster-applier :objects (:quant args) tocluster-ctx) cl))
+        apply-cluster-attr (fn [tocluster-ctx cl] ((cluster-applier :attributes (:quant args) tocluster-ctx) cl))] 
     (reduce apply-cluster-obj (reduce apply-cluster-attr ctx iattr)
             iobjs)))
 
@@ -425,49 +474,61 @@
   "This is a helper method to apply the smallest clustering out of a few
   random valid clusterings."
   [args ctx scale-ctx]
-  (let [kind (rand-nth [:attributes :objects])
-        quant (if (= :attributes kind)
-                (:attr-cl-quantifier args)
-                (:obj-cl-quantifier args))
-        candidates (if (= :objects kind) 
-                     (map set (take 5 (partition 2 (shuffle (objects scale-ctx)))))
-                     (map set (take 5 (partition 2 (shuffle (attributes scale-ctx))))))
+  (let [kind  (rand-nth [:attributes :objects])
+        quant (:quant args)
+        candidates (if (and (= :objects kind) (-> scale-ctx objects count (= 1) not)) 
+                      (take 10 (partition 2 (shuffle (objects scale-ctx))))
+                      (take 10 (partition 2 (shuffle (attributes scale-ctx)))))
+        apply-flattened-cluster (flattened-cluster-applier scale-ctx kind quant)
+        
+        derivation-op (if (= kind :objects) object-derivation attribute-derivation)
+        key-fkt (fn [[a b]]  (let [da (derivation-op scale-ctx #{a})
+                                                  db (derivation-op scale-ctx #{b})] 
+                            (+ (count (difference da db))
+                               (count (difference db da)))))
+        most-in-common (apply min-key key-fkt candidates)
+        smallest (repair-cluster kind quant ctx (apply-flattened-cluster (set most-in-common)))
+
         ;; how large the clusters get
-        sm (make-smeasure-nc ctx scale-ctx 
-                             (fn [o] 
-                               (some 
-                                #(if (contains? % o) % false)
-                                (objects scale-ctx))))
-        key-fkt (fn [thing] 
-                  (let [result (flattened-cluster kind 
-                                                  quant
-                                                  sm thing)]
-                    (if result
-                      (if (coll? result) (count (first result)) 
-                          (apply + (map count thing)))
-                      Integer/MAX_VALUE)))
-        smallest (apply min-key key-fkt candidates)
-        flat-clustered (cluster kind quant sm smallest)]
-    (if flat-clustered
-      (if (coll? flat-clustered) ;;clustering was not valid, but returned a list of valid superclusters
-        (scale (flattened-cluster kind quant sm (first flat-clustered)))
-        (scale (flattened-cluster kind quant sm smallest)))
-      (make-context #{(set (objects ctx))} #{(set (attributes ctx))} 
-                    #{[#{(set (objects ctx))} #{(set (attributes ctx))}]})))) ;TODO fix incidence
+        ;; sm (make-smeasure-nc ctx scale-ctx 
+         ;;                     (fn [o] 
+         ;;                       (some 
+          ;;                       #(if (contains? % o) % false)
+           ;;                      (objects scale-ctx))))
+
+        ;; applied-candidates (map (fn [thing] (repair-cluster kind quant ctx (apply-flattened-cluster thing))) candidates)
+
+        ;; smallest (apply min-key (fn [result]
+        ;;             (if result
+        ;;               (count (objects result))
+        ;;               Integer/MAX_VALUE)) applied-candidates)
+        ]
+    (if smallest smallest       
+        (make-context #{(set (objects ctx))} #{(set (attributes ctx))} 
+                      #{[#{(set (objects ctx))} #{(set (attributes ctx))}]})))) ;TODO fix incidence
+
+(defnp ctx2d [g]
+  (la/bipartite? g))
+
 
 (defn- fill-individual-cluster
   "Inserts as many objects/attributes to the individual as possible.
   An individual is a set of nodes of the contexts incompatibility graph."
-  [args ctx {iobjs :objects iattr :attributes :as ind}]
-  (let [repaired-ind (->> ind 
-                          (ind2clustered-ctx args ctx)
-                          (repair-cluster (:obj-cl-quantifier args) ctx))
+  [args ctx graph {iobjs :objects iattr :attributes :as ind}]
+  (let [repair-kind (if (= (:quant args) :ex) 
+                      (rand-nth [:attributes :objects]) :objects)
+        repaired-ind  (->> ind 
+                           (ind2clustered-ctx args ctx)
+                           (repair-cluster repair-kind (:quant args) ctx))
         make-ind-map #(hash-map :objects (objects %) :attributes (attributes %))
-        context2d? (comp la/bipartite? incompatibility-graph)]
-    (loop [tmp-ind repaired-ind]      ;; apply small clusters until 2D
-      (if (context2d? tmp-ind)
+        new-graph (updated-incompatibility-graph graph repaired-ind)
+        context2d? (comp la/bipartite? (partial updated-incompatibility-graph new-graph))]
+    (loop [tmp-ind repaired-ind g new-graph]      ;; apply small clusters until 2D
+      (if (ctx2d g)
         (make-ind-map tmp-ind)
-        (recur (apply-small-rand-cluster args ctx tmp-ind))))))
+        (let [new-ind (apply-small-rand-cluster args ctx tmp-ind)
+              new-g (updated-incompatibility-graph g new-ind)]
+          (recur new-ind new-g))))))
 
 (defn- fill-individual
   "Inserts as many objects/attributes to the individual as possible.
@@ -493,11 +554,10 @@
 (defn- make-args-map 
   "Returns default args updated by user input."
   [args]
-  (let [default-args {:generation-size 30 :generations 10
-                      :survival-ratio 0.1 :mutation-rate 0.3
+  (let [default-args {:generation-size 10 :generations 10
+                      :survival-ratio 0.3 :mutation-rate 0.3
                       :fresh-chance 0.05 :mode :incidence-clustered
-                      :obj-cl-quantifier :all
-                      :attr-cl-quantifier :all
+                      :quant :all
                       :init {:objects #{} :attributes #{}}
                       :init-cluster (fn [ctx] 
                                       {:objects (reduce #(conj %1 #{%2}) #{} (objects ctx)) 
@@ -576,18 +636,18 @@
 (defn- mutation-cluster
   "Mutates the current individual by removing an object or attribute
   given a probability."
-  [args ctx {iobjs :objects iattr :attributes :as ind}]
-  (if (> (:fresh-chance args) (rand))
-    (fill-individual-cluster args ctx ((:init-cluster args) ctx))
-    (let [mutated-obj  (into #{} (random-sample (:mutation-rate args) iobjs))
-          mutated-attr  (into #{} (random-sample (:mutation-rate args) iattr))]
-      (-> ind 
-          (assoc :objects (reduce (fn [ind-objs tomutate-obj-cl] ;; flattens the to mutate cluster #{1 2 3} -> #{1} #{2} #{3}
-                                    (reduce #(conj %1 #{%2}) ind-objs tomutate-obj-cl)) 
-                                  (difference (:objects ind) mutated-obj) mutated-obj))
-          (assoc :attributes (reduce (fn [ind-attr tomutate-attr-cl] 
-                                       (reduce #(conj %1 #{%2}) ind-attr tomutate-attr-cl))
-                                     (difference (:attributes ind) mutated-attr) mutated-attr))))))
+  [args ctx graph {iobjs :objects iattr :attributes :as ind}]
+  ;; (if (> (:fresh-chance args) (rand))
+  ;;   (fill-individual-cluster args ctx graph ((:init-cluster args) ctx)))
+  (let [mutated-obj  (into #{} (random-sample (:mutation-rate args) iobjs))
+        mutated-attr  (into #{} (random-sample (:mutation-rate args) iattr))]
+    (-> ind 
+        (assoc :objects (reduce (fn [ind-objs tomutate-obj-cl] ;; flattens the to mutate cluster #{1 2 3} -> #{1} #{2} #{3}
+                                  (reduce #(conj %1 #{%2}) ind-objs tomutate-obj-cl)) 
+                                (difference (:objects ind) mutated-obj) mutated-obj))
+        (assoc :attributes (reduce (fn [ind-attr tomutate-attr-cl] 
+                                     (reduce #(conj %1 #{%2}) ind-attr tomutate-attr-cl))
+                                   (difference (:attributes ind) mutated-attr) mutated-attr)))))
 
 (defn- mutation
   "Mutates the current individual by removing an object or attribute
@@ -606,10 +666,10 @@
   first computing the context of common attributes and
   objects. Secondly as many attributes/objects of ctx are inserted
   without increasing the order dimension of the new individual."
-  [args ctx ind1 ind2]
-  (->> (cluster-ind-intersecter  ind1 ind2)
-       (mutation-cluster args ctx)
-       (fill-individual-cluster args ctx)))
+  [args ctx graph ind1 ind2]
+  (->> (cluster-ind-intersecter ind1 ind2)
+       (mutation-cluster args ctx graph)
+       (fill-individual-cluster args ctx graph)))
 
 (defn- breeding 
   "Given two individuals, i.e. contexts, breeds a next new individual by
@@ -622,13 +682,12 @@
        (mutation args ctx graph)
        (fill-individual ctx graph)))
 
-(defn- next-generation-cluster
+(defnp next-generation-cluster
   "Given the current generation of contexts, breeds the next generation."
-  [args ctx generation]
-  (let [fitness-vals (->> generation
-                          (sort-by (partial fitness args ctx))
+  [args ctx graph generation]
+  (let [survivals (->> generation
+                          (sort-by (partial fitness args ctx) >)
                           (take (:survival-count args)))
-        survivals (take (:survival-count args) fitness-vals)
         pairing (->> survivals
                      shuffle
                      (partition 2))
@@ -640,7 +699,7 @@
              (->> (concat pairing (repeat (rand-pair)))
                   (take (- (:generation-size args) (:survival-count args)))
                   (into [])
-                  (pmap (fn [[ind1 ind2]] (breeding-cluster args ctx ind1 ind2))))))))
+                  (pmap (fn [[ind1 ind2]] (breeding-cluster args ctx graph ind1 ind2))))))))
 
 (defn- next-generation
   "Given the current generation of contexts, breeds the next generation."
@@ -662,14 +721,13 @@
                   (into [])
                   (map #(apply breeding args ctx graph %)))))))
 
-(defn- first-generation-cluster
+(defnp first-generation-cluster
   "Computes a first random generation of contexts with order dimension
   at most two."
-  [args ctx]
+  [args ctx init-ctx graph]
   (into [] 
         (pmap (fn [i]
-                (fill-individual-cluster args ctx
-                                         ((:init-cluster args) ctx))) 
+                (fill-individual-cluster args ctx graph init-ctx)) 
               (range (:generation-size args)))))
 
 (defn- first-generation
@@ -682,20 +740,22 @@
                            (:init args)))))
 
 
-(defn genetic-2d-cluster
+(defnp genetic-2d-cluster
   "Genetic algorithm to determine a maximal sub-context with order
   dimension at most two.  Maximal in terms of number of objects times
   number of attributes."
   [ctx & [args]]
-  (let [args (make-args-map (if (nil? args) {} args))]
+  (let [args (make-args-map (if (nil? args) {} args))
+        init-ind ((:init-cluster args) ctx)
+        graph (incompatibility-graph (ind2clustered-ctx args ctx init-ind))]
     (loop [n (:generations args) 
-           generation (first-generation-cluster args ctx)]
+           generation (first-generation-cluster args ctx init-ind graph)]
       (println "Generation: " (- (:generations args) n))
       (if (= n 0)
         (->> generation 
              (apply max-key (partial fitness args ctx))
              (ind2clustered-ctx args ctx))
-        (recur (dec n) (next-generation-cluster args ctx generation))))))
+        (recur (dec n) (next-generation-cluster args ctx graph generation))))))
 
 (defn genetic-2d-subctx
   "Genetic algorithm to determine a maximal sub-context with order
@@ -950,3 +1010,9 @@
         (recur  evaluated)))))
 
 
+
+; (def c (profile {:dynamic? true} (genetic-2d-cluster bj {:generation-size 30 :generations 2 :quant :all})))
+
+; (require '[conexp.io.contexts :refer :all])
+
+; (def bj (read-context "../data/bj.ctx"))
