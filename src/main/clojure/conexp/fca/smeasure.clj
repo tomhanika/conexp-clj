@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.smeasure
-  (:require [conexp.base :refer :all] 
+  (:require [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.concept-transform :refer :all]
             [conexp.fca.cover :refer [generate-concept-cover]]
@@ -27,7 +27,7 @@
   (equals [this other]
     (and (= (class this) (class other))
          (= (.context this) (.context ^ScaleMeasure other))
-         (every? #(= ((.measure this) %) 
+         (every? #(= ((.measure this) %)
                      ((.measure ^ScaleMeasure other) %))
                  (objects context))))
   (hashCode [this]
@@ -38,20 +38,97 @@
   (scale [this] scale)
   (measure [this] measure))
 
-(defn- pre-image-measure 
+;;; visualization terminal
+
+(defn ^String smeasure-to-string
+  "Prints smeasures in a human readable form."
+  [sm]
+  (let [context (context sm)
+        scale   (scale sm)
+        mapping (measure sm)
+				groups  (group-by #(mapping %) (objects context))
+				;;
+        ctx-incident? (incidence context)
+        sca-incident? (incidence scale)
+        ;;
+        max-att-ctx (reduce #(max %1 (count (str %2))) 0 (attributes context))
+        max-obj-ctx (reduce #(max %1 (count (str %2))) 0 (objects context))
+        max-att-sca (reduce #(max %1 (count (str %2))) 0 (attributes scale))
+        max-obj-sca (reduce #(max %1 (count (str %2))) 0 (objects scale))
+				;;
+				seg-line [(ensure-length "" max-obj-ctx "-") "-+"
+                  (for [att (attributes context)]
+                    (ensure-length "" (inc (count (print-str att))) "-"))
+                  "     "
+				          (ensure-length "" max-obj-sca "-") "-+"
+                  (for [att (attributes scale)]
+                    (ensure-length "" (inc (count (print-str att))) "-"))
+                  "\n"]]
+    (with-str-out
+			;; header
+      (ensure-length "" max-obj-ctx " ") " |" (for [att (attributes context)]
+                                                   [(print-str att) " "])
+			"     "
+      (ensure-length "" max-obj-ctx " ") " |" (for [att (attributes scale)]
+                                                   [(print-str att) " "]) "\n"
+			(for [[k group] groups]
+				;; first line in group
+        [seg-line
+         (ensure-length (print-str (first group)) max-obj-ctx)
+         " |"
+         (for [att (attributes context)]
+              [(ensure-length (if (ctx-incident? [(first group) att]) "x" ".")
+                              (count (print-str att)))
+               " "])
+				 " ⟶   "
+         (ensure-length (print-str (mapping (first group))) max-obj-sca)
+         " |"
+         (for [att (attributes scale)]
+              [(ensure-length (if (sca-incident? [(mapping(first group)) att]) 
+                                  "x" ".")
+                              (count (print-str att)))
+               " "])
+         "\n"
+				 ;; remaining lines
+				 (for [obj (drop 1 group)]
+              [(ensure-length (print-str obj) max-obj-ctx) " |"
+               (for [att (attributes context)]
+                    [(ensure-length (if (ctx-incident? [obj att]) "x" ".")
+                                    (count (print-str att)))
+                     " "])
+							 "     "
+               (ensure-length "" max-obj-ctx " ") " |"
+               (for [att (attributes scale)]
+                    [(ensure-length "" (count (print-str att)) " ")
+                     " "])
+               "\n"])]))))
+
+(defn print-smeasure
+  "Prints the result of applying smeasure-to-string to the given
+   smeasure."
+  [sm]
+  (print (smeasure-to-string sm)))
+
+(defmethod print-method ScaleMeasure [sm out]
+  (.write ^java.io.Writer out
+          ^String (smeasure-to-string sm)))
+
+;;;
+
+(defn- pre-image-measure
   "Returns the pre-image map of a scale measures function sigma."
   [sm]
   (let [m (measure sm)]
     (if (map? m)
-      (apply (partial merge-with into) {} 
+      (apply (partial merge-with into) {}
              (for [[k v] m] {v #{k}}))
-      (let [mapified (into {} 
-                           (for [obj (objects (context sm))] 
+      (let [mapified (into {}
+                           (for [obj (objects (context sm))]
                              [obj ((measure sm) obj)]))]
-        (apply (partial merge-with into) {} 
+        (apply (partial merge-with into) {}
              (for [[k v] mapified] {v #{k}}))))))
 
-(defn original-extents 
+(defn original-extents
   "Returns the pre-image of all extents whichs image is closed in the
   scale."
   [sm]
@@ -74,14 +151,14 @@
   (and (instance? ScaleMeasure sm)
        (valid-scale-measure? sm)))
 
-(defn make-smeasure 
+(defn make-smeasure
   "Returns a scale-measure object of the input is a valid scale measure."
   [ctx scale m]
   (let [sm (ScaleMeasure. ctx scale m)]
     (assert (valid-scale-measure? sm) "The Input is no valid Scale Measure")
     sm))
 
-(defn make-smeasure-nc 
+(defn make-smeasure-nc
   "Generates a scale measure object without checking the validity."
   [ctx scale m]
   (ScaleMeasure. ctx scale m))
@@ -91,11 +168,11 @@
   [ctx]
   (make-smeasure-nc ctx ctx identity))
 
-(defn remove-attributes-sm 
+(defn remove-attributes-sm
   "Removes 'attr attributes from the scale."
   [sm attr]
   (let [s (scale sm)
-        new-scale (make-context (objects s) 
+        new-scale (make-context (objects s)
                               (difference (attributes s) attr)
                               (incidence s))]
     (make-smeasure-nc (context sm) new-scale (measure sm))))
@@ -105,6 +182,7 @@
   set of objects or as key value pairs."
   (fn [type & args] type))
 (alter-meta! #'rename-scale assoc :private true)
+
 
 (defmethod rename-scale :objects
   ([_ sm rename-fn]
@@ -126,13 +204,14 @@
          rename-fn  (fn [a] (or (get rename-map a) a))]
      (rename-scale :attributes sm rename-fn))))
 
-(defn- valid-cluster 
+(defn- valid-cluster
   "This function is a predicate factory for valid scale measure clustering."
   [scale original]
   (let [get-exts (fn [cover] (set (map #(get-in cover [% :extent]) (keys cover))))
         ext (get-exts original)]
-    (fn [clustered-scale pre-image] 
+    (fn [clustered-scale pre-image]
       (let [ext-new (get-exts (transform-bv-cover scale clustered-scale original))]
+
         (subset? (set (map pre-image) ext-new) ext)))))
 
 (defmulti cluster-applier
@@ -144,6 +223,7 @@
   incidence."
   (fn [type quantifier & args] [type quantifier]))
 (alter-meta! #'cluster-applier assoc :private true)
+
 
 (defmethod cluster-applier [:attributes :ex]
   [_ _ ctx]
@@ -212,6 +292,7 @@
   [_ ctx s]
   (loop [broken-scale s]
     (let [br-exts (extents broken-scale)
+          ;todo smallest ext and repair obj or largest and repair attr
           pre-images (sort-by count 
                               (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
                                    br-exts)) 
@@ -554,7 +635,7 @@
   "Given the current generation of contexts, breeds the next generation."
   [args ctx graph generation]
   (let [survivals (->> generation
-                          (sort-by (partial fitness args ctx) >)
+                          (sort-by (partail fitness args ctx) >) ;; todo parallel fitness apply
                           (take (:survival-count args)))
         pairing (->> survivals
                      shuffle
@@ -716,10 +797,10 @@
         cluster-method (partial cluster cluster-kind cluster-incidence)
         cluster-content (ask (str "Please enter all "  (cluster-kind {:attributes "attributes" :objects "objects"}) " to be clustered with ; seperator: \n")
                              #(set (map read-string (clojure.string/split (str (read-line)) #";")))
-                             (fn [input] (every? 
+                             (fn [input] (println input) (every? 
                                           #(contains? ((cluster-kind {:attributes attributes :objects objects}) scale) %)
                                           input))
-                             (str "Input must be ; seperated an contain only " (cluster-kind {:attributes "attributes" :objects "objects"}) "of the scale:\n"))]
+                             (str "Input must be ; seperated an contain only " (cluster-kind {:attributes "attributes" :objects "objects"}) " of the scale:\n"))]
     (if (empty? cluster-content) state
         (let [clustered (cluster-method smeasure cluster-content)]
           (if (smeasure? clustered)
