@@ -281,55 +281,33 @@
                                          #{} a))))))
 
 ; todo check if smast cluster works after ordinary cluster
-(defmulti repair-cluster 
+
+(defn- repair-cluster 
   "Given a scale context constructs a valid smeasure scale by using as
   few cluster methods as possible. 'quantifier specifies the cluster
   quantifier used by the clustering methods."
-  (fn [quantifier & args] quantifier))
-(alter-meta! #'repair-cluster assoc :private true)
-
-(defmethod repair-cluster :all
-  [_ ctx s]
-  (loop [broken-scale s]
-    (let [br-exts (extents broken-scale)
+  [quant ctx s]
+     (loop [broken-scale s]
+     (let [br-exts (extents broken-scale)
           ;todo smallest ext and repair obj or largest and repair attr
-          pre-images (sort-by count 
-                              (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
-                                   br-exts)) 
-          not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
-                                (if (= orig-e e) nil orig-e)))
-          image (fn [o] (some 
-                         #(if (contains? % o) % false) (objects broken-scale)))
-          broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
-      (if broken
-        (let [fixed-intent (object-derivation s (reduce conj #{} (map image broken)))
-              fixed-extent (reduce conj #{} (map image broken))
-              [kind fixed-cluster] (first (filter #(-> % second count (> 1)) ;get smallest greater 1
-                                               (sort-by (comp count second) [[:objects fixed-extent] [:attributes fixed-intent]])))
-              apply-flattened-cluster (flattened-cluster-applier broken-scale kind :all)]
-          (recur (apply-flattened-cluster fixed-cluster)))
-        broken-scale))))
-
-(defmethod repair-cluster :ex
-  [_ ctx s]
-  (loop [broken-scale s]
-    (let [br-exts (extents broken-scale)
-          pre-images (sort-by count 
-                              (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
-                                   br-exts)) 
-          not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
-                                (if (= orig-e e) nil orig-e)))
-          image (fn [o] (some 
-                         #(if (contains? % o) % false) (objects broken-scale)))
-          broken (some not-closed? pre-images)] ; returns first non extent of lowest cardinality 
-      (if broken
-        (let [fixed-intent (object-derivation s (reduce conj #{} (map image broken)))
-              fixed-extent (reduce conj #{} (map image broken))
-              [kind fixed-cluster] (first (filter #(-> % second count (> 1)) ;get smallest greater 1
-                                               (sort-by (comp count second) [[:objects fixed-extent] [:attributes fixed-intent]])))
-              apply-flattened-cluster (flattened-cluster-applier broken-scale kind :ex)]
-          (recur (apply-flattened-cluster fixed-cluster)))
-        broken-scale))))
+           pre-images (sort-by count 
+                               (map (partial reduce into #{}) ;; pre-image: no renamed used and clusters are flat
+                                    br-exts)) 
+           rev-pre-images (reverse pre-images)
+           not-closed? (fn [e] (let [orig-e (context-object-closure ctx e)]
+                                 (if (= orig-e e) nil orig-e)))
+           image (fn [o] (some 
+                          #(if (contains? % o) % false) (objects broken-scale)))
+           broken (some not-closed? pre-images); returns first non extent of lowest cardinality 
+           rev-broken (if broken (some not-closed? rev-pre-images) nil)] 
+       (if broken
+         (let [fixed-intent (object-derivation broken-scale (reduce conj #{} (map image rev-broken)))
+               fixed-extent (reduce conj #{} (map image broken))
+               [kind fixed-cluster] (first (filter #(-> % second count (> 1)) ;get smallest greater 1
+                                                (sort-by (comp count second) [[:objects fixed-extent] [:attributes fixed-intent]])))
+               apply-flattened-cluster (flattened-cluster-applier broken-scale kind quant)]
+           (recur (apply-flattened-cluster fixed-cluster)))
+         broken-scale))))
 
 (defn- cluster-until-valid
   "This is a helper method, that applies a certain clustering until a
@@ -635,7 +613,7 @@
   "Given the current generation of contexts, breeds the next generation."
   [args ctx graph generation]
   (let [survivals (->> generation
-                          (sort-by (partail fitness args ctx) >) ;; todo parallel fitness apply
+                          (sort-by (partial fitness args ctx) >) ;; todo parallel fitness apply
                           (take (:survival-count args)))
         pairing (->> survivals
                      shuffle
