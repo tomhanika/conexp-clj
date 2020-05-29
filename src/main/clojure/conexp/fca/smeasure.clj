@@ -301,7 +301,12 @@
            broken (some not-closed? pre-images); returns first non extent of lowest cardinality 
            rev-broken (if broken (some not-closed? rev-pre-images) nil)] 
        (if broken
-         (let [fixed-intent (object-derivation broken-scale (reduce conj #{} (map image rev-broken)))
+         (let [fixed-intent (if (= quant :all) 
+                              (object-derivation broken-scale (reduce conj #{} (map image rev-broken)))
+                              (reduce into #{} 
+                                      (map (partial object-derivation broken-scale)
+                                           (map (partial conj #{}) 
+                                                (map image broken))))) ;; TODO need different derivation for :ex
                fixed-extent (reduce conj #{} (map image broken))
                [kind fixed-cluster] (first (filter #(-> % second count (> 1)) ;get smallest greater 1
                                                 (sort-by (comp count second) [[:objects fixed-extent] [:attributes fixed-intent]])))
@@ -491,7 +496,7 @@
   "This is a helper method to apply the smallest clustering out of a few
   random valid clusterings."
   [args ctx scale-ctx]
-  (let [kind  (rand-nth [:attributes :objects])
+  (let [kind (rand-nth [:attributes :objects])
         quant (:quant args)
         candidates (if (and (= :objects kind) (-> scale-ctx objects count (= 1) not)) 
                       (take 10 (partition 2 (shuffle (objects scale-ctx))))
@@ -557,13 +562,13 @@
   (fn [args & params] (:mode args)))
 (alter-meta! #'fitness assoc :private true)
 
-(defmethod fitness :concepts-cluster
+(defmethod fitness :concepts
   [args ctx {iobjs :objects iattr :attributes :as ind}]
   (-> (ind2clustered-ctx args ctx ind)
          concepts
          count))
 
-(defmethod fitness :nontrivia-clustered
+(defmethod fitness :nontrivia
   [args ctx {iobjs :objects iattr :attributes :as ind}]
   (let [sub-ctx (ind2clustered-ctx args ctx ind)
         nontrivia-obj (filter #(not (empty? (object-derivation sub-ctx #{%}))) 
@@ -573,7 +578,7 @@
     (* (count nontrivia-obj)
        (count nontrivia-attr))))
 
-(defmethod fitness :incidence-clustered
+(defmethod fitness :incidence
   [args ctx {iobjs :objects iattr :attributes :as ind}]
   (let [sub-ctx (ind2clustered-ctx args ctx ind)]
     (count (incidence-relation sub-ctx))))
@@ -654,7 +659,11 @@
         graph (incompatibility-graph (ind2clustered-ctx args ctx init-ind))
         decode (fn [ctx] (-> ctx
                              (rename-attributes  (fn [a] (if (< 1 (count a)) a (first a))))
-                             (rename-objects  (fn [b] (if (< 1 (count b)) b (first b))))))]
+                             (rename-objects  (fn [b] (if (< 1 (count b)) b (first b))))))
+        to-sm (fn [scale] (make-smeasure-nc ctx scale 
+                                            (fn [g] (if (contains? (objects scale) g) g 
+                                                        (some (fn [o] (and (set? o) (contains? o g))) 
+                                                              (objects c))))))]
     (loop [n (:generations args) 
            generation (first-generation args ctx init-ind graph)]
       (println "Generation: " (- (:generations args) n))
@@ -662,7 +671,8 @@
         (->> generation 
              (apply max-key (partial fitness args ctx))
              (ind2clustered-ctx args ctx)
-             decode)
+             decode
+             to-sm)
         (recur (dec n) (next-generation args ctx graph generation))))))
 
 
