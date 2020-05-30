@@ -12,7 +12,7 @@ much more.
 2. Don't Bother Me with Theory, I Want to Do Stuff! (aka: Tutorials)
    1. [A Gentle Introduction](doc/tutorials/icfca-2013/icfca2013-tutorial-live.org) (ICFCA 2013)
    2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.md)
-3. Basic Usage
+3. A more complete overview over `conexp-clj`
    1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.md)
    2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.md)
    3. [Concept Lattices](doc/Concept-Lattices.md)
@@ -20,18 +20,17 @@ much more.
    5. [Implications](doc/Implications.md)
    6. [Exploration](doc/Exploration.md)
    7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.md)
-4. Advanced Usage
-   1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
-5. Use cases of conexp-clj
+   8. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
+4. Example use cases of `conexp-clj`
    1. [Formal Contexts from Implications](doc/code/implication-closure.clj)
    2. [A Formal Context of Functions](doc/code/function-context.clj)
    3. [Context of All Permutations on a Finite Set](doc/code/permutation-context.clj)
    4. [The Tamari Lattice](doc/code/tamari-lattice.clj)
-6. Interoperability
+5. Interoperability
    1. [Calling conexp-clj functions from Java](doc/Java.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
-7. [API documentation](doc/API.md)
-8. [Development](doc/Development.org)
+6. [API documentation](doc/API.md)
+7. [Development](doc/Development.org)
 
 
 ## History
