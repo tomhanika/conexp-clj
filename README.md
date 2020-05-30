@@ -26,6 +26,11 @@ much more.
    2. [A Formal Context of Functions](doc/code/function-context.clj)
    3. [Context of All Permutations on a Finite Set](doc/code/permutation-context.clj)
    4. [The Tamari Lattice](doc/code/tamari-lattice.clj)
+   5. [Preconcept Covers](doc/code/covering-preconcepts.clj)
+   6. [Number of Elements of the Free Distributive
+      Lattice](doc/code/free-distributive-lattice.clj)
+   7. [Counting Linear Extensions](doc/code/linear_extensions.clj)
+   8. [Computing Traces in Contexts](doc/code/trace-context.clj)
 5. Interoperability
    1. [Calling conexp-clj functions from Java](doc/Java.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
