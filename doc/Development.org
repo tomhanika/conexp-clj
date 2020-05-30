@@ -1,0 +1,20 @@
+
+** Testing ~conexp-clj~
+
+Install leinigen as described in [[file:Getting-Started.md][Getting Started]] and run
+
+#+begin_src sh :eval never
+lein test
+#+end_src
+
+** Compilation Instructions for ~conexp-clj~
+
+Run
+
+#+begin_src sh :eval never
+lein ueberjar
+#+end_src
+
+This will create self-contained jar files in the ~builds/uberjar~ named similar
+to ~conexp-clj-2.1.0-SNAPSHOT-standalone.jar~.
+
