@@ -226,7 +226,7 @@ Note that this will not give you a picture of the lattice, but a representation 
 
 This will open up a new window which should look like this
 
-![Sample screenshot of the lattice drawer](cevron-concept-lattice.png)
+![Sample screenshot of the lattice drawer](images/cevron-concept-lattice.png)
 
 ### Canonical Base
 
