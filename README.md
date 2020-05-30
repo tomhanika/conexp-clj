@@ -12,28 +12,28 @@ much more.
 2. Don't Bother Me with Theory, I Want to Do Stuff! (aka: Tutorials)
    1. [A Gentle Introduction](doc/tutorials/icfca-2013/icfca2013-tutorial-live.org) (ICFCA 2013)
    2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.md)
-3. [Basic Notation and Syntax](doc/Basic-Notation-and-Syntax.md)
-4. Basic Usage
-   1. [Creating and Working with Formal Contexts](doc/Formal-Contexts.md)
-   2. [Concept Lattices](doc/Concept-Lattices.md)
-   3. [IO](doc/IO.md)
-   4. [Implications](doc/Implications.md)
-   5. [Exploration](doc/Exploration.md)
-   6. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.md)
-5. Advanced Usage
+3. Basic Usage
+   1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.md)
+   2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.md)
+   3. [Concept Lattices](doc/Concept-Lattices.md)
+   4. [IO](doc/IO.md)
+   5. [Implications](doc/Implications.md)
+   6. [Exploration](doc/Exploration.md)
+   7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.md)
+4. Advanced Usage
    1. [Factorizing Formal Contexts](doc/code/factor-analysis.clj)
    2. [Fuzzy FCA in conexp-clj](doc/code/fuzzy.clj)
    3. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
-6. Use cases of conexp-clj
+5. Use cases of conexp-clj
    1. [Formal Contexts from Implications](doc/code/implication-closure.clj)
    2. [A Formal Context of Functions](doc/code/function-context.clj)
    3. [Context of All Permutations on a Finite Set](doc/code/permutation-context.clj)
    4. [The Tamari Lattice](doc/code/tamari-lattice.clj)
-7. Interoperability
+6. Interoperability
    1. [Calling conexp-clj functions from Java](doc/Java.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
-8. [API documentation](doc/API.md)
-9. [Development](doc/Development.md)
+7. [API documentation](doc/API.md)
+8. [Development](doc/Development.md)
 
 
 ## History
