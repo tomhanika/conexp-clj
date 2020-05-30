@@ -110,7 +110,7 @@ depending on the input, the returned list may be quite long.
 #+end_src
 
 #+RESULTS:
-#+begin_src clojure
+#+begin_src text
 -------------------------
 conexp.fca.implications/approx-canonical-base
 ([ctx ε δ])
