@@ -16,7 +16,7 @@ much more.
    1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.md)
    2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.org)
    3. [Concept Lattices](doc/Concept-Lattices.md)
-   4. [IO](doc/IO.org)
+   4. [IO for Formal Contexts](doc/IO.org)
    5. [Implications](doc/Implications.org)
    6. [Exploration](doc/Exploration.md)
    7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.org)
