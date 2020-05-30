@@ -11,7 +11,7 @@ much more.
 1. [Getting Started](doc/Getting-Started.md)
 2. Don't Bother Me with Theory, I Want to Do Stuff! (aka: Tutorials)
    1. [A Gentle Introduction](doc/tutorials/icfca-2013/icfca2013-tutorial-live.org) (ICFCA 2013)
-   2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.md)
+   2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.org)
 3. A more complete overview over `conexp-clj`
    1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.md)
    2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.org)
