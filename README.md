@@ -20,7 +20,6 @@ much more.
    5. [Implications](doc/Implications.org)
    6. [Exploration](doc/Exploration.org)
    7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.org)
-   8. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
 4. Example use cases of `conexp-clj`
    1. [Formal Contexts from Implications](doc/code/implication-closure.clj)
    2. [A Formal Context of Functions](doc/code/function-context.clj)
@@ -33,7 +32,8 @@ much more.
    8. [Computing Traces in Contexts](doc/code/trace-context.clj)
    9. [Counting Quasiorders](doc/code/quasiorders.clj)
    10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
-5. Interoperability
+5. Advanced Topics
+   1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
