@@ -1,7 +1,7 @@
-This is the [conexp-clj](http://github.com/tomhanika/conexp-clj) community wiki.  It may serve
-both as discussion board for conexp-clj in particular, and for FCA software in general.
+#+title: Official Documentation of ~conexp-clj~
 
-** Overview
+This is the official documentation of [[http://github.com/tomhanika/conexp-clj][conexp-clj]], a general purpose tool for
+Formal Concept Analysis.
 
 1. [[./Getting-Started.md][Getting Started]]
 2. [[./Basic-Notation-and-Syntax.md][Basic Notation and Syntax]]
