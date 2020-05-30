@@ -23,6 +23,7 @@ Formal Concept Analysis.
    1. [[file:code/function-context.clj][A Formal Context of Functions]]
    2. [[file:code/permutation-context.clj][Context of All Permutations on a Finite Set]]
    3. [[file:code/tamari-lattice.clj][The Tamari Lattice]]
-7. Other Features
+7. Interoperability
    1. [[./Java.md][Calling conexp-clj functions from Java]]
+   2. [[file:REST-API-usage.md][REST-API Usage]]
 8. [[./API.md][API documentation]]
