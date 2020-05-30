@@ -18,7 +18,7 @@ much more.
    3. [Concept Lattices](doc/Concept-Lattices.org)
    4. [IO for Formal Contexts](doc/IO.org)
    5. [Implications](doc/Implications.org)
-   6. [Exploration](doc/Exploration.md)
+   6. [Exploration](doc/Exploration.org)
    7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.org)
    8. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
 4. Example use cases of `conexp-clj`
