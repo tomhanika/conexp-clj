@@ -21,8 +21,7 @@ much more.
    6. [Exploration](doc/Exploration.md)
    7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.md)
 4. Advanced Usage
-   1. [Factorizing Formal Contexts](doc/code/factor-analysis.clj)
-   2. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
+   1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
 5. Use cases of conexp-clj
    1. [Formal Contexts from Implications](doc/code/implication-closure.clj)
    2. [A Formal Context of Functions](doc/code/function-context.clj)
