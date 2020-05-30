@@ -5,6 +5,10 @@
 
 This tutorial has been given by Daniel Borchmann at the 11th ICFCA 2013.
 
+Note: the corresponding Org Mode file contains source blocks that can be
+exectued directly.  See [[../../Setting-up-Emacs-to-run-Clojure-Code.org][Setting up Emacs to Run Clojure Code]] for how to exectue
+those blocks from within the document.
+
 ** Creating Formal Contexts
 
 As ~conexp-clj~ is a general purpose tool for Formal Concept Analysis, it lets
