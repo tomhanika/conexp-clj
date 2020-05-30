@@ -37,11 +37,14 @@
                  [http-kit "2.3.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]]
   :profiles {:uberjar {:main conexp.main
+                       :dependencies [[javax.servlet/servlet-api "2.5"]
+                                      [org.clojure/data.json "0.2.6"]
+                                      [ring/ring-mock "0.4.0"]]
                        :aot :all}
              :dev {:main conexp.main
                    :dependencies [[javax.servlet/servlet-api "2.5"]
-                                    [org.clojure/data.json "0.2.6"]
-                                    [ring/ring-mock "0.4.0"]]}}
+                                  [org.clojure/data.json "0.2.6"]
+                                  [ring/ring-mock "0.4.0"]]}}
   :plugins [[org.clojars.benfb/lein-gorilla "0.6.0"]]
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
