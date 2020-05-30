@@ -86,7 +86,7 @@ functionality, but also quite (not to say: really) buggy.
 For general help on a function ~f~, you can use the clojure function ~doc~.  For
 example, to see the documentation of ~make-context~, just run
 
-#+begin_src clojure :results both
+#+begin_src clojure :exports both
 (doc make-context)
 #+end_src
 
@@ -107,7 +107,7 @@ nil
 For finding functions you may find useful, you can use ~find-doc~.  Note that
 depending on the input, the returned list may be quite long.
 
-#+begin_src clojure :results both
+#+begin_src clojure :exports both
 (find-doc "canonical-base")
 #+end_src
 
