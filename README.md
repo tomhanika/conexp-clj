@@ -63,15 +63,15 @@ The current main source of documentation on conexp-clj is its
 [Wiki](http://github.com/tomhanika/conexp-clj/wiki).  Additionally, for general help on a
 function `f`, you can use the clojure function `doc` with
 
-~~~
+```clojure
 (doc f)
-~~~
+```
 
 For finding functions you may find useful, you can use `find-doc`
 
-~~~
+```clojure
 (find-doc "Whatever you may find useful")
-~~~
+```
 
 Additional Documentation:
 
@@ -120,15 +120,15 @@ a repl just issue
     $ lein repl
 
 If you want a more sophisticated repl, you may try
-[nrepl.el](http://github.com/kingtim/nrepl.el).
+[cider](https://github.com/clojure-emacs/cider).
 
 
 ## Compilation Instructions for conexp-clj
 
-To create a standalone zip on your own, just run `make` in the top source directory. This
-will (should) do everything to create a zip archive containing a compiled version of
-conexp-clj. You can also run this compiled version directly by invoking
-./conexp-clj/bin/conexp-clj (after unpacking the .zip file.)
+To create a standalone zip on your own, just run `make` in the top source
+directory. This will (should) do everything to create a zip archive containing a
+compiled version of conexp-clj. You can also run this compiled version directly
+by invoking `./conexp-clj/bin/conexp-clj` (after unpacking the .zip file.)
 
 
 ## Contributing Authors
@@ -137,7 +137,7 @@ See [AUTHORS.md](AUTHORS.md).
 
 ## License
 
-Copyright ⓒ 2009—2018 Daniel Borchmann
+Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2020 Tom Hanika
 
 Distributed under the Eclipse Public License.
 
