@@ -1,34 +1,9 @@
 # conexp-clj [![Build Status](https://travis-ci.org/tomhanika/conexp-clj.svg?branch=dev)](https://travis-ci.org/tomhanika/conexp-clj)
 
 This is conexp-clj, a general purpose software tool for [Formal Concept
-Analysis](http://www.upriss.org.uk/fca/fca.html).
-
-The project has been started by Daniel Borchmann under supervision of Christian
-Meschke as part of the DFG project GA 216/10-1.
-
-
-## Features
-
-conexp-clj is a pocket-calculator for Formal Concept Analysis.  Its main purpose is to
-enable nontrivial examples to be computed easily.
-
-conexp-clj features include:
-
-* Basic Operations on Formal Contexts
-* Relational Algebra with Formal Contexts
-* Transparent IO for Formal Contexts (in development)
-* Scaling for Many-Valued Contexts
-* Implicational Theory and Basic Attribute Exploration
-* NextClosure (of course)
-* Computing Luxenburger-Bases and Iceberg Concept Sets
-* IO for Many-Valued Contexts
-* Lattice Layouts and Lattice IO (some...)
-* A bit of Fuzzy-FCA
-* Interface for sage
-
-Note that conexp-clj is not a high-performance tool for Formal Concept Analysis.
-If you want this, check out Uta Priss' [website on FCA
-software](http://www.upriss.org.uk/fca/fcasoftware.html).
+Analysis](http://www.upriss.org.uk/fca/fca.html).    Its main purpose is to
+enable nontrivial examples to be computed easily, but it can be used for much,
+much more.
 
 
 ## Documentation
@@ -61,9 +36,27 @@ software](http://www.upriss.org.uk/fca/fcasoftware.html).
 9. [Development](doc/Development.md)
 
 
+## History
+
+The project has been started by Daniel Borchmann under supervision of Christian
+Meschke as part of the DFG project GA 216/10-1.  It has since been developed
+further into a general purpose FCA tool by Daniel Borchmann until his departure
+from academia in 2017.  From then on, Tom Hanika took over and is still the
+principal maintainer of `conexp-clj`.
+
+
+## Limitations
+
+Note that `conexp-clj` is not a high-performance tool for Formal Concept
+Analysis and may sometimes be considerably slower then comparable tools.  If you
+want more performance, check out Uta Priss' [website on FCA
+software](http://www.upriss.org.uk/fca/fcasoftware.html).
+
+
 ## Contributing Authors
 
 See [AUTHORS.md](AUTHORS.md).
+
 
 ## License
 
