@@ -25,6 +25,10 @@ contexts on success.  Supported formats for input are
 - Galicia (`:galicia`)
 - Anonymous Burmeister (`:anonymous-burmeister`)
 
+See [Common FCA File Formats for Formal
+Contexts](Common-FCA-File-Formats-for-Formal-Contexts.org) for somewhat more
+details on those formats.
+
 You can get the list of available input formats for contexts by executing `(list-context-input-formats)`.
 
 In case `conexp-clj` fails to determine your format correctly, you can explicitly specify
