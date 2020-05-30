@@ -1,6 +1,6 @@
 #+title: ~conexp-clj~ live presentation at ICFCA 2013
 
-#+property: header-args :wrap src text :exports both
+#+property: header-args :wrap src text
 #+property: header-args:text :eval never
 
 This tutorial has been given by Daniel Borchmann at the 11th ICFCA 2013.
@@ -25,7 +25,7 @@ following example.
 
 To see the formal context, just evaluate its variable explicitly
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 ctx-1
 #+end_src
 
@@ -55,7 +55,7 @@ prompt)
 
 To obtain a formal context for this, we can use the following command
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (def ctx-2 (make-context #{1 2 3 4 5 6}
                          #{1 2 3 4 5 6}
                          #{[1 1] [1 2] [1 3] [1 5]
@@ -81,7 +81,7 @@ ctx-2
 One can enter the cross-table explicitly, using the function ~make-context-from-matrix~,
 like this
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (def ctx-3 (make-context-from-matrix 6 6
                                      [1 1 1 0 1 1
                                       0 1 0 0 1 0
@@ -116,7 +116,7 @@ For some experiments it is often helpful to randomly create contexts.  Here is h
 can be done in conexp-clj.  Of course, the exact result is probably not the one you see
 here
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (rand-context #{1 2 3} 0.5)
 #+end_src
 
@@ -124,9 +124,9 @@ here
 #+begin_src text
   |1 2 3 
 --+------
-1 |. . . 
-2 |. . . 
-3 |x . . 
+1 |x . . 
+2 |x . x 
+3 |x x . 
 
 #+end_src
 
@@ -140,7 +140,7 @@ the probality for the incidence.
 Having created a formal context, there a plenty of possibilities to work with it.  To
 illustrate this, let us define the Chevron again
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (def ctx-1 (make-context-from-matrix ['a 'b 'c 'd 'e 'f]
                                      ['a 'b 'c 'd 'e 'f]
                                      [1 1 1 0 1 1
@@ -172,7 +172,7 @@ Note that ='a= denotes the symbol named ~a~.
 The most basic operation on formal contexts is to retrieve its components.  This
 can be done as follows
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (objects ctx-1)
 #+end_src
 
@@ -181,7 +181,7 @@ can be done as follows
 #{a e c b d f}
 #+end_src
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (attributes ctx-1)
 #+end_src
 
@@ -190,7 +190,7 @@ can be done as follows
 #{a e c b d f}
 #+end_src
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (incidence ctx-1)
 #+end_src
 
@@ -204,7 +204,7 @@ can be done as follows
 
 To see if ~ctx-1~ is clarified, you can also use
 
-#+begin_src clojure :results output
+#+begin_src clojure :exports both
 (object-clarified? ctx-1)
 #+end_src
 
@@ -213,7 +213,7 @@ To see if ~ctx-1~ is clarified, you can also use
 true
 #+end_src
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (attribute-clarified? ctx-1)
 #+end_src
 
@@ -224,7 +224,7 @@ true
 
 or both steps at once using
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (context-clarified? ctx-1)
 #+end_src
 
@@ -245,7 +245,7 @@ If ~ctx-1~ would not be clarified, one could obtain a clarified version of
 As another example, for ~ctx-1~, we could for instance compute the arrow relations
 (e.g. to see which objects or attributes are irreducible)
 
-#+begin_src clojure :results output
+#+begin_src clojure :exports both
 (up-arrows ctx-1)
 #+end_src
 
@@ -254,7 +254,7 @@ As another example, for ~ctx-1~, we could for instance compute the arrow relatio
 #{[d c] [e b] [f c] [e f] [f e] [b f] [a d] [d b] [c e]}
 #+end_src
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (down-arrows ctx-1)
 #+end_src
 
@@ -265,7 +265,7 @@ As another example, for ~ctx-1~, we could for instance compute the arrow relatio
 
 To directly see whether ~ctx-1~ is reduced, one could also use
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (context-reduced? ctx-1)
 #+end_src
 
@@ -276,7 +276,7 @@ false
 
 and to obtain a reduced version of ~ctx-1~
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (reduce-context ctx-1)
 #+end_src
 
@@ -295,7 +295,7 @@ d |. . x x x
 
 Now I want to get all objects, which attribute a and b have in common
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (attribute-derivation ctx-1 #{'a 'b})
 #+end_src
 
@@ -306,7 +306,7 @@ Now I want to get all objects, which attribute a and b have in common
 
 The same can be done for sets of objects
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (object-derivation ctx-1 #{'c 'd 'f})
 #+end_src
 
@@ -321,17 +321,16 @@ Instead of using this long names, there are also the abbreviations ~aprime~ and
 If you want to compute the closure of a given set of objects or attributes in
 our context use
 
-#+begin_src clojure
-(context-attribute-closure ctx-1 #{'a 'b}))
+#+begin_src clojure :exports both
+(context-attribute-closure ctx-1 #{'a 'b})
 #+end_src
 
 #+RESULTS:
 #+begin_src text
 #{a e c b f}
-class clojure.lang.LispReader$ReaderExceptionclass java.lang.RuntimeExceptionRuntimeException Unmatched delimiter: )  clojure.lang.Util.runtimeException (Util.java:221)
 #+end_src
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (context-object-closure ctx-1 #{'a 'b})
 #+end_src
 
@@ -344,7 +343,7 @@ class clojure.lang.LispReader$ReaderExceptionclass java.lang.RuntimeExceptionRun
 
 We can compute all intents and extents via
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (extents ctx-1)
 #+end_src
 
@@ -361,7 +360,7 @@ We can compute all intents and extents via
  #{a e c b d f})
 #+end_src
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (intents ctx-1)
 #+end_src
 
@@ -380,7 +379,7 @@ We can compute all intents and extents via
 
 To get all formal concepts use
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (concepts ctx-1)
 #+end_src
 
@@ -399,7 +398,7 @@ To get all formal concepts use
 
 If you are only interested in the number of formal concepts, you can instead write
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (count (concepts ctx-1))
 #+end_src
 
@@ -410,7 +409,7 @@ If you are only interested in the number of formal concepts, you can instead wri
 
 Finally, you can compute the concept lattice via
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (concept-lattice ctx-1)
 #+end_src
 
@@ -436,7 +435,7 @@ This will open up a new window which should look like this
 
 You get the canonical base with (who would have guessed that!)
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (canonical-base ctx-1)
 #+end_src
 
@@ -455,7 +454,7 @@ You get the canonical base with (who would have guessed that!)
 There a several further operations you can do with contexts, e.g. the context
 apposition. We define two contexts:
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (def ctx-1 (make-context #{1 2 3} #{1 2 3} <))
 (def ctx-2 (make-context-from-matrix [1 2 3]
                                      ['a 'b 'c 'd]
@@ -483,7 +482,7 @@ apposition. We define two contexts:
 
 The apposition of these two contexts is
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (context-apposition ctx-1 ctx-2)
 #+end_src
 
@@ -502,7 +501,7 @@ considering pairs with different second entry.
 
 To compute the dual context, we use
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (dual-context ctx-2)
 #+end_src
 
@@ -519,7 +518,7 @@ d |x . x
 
 Now we can build the subposition of ~ctx-1~ and the dual of ~ctx-2~
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (context-subposition ctx-1 (dual-context ctx-2))
 #+end_src
 
@@ -539,7 +538,7 @@ Now we can build the subposition of ~ctx-1~ and the dual of ~ctx-2~
 
 If you want to invert a given context use
 
-#+begin_src clojure
+#+begin_src clojure :exports both
 (invert-context ctx-1)
 #+end_src
 
