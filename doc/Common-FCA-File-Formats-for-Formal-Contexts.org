@@ -1,0 +1,160 @@
+The aim of this page is to present and discuss commonly used file formats in FCA
+software. It may also serve as a platform to design new formats not yet
+implemented in any program.
+
+** Burmeister Format
+
+This file format is the file format of Burmeisters ~ConImp~, and is supported by
+a number of programs. It is easily recognizable, human readable and small.
+
+Burmeister's format is supported by ~ConImp~, ~ConExp~, ~conexp-clj~.
+
+*** Structure
+
+The file format is structured as follows:
+
+- the first line consists of a single ~B~
+- the second line contains the name of the context (note that some programs ignore this)
+- the third and fourth line consist of the object and attribute count, respectively
+- the fifth line is empty or contains a comment
+- after that, all objects and all attributes are listed, each on a separate line
+- finally, the context is given as a combination of ~.~ and ~X~, each row on a
+  separate line.
+
+There are no restrictions on the context.
+
+*** Example
+
+#+begin_src text
+B
+name
+2
+2
+
+a
+b
+1
+2
+.X
+XX
+#+end_src
+
+corresponds to the context
+
+#+begin_src text
+   | 1  2
+---+------
+ a | .  X 
+ b | X  X
+#+end_src
+
+** Colibri
+
+*** Example
+
+#+begin_src text
+a: 1
+b: 1,2
+#+end_src
+
+** ConExp
+
+*** Example
+
+#+begin_src xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ConceptualSystem>
+  <Version MajorNumber="1" MinorNumber="0"/>
+  <Contexts>
+    <Context Type="Binary" Identifier="0">
+      <Attributes>
+        <Attribute Identifier="1">
+          <Name>2</Name>
+        </Attribute>
+        <Attribute Identifier="0">
+          <Name>1</Name>
+        </Attribute>
+      </Attributes>
+      <Objects>
+        <Object>
+          <Name>a</Name>
+          <Intent>
+            <HasAttribute AttributeIdentifier="1"/>
+          </Intent>
+        </Object>
+        <Object>
+          <Name>b</Name>
+          <Intent>
+             <HasAttribute AttributeIdentifier="0"/>
+             <HasAttribute AttributeIdentifier="1"/>
+          </Intent>
+        </Object>
+      </Objects>
+    </Context>
+  </Contexts>
+</ConceptualSystem>
+#+end_src
+
+corresponds to the context
+
+#+begin_src text
+   | 1 2 
+---+-----
+ a | . x
+ b | x x
+#+end_src
+
+** CSV
+
+*** Example
+
+#+begin_src text
+a,2
+b,1
+b,2
+#+end_src
+
+** FIMI
+
+Used by Galicia and Galicia2.
+
+*** Example
+
+#+begin_src xml
+<Galicia_Document>
+  <BinaryContext numberObj="2" numberAtt="2">
+    <Name>Context</Name>
+    <Object>a</Object>
+    <Object>b</Object>
+    <Attribute>1</Attribute>
+    <Attribute>2</Attribute>
+    <BinRel idxO="0" idxA="1"></BinRel>
+    <BinRel idxO="1" idxA="0"></BinRel>
+    <BinRel idxO="1" idxA="1"></BinRel>
+  </BinaryContext>
+</Galicia_Document>
+#+end_src
+
+** Anonymous Burmeister
+
+This file format is specific to ~conexp-clj~ and it's main purpose is to provide
+some idea of an unrestricted anonymous format for formal contexts.  Essentially,
+one leaves out in the Burmeister format the name of the context, and names of
+the objects, and the names of the attributes.
+
+*** Example
+
+#+begin_src text
+A
+.X
+XX
+#+end_src
+
+** FCALGS
+
+*** Example
+
+#+begin_src text
+2
+1 2
+#+end_src
