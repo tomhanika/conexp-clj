@@ -286,6 +286,30 @@ rctx
 #+end_src
 
 Note that Luxenburger's base *does not* include valid implications.  If you want
-to have these as well, you can compute in addition the canonical base, even
-together with a support threshold.  See the documentation of ~canonical-base~
-for this.
+to have these as well, you can additionally compute the canonical base with the
+desired support threshold:
+
+#+begin_src clojure :exports both
+(canonical-base rctx #{} #(>= (support % rctx) 0.2))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+((#{2} ⟶ #{0})
+ (#{3 8} ⟶ #{5})
+ (#{6 8} ⟶ #{0 4})
+ (#{6 5} ⟶ #{4})
+ (#{6 9} ⟶ #{7 4})
+ (#{4 8} ⟶ #{0})
+ (#{4 9} ⟶ #{7 6})
+ (#{4 3} ⟶ #{5})
+ (#{1} ⟶ #{0 2})
+ (#{7} ⟶ #{4})
+ (#{7 4 5} ⟶ #{3})
+ (#{7 4 6} ⟶ #{9})
+ (#{0 8} ⟶ #{4})
+ (#{0 5} ⟶ #{4})
+ (#{0 4 5 8} ⟶ #{2})
+ (#{0 4 2} ⟶ #{8})
+ (#{0 7 4} ⟶ #{8}))
+#+end_src
