@@ -81,7 +81,7 @@ After this, the function `draw-lattice` can be used to display a lattice
 As a result, a window should open which shows the lattice.  In addition, some
 functionality is provided that allows to further improve the image manually.
 
-![Lattice Editor Example](https://raw.github.com/wiki/exot/conexp-clj/draw-lattice-01.png)
+![Lattice Editor Example](draw-lattice-01.png)
 
 The layout used by `draw-lattice` is defined in `standard-layout`.  Other layouts can be
 provided to `draw-lattice` as an additional argument

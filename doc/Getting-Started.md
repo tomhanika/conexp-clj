@@ -21,7 +21,7 @@ You can now use all the power of formal concept analysis from conexp-clj, and al
 
 It is also possible to get command line access for conexp-clj directly from its source.  Getting this to work requires the following three (easy) steps:
 
-1. Get the [source code](http://github.com/exot/conexp-clj) of conexp-clj
+1. Get the [source code](http://github.com/tomhanika/conexp-clj) of conexp-clj
 2. Get [Leiningen](https://github.com/technomancy/leiningen)
 3. Run the following command from the toplevel directory of the source code of conexp-clj
 
