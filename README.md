@@ -14,7 +14,7 @@ much more.
    2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.md)
 3. A more complete overview over `conexp-clj`
    1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.md)
-   2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.md)
+   2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.org)
    3. [Concept Lattices](doc/Concept-Lattices.md)
    4. [IO](doc/IO.org)
    5. [Implications](doc/Implications.md)
