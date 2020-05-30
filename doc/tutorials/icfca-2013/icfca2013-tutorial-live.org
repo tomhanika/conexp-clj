@@ -1,7 +1,7 @@
-#+title: ~conexp-clj~ live presentation at ICFCA 2013
-
 #+property: header-args :wrap src text
 #+property: header-args:text :eval never
+
+* ~conexp-clj~ live presentation at ICFCA 2013
 
 This tutorial has been given by Daniel Borchmann at the 11th ICFCA 2013.  There
 are also some [[file:icfca2013-tutorial-talk.pdf][slides]] ([[file:icfca2013-tutorial-talk.tex][partial tex]]) and even an [[file:icfca2013-tutorial-exercise.pdf][exercise sheet]] ([[file:icfca2013-tutorial-exercise.tex][partial tex]]) from
