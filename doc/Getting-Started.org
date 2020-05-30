@@ -20,7 +20,9 @@ This will get you a prompt for ~conexp-clj~ much like
 conexp.main=>
 #+end_src
 
-You can now use all the power of formal concept analysis from `conexp-clj`, and also everything Clojure provides.  For example, you can compute the value of the expression `1 + 1` as
+You can now use all the power of formal concept analysis from ~conexp-clj~, and
+also everything Clojure provides.  For example, you can compute the value of the
+expression ~1 + 1~ as
 
 #+begin_src text
 conexp.main=> (+ 1 1)
@@ -158,5 +160,3 @@ conexp.fca.implications/parallel-canonical-base-from-clop
   predicate.
 nil
 #+end_src
-
-```
