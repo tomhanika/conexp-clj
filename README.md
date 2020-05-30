@@ -32,7 +32,7 @@ much more.
    1. [Calling conexp-clj functions from Java](doc/Java.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
 7. [API documentation](doc/API.md)
-8. [Development](doc/Development.md)
+8. [Development](doc/Development.org)
 
 
 ## History
