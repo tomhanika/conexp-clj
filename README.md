@@ -8,7 +8,7 @@ much more.
 
 ## Documentation
 
-1. [Getting Started](doc/Getting-Started.md)
+1. [Getting Started](doc/Getting-Started.org)
 2. Don't Bother Me with Theory, I Want to Do Stuff! (aka: Tutorials)
    1. [A Gentle Introduction](doc/tutorials/icfca-2013/icfca2013-tutorial-live.org) (ICFCA 2013)
    2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.org)

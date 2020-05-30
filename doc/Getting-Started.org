@@ -1,0 +1,162 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Getting Started with ~conexp-clj~
+
+** Running conexp-clj from pre-compiled binaries
+
+To run ~conexp-clj~, a Java Runtime Environment with version ≥ 1.8.  The
+recommended way to use ~conexp-clj~ outside of development is to download a
+[[http://algebra20.de/conexp-clj-2.0.0-RC1.jar][pre-compiled version]].  These are just usual Java jar files and can be used like
+this:
+
+#+begin_src sh :eval never
+java -jar conexp-clj-2.0.0-RC1.jar
+#+end_src
+
+This will get you a prompt for ~conexp-clj~ much like
+
+#+begin_src text
+conexp.main=>
+#+end_src
+
+You can now use all the power of formal concept analysis from `conexp-clj`, and also everything Clojure provides.  For example, you can compute the value of the expression `1 + 1` as
+
+#+begin_src text
+conexp.main=> (+ 1 1)
+2
+#+end_src
+
+(where you do not type the ~conexp.main=>~ and the 2 is the result of the
+evaluation.
+
+** Running conexp-clj directly from source
+
+It is also possible to get command line access for ~conexp-clj~ directly from
+its source.  You usually want to do that while developing new features for
+~conexp-clj~, or when integrating ~conexp-clj~ into IDEs.  Getting this to work
+requires the following two (easy) steps:
+
+1. Get the [[http://github.com/tomhanika/conexp-clj][source code]] of ~conexp-clj~
+2. Get [[https://github.com/technomancy/leiningen][Leiningen]], the build tool used by ~conexp-clj~
+
+Then, to run ~conexp-clj~ directly from source, switch in the source directory of ~conexp-clj~ and run
+
+#+begin_src sh :eval never
+lein deps
+#+end_src
+
+This will download any missing jar files needed for ~conexp-clj~ to run.  To
+quickly obtain a repl just issue
+
+#+begin_src sh :eval never
+lein repl
+#+end_src
+
+This will give you a command prompt as in the previous case.
+
+If you want a more sophisticated repl, you may try [[https://github.com/clojure-emacs/cider][Emacs Cider]].
+
+** Loading Code from a File
+
+Typing in long sequences of commands is tedious, and ~conexp-clj~ inherits from
+Clojure the possibility to compile and run complex programs.  Everything you can
+type into the prompt can also be written into a file, say ~file.clj~.  To run
+(and compile) this file, just type do
+
+#+begin_src clojure :eval never
+(load-file "file.clj")
+#+end_src
+
+** Graphical User Interface
+
+It is also possible to use ~conexp-clj~'s incomplete GUI fragment.  You can start it running the following code in you favourite shell
+
+#+begin_src sh :eval never
+java -jar conexp-clj-2.0.0-RC1.jar -g
+#+end_src
+
+But please note that the GUI is not only (inherently) limited in its
+functionality, but also quite (not to say: really) buggy.
+
+** Online Documentation (No Network Required!)
+
+For general help on a function ~f~, you can use the clojure function ~doc~.  For
+example, to see the documentation of ~make-context~, just run
+
+#+begin_src clojure :results both
+(doc make-context)
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+-------------------------
+conexp.fca.contexts/make-context
+([objects attributes incidence])
+  Standard constructor for contexts. Takes a sequence of objects,
+  a sequence of attributes and either a set of pairs or function of two arguments being
+  true iff its arguments are incident. Note that the object and attribute sequences are
+  converted to sets and therefore have to not contain any duplicate elements. If the
+  incidence relation is given as a sequence, it is automatically restricted to the
+  cartesian product of the object an the attribute set.
+nil
+#+end_src
+
+For finding functions you may find useful, you can use ~find-doc~.  Note that
+depending on the input, the returned list may be quite long.
+
+#+begin_src clojure :results both
+(find-doc "canonical-base")
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+-------------------------
+conexp.fca.implications/approx-canonical-base
+([ctx ε δ])
+  Compute a set L of implications that is an approximation to the canonical
+  base of the formal context `ctx'.  More precisely, if H is the canonical base
+  of ctx, then
+
+    |Mod(L) Δ Mod(H)|/2^{|M|} ≤ ε
+
+  with probability at least 1-δ.  The computation is done in polynomial time
+  with respect to |M|, |L|, 1/ε, and 1/δ. 
+-------------------------
+conexp.fca.implications/canonical-base
+([ctx] [ctx background-knowledge] [ctx background-knowledge predicate])
+  Returns the canonical base of given context, as a lazy sequence.  Uses
+  «background-knowledge» as starting set of implications, which will not appear
+  in the result.  If «predicate» is given (a function), computes only those
+  implications from the canonical base whose premise satisfy this predicate,
+  i.e. «predicate» returns true on these premises.  Note that «predicate» has to
+  satisfy the same conditions as the predicate to «next-closed-set-in-family».
+-------------------------
+conexp.fca.implications/canonical-base-from-base
+([implications])
+  For a given set of implications returns its stem-base.
+-------------------------
+conexp.fca.implications/canonical-base-from-clop
+([clop base] [clop base background-knowledge] [clop base background-knowledge predicate])
+  Given a closure operator «clop» on the set «base», computes its canonical base,
+   optionally using the set «background-knowledge» of implications on «base-set»
+  as background knowledge.  The result will be a lazy sequence.  If «predicate»
+  is given as third argument, computes only those implications whose premise
+  satisfy this predicate.  Note that «predicate» has to satisfy the same
+  conditions as the one of «next-closed-set-in-family».
+-------------------------
+conexp.fca.implications/parallel-canonical-base
+([ctx] [ctx background-knowledge])
+  Computes the canonical base of the given formal context.
+  Background knowledge can be provided as a set of implications on the attribute
+  set of the given context.  Computation is eager and is done in parallel.
+-------------------------
+conexp.fca.implications/parallel-canonical-base-from-clop
+([clop base] [clop base background-knowledge])
+  Computes the canonical base of the given closure operator in parallel.
+  Accepts the same parameters as «canonical-base-from-clop», except for the
+  predicate.
+nil
+#+end_src
+
+```
