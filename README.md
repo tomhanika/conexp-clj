@@ -59,9 +59,10 @@ instead.
 
 ## Documentation
 
-The current main source of documentation on conexp-clj is its
-[Wiki](http://github.com/tomhanika/conexp-clj/wiki).  Additionally, for general help on a
-function `f`, you can use the clojure function `doc` with
+The current main source of documentation on conexp-clj is located in the
+[doc](./doc) directory and can directly be accessed from [here](./doc/Home.org).
+Additionally, for general help on a function `f`, you can use the clojure
+function `doc` with
 
 ```clojure
 (doc f)
