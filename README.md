@@ -13,7 +13,7 @@ much more.
    1. [A Gentle Introduction](doc/tutorials/icfca-2013/icfca2013-tutorial-live.org) (ICFCA 2013)
    2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.org)
 3. A more complete overview over `conexp-clj`
-   1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.md)
+   1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.org)
    2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.org)
    3. [Concept Lattices](doc/Concept-Lattices.org)
    4. [IO for Formal Contexts](doc/IO.org)
