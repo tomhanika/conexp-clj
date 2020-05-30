@@ -46,10 +46,24 @@ Typing in long sequences of commands is tedious, and conexp-clj inherits from Cl
 
 A particularly interesting way to use conexp-clj (especially for development) is to use [nrepl](http://dev.clojure.org/jira/browse/NREPL) in combination with [nrepl.el](https://github.com/technomancy/nrepl.el), see the documentation of nrepl.el for further information.
 
-## Other ways
+## Graphical User Interface
 
 It is also possible to use conexp-clj's incomplete GUI fragment.  You can start it running the following code in you favourite shell
 
     $ conexp-clj --gui
 
 But please note that the GUI is not only (inherently) limited in its functionality, but also quite (not to say: really) buggy.
+
+## Online Documentation
+
+For general help on a function `f`, you can use the clojure function `doc` with
+
+```clojure
+(doc f)
+```
+
+For finding functions you may find useful, you can use `find-doc`
+
+```clojure
+(find-doc "Whatever you may find useful")
+```
