@@ -1,39 +1,46 @@
-There are multiple ways to work with conexp-clj, and we shall describe to most common ones here.
+## Running conexp-clj from pre-compiled binaries
 
-## Command Line Access 
+To run `conexp-clj`, a Java Runtime Environment with version ≥ 1.8.  The
+recommended way to run `conexp-clj` then is to download a [pre-compiled
+version](http://algebra20.de/conexp-clj-2.0.0-RC1.jar).
 
-Probably the easiest way to get started with conexp-clj is to use its command line.  For this, get a pre-compiled version of conexp-clj from its [Download Page](http://www.math.tu-dresden.de/~borch/downloads/).  Extract the corresponding `zip` file and switch into the newly created directory.  Then run the following command in a shell (where `$` denotes the shell prompt)
-    
-    $ ./bin/conexp-clj
+You can then run it through
+
+    java -jar conexp-clj-2.0.0-RC1.jar
 
 This will get you a prompt for conexp-clj, much like
 
-    user=>
+    conexp.main=>
 
-You can now use all the power of formal concept analysis from conexp-clj, and also everything Clojure provides.  For example, you can compute the value of the expression `1 + 1` as
+You can now use all the power of formal concept analysis from `conexp-clj`, and also everything Clojure provides.  For example, you can compute the value of the expression `1 + 1` as
 
-    user=> (+ 1 1)
+    conexp.main=> (+ 1 1)
     2
 
-(where you do not type the `user=>` and the 2 is the result of the evaluation)
+(where you do not type the `conexp.main=>` and the 2 is the result of the evaluation)
 
-## Command Line Access from Source
+
+## Running conexp-clj directly from source
+
 
 It is also possible to get command line access for conexp-clj directly from its source.  Getting this to work requires the following three (easy) steps:
 
 1. Get the [source code](http://github.com/tomhanika/conexp-clj) of conexp-clj
 2. Get [Leiningen](https://github.com/technomancy/leiningen)
-3. Run the following command from the toplevel directory of the source code of conexp-clj
 
-        $ lein repl
+To run conexp-clj from source, switch in the source directory of conexp-clj and run
 
-   This will give you a command prompt as in the previous case
+    $ lein deps
 
-        user=>
+This will download any missing jar files needed for conexp-clj to run.  To quickly obtain
+a repl just issue
 
-   However, to get the functionality of conexp-clj, you need to tell the program to use the functions of conexp-clj in the following way
+    $ lein repl
 
-        (use 'conexp.main)
+This will give you a command prompt as in the previous case.
+
+If you want a more sophisticated repl, you may try
+[cider](https://github.com/clojure-emacs/cider).
 
 ## File Based Access
 
@@ -42,15 +49,12 @@ Typing in long sequences of commands is tedious, and conexp-clj inherits from Cl
      user=> (load-file "file.clj")
      ...
 
-## Emacs and nrepl
-
-A particularly interesting way to use conexp-clj (especially for development) is to use [nrepl](http://dev.clojure.org/jira/browse/NREPL) in combination with [nrepl.el](https://github.com/technomancy/nrepl.el), see the documentation of nrepl.el for further information.
 
 ## Graphical User Interface
 
 It is also possible to use conexp-clj's incomplete GUI fragment.  You can start it running the following code in you favourite shell
 
-    $ conexp-clj --gui
+    java -jar conexp-clj-2.0.0-RC1.jar -g
 
 But please note that the GUI is not only (inherently) limited in its functionality, but also quite (not to say: really) buggy.
 

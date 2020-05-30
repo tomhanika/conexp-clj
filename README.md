@@ -31,32 +31,6 @@ If you want this, check out Uta Priss' [website on FCA
 software](http://www.upriss.org.uk/fca/fcasoftware.html).
 
 
-## Prerequisites
-
-You need
-
-* a Jave Runtime Environment (≥ 1.6)
-* [Leiningen](http://github.com/technomancy/leiningen) (≥ 2.0.0) if you want to run
-  conexp-clj from source
-
-
-## How to Run
-
-The recommended way to run conexp-clj is to download a
-[pre-compiled version](http://algebra20.de/conexp-clj-2.0.0-RC1.jar).
-
-You can then run it through
-
-    $ java -jar conexp-clj-2.0.0-RC1.jar
-
-from you command line (without the "$") to get a bare conexp-clj repl.  If you want to try
-the experimental GUI, you can use
-
-    $ java -jar conexp-clj-2.0.0-RC1.jar -g
-
-instead.
-
-
 ## Documentation
 
 1. [Getting Started](doc/Getting-Started.md)
@@ -84,29 +58,7 @@ instead.
    1. [Calling conexp-clj functions from Java](doc/Java.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
 8. [API documentation](doc/API.md)
-
-
-## Running conexp-clj from source
-
-To run conexp-clj from source, switch in the source directory of conexp-clj and run
-
-    $ lein deps
-
-This will download any missing jar files needed for conexp-clj to run.  To quickly obtain
-a repl just issue
-
-    $ lein repl
-
-If you want a more sophisticated repl, you may try
-[cider](https://github.com/clojure-emacs/cider).
-
-
-## Compilation Instructions for conexp-clj
-
-To create a standalone zip on your own, just run `make` in the top source
-directory. This will (should) do everything to create a zip archive containing a
-compiled version of conexp-clj. You can also run this compiled version directly
-by invoking `./conexp-clj/bin/conexp-clj` (after unpacking the .zip file.)
+9. [Development](doc/Development.md)
 
 
 ## Contributing Authors
