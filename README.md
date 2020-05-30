@@ -74,41 +74,6 @@ For finding functions you may find useful, you can use `find-doc`
 (find-doc "Whatever you may find useful")
 ```
 
-Additional Documentation:
-
-- Basic example files: those files cover
-
-  * [basics](doc/examples/01-basics.clj)
-  * [formal contexts](doc/examples/02-contexts.clj)
-  * [lattices](doc/examples/03-lattices.clj)
-  * [IO](doc/examples/04-io.clj)
-  * [implications](doc/examples/05-implications.clj)
-
-  They have been written by Sebastian Böhm.
-
-- Advances example files:
-
-  * [Attribute Exploration](doc/examples/exploration.clj)
-    a demonstration how attribute exploration can be done in conexp-clj.
-  * [Fuzzy FCA](doc/examples/fuzzy.clj),
-    a sample file to show how to use fuzzy FCA with conexp-clj
-  * [Factor Analysis](doc/examples/factor-analysis.clj),
-    a small program that demonstrates how to use conexp-clj for factorizing contexts
-  * [Formal Contexts for Implications](doc/examples/implication-closure.clj),
-    computing a context for a set of implications
-  * A
-    [Formal Context of Functions](doc/examples/function-context.clj),
-    see the paper by Artem Revenko and Sergej Kuznetzov for the CLA2010
-  * [Permutations as Formal Context](doc/examples/permutation-context.clj),
-    computes a context whose concept lattice is isomorphic to the lattice of permutations on the set
-    \{0,...,n\}.
-  * [Tamari Lattice](doc/examples/tamari-lattice.clj),
-    the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
-
-- A [Tutorial](doc/icfca-2013-tutorial), given
-  at the 11th International Conference on Formal Concept Analysis
-
-
 ## Running conexp-clj from source
 
 To run conexp-clj from source, switch in the source directory of conexp-clj and run
