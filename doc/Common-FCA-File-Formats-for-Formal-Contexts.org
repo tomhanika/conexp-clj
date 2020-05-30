@@ -1,3 +1,8 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Supported File Formats for Formal Contexts
+
 The aim of this page is to present and discuss commonly used file formats in FCA
 software. It may also serve as a platform to design new formats not yet
 implemented in any program.

@@ -1,6 +1,8 @@
 #+property: header-args :wrap src text
 #+property: header-args:text :eval never
 
+* Working with Formal Contexts
+
 As ~conexp-clj~ is a general purpose tool for Formal Concept Analysis, it lets
 you easily work with the basic structure of FCA, namely formal contexts.  This
 page discusses in which ways conexp-clj can work with and on formal contexts.

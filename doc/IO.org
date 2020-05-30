@@ -1,3 +1,6 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
 * Input/Output of Formal Contexts
 
 ~conexp-clj~ offers a transparent way of handling input and output for unary

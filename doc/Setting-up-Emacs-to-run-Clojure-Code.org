@@ -1,3 +1,8 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Setting up Emacs to Run Clojure Code
+
 Some of the documentation for ~conexp-clj~ is written in [[https://orgmode.org][Org Mode]], a markup
 language for Emacs.  In particular, Org-Mode provides a feature called [[https://orgmode.org/manual/Working-with-Source-Code.html][Source
 Blocks]] that allow to embed executable code snippets into a document.  Some files
