@@ -19,7 +19,7 @@ much more.
    4. [IO](doc/IO.org)
    5. [Implications](doc/Implications.md)
    6. [Exploration](doc/Exploration.md)
-   7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.md)
+   7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.org)
    8. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
 4. Example use cases of `conexp-clj`
    1. [Formal Contexts from Implications](doc/code/implication-closure.clj)
