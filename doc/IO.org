@@ -1,3 +1,5 @@
+* Input/Output of Formal Contexts
+
 ~conexp-clj~ offers a transparent way of handling input and output for unary
 formal contexts, many-valued contexts, lattices and their layouts.  The main
 idea behind this approach is to free the user from the technical details of IO
