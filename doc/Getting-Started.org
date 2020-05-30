@@ -5,8 +5,8 @@
 
 ** Running conexp-clj from pre-compiled binaries
 
-To run ~conexp-clj~, a Java Runtime Environment with version ≥ 1.8.  The
-recommended way to use ~conexp-clj~ outside of development is to download a
+To run ~conexp-clj~, a Java Runtime Environment with version ≥ 1.8 is necessary.
+The recommended way to use ~conexp-clj~ outside of development is to download a
 [[http://algebra20.de/conexp-clj-2.0.0-RC1.jar][pre-compiled version]].  These are just usual Java jar files and can be used like
 this:
 
