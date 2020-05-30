@@ -1,3 +1,7 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Working with ~conexp-clj~'s Source Code
 
 ** Testing ~conexp-clj~
 
