@@ -20,9 +20,10 @@ Formal Concept Analysis.
    2. [[file:code/fuzzy.clj][Fuzzy FCA in conexp-clj]]
    3. [[./pq-cores-in-Formal-Contexts.md][pq-cores]]
 6. Use cases of conexp-clj
-   1. [[file:code/function-context.clj][A Formal Context of Functions]]
-   2. [[file:code/permutation-context.clj][Context of All Permutations on a Finite Set]]
-   3. [[file:code/tamari-lattice.clj][The Tamari Lattice]]
+   1. [[file:code/implication-closure.clj][Formal Contexts from Implications]]
+   2. [[file:code/function-context.clj][A Formal Context of Functions]]
+   3. [[file:code/permutation-context.clj][Context of All Permutations on a Finite Set]]
+   4. [[file:code/tamari-lattice.clj][The Tamari Lattice]]
 7. Interoperability
    1. [[./Java.md][Calling conexp-clj functions from Java]]
    2. [[file:REST-API-usage.md][REST-API Usage]]
