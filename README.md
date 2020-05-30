@@ -34,7 +34,6 @@ much more.
    9. [Counting Quasiorders](doc/code/quasiorders.clj)
    10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
 5. Interoperability
-   1. [Calling conexp-clj functions from Java](doc/Java.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
