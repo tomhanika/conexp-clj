@@ -114,7 +114,7 @@ ctx-3
 Here, instead of writing out the sets of objects and attributes explicitly, we
 have just entered their cardinality 6.  With this, the set of objects and
 attributes automatically gets set to ~#{1 2 3 4 5 6}~.  From time to time, this
-make save some typing time.
+may save some typing time.
 
 *** Creating Random Contexts
 
