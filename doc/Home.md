@@ -23,8 +23,7 @@ both as discussion board for conexp-clj in particular, and for FCA software in g
     2. Context of All Permutations on a Finite Set
     3. The Tamari Lattice
 7. Other Features
-    1. [Using conexp-clj from sage](Sage-Interoperability.md)
-    2. [Calling conexp-clj functions from Java](Java.md)
+    1. [Calling conexp-clj functions from Java](Java.md)
 8. [API documentation](API.md)
 
 ## FCA Software Interoperatbility
@@ -33,5 +32,3 @@ There is a huge amount of FCA software out there (see
 http://www.upriss.org.uk/fca/fcasoftware.html), which however performs poorly on the level
 of interoperability.  To change this, this wiki is provided as discussion board on common
 standards.
-
-[FCA Software Interoperability Wiki](FCA-Interoperability-Wiki.md)
