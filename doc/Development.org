@@ -5,7 +5,7 @@
 
 ** Testing ~conexp-clj~
 
-Install leinigen as described in [[file:Getting-Started.md][Getting Started]] and run
+Install leinigen as described in [[file:Getting-Started.org][Getting Started]] and run
 
 #+begin_src sh :eval never
 lein test
