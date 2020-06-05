@@ -319,6 +319,7 @@
     (first %)))
 
 (deftest test-ganter-base 
+  ;; criteria from original paper
   (let [ctx   (read-context "testing-data/ReegWeiss.cxt")
         cb    (canonical-base ctx)
         gb    (ganter-base cb paper-rep)
@@ -352,7 +353,16 @@
     (is (every? identity
           (for [impl gb :when (< 1 (count (premise impl)))]
             (and (every? #(some #{%} (keys reps)) (premise impl))
-                 (every? #(some #{%} (keys reps)) (conclusion impl))))))))
+                 (every? #(some #{%} (keys reps)) (conclusion impl)))))))
+  ;; back and forth transformations
+  (let [stem1 (stem-base contexts/test-ctx-01),
+        stem2 (stem-base contexts/test-ctx-04),
+        stem3 (stem-base contexts/test-ctx-07),
+        stem4 (stem-base contexts/test-ctx-08)]
+    (is (= (set stem1) (set (stem-base-from-base (ganter-base stem1)))))
+    (is (= (set stem2) (set (stem-base-from-base (ganter-base stem2)))))
+    (is (= (set stem3) (set (stem-base-from-base (ganter-base stem3)))))
+    (is (= (set stem4) (set (stem-base-from-base (ganter-base stem4)))))))
 
 ;;;
 
