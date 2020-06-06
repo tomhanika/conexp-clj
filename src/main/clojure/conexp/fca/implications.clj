@@ -465,7 +465,9 @@
 ;;; Convert arbitrary bases to the Canonical Base
 
 (defn stem-base-from-base
-  "For a given set of implications returns its stem-base."
+  "For a given set of implications returns its stem-base, see:
+   'Some Notes on Pseudo-closed Sets'; Rudolph 2007
+   https://link.springer.com/chapter/10.1007%2F978-3-540-70901-5_10"
   [implications]
   (let [implications (pmap (fn [impl]
                              (make-implication
