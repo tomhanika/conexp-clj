@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(defproject conexp-clj "2.1.0-SNAPSHOT"
+(defproject conexp-clj "2.1.1-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure"
   :url "http://github.com/tomhanika/conexp-clj/"
@@ -44,8 +44,9 @@
              :dev {:main conexp.main
                    :dependencies [[javax.servlet/servlet-api "2.5"]
                                   [org.clojure/data.json "0.2.6"]
-                                  [ring/ring-mock "0.4.0"]]}}
-  :plugins [[org.clojars.benfb/lein-gorilla "0.6.0"]]
+                                  [ring/ring-mock "0.4.0"]]}
+             :gorilla {:main conexp.main
+                       :plugins [[org.clojars.benfb/lein-gorilla "0.7.0"]]}}
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
