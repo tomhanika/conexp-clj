@@ -418,7 +418,7 @@
   (titanic (attributes context)
            (supports context 0)
            1.0
-           <=))
+           <))
 
 (defn titanic-iceberg-intent-seq
   "Computes the iceberg intent seq for given context and minimal
@@ -427,7 +427,7 @@
   (let [intents (titanic (attributes context)
                          (supports context minsupp)
                          1.0
-                         <=)]
+                         <)]
     (if (<= (* (count (objects context)) minsupp)
             (count (attribute-derivation context (attributes context))))
       intents
