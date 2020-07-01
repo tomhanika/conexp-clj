@@ -7,11 +7,11 @@
 
 To run ~conexp-clj~, a Java Runtime Environment with version ≥ 1.8 is necessary.
 The recommended way to use ~conexp-clj~ outside of development is to download a
-[[http://algebra20.de/conexp-clj-2.0.0-RC1.jar][pre-compiled version]].  These are just usual Java jar files and can be used like
+[[https://algebra20.de/conexp/][pre-compiled version]].  These are just usual Java jar files and can be used like
 this:
 
 #+begin_src sh :eval never
-java -jar conexp-clj-2.0.0-RC1.jar
+java -jar conexp-clj-2.1.1-SNAPSHOT-standalone.jar
 #+end_src
 
 This will get you a prompt for ~conexp-clj~ much like
@@ -75,7 +75,7 @@ type into the prompt can also be written into a file, say ~file.clj~.  To run
 It is also possible to use ~conexp-clj~'s incomplete GUI fragment.  You can start it running the following code in you favourite shell
 
 #+begin_src sh :eval never
-java -jar conexp-clj-2.0.0-RC1.jar -g
+java -jar conexp-clj-2.1.1-SNAPSHOT-standalone.jar -g
 #+end_src
 
 But please note that the GUI is not only (inherently) limited in its
