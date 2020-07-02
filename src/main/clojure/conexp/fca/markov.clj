@@ -113,7 +113,7 @@
       (for [i (range sample-size)]
         (let [prem  (first concept)
               concl (second concept)
-              limit (+ 1 (count concl))]
+              limit (count concl)]
           (if (= (attribute-derivation ctx 
                                        (take (rand-int limit) 
                                              (shuffle concl)))
