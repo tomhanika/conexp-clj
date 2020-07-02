@@ -26,13 +26,13 @@
 
 ;;; stability
 
-;(deftest test-mcs-stability-approximation
-;  (let [ctx          contexts/test-ctx-01
-;        concept-list (concepts ctx)
-;        positions    (list 0 1 2 3 4)]
-;    (doall 
-;      (for [position positions]
-;        (is (= (float (concept-stability ctx (nth concept-list position)))
-;               (float (mcs-stability-approximation ctx 
-;                                            (nth concept-list position)
-;                                            10000))))))))
+(deftest test-mcs-stability-approximation
+  (let [ctx          contexts/test-ctx-01
+        concept-list (concepts ctx)
+        positions    (list 0 1 2 3 4)]
+    (doall 
+      (for [position positions]
+        (is (= (float (concept-stability ctx (nth concept-list position)))
+               (float (mcs-stability-approximation ctx 
+                                            (nth concept-list position)
+                                            10000))))))))
