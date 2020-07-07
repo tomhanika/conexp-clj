@@ -285,7 +285,7 @@
             anchor       (last (butlast (attributes ctx)))]
         (doall (if (>= 2 (count (str anchor)))
                    (do 
-                     (println (str "  \\node[right = 0.45cm of ca" 
+v                     (println (str "  \\node[right = 0.45cm of ca" 
                                    (tex-escape anchor)
                                    "] (za) {};"))
                      (println (str "  \\node[below = 0.25cm of za] (co" 

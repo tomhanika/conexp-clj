@@ -82,6 +82,11 @@
 
 ;;; general transformer
 
+(defn cover-to-concepts 
+  "This method converts the cover structure back to the list of concepts."
+  [cover]
+  (map #(vec [% (get-in cover [% :extent])]) (keys cover)))
+
 (defn transform-bv
   "Transforms the set of concepts of ctx1 to that of ctx2 using the
   algorithm presented in 'Knowledge Cores in Large Formal Contexts'
@@ -94,5 +99,5 @@
   [ctx1 ctx2 concepts1]
   (let [bv1 (generate-concept-cover concepts1)
         bv2 (dual-concept-cover (transform-bv-cover ctx1 ctx2 bv1))]
-    (map #(vec [% (get-in bv2 [% :extent])]) (keys bv2))))
+    (cover-to-concepts bv2)))
 
