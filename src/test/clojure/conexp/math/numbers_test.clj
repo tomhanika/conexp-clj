@@ -6,12 +6,9 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fca.markov-test
+(ns conexp.math.numbers-test
   (:use clojure.test)
-  (:use conexp.base
-        conexp.fca.contexts
-        conexp.fca.more
-        conexp.fca.markov)
+  (:use conexp.math.numbers)
   (:require [conexp.fca.contexts-test :as contexts]))
 
 ;;; base10
@@ -24,15 +21,6 @@
         (is (= (float number) 
                (float (to-base10 (from-base10 number base 100) base))))))))
 
-;;; stability
+;;;
 
-(deftest test-mcs-stability-approximation
-  (let [ctx          contexts/test-ctx-01
-        concept-list (concepts ctx)
-        positions    (list 0 1 2 3 4)]
-    (doall 
-      (for [position positions]
-        (is (= (float (concept-stability ctx (nth concept-list position)))
-               (float (mcs-stability-approximation ctx 
-                                            (nth concept-list position)
-                                            10000))))))))
+nil
