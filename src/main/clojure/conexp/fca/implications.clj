@@ -784,6 +784,54 @@
                                                  (repeatedly nr-iter random-subset))
                                            true))))))
 
+;;; Extension
+
+(defn unitary?
+  "Returns true iff implication is unitary (premise of length one)."
+  [impl]
+  (= 1 (count (premise impl))))
+
+(defn unitary-subset
+  "Returns the subset of unitary implications (premise of length one)."
+  [impls]
+  (set (filter unitary? impls)))
+
+(defn non-unitary-subset 
+  "Returns the subset of non-unitary implications (premise of length other 
+   than one)."
+  [impls]
+  (set (filter #(not (unitary? %)) impls)))
+
+(defn ideal-closed?
+  "Given a base tests if it is ideal-closed.
+   A base is ideal-closed iff for any  A → B the closure of A under all
+   non-unitary implications is closed under all unitary implications."
+  [impls]
+  (let [clop-u   (clop-by-implications (unitary-subset impls))
+        clop-nu  (clop-by-implications (non-unitary-subset impls))]
+    (every? identity
+            (for [impl impls]
+                 (let [nu-closure (clop-nu (premise impl))]
+                   (= nu-closure (clop-u nu-closure)))))))
+
+(defn largest-extension-by-implications
+  "Given a closure system and implications returns the 
+   largest extension of the clop by use of the implications. Algorithm from:
+   'Representations for the largest Extension of a closure system'
+   Karima Ennaoui, Khaled Maafa, Lhouari Nourine 2020
+   https://arxiv.org/pdf/2002.07680.pdf "
+  [closure impls]
+  (let [unitary   (unitary-subset (set impls))
+        extension (atom (set closure))
+        rem-impls (atom (set impls))]
+    (doall (for [impl unitary]
+             (let [clop (clop-by-implications @rem-impls)]
+               (swap! extension 
+                        union
+                        (extension-set @extension clop (first (premise impl))))
+               (swap! rem-impls difference #{impl}))))
+    @extension))
+
 ;;; The End
 
 true

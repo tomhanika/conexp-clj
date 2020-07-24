@@ -137,6 +137,8 @@ i.e. whether no implications can be removed from the set without changing the
 induced closure operator.  If a set is not minimal, a minimal subset can be
 generated using ~irredundant-subset~.
 
+A single implication can be /unitary/ (~unitary?~), i.e. have a premise length of one. The set of all unitary implications can be returned by ~unitary-subset~ and the remaining implications can be found by ~non-unitary-subset~. By use of unitary implications, a set of implications can be tested for /ideal closure/ (~ideal-closed?~), i.e. for every implications A ⟶ B the closure of A under all non-unitary implications is closed under all unitary implications.
+
 If a formal context is given, one can check whether a set of implications is
 /sound/ (~sound-implication-set?~), i.e. whether all implications in this set
 hold in the given formal context, and whether the set of implications is
@@ -217,6 +219,8 @@ Instead of computing the canonical base, one can also make use of the base of
 compute.  This base can be computed using ~proper-premise-implications~, and
 functions related to this are ~proper-conclusion~, ~proper-premise?~,
 ~proper-premises-for-attributes~ and ~proper-premises~.
+
+Various functions take the resulting bases as a argument for further computations. ~largest-extension-by-implications~ takes a closure system and grows it by use of the implications.
 
 ** Association Rules
 
