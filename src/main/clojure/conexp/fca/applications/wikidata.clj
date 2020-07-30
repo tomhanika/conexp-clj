@@ -115,7 +115,7 @@
   "retrieve labels for all entities"
   [entities & {:keys [lang] :or {lang "en"}}]
   (apply merge
-   (map (fn [ents] (find-labels-for-some-entities ents :delay *query-delay*))
+   (map (fn [ents] (find-labels-for-some-entities ents :lang lang :delay *query-delay*))
         (partition *max-entities-per-query*
                    *max-entities-per-query*
                    [] entities))))
