@@ -81,6 +81,11 @@
   (let [slash (str/last-index-of uri "/")]
     (subs uri (+ 1 slash))))
 
+(defn- property-id-from-uri
+  "retrieve a property id from a Wikidata entity URI"
+  [uri]
+  (entity-id-from-uri uri))
+
 (defn- label-query-for-entities
   "construct a query that retrieves labels for a list of entities, in a given language (default english)"
   [entities & {:keys [lang] :or {lang "en"}}]
@@ -148,6 +153,27 @@
         (+ 1
            (str/last-index-of label "("))
         (str/last-index-of label ")")))
+
+(defn get-properties-for-item
+  "generate a query to retrieve all properties for an item from WD"
+  [item]
+  (let [item item]
+    (with-sparql-bindings
+      (str
+       "SELECT "
+       "?p"
+       " WHERE {\n  "
+       (entity-add-sparql-prefix item)
+       " ?p ?o"
+       " . \n"
+       " ?wd wikibase:claim ?p "
+       "\n }  ")
+      (map (fn [{p "p"}]
+             (property-id-from-uri (get p "value")))
+           bindings))))
+
+
+;; Stuff for dealing with implications
 
 (defn- unlabel-implication
   "turn an implication on labels into an implication on ids"
