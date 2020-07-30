@@ -154,24 +154,30 @@
            (str/last-index-of label "("))
         (str/last-index-of label ")")))
 
-(defn get-properties-for-item
-  "generate a query to retrieve all properties for an item from WD"
-  [item]
-  (let [item item]
+(defn get-properties-for-entity
+  "generate a query to retrieve the set of all properties for an entity
+  from WD; more specifically, all properties p where the entity is
+  subject in a claim about"
+  [entity]
+  (let [entity entity]
     (with-sparql-bindings
       (str
        "SELECT "
-       "?p"
+       " Distinct ?p "
        " WHERE {\n  "
-       (entity-add-sparql-prefix item)
+       (entity-add-sparql-prefix entity)
        " ?p ?o"
        " . \n"
        " ?wd wikibase:claim ?p "
        "\n }  ")
-      (map (fn [{p "p"}]
-             (property-id-from-uri (get p "value")))
-           bindings))))
+      (set (map (fn [{p "p"}]
+                  (property-id-from-uri (get p "value")))
+                bindings)))))
 
+(defn get-union-of-properties-for-entities
+  "For a collection of entities, find union of property sets."
+  [entities]
+  (reduce #(union %1 %2) (map get-properties-for-entity entities)))
 
 ;; Stuff for dealing with implications
 
