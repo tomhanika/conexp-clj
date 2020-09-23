@@ -9,6 +9,7 @@
 (ns conexp.layouts.util
   "Utilities for computing lattice layouts."
   (:require [conexp.base :refer :all]
+            [conexp.math.algebra :refer :all]
             [conexp.fca.lattices :refer :all]
             [conexp.layouts.base :refer :all]
             [conexp.util.graph :as graph]))

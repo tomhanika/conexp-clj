@@ -9,8 +9,11 @@
 (ns conexp.fca.pqcores
   (:require [conexp.base :refer :all] 
             [conexp.fca.contexts :refer :all] 
+            [conexp.fca.fast :as fast]
+            [conexp.math.algebra :refer 
+             [base-set]]
             [conexp.fca.lattices :refer 
-             [concept-lattice base-set]]
+             [concept-lattice]]
             [conexp.fca.fast :as fast]
             [conexp.fca.cover :refer :all]
             [clojure.core.reducers :as r]))

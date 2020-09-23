@@ -98,6 +98,26 @@ Interesting function which work on lattice structures are
 Their purpose of these functions should be clear from their names, see the
 corresponding documentation on further details.
 
+** Linear extensions
+
+A linear extension of a concept lattice is linear order of all elements such that the partial order of the lattice is not violated. Each lattice has at least one linear extension. The function ~minimals-plus~ allows to sample from the set of all linear extensions given the concept lattice and the number of samples.
+
+#+begin_src clojure :exports both
+(minimals-plus (concept-lattice (adiag-context 2)) 2)
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+([[#{} #{0 1}] 
+  [#{0} #{1}] 
+  [#{1} #{0}] 
+  [#{0 1} #{}]] 
+ [[#{} #{0 1}] 
+  [#{1} #{0}]  
+  [#{0} #{1}]  
+  [#{0 1} #{}]])
+#+end_src
+
 ** Displaying Concept Lattices
 
 It has to be noted that ~conexp-clj~ treats lattices as objects that are

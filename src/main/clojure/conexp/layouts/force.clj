@@ -9,6 +9,7 @@
 (ns conexp.layouts.force
   "Force layout as described by C. Zschalig."
   (:use [conexp.base :exclude (sum)]
+        conexp.math.algebra
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.common

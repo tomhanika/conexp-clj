@@ -1,5 +1,6 @@
 (ns conexp.layouts.dim-draw
   (:require [loom.graph :as lg]
+            [conexp.math.algebra :as alg]
             [conexp.fca.lattices :as lat]
             [conexp.fca.graph :refer :all]
             [conexp.util.graph :refer :all]
@@ -300,7 +301,7 @@
                     positions
                     (mapcat (fn [n] (map #(vector n %)
                                          (lat/lattice-upper-neighbours lattice n)))
-                            (lat/base-set lattice)))))
+                            (alg/base-set lattice)))))
 
 (defn- replicate-str
   [s i]
