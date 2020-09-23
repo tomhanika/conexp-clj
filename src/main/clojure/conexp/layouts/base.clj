@@ -9,6 +9,7 @@
 (ns conexp.layouts.base
   "Basic definition of layout datatype"
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.lattices
         clojure.pprint))
 

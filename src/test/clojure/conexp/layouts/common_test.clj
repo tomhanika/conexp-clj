@@ -8,6 +8,7 @@
 
 (ns conexp.layouts.common-test
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.common)
