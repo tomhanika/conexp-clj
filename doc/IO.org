@@ -29,6 +29,7 @@ formal contexts on success.  Supported formats for input are
 - Binary CSV (~:binary-csv~)
 - Galicia (~:galicia~)
 - Anonymous Burmeister (~:anonymous-burmeister~)
+- GraphML (~:graphml~)
 
 See [[Common-FCA-File-Formats-for-Formal-Contexts.org][Common FCA File Formats for Formal Contexts]] for somewhat more details on
 those formats.
