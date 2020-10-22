@@ -81,6 +81,11 @@
   (let [slash (str/last-index-of uri "/")]
     (subs uri (+ 1 slash))))
 
+(defn- property-id-from-uri
+  "retrieve a property id from a Wikidata entity URI"
+  [uri]
+  (entity-id-from-uri uri))
+
 (defn- label-query-for-entities
   "construct a query that retrieves labels for a list of entities, in a given language (default english)"
   [entities & {:keys [lang] :or {lang "en"}}]
@@ -115,7 +120,7 @@
   "retrieve labels for all entities"
   [entities & {:keys [lang] :or {lang "en"}}]
   (apply merge
-   (map (fn [ents] (find-labels-for-some-entities ents :delay *query-delay*))
+   (map (fn [ents] (find-labels-for-some-entities ents :lang lang :delay *query-delay*))
         (partition *max-entities-per-query*
                    *max-entities-per-query*
                    [] entities))))
@@ -148,6 +153,33 @@
         (+ 1
            (str/last-index-of label "("))
         (str/last-index-of label ")")))
+
+(defn get-properties-for-entity
+  "generate a query to retrieve the set of all properties for an entity
+  from WD; more specifically, all properties p where the entity is
+  subject in a claim about"
+  [entity]
+  (let [entity entity]
+    (with-sparql-bindings
+      (str
+       "SELECT "
+       " Distinct ?p "
+       " WHERE {\n  "
+       (entity-add-sparql-prefix entity)
+       " ?p ?o"
+       " . \n"
+       " ?wd wikibase:claim ?p "
+       "\n }  ")
+      (set (map (fn [{p "p"}]
+                  (property-id-from-uri (get p "value")))
+                bindings)))))
+
+(defn get-union-of-properties-for-entities
+  "For a collection of entities, find union of property sets."
+  [entities]
+  (reduce #(union %1 %2) (map get-properties-for-entity entities)))
+
+;; Stuff for dealing with implications
 
 (defn- unlabel-implication
   "turn an implication on labels into an implication on ids"
@@ -197,9 +229,9 @@
        "ASK "
        "SELECT ")
      (if amount
-       "(COUNT(?entity) AS ?entities)"
+       "(COUNT(DISTINCT ?entity) AS ?entities)"
        (when-not ask-only
-               "?entity"))
+         "DISTINCT ?entity"))
      " WHERE {\n  "
      (pattern-for-premise body)
      "\n  "

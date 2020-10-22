@@ -23,6 +23,7 @@
     (listen exact :action
             (fn [_]
               (update-layout-of-scene scn (dim-draw-layout (lattice (get-layout-from-scene scn))))
+              (call-scene-hook scn :update-grid)
               (fit-scene-to-layout scn)))
     (listen genetic :action
             (fn [_]

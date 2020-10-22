@@ -37,6 +37,11 @@
 (def conexp-clj-options
   [["-g" "--gui" "Start the graphical user interface"]
    ["-l" "--load FILE" "Load a given file and exit"]
+   ["-a" "--api" "Start the application programming interface"]
+   ["-p" "--port PORT" "Port for the REST-API" 
+    :default 8080
+    :parse-fn #(Integer/parseInt %)]
+   ["-d" "--dev" "Start the api with hot code reload"]
    ["-h" "--help" "This help"]])
 
 (defn -main [& args]
@@ -71,6 +76,24 @@
       (do
         (in-ns 'conexp.main)
         (load-file (options :load)))
+      ;;
+      (contains? options :api)
+      (reply/launch
+       {:custom-eval `(do
+                        (in-ns 'conexp.api)
+                        (use 'clojure.repl)
+                        (require 'conexp.api)
+                        (conexp.api/start-server false ~(:port options)))
+        :custom-help ""})
+      ;;
+      (contains? options :dev)
+      (reply/launch
+       {:custom-eval `(do
+                        (in-ns 'conexp.api)
+                        (use 'clojure.repl)
+                        (require 'conexp.api)
+                        (conexp.api/start-server true ~(:port options)))
+        :custom-help ""})
       ;;
       true
       (reply/launch {:custom-eval '(do (in-ns 'conexp.main)

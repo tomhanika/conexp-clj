@@ -394,6 +394,30 @@
             (recur (rest atts))))
         (println)))))
 
+(define-context-output-format :named-binary-csv
+  [ctx file]
+  (when (or (empty? (objects ctx))
+            (empty? (attributes ctx)))
+    (unsupported-operation "Cannot export empty context in binary-csv format"))
+  (let [objs (sort (objects ctx)),
+        atts (sort (attributes ctx))]
+    (with-out-writer file
+      (print "objects")
+      (doseq [m atts]
+        (print ", " m))
+      (println)
+      (doseq [g objs]
+        (print g ",")                   
+        (loop [atts atts]
+          (when-let [m (first atts)]
+            (print (if (incident? ctx g m)
+                     "1"
+                     "0"))
+            (when (next atts)
+              (print ","))
+            (recur (rest atts))))
+        (println)))))
+
 
 ;; output as tex array
 

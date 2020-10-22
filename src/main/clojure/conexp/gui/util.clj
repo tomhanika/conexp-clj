@@ -109,7 +109,7 @@
 ;;; Menus
 
 (defn add-menus
-  "Takes a sequences of menus and adds them to the given frame"
+  "Takes a sequences of menus and adds them to the given frame."
   [frame menus]
   (let [framebar (first (select frame [:JMenuBar]))]
     (config! frame :menubar
@@ -218,7 +218,7 @@
     (vec (rest (seq (.getComponents tabpane))))))
 
 (defn add-tab-with-name-icon-tooltip
-  "Addes given panel to the tabpane of frame, giving name icon and tooltip"
+  "Addes given panel to the tabpane of frame, giving name icon and tooltip."
   [^JFrame frame, ^JPanel pane, name icon tooltip]
   (do-swing
    (.addTab (get-tabpane frame) name icon pane tooltip)

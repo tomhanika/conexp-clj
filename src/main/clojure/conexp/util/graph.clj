@@ -14,14 +14,14 @@
 ;; Created 23 June 2009
 ;;
 ;; with modifications by D. Borchmann for conexp-clj
-;; and more modifications for use with loom/ubergraph
+;; and more modifications for use with loom
 
 (ns
   #^{:author "Jeffrey Straszheim",
      :doc    "Basic graph theory algorithms"}
   conexp.util.graph
-  (:require [ubergraph.core :as uber]
-            [loom.graph :as lg])
+  (:require [loom.graph :as lg]
+            [loom.attr :as la])
   (:use [clojure.set :only (union)])
   (:import [org.dimdraw Transitive]))
 
@@ -30,8 +30,8 @@
   "Constructs a directed graph from a set of nodes and a function that maps a
    node to its neighbors."
   [nodes neighbor-fn]
-  (uber/add-directed-edges*
-    (uber/add-nodes-with-attrs* (uber/digraph) (map (fn [n] [n {}]) nodes))
+  (lg/add-edges*
+    (la/add-attrs-to-all (lg/add-nodes* (lg/digraph) nodes))
     (mapcat (fn [x] (map (fn [y] [x y]) (neighbor-fn x))) nodes)))
 
 (defn make-graph-from-condition
@@ -40,8 +40,8 @@
    Edges are undirected, so there will be an edge u<->v iff the condition holds
    for either (u,v) or (v,u) or both."
   [nodes condition]
-  (uber/add-undirected-edges*
-    (apply lg/add-nodes (uber/graph) nodes)
+  (lg/add-edges*
+    (apply lg/add-nodes (lg/graph) nodes)
     (mapcat
       (fn [x] (map
                 (fn [y] [x y])
@@ -52,8 +52,8 @@
   "Constructs a directed graph from a set of nodes and a condition that tests
    if two nodes shall get an edge."
   [nodes condition]
-  (uber/add-directed-edges*
-    (apply lg/add-nodes (uber/digraph) nodes)
+  (lg/add-edges*
+    (apply lg/add-nodes (lg/digraph) nodes)
     (mapcat
       (fn [x] (map
                 (fn [y] [x y])
@@ -74,10 +74,6 @@
   "Get the neighbors of a node."
   [g n]
   (lg/successors* g n))
-
-(defn edge->vec
-  [e]
-  [(:src e) (:dest e)])
 
 ;; Graph Modification
 
@@ -156,7 +152,6 @@ visit (ns)."
           ;;                           graph nodes)
           ;;                   graph))
           ;; graph pairs)
-
           graph (. Transitive hull graph)]
       (reduce (fn [g u]
                 (reduce (fn [g v]
@@ -246,6 +241,7 @@ exception. Set max to nil for unlimited iterations."
                    new-data
                    (recur new-data (and idx (dec idx))))))]
     (step data max)))
+
 (defn- fold-into-sets
   [priorities]
   (let [max (inc (apply max 0 (vals priorities)))
@@ -254,6 +250,7 @@ exception. Set max to nil for unlimited iterations."
     (reduce step
             (vec (replicate max #{}))
             priorities)))
+
 (defn dependency-list
   "Similar to a topological sort, this returns a vector of sets. The
 set of nodes at index 0 are independent. The set at index 1 depend
@@ -270,6 +267,7 @@ much be acyclic) has an edge a->b when a depends on b."
                             (inc (count (nodes g)))
                             =)]
     (fold-into-sets counts)))
+
 (defn stratification-list
   "Similar to dependency-list (see doc), except two graphs are
 provided. The first is as dependency-list. The second (which may
@@ -297,31 +295,31 @@ graph, node a must be equal or later in the sequence."
   ([base]
    (if (satisfies? loom.graph/Digraph base)
      (transitive-closure base)
-     (transitive-closure (apply lg/add-nodes (uber/digraph) base))))
+     (transitive-closure (apply lg/add-nodes (lg/digraph) base))))
   ([base edges1]
    (if (instance? clojure.lang.Sequential edges1)
      (transitive-closure
-       (uber/add-directed-edges* (transitive-edge-union base)
-                                 edges1))
+       (lg/add-edges* (transitive-edge-union base)
+                        edges1))
      (transitive-closure
-       (uber/add-directed-edges* (transitive-edge-union base)
-                                 (mapcat
-                                   (fn [x] (map
-                                             (fn [y] [x y])
-                                             (filter #(edges1 x %) base)))
-                                   base)))))
+       (lg/add-edges* (transitive-edge-union base)
+                        (mapcat
+                          (fn [x] (map
+                                    (fn [y] [x y])
+                                    (filter #(edges1 x %) base)))
+                          base)))))
   ([base edges1 & more-edges]
    (if (instance? clojure.lang.Sequential edges1)
      (transitive-closure
-       (uber/add-directed-edges* (apply transitive-edge-union base more-edges)
-                                 edges1))
+       (lg/add-edges* (apply transitive-edge-union base more-edges)
+                             edges1))
      (transitive-closure
-       (uber/add-directed-edges* (apply transitive-edge-union base more-edges)
-                                 (mapcat
-                                   (fn [x] (map
-                                             (fn [y] [x y])
-                                             (filter #(edges1 x %) base)))
-                                   base))))))
+       (lg/add-edges* (apply transitive-edge-union base more-edges)
+                        (mapcat
+                          (fn [x] (map
+                                    (fn [y] [x y])
+                                    (filter #(edges1 x %) base)))
+                          base))))))
 
 ;; End of file
 
