@@ -200,7 +200,10 @@ computed if they are not needed.  This can be handy when computing the canonical
 base of rather large contexts, as the computation can (and mostly is) very
 expensive.  Indeed, even the canonical base can be exponential in the size of
 the given formal context (and thus exponential in the size of its attribute
-set).
+set). Instead of lazily calculating the canonical base an attribute incremental 
+function is implementen with ~incremental-canonical-base~ 
+(~incremental-stem-base~) for the initial context and ~add-attribute~ to 
+add new attributes.
 
 The implementation of ~canonical-base~ makes use of a more general algorithm,
 namely the computation of the canonical base of a given closure operator on
@@ -217,6 +220,8 @@ Instead of computing the canonical base, one can also make use of the base of
 compute.  This base can be computed using ~proper-premise-implications~, and
 functions related to this are ~proper-conclusion~, ~proper-premise?~,
 ~proper-premises-for-attributes~ and ~proper-premises~.
+
+All bases can be transformed into a ~ganter-base~ which is designed to increase the readability for humans without changing any of the contained knowledge.
 
 ** Association Rules
 

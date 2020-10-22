@@ -486,7 +486,8 @@
 (defn parallel-concepts
   "Computes concepts based on max-recursions and proseccors.
     ctx         the formal context
-    recursions  maximal number of recursion to generate entry point
+    recursions  maximal number of sequential recursions to generate entry 
+                points for the parallel tasks
     processors  number of processors to compute result for all entry points
   Based on 'Parallel algorithm for computing fixpoints of Galois connections'
   Krajca; Oitrata; Vychodil 2010
