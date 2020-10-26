@@ -10,6 +10,8 @@
   (:use clojure.test)
   (:use conexp.base
         conexp.fca.contexts
+        conexp.io.contexts
+        conexp.math.algebra
         conexp.fca.implications)
   (:require [conexp.fca.contexts-test :as contexts]))
 
@@ -293,6 +295,74 @@
        (set (apply intersect-implicational-theories (attributes ctx)
                    (map #(set (canonical-base (make-context % (attributes ctx) (incidence ctx))))
                         (partition-all n (objects ctx))))))))
+
+;;;
+
+(def- paper-rep
+  #(case (set %)
+    #{"dually semicomplemented" "dually almost complemented"} 
+      "dually semicomplemented"
+    #{"almost complemented" "semicomplemented"} "semicomplemented"
+    #{"distributive" "Browerian"} "distributive"
+    #{"1-distributive" "dually pseudocomplemented"} 
+      "dually pseudocomplemented"
+    #{"coatomistic" "dually sectionally semicomplemented"}  "coatomistic"
+    #{"c-condition" "dual c-condition"} "c-condition"
+    #{"0-distributive" "pseudocomplemented"} "pseudocomplemented"
+    #{"atomistic" "sectionally semicomplemented"} "atomistic"
+    #{"dually M-symmetric" "lower semimodular"} "lower semimodular"
+    #{"metric" "modular"} "modular"
+    #{"relatively complemented" "relatively semicomplemented" 
+      "dually relatively semicomplemented"} "relatively complemented"
+    #{"upper semimodular" "M-symmetric"} "upper semimodular"
+    #{"uniquely complemented" "Boolean"} "Boolean"
+    (first %)))
+
+(deftest test-ganter-base 
+  ;; criteria from original paper
+  (let [ctx   (read-context "testing-data/ReegWeiss.cxt")
+        cb    (canonical-base ctx)
+        gb    (ganter-base cb paper-rep)
+        equiv (closure-equivalence (attributes ctx)
+                                    #(close-under-implications cb #{%}))
+        reps  (reduce merge (for [[k v] equiv] (hash-map (paper-rep v) v)))
+        clos  (reduce merge
+                (for [[k1 v1] equiv [k2 v2] reps :when (= v1 v2)] 
+                  (hash-map k2 k1)))]
+    (is (= #{} (ganter-base #{} first)))
+    (is (equivalent-implications? cb gb))
+    ;; #1 one impl. per non-rep.
+    (is (= (- (count (attributes ctx)) (count (keys reps)))
+           (count (filter #(and (= 1 (count (premise %))) 
+                                (not-any? (set (keys reps)) (premise %)))
+                          gb))))
+    ;; #2 one impl. per rep. with exactly one non-rep.
+    (is (= (count (for [[k v] reps :when (< 1 (count v))] v))
+           (count 
+             (filter #(let [prem (premise %)]
+                       (and (= 1 (count prem)) 
+                            (some (set (keys reps)) prem)
+                            (= 1 (count
+                                   (filter 
+                                    (fn [a] (some 
+                                              (set (get reps (first prem))) 
+                                              #{a}))
+                                    (conclusion %))))))
+                     gb))))
+    ;; #3 impls with |prem|>1 contain no element of own closure or non-reps.
+    (is (every? identity
+          (for [impl gb :when (< 1 (count (premise impl)))]
+            (and (every? #(some #{%} (keys reps)) (premise impl))
+                 (every? #(some #{%} (keys reps)) (conclusion impl)))))))
+  ;; back and forth transformations
+  (let [stem1 (stem-base contexts/test-ctx-01),
+        stem2 (stem-base contexts/test-ctx-04),
+        stem3 (stem-base contexts/test-ctx-07),
+        stem4 (stem-base contexts/test-ctx-08)]
+    (is (= (set stem1) (set (stem-base-from-base (ganter-base stem1)))))
+    (is (= (set stem2) (set (stem-base-from-base (ganter-base stem2)))))
+    (is (= (set stem3) (set (stem-base-from-base (ganter-base stem3)))))
+    (is (= (set stem4) (set (stem-base-from-base (ganter-base stem4)))))))
 
 ;;;
 
