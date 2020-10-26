@@ -508,36 +508,40 @@
   true)
 
 (defmethod valid-cluster-set [:attributes ::ex]
-  [_ quant ctx attr]
-  (let [cluster-deri (apply union (map #(attribute-derivation ctx #{%}) attr))]
+  [_ quant ctx attr & {:keys [old-ctx]}]
+  (let [ctx (if old-ctx old-ctx ctx)
+        cluster-deri (apply union (map #(attribute-derivation ctx #{%}) attr))]
     (extent? ctx cluster-deri)))
 
 (defmethod valid-cluster-set [:objects ::all]
-  [_ quant ctx obj]
-  (let [exts (extents ctx)]
+  [_ quant ctx obj & {:keys [exts]}]
+  (let [exts (if exts exts (set (extents ctx)))]
     (not (some #(not (contains? exts (difference % obj))) exts))))
 
 (defmethod valid-cluster-set [:objects ::ex]
-  [_ quant ctx obj]
+  [_ quant ctx obj & {:keys [exts]}]
   (let [cluster-deri (apply union (map #(object-derivation ctx #{%}) obj))
-        con (concepts ctx)]
-    (not (some #(and (subset? (second %) cluster-deri)
-                     (not (extent? (union (first %) obj)))) con))))
+        exts (if exts exts (extents ctx))]
+    (not (some #(and (subset? (object-derivation ctx (difference % obj)) cluster-deri)
+                     (not (extent? ctx (union  % obj)))) exts))))
 
 (defn all-cluster-candidates
 "This methods computes all sets of attributes/objects that yield a
   scale measure. The computed sets can be limited to a size or to be
   supersets of an input."
-  [kind quant ctx {:keys [size init-set]}]
-  (let [get-set (kind {:attributes attributes :objects objects})
+  [kind quant ctx & {:keys [size init-set]}]
+  (let [get-set (get {:attributes attributes :objects objects} kind)
         init (if init-set init-set #{})
-        limit (- (if size size (count (get-set ctx))) (count init))]
-    (filter (partial kind quant ctx)
-            (map #(union % init)
-                 (apply concat
-                        (for [n (range (inc limit))]
-                          (comb/combinations (get-set ctx) n)))))))
- 
+        limit (- (if size size (count (get-set ctx))) (count init))
+        base (vec (get-set ctx))]
+
+    (r/foldcat 
+     (r/filter #(valid-cluster-set kind quant ctx (into #{} %))
+               (r/map #(union % init)
+                      (r/fold concat
+                              (map #(comb/combinations base %) 
+                                   (range (inc limit)))))))))
+
 (defn- incompatibility-graph
   "For a formal context computes the imcompatibility graph of its
   incidence relation."
