@@ -302,36 +302,6 @@
     (if (empty? rename-content) state
         (assoc state :smeasure (apply rename-method smeasure rename-content)))))
 
-(defn- valid-formula-level?
-  "Checks that every level of the formula has valid syntax."
-  [scale level] 
-  (let [ops (set (filter keyword? level))]
-    (and (= 1 (count ops))
-         (if (= :not (first ops))
-           (and (= 2 (count level))
-                (= :not (first level))) ; (:not attr)
-           (and (-> level count (> 0)) (-> level count even? not)
-                (->> level rest (take-nth 2) set (= ops)) ; every uneven is the operator
-                (->> level (take-nth 2) (every? #(or (list? %) (contains? (attributes scale) %))))))))); every even is either a formula or attributes
-
-(defn- formula-syntax-checker 
-  "Checks the syntax of the input formula" 
-  [formula scale]
-  (if (-> formula list? not) false
-      (loop [level [formula]]
-        (if (empty? level) true
-            (if (every? (partial valid-formula-level? scale) level)
-              (recur (filter list? formula))
-              false)))))
-
-
-(defn logical-attribute-derivation [ctx formula]
-  (let [incidence-ops {:or union :and intersection :not #(difference (objects ctx) %)}
-        op (->> formula (filter keyword?) first (get incidence-ops))]
-    (let [[f & other] (map #(if (list? %) % (attribute-derivation ctx #{%})) (filter (comp not keyword?) formula))]
-      (reduce (fn [a b] (op a (if (list? b) (logical-attribute-derivation ctx b) b))) 
-              (-> (if (list? f) (logical-attribute-derivation ctx f) f) op) other))))
-
 (define-repl-fn logical-attr
   "Generates a new attribute as logical formula of existing attributes."
   (let [formula (ask (str "Current Attributes: \n " (clojure.string/join " " (attributes scale)) "\n Please enter a logical formula using logical formuals e.g. \"(C :or (A :and (:not B)))\": \n ")
