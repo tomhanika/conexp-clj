@@ -22,6 +22,7 @@
     conexp.fca.many-valued-contexts
     conexp.fca.implications
     conexp.fca.exploration
+    conexp.fca.dependencies
     conexp.fca.lattices
     conexp.fca.more
     conexp.io.latex

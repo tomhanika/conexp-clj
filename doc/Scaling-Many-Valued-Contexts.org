@@ -117,3 +117,7 @@ the automatically constructed attributes names don't make any sense.
 Other pre-defined scales include ~interordinal-scale~, ~dichotomic-scale~, and
 ~interval-scale~.  From the examples above it should also be clear how to define
 other scales.
+
+** Dependencies
+
+Functional dependencies between attributes of many-valued contexts are defined in the same way as they would be in data bases. Attribute ~A~ is functional dependent on attribute ~B~ if the semiproduct of ~A~ and ~B~ has the same number of unique objects as just ~A~. The set of all non-redundant functional dependencies can be calculated from any many-valued context by use of the function ~functional-dependencies~.
