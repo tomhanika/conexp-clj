@@ -17,6 +17,7 @@
 (def conexp-clj-namespaces
   "Standard namespaces of conexp-clj."
   '[conexp.base
+    conexp.math.algebra
     conexp.fca.contexts
     conexp.fca.many-valued-contexts
     conexp.fca.implications

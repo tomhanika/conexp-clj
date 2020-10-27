@@ -9,38 +9,29 @@
 (ns conexp.fca.lattices
   "Basis datastructure and definitions for abstract lattices."
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.contexts))
 
 ;;; Datastructure
-
-(declare order)
 
 (deftype Lattice [base-set order-function inf sup]
   Object
   (equals [this other]
     (and (= (class this) (class other))
          (= (.base-set this) (.base-set ^Lattice other))
-         (let [order-this (order this),
-               order-other (order other)]
+         (let [order-this (.order this),
+               order-other (.order other)]
            (or (= order-this order-other)
                (forall [x (.base-set this)
                         y (.base-set this)]
                  (<=> (order-this x y)
                       (order-other x y)))))))
   (hashCode [this]
-    (hash-combine-hash Lattice base-set)))
-
-(defn base-set
-  "Returns the base set of lattice."
-  [^Lattice lattice]
-  (.base-set lattice))
-
-(defn order
-  "Returns a function of one or two arguments representing the order
-  relation. If called with one argument it is assumed that this
-  argument is a pair of elements."
-  [^Lattice lattice]
-  (let [order-function (.order-function lattice)]
+    (hash-combine-hash Lattice base-set))
+  ;;
+  Order
+  (base-set [this] base-set)
+  (order [this]
     (fn order-fn
       ([pair] (order-function (first pair) (second pair)))
       ([x y] (order-function x y)))))
@@ -54,6 +45,16 @@
   "Returns a function computing the supremum in lattice."
   [^Lattice lattice]
   (.sup lattice))
+
+(defn lattice-base-set
+  "Alternative base-set function to importing conexp.math.algebra"
+  [^Lattice lattice]
+  (base-set lattice))
+
+(defn lattice-order
+  "Alternative order function to importing conexp.math.algebra"
+  [^Lattice lattice]
+  (order lattice))
 
 (defmethod print-method Lattice [^Lattice lattice, ^java.io.Writer out]
   (.write out
@@ -289,7 +290,6 @@
                 (lattice-inf-irreducibles lat)
                 (fn [x y]
                   ((order lat) [x y]))))
-
 
 ;;; TITANIC Implementation
 

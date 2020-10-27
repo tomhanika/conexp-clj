@@ -8,7 +8,8 @@
 
 (ns conexp.layouts.freese
   (:use conexp.base
-        [conexp.fca.lattices :only (base-set lattice-upper-neighbours)]
+        [conexp.math.algebra :only (base-set)]
+        [conexp.fca.lattices :only (lattice-upper-neighbours)]
         [conexp.layouts.util :only (edges)]
         [conexp.layouts.base :only (make-layout-nc)])
   (:import [org.latdraw.diagram Diagram Vertex]))

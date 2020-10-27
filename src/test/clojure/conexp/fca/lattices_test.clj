@@ -10,6 +10,7 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
+        conexp.math.algebra
         conexp.fca.lattices)
   (:use clojure.test))
 
