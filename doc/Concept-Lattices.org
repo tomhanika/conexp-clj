@@ -69,7 +69,7 @@ convenience functions ~extents~ and ~intents~ which can do the job
 Next-Closure to compute the intents and extents as returned by ~intents~ and
 ~extents~, respectively.
 
-All of ~concepts~, ~intents~, ~extents~ return lazy sequences.
+All of ~concepts~, ~intents~, ~extents~ return lazy sequences. There is a parallel version available named ~parallel-concepts~, taking two additional arguments: The number of sequential iterations and the number of processors.
 
 ~concepts~ only returns a sequence of concepts of a formal context, but does not
 represent their lattice structure.  For this, one can use ~concept-lattice~
