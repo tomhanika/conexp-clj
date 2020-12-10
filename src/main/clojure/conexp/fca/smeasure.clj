@@ -112,7 +112,6 @@
           ^String (smeasure-to-string sm)))
 
 ;;;
-
 (defn- pre-image-measure
   "Returns the pre-image map of a scale measures function sigma."
   [sm]
@@ -136,12 +135,19 @@
             scale-extents)))
 
 
+
 (defn valid-scale-measure?
-  "Checks if the input is a valid scale measure."
+  "Checks if the input is a valid scale measure. This check can be
+  performed in PTIME in the size of the context and scale by
+  considering attribute concepts only."
   [sm]
-  (let [pre-extents (original-extents sm)]
+  (let [scon (scale sm)
+        lifted-pre-image (lift-map (pre-image-measure sm))
+        pre-attribute-extents (->> scon attributes 
+                                   (map #(attribute-derivation scon #{%}))
+                                   (map lifted-pre-image))]
     (every? #(extent? (context sm) %)
-            pre-extents)))
+            pre-attribute-extents)))
 
 (defn smeasure?
   "Checks if the input is a valid scale measure."
@@ -166,13 +172,30 @@
   [ctx]
   (make-smeasure-nc ctx ctx identity))
 
+(defn canonical-smeasure-representation
+  "Given a scale-measure computes its canonical representation."
+  [sm]
+  (let [scon (scale sm)
+        o (original-extents sm)]
+    (make-smeasure-nc (context sm) (make-context (objects scon) o #(contains? %2 %1)) identity)))
+
+(defn logical-conjunctive-smeasure-representation
+  "Given a scale-measure computes the equivalent scale-measure using
+  logical conjunctive formulas."
+  [sm] 
+  (rename-scale :attributes 
+                (canonical-smeasure-representation sm)
+                (fn [a] 
+                  (rest (reduce #(conj %1 :and %2) [] 
+                                (attribute-derivation (context sm) a))))))
+
 (defn remove-attributes-sm
   "Removes 'attr attributes from the scale."
   [sm attr]
   (let [s (scale sm)
         new-scale (make-context (objects s)
                               (difference (attributes s) attr)
-                              (incidence s))]
+                              (incidence-relation s))]
     (make-smeasure-nc (context sm) new-scale (measure sm))))
 
 (defmulti rename-scale
@@ -273,13 +296,13 @@
 
 (define-repl-fn clear
   "Clears the current state and restarts from scratch."
-    (assoc state :smeasure (make-id-smeasure (context scale))))
+    (assoc state :smeasure (make-id-smeasure (context smeasure))))
 
 (define-repl-fn truncate
   "Enter an attribute that should be removed from the scale."
   (assoc state :smeasure
          (remove-attributes-sm smeasure 
-                               (ask (str "Please enter all to be removed attribute spereated by ';': \n")
+                               (ask (str "Please enter all to be removed attribute spereated by ';': \n" "Current Attributes: \n " (clojure.string/join " " (attributes scale)) "\n :")
                                     #(map read-string (clojure.string/split (str (read-line)) #";"))
                                     #(subset? % (attributes scale))
                                     "The attributes are not all present, please enter an existing attribute: \n"))))
@@ -290,9 +313,10 @@
                          #(read-string (str (read-line)))
                          #(or (= :objects %) (= :attributes  %))
                          "The input must be :attributes or :objects: \n")
-        rename-method (partial rename rename-kind)
-        rename-content (ask (str "Please all " (rename-kind {:attributes "attributes" :objects "objects"})
-                                 " that should be renamed and their new name with ; seperator (name1;new-name1;name2;...): \n")
+        rename-method (partial rename-scale rename-kind)
+        rename-content (ask (str "Please enter all " (rename-kind {:attributes "attributes" :objects "objects"})
+                                 " that should be renamed and their new name with ; seperator (name1;new-name1;name2;...): \n"
+                                 "Current " (rename-kind {:attributes "attributes" :objects "objects"})": \n "(clojure.string/join " " ((rename-kind {:attributes attributes :objects objects}) scale))"\n")
                             #(map read-string (clojure.string/split (str (read-line)) #";"))
                             (fn [input] (and (even? (count input))
                                              (every? 
@@ -306,7 +330,7 @@
   "Generates a new attribute as logical formula of existing attributes."
   (let [formula (ask (str "Current Attributes: \n " (clojure.string/join " " (attributes scale)) "\n Please enter a logical formula using logical formuals e.g. \"(C :or (A :and (:not B)))\": \n ")
                      #(read-string (str (read-line)))
-                     (partial formula-syntax-checker scale)
+                     #(formula-syntax-checker % scale attributes)
                      "Enter a formula in nested list format using only attributes of the scale: \n")
         formula-derivation (logical-attribute-derivation scale formula)
         formula-name (ask (str "Enter a name for your formula: \n ")
@@ -325,14 +349,18 @@
 (define-repl-fn show
   "Prints the current scale context, attributes or objects."
   [state]
-  (let [toshow (ask (str "Please enter if you want display the scale (:context) its attributes (:attributes) or objects (:objects): \n")
+  (let [toshow (ask (str "Please enter if you want display the scale (:scale) or original context (:context): \n")
                     #(read-string (str (read-line)))
-                    #(or (= :objects %) (= :attributes  %) (= :context %))
-                    "The input must be :context, :attributes or :objects: \n")]
-    (println "\n" ((toshow {:context identity
+                    #(or (= :context %) (= :scale %))
+                    "The input must be :context or :scale: \n")
+        option (ask (str "Please enter if you want display all (:all) the objects (:objects) or the attributes (:attributes): \n")
+                    #(read-string (str (read-line)))
+                    #(or (= :all %) (= :objects %) (= :attributes %))
+                    "The input must be :attributes or :objects: \n")]
+    (println "\n" ((option {:all identity
                             :attributes (comp (partial clojure.string/join "; ") attributes)
                             :objects (comp (partial clojure.string/join "; ") objects)}) 
-                   scale))
+                   (toshow {:scale scale :context (context smeasure)})))
     state))
 
 (define-repl-fn help
@@ -364,7 +392,7 @@
   - help:          prints doc string"
   [ctx]
   (assert (context? ctx) "Input must be a Context.")
-  (println (:doc (meta #'scale-exploration)) "\n\n\n")
+  (println (:doc (meta #'conceptual-navigation)) "\n\n\n")
   (println "Start scale exploration for:\n" ctx)
   (loop [state {:smeasure (make-id-smeasure ctx)}]
     (let [evaluated (eval-command (ask (str "Please enter an operation:\n")
