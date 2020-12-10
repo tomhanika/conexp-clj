@@ -1,7 +1,7 @@
-(ns conexp.contrib.experimental.quasi-orders
+(ns conexp.example.quasi-orders
   (:use conexp.base
         conexp.fca.contexts)
-  (:require [conexp.contrib.algorithms :as a]))
+  (:require [conexp.fca.fast :as a]))
 
 (defn quasi-context [n]
   (make-context (rest (drop-last (subsets (set-of-range n))))

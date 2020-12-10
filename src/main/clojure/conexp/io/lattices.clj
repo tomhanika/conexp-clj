@@ -8,6 +8,7 @@
 
 (ns conexp.io.lattices
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.lattices
         conexp.io.util)
   (:import [java.io PushbackReader]))

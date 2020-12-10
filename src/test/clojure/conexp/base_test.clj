@@ -369,6 +369,40 @@
 
 ;;;
 
+(deftest test-non-closed-elements
+  (is (= (non-closed-elements #{}
+                              (clop-by-subsets #{} #{}))
+         #{}))
+  (is (= (non-closed-elements #{1 2 3 4 5 6}
+                              (clop-by-subsets 
+                                #{1 2 3 4 5 6} 
+                                #{#{1 3} #{2 4} #{5} #{6}}))
+         #{1 2 3 4}))
+  (is (= (non-closed-elements #{'a 'b 'c 'd}
+                              (clop-by-subsets 
+                                #{'a 'b 'c 'd}
+                                #{#{'a 'b} #{'c} #{'d}}))
+         #{'a 'b})))
+
+(deftest test-exclusive-closure
+  (is (= (exclusive-closure #{1}
+                            (clop-by-subsets 
+                              #{1 2 3 4 5 6} 
+                              #{#{1 3} #{2 4} #{5} #{6}}))
+         #{3}))
+  (is (= (exclusive-closure #{'a}
+                              (clop-by-subsets 
+                                #{'a 'b 'c 'd}
+                                #{#{'a 'b} #{'c} #{'d}}))
+         #{'b}))
+  (is (= (exclusive-closure #{3}
+                            (clop-by-subsets 
+                              #{1 2 3 4 5 6 7} 
+                              #{#{1 7} #{2 4} #{3 4 5} #{5} #{6}}))
+         #{4 5})))
+
+;;;
+
 (deftest test-subsets
   (is (= #{#{} #{1} #{2} #{1 2}}
          (set (subsets #{1 2}))))

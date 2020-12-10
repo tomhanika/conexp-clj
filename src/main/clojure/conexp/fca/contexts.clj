@@ -483,6 +483,55 @@
         empty-att     (object-derivation ctx empty-obj)]
     (generate-from empty-obj empty-att 0)))
 
+(defn parallel-concepts
+  "Computes concepts based on max-recursions and proseccors.
+    ctx         the formal context
+    recursions  maximal number of sequential recursions to generate entry 
+                points for the parallel tasks
+    processors  number of processors to compute result for all entry points
+  Based on 'Parallel algorithm for computing fixpoints of Galois connections'
+  Krajca; Oitrata; Vychodil 2010
+  https://link.springer.com/article/10.1007/s10472-010-9199-5"
+  [ctx recursions processors]
+  (let [n                (count (attributes ctx)),
+        attribute        (vec (attributes ctx)),
+        att-extent       (vec (map #(attribute-derivation ctx #{%}) attribute)),
+        initial-concepts (atom []),
+        generate-points  (fn generate-points [A B y i]
+                           (if (not= i recursions)
+                             (do
+                               (swap! initial-concepts conj [A B])
+                               (when (not= B (attributes ctx))
+                                   (mapcat (fn [j]
+                                             (when-not (contains? B (attribute j))
+                                               (let [C (intersection A (att-extent j)),
+                                                     D (object-derivation ctx C)]
+                                                 (when (cbo-test attribute j B D)
+                                                   (generate-points C D (inc j) (inc i))))))
+                                           (range y n))))
+                               (list [A B y]))),
+        generate-from    (fn generate-from [A B y]
+                           (cons [A B]
+                                 (when (not= B (attributes ctx))
+                                   (mapcat (fn [j]
+                                             (when-not (contains? B (attribute j))
+                                               (let [C (intersection A (att-extent j)),
+                                                     D (object-derivation ctx C)]
+                                                 (when (cbo-test attribute j B D)
+                                                   (generate-from C D (inc j))))))
+                                           (range y n))))),
+        empty-obj        (attribute-derivation ctx #{}),
+        empty-att        (object-derivation ctx empty-obj),
+        load-points      (generate-points empty-obj empty-att 0 1),
+        load-size        (max 1
+                              (int (+ (/ (count load-points) processors) 0.5)))]
+  (distinct 
+    (concat
+      @initial-concepts
+      (reduce concat 
+              (pmap #(mapcat (fn [a] (apply generate-from a)) %)
+                    (partition load-size load-size (list) load-points)))))))
+
 ;;; Common Operations with Contexts
 
 (defn dual-context

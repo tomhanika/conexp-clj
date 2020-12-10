@@ -3,8 +3,10 @@
 ;;
 
 
-(ns conexp.contrib.experimental.rudolph-computation
-  (:use conexp.main))
+(ns conexp.example.rudolph-computation
+  (:use conexp.fca.contexts
+        conexp.base
+        conexp.fca.implications))
 
 ;;
 
@@ -20,8 +22,6 @@
     [(union (set-of (make-implication X Y) | [X Y] pairs)
             (set-of (make-implication Y X) | [X Y] pairs))
      (set (vals new-names))]))
-
-(defonce ctx (random-context 16 16 0.7))
 
 (defn context-to-imp-set [ctx]
   (let [[base auxiliary-names] (rudolph-base ctx),
@@ -46,7 +46,3 @@
             (swap! impls conj! A→B))))
       (reset! base (canonical-base-from-base (persistent! @impls))))
     @base))
-
-;;
-
-nil

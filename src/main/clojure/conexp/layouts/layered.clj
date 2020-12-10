@@ -11,6 +11,7 @@
   (:use conexp.base
         conexp.layouts.util
         conexp.layouts.base
+        conexp.math.algebra
         conexp.fca.lattices))
 
 ;;; Simple Layered Layout
