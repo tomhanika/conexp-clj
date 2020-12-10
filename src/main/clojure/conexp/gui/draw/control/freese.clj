@@ -39,6 +39,7 @@
     (listen btn :action
             (fn [_]
               (update-layout-of-scene scn (layout (get-value)))
+              (call-scene-hook scn :estimate-grid)
               (fit-scene-to-layout scn)))
     (listen spn :change
             (fn [_]

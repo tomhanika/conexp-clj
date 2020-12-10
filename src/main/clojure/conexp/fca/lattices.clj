@@ -9,38 +9,29 @@
 (ns conexp.fca.lattices
   "Basis datastructure and definitions for abstract lattices."
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.contexts))
 
 ;;; Datastructure
-
-(declare order)
 
 (deftype Lattice [base-set order-function inf sup]
   Object
   (equals [this other]
     (and (= (class this) (class other))
          (= (.base-set this) (.base-set ^Lattice other))
-         (let [order-this (order this),
-               order-other (order other)]
+         (let [order-this (.order this),
+               order-other (.order other)]
            (or (= order-this order-other)
                (forall [x (.base-set this)
                         y (.base-set this)]
                  (<=> (order-this x y)
                       (order-other x y)))))))
   (hashCode [this]
-    (hash-combine-hash Lattice base-set)))
-
-(defn base-set
-  "Returns the base set of lattice."
-  [^Lattice lattice]
-  (.base-set lattice))
-
-(defn order
-  "Returns a function of one or two arguments representing the order
-  relation. If called with one argument it is assumed that this
-  argument is a pair of elements."
-  [^Lattice lattice]
-  (let [order-function (.order-function lattice)]
+    (hash-combine-hash Lattice base-set))
+  ;;
+  Order
+  (base-set [this] base-set)
+  (order [this]
     (fn order-fn
       ([pair] (order-function (first pair) (second pair)))
       ([x y] (order-function x y)))))
@@ -54,6 +45,16 @@
   "Returns a function computing the supremum in lattice."
   [^Lattice lattice]
   (.sup lattice))
+
+(defn lattice-base-set
+  "Alternative base-set function to importing conexp.math.algebra"
+  [^Lattice lattice]
+  (base-set lattice))
+
+(defn lattice-order
+  "Alternative order function to importing conexp.math.algebra"
+  [^Lattice lattice]
+  (order lattice))
 
 (defmethod print-method Lattice [^Lattice lattice, ^java.io.Writer out]
   (.write out
@@ -289,6 +290,167 @@
                 (lattice-inf-irreducibles lat)
                 (fn [x y]
                   ((order lat) [x y]))))
+
+;;; TITANIC Implementation
+
+(defn- minimum
+  "Computes the minimum of weights in a given sequence of
+  weights. order must be a linear order on elements plus max-val and
+  max-val must be the maximal element to be considered."
+  [order max-val elements]
+  (loop [current-min max-val,
+         elements    elements]
+    (if (empty? elements)
+      current-min
+      (recur (if (order (first elements) current-min)
+               (first elements)
+               current-min)
+             (rest elements)))))
+
+(defn- titanic-closure
+  "Computes the closure of X by the weights of its subsets. The
+  following restrictions apply:
+
+    - keys is the sequence of pairs of already computed key-sets
+      together with their weights, ordered by their weights,
+    - X is a member of keys.
+
+  "
+  [X X-weight base-set keys set-weight closure]
+  (let [keys  (doall (map first (take-while #(not= (second %) X-weight) keys))),
+        start (reduce #(union %1 (closure (disj X %2)))
+                      X X)]
+    (loop [Y        (transient start),
+           elements (difference base-set start)]
+      (if-not (empty? elements)
+        (let [m    (first elements),
+              X+m  (conj X m),
+              add? (if-let [s (set-weight X+m)]
+                     (= s X-weight)
+                     (not (exists [K keys]
+                            (and (contains? K m) (subset? K X+m)))))]
+          (recur (if add? (conj! Y m) Y)
+                 (rest elements)))
+        (persistent! Y)))))
+
+(defn- titanic-generate
+  "Computes the next candidate set."
+  [base-set key-set]
+  (set-of next [A key-set,
+                m (difference base-set A),
+                :let [next (conj A m)]
+                :when (forall [x A]
+                        (contains? key-set (disj next x)))]))
+
+(defn titanic
+  "Implements the titanic algorithm. weigh must return for a
+  collection of sets a hash-map mapping every set to its weight, with
+  max-weight being the maximal weight possible. weight-order denotes
+  the order on the weights. Note that this order has to be linear for
+  this implementation to work."
+  [base-set weigh max-weight weight-order]
+  (loop [closure    {},
+         set-weight (weigh [#{}]),
+         key-set    #{[#{}, (set-weight #{})]}, ;keys are pairs of sets and weights here
+         keys       key-set]
+    (let [candidates   (titanic-generate base-set (set-of (first k) [k key-set])),
+          set-weight   (into set-weight (weigh candidates)),
+          closure      (into closure (map (fn [[X, X-weight]]
+                                            [X (titanic-closure X X-weight base-set keys set-weight closure)])
+                                          key-set)),
+          next-key-set (set-of [X w] [X candidates,
+                                      :let [w (set-weight X)]
+                                      :when (not= w
+                                                  ;;(subset-weight X)
+                                                  (minimum weight-order max-weight
+                                                           (map #(set-weight (disj X %)) X)))])]
+      (if (seq next-key-set)            ;i.e. (not (empty? next-key-set))
+        (recur closure,
+               set-weight,
+               next-key-set,
+               (sort #(weight-order (second %1) (second %2))
+                     (concat next-key-set keys)))
+        (distinct (vals closure))))))
+
+(defn titanic-keys
+  "Nearly the same as titanic, but returns the key sets only."
+  [base-set weigh max-weight weight-order]
+  (loop [set-weight (weigh [#{}]),
+         key-set    #{#{}},
+         keys       [#{}]]
+    (let [candidates   (titanic-generate base-set key-set),
+          set-weight   (into set-weight (weigh candidates)),
+          next-key-set (set-of X [X candidates,
+                                  :when (not= (set-weight X)
+                                              ;;(subset-weight X)
+                                              (minimum weight-order max-weight
+                                                       (map #(set-weight (disj X %)) X)))])]
+      (if-not (empty? next-key-set)
+        (recur set-weight
+               next-key-set
+               (concat next-key-set keys))
+        keys))))
+
+;;; Common use cases
+
+(defn supports
+  "Returns a function of one argument being a collection of sets of attributes,
+  returning a hash-map from those sets to their supports in the given
+  context, if they have at least minsupp elements. Otherwise they are
+  associated with -1."
+  [context minsupp]
+  (let [num-of-objects (count (objects context)),
+        minnum         (* minsupp num-of-objects),
+        obj-deriv      (map-by-fn #(object-derivation context #{%}) (objects context))]
+    (fn [att-sets]
+      (map-by-fn
+       (fn [att-set]
+         (let [obj-count (count (filter #(subset? att-set (obj-deriv %))
+                                        (objects context)))]
+           (if (<= minnum obj-count)
+             obj-count
+             -1)))
+       att-sets))))
+
+(defn titanic-intents
+  "Computes the intents of the given context via TITANIC."
+  [context]
+  (titanic (attributes context)
+           (supports context 0)
+           1.0
+           <))
+
+(defn titanic-iceberg-intent-seq
+  "Computes the iceberg intent seq for given context and minimal
+  support minsupp via TITANIC."
+  [context minsupp]
+  (let [intents (titanic (attributes context)
+                         (supports context minsupp)
+                         1.0
+                         <)]
+    (if (<= (* (count (objects context)) minsupp)
+            (count (attribute-derivation context (attributes context))))
+      intents
+      (remove #{(attributes context)} intents))))
+
+(defn iceberg-lattice
+  "Returns for a given context ctx its iceberg lattice."
+  ([ctx]
+    (iceberg-lattice ctx 0))
+  ([ctx minsupp]
+    (let [intents  (titanic-iceberg-intent-seq ctx minsupp)
+          concepts (map
+                     #(vector (attribute-derivation ctx %) %)
+                     intents)]
+      (make-lattice-nc concepts
+                       (fn <= [[A _] [C _]]
+                         (subset? A C))
+                       (fn inf [[A _] [C _]]
+                         (let [A+C (intersection A C)]
+                           [A+C (object-derivation ctx A+C)]))
+                       (fn sup [[_ B] [_ D]]
+                         (let [B+D (intersection B D)]
+                           [(attribute-derivation ctx B+D) B+D]))))))
 
 ;;;
 

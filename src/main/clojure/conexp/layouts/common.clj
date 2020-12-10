@@ -9,6 +9,7 @@
 (ns conexp.layouts.common
   "Implements common layout algorithm."
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.lattices
         conexp.layouts.util
         conexp.layouts.layered

@@ -10,6 +10,7 @@
   "Implications for Formal Concept Analysis."
   (:require [clojure.core.reducers :as r]
             [conexp.base :refer :all]
+            [conexp.math.algebra :refer :all]
             [conexp.fca.contexts :refer :all]))
 
 ;;;
@@ -21,7 +22,7 @@
   (hashCode [this]
     (hash-combine-hash Implication premise conclusion))
   (toString [this]
-    (str "(" premise " ⟶ " conclusion ")")))
+    (str "(" premise " ⟶  " conclusion ")")))
 
 (defmulti premise
   "Returns premise of given object."
@@ -366,8 +367,6 @@
                                       (attributes ctx)
                                       background-knowledge)))
 
-
-
 ;;; Proper Premises
 
 (defn proper-conclusion
@@ -466,7 +465,9 @@
 ;;; Convert arbitrary bases to the Canonical Base
 
 (defn stem-base-from-base
-  "For a given set of implications returns its stem-base."
+  "For a given set of implications returns its stem-base, see:
+   'Some Notes on Pseudo-closed Sets'; Rudolph 2007
+   https://link.springer.com/chapter/10.1007%2F978-3-540-70901-5_10"
   [implications]
   (let [implications (pmap (fn [impl]
                              (make-implication
@@ -494,6 +495,65 @@
                    all)))))))
 
 (defalias canonical-base-from-base stem-base-from-base)
+
+;;; Ganter Base
+
+(defn ganter-base
+  "Given an implication base transforms it into the Ganter Base, a second 
+   argument may be given as a function by which the representative element 
+   will be chosen. 
+   The default takes whichever element comes first.
+   Defined in:
+   “Properties of Finite Lattices” by S. Reeg and W. Weiß, Revisited
+   In Memoriam Peter Burmeister (1941–2019), Bernhard Ganter 2019
+   https://link.springer.com/chapter/10.1007/978-3-030-21462-3_8"
+  ([base]
+    (ganter-base base first))
+  ([base choose]
+    (let [;; first step; representatives
+          atts  (reduce union (map #(union (premise %) (conclusion %)) base))
+          equiv (closure-equivalence atts
+                                     #(close-under-implications base #{%}))
+          reps  (reduce merge (for [[k v] equiv] (hash-map (choose v) v)))
+          ;; second/third step; replace/remove elements
+          zero  (close-under-implications base #{})
+          impl2 (for [i base]
+                  (let [prem  (difference (premise i) zero)
+                        concl (difference (conclusion i) zero)]
+                    (make-implication 
+                      (set (for [[k v] reps :when (some (set v) prem)] k)) 
+                      (set (for [[k v] reps :when (some (set v) concl)] k)))))
+          ;; fourth step; remove proper consequences
+          closures (apply merge 
+                     (for [[k1 v1] equiv [k2 v2] reps :when (= v1 v2)] 
+                       (hash-map k2 (difference k1 #{k2}))))
+          impl4    (for [i impl2]
+                     (let [prem  (premise i)
+                           concl (conclusion i)]
+                       (make-implication
+                         (if (< 1 (count prem))
+                             (difference 
+                               prem 
+                               (reduce union (map #(get closures %) prem)))
+                             prem)
+                         (if (< 1 (count concl))
+                             (difference 
+                               concl 
+                               (reduce union (map #(get closures %) concl)))
+                             concl))))
+          ;; fifth/sixth step; add cyclic implications
+          cycles  (flatten
+                   (for [[k v] reps :when (< 1 (count v))]
+                     (map  
+                       #(make-implication #{%1} #{%2})
+                       v
+                       (conj (drop-last 1 v) (last v)))))
+          cycles+  (if (< 0 (count zero)) 
+                       (conj cycles (make-implication #{} zero))
+                       cycles)]
+      ;; seventh/eight step; merge by conclusion
+      (set (for [[k v] (group-by premise (concat impl4 cycles+))]
+             (make-implication k (reduce union (map conclusion v))))))))
 
 ;;; Association Rules
 
@@ -723,6 +783,54 @@
                                                      test-set))
                                                  (repeatedly nr-iter random-subset))
                                            true))))))
+
+;;; Extension
+
+(defn unitary?
+  "Returns true iff implication is unitary (premise of length one)."
+  [impl]
+  (= 1 (count (premise impl))))
+
+(defn unitary-subset
+  "Returns the subset of unitary implications (premise of length one)."
+  [impls]
+  (set (filter unitary? impls)))
+
+(defn non-unitary-subset 
+  "Returns the subset of non-unitary implications (premise of length other 
+   than one)."
+  [impls]
+  (set (filter #(not (unitary? %)) impls)))
+
+(defn ideal-closed?
+  "Given a base tests if it is ideal-closed.
+   A base is ideal-closed iff for any  A → B the closure of A under all
+   non-unitary implications is closed under all unitary implications."
+  [impls]
+  (let [clop-u   (clop-by-implications (unitary-subset impls))
+        clop-nu  (clop-by-implications (non-unitary-subset impls))]
+    (every? identity
+            (for [impl impls]
+                 (let [nu-closure (clop-nu (premise impl))]
+                   (= nu-closure (clop-u nu-closure)))))))
+
+(defn largest-extension-by-implications
+  "Given a closure system and implications returns the 
+   largest extension of the clop by use of the implications. Algorithm from:
+   'Representations for the largest Extension of a closure system'
+   Karima Ennaoui, Khaled Maafa, Lhouari Nourine 2020
+   https://arxiv.org/pdf/2002.07680.pdf "
+  [closure impls]
+  (let [unitary   (unitary-subset (set impls))
+        extension (atom (set closure))
+        rem-impls (atom (set impls))]
+    (doall (for [impl unitary]
+             (let [clop (clop-by-implications @rem-impls)]
+               (swap! extension 
+                        union
+                        (extension-set @extension clop (first (premise impl))))
+               (swap! rem-impls difference #{impl}))))
+    @extension))
 
 ;;; The End
 

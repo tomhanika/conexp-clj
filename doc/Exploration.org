@@ -1,0 +1,114 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Attribute Exploration
+
+We want to describe the facilities ~conexp-clj~ is offering for attribute
+exploration.  For this, let us start with some simple (and vapid) example.
+
+#+begin_src clojure :exports both
+(def ctx (make-context-from-matrix ['a 'b 'c]
+                                   [1 2 3]
+                                   [0 1 0
+                                    1 1 0
+                                    1 0 1]))
+ctx
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |1 2 3 
+--+------
+a |. x . 
+b |x x . 
+c |x . x 
+
+#+end_src
+
+To explore a context without any other features, just call
+~explore-attributes~ with the corresponding context as its only
+argument
+
+#+begin_src clojure :eval never
+(explore-attributes :context ctx)
+#+end_src
+
+Exploration now proceeds as follows:
+
+#+begin_src text
+user=> (explore-attributes :context ctx)
+Does the implication (#{3} ==> #{1}) hold? no
+counterexample> object
+Please enter new object: d
+counterexample> attributes
+Please enter the attributes the new object should have: 3
+counterexample> q
+Do you want to give another counterexample? no
+Does the implication (#{2 3} ==> #{1}) hold? yes
+{:implications #{(#{2 3} ==> #{1})},
+ :context
+   |1 2 3
+ --+------
+ a |. x .
+ b |x x .
+ c |x . x
+ d |. . x
+}
+user=>
+#+end_src
+
+The result returned by ~explore-attributes~ is a hash-map with the implications
+found, together with the resulting context.
+
+It is also possible to add background knowledge to the exploration. Just give,
+as second argument, a set of valid implications.  This may short cut some steps
+of the exploration, up to the point that no interaction is required:
+
+#+begin_src clojure :exports both
+(explore-attributes
+  :context ctx
+  :background-knowledge #{(make-implication #{3} #{1})})
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+{:implications #{}, :context   |1 2 3 
+--+------
+a |. x . 
+b |x x . 
+c |x . x 
+}
+#+end_src
+
+Note that the given background knowledge is not part of the returned
+implications.
+
+Finally, you can control the way the exploration handles interaction with a
+custom handler function. This functions is called whenever an expert has to be
+asked, getting as its arguments the current context, all heretofore known
+implications and the current implication. Standardly, the function
+~default-handler~ is used, which implements low level communication via the
+command line.
+
+Handlers have to return specific values to indicate approval or rejection of a
+given implication. The format of the return value is as follows:
+
+- On success: ~nil~
+- On failure: sequence of [«a new object» «a sequence of its attributes»]
+
+You can think of a handler as a function providing counterexamples to a given
+implication.  If no counterexample is returned, the implication is assumed to be
+correct.
+
+With that, you could easily immitate ~canonical-base~ with ~explore-attributes~:
+
+#+begin_src clojure :exports both
+(equivalent-implications?
+  (:implications (explore-attributes :context ctx :handler (constantly nil)))
+  (canonical-base ctx))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+true
+#+end_src

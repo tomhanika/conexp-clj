@@ -12,7 +12,7 @@ Additional Contributors are
 * Sebastian Benner      (API)
 * Stefan Borgwardt      (Shared Intents)
 * Tom Hanika            (Concept Probability)
-* Johannes Hirth        (pq-cores)
+* Johannes Hirth        (pq-cores, scale-measures)
 * Gleb Kanterov         (interval-scale)
 * Maximilian Marx       (Wikidata)
 * Maximilian Stubbemann (concept-robustness)

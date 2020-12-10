@@ -17,10 +17,12 @@
 (def conexp-clj-namespaces
   "Standard namespaces of conexp-clj."
   '[conexp.base
+    conexp.math.algebra
     conexp.fca.contexts
     conexp.fca.many-valued-contexts
     conexp.fca.implications
     conexp.fca.exploration
+    conexp.fca.dependencies
     conexp.fca.lattices
     conexp.fca.more
     conexp.io.latex

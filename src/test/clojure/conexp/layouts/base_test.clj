@@ -9,6 +9,7 @@
 (ns conexp.layouts.base-test
   (:use conexp.base
         conexp.fca.contexts
+        conexp.math.algebra
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.layered)

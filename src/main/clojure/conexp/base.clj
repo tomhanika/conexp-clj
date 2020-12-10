@@ -876,6 +876,37 @@ metadata (as provided by def) merged into the metadata of the original."
               (swap! next-current #(conj % (clop (conj C x)))))))
         (recur (inc n) (into closures @next-current) @next-current)))))
 
+;;; Extension
+
+(defn non-closed-elements
+  "Given a closure operator (c) and a set (X) returns the subset
+   {x in X | c({x}) != {x}}."
+  [base clop]
+  (set (filter #(not= #{%} (clop #{%})) base)))
+
+(defn exclusive-closure
+  "Given a closure operator (c) and a set (s) returns
+   c(s)/s"
+  [set clop]
+  (difference (clop set) set))
+
+(defn- extendable-set
+  "Given a closure system and a element, return the subset of the closure
+   system whom the element closure is not a subset of."
+  [closure clop element]
+  (let [x-closure (exclusive-closure #{element} clop)]
+    (filter #(not (subset? x-closure %)) closure)))
+
+(defn extension-set
+  "Adds the given element to each element of a closure system."
+  [closure clop element]
+  (for [F (extendable-set closure clop element)]
+    (conj F element)))
+
+(defn extend-closure
+  "Extents the closure system by an additional given element."
+  [closure clop element]
+  (union closure (extension-set closure clop element)))
 
 ;;; Common Math Algorithms
 

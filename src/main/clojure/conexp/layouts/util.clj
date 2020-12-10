@@ -9,6 +9,7 @@
 (ns conexp.layouts.util
   "Utilities for computing lattice layouts."
   (:require [conexp.base :refer :all]
+            [conexp.math.algebra :refer :all]
             [conexp.fca.lattices :refer :all]
             [conexp.layouts.base :refer :all]
             [conexp.util.graph :as graph]))
@@ -132,8 +133,8 @@
   "Moves given point [x y] to the next point on the grid given by the
   origin [x_origin y_origin] and the paddings x_pad and y_pad."
   [[x_origin y_origin] x_pad y_pad [x y]]
-  [(+ x_origin (* x_pad (Math/round (double (/ (- x x_origin) x_pad))))),
-   (+ y_origin (* y_pad (Math/round (double (/ (- y y_origin) y_pad)))))])
+  [(+ x_origin (* x_pad (int (+ 0.5 (/ (- x x_origin) x_pad))))),
+   (+ y_origin (* y_pad (int (+ 0.5 (/ (- y y_origin) y_pad)))))])
 
 (defn fit-layout-to-grid
   "Specifies a grid by a origin point and paddings x_pad and y_pad
@@ -160,6 +161,28 @@
         x_pad  (/ (- x_max x_min) x_cells),
         y_pad  (/ (- y_max y_min) y_cells)]
     (fit-layout-to-grid layout origin x_pad y_pad)))
+
+(defn discretize-layout-values
+  "Adjusts the given layout to fit on a grid of x_cells cells in the x
+  coordinate and y_cells cells in the y coordinate using only discrete 
+  values."
+  [layout x_cells y_cells]
+  (let [[x_min y_min x_max y_max] 
+          (enclosing-rectangle (vals (positions layout)))
+        origin [x_min y_min]
+        x_pad  (/ (- x_max x_min) x_cells)
+        y_pad  (/ (- y_max y_min) y_cells)
+        discrete-layout 
+          (fit-layout-to-grid layout origin x_pad y_pad)
+        x_fac  (/ 1 x_pad)
+        y_fac  (/ 1 y_pad)]
+    (update-positions discrete-layout
+                      (persistent!
+                       (reduce (fn [map [name [x y]]]
+                                 (assoc! map name [(int (+ 1 (* x x_fac))) 
+                                                   (int (+ 1 (* y y_fac)))]))
+                               (transient {})
+                               (positions layout))))))
 
 ;;;
 

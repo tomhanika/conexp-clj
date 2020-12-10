@@ -1,5 +1,6 @@
 (ns conexp.fca.graph
   (:require [loom.graph :as lg]
+            [conexp.math.algebra :as alg]
             [conexp.fca.lattices :as lat]
             [conexp.util.graph :refer :all]
             [conexp.base :exclude [transitive-closure] :refer :all]))
@@ -12,7 +13,7 @@
   For concepts u,v, there will be an edge u->v iff v <= u.
   (This implies that the only loops will be u->u for all u.)"
   [lat]
-  (make-digraph-from-condition (lat/base-set lat) (lat/order lat)))
+  (make-digraph-from-condition (alg/base-set lat) (alg/order lat)))
 
 (defn graph->lattice-nc
   "Converts a directed graph to a lattice.
@@ -37,8 +38,8 @@
   For elements u,v, there will be an edge u<->v iff (u,v) or (v,u) in relation.
   Note: If the relation is reflexive, u<->u for all u in the set."
   ([lattice] (comparability
-               (conexp.fca.lattices/base-set lattice)
-               (conexp.fca.lattices/order lattice)))
+               (alg/base-set lattice)
+               (alg/order lattice)))
   ([base-set relation]
    (make-graph-from-condition base-set relation)))
 
@@ -48,8 +49,8 @@
   relation.
   Note: If the relation not reflexive, u<->u for all u in the set."
   ([lattice] (co-comparability
-               (conexp.fca.lattices/base-set lattice)
-               (conexp.fca.lattices/order lattice)))
+               (alg/base-set lattice)
+               (alg/order lattice)))
   ([base-set relation]
    (make-graph-from-condition base-set #(and (not (relation %1 %2))
                                              (not (relation %2 %1))))))

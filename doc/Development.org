@@ -1,0 +1,24 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Working with ~conexp-clj~'s Source Code
+
+** Testing ~conexp-clj~
+
+Install leinigen as described in [[file:Getting-Started.org][Getting Started]] and run
+
+#+begin_src sh :eval never
+lein test
+#+end_src
+
+** Compilation Instructions for ~conexp-clj~
+
+Run
+
+#+begin_src sh :eval never
+lein ueberjar
+#+end_src
+
+This will create self-contained jar files in the ~builds/uberjar~ named similar
+to ~conexp-clj-2.1.0-SNAPSHOT-standalone.jar~.
+

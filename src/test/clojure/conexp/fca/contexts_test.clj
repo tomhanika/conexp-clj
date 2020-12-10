@@ -352,6 +352,13 @@
              (<= (count (attributes ctx)) 15))
         (every? #(concept? ctx %) (concepts ctx)))))
 
+(deftest test-parallel-concepts
+  (with-testing-data [ctx testing-data]
+    (=> (and (<= (count (objects ctx)) 15)
+             (<= (count (attributes ctx)) 15))
+        (= (set (parallel-concepts ctx 2 4))
+           (set (concepts ctx))))))
+
 (deftest test-intents
   (with-testing-data [ctx testing-data]
     (=> (and (<= (count (objects ctx)) 15)

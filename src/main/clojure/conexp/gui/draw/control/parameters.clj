@@ -21,6 +21,100 @@
 (defn change-parameters
   "Installs parameter list which influences lattice drawing."
   [_ scn buttons]
+  ;;discretize
+  (let [^JTextField  grid-size (make-labeled-text-field buttons
+                                                        "grid"
+                                                        "0x0")]
+    (add-scene-callback scn :fit-grid 
+                        (fn []
+                          (let [grid (clojure.string/split 
+                                       (.getText grid-size) #"x"),
+                                layout (discretize-layout-values 
+                                         (get-layout-from-scene scn)
+                                         (- (Integer/parseInt (first grid)) 1)
+                                         (- (Integer/parseInt (second grid)) 
+                                            1))]
+                            (update-layout-of-scene scn layout)
+                            (fit-scene-to-layout scn))))
+    (add-scene-callback scn :update-grid 
+                        (fn []
+                          (let [positions (vals (positions 
+                                                  (get-layout-from-scene scn)))
+                                y-pos     (sort (map second positions))
+                                y-size    (+ (- (last y-pos) (first y-pos)) 1)
+                                x-pos     (sort (map first positions))
+                                x-size    (+ (- (last x-pos) (first x-pos)) 1)]
+                            (.setText grid-size (str x-size "x" y-size))
+                            (call-scene-hook scn :draw-grid false))))
+    (add-scene-callback scn :estimate-grid
+                        (fn []
+                          (let [positions (vals (positions 
+                                                  (get-layout-from-scene scn)))
+                                y-vals    (distinct (map second positions))
+                                x-vals    (distinct (map first positions))]
+                            (do
+                              (.setText 
+                                grid-size 
+                                (str (count x-vals) "x" (count y-vals)))
+                              (call-scene-hook scn :fit-grid)))))
+    
+
+    (listen grid-size :action
+      (fn [_]
+        (do 
+          (call-scene-hook scn :fit-grid)
+          (call-scene-hook scn :draw-grid false))))
+    (call-scene-hook scn :estimate-grid)
+    (make-padding buttons)
+
+    (let [^JButton fit-grid (make-button buttons "Fit Grid")]
+      (listen fit-grid :action
+        (fn [_]
+          (do 
+            (call-scene-hook scn :fit-grid)
+            (call-scene-hook scn :draw-grid false)))))
+    (make-padding buttons)
+
+    (let [^JButton est-grid (make-button buttons "Auto Grid")]
+      (listen est-grid :action
+        (fn [_]
+          (call-scene-hook scn :estimate-grid))))
+    (make-padding buttons)
+
+    (let [^JButton grid-toggler (make-button buttons "Toggle Off")]
+      (add-scene-callback scn :draw-grid
+        (fn [toggle?]
+          (do
+          (fit-scene-to-layout 
+            (set-layout-of-scene 
+              scn 
+              (get-layout-from-scene scn)))
+            (if (= (if toggle? "Toggle" "Toggle Off") 
+                   (.getText grid-toggler))
+              (.setText grid-toggler "Toggle Off")
+              (do
+                (let [positions (vals (positions (get-layout-from-scene scn)))
+                      x-pos     (sort (distinct (map first positions)))
+                      x-grid    (apply max (map #(- %2 %1) 
+                                                (drop 1 x-pos) 
+                                                (drop-last 1 x-pos)))
+                      y-pos     (sort (distinct (map second positions)))
+                      y-grid    (apply max (map #(- %2 %1) 
+                                                (drop 1 y-pos) 
+                                                (drop-last 1 y-pos)))]
+                  (draw-grid scn 
+                             (first positions)
+                             [x-grid y-grid]))
+                (.setText grid-toggler "Toggle")))
+            (redraw-scene scn))))
+      (listen grid-toggler :action
+        (fn [_]
+          (call-scene-hook scn :draw-grid true)))))
+
+  (make-padding buttons)
+  (make-separator buttons)
+  (make-padding buttons)
+
   ;; node radius
   (let [^JTextField
         node-radius (make-labeled-text-field buttons
@@ -36,7 +130,7 @@
             (fn [_] (call-scene-hook scn :image-changed))))
 
   (make-padding buttons)
-
+  
   ;; labels
   (let [^JButton label-toggler (make-button buttons "No Labels")]
     (show-labels scn false)
