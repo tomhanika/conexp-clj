@@ -179,16 +179,6 @@
         o (original-extents sm)]
     (make-smeasure-nc (context sm) (make-context (objects scon) o #(contains? %2 %1)) identity)))
 
-(defn logical-conjunctive-smeasure-representation
-  "Given a scale-measure computes the equivalent scale-measure using
-  logical conjunctive formulas."
-  [sm] 
-  (rename-scale :attributes 
-                (canonical-smeasure-representation sm)
-                (fn [a] 
-                  (rest (reduce #(conj %1 :and %2) [] 
-                                (attribute-derivation (context sm) a))))))
-
 (defn remove-attributes-sm
   "Removes 'attr attributes from the scale."
   [sm attr]
@@ -225,6 +215,27 @@
          rename-fn  (fn [a] (or (get rename-map a) a))]
      (rename-scale :attributes sm rename-fn))))
 
+(defn logical-conjunctive-smeasure-representation
+  "Given a scale-measure computes the equivalent scale-measure using
+  logical conjunctive formulas."
+  [sm] 
+  (rename-scale :attributes 
+                (canonical-smeasure-representation sm)
+                (fn [a] 
+                  (rest (reduce #(conj %1 :and %2) [] 
+                                (attribute-derivation (context sm) a))))))
+
+(defn scale-apposition 
+  [sm1 sm2]
+  (assert (= (context sm1) (context sm2)) "Both scale-measure must be for the same context.")
+  (if (and
+       (= (objects (scale sm1)) (objects (scale sm2)))
+       (= (measure sm1) (measure sm2)))
+    (make-smeasure-nc (context sm1)
+                      (context-apposition (scale sm1) (scale sm2))
+                      (measure sm1))
+    (scale-apposition (canonical-smeasure-representation sm1)
+                      (canonical-smeasure-representation sm2))))
 
 (derive ::all ::quant)
 (derive ::ex ::quant)

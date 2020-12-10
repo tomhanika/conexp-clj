@@ -44,27 +44,8 @@
     (is (= (attributes (scale removed)) #{0 3 4 5}))
     (is (smeasure? removed))))
 
-(deftest test-rename
-  (let [ctx (rand-context (range 6) 0.5)
-        sm (make-id-smeasure ctx)
-        renamed (rename-scale-attributes 
-                 (rename-scale-objects sm 1 "test1" 2 "test2")
-                 inc)]
-    (is (smeasure? renamed))))
-
-(deftest test-clusterings
-  (let [ctx (rand-context (range 5) 0.5)
-        sm (make-id-smeasure ctx)
-        candidates (rest(subsets (range 5)))
-        valid-attr-cl-all (map #(cluster-attributes-all sm %) candidates)
-        valid-attr-cl-ex (map #(cluster-attributes-ex sm %) candidates)
-        valid-obj-cl-all (map #(cluster-objects-all sm %) candidates)
-        valid-obj-cl-ex (map #(cluster-objects-ex sm %) candidates)]
-    (is (every? valid-scale-measure? (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-attr-cl-all)))
-    (is (<= (+ 1 (count (attributes ctx))) (count (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-attr-cl-all))))
-    (is (every? valid-scale-measure? (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-attr-cl-ex)))
-    (is (<= (+ 1 (count (attributes ctx))) (count (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-attr-cl-ex))))
-    (is (every? valid-scale-measure? (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-obj-cl-all)))
-    (is (<= (+ 1 (count (objects ctx))) (count (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-obj-cl-all))))
-    (is (every? valid-scale-measure? (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-obj-cl-ex)))
-    (is (<= (+ 1 (count (objects ctx))) (count (filter #(instance? conexp.fca.smeasure.ScaleMeasure %) valid-obj-cl-ex))))))
+;(deftest rename-scale)
+;(deftest logical-conjunctive-smeasure-representation)
+;(deftest scale-apposition)
+;(deftest remove-attributes sm)
+;(deftest scale-measure?)
