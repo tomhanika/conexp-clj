@@ -7,25 +7,31 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.metrics-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [clojure.test :refer [deftest is run-tests]]
             [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.contexts-test :refer :all]
+            [conexp.fca.lattices :refer [concept-lattice lattice-base-set
+                                         lattice-order]]
             [conexp.fca.implications :refer :all]
             [conexp.fca.implications-test :as impls]
-            [conexp.fca.metrics :refer :all]))
+            [conexp.fca.metrics :refer :all]
+            [conexp.math.util :refer [binomial-coefficient]]))
 
 ;;;
 
-(deftest test-concept-stability
-  (let [context (make-context 10 10
+(def testcontext-1
+  (make-context 10 10
                               #{[8 7] [9 8] [8 9] [0 0] [3 9] [7 7] [2 3] [2 5] [0 6]
                                 [3 3] [5 4] [1 1] [7 3] [8 6] [4 2] [7 8] [3 0] [6 6]
                                 [9 6] [1 9] [5 3] [9 9] [4 7] [4 9] [0 9] [4 1] [4 6]
                                 [5 7] [4 8] [1 7] [0 3] [6 1] [5 6] [0 7] [5 5] [7 9]
                                 [5 9] [2 4] [3 6] [4 5] [9 1] [9 7] [7 0] [6 9] [2 0]
                                 [0 4] [3 1] [9 5] [3 8] [9 4] [4 4] [7 5] [2 6] [5 0]
-                                [6 2] [3 5] [0 8] [4 0]})
+                                [6 2] [3 5] [0 8] [4 0]}))
+
+(deftest test-concept-stability
+  (let [context testcontext-1
         concept [#{0 7} #{0 7 3 9 8}]]
     (is (= (concept-stability context concept) 1/4))
     (is (every? #(<= % 1)
@@ -129,6 +135,53 @@
 
     (is (= (weighted-concept-similarity jaccard-index [c1 c3]) (/ 3 8)))
     (is (= (weighted-concept-similarity sorensen-coefficient [c1 c3]) (/ 3 7)))))
+
+(deftest test-satisfying-triples
+  (let [ctx testcontext-1
+        lat (concept-lattice ctx)
+        ord (lattice-order lat)]
+    (is (= (count (satisfying-triples lat (fn [[x y z]] true)))
+           (binomial-coefficient (count (lattice-base-set lat)) 3)))
+    (is (= (count (satisfying-triples lat (fn [[x y z]] false)))
+           0))
+    (is (= (count (satisfying-triples lat (fn [[x y z]] (and (= x y) (= y z)))))
+           0))
+    (is (= (count (satisfying-triples lat (fn [[x y z]] (and (ord x y)))))
+          9973))))
+
+(deftest test-modular-triples
+  (is (= (count (modular-triples (concept-lattice test-ctx-01))) 20))
+  (is (= (count (modular-triples (concept-lattice test-ctx-02)))
+         4495))
+  (is (= (count (modular-triples (concept-lattice test-ctx-04)))
+         0))
+  (is (= (count (modular-triples (concept-lattice test-ctx-06)))
+         220))
+  (is (= (count (modular-triples (concept-lattice test-ctx-07)))
+         84)))
+
+(deftest test-distributive-triples
+  (is (= (count (distributive-triples (concept-lattice test-ctx-01))) 19))
+  (is (= (count (distributive-triples (concept-lattice test-ctx-02)))
+         4495))
+  (is (= (count (distributive-triples (concept-lattice test-ctx-04)))
+         0))
+  (is (= (count (distributive-triples (concept-lattice test-ctx-06)))
+         100))
+  (is (= (count (distributive-triples (concept-lattice test-ctx-07)))
+         83)))
+
+(deftest test-fuzzy-distributivity
+  (is (= (fuzzy-distributivity (concept-lattice test-ctx-01))
+         19/20))
+  (is (= (fuzzy-distributivity (concept-lattice test-ctx-02))
+         1))
+  (is (= (fuzzy-distributivity (concept-lattice test-ctx-04))
+         1))
+  (is (= (fuzzy-distributivity (concept-lattice test-ctx-06))
+         5/11))
+  (is (= (fuzzy-distributivity (concept-lattice test-ctx-07))
+         83/84)))
 
 ;;;
 nil

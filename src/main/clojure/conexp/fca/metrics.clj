@@ -11,11 +11,13 @@
             [conexp.fca.contexts :refer :all]
             [conexp.math.markov :refer :all]
             [clojure.core.reducers :as r]
+            [clojure.math.combinatorics :refer [combinations]]
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]
-             [implications :refer :all]]
-            [conexp.math.util :refer [eval-polynomial]]))
+             [implications :refer :all]
+             [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
+            [conexp.math.util :refer [eval-polynomial binomial-coefficient]]))
 
 ;;; Concept Stability and the like
 
@@ -277,6 +279,62 @@
                 (swap! counter inc)))))
       (/ @counter sample-size))))
 
+;;; fuzzyfied standard lattice properties
+
+(defn satisfying-triples
+  "Given lattice lat, compute triples (a,b,c)∈L³ (pairwise different)
+  such that they fullfil a given condition cond."
+  [lat condition]
+  (let [base (into [] (lattice-base-set lat))]
+    (filter condition (combinations base 3))))
+
+(defn distributive-triples
+  "Given lattice lat, compute triples (x,y,z)∈L³ (pairwise different)
+  such that they fullfil the distributive property
+  x∨(y∧z)=(x∨y)∧(x∨z)."
+  [lat]
+  (let [inf  (inf lat),
+        sup  (sup lat)]
+    (satisfying-triples lat (fn [[x y z]] (= (sup x (inf y z ))
+                           (inf (sup x y) (sup x z)))))))
+   
+(defn modular-triples
+  "Given lattice lat, compute triples (x,y,z)∈L³ (pairwire different)
+  such that they fullfil the modular property x ≤ z ⇒
+  x∨(y∧z)=(x∨y)∧z."
+  [lat]
+  (let [inf  (inf lat),
+        sup  (sup lat),
+        ord (lattice-order lat)
+        base (into [] (lattice-base-set lat))]
+    (satisfying-triples lat (fn [[x y z]]
+                              (if (ord x z) ;; if x≤y
+                                (= ;; check x∨(y∧z)=(x∨y)∧z
+                                 (sup x (inf y z))
+                                 (inf (sup x y) z))
+                                true))))) ;; else always true 
+
+(defn fuzzy-distributivity
+  "Computes the number of triples (a,b,c)∈L³ (pairwise different)
+  that fullfil the distributivity law and divides it by the number of
+  possible pw different triples."
+  [lat]
+  (let [n (count (lattice-base-set lat))]
+    (if (< n 3)
+      1 ;; in case we have less than 3 elements we have distributivity
+    (/ (count (distributive-triples lat))
+       (binomial-coefficient n 3)))))
+
+(defn fuzzy-modularity
+  "Computes the number of triples (a,b,c)∈L³ (pairwise different)
+  that fullfil the modularity law and divides it by the number of
+  possible pw different triples. (tbc later on)"
+  [lat]
+  (let [n (count (lattice-base-set lat))]
+    (if (< n 3)
+      1 ;; in case we have less than 3 elements we have modularity
+    (/ (count (modular-triples lat))
+       (binomial-coefficient n 3)))))
 ;;;
 
 nil
