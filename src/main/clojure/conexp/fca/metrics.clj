@@ -11,7 +11,7 @@
             [conexp.fca.contexts :refer :all]
             [conexp.math.markov :refer :all]
             [clojure.core.reducers :as r]
-            [clojure.math.combinatorics :refer [combinations]]
+            [clojure.math.combinatorics :refer [permuted-combinations]]
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]
@@ -279,14 +279,14 @@
                 (swap! counter inc)))))
       (/ @counter sample-size))))
 
-;;; fuzzyfied standard lattice properties
+;;; standard lattice properties to some degree
 
 (defn satisfying-triples
   "Given lattice lat, compute triples (a,b,c)∈L³ (pairwise different)
   such that they fullfil a given condition cond."
   [lat condition]
   (let [base (into [] (lattice-base-set lat))]
-    (filter condition (combinations base 3))))
+    (filter condition (permuted-combinations base 3))))
 
 (defn distributive-triples
   "Given lattice lat, compute triples (x,y,z)∈L³ (pairwise different)
@@ -314,7 +314,7 @@
                                  (inf (sup x y) z))
                                 true))))) ;; else always true 
 
-(defn fuzzy-distributivity
+(defn distributivity-degree
   "Computes the number of triples (a,b,c)∈L³ (pairwise different)
   that fullfil the distributivity law and divides it by the number of
   possible pw different triples."
@@ -323,9 +323,9 @@
     (if (< n 3)
       1 ;; in case we have less than 3 elements we have distributivity
     (/ (count (distributive-triples lat))
-       (binomial-coefficient n 3)))))
+       (* 6 (binomial-coefficient n 3))))))
 
-(defn fuzzy-modularity
+(defn modularity-degree
   "Computes the number of triples (a,b,c)∈L³ (pairwise different)
   that fullfil the modularity law and divides it by the number of
   possible pw different triples. (tbc later on)"
@@ -334,7 +334,7 @@
     (if (< n 3)
       1 ;; in case we have less than 3 elements we have modularity
     (/ (count (modular-triples lat))
-       (binomial-coefficient n 3)))))
+       (* 6 (binomial-coefficient n 3)))))) 
 ;;;
 
 nil
