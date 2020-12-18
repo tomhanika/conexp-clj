@@ -283,26 +283,38 @@
 
 (defn satisfying-triples
   "Given lattice lat, compute triples (a,b,c)∈L³ (pairwise different)
-  such that they fullfil a given condition cond."
-  [lat condition]
+  such that they fullfil a given condition. The triples may be
+  filtered beforehand using prefilter."
+  ([lat condition]
   (let [base (into [] (lattice-base-set lat))]
+    ;; (filter condition (filter prefilter (permuted-combinations base 3)))))
     (filter condition (permuted-combinations base 3))))
+  ([lat condition prefilter]
+  (let [base (into [] (lattice-base-set lat))]
+    (filter condition (filter prefilter (permuted-combinations base 3))))))
+
 
 (defn distributive-triples
   "Given lattice lat, compute triples (x,y,z)∈L³ (pairwise different)
   such that they fullfil the distributive property
   x∨(y∧z)=(x∨y)∧(x∨z)."
-  [lat]
-  (let [inf  (inf lat),
+  ([lat]
+   (distributive-triples lat (fn [x] true)))
+  ([lat prefilter]
+   (let [inf  (inf lat),
         sup  (sup lat)]
-    (satisfying-triples lat (fn [[x y z]] (= (sup x (inf y z ))
-                           (inf (sup x y) (sup x z)))))))
-   
+      (satisfying-triples lat (fn [[x y z]]
+                                (= (sup x (inf y z ))
+                                   (inf (sup x y) (sup x z))))
+                          prefilter))))
+
 (defn modular-triples
   "Given lattice lat, compute triples (x,y,z)∈L³ (pairwire different)
   such that they fullfil the modular property x ≤ z ⇒
   x∨(y∧z)=(x∨y)∧z."
-  [lat]
+  ([lat]
+   (modular-triples lat (fn [x] true)))
+  ([lat prefilter]
   (let [inf  (inf lat),
         sup  (sup lat),
         ord (lattice-order lat)
@@ -312,7 +324,8 @@
                                 (= ;; check x∨(y∧z)=(x∨y)∧z
                                  (sup x (inf y z))
                                  (inf (sup x y) z))
-                                true))))) ;; else always true 
+                                true))
+                                prefilter)))) ;; else always true 
 
 (defn distributivity-degree
   "Computes the number of triples (a,b,c)∈L³ (pairwise different)
@@ -335,6 +348,26 @@
       1 ;; in case we have less than 3 elements we have modularity
     (/ (count (modular-triples lat))
        (* 6 (binomial-coefficient n 3)))))) 
-;;;
 
+(defn elements-distributivity
+  "Computes the number of triples (a,b,c)∈L³ (pw different) where either
+  a=e, b=e, or c=e, that fullfil the modularity law. This number is
+  then divided it by the number of possible pw different triples of such kind." 
+  [lat e]
+  (assert (contains? (lattice-base-set lat) e))
+  (let [n (count (lattice-base-set lat)),
+        filterfunc (fn [[x y z]] (or (= x e) (= y e) (= z e)))]
+    (/ (count (distributive-triples
+               lat filterfunc))
+       (* 6 (binomial-coefficient (- n 1) 2)))))
+
+(defn elements-modularity
+  [lat e]
+  (assert (contains? (lattice-base-set lat) e))
+  (let [n (count (lattice-base-set lat))]
+    (/ (count (modular-triples lat (fn [[x y z]] (or (= x e) (= y e) (= z e)))))
+       (* 6 (binomial-coefficient (- n 1) 2)))))
+
+
+;;;
 nil

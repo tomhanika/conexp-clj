@@ -159,7 +159,9 @@
   (is (= (count (modular-triples (concept-lattice test-ctx-06)))
          1320))
   (is (= (count (modular-triples (concept-lattice test-ctx-07)))
-         501)))
+         501))
+  (is (= (count (modular-triples (concept-lattice test-ctx-09)))
+         249984)))
 
 (deftest test-distributive-triples
   (is (= (count (distributive-triples (concept-lattice test-ctx-01)))
@@ -171,7 +173,9 @@
   (is (= (count (distributive-triples (concept-lattice test-ctx-06)))
          600))
   (is (= (count (distributive-triples (concept-lattice test-ctx-07)))
-         494)))
+         494))
+  (is (= (count (distributive-triples (concept-lattice test-ctx-09)))
+         249984)))
 
 (deftest test-distributivity-degree
   (is (= (distributivity-degree (concept-lattice test-ctx-01))
@@ -183,7 +187,22 @@
   (is (= (distributivity-degree (concept-lattice test-ctx-06))
          5/11))
   (is (= (distributivity-degree (concept-lattice test-ctx-07))
-         247/252)))
+         247/252))
+  (is (= (distributivity-degree (concept-lattice test-ctx-09))
+         1)))
+
+(deftest test-elements-distributivity
+  (let [ctx test-ctx-09
+        cl (concept-lattice ctx)
+        e (rand-nth (into [] (lattice-base-set cl)))]
+    (is (= (elements-distributivity cl e) 1))))
+
+(deftest test-elements-modularity
+  (let [ctx test-ctx-09
+        cl (concept-lattice ctx)
+        e (rand-nth (into [] (lattice-base-set cl)))]
+    (is (= (elements-modularity cl e) 1))))
+
 
 ;;;
 nil
