@@ -1,0 +1,4 @@
+Date: 2020-12-18
+This folder contains all 96 contexts found in the 2020 edition of the BSI-IT-Grundschutz-Kompendium found at [[https://www.bsi.bund.de/DE/Themen/ITGrundschutz/ITGrundschutzKompendium/itgrundschutzKompendium_node.html]].
+Each context is comprised of requirements (objects) and elementary threats (attributes). A requirement is related to an elementary threat (incidence) if it is required to address an elementary threat. 
+Object and attribute names are abbreviated in accordance with the compendium.
