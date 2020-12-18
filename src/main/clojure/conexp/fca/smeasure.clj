@@ -237,6 +237,29 @@
     (scale-apposition (canonical-smeasure-representation sm1)
                       (canonical-smeasure-representation sm2))))
 
+(defn recommend-by-importance
+  "Recommends a scale-measure reflecting the 'n most important
+  concepts based on a concept importance measure.
+  Some importance measures are:
+  - stability:         conexp.fca.metrics/concept-stability
+  - separation index:  conexp.fca.metrics/concept-separation
+  - probability:       conexp.fca.metrics/concept-probability
+  - robustness:       (fn [context concept]
+                       (conexp.fca.metrics/concept-robustness 
+                        concept (concepts context) your-alpha your-sorted?))
+  - support:          (fn [context concept] (count (first concept)))"
+  [context imp-fn n]
+  (let [dual (dual-context context) ;; measure importance for extents
+        imp-n-concepts (take-last n
+                         (sort-by (partial imp-fn dual)
+                                  (concepts dual)))
+        exts (map last imp-n-concepts)
+        scale (make-context (objects context) exts 
+                      (fn [a b] (contains? b a)))]
+    (println "The " n " most important extents produced " 
+             (-> scale extents count) " concepts.")
+    (make-smeasure-nc context scale identity)))
+
 (derive ::all ::quant)
 (derive ::ex ::quant)
 
