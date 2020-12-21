@@ -216,7 +216,7 @@
          rename-fn  (fn [a] (or (get rename-map a) a))]
      (rename-scale :attributes sm rename-fn))))
 
-(defn logical-conjunctive-smeasure-representation
+(defn conjunctive-normalform-smeasure-representation
   "Given a scale-measure computes the equivalent scale-measure using
   logical conjunctive formulas."
   [sm] 
@@ -247,7 +247,7 @@
   - probability:       conexp.fca.metrics/concept-probability
   - robustness:       (fn [context concept]
                        (conexp.fca.metrics/concept-robustness 
-                        concept (concepts context) your-alpha your-sorted?))
+                        concept (concepts context) your-alpha))
   - support:          (fn [context concept] (count (first concept)))"
   [context imp-fn n]
   (let [dual (dual-context context) ;; measure importance for extents
