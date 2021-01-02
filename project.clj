@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(defproject conexp-clj "2.2.1-SNAPSHOT"
+(defproject conexp-clj "2.2.3-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
   :url "http://github.com/tomhanika/conexp-clj/"

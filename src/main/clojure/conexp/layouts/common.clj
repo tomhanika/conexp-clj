@@ -75,6 +75,14 @@
                   (placement-by-initials lattice top placement)
                   (edges lattice)))
 
+;;; Valued layout stuff
+
+(defn to-valued-layout
+  [layout val-fn]
+  (let [lattice   (lattice layout)
+        elements  (lattice-base-set lattice)]
+    (update-valuations layout val-fn)))
+
 ;;;
 
 nil

@@ -124,6 +124,19 @@
            (.valuations layout)
            (.information layout)))
 
+(defn update-valuations
+  "Updates valuation map in layout."
+  [^Layout layout, val-fn]
+  (let [thelattice (.lattice layout)
+        elements (lattice-base-set thelattice)]
+    (Layout. (.lattice layout)
+           (.positions layout)
+           (.connections layout)
+           (.upper-labels layout)
+           (.lower-labels layout)
+           (reduce (fn [e x] (assoc e x (val-fn x))) {} elements)
+           (.information layout))))
+
 ;;; argument verification
 
 (defn- verify-lattice-positions-connections
@@ -228,7 +241,7 @@
   [^Layout layout]
   (.connections layout))
 
-(defn- valuations
+(defn valuations
   "Returns stored additional valuations of layout."
   [^Layout layout]
   (.valuations layout))
@@ -257,7 +270,9 @@
                       (println "Positions")
                       (pprint (positions layout))
                       (println "Connections")
-                      (pprint (connections layout)))]
+                      (pprint (connections layout))
+                      (println "Valuations")
+                      (pprint (valuations layout)))]
     (.write out str)))
 
 (defn nodes

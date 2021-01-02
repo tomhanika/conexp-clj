@@ -18,7 +18,7 @@
 
 (def ^:dynamic *item-width*
   "Width of items in toolbar."
-  100)
+  125)
 
 (def ^:dynamic *item-height*
   "Heights of items on toolbar."

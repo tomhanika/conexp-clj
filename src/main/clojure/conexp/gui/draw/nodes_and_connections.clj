@@ -119,13 +119,14 @@
 
 (def default-node-radius
   "Initial node radius when drawing lattices."
-  5.0)
+  6.0)
 
 (defn- add-node
   "Adds a node to scn at position [x y]."
-  [^GScene scn, x, y, name, [upper-label lower-label]]
+  [^GScene scn, x, y, name, [upper-label lower-label] valuation]
   (let [^GSegment upper-segment (GSegment.),
         ^GSegment lower-segment (GSegment.),
+        ^GSegment middle-segment (GSegment.),
         object (proxy [GObject] []
                  (draw []
                    (let [upper-style (if (= 1 (some-> this upper-neighbors count))
@@ -138,6 +139,7 @@
                          [l u] (create-two-halfcircles x y (radius this))]
                      (.setGeometryXy lower-segment l)
                      (.setGeometryXy upper-segment u)
+                     (.setGeometry middle-segment  (double x) (double y))
                      (.setStyle lower-segment lower-style)
                      (.setStyle upper-segment upper-style))))
         style (GStyle.)]
@@ -145,20 +147,22 @@
       (.setStyle default-node-style)
       (.addSegment lower-segment)
       (.addSegment upper-segment)
+      (.addSegment middle-segment)
       (.setUserData (ref {:type :node,
                           :position [(double x), (double y)],
                           :radius default-node-radius,
                           :name name})))
     (doto scn
       (.add object))
-
     (let [^GText upper-text (GText. (print-str upper-label) GPosition/NORTH),
-          ^GText lower-text (GText. (print-str lower-label) GPosition/SOUTH)]
-        (.setStyle upper-text default-node-label-style)
-        (.setStyle lower-text default-node-label-style)
-        (.addText upper-segment upper-text)
-        (.addText lower-segment lower-text))
-
+          ^GText lower-text (GText. (print-str lower-label) GPosition/SOUTH),
+          ^GText middle-text (GText. (print-str valuation) GPosition/EAST)]
+      (.setStyle upper-text default-node-label-style)
+      (.setStyle lower-text default-node-label-style)
+      (.setStyle middle-text default-node-label-style)
+      (.addText upper-segment upper-text)
+      (.addText lower-segment lower-text)
+      (.addText middle-segment middle-text))
     object))
 
 ;;
@@ -454,15 +458,23 @@
 (defn add-nodes-with-connections
   "Adds to scene scn nodes placed by node-coordinate-map and connected
   via pairs in the sequence node-connections."
-  [scn node-coordinate-map node-connections annotation]
-  (let [node-map (persistent! (reduce (fn [map [node [x y]]]
-                                        (assoc! map node (add-node scn x y node (annotation node))))
-                                      (transient {})
-                                      node-coordinate-map))]
+  [scn node-coordinate-map node-connections annotation valuation]
+  (let [node-map (persistent!
+                  (reduce (fn [map [node [x y]]]
+                            (assoc! map node (add-node scn x y node (annotation node) (valuation node))))
+                          (transient {})
+                          node-coordinate-map))]
     (doseq [[node-1 node-2] node-connections]
       (connect-nodes scn (node-map node-1) (node-map node-2)))
     node-map))
 
-;;;
+;;; valuations
+
+(defn revaluate-node-unchecked
+  "Attribute new valuations to  node to [new-x new-y]."
+  [^GObject node, new-val]
+  (let [node-name (get-name node)
+        ^GText new-val-text (GText. (print-str (new-val node-name)) GPosition/EAST)]
+    (.setText (.getSegment  node 2) new-val-text )))
 
 nil

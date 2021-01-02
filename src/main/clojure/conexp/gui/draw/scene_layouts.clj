@@ -78,14 +78,18 @@
   (let [pos (positions layout)]
     (do-nodes [node scene]
       (let [[x y] (pos (get-name node))]
-        (move-node-unchecked-to node x y)))))
+        (move-node-unchecked-to node x y)
+        (revaluate-node-unchecked node (valuations layout))))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
   [^GScene scene, layout]
   (doto scene
     (.removeAll)
-    (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
+    (add-nodes-with-connections (positions layout)
+                                (connections layout)
+                                (annotation layout)
+                                (valuations layout))
     (add-data-to-scene :layout layout)))
 
 
