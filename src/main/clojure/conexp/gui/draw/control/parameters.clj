@@ -292,7 +292,7 @@
 
 (defn- no-valuation-mode
   [concept]
-  -1)
+  "")
 ;;;
 
 nil
