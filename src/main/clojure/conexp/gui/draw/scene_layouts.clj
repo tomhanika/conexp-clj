@@ -78,8 +78,14 @@
   (let [pos (positions layout)]
     (do-nodes [node scene]
       (let [[x y] (pos (get-name node))]
-        (move-node-unchecked-to node x y)
-        (revaluate-node-unchecked node (valuations layout))))))
+        (move-node-unchecked-to node x y))))))
+
+(defn update-valuations-of-scene
+  "Updates valutions according to new valuation function. The underlying lattice must
+  not be changed."
+  [^GScene scene, layout]
+  (do-nodes [node scene]
+            (revaluate-node-unchecked node (valuations layout))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."

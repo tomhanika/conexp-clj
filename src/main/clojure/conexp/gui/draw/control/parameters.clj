@@ -80,7 +80,7 @@
                       thens (find-ns 'conexp.gui.draw.control.parameters)
                       val-fn (ns-resolve thens @current-valuation-mode)
                       newlayout (update-valuations layout val-fn)]
-                  (update-layout-of-scene scn newlayout)
+                  (update-valuations-of-scene scn newlayout)
                   (fit-scene-to-layout scn newlayout))))))
   
   (make-padding buttons)
