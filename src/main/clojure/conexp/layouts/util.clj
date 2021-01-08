@@ -65,7 +65,8 @@
                                                        (map second points)))
                     (connections layout)
                     (upper-labels layout)
-                    (lower-labels layout))))
+                    (lower-labels layout)
+                    (valuations layout))))
 
 ;;;
 

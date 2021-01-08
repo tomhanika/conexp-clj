@@ -14,14 +14,124 @@
 ;;;
 
 (declare single-move-mode, ideal-move-mode, filter-move-mode, chain-move-mode,
-         infimum-additive-move-mode, supremum-additive-move-mode)
+         infimum-additive-move-mode, supremum-additive-move-mode,
+         no-valuation-mode, count-int-valuation-mode, count-ext-valuation-mode)
 
 ;;;
 
 (defn change-parameters
   "Installs parameter list which influences lattice drawing."
   [_ scn buttons]
-  ;;discretize
+
+
+  ;; move mode
+  (make-label buttons "Move-Modes")
+  (let [move-modes {"single" (single-move-mode),
+                    "ideal"  (ideal-move-mode),
+                    "filter" (filter-move-mode),
+                    "chain"  (chain-move-mode),
+                    "inf"    (infimum-additive-move-mode),
+                    "sup"    (supremum-additive-move-mode)}
+        ^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
+        current-move-mode (atom (move-modes "single"))]
+    (add-scene-callback scn :move-drag
+                        (fn [node dx dy]
+                          (@current-move-mode node dx dy)))
+    (listen combo-box :action
+            (fn [evt]
+              (let [selected (.getSelectedItem
+                              ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
+                    move-mode (get move-modes selected)]
+                (reset! current-move-mode move-mode)))))
+
+  (make-padding buttons)
+  (make-separator buttons)
+  (make-padding buttons)
+  
+  ;; labels
+  (make-label buttons "Labels")
+  (let [^JButton label-toggler (make-button buttons "off")]
+    (show-labels scn false)
+    (listen label-toggler :action
+            (fn [_]
+              (if (= "on" (.getText label-toggler))
+                (do
+                  (show-labels scn false)
+                  (.setText label-toggler "off"))
+                (do
+                  (show-labels scn true)
+                  (.setText label-toggler "on")))
+              (redraw-scene scn))))
+
+  (make-label buttons "Valuations")
+  (let [valuation-modes {"none" 'no-valuation-mode,
+                         "count-ints" 'count-int-valuation-mode,
+                         "count-exts" 'count-ext-valuation-mode}
+        ^JComboBox combo-box (make-combo-box buttons (keys valuation-modes)),
+        current-valuation-mode (atom (valuation-modes "none"))]
+    (listen combo-box :action
+            (fn [evt]
+              (let [selected (.getSelectedItem
+                              ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
+                    valuation-mode (get valuation-modes selected)]
+                (reset! current-valuation-mode valuation-mode))
+              (if (not (nil? @current-valuation-mode))
+                (let [layout (get-layout-from-scene scn)
+                      thens (find-ns 'conexp.gui.draw.control.parameters)
+                      val-fn (ns-resolve thens @current-valuation-mode)
+                      newlayout (update-valuations layout val-fn)]
+                  (update-valuations-of-scene scn newlayout)
+                  (fit-scene-to-layout scn newlayout))))))
+  
+  (make-padding buttons)
+  (make-separator buttons)
+  (make-padding buttons)
+
+  ;; node radius
+  (let [^JTextField
+        node-radius (make-labeled-text-field buttons
+                                             "radius"
+                                             (str default-node-radius))]
+    (add-scene-callback scn :image-changed
+                        (fn []
+                          (let [new-radius (Double/parseDouble (.getText node-radius)),
+                                length     (min (scene-height scn) (scene-width scn))]
+                            (do-nodes [n scn]
+                              (set-node-radius! n (/ (* length new-radius) 400))))))
+    (listen node-radius :action
+            (fn [_] (call-scene-hook scn :image-changed))))
+
+  (make-padding buttons)
+  (make-separator buttons)
+  (make-padding buttons)
+  
+
+  ;; layouts
+  (let [layouts {"standard"     standard-layout,
+                 "inf-add"      inf-additive-layout,
+                 "simple-layer" simple-layered-layout,
+                 "as-chain"     as-chain},
+        ^JButton fit (make-button buttons "Fit Screen"),
+        ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
+    (listen fit :action
+            (fn [_]
+              (fit-scene-to-layout scn)))
+    (listen combo-box :action
+            (fn [evt]
+              (let [selected  (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
+                    layout-fn (get layouts selected),
+                    layout    (scale-layout [0.0 0.0]
+                                            [100.0 100.0]
+                                            (layout-fn (lattice (get-layout-from-scene scn))))]
+                (update-layout-of-scene scn layout)
+                (fit-scene-to-layout scn layout)))))
+
+
+  (make-padding buttons)
+  (make-separator buttons)
+  (make-padding buttons)
+  
+    ;;discretize
   (let [^JTextField  grid-size (make-labeled-text-field buttons
                                                         "grid"
                                                         "0x0")]
@@ -81,7 +191,7 @@
           (call-scene-hook scn :estimate-grid))))
     (make-padding buttons)
 
-    (let [^JButton grid-toggler (make-button buttons "Toggle Off")]
+    (let [^JButton grid-toggler (make-button buttons "Toggled Off")]
       (add-scene-callback scn :draw-grid
         (fn [toggle?]
           (do
@@ -89,9 +199,9 @@
             (set-layout-of-scene 
               scn 
               (get-layout-from-scene scn)))
-            (if (= (if toggle? "Toggle" "Toggle Off") 
+            (if (= (if toggle? "Toggled On" "Toggled Off") 
                    (.getText grid-toggler))
-              (.setText grid-toggler "Toggle Off")
+              (.setText grid-toggler "Toggled Off")
               (do
                 (let [positions (vals (positions (get-layout-from-scene scn)))
                       x-pos     (sort (distinct (map first positions)))
@@ -110,81 +220,14 @@
       (listen grid-toggler :action
         (fn [_]
           (call-scene-hook scn :draw-grid true)))))
-
   (make-padding buttons)
   (make-separator buttons)
   (make-padding buttons)
-
-  ;; node radius
-  (let [^JTextField
-        node-radius (make-labeled-text-field buttons
-                                             "radius"
-                                             (str default-node-radius))]
-    (add-scene-callback scn :image-changed
-                        (fn []
-                          (let [new-radius (Double/parseDouble (.getText node-radius)),
-                                length     (min (scene-height scn) (scene-width scn))]
-                            (do-nodes [n scn]
-                              (set-node-radius! n (/ (* length new-radius) 400))))))
-    (listen node-radius :action
-            (fn [_] (call-scene-hook scn :image-changed))))
-
-  (make-padding buttons)
   
-  ;; labels
-  (let [^JButton label-toggler (make-button buttons "No Labels")]
-    (show-labels scn false)
-    (listen label-toggler :action
-            (fn [_]
-              (if (= "Labels" (.getText label-toggler))
-                (do
-                  (show-labels scn false)
-                  (.setText label-toggler "No Labels"))
-                (do
-                  (show-labels scn true)
-                  (.setText label-toggler "Labels")))
-              (redraw-scene scn))))
-
-  ;; layouts
-  (let [layouts {"standard"     standard-layout,
-                 "inf-add"      inf-additive-layout,
-                 "simple-layer" simple-layered-layout,
-                 "as-chain"     as-chain},
-        ^JButton fit (make-button buttons "Fit"),
-        ^JComboBox combo-box (make-combo-box buttons (keys layouts))]
-    (listen fit :action
-            (fn [_]
-              (fit-scene-to-layout scn)))
-    (listen combo-box :action
-            (fn [evt]
-              (let [selected  (.getSelectedItem ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
-                    layout-fn (get layouts selected),
-                    layout    (scale-layout [0.0 0.0]
-                                            [100.0 100.0]
-                                            (layout-fn (lattice (get-layout-from-scene scn))))]
-                (update-layout-of-scene scn layout)
-                (fit-scene-to-layout scn layout)))))
-
-  ;; move mode
-  (let [move-modes {"single" (single-move-mode),
-                    "ideal"  (ideal-move-mode),
-                    "filter" (filter-move-mode),
-                    "chain"  (chain-move-mode),
-                    "inf"    (infimum-additive-move-mode),
-                    "sup"    (supremum-additive-move-mode)}
-        ^JComboBox combo-box (make-combo-box buttons (keys move-modes)),
-        current-move-mode (atom (move-modes "single"))]
-    (add-scene-callback scn :move-drag
-                        (fn [node dx dy]
-                          (@current-move-mode node dx dy)))
-    (listen combo-box :action
-            (fn [evt]
-              (let [selected (.getSelectedItem
-                              ^JComboBox (.getSource ^java.awt.event.ActionEvent evt)),
-                    move-mode (get move-modes selected)]
-                (reset! current-move-mode move-mode)))))
 
   nil)
+
+
 
 ;;; Move modes
 
@@ -239,6 +282,17 @@
   []
   (additive-move-mode (memoize all-sup-add-influenced-nodes)))
 
+(defn- count-int-valuation-mode
+  [concept]
+  (count (second concept)))
+
+(defn- count-ext-valuation-mode
+  [concept]
+  (count (first concept)))
+
+(defn- no-valuation-mode
+  [concept]
+  "")
 ;;;
 
 nil
