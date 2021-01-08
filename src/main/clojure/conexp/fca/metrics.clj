@@ -17,7 +17,8 @@
              [exploration :refer :all]
              [implications :refer :all]
              [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
-            [conexp.math.util :refer [eval-polynomial binomial-coefficient]]))
+            [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
+  (:import [conexp.fca.lattices Lattice]))
 
 ;;; Concept Stability and the like
 
@@ -285,7 +286,7 @@
   "Given lattice lat, compute triples (a,b,c)∈L³ (pairwise different)
   such that they fullfil a given condition. The triples may be
   filtered beforehand using prefilter."
-  ([lat condition]
+  ([^Lattice lat condition]
   (let [base (into [] (lattice-base-set lat))]
     ;; (filter condition (filter prefilter (permuted-combinations base 3)))))
     (filter condition (permuted-combinations base 3))))
@@ -298,11 +299,11 @@
   "Given lattice lat, compute triples (x,y,z)∈L³ (pairwise different)
   such that they fullfil the distributive property
   x∨(y∧z)=(x∨y)∧(x∨z)."
-  ([lat]
+  ([^Lattice lat]
    (distributive-triples lat (fn [x] true)))
-  ([lat prefilter]
+  ([^Lattice lat prefilter]
    (let [inf  (inf lat),
-        sup  (sup lat)]
+         sup  (sup lat)]
       (satisfying-triples lat (fn [[x y z]]
                                 (= (sup x (inf y z ))
                                    (inf (sup x y) (sup x z))))

@@ -1,5 +1,6 @@
 (ns conexp.gui.draw.control.parameters
-  (:require [conexp.gui.draw.control.util :refer :all]
+  (:require [conexp.fca.metrics :refer [elements-distributivity elements-modularity]]
+            [conexp.gui.draw.control.util :refer :all]
             [conexp.gui.draw.nodes-and-connections :refer :all]
             [conexp.gui.draw.scene-layouts :refer :all]
             [conexp.gui.draw.scenes :refer :all]
@@ -15,7 +16,8 @@
 
 (declare single-move-mode, ideal-move-mode, filter-move-mode, chain-move-mode,
          infimum-additive-move-mode, supremum-additive-move-mode,
-         no-valuation-mode, count-int-valuation-mode, count-ext-valuation-mode)
+         no-valuation-mode, count-int-valuation-mode, count-ext-valuation-mode,
+         modularity-valuation-mode, distributivity-valuation-mode)
 
 ;;;
 
@@ -66,7 +68,9 @@
   (make-label buttons "Valuations")
   (let [valuation-modes {"none" 'no-valuation-mode,
                          "count-ints" 'count-int-valuation-mode,
-                         "count-exts" 'count-ext-valuation-mode}
+                         "count-exts" 'count-ext-valuation-mode,
+                         "distributivity" 'distributivity-valuation-mode,
+                         "modularity" 'modularity-valuation-mode}
         ^JComboBox combo-box (make-combo-box buttons (keys valuation-modes)),
         current-valuation-mode (atom (valuation-modes "none"))]
     (listen combo-box :action
@@ -77,9 +81,10 @@
                 (reset! current-valuation-mode valuation-mode))
               (if (not (nil? @current-valuation-mode))
                 (let [layout (get-layout-from-scene scn)
+                      thelattice (lattice layout)
                       thens (find-ns 'conexp.gui.draw.control.parameters)
                       val-fn (ns-resolve thens @current-valuation-mode)
-                      newlayout (update-valuations layout val-fn)]
+                      newlayout (update-valuations layout (partial val-fn thelattice))]
                   (update-valuations-of-scene scn newlayout)
                   (fit-scene-to-layout scn newlayout))))))
   
@@ -283,15 +288,23 @@
   (additive-move-mode (memoize all-sup-add-influenced-nodes)))
 
 (defn- count-int-valuation-mode
-  [concept]
-  (count (second concept)))
+  [_ c]
+  (count (second c)))
 
 (defn- count-ext-valuation-mode
-  [concept]
-  (count (first concept)))
+  [_ c]
+  (count (first c)))
+
+(defn- modularity-valuation-mode
+  [lat c]
+  (float (elements-modularity lat c)))
+
+(defn- distributivity-valuation-mode
+  [lat c]
+  (float (elements-distributivity lat c)))
 
 (defn- no-valuation-mode
-  [concept]
+  [_ concept]
   "")
 ;;;
 
