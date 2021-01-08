@@ -764,7 +764,6 @@ metadata (as provided by def) merged into the metadata of the original."
   [base-set]
   (map set (comb/subsets (seq base-set))))
 
-
 ;;; Next Closure
 
 (defn lectic-<_i
@@ -1123,5 +1122,11 @@ metadata (as provided by def) merged into the metadata of the original."
       (search (list [edges #{} elements 'beginning])))))
 
 ;;;
-
+(defn lift-map 
+  "This set lifts a map m:A->B to the power sets, m:P(A)->P(B)."
+  [m]
+  (let [make-set (fn [c] (if (set? c) c #{c}))
+        reducer-fn (fn [c d] (union (make-set c) (make-set d)))]
+    (fn [A] (reduce reducer-fn #{} (map m A)))))
+;;;
 nil
