@@ -216,6 +216,11 @@
          rename-fn  (fn [a] (or (get rename-map a) a))]
      (rename-scale :attributes sm rename-fn))))
 
+(defn meet-irreducibles-only-smeasure 
+  "Removes all non meet-irreducible attributes from the scale-measure."
+  [sm]
+  (make-smeasure-nc (context sm) (-> sm scale reduce-attributes) (measure sm)))
+
 (defn conjunctive-normalform-smeasure-representation
   "Given a scale-measure computes the equivalent scale-measure using
   logical conjunctive formulas."
@@ -224,7 +229,7 @@
                 (canonical-smeasure-representation sm)
                 (fn [a] 
                   (rest (reduce #(conj %1 :and %2) [] 
-                                (attribute-derivation (context sm) a))))))
+                                (object-derivation (context sm) a))))))
 
 (defn scale-apposition 
   [sm1 sm2]
@@ -447,8 +452,9 @@
   (let [premise-deri (object-derivation (:context state) cur)
         concl-deri (object-derivation (:context state) cur-conclusion)
         deri-margin (difference premise-deri concl-deri)
-        counter (ask (str "Please enter by you allow coarsening of objects having additional:\n" deri-margin "\n down to only " concl-deri
-                          " you allow\n Enter a subset of " deri-margin " that will be neglected:\n Note that if the closure of your input \n and the later attribute set is has all mentioned \n attributes, you end up in an infinite loop until \n you enter a proper subset:\n")
+        counter (ask (str "Have: " concl-deri "\n how much more of " deri-margin 
+                          " \n do you want? \n Enter a subset of "
+                          deri-margin ":\n Note that the empty input will result in an infinite loop\n")
                      #(let [input (str (read-line))]
                         (if (= "" input) #{}
                             (set (map read-string 
@@ -456,11 +462,10 @@
                      #(subset? % deri-margin)
                      (str "The input must be a subset of " deri-margin ":\n"))
         counter-cl (context-attribute-closure (:context state) (union concl-deri counter))]
-    (if (ask (str "You entered " counter " with closure " counter-cl "\n Do you want to apply the coarsoning of " 
-                  deri-margin " down to " (difference counter-cl concl-deri) "?\n")
-             #(read-string (str (read-line)))
-             #(or (= true %) (= % false))
-             "Enter true or false:\n")
+    (if (= "yes" (ask (str "You entered " counter " with closure " counter-cl "\n Please confirm with yes or no:\n")
+                      #(str (read-line))
+                      #(or (= "yes" %) (= % "no"))
+                      "Enter yes or no:\n"))
       (attribute-derivation (:context state) (union concl-deri counter))
       (provide-counter-example state cur cur-conclusion))))
 
@@ -471,14 +476,14 @@
   (let [premise-deri (object-derivation (:context state) cur)
         concl-deri (object-derivation (:context state) cur-conclusion)
         deri-margin (difference premise-deri concl-deri)
-        answer (ask (str "Do you allow neglection of " deri-margin 
-                         " for object having " concl-deri "?\n Enter true or false:")
-                    #(read-string (str (read-line)))
-                    #(or (= true %) (= % false))
-                    "Enter true or false:\n")]
+        answer (ask (str "Have: " concl-deri 
+                         " want more of " deri-margin "?\n Enter yes, none or all:\n")
+                    #(str (read-line))
+                    #(or (= "none" %) (= % "all") (= "yes" %) (= % "no"))
+                    "Enter yes, all or none :\n")]
     answer))
 
-(defn- exploration-of-scales-iteration 
+(defn exploration-of-scales-iteration 
   "This is method performs each iteration of the scale-measure
   exploration to determine an object set B to coarsen a context by the
   object implication cur->B with B beeing a subset of
@@ -487,44 +492,55 @@
   be called with the next-closured set of cur."
   [state]
   (loop [cur-conclusion (context-object-closure (:scale state) (:cur state)) iter-state state]
+    (println (:cur iter-state) cur-conclusion)
     (if (= cur-conclusion (:cur iter-state))
       (let [next-cur (next-closed-set (:object-order iter-state)
                                       (clop-by-implications (:imps iter-state))
                                       (:cur iter-state))]
         (assoc iter-state :cur next-cur))
       (let [coarse? (coarsened-by-imp? iter-state (:cur iter-state) cur-conclusion)] 
-        (if coarse? 
-          (let [new-imps (conj (:imps iter-state) (make-implication (:cur iter-state) cur-conclusion))
-                next-cur (next-closed-set (:object-order iter-state)
-                                                   (clop-by-implications new-imps)
-                                                   (:cur iter-state))]
-                (-> iter-state 
-                    (assoc :imps new-imps)
-                    (assoc :cur next-cur)))
-              (let [counter (provide-counter-example iter-state (:cur iter-state) cur-conclusion)
-                    state-with-counter 
-                       (update iter-state :scale 
-                               #(make-context (objects %) 
-                                              (conj (attributes %) 
-                                               counter)
-                                              (:inc state)))]
-                (recur (context-object-closure (:scale state-with-counter) (:cur state-with-counter))
-                       state-with-counter)))))))
+        (cond ; not wanting attributes means cur should be closed. Hence add all attributes in the question
+              ; all attributes are already closed. will could result in endless loop
+          (= coarse? "none") (let [closed-premise 
+                                  (update iter-state :scale 
+                                          #(make-context (objects %) 
+                                                         (conj (attributes %) 
+                                                               (:cur iter-state))
+                                                         (:inc state)))]
+                    (recur (context-object-closure (:scale closed-premise) (:cur closed-premise))
+                           closed-premise))
+          (= coarse? "yes") (let [counter (provide-counter-example iter-state (:cur iter-state) cur-conclusion)
+                        state-with-counter 
+                        (update iter-state :scale 
+                                #(make-context (objects %) 
+                                               (conj (attributes %) 
+                                                     counter)
+                                               (:inc state)))]
+                    (recur (context-object-closure (:scale state-with-counter) (:cur state-with-counter))
+                           state-with-counter))
+          (= coarse? "all") (let [new-imps (conj (:imps iter-state) (make-implication (:cur iter-state) cur-conclusion))
+                                  next-cur (next-closed-set (:object-order iter-state)
+                                                            (clop-by-implications new-imps)
+                                                            (:cur iter-state))]
+                              (-> iter-state 
+                                  (assoc :imps new-imps)
+                                  (assoc :cur next-cur))))))))
 
 (defn exploration-of-scales 
   "This algorithm performs an object-exploration with background
   knowledge (context) to determine a scale-measure."
-  [context]
-  (let [object-order (-> context objects vec)
-        incidence-fn (fn ([a b] (contains? b a))
-                         ([[a b]] (contains? b a)))
-        init-scale (make-context object-order #{} incidence-fn)]
-    (loop [state {:scale init-scale :cur #{} :imps (canonical-base
-    context) :inc incidence-fn :context context :object-order
-    object-order}]
-      (if (= (objects context) 
-             (:cur state)) 
-        (make-smeasure-nc context (:scale state) identity)
-        (recur (exploration-of-scales-iteration state))))))
+  ([context] 
+   (exploration-of-scales context (-> context objects vec)))
+  ([context object-order]
+   (let [incidence-fn (fn ([a b] (contains? b a))
+                        ([[a b]] (contains? b a)))
+         init-scale (make-context object-order #{} incidence-fn)]
+     (loop [state {:scale init-scale :cur #{} :object-order object-order
+                   :imps (canonical-base (dual-context context))
+                   :inc incidence-fn :context context }]
+       (if (= (objects context) 
+              (:cur state)) 
+         (make-smeasure-nc context (:scale state) identity)
+         (recur (exploration-of-scales-iteration state)))))))
 
 
