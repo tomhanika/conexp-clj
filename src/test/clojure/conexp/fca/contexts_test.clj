@@ -62,6 +62,8 @@
                                   [3 b] [3 e]
                                   [4 c] [4 d] [4 e]}))
 
+(def test-ctx-09  (make-context 6 6 not=))
+
 (def testing-data [empty-context,
                    test-ctx-01,
                    test-ctx-02,
@@ -71,6 +73,7 @@
                    test-ctx-06,
                    test-ctx-07,
                    test-ctx-08,
+                   test-ctx-09,
                    (make-context #{1 2}
                                  #{1 2}
                                  [[1 1] [1 2]])])
