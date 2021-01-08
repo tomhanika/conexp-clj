@@ -78,7 +78,7 @@
   (let [pos (positions layout)]
     (do-nodes [node scene]
       (let [[x y] (pos (get-name node))]
-        (move-node-unchecked-to node x y))))))
+        (move-node-unchecked-to node x y)))))
 
 (defn update-valuations-of-scene
   "Updates valutions according to new valuation function. The underlying lattice must

@@ -134,7 +134,9 @@
   "Moves given point [x y] to the next point on the grid given by the
   origin [x_origin y_origin] and the paddings x_pad and y_pad."
   [[x_origin y_origin] x_pad y_pad [x y]]
-  [(+ x_origin (* x_pad (int (+ 0.5 (/ (- x x_origin) x_pad))))),
+  [(if (> x_pad 0)
+     (+ x_origin (* x_pad (int (+ 0.5 (/ (- x x_origin) x_pad)))))
+     (+ x_origin (* x_pad (int (+ 0.5 (- x x_origin)))))),
    (+ y_origin (* y_pad (int (+ 0.5 (/ (- y y_origin) y_pad)))))])
 
 (defn fit-layout-to-grid
@@ -171,8 +173,12 @@
   (let [[x_min y_min x_max y_max] 
           (enclosing-rectangle (vals (positions layout)))
         origin [x_min y_min]
-        x_pad  (/ (- x_max x_min) x_cells)
-        y_pad  (/ (- y_max y_min) y_cells)
+        x_pad (if (> x_cells 0)
+                 (/ (- x_max x_min) x_cells)
+                 1)
+        y_pad (if (> y_cells 0)
+                (/ (- y_max y_min) y_cells)
+                1)
         discrete-layout 
           (fit-layout-to-grid layout origin x_pad y_pad)
         x_fac  (/ 1 x_pad)

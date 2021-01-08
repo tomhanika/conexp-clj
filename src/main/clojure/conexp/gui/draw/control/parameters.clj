@@ -135,7 +135,7 @@
   (let [^JTextField  grid-size (make-labeled-text-field buttons
                                                         "grid"
                                                         "0x0")]
-    (add-scene-callback scn :fit-grid 
+    (add-scene-callback scn :fit-grid
                         (fn []
                           (let [grid (clojure.string/split 
                                        (.getText grid-size) #"x"),
