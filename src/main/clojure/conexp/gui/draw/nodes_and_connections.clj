@@ -90,6 +90,13 @@
   (doto (GStyle.)
     (.setBackgroundColor Color/BLUE)))
 
+(def- default-middle-style
+  "Default style for the valuation part of the concept."
+  (doto (GStyle.)
+    (.setBackgroundColor Color/WHITE)
+    (.setForegroundColor Color/RED)))
+
+
 (def- default-node-label-style
   "Default style for node labels."
   (doto (GStyle.)
@@ -135,13 +142,18 @@
                          lower-style (if (= 1 (some-> this lower-neighbors count))
                                        default-object-concept-style
                                        nil),
+                         middle-style default-middle-style
                          [x y] (position this),
                          [l u] (create-two-halfcircles x y (radius this))]
                      (.setGeometryXy lower-segment l)
                      (.setGeometryXy upper-segment u)
-                     (.setGeometry middle-segment  (double x) (double y))
+                     (println (double x) (double y))
+                     (.setGeometry middle-segment
+                                   (double (+ x (/ (radius this) 1.5)))
+                                   (double y))
                      (.setStyle lower-segment lower-style)
-                     (.setStyle upper-segment upper-style))))
+                     (.setStyle upper-segment upper-style)
+                     (.setStyle middle-segment middle-style))))
         style (GStyle.)]
     (doto object
       (.setStyle default-node-style)
