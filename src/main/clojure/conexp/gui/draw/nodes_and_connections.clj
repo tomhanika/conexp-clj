@@ -3,6 +3,7 @@
   (:require [conexp.base :refer :all]
             [conexp.gui.draw.scenes :refer :all])
   (:import java.awt.Color
+           java.awt.Font
            [no.geosoft.cc.graphics GInteraction GObject GPosition GScene GSegment GStyle GText GWindow ZoomInteraction]))
 
 ;;; nodes and connections
@@ -94,7 +95,8 @@
   "Default style for the valuation part of the concept."
   (doto (GStyle.)
     (.setBackgroundColor Color/WHITE)
-    (.setForegroundColor Color/RED)))
+    (.setForegroundColor Color/RED)
+    (.setFont(Font. "TimesRoman" Font/BOLD 10))))
 
 
 (def- default-node-label-style
@@ -147,9 +149,8 @@
                          [l u] (create-two-halfcircles x y (radius this))]
                      (.setGeometryXy lower-segment l)
                      (.setGeometryXy upper-segment u)
-                     (println (double x) (double y))
                      (.setGeometry middle-segment
-                                   (double (+ x (/ (radius this) 1.5)))
+                                   (double (+ x (radius this)))
                                    (double y))
                      (.setStyle lower-segment lower-style)
                      (.setStyle upper-segment upper-style)
