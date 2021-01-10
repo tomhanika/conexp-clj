@@ -169,7 +169,10 @@
       (.add object))
     (let [^GText upper-text (GText. (print-str upper-label) GPosition/NORTH),
           ^GText lower-text (GText. (print-str lower-label) GPosition/SOUTH),
-          ^GText middle-text (GText. (print-str valuation) GPosition/EAST)]
+          valstring (if (float? valuation)
+                      (format "%.3f" valuation)
+                      valuation)
+          ^GText middle-text (GText. (print-str valstring) GPosition/EAST)]
       (.setStyle upper-text default-node-label-style)
       (.setStyle lower-text default-node-label-style)
       (.setStyle middle-text default-node-label-style)
@@ -487,7 +490,10 @@
   "Attribute new valuations to  node to [new-x new-y]."
   [^GObject node, new-val]
   (let [node-name (get-name node)
-        ^GText new-val-text (GText. (print-str (new-val node-name)) GPosition/EAST)]
+        value (new-val node-name)
+        valstring (if (float? value)
+                        (format "%.3f" value) value)
+        ^GText new-val-text (GText. (print-str valstring)  GPosition/EAST)]
     (.setText (.getSegment  node 2) new-val-text )))
 
 nil
