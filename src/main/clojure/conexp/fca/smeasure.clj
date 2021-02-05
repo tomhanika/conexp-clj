@@ -462,12 +462,14 @@
                      #(subset? % deri-margin)
                      (str "The input must be a subset of " deri-margin ":\n"))
         counter-cl (context-attribute-closure (:context state) (union concl-deri counter))]
-    (if (= "yes" (ask (str "You entered " counter " with closure " counter-cl "\n Please confirm with yes or no:\n")
+    (let [answer (ask (str "You entered " counter " with closure " counter-cl "\n Please confirm with yes or no:")
                       #(str (read-line))
                       #(or (= "yes" %) (= % "no"))
-                      "Enter yes or no:\n"))
-      (attribute-derivation (:context state) (union concl-deri counter))
-      (provide-counter-example state cur cur-conclusion))))
+                      "\n Enter yes or no:")]
+      (println answer "\n")
+      (if (= "yes" answer) 
+        (attribute-derivation (:context state) (union concl-deri counter))
+        (provide-counter-example state cur cur-conclusion)))))
 
 (defn- coarsened-by-imp?
   "Queries a boolean if an implication should used in the scale-measure
@@ -477,10 +479,11 @@
         concl-deri (object-derivation (:context state) cur-conclusion)
         deri-margin (difference premise-deri concl-deri)
         answer (ask (str "Have: " concl-deri 
-                         " want more of " deri-margin "?\n Enter yes, none or all:\n")
+                         " want more of " deri-margin "?\n Enter yes, none or all:")
                     #(str (read-line))
                     #(or (= "none" %) (= % "all") (= "yes" %) (= % "no"))
-                    "Enter yes, all or none :\n")]
+                    "\n Enter yes, all or none :")]
+    (println answer "\n")
     answer))
 
 (defn exploration-of-scales-iteration 
@@ -492,7 +495,7 @@
   be called with the next-closured set of cur."
   [state]
   (loop [cur-conclusion (context-object-closure (:scale state) (:cur state)) iter-state state]
-    (println (:cur iter-state) cur-conclusion)
+    ;(println (:cur iter-state) cur-conclusion) print object implication
     (if (= cur-conclusion (:cur iter-state))
       (let [next-cur (next-closed-set (:object-order iter-state)
                                       (clop-by-implications (:imps iter-state))
@@ -501,7 +504,7 @@
       (let [coarse? (coarsened-by-imp? iter-state (:cur iter-state) cur-conclusion)] 
         (cond ; not wanting attributes means cur should be closed. Hence add all attributes in the question
               ; all attributes are already closed. will could result in endless loop
-          (= coarse? "none") (let [closed-premise 
+          (= coarse? "all") (let [closed-premise 
                                   (update iter-state :scale 
                                           #(make-context (objects %) 
                                                          (conj (attributes %) 
@@ -518,8 +521,8 @@
                                                (:inc state)))]
                     (recur (context-object-closure (:scale state-with-counter) (:cur state-with-counter))
                            state-with-counter))
-          (= coarse? "all") (let [new-imps (conj (:imps iter-state) (make-implication (:cur iter-state) cur-conclusion))
-                                  next-cur (next-closed-set (:object-order iter-state)
+          (= coarse? "none") (let [new-imps (conj (:imps iter-state) (make-implication (:cur iter-state) cur-conclusion))
+                                   next-cur (next-closed-set (:object-order iter-state)
                                                             (clop-by-implications new-imps)
                                                             (:cur iter-state))]
                               (-> iter-state 
