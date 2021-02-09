@@ -7,18 +7,30 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.metrics
-  (:require [conexp.base :refer :all]
-            [conexp.fca.contexts :refer :all]
-            [conexp.math.markov :refer :all]
-            [clojure.core.reducers :as r]
+  (:require [clojure.core.reducers :as r]
             [clojure.math.combinatorics :refer [permuted-combinations]]
+            ;; [clojure.math.numeric-tower :refer [log]]
+            [conexp.base :refer :all]
+            [conexp.math.markov :refer :all]
             [conexp.fca
-             [contexts :refer :all]
+             [contexts :refer [make-context incidence dual-context
+                               attribute-derivation
+                               context-attribute-closure
+                               context-object-closure
+                               object-derivation random-context
+                               objects attributes
+                               context? concept?]]
              [exploration :refer :all]
+             [fast :refer [with-binary-context bitwise-context-attribute-closure
+                           bitwise-object-derivation concepts]]
              [implications :refer :all]
              [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
-  (:import [conexp.fca.lattices Lattice]))
+  (:import [conexp.fca.lattices Lattice]
+           [java.util ArrayList BitSet]))
+
+
+(declare log2)
 
 ;;; Concept Stability and the like
 
@@ -369,6 +381,243 @@
     (/ (count (modular-triples lat (fn [[x y z]] (or (= x e) (= y e) (= z e)))))
        (* 6 (binomial-coefficient (- n 1) 2)))))
 
+;;; Relevant Attributes (Objects) et Al
+
+(defn attribute-information-entropy
+  "Computes the attribute-information-entropy for a given context 𝕂using the formula
+  (∑_{m ∈ M} 1-{m}''/|M|)/|M|, see https://doi.org/10.1007/978-3-030-23182-8_8"
+  [ctx]
+  (let [M (attributes ctx)
+        nr_of_attributes (count M)]
+    (/ (- nr_of_attributes
+        (r/fold + (pmap
+                   (fn [m] (/ (count (context-attribute-closure ctx #{m}))
+                              nr_of_attributes))
+                   M)))
+       nr_of_attributes)))
+
+(defn object-information-entropy
+  "Computes the object-information-entropy for a given context 𝕂using the formula
+  (∑_{g ∈ G} 1-{g}''/|G|)/|G|, see https://doi.org/10.1007/978-3-030-23182-8_8"
+  [ctx]
+  (attribute-information-entropy (dual-context ctx)))
+
+(defn information-entropy
+  "Computes the mean entropy of context ctx based on the equal
+  weighted sum of attribute-information-entropy and
+  object-information-entropy."
+  [ctx]
+  (/ (+ (attribute-information-entropy ctx) (object-information-entropy ctx)) 2))
+
+
+(defn shannon-attribute-information-entropy
+  "Computes the Shannon-attribute-information-entropy for a given context 𝕂using the formula
+  ∑_{m ∈ M} -{m}''/|M|· log₂ ({m}''/|M|), see https://doi.org/10.1007/978-3-030-23182-8_8"
+  [ctx]
+  (let [M (attributes ctx)
+        nr_of_attributes (count M)]
+    (r/fold + (pmap (fn [x] (- (* x (log2 x))))
+                    (pmap
+                     (fn [m] (/ (count (context-attribute-closure ctx #{m}))
+                                nr_of_attributes))
+                     M)))))
+
+(defn shannon-object-information-entropy
+  "Computes the Shannon-object-information-entropy for a given context 𝕂using the formula
+  ∑_{g ∈ G} -{g}''/|G|· log₂ ({g}''/|G|), see https://doi.org/10.1007/978-3-030-23182-8_8"
+  [ctx]
+  (shannon-attribute-information-entropy (dual-context ctx)))
+
+(defn shannon-attribute-information-entropy-fast
+  "Computes the Shannon-attribute-information-entropy for a given
+  context 𝕂using the formula ∑_{m ∈ M} -{m}''/|M|· log₂ ({m}''/|M|),
+  see https://doi.org/10.1007/978-3-030-23182-8_8. This implementation
+  resorts to bit vectors in order to increase the computation
+  speed. This conversion is not adviced for small data sets. "
+  [ctx]
+    (with-binary-context ctx
+      (let [a-closure-counts
+            (pmap (fn [y]
+                    (let [^BitSet bs (BitSet.)]
+                      (.set bs y)
+                      (bitwise-context-attribute-closure
+                       incidence-matrix
+                       object-count
+                       attribute-count
+                       bs)))
+                  (range attribute-count))]
+      (-
+       (r/fold + (map (fn [x] (* (/ (.cardinality ^BitSet x) ^long attribute-count) 
+                                  (log2 (/ (.cardinality ^BitSet x) ^long attribute-count))))
+                       a-closure-counts))))))
+
+
+(defn shannon-object-information-entropy-fast
+  "Computes the Shannon-object-information-entropy for a given context 𝕂using the formula
+  ∑_{g ∈ G} -{g}''/|G|· log₂ ({g}''/|G|), see https://doi.org/10.1007/978-3-030-23182-8_8"
+  [ctx]
+  (shannon-attribute-information-entropy-fast (dual-context ctx)))
+
+(defn shannon-information-entropy
+  "Computes the mean shannon-entropy of context ctx based on the equal
+  weighted sum of attribute-information-entropy and
+  object-information-entropy."
+  [ctx]
+  (/ (+ (shannon-attribute-information-entropy ctx)
+        (shannon-object-information-entropy ctx)) 2))
+
+(defn shannon-information-entropy-fast
+  "Computes the mean shannon-entropy of context ctx based on the equal
+  weighted sum of attribute-information-entropy and
+  object-information-entropy."
+  [ctx]
+  (/ (+ (shannon-attribute-information-entropy-fast ctx)
+        (shannon-object-information-entropy-fast ctx)) 2))
+
+(defn NextMinSld
+  "Compute the 'next' attribute having a minimal sld with respect to entropy-func."
+  ([entropy-func ctx] (NextMinSld entropy-func ctx #{}))
+  ([entropy-func ctx attribute-selection]
+  (let [atts (attributes ctx)
+        available-atts (difference atts attribute-selection)
+        obs  (objects ctx)
+        partial-ctx (fn [x] (make-context obs (union x attribute-selection) (incidence ctx)))]
+    (apply max-key (fn [x]
+                     (let [pctx (partial-ctx #{x})]
+                 (*
+                  (count (concepts :in-close pctx))
+                  (entropy-func pctx)
+                  ))) available-atts))))
+
+
+(defn NextMinSld-ie
+  "Compute the 'next' attribute having a minimal sld with respect to information-entropy."
+  ([ctx] (NextMinSld-ie ctx #{}))
+  ([ctx attribute-selection]
+   (NextMinSld attribute-information-entropy ctx attribute-selection)))
+
+(defn NextMinSld-se
+  "Compute the 'next' attribute having a minimal sld using shannon entropy"
+  ([ctx] (NextMinSld-se ctx #{}))
+  ([ctx selection]
+   (NextMinSld shannon-attribute-information-entropy ctx selection)))
+
+(defn NextMinSld-se-fast
+  "Compute the 'next' attribute having a minimal sld using shannon
+  entropy, using the fast implementation of Shannon entropy"
+  ([ctx] (NextMinSld-se ctx #{}))
+  ([ctx selection]
+   (NextMinSld shannon-attribute-information-entropy-fast ctx selection)))
+
+(defn extent-label-function
+  "Computes the label for given g ∈ G, i.e., the natural number n such
+  that n=|{c ∈ ℬ(𝕂) ∣ g ∈ ext(c)}|, see
+  https://doi.org/10.1007/978-3-030-23182-8_8"
+  ([ctx g]
+   (extent-label-function ctx (concepts :in-close ctx) g))
+  ([ctx concepts g]
+   (count
+    (filter (fn [x] (contains? (first x) g))
+            concepts))))
+
+(defn intent-label-function
+  "Computes the label for given m ∈ M, i.e., the natural number n such
+  that n=|{c ∈ ℬ(𝕂) ∣ m ∈ int(c)}|, see
+  https://doi.org/10.1007/978-3-030-23182-8_8"
+  ([ctx m]
+   (extent-label-function ctx (concepts :in-close ctx) m))
+  ([ctx concepts m]
+   (count
+    (filter (fn [x] (contains? (second x) m))
+            concepts))))
+
+(defn attribute-removal-robust-concepts
+  "Computes the set of concepts {c ∈ B(𝕂) ∣ (int(c) ∖ A)' = ext(c)}
+  for some attribute set A ⊆ M."
+  ([ctx A]
+   (attribute-removal-robust-concepts ctx (concepts :in-close ctx) A))
+  ([ctx theconcepts A]
+   (into [] (r/filter (fn [x] (=
+                    (attribute-derivation ctx (difference (second x) A))
+                    (first x)))
+           theconcepts))))
+
+(defn object-removal-robust-concepts
+  "Computes the set of concepts {c ∈ B(𝕂) ∣ (ext(c) ∖ A)' = int(c)}
+  for some attribute set A ⊆ G."
+  ([ctx A]
+   (object-removal-robust-concepts ctx (concepts :in-close ctx) A))
+  ([ctx theconcepts A]
+   (into [] (r/filter (fn [x] (=
+                    (object-derivation ctx (difference (first x) A))
+                    (second x)))
+           theconcepts))))
+
+;; (defn faststarsum
+;;   "Compute the sum |ext(c)| for c in  B*={c ∈ B  | (int(c)∖{m})' = ext(c)}"
+;;   [ctx theconcepts atts]
+;;   (with-binary-context ctx
+;;     (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count)
+;;           a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count)
+;;           theextents (pmap (fn [x] (to-bitset object-vector (first x))) theconcepts)
+;;           theatts (to-bitset attribute-vector atts)]
+;;       (r/fold + (pmap (fn [x] (if
+;;                                   (=
+;;                                    (let [thing (o-prime x)]
+;;                                      (.andNot thing theatts) ;; remove attribute set
+;;                                      (.cardinality (a-prime thing)))
+;;                                    (.cardinality x))
+;;                                (.cardinality x)
+;;                                 0))
+;;                         theextents)))))
+
+
+
+;; (defn rel-consistency  ???
+;;   "Computes the relative consistency of a subset $N ⊆ M$ with respect to
+;;   a given formal context (G,M,I),  and some attribute subset N ⊆ M"
+;;   [ctx N]
+;;   (let [G (objects ctx)
+;;         M (attributes ctx)
+;;         MN (difference M N)
+;;         ctx-N (make-context G N (incidence ctx))
+;;         ctx-MN (make-context G MN (incidence ctx))]
+;;     (let [derive-N (fn [x] (context-object-closure ctx-N x))
+;;           derive-MN (fn [x] (context-object-closure ctx-MN x))]
+;;       (/
+;;        (count (filter (fn [x] (subset? (derive-N #{x}) (derive-MN #{x}))) G))
+;;        (count G)
+;;        ))))
+
+;;   )
+
+
+
+
+
+;; (defn rel-relevance
+;;   "Berechnet die reletive relevanz eines Attributs"
+;;   [ctx theconcepts atts]
+;;   (let [starconceptsum (faststarsum ctx theconcepts atts)]
+;;     (float  (- 1 (/
+;;                   starconceptsum
+;;                   (r/fold + (r/map (fn [x] (count (first x))) theconcepts))
+;;                   )))))
+
+
+;; (defn NextMaxRel
+;;   ([ctx theconcepts] (NextMaxRel ctx theconcepts #{}))
+;;   ([ctx theconcepts selection]
+;;    (println selection)
+;;    (let [atts (attributes ctx)
+;;          available-atts (difference atts selection)
+;;          obs  (objects ctx)]
+;;      (apply max-key (fn [x] (rel-relevance ctx theconcepts (union selection #{x})))
+;;             available-atts))))
+
+;; ;;; Math helper (outsource later!)
+;; (defn log2 [n]
+;;   (/ (Math/log n) (Math/log 2)))
 
 ;;;
 nil
