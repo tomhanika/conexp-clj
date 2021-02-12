@@ -23,6 +23,7 @@
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.clojure/tools.cli           "1.0.194"]
                  [org.apache.commons/commons-math "2.2"]
+                 [org.clojure/algo.generic        "0.1.3"]
                  [seesaw                          "1.5.0"]
                  [reply                           "0.4.4"
                   :exclusions [org.clojure/clojure
