@@ -162,7 +162,7 @@
 
 (defn bitwise-context-attribute-closure
   "Computes the closure of A in the context given by the parameters."
-  [^long object-count, ^long attribute-count, incidence-matrix, ^BitSet A]
+  [incidence-matrix, ^long object-count, ^long attribute-count, ^BitSet A]
   (let [^BitSet A (.clone A),
         ^BitSet B (BitSet.)]
     (dotimes [obj object-count]
@@ -256,9 +256,9 @@
            runner       (fn runner [implications, ^BitSet candidate]
                           (when candidate
                             (let [conclusions (bitwise-context-attribute-closure
+                                               incidence-matrix
                                                object-count
                                                attribute-count
-                                               incidence-matrix
                                                candidate)]
                               (if (not= candidate conclusions)
                                 (let [impl  (Implication. candidate
@@ -318,9 +318,9 @@
           intents (take-while identity
                               (iterate #(next-closed-set attribute-count
                                                          (partial bitwise-context-attribute-closure
+                                                                  incidence-matrix
                                                                   object-count
-                                                                  attribute-count
-                                                                  incidence-matrix)
+                                                                  attribute-count)
                                                          %)
                                        start))]
       (if *concepts-do-conversion*
