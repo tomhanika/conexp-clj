@@ -26,7 +26,7 @@
 
 (deftest test-context-out-in
   (with-testing-data [ctx contexts-oi,
-                      fmt (remove #{:binary-csv}
+                      fmt (remove #{:binary-csv :anonymous-burmeister}
                                   (list-context-formats))]
     (try (= ctx (out-in ctx 'context fmt))
          (catch UnsupportedOperationException _ true))))
@@ -40,7 +40,7 @@
 
 (deftest test-context-out-in-out-in
   (with-testing-data [ctx contexts-oioi,
-                      fmt (list-context-formats)]
+                      fmt (remove #{:anonymous-burmeister} (list-context-formats))]
     (try (out-in-out-in-test ctx 'context fmt)
          (catch UnsupportedOperationException _ true))))
 
@@ -63,7 +63,7 @@
 
 (deftest test-for-random-contexts
   (with-testing-data [ctx (random-contexts 20 50),
-                      fmt (list-context-formats)]
+                      fmt (remove #{:anonymous-burmeister} (list-context-formats))]
     (try (out-in-out-in-test ctx 'context fmt)
          (catch UnsupportedOperationException _ true))))
 
