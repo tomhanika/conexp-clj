@@ -569,7 +569,7 @@
 (defn next-maximal-relevant
   "Given a formal context (G,M,I), an attribute set A ⊆ M, this
   functions computes the most relevant m ∈ M ∖ A with respect to relative-relevance."
-  ([ctx theconcepts] (NextMaxRel ctx theconcepts #{}))
+  ([ctx theconcepts] (next-maximal-relevant ctx theconcepts #{}))
   ([ctx theconcepts A]
    (let [atts (attributes ctx)
          available-atts (difference atts A)
@@ -583,14 +583,14 @@
   is not necessiraly equivalent to compute the subset N ⊆ M with |N|=n
   being the most relevant wrt relative-relevance."
   ([ctx theconcepts n]
-   (next-n-maximal-relevant ctx theconcepts #{} n))
-  ([ctx theconcepts A n]
-   (loop [[counter resultset] [0 #{}]]
+   (next-n-maximal-relevant ctx theconcepts n #{}))
+  ([ctx theconcepts n A]
+   (loop [[counter resultset] [0 []]]
      (if (< counter n)
        (recur [(inc counter)
                (conj resultset
-                     (next-maximal-relevant ctx theconcepts resultset))])
-       resultset-seq))))
+                     (next-maximal-relevant ctx theconcepts (set (union resultset A))))])
+       resultset))))
 
 (defn n-maximal-relevant
   "Based on relative-relevance, compute the the subset N ⊆ M with |N|=n,
@@ -688,7 +688,6 @@
                           (first args)
                           ::default-entropy))))
 
-
 (defmethod next-n-maximal-relevant-approx ::default-entropy
   ([context n]
    (next-n-maximal-relevant-approx :contextual context n #{}))
@@ -696,32 +695,42 @@
   (next-n-maximal-relevant-approx :contextual context n A)))
 
 (defmethod next-n-maximal-relevant-approx :contextual 
-  [_ ctx n A] 
-   (let [atts (attributes ctx)
-         available-atts (difference atts A)
-         obs  (objects ctx)]
-     (apply max-key (fn [x]
-            (let [pctx (make-context obs (union #{x} A) (incidence ctx))]
-                (*
-                 (count (concepts :in-close pctx))
-                 (object-information-entropy pctx))))
-            available-atts)))
+  [_ ctx n A]
+  (loop [k 1 result []]
+    (if (> k n)
+      result
+      (recur
+       (inc k)
+       (conj result
+             (let [atts (attributes ctx)
+                   available-atts (difference atts (union A result))
+                   obs  (objects ctx)]
+               (apply max-key (fn [x]
+                                (let [pctx (make-context obs (union #{x} result A) (incidence ctx))]
+                                  (*
+                                   (count (concepts :in-close pctx))
+                                   (object-information-entropy pctx))))
+                      available-atts)))))))
 
 (defmethod next-n-maximal-relevant-approx :shannon
-  [_ ctx n A]
-  (let [atts (attributes ctx)
-        available-atts (difference atts A)
-        obs  (objects ctx)]
-    (apply max-key (fn [x]
-               (let [pctx (make-context obs (union #{x} A) (incidence ctx))]
-                 (*
-                  (count (concepts :in-close pctx))
-                  (shannon-object-information-entropy-fast pctx))))
-           available-atts)))
-
-
-
-
+  ([_ ctx n]
+  (next-n-maximal-relevant-approx :shannon ctx n #{}))
+  ([_ ctx n A]
+   (loop  [k 1
+           result []]
+    (if (> k n)
+      result
+      (recur
+       (inc k)
+       (conj result (let [atts (attributes ctx)
+                   available-atts (difference atts (union A result))
+                   obs  (objects ctx)]
+               (apply max-key (fn [x]
+                                (let [pctx (make-context obs (union #{x} A result) (incidence ctx))]
+                                  (*
+                                   (count (concepts :in-close pctx))
+                                   (shannon-object-information-entropy-fast pctx))))
+                      available-atts))))))))
 
 
 (defn nRandomAtts
