@@ -8,7 +8,7 @@
 
 (ns conexp.fca.metrics
   (:require [clojure.core.reducers :as r]
-            [clojure.math.combinatorics :refer [permuted-combinations]]
+            [clojure.math.combinatorics :refer [permuted-combinations combinations]]
             ;; [clojure.math.numeric-tower :refer [log]]
             [conexp.base :refer :all]
             [conexp.math.markov :refer :all]
@@ -21,8 +21,11 @@
                                objects attributes
                                context? concept?]]
              [exploration :refer :all]
-             [fast :refer [with-binary-context bitwise-context-attribute-closure
-                           bitwise-object-derivation concepts]]
+             [fast :refer [with-binary-context
+                           to-bitset
+                           bitwise-context-attribute-closure
+                           bitwise-object-derivation
+                           bitwise-attribute-derivation concepts]]
              [implications :refer :all]
              [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
@@ -30,7 +33,9 @@
            [java.util ArrayList BitSet]))
 
 
-(declare log2)
+;; help (outsource me)
+(defn log2 [n]
+  (/ (Math/log n) (Math/log 2)))
 
 ;;; Concept Stability and the like
 
@@ -474,44 +479,9 @@
   (/ (+ (shannon-attribute-information-entropy-fast ctx)
         (shannon-object-information-entropy-fast ctx)) 2))
 
-(defn NextMinSld
-  "Compute the 'next' attribute having a minimal sld with respect to entropy-func."
-  ([entropy-func ctx] (NextMinSld entropy-func ctx #{}))
-  ([entropy-func ctx attribute-selection]
-  (let [atts (attributes ctx)
-        available-atts (difference atts attribute-selection)
-        obs  (objects ctx)
-        partial-ctx (fn [x] (make-context obs (union x attribute-selection) (incidence ctx)))]
-    (apply max-key (fn [x]
-                     (let [pctx (partial-ctx #{x})]
-                 (*
-                  (count (concepts :in-close pctx))
-                  (entropy-func pctx)
-                  ))) available-atts))))
-
-
-(defn NextMinSld-ie
-  "Compute the 'next' attribute having a minimal sld with respect to information-entropy."
-  ([ctx] (NextMinSld-ie ctx #{}))
-  ([ctx attribute-selection]
-   (NextMinSld attribute-information-entropy ctx attribute-selection)))
-
-(defn NextMinSld-se
-  "Compute the 'next' attribute having a minimal sld using shannon entropy"
-  ([ctx] (NextMinSld-se ctx #{}))
-  ([ctx selection]
-   (NextMinSld shannon-attribute-information-entropy ctx selection)))
-
-(defn NextMinSld-se-fast
-  "Compute the 'next' attribute having a minimal sld using shannon
-  entropy, using the fast implementation of Shannon entropy"
-  ([ctx] (NextMinSld-se ctx #{}))
-  ([ctx selection]
-   (NextMinSld shannon-attribute-information-entropy-fast ctx selection)))
-
 (defn extent-label-function
   "Computes the label for given g ∈ G, i.e., the natural number n such
-  that n=|{c ∈ ℬ(𝕂) ∣ g ∈ ext(c)}|, see
+  that n=|{c ∈ 𝔅(𝕂) ∣ g ∈ ext(c)}|, see
   https://doi.org/10.1007/978-3-030-23182-8_8"
   ([ctx g]
    (extent-label-function ctx (concepts :in-close ctx) g))
@@ -522,7 +492,7 @@
 
 (defn intent-label-function
   "Computes the label for given m ∈ M, i.e., the natural number n such
-  that n=|{c ∈ ℬ(𝕂) ∣ m ∈ int(c)}|, see
+  that n=|{c ∈ 𝔅(𝕂) ∣ m ∈ int(c)}|, see
   https://doi.org/10.1007/978-3-030-23182-8_8"
   ([ctx m]
    (extent-label-function ctx (concepts :in-close ctx) m))
@@ -532,7 +502,7 @@
             concepts))))
 
 (defn attribute-removal-robust-concepts
-  "Computes the set of concepts {c ∈ B(𝕂) ∣ (int(c) ∖ A)' = ext(c)}
+  "Computes the set of concepts {c ∈ 𝔅(𝕂) ∣ (int(c) ∖ A)' = ext(c)}
   for some attribute set A ⊆ M."
   ([ctx A]
    (attribute-removal-robust-concepts ctx (concepts :in-close ctx) A))
@@ -543,7 +513,7 @@
            theconcepts))))
 
 (defn object-removal-robust-concepts
-  "Computes the set of concepts {c ∈ B(𝕂) ∣ (ext(c) ∖ A)' = int(c)}
+  "Computes the set of concepts {c ∈ 𝔅(𝕂) ∣ (ext(c) ∖ A)' = int(c)}
   for some attribute set A ⊆ G."
   ([ctx A]
    (object-removal-robust-concepts ctx (concepts :in-close ctx) A))
@@ -553,25 +523,211 @@
                     (second x)))
            theconcepts))))
 
-;; (defn faststarsum
-;;   "Compute the sum |ext(c)| for c in  B*={c ∈ B  | (int(c)∖{m})' = ext(c)}"
-;;   [ctx theconcepts atts]
-;;   (with-binary-context ctx
-;;     (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count)
-;;           a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count)
-;;           theextents (pmap (fn [x] (to-bitset object-vector (first x))) theconcepts)
-;;           theatts (to-bitset attribute-vector atts)]
-;;       (r/fold + (pmap (fn [x] (if
-;;                                   (=
-;;                                    (let [thing (o-prime x)]
-;;                                      (.andNot thing theatts) ;; remove attribute set
-;;                                      (.cardinality (a-prime thing)))
-;;                                    (.cardinality x))
-;;                                (.cardinality x)
-;;                                 0))
-;;                         theextents)))))
+
+(defn relative-relevance
+  "Computes for formal context (G,M,I) the relative relevance of
+  attribute set A ⊆ M, using the formula from Proposition 3.5 in
+  https://doi.org/10.1007/978-3-030-23182-8_8, i.e.,
+  r(A)=1-∑_{c∈𝔅(𝕂_A)}|ext(c)|/∑_{c∈𝔅(𝕂)}|ext(c)|,
+  where 𝔅(𝕂_A)={c∈𝔅(𝕂)∣(int(c)∖A)'=ext(c)}"
+  ([ctx A]
+   (relative-relevance ctx (concepts :in-close) A))
+  ([ctx theconcepts A]
+   (let [extsum (r/fold + (map (fn [x] (count (first x))) theconcepts))]
+     (- 1
+        (->> theconcepts
+             (filter
+              (fn [x] (= (count
+                          (attribute-derivation ctx (difference (second x) A)))
+                         (count (first x)))))
+             (pmap (fn [x] (count (first x))))
+             (r/fold +)
+             (* (/ 1 extsum)))
+        ))))
+
+(defn relative-relevance-fast
+  "Compute relative-relevance using bitsets"
+  [ctx theconcepts A]
+  (with-binary-context ctx
+    (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count)
+          a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count)
+          theextents (pmap (fn [x] (to-bitset object-vector (first x))) theconcepts)
+          theatts (to-bitset attribute-vector A)]
+      (- 1 
+         (/
+          (r/fold + (map (fn [x]
+                            (if (=
+                                 (let [thing (o-prime x)]
+                                   (.andNot thing theatts) ;; remove attribute set
+                                   (.cardinality (a-prime thing)))
+                                 (.cardinality x))
+                              (.cardinality x)
+                              0))
+                          theextents))
+          (r/fold + (map (fn [x] (.cardinality x)) theextents)))))))
+
+(defn next-maximal-relevant
+  "Given a formal context (G,M,I), an attribute set A ⊆ M, this
+  functions computes the most relevant m ∈ M ∖ A with respect to relative-relevance."
+  ([ctx theconcepts] (NextMaxRel ctx theconcepts #{}))
+  ([ctx theconcepts A]
+   (let [atts (attributes ctx)
+         available-atts (difference atts A)
+         obs  (objects ctx)]
+     (apply max-key (fn [x] (relative-relevance-fast ctx theconcepts (union A #{x})))
+            available-atts))))
+
+(defn next-n-maximal-relevant
+  "Based on next-maximal-relevant, compute the the next n maximal
+  relevant features in a consekutive manner. Please be advised, this
+  is not necessiraly equivalent to compute the subset N ⊆ M with |N|=n
+  being the most relevant wrt relative-relevance."
+  ([ctx theconcepts n]
+   (next-n-maximal-relevant ctx theconcepts #{} n))
+  ([ctx theconcepts A n]
+   (loop [[counter resultset] [0 #{}]]
+     (if (< counter n)
+       (recur [(inc counter)
+               (conj resultset
+                     (next-maximal-relevant ctx theconcepts resultset))])
+       resultset-seq))))
+
+(defn n-maximal-relevant
+  "Based on relative-relevance, compute the the subset N ⊆ M with |N|=n,
+  such that there is no L ⊆ M with r(N)<r(L), i.e., N is less relevant
+  thatn L, see https://doi.org/10.1007/978-3-030-23182-8_8."
+  ([ctx theconcepts n]
+   (let [atts (attributes ctx)
+         combs (vec (combinations atts n))]
+     (set
+     (apply max-key (fn [x] (relative-relevance-fast ctx theconcepts (set x)))
+            combs)))))
 
 
+(defmulti next-maximal-relevant-approx
+  "Compute next-maximal-relevant attribute using either Shannon or
+  context entropy, cf https://doi.org/10.1007/978-3-030-23182-8_8."
+  (fn [& args]
+    (when-not (<= 1 (count args) 3)
+      (illegal-argument "Wrong number of arg."))
+    (when (and (= 3 (count args))
+               (not (keyword? (first args))))
+      (illegal-argument "First argument must be a keyword"))
+    (when (and (= 2 (count args))
+               (and
+                (not (keyword? (first args)))
+                (not (context? (first args)))))
+      (illegal-argument "First argument to rel-approx must be a
+      keyword and the second argument must be a context."))
+    (when (and (= 1 (count args))
+               (not (context? (first args))))
+    (illegal-argument "If arity is 1, the argument must be a context."))
+    (cond
+      (= 3 (count args)) (first args)
+      (= 1 (count args))  ::default-entropy
+      (= 2 (count args)) (if (keyword? (first args))
+                          (first args)
+                          ::default-entropy))))
+
+
+(defmethod next-maximal-relevant-approx ::default-entropy
+  ([context]
+   (next-maximal-relevant-approx :contextual context #{}))
+  ([context A]
+  (next-maximal-relevant-approx :contextual context A)))
+
+(defmethod next-maximal-relevant-approx :contextual 
+  [_ ctx A]
+   (let [atts (attributes ctx)
+         available-atts (difference atts A)
+         obs  (objects ctx)]
+     (apply max-key (fn [x]
+            (let [pctx (make-context obs (union #{x} A) (incidence ctx))]
+                (*
+                 (count (concepts :in-close pctx))
+                 (object-information-entropy pctx))))
+            available-atts)))
+
+(defmethod next-maximal-relevant-approx :shannon
+  [_ ctx A]
+  (let [atts (attributes ctx)
+        available-atts (difference atts A)
+        obs  (objects ctx)]
+    (apply max-key (fn [x]
+               (let [pctx (make-context obs (union #{x} A) (incidence ctx))]
+                 (*
+                  (count (concepts :in-close pctx))
+                  (shannon-object-information-entropy-fast pctx))))
+           available-atts)))
+
+(ns-unmap *ns* 'next-n-maximal-relevant-approx)
+
+(defmulti next-n-maximal-relevant-approx
+  "Compute next-n-maximal-relevant attributes in a consecutive manner
+  using either Shannon or context entropy, cf
+  https://doi.org/10.1007/978-3-030-23182-8_8."
+  (fn [& args]
+    (when-not (<= 2 (count args) 4)
+      (illegal-argument "Wrong number of arg."))
+    (when (and (= 4 (count args))
+               (not (keyword? (first args))))
+      (illegal-argument "First argument must be a keyword"))
+    (when (and (= 3 (count args))
+               (and
+                (not (keyword? (first args)))
+                (not (context? (first args)))))
+      (illegal-argument "First argument to n-rel-approx must be a
+      keyword and the second argument must be a context."))
+    (when (and (= 2 (count args))
+               (not (context? (first args))))
+    (illegal-argument "If arity is 2, the argument must be a context."))
+    (cond
+      (= 4 (count args)) (first args)
+      (= 2 (count args))  ::default-entropy
+      (= 3 (count args)) (if (keyword? (first args))
+                          (first args)
+                          ::default-entropy))))
+
+
+(defmethod next-n-maximal-relevant-approx ::default-entropy
+  ([context n]
+   (next-n-maximal-relevant-approx :contextual context n #{}))
+  ([context n A]
+  (next-n-maximal-relevant-approx :contextual context n A)))
+
+(defmethod next-n-maximal-relevant-approx :contextual 
+  [_ ctx n A] 
+   (let [atts (attributes ctx)
+         available-atts (difference atts A)
+         obs  (objects ctx)]
+     (apply max-key (fn [x]
+            (let [pctx (make-context obs (union #{x} A) (incidence ctx))]
+                (*
+                 (count (concepts :in-close pctx))
+                 (object-information-entropy pctx))))
+            available-atts)))
+
+(defmethod next-n-maximal-relevant-approx :shannon
+  [_ ctx n A]
+  (let [atts (attributes ctx)
+        available-atts (difference atts A)
+        obs  (objects ctx)]
+    (apply max-key (fn [x]
+               (let [pctx (make-context obs (union #{x} A) (incidence ctx))]
+                 (*
+                  (count (concepts :in-close pctx))
+                  (shannon-object-information-entropy-fast pctx))))
+           available-atts)))
+
+
+
+
+
+
+(defn nRandomAtts
+  [ctx n]
+  (let [atts (attributes ctx)]
+    (take n (shuffle atts))))
 
 ;; (defn rel-consistency  ???
 ;;   "Computes the relative consistency of a subset $N ⊆ M$ with respect to
@@ -595,29 +751,7 @@
 
 
 
-;; (defn rel-relevance
-;;   "Berechnet die reletive relevanz eines Attributs"
-;;   [ctx theconcepts atts]
-;;   (let [starconceptsum (faststarsum ctx theconcepts atts)]
-;;     (float  (- 1 (/
-;;                   starconceptsum
-;;                   (r/fold + (r/map (fn [x] (count (first x))) theconcepts))
-;;                   )))))
 
-
-;; (defn NextMaxRel
-;;   ([ctx theconcepts] (NextMaxRel ctx theconcepts #{}))
-;;   ([ctx theconcepts selection]
-;;    (println selection)
-;;    (let [atts (attributes ctx)
-;;          available-atts (difference atts selection)
-;;          obs  (objects ctx)]
-;;      (apply max-key (fn [x] (rel-relevance ctx theconcepts (union selection #{x})))
-;;             available-atts))))
-
-;; ;;; Math helper (outsource later!)
-;; (defn log2 [n]
-;;   (/ (Math/log n) (Math/log 2)))
 
 ;;;
 nil

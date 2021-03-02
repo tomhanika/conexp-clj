@@ -16,8 +16,9 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure             "1.10.1"]
                  [org.clojure/core.async          "1.3.610"]
-                 [org.clojure/data.xml            "0.0.8"]
+                 [org.clojure/data.int-map        "1.0.0"]
                  [org.clojure/data.json           "1.0.0"]
+                 [org.clojure/data.xml            "0.0.8"]
                  [org.clojure/math.combinatorics  "0.1.6"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
                  [org.clojure/tools.cli           "1.0.194"]
@@ -54,4 +55,4 @@
   :resource-paths ["src/main/resources"]
   :target-path "builds/%s"
   :compile-path "%s/classes/"
-  :java-opts ["-Dawt.useSystemAAFontSettings=on"])
+  :java-opts ["-Dawt.useSystemAAFontSettings=on" "-Xmx4G"])
