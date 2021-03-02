@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -9,6 +9,7 @@
 (ns conexp.layouts.util
   "Utilities for computing lattice layouts."
   (:require [conexp.base :refer :all]
+            [conexp.math.algebra :refer :all]
             [conexp.fca.lattices :refer :all]
             [conexp.layouts.base :refer :all]
             [conexp.util.graph :as graph]))
@@ -64,7 +65,8 @@
                                                        (map second points)))
                     (connections layout)
                     (upper-labels layout)
-                    (lower-labels layout))))
+                    (lower-labels layout)
+                    (valuations layout))))
 
 ;;;
 
@@ -72,12 +74,12 @@
   "Converts given lattice to it's corresponding graph with loops
   removed."
   [lattice]
-  (-> (struct-map graph/directed-graph
-        :nodes (base-set lattice)
-        :neighbors (memoize
-                    (fn [x]
-                      (let [order (order lattice)]
-                        (filter #(order [x %]) (base-set lattice))))))
+  (-> (graph/make-directed-graph
+        (base-set lattice)
+        (memoize
+          (fn [x]
+            (let [order (order lattice)]
+              (filter #(order [x %]) (base-set lattice))))))
       graph/remove-loops))
 
 (defn layers
@@ -119,11 +121,11 @@
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
   [layout]
-  (let [graph (struct-map graph/directed-graph
-                :nodes (keys (positions layout))
-                :neighbors (memoize (fn [x]
-                                      (map second (filter (fn [[a b]] (= a x))
-                                                          (connections layout))))))]
+  (let [graph (graph/make-directed-graph
+                (keys (positions layout))
+                (memoize (fn [x]
+                           (map second (filter (fn [[a b]] (= a x))
+                                               (connections layout))))))]
     (apply concat (graph/dependency-list graph))))
 
 ;;; grid adjustment
@@ -132,8 +134,10 @@
   "Moves given point [x y] to the next point on the grid given by the
   origin [x_origin y_origin] and the paddings x_pad and y_pad."
   [[x_origin y_origin] x_pad y_pad [x y]]
-  [(+ x_origin (* x_pad (Math/round (double (/ (- x x_origin) x_pad))))),
-   (+ y_origin (* y_pad (Math/round (double (/ (- y y_origin) y_pad)))))])
+  [(if (> x_pad 0)
+     (+ x_origin (* x_pad (int (+ 0.5 (/ (- x x_origin) x_pad)))))
+     (+ x_origin (* x_pad (int (+ 0.5 (- x x_origin)))))),
+   (+ y_origin (* y_pad (int (+ 0.5 (/ (- y y_origin) y_pad)))))])
 
 (defn fit-layout-to-grid
   "Specifies a grid by a origin point and paddings x_pad and y_pad
@@ -160,6 +164,32 @@
         x_pad  (/ (- x_max x_min) x_cells),
         y_pad  (/ (- y_max y_min) y_cells)]
     (fit-layout-to-grid layout origin x_pad y_pad)))
+
+(defn discretize-layout-values
+  "Adjusts the given layout to fit on a grid of x_cells cells in the x
+  coordinate and y_cells cells in the y coordinate using only discrete 
+  values."
+  [layout x_cells y_cells]
+  (let [[x_min y_min x_max y_max] 
+          (enclosing-rectangle (vals (positions layout)))
+        origin [x_min y_min]
+        x_pad (if (> x_cells 0)
+                 (/ (- x_max x_min) x_cells)
+                 1)
+        y_pad (if (> y_cells 0)
+                (/ (- y_max y_min) y_cells)
+                1)
+        discrete-layout 
+          (fit-layout-to-grid layout origin x_pad y_pad)
+        x_fac  (/ 1 x_pad)
+        y_fac  (/ 1 y_pad)]
+    (update-positions discrete-layout
+                      (persistent!
+                       (reduce (fn [map [name [x y]]]
+                                 (assoc! map name [(int (+ 1 (* x x_fac))) 
+                                                   (int (+ 1 (* y y_fac)))]))
+                               (transient {})
+                               (positions layout))))))
 
 ;;;
 

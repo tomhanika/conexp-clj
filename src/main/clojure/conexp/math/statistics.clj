@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -25,5 +25,24 @@
     [(.getIntercept regression) (.getSlope regression)]))
 
 ;;;
+
+(defn mean [c]
+  "Compute mean value of collection c."
+  (let [thesum (apply + c)
+        thecount (count c)]
+    (if (pos? thecount)
+      (/ thesum thecount)
+      0)))
+
+(defn sd [c]
+  "Compute the standard deviation based on mean function for c."
+  (let [theavg (mean c)
+        squares (for [x c]
+                  (let [deviation (- x theavg)]
+                    (* deviation deviation)))
+        thecount (count c)]
+    (-> (/ (apply + squares)
+           (- thecount 1))
+        (Math/sqrt))))
 
 nil

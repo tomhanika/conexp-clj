@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns                                  graphml+svg.xsd">
+  <key id="k0" for="node">
+    <default>
+      <svg:svg width="5cm" height="4cm" version="1.1">
+        <svg:desc>Default graphical representation for nodes</svg:desc>
+        <svg:rect x="0.5cm" y="0.5cm" width="2cm" height="1cm"/>
+      </svg:svg>
+    </default>
+  </key>  
+  <key id="k1" for="edge">
+    <desc>Graphical representation for edges</desc>
+  </key>  
+  <graph edgedefault="directed">
+    <node id="n0">
+      <data key="k0">
+        <svg:svg width="4cm" height="8cm" version="1.1">
+          <svg:ellipse cx="2cm" cy="4cm" rx="2cm" ry="1cm"/>
+        </svg:svg>  
+      </data>
+    </node>
+    <node id="n1"/>
+    <edge source="n0" target="n1">
+      <data key="k1">
+        <svg:svg width="12cm" height="4cm" viewBox="0 0 1200 400">
+          <svg:line x1="100" y1="300" x2="300" y2="100" stroke-width="5"/>
+        </svg:svg>
+      </data>
+    </edge>
+  </graph>
+</graphml>

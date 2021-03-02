@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -366,6 +366,40 @@
     #{1 2 3 4} [#{1 2} #{3 4}]
     #{1 2 3 4} [#{1} #{2} #{3}]
     #{1 2 3 5 7} [#{1 2 3} #{1 2 3 5} #{1 2 3 7}]))
+
+;;;
+
+(deftest test-non-closed-elements
+  (is (= (non-closed-elements #{}
+                              (clop-by-subsets #{} #{}))
+         #{}))
+  (is (= (non-closed-elements #{1 2 3 4 5 6}
+                              (clop-by-subsets 
+                                #{1 2 3 4 5 6} 
+                                #{#{1 3} #{2 4} #{5} #{6}}))
+         #{1 2 3 4}))
+  (is (= (non-closed-elements #{'a 'b 'c 'd}
+                              (clop-by-subsets 
+                                #{'a 'b 'c 'd}
+                                #{#{'a 'b} #{'c} #{'d}}))
+         #{'a 'b})))
+
+(deftest test-exclusive-closure
+  (is (= (exclusive-closure #{1}
+                            (clop-by-subsets 
+                              #{1 2 3 4 5 6} 
+                              #{#{1 3} #{2 4} #{5} #{6}}))
+         #{3}))
+  (is (= (exclusive-closure #{'a}
+                              (clop-by-subsets 
+                                #{'a 'b 'c 'd}
+                                #{#{'a 'b} #{'c} #{'d}}))
+         #{'b}))
+  (is (= (exclusive-closure #{3}
+                            (clop-by-subsets 
+                              #{1 2 3 4 5 6 7} 
+                              #{#{1 7} #{2 4} #{3 4 5} #{5} #{6}}))
+         #{4 5})))
 
 ;;;
 

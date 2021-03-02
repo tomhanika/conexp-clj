@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -75,6 +75,40 @@
           (/ (- (apply f (advance-coord-by args n precision))
                 (apply f (advance-coord-by args n (- precision))))
              (* 2 precision)))))))
+
+
+;;; Combinatorics
+
+(defn binomial-coefficient
+  "Straight forward computing of ${n\\choose k}$ by multiplying
+  all (n-k) factors, where `run' is incremented up to k, divided by
+  the incrementing divisor `run'"
+  [n k]
+  (assert (>= n k))
+  (assert (>= k 0))
+  (let [target (inc n)]
+    (loop [run 1 result 1]
+      (if (> run k)
+        result
+        (recur (inc run) (* (/ (- target run) run) result))))))
+
+;;; Evaluation of Polynomials.
+
+(defn eval-polynomial
+  "Evaluates the polynomial p, represented by it's Coefficient-vector,
+  at the point value. The function uses the `Horner Schema', see:
+  https://de.wikipedia.org/wiki/Horner-Schema."
+  [coefficients value]
+  (assert (and (sequential? coefficients)
+               (not (empty? coefficients)))
+          "First argument must be a list of coefficients.")
+  (assert (number? value)
+          "Second argument must be a real number.")
+  (reduce
+    (fn [x y]
+      (+ (* value x) y))
+    0
+    (reverse coefficients)))
 
 ;;;
 

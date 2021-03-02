@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -36,6 +36,45 @@ metadata (as provided by def) merged into the metadata of the original."
   ([name orig doc]
      (list `defalias (with-meta name (assoc (meta name) :doc doc)) orig)))
 
+(defn- expand-form-at-first
+  "Expands a form with name at the first position. If f is a symbol
+  returns '(f name)."
+  [name f]
+  (cond
+    (symbol? f) (list f name)
+    (some #(= name %) f) f
+    true (list '-> name f)))
+
+(defn- expand-form-at-last
+  "Expands a form with name at the last position. If f is a symbol
+  returns '(f name)."
+  [name f]
+  (cond
+    (symbol? f) (list f name)
+    (some #(= name %) f) f
+    true (list '->> name f)))
+
+(defmacro asd->
+  "Like functions like 'as-> but with '-> as default iff name is not
+  contained in the form or only a symbol is provided."
+  [expr name & forms]
+  (let [dforms (map #(expand-form-at-first name %) forms)]
+    `(let [~name ~expr
+           ~@(interleave (repeat name) (butlast dforms))]
+       ~(if (empty? forms)
+          name
+          (last dforms)))))
+
+(defmacro asd->>
+  "Like functions like 'as-> but with '->> as default iff name is not
+  contained in the form or only a symbol is provided."
+  [expr name & forms]
+  (let [dforms (map #(expand-form-at-last name %) forms)]
+    `(let [~name ~expr
+           ~@(interleave (repeat name) (butlast dforms))]
+       ~(if (empty? forms)
+          name
+          (last dforms)))))
 ;;; Namespace tools
 
 (defn immigrate
@@ -99,40 +138,6 @@ metadata (as provided by def) merged into the metadata of the original."
 
 (require 'clojure.test)
 
-(defn test-conexp
-  "Runs tests for conexp-clj."
-  ([]
-   (let [nss '[conexp.tests.base
-               conexp.tests.math.optimize
-               conexp.tests.math.statistics
-               conexp.tests.fca.contexts
-               conexp.tests.fca.exploration
-               conexp.tests.fca.implications
-               conexp.tests.fca.lattices
-               conexp.tests.fca.many-valued-contexts
-               conexp.tests.fca.misc
-               conexp.tests.io.contexts
-               conexp.tests.io.lattices
-               conexp.tests.io.layouts
-               conexp.tests.io.many-valued-contexts
-               conexp.tests.io.util
-               conexp.tests.layouts.base
-               conexp.tests.layouts.common
-               conexp.tests.layouts.force
-               conexp.tests.layouts.freese
-               conexp.tests.layouts.layered
-               conexp.tests.layouts.util
-               conexp.contrib.tests.algorithms
-               conexp.contrib.tests.algorithms.concepts
-               conexp.contrib.tests.algorithms.generators
-               conexp.contrib.tests.algorithms.titanic
-               conexp.contrib.tests.factor-analysis
-               conexp.contrib.tests.fuzzy.sets
-               conexp.contrib.tests.retracts
-               conexp.contrib.tests.util.general-sorted-sets]]
-     (apply require nss)
-     (apply clojure.test/run-tests nss))))
-
 (defmacro with-testing-data
   "Expects for all bindings the body to be evaluated to true. bindings
   must be those of doseq."
@@ -177,17 +182,6 @@ metadata (as provided by def) merged into the metadata of the original."
   "Same as defmacro but yields a private definition"
   [name & decls]
   (list* `defmacro (with-meta name (assoc (meta name) :private true)) decls))
-
-(defn seqable?                          ; from clojure.core.incubator
-  "Returns true if (seq x) will succeed, false otherwise."
-  [x]
-  (or (seq? x)
-      (instance? clojure.lang.Seqable x)
-      (nil? x)
-      (instance? Iterable x)
-      (-> ^Object x .getClass .isArray)
-      (string? x)
-      (instance? java.util.Map x)))
 
 (defn proper-subset?
   "Returns true iff set-1 is a proper subset of set-2."
@@ -922,6 +916,37 @@ metadata (as provided by def) merged into the metadata of the original."
               (swap! next-current #(conj % (clop (conj C x)))))))
         (recur (inc n) (into closures @next-current) @next-current)))))
 
+;;; Extension
+
+(defn non-closed-elements
+  "Given a closure operator (c) and a set (X) returns the subset
+   {x in X | c({x}) != {x}}."
+  [base clop]
+  (set (filter #(not= #{%} (clop #{%})) base)))
+
+(defn exclusive-closure
+  "Given a closure operator (c) and a set (s) returns
+   c(s)/s"
+  [set clop]
+  (difference (clop set) set))
+
+(defn- extendable-set
+  "Given a closure system and a element, return the subset of the closure
+   system whom the element closure is not a subset of."
+  [closure clop element]
+  (let [x-closure (exclusive-closure #{element} clop)]
+    (filter #(not (subset? x-closure %)) closure)))
+
+(defn extension-set
+  "Adds the given element to each element of a closure system."
+  [closure clop element]
+  (for [F (extendable-set closure clop element)]
+    (conj F element)))
+
+(defn extend-closure
+  "Extents the closure system by an additional given element."
+  [closure clop element]
+  (union closure (extension-set closure clop element)))
 
 ;;; Common Math Algorithms
 

@@ -2,7 +2,7 @@
 /conexp-clj*.zip
 .#*
 .nfs*
-/*~
+*~
 /lib
 /resources
 /classes
@@ -11,6 +11,8 @@
 /.lein*
 /.cake*
 /target
+.idea
+*.iml
 .nrepl-port
 /pom.xml.asc
 /builds
@@ -22,3 +24,4 @@
 /doc/icfca-2013-tutorial/icfca2013-tutorial-talk.synctex.gz
 /doc/icfca-2013-tutorial/icfca2013-tutorial-talk.toc
 /doc/icfca-2013-tutorial/icfca2013-tutorial-talk.vrb
+/doc/tutorials/icfca-2013/icfca2013-tutorial-live.html

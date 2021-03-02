@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -7,12 +7,13 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.contexts
-  (:require [conexp.base         :refer :all]
-            [conexp.fca.contexts :refer :all]
-            [conexp.io.util      :refer :all]
-            [conexp.io.latex     :refer :all]
-            [clojure.string      :refer (split)]
-            [clojure.data.xml    :as xml])
+  (:require [conexp.base                     :refer :all]
+            [conexp.fca.contexts             :refer :all]
+            [conexp.io.util                  :refer :all]
+            [conexp.fca.many-valued-contexts :refer :all]
+            [conexp.io.latex                 :refer :all]
+            [clojure.string                  :refer (split)]
+            [clojure.data.xml                :as xml])
   (:import [java.io PushbackReader]))
 
 
@@ -394,6 +395,30 @@
             (recur (rest atts))))
         (println)))))
 
+(define-context-output-format :named-binary-csv
+  [ctx file]
+  (when (or (empty? (objects ctx))
+            (empty? (attributes ctx)))
+    (unsupported-operation "Cannot export empty context in binary-csv format"))
+  (let [objs (sort (objects ctx)),
+        atts (sort (attributes ctx))]
+    (with-out-writer file
+      (print "objects")
+      (doseq [m atts]
+        (print ", " m))
+      (println)
+      (doseq [g objs]
+        (print g ",")                   
+        (loop [atts atts]
+          (when-let [m (first atts)]
+            (print (if (incident? ctx g m)
+                     "1"
+                     "0"))
+            (when (next atts)
+              (print ","))
+            (recur (rest atts))))
+        (println)))))
+
 
 ;; output as tex array
 
@@ -452,6 +477,90 @@
             (print (str m " "))))
         (println)))))
 
+;; GraphML
+
+(define-context-input-format :graphml
+  [file]
+  (try 
+    (let [graphml (xml/parse (reader file))]
+      (if (= :graphml (:tag graphml))
+          (doall (for [graph (:content graphml) :when (= :graph (:tag graph))]
+            (let [default    (:edgedefault (:attrs graph))
+                  nodes      (filter #(= :node (:tag %)) (:content graph))
+                  edges      (filter #(= :edge (:tag %)) (:content graph))
+                  hyperedges (filter #(= :hyperedge (:tag %)) 
+                                     (:content graph))] 
+              (if (empty? hyperedges)
+                ;; nodes X nodes context generated from normal graph
+                (let [objects   (set (for [node nodes] (:id (:attrs node))))
+                      incidence (map
+                                  #(filter identity %)
+                                  (apply concat
+                                    (for [edge edges] 
+                                      (let [attributes (:attrs edge)
+                                            src-trg    [(:source attributes) 
+                                                        (:target attributes)]
+                                            data       (:content edge)
+                                            value      (first
+                                                         (:content 
+                                                           (first data)))]
+                                        (when (< 1 (count data))
+                                              (illegal-argument 
+                                                (str "Multiple data values for" 
+                                                     " edges are not" 
+                                                     " supported.")))
+                                        (when (= clojure.data.xml.Element
+                                                 (type value)) 
+                                              (illegal-argument
+                                                (str "Only single values are"
+                                                     " supported as edge"
+                                                     " data.")))
+                                        (if (or (not (:directed attributes))
+                                                (= default "undirected")) 
+                                            (map
+                                              #(conj % value)
+                                              (list src-trg 
+                                                    (vec 
+                                                      (reverse src-trg))))
+                                            (conj src-trg value))))))
+                      weights   (filter #(= (count %) 3) incidence)]
+                  (if (empty? weights)
+                    (make-context objects objects (set incidence))
+                    (make-mv-context objects objects (set weights))))
+                ;; edges X nodes context generated from hypergraph
+                (let [objects    (set (for [node nodes] (:id (:attrs node))))
+                      attributes (set (concat (for [hyper hyperedges] 
+                                                (:id (:attrs hyper)))
+                                              (for [edge edges]
+                                                (:id (:attrs edge))))) 
+                      ;; read in hyperedges
+                      incidence1 (apply concat
+                                   (for [hyper hyperedges]
+                                     (for [endpoint (:content hyper)]
+                                       (filter 
+                                         identity
+                                         [(:node (:attrs endpoint))
+                                          (:id (:attrs hyper))]))))
+                      ;; read in normal edges
+                      incidence2 (apply concat
+                                   (for [edge edges]
+                                     (map 
+                                       #(filter identity %)
+                                       (list
+                                         [(:target (:attrs edge))
+                                          (:id (:attrs edge))]
+                                         [(:source (:attrs edge))
+                                          (:id (:attrs edge))]))))
+                      incidence (set (concat incidence1 incidence2))]
+                  (if (empty? (filter #(< (count %) 2) incidence))
+                      (make-context objects attributes incidence)
+                      (illegal-argument (str "All edges and hyperedges of an"
+                                             " hypergraph need ids."))))))))
+          (illegal-argument "XML file does not contain GraphML.")))
+    (catch java.io.FileNotFoundException _
+           (illegal-argument "Specified file not found."))
+    (catch javax.xml.stream.XMLStreamException _
+           (illegal-argument "Specified file does not contain valid XML."))))
 
 ;;; TODO
 

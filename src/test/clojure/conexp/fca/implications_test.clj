@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -10,6 +10,8 @@
   (:use clojure.test)
   (:use conexp.base
         conexp.fca.contexts
+        conexp.io.contexts
+        conexp.math.algebra
         conexp.fca.implications)
   (:require [conexp.fca.contexts-test :as contexts]))
 
@@ -296,6 +298,74 @@
 
 ;;;
 
+(def- paper-rep
+  #(case (set %)
+    #{"dually semicomplemented" "dually almost complemented"} 
+      "dually semicomplemented"
+    #{"almost complemented" "semicomplemented"} "semicomplemented"
+    #{"distributive" "Browerian"} "distributive"
+    #{"1-distributive" "dually pseudocomplemented"} 
+      "dually pseudocomplemented"
+    #{"coatomistic" "dually sectionally semicomplemented"}  "coatomistic"
+    #{"c-condition" "dual c-condition"} "c-condition"
+    #{"0-distributive" "pseudocomplemented"} "pseudocomplemented"
+    #{"atomistic" "sectionally semicomplemented"} "atomistic"
+    #{"dually M-symmetric" "lower semimodular"} "lower semimodular"
+    #{"metric" "modular"} "modular"
+    #{"relatively complemented" "relatively semicomplemented" 
+      "dually relatively semicomplemented"} "relatively complemented"
+    #{"upper semimodular" "M-symmetric"} "upper semimodular"
+    #{"uniquely complemented" "Boolean"} "Boolean"
+    (first %)))
+
+(deftest test-ganter-base 
+  ;; criteria from original paper
+  (let [ctx   (read-context "testing-data/ReegWeiss.cxt")
+        cb    (canonical-base ctx)
+        gb    (ganter-base cb paper-rep)
+        equiv (closure-equivalence (attributes ctx)
+                                    #(close-under-implications cb #{%}))
+        reps  (reduce merge (for [[k v] equiv] (hash-map (paper-rep v) v)))
+        clos  (reduce merge
+                (for [[k1 v1] equiv [k2 v2] reps :when (= v1 v2)] 
+                  (hash-map k2 k1)))]
+    (is (= #{} (ganter-base #{} first)))
+    (is (equivalent-implications? cb gb))
+    ;; #1 one impl. per non-rep.
+    (is (= (- (count (attributes ctx)) (count (keys reps)))
+           (count (filter #(and (= 1 (count (premise %))) 
+                                (not-any? (set (keys reps)) (premise %)))
+                          gb))))
+    ;; #2 one impl. per rep. with exactly one non-rep.
+    (is (= (count (for [[k v] reps :when (< 1 (count v))] v))
+           (count 
+             (filter #(let [prem (premise %)]
+                       (and (= 1 (count prem)) 
+                            (some (set (keys reps)) prem)
+                            (= 1 (count
+                                   (filter 
+                                    (fn [a] (some 
+                                              (set (get reps (first prem))) 
+                                              #{a}))
+                                    (conclusion %))))))
+                     gb))))
+    ;; #3 impls with |prem|>1 contain no element of own closure or non-reps.
+    (is (every? identity
+          (for [impl gb :when (< 1 (count (premise impl)))]
+            (and (every? #(some #{%} (keys reps)) (premise impl))
+                 (every? #(some #{%} (keys reps)) (conclusion impl)))))))
+  ;; back and forth transformations
+  (let [stem1 (stem-base contexts/test-ctx-01),
+        stem2 (stem-base contexts/test-ctx-04),
+        stem3 (stem-base contexts/test-ctx-07),
+        stem4 (stem-base contexts/test-ctx-08)]
+    (is (= (set stem1) (set (stem-base-from-base (ganter-base stem1)))))
+    (is (= (set stem2) (set (stem-base-from-base (ganter-base stem2)))))
+    (is (= (set stem3) (set (stem-base-from-base (ganter-base stem3)))))
+    (is (= (set stem4) (set (stem-base-from-base (ganter-base stem4)))))))
+
+;;;
+
 (def- ctx-1 (make-context #{0 1 2 3 4 5 6 7 8 9}
                           #{0 1 2 3 4 5 6 7 8 9}
                           #{[6 5] [1 0] [4 4] [9 9] [0 0] [1 1] [3 4] [6 7]
@@ -431,6 +501,113 @@
       (let [failures (filter (comp not #(test-bound % ε δ)) (random-contexts n 15))]
         (< (count failures)
            (* n (- 1 δ)))))))
+
+;;;
+
+(deftest test-unitary?
+  (is (= (unitary? (make-implication #{1} #{0}))
+         true))
+  (is (= (unitary? (make-implication #{1 2} #{0}))
+         false))
+  (is (= (unitary? (make-implication #{} #{0}))
+         false))
+  (is (= (unitary? (make-implication #{'a} #{'z}))
+         true))
+  (is (= (unitary? (make-implication #{'a 'b} #{'z}))
+         false))
+  (is (= (unitary? (make-implication #{} #{'z}))
+         false)))
+
+(deftest test-unitary-subset
+  (is (= (unitary-subset #{(make-implication #{1} #{0})
+                           (make-implication #{1 2} #{0})
+                           (make-implication #{'a} #{0})
+                           (make-implication #{} #{0})
+                           (make-implication #{} #{'z})
+                           (make-implication #{} #{0 2})
+                           (make-implication #{} #{})
+                           (make-implication #{1 2} #{})})
+          #{(make-implication #{1} #{0})
+            (make-implication #{'a} #{0})})))
+
+(deftest test-non-unitary-subset
+  (is (= (non-unitary-subset #{(make-implication #{1} #{0})
+                               (make-implication #{1 2} #{0})
+                               (make-implication #{'a} #{0})
+                               (make-implication #{} #{0})
+                               (make-implication #{} #{'z})
+                               (make-implication #{} #{0 2})
+                               (make-implication #{} #{})
+                               (make-implication #{1 2} #{})})
+          #{(make-implication #{1 2} #{0})
+            (make-implication #{} #{0})
+            (make-implication #{} #{'z})
+            (make-implication #{} #{0 2})
+            (make-implication #{} #{})
+            (make-implication #{1 2} #{})})))
+
+(deftest test-ideal-closed?
+  (is (ideal-closed? #{}))
+  (is (ideal-closed? #{(make-implication #{1} #{})
+                       (make-implication #{1 2} #{3})}))
+  (is (ideal-closed? #{(make-implication #{1 2} #{3 4})}))
+  (is (not (ideal-closed? #{(make-implication #{1} #{3})
+                            (make-implication #{1 4} #{6 7})}))))
+
+
+(deftest test-largest-extension-by-implications
+  (do
+    ;; paper example
+    (let [base #{(make-implication #{'c} #{'a})
+                 (make-implication #{'d} #{'a})
+                 (make-implication #{'a 'b} #{'c 'd})
+                 (make-implication #{'a 'c 'd} #{'b})}
+          ext (largest-extension-by-implications 
+                #{#{} #{'a} #{'b} #{'a 'c} #{'a 'd} #{'a 'b 'c 'd}} 
+                base)
+          ext-impls (non-unitary-subset base)]
+      ;; results
+      (is (= ext
+             #{#{} #{'a} #{'b} #{'c} #{'d} #{'b 'c} #{'b 'd} #{'c 'd} #{'a 'c} 
+               #{'a 'd} #{'b 'c 'd} #{'a 'b 'c 'd}}))
+      ;; closed
+      (is (= (non-closed-elements ext (clop-by-implications ext-impls))
+             #{}))
+      ;; set correct?
+      (is (every? identity (for [impl ext-impls set ext] (respects? set impl)))))
+    ;; standard test ctxs
+    (let [base (stem-base contexts/test-ctx-01)
+          ext (largest-extension-by-implications 
+                (set (map (fn [a] #{a}) (attributes contexts/test-ctx-01)))
+                base)
+          ext-impls (non-unitary-subset base)]
+      (is (= (non-closed-elements ext (clop-by-implications ext-impls))
+             #{}))
+      (is (every? identity (for [impl ext-impls iset ext] (respects? iset impl)))))
+    (let [base (stem-base contexts/test-ctx-04) 
+          ext (largest-extension-by-implications 
+                (set (map (fn [a] #{a}) (attributes contexts/test-ctx-04)))
+                base)
+          ext-impls (non-unitary-subset base)]
+      (is (= (non-closed-elements ext (clop-by-implications ext-impls))
+             #{}))
+      (is (every? identity (for [impl ext-impls set ext] (respects? set impl)))))
+    (let [base (stem-base contexts/test-ctx-07) 
+          ext (largest-extension-by-implications 
+                (set (map (fn [a] #{a}) (attributes contexts/test-ctx-07)))
+                base)
+          ext-impls (non-unitary-subset base)]
+      (is (= (non-closed-elements ext (clop-by-implications ext-impls))
+             #{}))
+      (is (every? identity (for [impl ext-impls set ext] (respects? set impl)))))
+    (let [base (stem-base contexts/test-ctx-08) 
+          ext (largest-extension-by-implications 
+                (set (map (fn [a] #{a}) (attributes contexts/test-ctx-08)))
+                base)
+          ext-impls (non-unitary-subset base)]
+      (is (= (non-closed-elements ext (clop-by-implications ext-impls))
+             #{}))
+      (is (every? identity (for [impl ext-impls set ext] (respects? set impl)))))))
 
 ;;;
 

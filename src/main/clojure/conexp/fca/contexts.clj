@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -483,6 +483,55 @@
         empty-att     (object-derivation ctx empty-obj)]
     (generate-from empty-obj empty-att 0)))
 
+(defn parallel-concepts
+  "Computes concepts based on max-recursions and proseccors.
+    ctx         the formal context
+    recursions  maximal number of sequential recursions to generate entry 
+                points for the parallel tasks
+    processors  number of processors to compute result for all entry points
+  Based on 'Parallel algorithm for computing fixpoints of Galois connections'
+  Krajca; Oitrata; Vychodil 2010
+  https://link.springer.com/article/10.1007/s10472-010-9199-5"
+  [ctx recursions processors]
+  (let [n                (count (attributes ctx)),
+        attribute        (vec (attributes ctx)),
+        att-extent       (vec (map #(attribute-derivation ctx #{%}) attribute)),
+        initial-concepts (atom []),
+        generate-points  (fn generate-points [A B y i]
+                           (if (not= i recursions)
+                             (do
+                               (swap! initial-concepts conj [A B])
+                               (when (not= B (attributes ctx))
+                                   (mapcat (fn [j]
+                                             (when-not (contains? B (attribute j))
+                                               (let [C (intersection A (att-extent j)),
+                                                     D (object-derivation ctx C)]
+                                                 (when (cbo-test attribute j B D)
+                                                   (generate-points C D (inc j) (inc i))))))
+                                           (range y n))))
+                               (list [A B y]))),
+        generate-from    (fn generate-from [A B y]
+                           (cons [A B]
+                                 (when (not= B (attributes ctx))
+                                   (mapcat (fn [j]
+                                             (when-not (contains? B (attribute j))
+                                               (let [C (intersection A (att-extent j)),
+                                                     D (object-derivation ctx C)]
+                                                 (when (cbo-test attribute j B D)
+                                                   (generate-from C D (inc j))))))
+                                           (range y n))))),
+        empty-obj        (attribute-derivation ctx #{}),
+        empty-att        (object-derivation ctx empty-obj),
+        load-points      (generate-points empty-obj empty-att 0 1),
+        load-size        (max 1
+                              (int (+ (/ (count load-points) processors) 0.5)))]
+  (distinct 
+    (concat
+      @initial-concepts
+      (reduce concat 
+              (pmap #(mapcat (fn [a] (apply generate-from a)) %)
+                    (partition load-size load-size (list) load-points)))))))
+
 ;;; Common Operations with Contexts
 
 (defn dual-context
@@ -490,7 +539,8 @@
   [ctx]
   (make-context-nc (attributes ctx)
                    (objects ctx)
-                   (fn [[m g]] ((incidence ctx) [g m]))))
+                   (fn ([[m g]] ((incidence ctx) [g m]))
+                     ([m g] ((incidence ctx) [g m])))))
 
 (defn invert-context
   "Inverts context ctx, that is (G,M,I) gets (G,M,(G x M) \\ I)."
@@ -763,6 +813,49 @@
                    (disj min-attrs m)
                    neighbours))))))
 
+(defn subconcept? 
+  "Tests if 'a is a subset of 'b, but not equal."
+  [a b]
+  (subset? (first a) (first b)))
+
+(defn subconceptneq? 
+  "Tests if 'a is a subset of 'b, but not equal."
+  [a b]
+  (and (not (= (first a) (first b))) (subconcept?  a  b)))
+
+
+;;; Compatible Subcontexts
+
+(defn compatible-subcontext?
+  "Tests whether ctx-1 is a compatible subcontext of ctx-2."
+  [ctx-1 ctx-2]
+  (and (subcontext? ctx-1 ctx-2)
+       (forall [[h m] (up-arrows ctx-2)]
+         (=> (contains? (objects ctx-1) h)
+             (contains? (attributes ctx-1) m)))
+       (forall [[g n] (down-arrows ctx-2)]
+         (=> (contains? (attributes ctx-1) n)
+             (contains? (objects ctx-1) g)))))
+
+(defn compatible-subcontexts
+  "Returns all compatible subcontexts of ctx. ctx has to be reduced."
+  [ctx]
+  (if (not (context-reduced? ctx))
+    (illegal-argument "Context given to compatible-subcontexts has to be reduced."))
+  (let [up-arrows         (up-arrows ctx)
+        down-arrows       (down-arrows ctx)
+        transitive-arrows (transitive-closure
+                           (union (set-of [[g 0] [m 1]] | [g m] up-arrows)
+                                  (set-of [[m 1] [g 0]] | [g m] down-arrows)))
+        down-down         (set-of [g m] [[[m idx-m] [g idx-g]] transitive-arrows
+                                         :when (and (= 1 idx-m) (= 0 idx-g))])
+        compatible-ctx    (make-context (objects ctx)
+                                        (attributes ctx)
+                                        (fn [g m]
+                                          (not (contains? down-down [g m]))))]
+    (for [[G-H N] (concepts compatible-ctx)]
+      (make-context-nc (difference (objects ctx) G-H) N (incidence ctx)))))
+
 ;;;
 
-nil
+true

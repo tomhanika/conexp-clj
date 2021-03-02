@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -9,6 +9,7 @@
 (ns conexp.layouts.base
   "Basic definition of layout datatype"
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.lattices
         clojure.pprint))
 
@@ -19,6 +20,7 @@
                  connections            ;connections as set of pairs
                  upper-labels           ;map mapping nodes to vectors of labels and coordinates/nil
                  lower-labels           ;same
+                 valuations             ;valuations of the lattice elements
                  information]           ;ref for technicals
   Object
   (equals [this other]
@@ -88,10 +90,13 @@
    - connections is a set of pairs of node names denoting edges in the layout,
    - upper-labels is a map mapping nodes to pairs of upper labels and coordinates or nil,
    - lower-labels is like upper-labels for lower-labels.
+   - valuations is a map mapping nodes to their value for some valuation
 
   This functions does only a limited amount of error checking."
+  ([lattice positions connections upper-labels lower-labels valuations]
+     (Layout. lattice positions connections upper-labels lower-labels valuations (ref {})))
   ([lattice positions connections upper-labels lower-labels]
-     (Layout. lattice positions connections upper-labels lower-labels (ref {})))
+     (Layout. lattice positions connections upper-labels lower-labels (ref {}) (ref {})))
   ([lattice positions connections]
      (make-layout-nc lattice positions connections nil nil))
   ([positions connections upper-label lower-label]
@@ -116,7 +121,21 @@
            (.connections layout)
            (.upper-labels layout)
            (.lower-labels layout)
+           (.valuations layout)
            (.information layout)))
+
+(defn update-valuations
+  "Updates valuation map in layout."
+  [^Layout layout, val-fn]
+  (let [thelattice (.lattice layout)
+        elements (lattice-base-set thelattice)]
+    (Layout. (.lattice layout)
+           (.positions layout)
+           (.connections layout)
+           (.upper-labels layout)
+           (.lower-labels layout)
+           (reduce (fn [e x] (assoc e x (val-fn x))) {} elements)
+           (.information layout))))
 
 ;;; argument verification
 
@@ -165,6 +184,20 @@
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout."
+  ([lattice positions connections upper-label lower-label valuations]
+     (let [connections (set connections),
+           upper-label (if (fn? upper-label)
+                         (map-by-fn upper-label (base-set lattice))
+                         upper-label),
+           lower-label (if (fn? lower-label)
+                         (map-by-fn lower-label (base-set lattice))
+                         lower-label)
+           valuations  (if (fn? valuations)
+                         (map-by-fn valuations  (base-set lattice))
+                         valuations)]
+       (verify-lattice-positions-connections lattice positions connections)
+       (verify-labels positions upper-label lower-label)
+       (make-layout-nc lattice positions connections upper-label lower-label valuations)))
   ([lattice positions connections upper-label lower-label]
      (let [connections (set connections),
            upper-label (if (fn? upper-label)
@@ -208,6 +241,11 @@
   [^Layout layout]
   (.connections layout))
 
+(defn valuations
+  "Returns stored additional valuations of layout."
+  [^Layout layout]
+  (.valuations layout))
+
 (defn- information
   "Returns stored additional information of layout."
   [^Layout layout]
@@ -232,7 +270,9 @@
                       (println "Positions")
                       (pprint (positions layout))
                       (println "Connections")
-                      (pprint (connections layout)))]
+                      (pprint (connections layout))
+                      (println "Valuations")
+                      (pprint (valuations layout)))]
     (.write out str)))
 
 (defn nodes
@@ -263,6 +303,12 @@
   [layout x]
   (when-let [labels (lower-labels layout)]
     (second (labels x))))
+
+(defn valuation
+  "Returns the valuation of x in layout, if it exists. Otherwise returns nil."
+  [layout x]
+  (when-let [vals (valuations layout)]
+    (first (vals x))))
 
 ;;; Layout Auxiliary Functions
 
@@ -386,6 +432,15 @@
    (map-by-fn (fn [x]
                 [(first ((upper-labels layout) x)),
                  (first ((lower-labels layout) x))])
+              (nodes layout)),
+   ;;
+   (and (upper-labels layout)
+        (lower-labels layout)
+        (valuations layout))
+   (map-by-fn (fn [x]
+                [(first ((upper-labels layout) x)),
+                 (first ((lower-labels layout) x)),
+                 (valuations ((valuations layout) x))])
               (nodes layout)),
    ;;
    (concept-lattice-layout? layout)

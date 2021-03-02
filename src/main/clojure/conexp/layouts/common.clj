@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -9,6 +9,7 @@
 (ns conexp.layouts.common
   "Implements common layout algorithm."
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.lattices
         conexp.layouts.util
         conexp.layouts.layered
@@ -73,6 +74,14 @@
   (make-layout-nc lattice
                   (placement-by-initials lattice top placement)
                   (edges lattice)))
+
+;;; Valued layout stuff
+
+(defn to-valued-layout
+  [layout val-fn]
+  (let [lattice   (lattice layout)
+        elements  (lattice-base-set lattice)]
+    (update-valuations layout val-fn)))
 
 ;;;
 

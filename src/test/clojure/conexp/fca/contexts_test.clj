@@ -1,4 +1,4 @@
-;; Copyright (c) Daniel Borchmann. All rights reserved.
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
 ;; which can be found in the file LICENSE at the root of this distribution.
@@ -62,6 +62,8 @@
                                   [3 b] [3 e]
                                   [4 c] [4 d] [4 e]}))
 
+(def test-ctx-09  (make-context 6 6 not=))
+
 (def testing-data [empty-context,
                    test-ctx-01,
                    test-ctx-02,
@@ -71,6 +73,7 @@
                    test-ctx-06,
                    test-ctx-07,
                    test-ctx-08,
+                   test-ctx-09,
                    (make-context #{1 2}
                                  #{1 2}
                                  [[1 1] [1 2]])])
@@ -352,6 +355,13 @@
              (<= (count (attributes ctx)) 15))
         (every? #(concept? ctx %) (concepts ctx)))))
 
+(deftest test-parallel-concepts
+  (with-testing-data [ctx testing-data]
+    (=> (and (<= (count (objects ctx)) 15)
+             (<= (count (attributes ctx)) 15))
+        (= (set (parallel-concepts ctx 2 4))
+           (set (concepts ctx))))))
+
 (deftest test-intents
   (with-testing-data [ctx testing-data]
     (=> (and (<= (count (objects ctx)) 15)
@@ -615,6 +625,27 @@
       (= (direct-lower-concepts ctx [X Y])
          (set-of [B A] | [A B] (direct-upper-concepts (dual-context ctx) [Y X]))))))
 
+;;; Subcontexts
+
+(deftest test-compatible-subcontext?
+  (with-testing-data [ctx testing-data]
+    (and (compatible-subcontext? ctx ctx)
+         (compatible-subcontext? empty-context ctx))))
+
+(deftest test-compatible-subcontexts
+  (are [ctx nr] (let [ctx (reduce-context ctx)
+                      sct (compatible-subcontexts ctx)]
+                  (and (every? #(compatible-subcontext? % ctx)
+                               (compatible-subcontexts ctx))
+                       (= nr (count sct))))
+       test-ctx-01 3
+       test-ctx-04 1
+       test-ctx-06 2
+       test-ctx-07 10
+       test-ctx-08 10)
+  (is (let [some-context (make-context #{1 2 3} '#{c d e} '#{[1 c] [2 c] [2 e] [3 e]})]
+        (some #(= some-context %) (compatible-subcontexts test-ctx-08)))))
+
 ;;;
 
-nil
+true
