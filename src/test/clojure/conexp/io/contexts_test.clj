@@ -31,6 +31,19 @@
     (try (= ctx (out-in ctx 'context fmt))
          (catch UnsupportedOperationException _ true))))
 
+(defn- possible-isomorphic?
+  "Test for equality of some criteria for context isomorphy.  Namely, number of objects and attributes, the size of the incidence relation, and the number of concepts.  Only use with small contexts."
+  [ctx1 ctx2]
+  (are [x y] (= (count x) (count y))
+     (objects ctx1)  (objects ctx2)
+     (attributes ctx1) (attributes ctx2)
+     (incidence-relation ctx1) (incidence-relation ctx2)
+     (concepts ctx1) (concepts ctx2)))
+
+(deftest test-anonymous-burmeister-out-in
+  (with-testing-data [ctx contexts-oi
+                      fmt #{:anonymous-burmeister}]
+    (possible-isomorphic? ctx (out-in ctx 'context fmt))))
 ;;
 
 (def- contexts-oioi
@@ -43,6 +56,13 @@
                       fmt (remove #{:anonymous-burmeister} (list-context-formats))]
     (try (out-in-out-in-test ctx 'context fmt)
          (catch UnsupportedOperationException _ true))))
+
+(deftest test-anonymous-burmeister-out-in-out-in
+  (with-testing-data [ctx contexts-oioi
+                      fmt #{:anonymous-burmeister}]
+    (let [ctx1 (out-in ctx 'context fmt)
+          ctx2 (out-in ctx1 'context fmt)]
+      (possible-isomorphic? ctx1 ctx2 ))))
 
 ;;
 
@@ -66,6 +86,13 @@
                       fmt (remove #{:anonymous-burmeister} (list-context-formats))]
     (try (out-in-out-in-test ctx 'context fmt)
          (catch UnsupportedOperationException _ true))))
+
+(deftest test-anonymous-burmeister-out-in-out-in-for-random-contexts
+  (with-testing-data [ctx (random-contexts 20 10),
+                      fmt #{:anonymous-burmeister}]
+    (let [ctx1 (out-in ctx 'context fmt)
+          ctx2 (out-in ctx1 'context fmt)]
+      (possible-isomorphic? ctx1 ctx2 ))))
 
 ;;; GraphML (seperate testing as it can only be read but not written)
 
