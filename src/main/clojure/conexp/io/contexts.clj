@@ -109,8 +109,8 @@
   [ctx file]
   (with-out-writer file
     (println \A)
-    (println (count objects))
-    (println (count attributes))
+    (println (count (objects ctx)))
+    (println (count (attributes ctx)))
     (let [inz (incidence ctx)]
       (doseq [g (objects ctx)]
         (doseq [m (attributes ctx)]

@@ -144,15 +144,18 @@ Used by Galicia and Galicia2.
 
 This file format is specific to ~conexp-clj~ and it's main purpose is to provide
 some idea of an unrestricted anonymous format for formal contexts.  Essentially,
-one leaves out in the Burmeister format the name of the context, and names of
+one leaves out in the Burmeister format the name of the context, the names of
 the objects, and the names of the attributes.
 
 *** Example
 
 #+begin_src text
 A
+3
+2
 .X
 XX
+.X
 #+end_src
 
 ** FCALGS
