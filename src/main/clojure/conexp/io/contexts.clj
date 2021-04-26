@@ -380,6 +380,10 @@
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
     (unsupported-operation "Cannot export empty context in binary-csv format"))
+  (when (some (fn [x]
+              (and (string? x) (some #(= \, %) x)))
+            (concat (objects ctx) (attributes ctx)))
+  (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
         atts (sort (attributes ctx))]
     (with-out-writer file
@@ -395,11 +399,36 @@
             (recur (rest atts))))
         (println)))))
 
+(add-context-input-format :named-binary-csv
+                          (fn [rdr]
+                            (= "named binary CSV" (read-line))))
+
+(define-context-input-format :named-binary-csv
+  [file]
+  (with-in-reader file
+    "named binary CSV"
+    (let [[_ & atts] (split (read-line) #",")
+          atts-idx (reduce #(assoc %1 %2 (.indexOf atts %2)) {} atts)
+          [o & second-line] (split (read-line) #",")]
+      (loop [objs      #{o},
+             incidence (set-of [o a] | a atts, :when (= (nth second-line (get atts-idx a)) "1"))]
+        (if-let [line (read-line)]
+          (let [[o & line] (split line #",")]
+            (recur (conj objs o)
+                   (into incidence
+                         (for [a atts :when (= (nth line (get atts-idx a)) "1")]
+                           [o a]))))
+          (make-context objs atts incidence))))))
+
 (define-context-output-format :named-binary-csv
   [ctx file]
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
     (unsupported-operation "Cannot export empty context in binary-csv format"))
+  (when (some (fn [x]
+                (and (string? x) (some #(= \, %) x)))
+              (concat (objects ctx) (attributes ctx)))
+    (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
         atts (sort (attributes ctx))]
     (with-out-writer file
