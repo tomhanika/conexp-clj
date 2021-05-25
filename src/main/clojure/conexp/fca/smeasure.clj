@@ -11,6 +11,8 @@
             [conexp.fca.contexts :refer :all]
             [conexp.fca.concept-transform :refer :all]
             [conexp.fca.cover :refer [generate-concept-cover]]
+            [conexp.fca.lattices :refer [concept-lattice
+                                         lattice-inf-irreducibles]]
             [clojure.math.combinatorics :as comb]
             [loom.graph :as lg] [loom.alg :as la]
             [clojure.core.reducers :as r]
@@ -126,6 +128,14 @@
         (apply (partial merge-with into) {}
              (for [[k v] mapified] {v #{k}}))))))
 
+(defn- lifted-pre-image-measure
+  "Returns the pre-image map as function on the power set of G of a
+  scale measures function sigma."
+  [sm]
+  (let [m (pre-image-measure sm)]
+    (fn [scale-objs]
+       (set (reduce into (map m scale-objs))))))
+
 (defn original-extents
   "Returns the pre-image of all extents whichs image is closed in the
   scale."
@@ -173,12 +183,62 @@
   [ctx]
   (make-smeasure-nc ctx ctx identity))
 
+(defn smeasure-by-exts 
+  "Returns the canonical scale-measure which reflects exts."
+  [cxt exts]
+  (make-smeasure-nc cxt
+                    (make-context (objects cxt)
+                                  exts
+                                  #(contains? %2 %1))
+                    identity))
+
 (defn canonical-smeasure-representation
   "Given a scale-measure computes its canonical representation."
   [sm]
   (let [scon (scale sm)
         o (original-extents sm)]
     (make-smeasure-nc (context sm) (make-context (objects scon) o #(contains? %2 %1)) identity)))
+
+(defn join-complement 
+  "Returns the canonical representation of the join-complement of sm in the scale-hierarchy."
+  [sm]
+  (let [cxt (context sm)
+        s (scale sm)
+        m (measure sm)
+        join-complement-scale (make-context (objects cxt) 
+                                            (difference (->> cxt concept-lattice
+                                                            lattice-inf-irreducibles
+                                                            (map first)
+                                                            set) 
+                                                        (-> sm original-extents 
+                                                            set))
+                                            #(contains? %2 %1))]
+    (canonical-smeasure-representation 
+     (make-smeasure-nc cxt join-complement-scale identity))))
+
+(defn error-in-smeasure 
+  "Returns all false reflected extents."
+  ([sm]
+   (->> sm 
+        original-extents
+        (filter #(not (extent? (context sm) %)))))
+  ([cxt s m]
+   (error-in-smeasure (make-smeasure-nc cxt s m))))
+
+(defn valid-attributes
+  "Returns all attributes of the scale whichs derivation pre-image is an
+  extents of cxt."
+  ([sm]
+   (valid-attributes (context sm)
+                      (scale sm)
+                      (measure sm)))
+  ([cxt s m]
+   (let [pre-image (lifted-pre-image-measure (make-smeasure-nc cxt s m))] 
+     (filter #(->> #{%}
+                   (attribute-derivation s)
+                   pre-image
+                   (extent? cxt))
+             (attributes s)))))
 
 (defn remove-attributes-sm
   "Removes 'attr attributes from the scale."
@@ -189,6 +249,36 @@
                               (incidence-relation s))]
     (make-smeasure-nc (context sm) new-scale (measure sm))))
 
+(defn smeasure-valid-attr
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [inval-attr (difference (-> sm scale attributes)
+                               (valid-attributes sm))]
+    (remove-attributes-sm sm inval-attr)))
+
+(defn smeasure-invalid-attr
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [val-attr (valid-attributes sm)]
+    (remove-attributes-sm sm val-attr)))
+
+
+
+(defn smeasure-valid-exts
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [invalid-exts (error-in-smeasure sm) ]
+    (smeasure-by-exts (context sm) 
+                      (difference (-> sm context extents set) 
+                                  (set invalid-exts)))))
+
+(defn smeasure-invalid-exts
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [invalid-exts (error-in-smeasure sm) ]
+    (smeasure-by-exts (context sm)
+                      (set invalid-exts))))
+  
 (defmulti rename-scale
   "Renames objects or attributes in the scale. Input the renaming as function on the
   set of objects or as key value pairs."
