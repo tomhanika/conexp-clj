@@ -166,3 +166,34 @@ XX
 2
 1 2
 #+end_src
+** Python Pandas
+[[https://pandas.pydata.org/][Pandas]] is a python framework to manage tabular data structures and is
+often used in data analysis. A common I/O format of conexp-clj and
+pandas is CSV and Named-CSV. 
+
+*** Example
+context
+#+begin_src text
+   | 1 2 
+---+-----
+ a | . x
+ b | x x
+#+end_src
+Named-Binary-CSV format
+#+begin_src text
+objects,1,2 
+a,0,1
+b,1,1
+#+end_src
+
+Conexp-clj I/O
+
+#+BEGIN_SRC clojure
+(write-context :named-binary-csv context "path/to/context.csv")
+(read-context  :named-binary-csv)
+#+END_SRC
+
+#+BEGIN_SRC python
+context = pandas.read_table("path/to/context.csv",index_col=0,delimiter=",")
+context.to_csv("path/to/context.csv")
+#+END_SRC

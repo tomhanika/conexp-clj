@@ -25,7 +25,7 @@
         (illegal-argument "out-in called with invalid type " type "."))
       (let [tmp (.getAbsolutePath ^java.io.File (tmpfile))]
         (@writer format object tmp)
-        (@reader tmp)))))
+        (@reader tmp format)))))
 
 (defn out-in-out-in-test
   "Checks for object of type type whether it passes out-in-out-in,

@@ -380,6 +380,10 @@
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
     (unsupported-operation "Cannot export empty context in binary-csv format"))
+  (when (some (fn [x]
+              (and (string? x) (some #(= \, %) x)))
+            (concat (objects ctx) (attributes ctx)))
+  (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
         atts (sort (attributes ctx))]
     (with-out-writer file
@@ -395,29 +399,44 @@
             (recur (rest atts))))
         (println)))))
 
+(add-context-input-format :named-binary-csv
+                          (fn [rdr]
+                            (= "NB" (subs (read-line) 0 2))))
+
+(define-context-input-format :named-binary-csv
+  [file]
+  (with-in-reader file
+    "named binary CSV"
+    (let [[_ & atts] (split (read-line) #",")
+          atts-idx (reduce #(assoc %1 %2 (.indexOf atts %2)) {} atts)
+          [o & second-line] (split (read-line) #",")]
+      (loop [objs      #{o},
+             incidence (set-of [o a] | a atts, :when (= (nth second-line (get atts-idx a)) "1"))]
+        (if-let [line (read-line)]
+          (let [[o & line] (split line #",")]
+            (recur (conj objs o)
+                   (into incidence
+                         (for [a atts :when (= (nth line (get atts-idx a)) "1")]
+                           [o a]))))
+          (make-context objs atts incidence))))))
+
 (define-context-output-format :named-binary-csv
   [ctx file]
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
     (unsupported-operation "Cannot export empty context in binary-csv format"))
+  (when (some (fn [x]
+                (and (string? x) (some #(= \, %) x)))
+              (concat (objects ctx) (attributes ctx)))
+    (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
         atts (sort (attributes ctx))]
     (with-out-writer file
-      (print "objects")
-      (doseq [m atts]
-        (print ", " m))
-      (println)
+      (println (clojure.string/join "," (into ["NB"] atts)))
       (doseq [g objs]
-        (print g ",")                   
-        (loop [atts atts]
-          (when-let [m (first atts)]
-            (print (if (incident? ctx g m)
-                     "1"
-                     "0"))
-            (when (next atts)
-              (print ","))
-            (recur (rest atts))))
-        (println)))))
+        (println (clojure.string/join "," 
+                                      (into [g] 
+                                            (map #(if (incident? ctx g %) 1 0) atts))))))))
 
 
 ;; output as tex array
@@ -561,6 +580,27 @@
            (illegal-argument "Specified file not found."))
     (catch javax.xml.stream.XMLStreamException _
            (illegal-argument "Specified file does not contain valid XML."))))
+
+(define-context-output-format :tex
+  [ctx file & options]
+  (let [{:keys [objorder attrorder]
+         :or {objorder (constantly true), 
+              attrorder (constantly true)}} options]
+    (with-out-writer file
+      (println "\\begin{cxt}")
+      (println "\\cxtName{}")
+      (let [attr (sort-by  attrorder (attributes ctx))
+            obj (sort-by objorder (objects ctx))]
+        (doseq [a attr]
+          (println (str "\\att{" a "}")))
+        (doseq [o obj]
+          (println (str "\\obj{" 
+                        (clojure.string/join "" 
+                                             (for [a attr] 
+                                               (if ((incidence ctx) [o a]) "x" ".")))
+                        "}{" o "}")))
+        (println "\\end{cxt}")))))
+
 
 ;;; TODO
 
