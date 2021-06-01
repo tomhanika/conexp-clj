@@ -30,6 +30,7 @@ formal contexts on success.  Supported formats for input are
 - Galicia (~:galicia~)
 - Anonymous Burmeister (~:anonymous-burmeister~)
 - GraphML (~:graphml~)
+- Named Binary CSV (~:named-binary-csv~) Python Pandas compatible
 
 See [[Common-FCA-File-Formats-for-Formal-Contexts.org][Common FCA File Formats for Formal Contexts]] for somewhat more details on
 those formats.
