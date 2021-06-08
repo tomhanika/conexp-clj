@@ -3,7 +3,7 @@ The triadic-exploration namespace provides a range of functionality to deal with
 A tradic context $(G,M,B,Y)$ can be represented as a collection of contexts $\{\mathbb{K}_1,\mathbb{K}_2,\ldots,\mathbb{K}_i\}$ on the same sets of objects $G$ and attributes $M$.
 
 The following example shows the situation of public transport at the train station Bf. Wilhelmshöhe with direction to the city center in Kassel.
-This example is part of the paper \href{https://arxiv.org/abs/2102.02654 }{Triadic Exploration and Exploration with Multiple Experts}, see \url{https://arxiv.org/abs/2102.02654}. 
+This example is part of the paper [[https://arxiv.org/abs/2102.02654][Triadic Exploration and Exploration with Multiple Experts]], see https://arxiv.org/abs/2102.02654.
 From Bf. Wilhelmshöhe you can travel by one of four bus lines (52, 55, 100 and 500), four tram lines (1, 3, 4 and 7), one night tram (N3) and one regional tram (RT5) to the city center.
 These are the objects of our context.
 The buses and trams leave the station at different times throughout each day of the week.
