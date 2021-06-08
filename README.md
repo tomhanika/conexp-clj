@@ -35,6 +35,7 @@ much more.
 5. Advanced Topics
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
+   3. [triadic-exploration](doc/Triadic-Exploration.org)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 

@@ -1,0 +1,151 @@
+The triadic-exploration namespace provides a range of functionality to deal with the exploration of triadic contexts.
+
+A tradic context $(G,M,B,Y)$ can be represented as a collection of contexts $\{\mathbb{K}_1,\mathbb{K}_2,\ldots,\mathbb{K}_i\}$ on the same sets of objects $G$ and attributes $M$.
+
+The following example shows the situation of public transport at the train station Bf. Wilhelmshöhe with direction to the city center in Kassel.
+This example is part of the paper \href{https://arxiv.org/abs/2102.02654 }{Triadic Exploration and Exploration with Multiple Experts}, see \url{https://arxiv.org/abs/2102.02654}. 
+From Bf. Wilhelmshöhe you can travel by one of four bus lines (52, 55, 100 and 500), four tram lines (1, 3, 4 and 7), one night tram (N3) and one regional tram (RT5) to the city center.
+These are the objects of our context.
+The buses and trams leave the station at different times throughout each day of the week.
+The attributes of our context are the aggregated the leave-times, more specifically, we have split each day in five distinct time slots: early morning from 4:00 to 7:00, working hours from 7:00 to 19:00, evening from 19:00 to 21:00, late evening from 21:00 to 24:00 and night from 0:00 to 4:00.
+A bus or tram has a cross the formal context if there is at least one leave-time in the time slot.
+Furthermore, we have split the days of the week into Monday to Friday, Saturday and Sunday as conditions.
+
+The respective contexts are part of the triadic-exploration namespace.
+
+
+First load the respective namespace to deal with triadic contexts and to use the drawing functionality provided by conexp-clj.
+#+begin_src clojure :eval never
+(use 'conexp.fca.triadic-exploration)
+(use 'conexp.gui.draw)
+#+end_src
+
+
+To view the context family from the example use
+#+begin_src clojure :eval never
+cxt-family-paper
+  ;; =>
+  ;; {:Mo-Fr
+  ;;       |:early-morning :evening :late-evening :night :working-hours 
+  ;; -----+------------------------------------------------------------
+  ;; :1   |x              x        x             .      x              
+  ;; :100 |x              x        x             .      x              
+  ;; :3   |x              x        x             .      x              
+  ;; :4   |x              x        x             .      x              
+  ;; :500 |x              x        x             x      x              
+  ;; :52  |x              x        x             .      x              
+  ;; :55  |x              .        .             .      x              
+  ;; :7   |x              x        .             .      x              
+  ;; :N3  |.              .        .             .      .              
+  ;; :RT5 |x              x        x             .      x              
+  ;; ,
+  ;;  :Sat
+  ;;       |:early-morning :evening :late-evening :night :working-hours 
+  ;; -----+------------------------------------------------------------
+  ;; :1   |.              x        x             .      x              
+  ;; :100 |x              x        x             .      x              
+  ;; :3   |x              x        x             .      x              
+  ;; :4   |x              x        x             .      x              
+  ;; :500 |.              x        x             .      x              
+  ;; :52  |x              .        .             .      x              
+  ;; :55  |.              .        .             .      .              
+  ;; :7   |.              .        .             .      x              
+  ;; :N3  |.              .        .             x      .              
+  ;; :RT5 |x              x        x             .      x              
+  ;; ,
+  ;;  :Sun
+  ;;       |:early-morning :evening :late-evening :night :working-hours 
+  ;; -----+------------------------------------------------------------
+  ;; :1   |.              x        x             .      x              
+  ;; :100 |x              x        x             .      x              
+  ;; :3   |x              x        x             .      x              
+  ;; :4   |x              x        x             .      x              
+  ;; :500 |.              x        x             .      x              
+  ;; :52  |.              .        .             .      .              
+  ;; :55  |.              .        .             .      .              
+  ;; :7   |.              .        .             .      .              
+  ;; :N3  |.              .        .             x      .              
+  ;; :RT5 |.              x        x             .      x              
+  ;; }
+#+end_src
+
+Such a family of formal contexts can be transformed into a triadic context using
+#+begin_src clojure :eval never
+(def tcxt-paper (context-family->triadic-context cxt-family-paper))
+tcxt-paper
+  ;; {:objects #{:RT5 :52 :500 :4 :100 :7 :55 :1 :3 :N3},
+  ;;  :attributes
+  ;;  #{:working-hours :late-evening :early-morning :night :evening},
+  ;;  :conditions (:Mo-Fr :Sat :Sun),
+  ;;  :incidence
+  ;;  #{[:1 :early-morning :Mo-Fr] [:100 :evening :Sat]
+  ;;    [:RT5 :working-hours :Mo-Fr] [:55 :early-morning :Mo-Fr]
+  ;;    [:7 :working-hours :Mo-Fr] [:100 :early-morning :Mo-Fr]
+  ;;    [:500 :working-hours :Sun] [:3 :working-hours :Sat]
+  ;;    [:500 :evening :Mo-Fr] [:4 :late-evening :Mo-Fr]
+  ;;    [:1 :late-evening :Sat] [:3 :evening :Sun]
+  ;;    [:500 :late-evening :Mo-Fr] [:RT5 :working-hours :Sat]
+  ;;    [:100 :early-morning :Sun] [:100 :working-hours :Sun]
+  ;;    [:3 :working-hours :Sun] [:RT5 :late-evening :Sat]
+  ;;    [:100 :working-hours :Sat] [:1 :evening :Mo-Fr]
+  ;;    [:500 :late-evening :Sun] [:3 :late-evening :Sun]
+  ;;    [:100 :evening :Sun] [:4 :evening :Mo-Fr]
+  ;;    [:500 :working-hours :Sat] [:1 :evening :Sat]
+  ;;    [:100 :early-morning :Sat] [:3 :evening :Sat]
+  ;;    [:1 :late-evening :Mo-Fr] [:500 :evening :Sat]
+  ;;    [:RT5 :early-morning :Sat] [:500 :night :Mo-Fr]
+  ;;    [:500 :evening :Sun] [:52 :working-hours :Mo-Fr]
+  ;;    [:RT5 :evening :Sun] [:100 :late-evening :Sat]
+  ;;    [:4 :early-morning :Mo-Fr] [:3 :early-morning :Sat]
+  ;;    [:4 :working-hours :Mo-Fr] [:1 :evening :Sun]
+  ;;    [:52 :early-morning :Sat] [:52 :early-morning :Mo-Fr]
+  ;;    [:3 :late-evening :Sat] [:7 :early-morning :Mo-Fr]
+  ;;    [:100 :late-evening :Sun] [:4 :evening :Sat]
+  ;;    [:4 :working-hours :Sat] [:3 :early-morning :Sun]
+  ;;    [:52 :late-evening :Mo-Fr] [:RT5 :working-hours :Sun]
+  ;;    [:100 :late-evening :Mo-Fr] [:RT5 :late-evening :Sun]
+  ;;    [:55 :working-hours :Mo-Fr] [:7 :evening :Mo-Fr]
+  ;;    [:100 :evening :Mo-Fr] [:1 :working-hours :Sun]
+  ;;    [:3 :early-morning :Mo-Fr] [:52 :evening :Mo-Fr]
+  ;;    [:4 :late-evening :Sun] [:4 :early-morning :Sat] [:N3 :night :Sun]
+  ;;    [:1 :late-evening :Sun] [:RT5 :late-evening :Mo-Fr]
+  ;;    [:1 :working-hours :Sat] [:3 :evening :Mo-Fr]
+  ;;    [:500 :working-hours :Mo-Fr] [:RT5 :evening :Mo-Fr]
+  ;;    [:4 :working-hours :Sun] [:4 :late-evening :Sat]
+  ;;    [:7 :working-hours :Sat] [:4 :early-morning :Sun]
+  ;;    [:RT5 :early-morning :Mo-Fr] [:N3 :night :Sat]
+  ;;    [:RT5 :evening :Sat] [:100 :working-hours :Mo-Fr]
+  ;;    [:4 :evening :Sun] [:500 :late-evening :Sat]
+  ;;    [:500 :early-morning :Mo-Fr] [:3 :working-hours :Mo-Fr]
+  ;;    [:3 :late-evening :Mo-Fr] [:52 :working-hours :Sat]
+  ;;    [:1 :working-hours :Mo-Fr]}}
+#+end_src
+
+
+To compute all conditional theories use
+#+begin_src clojure :eval never
+(def all-conditional-implications (compute-all-conditional-theories tcxt-paper))
+all-conditional-implications
+  ;;                                                                        |:Mo-Fr :Sat :Sun 
+  ;; -----------------------------------------------------------------------+-----------------
+  ;; (#{:early-morning} ⟶ #{:working-hours})                                |x      x    x    
+  ;; (#{:working-hours :night} ⟶ #{:late-evening :early-morning :evening})  |x      x    x    
+  ;; (#{} ⟶ #{:working-hours :late-evening :evening})                       |.      .    .    
+  ;; (#{:late-evening} ⟶ #{:working-hours :evening})                        |x      x    x    
+  ;; (#{} ⟶ #{:working-hours :late-evening :early-morning :night :evening}) |.      .    .    
+  ;; (#{:working-hours} ⟶ #{:early-morning})                                |x      .    .    
+  ;; (#{:night} ⟶ #{:working-hours :late-evening :early-morning :evening})  |x      .    .    
+  ;; (#{:evening} ⟶ #{:working-hours :late-evening})                        |.      x    x    
+  ;; (#{:evening} ⟶ #{:working-hours})                                      |x      x    x    
+  ;; (#{:working-hours :evening} ⟶ #{:early-morning})                       |x      .    .    
+  ;; (#{:working-hours :late-evening :early-morning :evening} ⟶ #{:night})  |.      .    .    
+  ;; (#{:working-hours} ⟶ #{:evening})                                      |.      .    x    
+#+end_src
+
+
+And to draw the corresponding concept lattice to see which implications hold under which conditions use
+#+begin_src clojure :eval never
+(draw-concept-lattice all-conditional-implications)
+#+end_src
+
+[[./images/concept-lattice-conditional-theories.png]]
