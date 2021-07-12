@@ -581,6 +581,11 @@
     (catch javax.xml.stream.XMLStreamException _
            (illegal-argument "Specified file does not contain valid XML."))))
 
+(define-context-output-format :tex ;; duplicate?
+  [ctx file]
+  (with-out-writer file
+    (println (latex ctx))))
+
 (define-context-output-format :tex
   [ctx file & options]
   (let [{:keys [objorder attrorder]
@@ -602,6 +607,33 @@
         (println "\\end{cxt}")))))
 
 
+(define-context-output-format :tex-arrows
+  [ctx file & options]
+  (let [{:keys [objorder attrorder]
+         :or {objorder (constantly true), 
+              attrorder (constantly true)}} options]
+    (with-out-writer file
+      (let [attr (sort-by  attrorder (attributes ctx))
+            obj (sort-by objorder (objects ctx))
+            darrow (down-arrows ctx)
+            uparrow (up-arrows ctx)]
+        (println "%\\usepackage{amsmath}")
+        (println "%\\DeclareMathOperator){\\neswarrow}{\\mathrel{\\text{\\ooalign{$\\swarrow$\\cr$\\nearrow$}}}}")
+        (println (str "\\begin{tabular}{" (if (empty? obj) "" "|l||") 
+                     (apply str (for [a attr] "c|")) "}"))
+        (println "\\hline")
+        (println (str "&" (clojure.string/join "&" attr) "\\\\ \\hline \\hline"))
+        (doseq [o obj]
+          (println (str o 
+                        (clojure.string/join "" 
+                                             (for [a attr] 
+                                               (cond ((incidence ctx) [o a]) "&$\\times$"
+                                                     (and (uparrow [o a]) (darrow [o a])) "&$\\neswarrow$"
+                                                     (uparrow [o a]) "&$\\nearrow$"
+                                                     (darrow [o a]) "&$\\swarrow$"
+                                                     :else "&"))) 
+                        "\\\\ \\hline")))
+        (println "\\end{tabular}")))))
 ;;; TODO
 
 ;; slf
