@@ -380,7 +380,7 @@
                   (do (await cur-lattice) @cur-lattice)
                   (let [bin-closure (next-closed-set-iterator bin-ctx bin-next)]
                     (recur (to-hashset attr-order bin-closure) bin-closure)))))))))
-
+;; Variation without fast implementation
 ;; (defn attribute-insertion-cover 
 ;; "This method updates the concept lattice given by cover on an
 ;;   insertion of attributes to the context. The added attributes are
