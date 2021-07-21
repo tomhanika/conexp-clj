@@ -36,6 +36,45 @@ metadata (as provided by def) merged into the metadata of the original."
   ([name orig doc]
      (list `defalias (with-meta name (assoc (meta name) :doc doc)) orig)))
 
+(defn- expand-form-at-first
+  "Expands a form with name at the first position. If f is a symbol
+  returns '(f name)."
+  [name f]
+  (cond
+    (symbol? f) (list f name)
+    (some #(= name %) f) f
+    true (list '-> name f)))
+
+(defn- expand-form-at-last
+  "Expands a form with name at the last position. If f is a symbol
+  returns '(f name)."
+  [name f]
+  (cond
+    (symbol? f) (list f name)
+    (some #(= name %) f) f
+    true (list '->> name f)))
+
+(defmacro asd->
+  "Like functions like 'as-> but with '-> as default iff name is not
+  contained in the form or only a symbol is provided."
+  [expr name & forms]
+  (let [dforms (map #(expand-form-at-first name %) forms)]
+    `(let [~name ~expr
+           ~@(interleave (repeat name) (butlast dforms))]
+       ~(if (empty? forms)
+          name
+          (last dforms)))))
+
+(defmacro asd->>
+  "Like functions like 'as-> but with '->> as default iff name is not
+  contained in the form or only a symbol is provided."
+  [expr name & forms]
+  (let [dforms (map #(expand-form-at-last name %) forms)]
+    `(let [~name ~expr
+           ~@(interleave (repeat name) (butlast dforms))]
+       ~(if (empty? forms)
+          name
+          (last dforms)))))
 ;;; Namespace tools
 
 (defn immigrate
