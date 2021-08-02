@@ -7,15 +7,15 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.cover
-  (:require [conexp.base :refer :all]
-             ; :exclude [next-closed-set]]
+  (:require [conexp.base :refer :all
+             :exclude [next-closed-set]]
             [conexp.fca.contexts :refer :all] 
             [conexp.fca.fast :refer 
              [next-intent-async
-              ;next-closed-set
+              next-closed-set
               to-hashset to-binary-context 
-              ;bitwise-attribute-derivation
-              ;bitwise-object-derivation 
+              bitwise-attribute-derivation
+              bitwise-object-derivation 
               to-binary-matrix
               bitwise-context-attribute-closure]]
              [clojure.core.reducers :as r]
@@ -212,19 +212,20 @@
           (recur (first other) (rest other) updated-newcover))))))
 
 ;; faster attribute deleter
-;; (defn- next-closed-set-iterator
-;;   "This method is a wrapper for the next-closed-set method in fast
-;;   fca. It returns the next closed set given 'start."
-;;   [[object-vector attribute-vector object-count attribute-count incidence-matrix] start]
-;;   (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
-;;         a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
-;;         next (next-closed-set attribute-count
-;;                          (partial bitwise-context-attribute-closure
-;;                                   object-count
-;;                                   attribute-count
-;;                                   incidence-matrix)
-;;                          start)]
-;;     next))
+(defn- next-closed-set-iterator
+  "This method is a wrapper for the next-closed-set method in fast
+  fca. It returns the next closed set given 'start."
+  [[object-vector attribute-vector object-count attribute-count incidence-matrix] start]
+  (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
+        a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
+        next (next-closed-set attribute-count
+                              (partial bitwise-context-attribute-closure
+                                       incidence-matrix
+                                       object-count
+                                       attribute-count)
+                              start)]
+    next))
+
 
 (defn- find-all-updates 
   "This method determines all updates that need to be made to the attribute lattice."
@@ -253,11 +254,15 @@
                                           (fn ([a b] ((incidence old-ctx) [a b]))
                                             ([[a b]] ((incidence old-ctx) [a b]))))
           bin-ctx [obj-vec attr-order (count obj-vec) attr-count  bin-incidence]
-          attribute-concepts  (for [i del-attributes] 
-                                (let [a (BitSet. attr-count)] 
-                                  (.set a (.indexOf attr-order i))
-                                  (to-hashset attr-order 
-                                              (bitwise-context-attribute-closure (count obj-vec) (count attr-order) bin-incidence a))))
+          attribute-concepts (for [i del-attributes] 
+                               (let [a (BitSet. attr-count)] 
+                                 (.set a (.indexOf attr-order i))
+                                 (to-hashset attr-order 
+                                             (bitwise-context-attribute-closure
+                                              bin-incidence
+                                              (count obj-vec)
+                                              (count attr-order)
+                                              a))))
           toupdate (find-all-updates attribute-concepts cover)]
       (loop [cur (first toupdate) other (rest toupdate) newcover {}]
         (let [updated-newcover (cover-merger newcover (intersecter cur (get cover cur) prev-attributes))]
@@ -332,46 +337,6 @@
                (add-to-cover intent (find-lower-neighbors inserted root intent))))
      intent #(assoc % :extent extent))))
 
-;; (defn attribute-insertion-cover 
-;; "This method updates the concept lattice given by cover on an
-;;   insertion of attributes to the context. The added attributes are
-;;   already included in new-context and are further given by
-;;   new-attributes."
-;;   [cover new-ctx new-attributes]
-;;   (if (empty? new-attributes) cover
-;;       (let [prev-attributes (difference 
-;;                              (attributes new-ctx)
-;;                              new-attributes)
-;;             attr-order (into
-;;                         (vec new-attributes) 
-;;                         (vec prev-attributes))
-;;             obj-vec (vec (objects new-ctx))
-;;             bin-incidence (to-binary-matrix obj-vec attr-order 
-;;                                             (fn ([a b] ((incidence new-ctx) [a b]))
-;;                                               ([[a b]] ((incidence new-ctx) [a b]))))
-;;             bin-ctx [obj-vec attr-order (count obj-vec) (count attr-order)  bin-incidence]
-;;             start (BitSet.)
-;;             setter (.set start (count new-attributes) (count attr-order) true)
-;;             cur-lattice (agent cover)
-;;             bin-first-next (next-closed-set-iterator bin-ctx start)]
-;;         (if (nil? bin-first-next) cover
-;;             (loop [next (to-hashset attr-order bin-first-next) bin-next bin-first-next]
-;;               (let [old (intersection next prev-attributes)]
-;;                 ;; async update cover
-;;                 (send-off cur-lattice insert-concept next (attribute-derivation new-ctx next))
-
-;;                 (send-off cur-lattice 
-;;                           #(if (= old 
-;;                                   (to-hashset attr-order 
-;;                                               (let [n (.clone bin-next) oldn (.and n start)]
-;;                                                 (bitwise-context-attribute-closure (count obj-vec) (count attr-order) bin-incidence n))))
-;;                              %
-;;                              (reassign-cover % old)))
-;;                 (if (= next (attributes new-ctx))
-;;                   (do (await cur-lattice) @cur-lattice)
-;;                   (let [bin-closure (next-closed-set-iterator bin-ctx bin-next)]
-;;                     (recur (to-hashset attr-order bin-closure) bin-closure)))))))))
-
 (defn attribute-insertion-cover 
 "This method updates the concept lattice given by cover on an
   insertion of attributes to the context. The added attributes are
@@ -379,19 +344,63 @@
   new-attributes."
   [cover new-ctx new-attributes]
   (if (empty? new-attributes) cover
-      (let [intent-chan (next-intent-async new-ctx new-attributes :exlusive)
-            prev-attributes (difference 
+      (let [prev-attributes (difference 
                              (attributes new-ctx)
                              new-attributes)
-            cur-lattice (agent cover)]
-        (loop [next-intent (<!! intent-chan)]
-          (if (= :fin next-intent) (do (await cur-lattice) @cur-lattice)
-              (let [old (intersection next-intent prev-attributes)]
+            attr-order (into
+                        (vec new-attributes) 
+                        (vec prev-attributes))
+            obj-vec (vec (objects new-ctx))
+            bin-incidence (to-binary-matrix obj-vec attr-order 
+                                            (fn ([a b] ((incidence new-ctx) [a b]))
+                                              ([[a b]] ((incidence new-ctx) [a b]))))
+            bin-ctx [obj-vec attr-order (count obj-vec) (count attr-order)  bin-incidence]
+            start (BitSet.)
+            setter (.set start (count new-attributes) (count attr-order) true)
+            cur-lattice (agent cover)
+            bin-first-next (next-closed-set-iterator bin-ctx start)]
+        (if (nil? bin-first-next) cover
+            (loop [next (to-hashset attr-order bin-first-next) bin-next bin-first-next]
+              (let [old (intersection next prev-attributes)]
                 ;; async update cover
-                (send-off cur-lattice insert-concept next-intent (attribute-derivation new-ctx next-intent))
-                
+                (send-off cur-lattice insert-concept next (attribute-derivation new-ctx next))
+
                 (send-off cur-lattice 
-                          #(if (= old (context-attribute-closure new-ctx old))
+                          #(if (= old 
+                                  (to-hashset attr-order 
+                                              (let [n (.clone bin-next) oldn (.and n start)]
+                                                (bitwise-context-attribute-closure
+                                                 bin-incidence
+                                                 (count obj-vec)
+                                                 (count attr-order)
+                                                 n))))
                              %
                              (reassign-cover % old)))
-                (recur (<!! intent-chan))))))))
+                (if (= next (attributes new-ctx))
+                  (do (await cur-lattice) @cur-lattice)
+                  (let [bin-closure (next-closed-set-iterator bin-ctx bin-next)]
+                    (recur (to-hashset attr-order bin-closure) bin-closure)))))))))
+;; Variation without fast implementation
+;; (defn attribute-insertion-cover 
+;; "This method updates the concept lattice given by cover on an
+;;   insertion of attributes to the context. The added attributes are
+;;   already included in new-context and are further given by
+;;   new-attributes."
+;;   [cover new-ctx new-attributes]
+;;   (if (empty? new-attributes) cover
+;;       (let [intent-chan (next-intent-async new-ctx new-attributes :exlusive)
+;;             prev-attributes (difference 
+;;                              (attributes new-ctx)
+;;                              new-attributes)
+;;             cur-lattice (agent cover)]
+;;         (loop [next-intent (<!! intent-chan)]
+;;           (if (= :fin next-intent) (do (await cur-lattice) @cur-lattice)
+;;               (let [old (intersection next-intent prev-attributes)]
+;;                 ;; async update cover
+;;                 (send-off cur-lattice insert-concept next-intent (attribute-derivation new-ctx next-intent))
+                
+;;                 (send-off cur-lattice 
+;;                           #(if (= old (context-attribute-closure new-ctx old))
+;;                              %
+;;                              (reassign-cover % old)))
+;;                 (recur (<!! intent-chan))))))))

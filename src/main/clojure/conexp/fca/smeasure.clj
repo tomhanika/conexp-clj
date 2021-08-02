@@ -11,9 +11,12 @@
             [conexp.fca.contexts :refer :all]
             [conexp.fca.concept-transform :refer :all]
             [conexp.fca.cover :refer [generate-concept-cover]]
+            [conexp.fca.lattices :refer [concept-lattice
+                                         lattice-inf-irreducibles]]
             [clojure.math.combinatorics :as comb]
             [loom.graph :as lg] [loom.alg :as la]
-            [clojure.core.reducers :as r]))
+            [clojure.core.reducers :as r]
+            [conexp.fca.implications :refer :all]))
 
 (defprotocol Smeasure
   (context [sm] "Returns the original context that is measured.")
@@ -125,6 +128,14 @@
         (apply (partial merge-with into) {}
              (for [[k v] mapified] {v #{k}}))))))
 
+(defn- lifted-pre-image-measure
+  "Returns the pre-image map as function on the power set of G of a
+  scale measures function sigma."
+  [sm]
+  (let [m (pre-image-measure sm)]
+    (fn [scale-objs]
+       (set (reduce into (map m scale-objs))))))
+
 (defn original-extents
   "Returns the pre-image of all extents whichs image is closed in the
   scale."
@@ -172,12 +183,62 @@
   [ctx]
   (make-smeasure-nc ctx ctx identity))
 
+(defn smeasure-by-exts 
+  "Returns the canonical scale-measure which reflects exts."
+  [cxt exts]
+  (make-smeasure-nc cxt
+                    (make-context (objects cxt)
+                                  exts
+                                  #(contains? %2 %1))
+                    identity))
+
 (defn canonical-smeasure-representation
   "Given a scale-measure computes its canonical representation."
   [sm]
   (let [scon (scale sm)
         o (original-extents sm)]
     (make-smeasure-nc (context sm) (make-context (objects scon) o #(contains? %2 %1)) identity)))
+
+(defn join-complement 
+  "Returns the canonical representation of the join-complement of sm in the scale-hierarchy."
+  [sm]
+  (let [cxt (context sm)
+        s (scale sm)
+        m (measure sm)
+        join-complement-scale (make-context (objects cxt) 
+                                            (difference (->> cxt concept-lattice
+                                                            lattice-inf-irreducibles
+                                                            (map first)
+                                                            set) 
+                                                        (-> sm original-extents 
+                                                            set))
+                                            #(contains? %2 %1))]
+    (canonical-smeasure-representation 
+     (make-smeasure-nc cxt join-complement-scale identity))))
+
+(defn error-in-smeasure 
+  "Returns all false reflected extents."
+  ([sm]
+   (->> sm 
+        original-extents
+        (filter #(not (extent? (context sm) %)))))
+  ([cxt s m]
+   (error-in-smeasure (make-smeasure-nc cxt s m))))
+
+(defn valid-attributes
+  "Returns all attributes of the scale whichs derivation pre-image is an
+  extents of cxt."
+  ([sm]
+   (valid-attributes (context sm)
+                      (scale sm)
+                      (measure sm)))
+  ([cxt s m]
+   (let [pre-image (lifted-pre-image-measure (make-smeasure-nc cxt s m))] 
+     (filter #(->> #{%}
+                   (attribute-derivation s)
+                   pre-image
+                   (extent? cxt))
+             (attributes s)))))
 
 (defn remove-attributes-sm
   "Removes 'attr attributes from the scale."
@@ -188,6 +249,36 @@
                               (incidence-relation s))]
     (make-smeasure-nc (context sm) new-scale (measure sm))))
 
+(defn smeasure-valid-attr
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [inval-attr (difference (-> sm scale attributes)
+                               (valid-attributes sm))]
+    (remove-attributes-sm sm inval-attr)))
+
+(defn smeasure-invalid-attr
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [val-attr (valid-attributes sm)]
+    (remove-attributes-sm sm val-attr)))
+
+
+
+(defn smeasure-valid-exts
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [invalid-exts (error-in-smeasure sm) ]
+    (smeasure-by-exts (context sm) 
+                      (difference (-> sm context extents set) 
+                                  (set invalid-exts)))))
+
+(defn smeasure-invalid-exts
+  "Filters the scale-measure scale attributes to the set of valid attributes."
+  [sm]
+  (let [invalid-exts (error-in-smeasure sm) ]
+    (smeasure-by-exts (context sm)
+                      (set invalid-exts))))
+  
 (defmulti rename-scale
   "Renames objects or attributes in the scale. Input the renaming as function on the
   set of objects or as key value pairs."
@@ -215,7 +306,12 @@
          rename-fn  (fn [a] (or (get rename-map a) a))]
      (rename-scale :attributes sm rename-fn))))
 
-(defn logical-conjunctive-smeasure-representation
+(defn meet-irreducibles-only-smeasure 
+  "Removes all non meet-irreducible attributes from the scale-measure."
+  [sm]
+  (make-smeasure-nc (context sm) (-> sm scale reduce-attributes) (measure sm)))
+
+(defn conjunctive-normalform-smeasure-representation
   "Given a scale-measure computes the equivalent scale-measure using
   logical conjunctive formulas."
   [sm] 
@@ -223,7 +319,7 @@
                 (canonical-smeasure-representation sm)
                 (fn [a] 
                   (rest (reduce #(conj %1 :and %2) [] 
-                                (attribute-derivation (context sm) a))))))
+                                (object-derivation (context sm) a))))))
 
 (defn scale-apposition 
   [sm1 sm2]
@@ -246,13 +342,13 @@
   - probability:       conexp.fca.metrics/concept-probability
   - robustness:       (fn [context concept]
                        (conexp.fca.metrics/concept-robustness 
-                        concept (concepts context) your-alpha your-sorted?))
+                        concept (concepts context) your-alpha))
   - support:          (fn [context concept] (count (first concept)))"
   [context imp-fn n]
   (let [dual (dual-context context) ;; measure importance for extents
         imp-n-concepts (take-last n
                          (sort-by (partial imp-fn dual)
-                                  (concepts dual)))
+                                  (rest (concepts dual))))
         exts (map last imp-n-concepts)
         scale (make-context (objects context) exts 
                       (fn [a b] (contains? b a)))]
@@ -264,7 +360,7 @@
 (derive ::ex ::quant)
 
 
-;;; Declare REPL commands
+;;; Declare REPL commandso
 (defmulti run-repl-command
   "Runs a command for the counterexample REPL."
   (fn [& args] (first args)))
@@ -436,3 +532,108 @@
       (if (:done evaluated) 
         (:smeasure  evaluated)
         (recur  evaluated)))))
+
+
+(defn- provide-counter-example
+  "Queries for a counter example B and applies the closure operator of
+  the context of the explored scale-measure. This ensures that
+  reflected set of extents is a subset of the contexts extents."
+  [state cur cur-conclusion]
+  (let [premise-deri (object-derivation (:context state) cur)
+        concl-deri (object-derivation (:context state) cur-conclusion)
+        deri-margin (difference premise-deri concl-deri)
+        counter (ask (str "Have: " concl-deri "\n how much more of " deri-margin 
+                          " \n do you want? \n Enter a subset of "
+                          deri-margin ":\n Note that the empty input will result in an infinite loop\n")
+                     #(let [input (str (read-line))]
+                        (if (= "" input) #{}
+                            (set (map read-string 
+                                      (clojure.string/split input #";")))))
+                     #(subset? % deri-margin)
+                     (str "The input must be a subset of " deri-margin ":\n"))
+        counter-cl (context-attribute-closure (:context state) (union concl-deri counter))]
+    (let [answer (ask (str "You entered " counter " with closure " counter-cl "\n Please confirm with yes or no:")
+                      #(str (read-line))
+                      #(or (= "yes" %) (= % "no"))
+                      "\n Enter yes or no:")]
+      (println answer "\n")
+      (if (= "yes" answer) 
+        (attribute-derivation (:context state) (union concl-deri counter))
+        (provide-counter-example state cur cur-conclusion)))))
+
+(defn- coarsened-by-imp?
+  "Queries a boolean if an implication should used in the scale-measure
+  exploration."
+  [state cur cur-conclusion]
+  (let [premise-deri (object-derivation (:context state) cur)
+        concl-deri (object-derivation (:context state) cur-conclusion)
+        deri-margin (difference premise-deri concl-deri)
+        answer (ask (str "Have: " concl-deri 
+                         " want more of " deri-margin "?\n Enter yes, none or all:")
+                    #(str (read-line))
+                    #(or (= "none" %) (= % "all") (= "yes" %) (= % "no"))
+                    "\n Enter yes, all or none :")]
+    (println answer "\n")
+    answer))
+
+(defn exploration-of-scales-iteration 
+  "This is method performs each iteration of the scale-measure
+  exploration to determine an object set B to coarsen a context by the
+  object implication cur->B with B beeing a subset of
+  cur-conclusion. This is done by querying sets B until a suggested
+  implication holds and no B is provided. Then the next iteration can
+  be called with the next-closured set of cur."
+  [state]
+  (loop [cur-conclusion (context-object-closure (:scale state) (:cur state)) iter-state state]
+    ;(println (:cur iter-state) cur-conclusion) print object implication
+    (if (= cur-conclusion (:cur iter-state))
+      (let [next-cur (next-closed-set (:object-order iter-state)
+                                      (clop-by-implications (:imps iter-state))
+                                      (:cur iter-state))]
+        (assoc iter-state :cur next-cur))
+      (let [coarse? (coarsened-by-imp? iter-state (:cur iter-state) cur-conclusion)] 
+        (cond ; not wanting attributes means cur should be closed. Hence add all attributes in the question
+              ; all attributes are already closed. will could result in endless loop
+          (= coarse? "all") (let [closed-premise 
+                                  (update iter-state :scale 
+                                          #(make-context (objects %) 
+                                                         (conj (attributes %) 
+                                                               (:cur iter-state))
+                                                         (:inc state)))]
+                    (recur (context-object-closure (:scale closed-premise) (:cur closed-premise))
+                           closed-premise))
+          (= coarse? "yes") (let [counter (provide-counter-example iter-state (:cur iter-state) cur-conclusion)
+                        state-with-counter 
+                        (update iter-state :scale 
+                                #(make-context (objects %) 
+                                               (conj (attributes %) 
+                                                     counter)
+                                               (:inc state)))]
+                    (recur (context-object-closure (:scale state-with-counter) (:cur state-with-counter))
+                           state-with-counter))
+          (= coarse? "none") (let [new-imps (conj (:imps iter-state) (make-implication (:cur iter-state) cur-conclusion))
+                                   next-cur (next-closed-set (:object-order iter-state)
+                                                            (clop-by-implications new-imps)
+                                                            (:cur iter-state))]
+                              (-> iter-state 
+                                  (assoc :imps new-imps)
+                                  (assoc :cur next-cur))))))))
+
+(defn exploration-of-scales 
+  "This algorithm performs an object-exploration with background
+  knowledge (context) to determine a scale-measure."
+  ([context] 
+   (exploration-of-scales context (-> context objects vec)))
+  ([context object-order]
+   (let [incidence-fn (fn ([a b] (contains? b a))
+                        ([[a b]] (contains? b a)))
+         init-scale (make-context object-order #{} incidence-fn)]
+     (loop [state {:scale init-scale :cur #{} :object-order object-order
+                   :imps (canonical-base (dual-context context))
+                   :inc incidence-fn :context context }]
+       (if (= (objects context) 
+              (:cur state)) 
+         (make-smeasure-nc context (:scale state) identity)
+         (recur (exploration-of-scales-iteration state)))))))
+
+
