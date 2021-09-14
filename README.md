@@ -34,7 +34,8 @@ much more.
    10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
 5. Advanced Topics
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
-   2. [REST-API Usage](doc/REST-API-usage.md)
+   2. [Factoriszing Formal Contexts](doc/Factoriszing-Formal-Contexts.md)
+   3. [REST-API Usage](doc/REST-API-usage.md)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 

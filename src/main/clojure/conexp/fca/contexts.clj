@@ -86,6 +86,20 @@
                " "])
             "\n"])))))
 
+(defn make-matrix-from-context
+  "Converts context into binary Matrix"
+  [context]
+  (let [stringContext (clojure.string/split-lines context)]
+    (loop [i 2
+           curLine (nth (clojure.string/split (nth stringContext i) #"([|])") 1)
+           matrix (conj [] ((fn [line] (into [] (for [s line] (if (= s "x") 1 0)))) (re-seq #"\S+" curLine)))]
+      (if (<= (count stringContext) i)
+        (subvec (conj matrix ((fn [line] (into [] (for [s line] (if (= s "x") 1 0)))) (re-seq #"\S+" curLine))) 2)
+        (recur
+          (inc i)
+          (nth (clojure.string/split (nth stringContext i) #"([|])") 1)
+          (conj matrix ((fn [line] (into [] (for [s line] (if (= s "x") 1 0)))) (re-seq #"\S+" curLine))))))))
+            
 (defn print-context
   "Prints the result of applying context-to-string to the given
   arguments."
