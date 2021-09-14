@@ -264,6 +264,7 @@
 )
 
 (defn panda
+"Call with binary Matrix D and how many iterations k"
   [D k]
   (loop [i 0 pi (list) cur-D D]
     (if (<= k i)
