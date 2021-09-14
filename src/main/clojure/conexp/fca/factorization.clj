@@ -33,13 +33,13 @@
 (defn calcAssoMatrix
 "Creates binary Matrix from asso-algo result vectors"
     [map]
-    (loop [i 0 end (calcOneMatrix (nth (get map :b) i) (nth (get map :s) i))]
+    (loop [i 0 end (calcOneMatrix (nth (get map :s) i) (nth (get map :b) i))]
       (if (>= i (count map) i)
         end
-        (recur (inc i) (unite end (calcOneMatrix (nth (get map :b) i) (nth (get map :s) i))))
+        (recur (inc i) (unite end (calcOneMatrix (nth (get map :s) i) (nth (get map :b) i))))
       )
     )
-)
+  )
 
 (defn calcPandaMatrix
  "Creates binary Matrix from panda-algo result vectors"
@@ -58,10 +58,13 @@
   [C tau]
   (into []
     (let [X []]
-      (for [ai (apply mapv vector C)] 
+      (for [ai C] 
         (into X 
           (for [aj (apply mapv vector C)]
-            (if (< tau ( / (reduce + (map * ai aj)) (reduce + (map * aj aj)))) 1 0) 
+          (if (< 0 (reduce + (map * aj aj)))
+              (if (< tau ( / (reduce + (map * ai aj)) (reduce + (map * aj aj)))) 1 0)
+              0
+            )
           )
         )
       )

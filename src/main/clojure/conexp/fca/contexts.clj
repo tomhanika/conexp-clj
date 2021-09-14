@@ -97,14 +97,14 @@
 "Converts context into binary Matrix"
   [context]
   (let [stringContext (clojure.string/split-lines context)]
-    (loop [i 2 curLine (nth (clojure.string/split (nth stringContext i) #"([|])") 1) matrix (conj [] (toBinary (clojure.string/split curLine #" "))) ]
+    (loop [i 2 curLine (nth (clojure.string/split (nth stringContext i) #"([|])") 1) matrix (conj [] (toBinary (re-seq #"\S+" curLine))) ]
       (if (<= (count stringContext) i)
-        (subvec (conj matrix (toBinary (clojure.string/split curLine #" "))) 2)
+        (subvec (conj matrix (toBinary (re-seq #"\S+" curLine))) 2)
         (recur
           (inc i)
           (nth (clojure.string/split (nth stringContext i) #"([|])") 1)
-          (conj matrix (toBinary (clojure.string/split curLine #" ")))  
-        )
+          (conj matrix (toBinary (re-seq #"\S+" curLine)))  
+            )
       )
     )
   )
