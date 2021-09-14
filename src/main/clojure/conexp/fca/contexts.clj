@@ -86,6 +86,30 @@
                " "])
             "\n"])))))
 
+
+(defn- toBinary
+"Helper function for 'contextToMatrix'"
+  [line]
+  (into [] (for [s line] (if (= s "x") 1 0)))
+)
+
+(defn contextToMatrix
+"Converts context into binary Matrix"
+  [context]
+  (let [stringContext (clojure.string/split-lines context)]
+    (loop [i 2 curLine (nth (clojure.string/split (nth stringContext i) #"([|])") 1) matrix (conj [] (toBinary (clojure.string/split curLine #" "))) ]
+      (if (<= (count stringContext) i)
+        (subvec (conj matrix (toBinary (clojure.string/split curLine #" "))) 2)
+        (recur
+          (inc i)
+          (nth (clojure.string/split (nth stringContext i) #"([|])") 1)
+          (conj matrix (toBinary (clojure.string/split curLine #" ")))  
+        )
+      )
+    )
+  )
+)
+            
 (defn print-context
   "Prints the result of applying context-to-string to the given
   arguments."
