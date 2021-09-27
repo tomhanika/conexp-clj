@@ -19,7 +19,6 @@
   '[conexp.base
     conexp.math.algebra
     conexp.fca.contexts
-    conexp.fca.factorization
     conexp.fca.many-valued-contexts
     conexp.fca.implications
     conexp.fca.exploration

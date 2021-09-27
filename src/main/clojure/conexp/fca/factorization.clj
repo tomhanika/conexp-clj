@@ -4,7 +4,6 @@
               [conexp.fca.contexts :refer :all])
     (:gen-class))
 
-;;; helper functions
 (defn- calcOneMatrix
 "Calculates Matrix with 2 vectors"
   [A B]
@@ -34,8 +33,8 @@
 "Creates binary Matrix from asso-algo result vectors"
     [map]
     (loop [i 0 end (calcOneMatrix (nth (get map :s) i) (nth (get map :b) i))]
-      (if (>= i (count map) i)
-        end
+      (if (>= i (count (get map :b)) i)
+        (into [] (apply concat end))
         (recur (inc i) (unite end (calcOneMatrix (nth (get map :s) i) (nth (get map :b) i))))
       )
     )
@@ -46,111 +45,120 @@
   [pi]
   (loop [i 0 end (calcOneMatrix (get (nth pi i) :ci) (get (nth pi i) :ct))]
     (if (>= i (count pi) i)
-      end
+      (into [] (apply concat end))
       (recur (inc i) (unite end (calcOneMatrix (get (nth pi i) :ci) (get (nth pi i) :ct))))
     )
   )
 )
 
-;;; asso
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;https://doi.org/10.1109/TKDE.2008.53
+(defn- calcUnionMatrixAsso
+  [B S i j]
+  (if (empty? (get B 0))
+    (calcOneMatrix (vec (repeat i 0)) (vec (repeat j 0)))
+    (loop [i 0 end (calcOneMatrix (get B i) (get S i))]
+      (if (>= i (count B) i)
+        end
+        (recur (inc i) (unite end (calcOneMatrix (get B i) (get S i))))
+      )
+    )
+  )
+)
+
+(defn- countFalseOnesAsso
+  [C D]
+  (loop [i 0 j 0 c 0]
+    (if (> j (count C))
+      c
+      (recur (cond (> i (count (get C 0))) 0 :else (inc i)) (cond (> i (count (get C 0))) (inc j) :else j) (cond (and (= (get (get C i) j) 0) (= (get (get D i) j) 1)) (inc c) :else c))
+    )
+  )  
+)
+
+(defn- countOnesAsso
+  [C D]
+  (loop [i 0 j 0 c 0]
+    (if (> j (count C))
+      c
+      (recur (cond (> i (count (get C 0))) 0 :else (inc i)) (cond (> i (count (get C 0))) (inc j) :else j) (cond (and (= (get (get C i) j) 1) (= (get (get D i) j) 1)) (inc c) :else c))
+    )
+  )  
+)
+
+(defn- arbitraryVector
+  [n]
+  (if (= 1 (mod n 2))
+    (clojure.math.combinatorics/permutations (into (vec (repeat (+ 1 (quot n 2)) 0)) (vec (repeat (quot n 2) 1))))
+    (clojure.math.combinatorics/permutations (into (vec (repeat (quot n 2) 0)) (vec (repeat (quot n 2) 1))))
+  )
+)
+
 (defn- constructA
-"Constructs Association-Matrix"
   [C tau]
   (into []
     (let [X []]
-      (for [ai C] 
+      (for [ai (apply mapv vector C)] 
         (into X 
           (for [aj (apply mapv vector C)]
-          (if (< 0 (reduce + (map * aj aj)))
+            (if (< 0 (reduce + (map * aj aj)))
               (if (< tau ( / (reduce + (map * ai aj)) (reduce + (map * aj aj)))) 1 0)
-              0
+            0
             )
-          )
+         )
         )
       )
     )  
   )
 )
 
-(defn- calcCover
-"Calculates coverage"
-  [a b c weightPos weightNeg]
-  (if (and (and (= b 1) (= c 1)) (= a 1))
-    weightPos
-    (if (and (and (= b 1) (= c 1)) (= a 0)) weightNeg 0)
-  )
-)
-
-(defn- loopX
-"Helper function for cover"
-  [xi b X aj indexi weightPos weightNeg]
-  (loop [indexj 0 list []]
-    (if (<= (count (get X 0) ) indexj)
-      list
-      (recur (inc indexj) (conj list (calcCover (get (get X indexi) indexj) b (get aj indexj) weightPos weightNeg)))
-    )
-  )
-)
-
 (defn- cover
-"Calculates the coverage of the current vector for the input Matrix"
-  [ai aj X weightPos weightNeg]
-  (loop [indexi 0 list []]  
-    (if (<= (count X) indexi) 
-      list
-      (recur (inc indexi) (into list (loopX (get X indexi) (get ai indexi) X aj indexi weightPos weightNeg)))
-    )
-  )  
+  [C newB newS B S weightPos weightNeg]
+  (let [uni (unite (calcOneMatrix newB newS) (calcUnionMatrixAsso B S (count newB) (count newS)))]
+    {:b newB :s newS :value (conj [] (- (* weightPos (countOnesAsso C uni)) (* weightNeg (countFalseOnesAsso C uni))))}
+  )
 )
 
-(defn- createOut
-"Creates Output Vectors"
-  [C A weightPos weightNeg]
-  (let [AT (apply mapv vector A)]
-    (reduce (fn [d [ai aj :as index]] 
-            (assoc d index (reduce + (cover (get A ai) (get AT aj) C weightPos weightNeg))))
-          {}
-          (cross-product (range (count A)) (range (count AT)))
-          )))
-
-(defn- topk
-"Returns the best candidates for the factorization"
-  [k C A weightPos weightNeg]
-  (loop [i 0 returnList () maxMap (createOut C A weightPos weightNeg) cur-A A]    
-    (let [[row col] (key (apply max-key val maxMap)) deletedRow (assoc cur-A row (vec (repeat (count (get cur-A row)) 0))) deletedCol (vec (map #(assoc %1 col 0) deletedRow))] 
-      (if (<= k i)
-        returnList
-        (recur (inc i) (conj returnList (key (apply max-key val maxMap))) (createOut C deletedCol weightPos weightNeg) deletedCol)
+(defn- loopMatrix
+  [C A B S weightPos weightNeg]
+  (let [AT (arbitraryVector (count C))] 
+    (loop [i 0 j 0 bestMatch {:b (get A i) :s (nth AT j) :value (get (cover C (get A 0) (nth AT 0) B S weightPos weightNeg) :value)}]
+      (if (> i (count A))
+        bestMatch
+        (recur 
+          (cond (> j (- (count AT) 2)) (inc i) :else i)
+          (cond (> j (- (count AT) 2)) 0 :else (inc j))
+          (cond (< (get (get bestMatch :value) 0) (get (get (cover C (get A i) (nth AT j) B S weightPos weightNeg) :value) 0))
+           {:b (get (cover C (get A i) (nth AT j) B S weightPos weightNeg) :b)
+            :s (get (cover C (get A i) (nth AT j) B S weightPos weightNeg) :s)
+            :value (get (cover C (get A i) (nth AT j) B S weightPos weightNeg) :value)}
+            :else bestMatch)          
+        )
       )
-    )
+    )  
   )
 )
 
-(defn- assoAlgoB
-"Returns Matrix B for the factorization"
-  [topk A]
-  (for [list topk]
-    (get A (get list 0))
-  )
-)
 
-(defn- assoAlgoS
-"Returns Matrix S for the factorization"
-  [topk A]
-  (for [list topk]
-    (get (apply mapv vector A) (get list 1))
-  )
+(defn- coverPairs
+  [k C A weightPos weightNeg]
+  (loop [i 0 pairs {:b [] :s [] :value []}]
+    (if (>= i k)
+      pairs
+      (recur (inc i) (merge-with conj pairs (loopMatrix C A (get pairs :b) (get pairs :s) weightPos weightNeg)))
+    )  
+  )    
 )
 
 (defn assoAlgo
-"Unites Matrix B and Matrix S to return the factorization of C into one Map"
   [C k tau weightPos weightNeg]
-  (let [A (constructA C tau) topK (topk k C A weightPos weightNeg) Out {:b (assoAlgoB topK A) :s (assoAlgoS topK A)}]
-    Out
+  (let [A (constructA C tau) coverPairs (coverPairs k C A weightPos weightNeg) ]
+    coverPairs
   )
 )
 
-;;; panda
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; https://doi.org/10.1137/1.9781611972801.15
 (defn- createNewD
 "Returns new Matrix D from Input Matrix to adjust form already calculated vectors"
   [C Dr]
@@ -266,7 +274,7 @@
   )
 )
 
-(defn panda
+(defn pandaAlgo
 "Call with binary Matrix D and how many iterations k"
   [D k]
   (loop [i 0 pi (list) cur-D D]
