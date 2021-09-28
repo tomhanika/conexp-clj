@@ -88,9 +88,10 @@
 
 (defn- arbitraryVector
   [n]
-  (if (= 1 (mod n 2))
-    (clojure.math.combinatorics/permutations (into (vec (repeat (+ 1 (quot n 2)) 0)) (vec (repeat (quot n 2) 1))))
-    (clojure.math.combinatorics/permutations (into (vec (repeat (quot n 2) 0)) (vec (repeat (quot n 2) 1))))
+  (let [arb (map #(clojure.string/split % #"") (map (partial apply str) (clojure.math.combinatorics/selections [0 1] n))) return []]
+    (for [x arb]
+      (into return (map #(Integer/parseInt %) x))
+    )
   )
 )
 
