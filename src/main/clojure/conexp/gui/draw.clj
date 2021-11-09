@@ -21,6 +21,7 @@
             [conexp.gui.draw.scenes :refer :all]
             [conexp.io.layouts :refer :all]
             [conexp.layouts :refer :all]
+            [conexp.layouts.common :refer :all]
             [conexp.layouts.util :refer :all]
             [seesaw.core :refer [listen]])
   (:import [java.awt BorderLayout Dimension]
@@ -132,8 +133,9 @@
   draw-layout."
   [lattice & args]
   (let [map       (apply hash-map args),
-        layout-fn (get map :layout-fn standard-layout)]
-    (apply draw-layout (layout-fn lattice) args)))
+        layout-fn (get map :layout-fn standard-layout)
+        value-fn (get map :value-fn (constantly nil))]
+    (apply draw-layout (-> lattice layout-fn (to-valued-layout value-fn)) args)))
 
 (defn draw-concept-lattice
   "Draws the concept lattice of a given context, passing all remaining
