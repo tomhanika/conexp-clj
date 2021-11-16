@@ -205,13 +205,13 @@
   )    
 )
 
-(defn- countFalseOnes
-"Returns count of how many false 1's are in the Matrix"
+(defn countFalseOnes
+  "Returns count of how many false 1's are in the Matrix"
   [V D]
   (loop [i 0 j 0 c 0]
-    (if (> j (count V))
+    (if (>= i (count V))
       c
-      (recur (cond (> i (count (get V 0))) 0 :else (inc i)) (cond (> i (count (get V 0))) (inc j) :else j) (cond (not= (get (get V i) j) (get (get D i) j)) (inc c) :else c))
+      (recur (cond (> j (count (get V 0))) (inc i) :else i) (cond (> j (count (get V 0))) 0 :else (inc j)) (cond (not= (get (get V i) j) (get (get D i) j)) (inc c) :else c))
     )
   )  
 )
@@ -235,13 +235,14 @@
 (defn- findCoreLoop
 "Loops to find new Cores"
   [S C newD]
-  (loop [i 1 CS C CiS (assoc (get CS :ci) (get (nth S i) 0) 1) CtS (createNewCt (get CS :ct) (get newD (get (nth S i) 0)))]
-      (if (>= i (count S))
-        CS
-        (recur (inc i) (weightCore CS {:ci CiS :ct CtS :e (get CS :e)} (get (nth S i) 0) newD) (assoc (get CS :ci) (get (nth S i) 0) 1) (createNewCt (get CS :ct) (get newD (get (nth S i) 0))))      
-      )
+  (loop [CiS (assoc (get C :ci) (get (nth S 1) 0) 1) CtS (createNewCt (get C :ct) (get newD (get (nth S 1) 0))) CS C i 1]
+    (if (>= i (count S))
+      CS
+      (recur (assoc (get CS :ci) (get (nth S i) 0) 1) (createNewCt (get CS :ct) (get newD (get (nth S i) 0))) (weightCore CS {:ci (assoc (get CS :ci) (get (nth S i) 0) 1) :ct (createNewCt (get CS :ct) (get newD (get (nth S i) 0))) :e (get CS :e)} (get (nth S i) 0) newD) (inc i))      
+    )
   )
 )
+
 
 (defn- findCore
 "finds a core and returns new D"
@@ -281,7 +282,7 @@
   (loop [i 0 pi (list) cur-D D]
     (if (<= k i)
       pi
-      (recur (inc i) (conj pi (extendCore (findCore cur-D) pi cur-D)) (createNewD (calcOneMatrix (get (extendCore (findCore cur-D) pi cur-D) :ci) (get (extendCore (findCore cur-D) pi cur-D) :ct)) D))
+      (recur (inc i) (conj pi (extendCore (findCore cur-D) pi cur-D)) (createNewD (calcOneMatrix (get (extendCore (findCore cur-D) pi cur-D) :ci) (get (extendCore (findCore cur-D) pi cur-D) :ct)) cur-D))
     )
   )
 )
