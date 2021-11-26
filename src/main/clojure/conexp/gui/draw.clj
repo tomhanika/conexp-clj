@@ -61,7 +61,8 @@
                       "Freese" freese,
                       "Force"  improve-layout-by-force),
       snapshot-saver,
-      export-as-file)
+      export-as-file
+      import-from-file)
 
     ;; drawing area
     (doto canvas-panel
