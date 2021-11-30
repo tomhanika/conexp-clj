@@ -93,9 +93,6 @@
         P_M_B (mapv #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
         p_B (r/fold * (map #(/ (count (attribute-derivation context #{%})) n) B))
         one_minus_p_B_n (expt (- 1 p_B) n)]
-    (println P_M_B)
-    (println p_B)
-    (println one_minus_p_B_n)
     (if (not= (double p_B) 1.0)         ;; if concept's extent= n
       (loop [k 1 ;; since for k=0 the last term is 0, we can start with 1
              result 0
