@@ -215,11 +215,11 @@
   (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
         a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
         next (next-closed-set attribute-count
-                         (partial bitwise-context-attribute-closure
-                                  object-count
-                                  attribute-count
-                                  incidence-matrix)
-                         start)]
+                              (partial bitwise-context-attribute-closure
+                                       incidence-matrix
+                                       object-count
+                                       attribute-count)
+                              start)]
     next))
 
 (defn- find-all-updates 
@@ -253,7 +253,11 @@
                                (let [a (BitSet. attr-count)] 
                                  (.set a (.indexOf attr-order i))
                                  (to-hashset attr-order 
-                                             (bitwise-context-attribute-closure (count obj-vec) (count attr-order) bin-incidence a))))
+                                             (bitwise-context-attribute-closure
+                                              bin-incidence
+                                              (count obj-vec)
+                                              (count attr-order)
+                                              a))))
           toupdate (find-all-updates attribute-concepts cover)]
       (loop [cur (first toupdate) other (rest toupdate) newcover {}]
         (let [updated-newcover (cover-merger newcover (intersecter cur (get cover cur) prev-attributes))]
@@ -358,7 +362,11 @@
                           #(if (= old 
                                   (to-hashset attr-order 
                                               (let [n (.clone bin-next) oldn (.and n start)]
-                                                (bitwise-context-attribute-closure (count obj-vec) (count attr-order) bin-incidence n))))
+                                                (bitwise-context-attribute-closure
+                                                 bin-incidence
+                                                 (count obj-vec)
+                                                 (count attr-order)
+                                                 n))))
                              %
                              (reassign-cover % old)))
                 (if (= next (attributes new-ctx))
