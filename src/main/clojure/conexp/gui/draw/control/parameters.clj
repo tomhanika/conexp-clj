@@ -75,7 +75,7 @@
                          "count-exts" 'count-ext-valuation-mode,
                          "distributivity" 'distributivity-valuation-mode,
                          "modularity" 'modularity-valuation-mode,
-                         "separation-index" 'separation-index-mode}
+                         "separation-index" 'separation-index-mode
                          "support" 'support-valuation-mode,
                          "stability" 'stability-valuation-mode,
                          "probability" 'probability-valuation-mode}
