@@ -1,5 +1,6 @@
 (ns conexp.gui.draw.control.parameters
-  (:require [conexp.fca.metrics :refer [elements-distributivity elements-modularity]]
+  (:require [conexp.fca.metrics :refer :all]
+            [conexp.fca.lattices :refer [extract-context-from-bv]]
             [conexp.gui.draw.control.util :refer :all]
             [conexp.gui.draw.nodes-and-connections :refer :all]
             [conexp.gui.draw.scene-layouts :refer :all]
@@ -14,11 +15,13 @@
 
 ;;;
 
-(declare single-move-mode, ideal-move-mode, filter-move-mode, chain-move-mode,
-         infimum-additive-move-mode, supremum-additive-move-mode,
-         no-valuation-mode, count-int-valuation-mode, count-ext-valuation-mode,
+(declare single-move-mode, ideal-move-mode, filter-move-mode,
+         chain-move-mode, infimum-additive-move-mode,
+         supremum-additive-move-mode, no-valuation-mode,
+         count-int-valuation-mode, count-ext-valuation-mode,
          modularity-valuation-mode, distributivity-valuation-mode,
-         separation-index-mode)
+         separation-index-mode, support-valuation-mode,
+         stability-valuation-mode, probability-valuation-mode)
 
 ;;;
 
@@ -73,6 +76,9 @@
                          "distributivity" 'distributivity-valuation-mode,
                          "modularity" 'modularity-valuation-mode,
                          "separation-index" 'separation-index-mode}
+                         "support" 'support-valuation-mode,
+                         "stability" 'stability-valuation-mode,
+                         "probability" 'probability-valuation-mode}
         ^JComboBox combo-box (make-combo-box buttons (keys valuation-modes)),
         current-valuation-mode (atom (valuation-modes "none"))]
     (listen combo-box :action
@@ -308,7 +314,24 @@
 (defn- separation-index-mode
   [lat c]
   (let [ctx (extract-context-from-bv lat)]
-    (float (separation-index ctx c)))
+    (float (separation-index ctx c))))
+
+(defn- support-valuation-mode
+  [lat c]
+  (float (/ (count (first c))
+            (apply max (map (comp count first) (.base-set lat))))))
+
+(defn- stability-valuation-mode
+  [lat c]
+  (let [ctx (extract-context-from-bv lat)]
+    (float (concept-stability ctx c))))
+
+(defn- probability-valuation-mode
+  [lat c]
+  (let [ctx (extract-context-from-bv lat)]
+    (binding [*fast-computation* true]
+      (if (empty? (second c)) 1
+        (float (concept-probability ctx c))))))
 
 (defn- no-valuation-mode
   [_ concept]
