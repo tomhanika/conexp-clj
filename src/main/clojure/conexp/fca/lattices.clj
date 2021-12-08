@@ -291,6 +291,21 @@
                 (fn [x y]
                   ((order lat) [x y]))))
 
+(defn extract-context-from-bv
+  "Extracts the objects, attributes and incidence of a concept
+  lattice."
+  [lat]
+  (let [c (base-set lat)]
+    (assert (every? (fn [[a b]] (and (set? a) (set? b))) c) "Lattice is not a concept lattice")
+    (let [objects (apply max-key count (map first c))
+          attributes (apply max-key count (map second c))
+          i-fn (fn [a b] 
+                 (some (fn [[ext int]] (and (contains? ext a)
+                                           (contains? int b)))
+                        c))]
+      (make-context objects attributes i-fn))))
+
+
 ;;; TITANIC Implementation
 
 (defn- minimum
