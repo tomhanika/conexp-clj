@@ -74,6 +74,36 @@
     (/ (counter #{} extent)
        (expt 2 (count extent)))))
 
+(defn separation-index
+  "The concept separation is an importance measure for concepts. It
+  computes the size AxB (c-inc) relative to uncovered incidences Ax(M-B)
+  and (G-A)xB (o-inc). Max value is 1.
+
+  Klimushkin M., Obiedkov S., Roth C. (2010) Approaches to the
+  Selection of Relevant Concepts in the Case of Noisy Data. In: Kwuida
+  L., Sertkaya B. (eds) Formal Concept Analysis. ICFCA 2010. Lecture
+  Notes in Computer Science, vol 5986. Springer, Berlin,
+  Heidelberg. https://doi.org/10.1007/978-3-642-11928-6_18"
+ [context concept]
+  (assert (context? context)
+          "First argument must be a formal context.")
+  (assert (and (vector? concept)
+               (= 2 (count concept))
+               (concept? context concept))
+          "Second argument must be a formal concept of the given context.")
+  (let [[extent intent] concept
+        c-inc (* (count extent) (count intent))
+        g-inc (reduce +
+                 (map 
+                  #(count (object-derivation context #{%})) 
+                  extent))
+        a-inc (reduce +
+                 (map #(count (attribute-derivation context #{%})) 
+                      intent))
+        o-inc (- (+ g-inc a-inc)
+                 c-inc)] ; is at least c-inc large
+      (/ c-inc o-inc)))
+
 (def ^:dynamic *fast-computation*
   "Enable computation of concept probability with floating point arithmetic
   instead of rationals"

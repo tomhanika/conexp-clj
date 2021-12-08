@@ -15,11 +15,13 @@
 
 ;;;
 
-(declare single-move-mode, ideal-move-mode, filter-move-mode, chain-move-mode,
-         infimum-additive-move-mode, supremum-additive-move-mode,
-         no-valuation-mode, count-int-valuation-mode, count-ext-valuation-mode,
+(declare single-move-mode, ideal-move-mode, filter-move-mode,
+         chain-move-mode, infimum-additive-move-mode,
+         supremum-additive-move-mode, no-valuation-mode,
+         count-int-valuation-mode, count-ext-valuation-mode,
          modularity-valuation-mode, distributivity-valuation-mode,
-         support-valuation-mode, stability-valuation-mode, probability-valuation-mode)
+         separation-index-mode, support-valuation-mode,
+         stability-valuation-mode, probability-valuation-mode)
 
 ;;;
 
@@ -73,6 +75,7 @@
                          "count-exts" 'count-ext-valuation-mode,
                          "distributivity" 'distributivity-valuation-mode,
                          "modularity" 'modularity-valuation-mode,
+                         "separation-index" 'separation-index-mode
                          "support" 'support-valuation-mode,
                          "stability" 'stability-valuation-mode,
                          "probability" 'probability-valuation-mode}
@@ -308,6 +311,11 @@
   [lat c]
   (float (elements-distributivity lat c)))
 
+(defn- separation-index-mode
+  [lat c]
+  (let [ctx (extract-context-from-bv lat)]
+    (float (separation-index ctx c))))
+
 (defn- support-valuation-mode
   [lat c]
   (float (/ (count (first c))
@@ -323,7 +331,7 @@
   (let [ctx (extract-context-from-bv lat)]
     (binding [*fast-computation* true]
       (if (empty? (second c)) 1
-        (float (concept-probability ctx c)))))) 
+        (float (concept-probability ctx c))))))
 
 (defn- no-valuation-mode
   [_ concept]
