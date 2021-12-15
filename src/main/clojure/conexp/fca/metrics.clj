@@ -692,8 +692,6 @@
                   (shannon-object-information-entropy-fast pctx))))
            available-atts)))
 
-(ns-unmap *ns* 'next-n-maximal-relevant-approx)
-
 (defmulti next-n-maximal-relevant-approx
   "Compute next-n-maximal-relevant attributes in a consecutive manner
   using either Shannon or context entropy, cf
