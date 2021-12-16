@@ -27,6 +27,7 @@
     conexp.fca.more
     conexp.io.latex
     conexp.io.contexts
+    conexp.io.implications
     conexp.io.lattices
     conexp.io.layouts
     conexp.io.many-valued-contexts
