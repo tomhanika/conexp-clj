@@ -17,15 +17,16 @@
   (json/write-str {:premise (premise impl)
                    :conclusion (conclusion impl)}))
 
-;;; TODO: adjustments needed
 (defn implications->json
   [impl]
-  (map implication->json impl))
+  (json/write-str {:implications
+                   (mapv implication->json impl)}))
 
 (defn json->implication
-  [json]
-  (make-implication (into #{} (:premise json))
-                    (into #{} (:conclusion json))))
+  [json-impl]
+  (let [map-impl (json/read-str json-impl :key-fn keyword)]
+    (make-implication (into #{} (:premise map-impl))
+                      (into #{} (:conclusion map-impl)))))
 
 (defn json->implications
   [json]
@@ -38,12 +39,11 @@
                                (fn [rdr]
                                  (= "json" (read-line))))
 
-;;; TODO: adjustments needed
 (define-implication-output-format :json
   [impl file]
   (with-out-writer file
     (println "json")
-    (prn (implications->json impl))))
+    (print (implications->json impl))))
 
 (define-implication-input-format :json
   [file]
