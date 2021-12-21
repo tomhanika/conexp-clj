@@ -13,7 +13,8 @@
             [conexp.fca.many-valued-contexts :refer :all]
             [conexp.io.latex                 :refer :all]
             [clojure.string                  :refer (split)]
-            [clojure.data.xml                :as xml])
+            [clojure.data.xml                :as xml]
+            [clojure.data.json               :as json])
   (:import [java.io PushbackReader]))
 
 
@@ -601,6 +602,25 @@
                         "}{" o "}")))
         (println "\\end{cxt}")))))
 
+;; Json Format
+
+(defn object->incidence
+  [object]
+  (set-of [o a] [o [(:object object)], a (:attributes object)]))
+
+(add-context-input-format :json
+                          (fn [rdr]
+                            (= "json" (read-line))))
+
+(define-context-input-format :json
+  [file]
+  (with-in-reader file 
+    (let [_ (conexp.io.util/get-line)
+          json-ctx (:formal_context (json/read *in* :key-fn keyword))
+          objects (map :object json-ctx)
+          attributes (distinct (flatten (map :attributes json-ctx)))
+          incidence (apply union (mapv object->incidence json-ctx))]
+      (make-context objects attributes incidence))))
 
 ;;; TODO
 
