@@ -7,6 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.lattices
+  (:require [clojure.data.json :as json])
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
@@ -47,6 +48,43 @@
       (when-not lattice
         (illegal-argument "File " file " does not contain a lattice."))
       (apply make-lattice lattice))))
+
+;; Json helpers
+
+(defn- json->concept
+  [json-concept]
+  [(into #{} (:extent json-concept)) 
+   (into #{} (:intent json-concept))])
+
+(defn- concept->json
+  [concept]
+  {:extent (first concept)
+   :intent (second concept)})
+
+(defn- concepts->json
+  [concepts]
+  (json/write-str {:formal_concepts
+                   (mapv concept->json concepts)}))
+
+;; Json Format
+;; TODO: adapt for lattice, at the moment it only works for concepts
+
+(add-lattice-input-format :json
+                          (fn [rdr]
+                            (= "json lat" (read-line))))
+
+(define-lattice-output-format :json
+  [concepts file]
+  (with-out-writer file
+    (println "json lat")
+    (print (concepts->json concepts))))
+
+(define-lattice-input-format :json
+  [file]
+  (with-in-reader file
+    (let [_ (get-line)
+          json-lat (:formal_concepts (json/read *in* :key-fn keyword))]
+      (map json->concept json-lat))))
 
 ;;; ConExp lattice format
 
