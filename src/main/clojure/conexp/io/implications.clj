@@ -12,23 +12,22 @@
 
 ;; Json helpers
 
-(defn implication->json
+(defn- implication->json
   [impl]
-  (json/write-str {:premise (premise impl)
-                   :conclusion (conclusion impl)}))
+  {:premise (premise impl)
+   :conclusion (conclusion impl)})
 
-(defn implications->json
+(defn- implications->json
   [impl]
   (json/write-str {:implications
                    (mapv implication->json impl)}))
 
-(defn json->implication
+(defn- json->implication
   [json-impl]
-  (let [map-impl (json/read-str json-impl :key-fn keyword)]
-    (make-implication (into #{} (:premise map-impl))
-                      (into #{} (:conclusion map-impl)))))
+  (make-implication (into #{} (:premise json-impl))
+                    (into #{} (:conclusion json-impl))))
 
-(defn json->implications
+(defn- json->implications
   [json]
   (let [impl (:implications json)]
     (map json->implication impl)))
@@ -37,12 +36,12 @@
 
 (add-implication-input-format :json
                                (fn [rdr]
-                                 (= "json" (read-line))))
+                                 (= "json impl" (read-line))))
 
 (define-implication-output-format :json
   [impl file]
   (with-out-writer file
-    (println "json")
+    (println "json impl")
     (print (implications->json impl))))
 
 (define-implication-input-format :json

@@ -602,20 +602,38 @@
                         "}{" o "}")))
         (println "\\end{cxt}")))))
 
-;; Json Format
+;; Json helpers
 
-(defn object->incidence
+(defn- object->incidence
   [object]
   (set-of [o a] [o [(:object object)], a (:attributes object)]))
 
+(defn object->json
+  [ctx object]
+  {:object object
+   :attributes (mapv second (filter #(= object (first %)) (incidence ctx)))})
+
+(defn ctx->json
+  [ctx]
+  (json/write-str {:formal_context 
+                   (mapv (partial object->json ctx) (objects ctx))}))
+
+;; Json Format
+
 (add-context-input-format :json
                           (fn [rdr]
-                            (= "json" (read-line))))
+                            (= "json ctx" (read-line))))
+
+(define-context-output-format :json
+  [ctx file]
+  (with-out-writer file
+    (println "json ctx")
+    (print (ctx->json ctx))))
 
 (define-context-input-format :json
   [file]
   (with-in-reader file 
-    (let [_ (conexp.io.util/get-line)
+    (let [_ (get-line)
           json-ctx (:formal_context (json/read *in* :key-fn keyword))
           objects (map :object json-ctx)
           attributes (distinct (flatten (map :attributes json-ctx)))
