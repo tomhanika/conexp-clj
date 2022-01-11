@@ -51,7 +51,7 @@
 
 ;; Json helpers
 
-(defn- json->concept
+(defn json->concept
   [json-concept]
   [(into #{} (:extent json-concept)) 
    (into #{} (:intent json-concept))])
@@ -61,10 +61,9 @@
   {:extent (first concept)
    :intent (second concept)})
 
-(defn- concepts->json
+(defn concepts->json
   [concepts]
-  (json/write-str {:formal_concepts
-                   (mapv concept->json concepts)}))
+  {:formal_concepts (mapv concept->json concepts)})
 
 ;; Json Format
 ;; TODO: adapt for lattice, at the moment it only works for concepts
@@ -77,7 +76,7 @@
   [concepts file]
   (with-out-writer file
     (println "json lat")
-    (print (concepts->json concepts))))
+    (print (json/write-str (concepts->json concepts)))))
 
 (define-lattice-input-format :json
   [file]

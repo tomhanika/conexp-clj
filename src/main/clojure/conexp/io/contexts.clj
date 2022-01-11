@@ -615,9 +615,15 @@
 
 (defn ctx->json
   [ctx]
-  (json/write-str {:formal_context 
-                   (mapv (partial object->json ctx) (objects ctx))}))
+  {:formal_context 
+     (mapv (partial object->json ctx) (objects ctx))})
 
+(defn json->ctx
+  [json-ctx]
+  (let [objects (map :object json-ctx)
+        attributes (distinct (flatten (map :attributes json-ctx)))
+        incidence (apply union (mapv object->incidence json-ctx))]
+    (make-context objects attributes incidence)))
 ;; Json Format
 
 (add-context-input-format :json
@@ -628,17 +634,15 @@
   [ctx file]
   (with-out-writer file
     (println "json ctx")
-    (print (ctx->json ctx))))
+    (print (json/write-str (ctx->json ctx)))))
 
 (define-context-input-format :json
   [file]
   (with-in-reader file 
     (let [_ (get-line)
-          json-ctx (:formal_context (json/read *in* :key-fn keyword))
-          objects (map :object json-ctx)
-          attributes (distinct (flatten (map :attributes json-ctx)))
-          incidence (apply union (mapv object->incidence json-ctx))]
-      (make-context objects attributes incidence))))
+          json-ctx (:formal_context (json/read *in* :key-fn keyword))]
+      (json->ctx json-ctx)
+      )))
 
 ;;; TODO
 

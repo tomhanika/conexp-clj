@@ -31,6 +31,7 @@
     conexp.io.lattices
     conexp.io.layouts
     conexp.io.many-valued-contexts
+    conexp.io.process
     conexp.layouts])
 
 (apply use conexp-clj-namespaces)

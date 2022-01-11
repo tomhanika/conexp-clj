@@ -17,17 +17,17 @@
   {:premise (premise impl)
    :conclusion (conclusion impl)})
 
-(defn- implications->json
+(defn implications->json
   [impl]
-  (json/write-str {:implications
-                   (mapv implication->json impl)}))
+  {:implications
+     (mapv implication->json impl)})
 
 (defn- json->implication
   [json-impl]
   (make-implication (into #{} (:premise json-impl))
                     (into #{} (:conclusion json-impl))))
 
-(defn- json->implications
+(defn json->implications
   [json]
   (let [impl (:implications json)]
     (map json->implication impl)))
@@ -42,7 +42,7 @@
   [impl file]
   (with-out-writer file
     (println "json impl")
-    (print (implications->json impl))))
+    (print (json/write-str (implications->json impl)))))
 
 (define-implication-input-format :json
   [file]
