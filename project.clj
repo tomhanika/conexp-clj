@@ -37,7 +37,8 @@
                  [ring/ring-core "1.8.2"]
                  [ring/ring-json "0.5.0"]
                  [http-kit "2.5.0"]
-                 [org.apache.commons/commons-math3 "3.6.1"]]
+                 [org.apache.commons/commons-math3 "3.6.1"]
+                 [luposlip/json-schema             "0.3.3"]]
   :profiles {:uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.4.0"]]

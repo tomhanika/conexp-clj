@@ -11,7 +11,8 @@
             [conexp.io.implications :refer :all]
             [conexp.io.lattices     :refer :all]
             [conexp.io.util         :refer :all]
-            [clojure.data.json      :as json]))
+            [clojure.data.json      :as json]
+            [json-schema.core       :as json-schema]))
 
 ;;; Input format dispatch
 
@@ -24,7 +25,11 @@
 
 (add-fca-input-format :json
                       (fn [rdr]
-                        (= "json" (read-line))))
+                        (= :success
+                           (let [schema (json-schema/prepare-schema (-> "src/main/resources/schemas/fca_schema_v1.0.json" slurp (cheshire.core/parse-string true)))
+                                 json (json/read rdr)]
+                             (json-schema/validate schema json)
+                             :success))))
 
 (define-fca-output-format :json
   [[ctx concepts implications] file]
@@ -38,8 +43,7 @@
 (define-fca-input-format :json
   [file]
   (with-in-reader file
-    (let [_ (get-line)
-          json-fca (json/read *in* :key-fn keyword)
+    (let [json-fca (json/read *in* :key-fn keyword)
           json-ctx (:context json-fca)
           json-concepts (:concepts json-fca)
           json-implications (:implication_sets json-fca)]
