@@ -611,7 +611,7 @@
 (defn object->json
   [ctx object]
   {:object object
-   :attributes (mapv second (filter #(= object (first %)) (incidence ctx)))})
+   :attributes (filter #(incident? ctx object %) (attributes ctx))})
 
 (defn ctx->json
   [ctx]
@@ -624,6 +624,7 @@
         attributes (distinct (flatten (map :attributes json-ctx)))
         incidence (apply union (mapv object->incidence json-ctx))]
     (make-context objects attributes incidence)))
+
 ;; Json Format
 
 (add-context-input-format :json
