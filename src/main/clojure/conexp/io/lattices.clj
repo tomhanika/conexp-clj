@@ -61,29 +61,51 @@
   {:extent (first concept)
    :intent (second concept)})
 
-(defn concepts->json
-  [concepts]
-  {:formal_concepts (mapv concept->json concepts)})
+(defn- link->json
+  [link]
+  {:start_concept (concept->json (first link)) 
+   :end_concept (concept->json (second link))})
+
+(defn- lattice-structure->json
+  [lattice]
+  (let [links (set-of [x y]
+                      [x (base-set lattice)
+                       y (base-set lattice)
+                       :when ((order lattice) [x y])])]
+    (map link->json links)))
+
+(defn- lattice->json
+  [lat]
+  {:formal_concepts (mapv concept->json (base-set lat))
+   :lattice_structure (lattice-structure->json lat)})
+
+(defn- json->lattice-order
+  [json-lattice-order]
+  [(into [] (json->concept (:start_concept json-lattice-order)))
+   (into [] (json->concept (:end_concept json-lattice-order)))])
 
 ;; Json Format
-;; TODO: adapt for lattice, at the moment it only works for concepts
 
 (add-lattice-input-format :json
                           (fn [rdr]
                             (= "json lat" (read-line))))
 
 (define-lattice-output-format :json
-  [concepts file]
+  [lattice file]
   (with-out-writer file
     (println "json lat")
-    (print (json/write-str (concepts->json concepts)))))
+    (print (json/write-str (lattice->json lattice)))))
 
 (define-lattice-input-format :json
   [file]
   (with-in-reader file
     (let [_ (get-line)
-          json-lat (:formal_concepts (json/read *in* :key-fn keyword))]
-      (map json->concept json-lat))))
+          json-lattice (json/read *in* :key-fn keyword)
+          json-concepts (:formal_concepts json-lattice)
+          json-lattice-structure (:lattice_structure json-lattice)
+          lattice-base-set (map json->concept json-concepts)
+          lattice-order (map json->lattice-order json-lattice-structure)]
+      (make-lattice lattice-base-set lattice-order))))
 
 ;;; ConExp lattice format
 

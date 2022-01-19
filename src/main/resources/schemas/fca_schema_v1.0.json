@@ -111,6 +111,47 @@
           "is_base"
         ]
       }
+    },
+    "formal_concept": {
+      "type": "object",
+      "required": [
+        "extent",
+        "intent"
+      ],
+      "properties": {
+        "extent": {
+          "type": "array",
+          "description": "Array of objects",
+          "items": {
+            "$ref": "#/$defs/object"
+          }
+        },
+        "intent": {
+          "type": "array",
+          "description": "Array of attributes",
+          "items": {
+            "$ref": "#/$defs/attribute"
+          }
+        },
+        "valuation": {
+          "type": "number"
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "required": [
+        "start_concept",
+        "end_concept"
+      ],
+      "properties": {
+        "start_concept": {
+          "$ref": "#/$defs/formal_concept"
+        },
+        "end_concept": {
+          "$ref": "#/$defs/formal_concept"
+        }
+      }
     }
   },
   "properties": {
@@ -150,9 +191,9 @@
       },
       "additionalProperties": false
     },
-    "concepts": {
+    "lattice": {
       "type": "object",
-      "description": "JSON schema for a set of formal concepts. Each concept consists of the extent (an array of objects) and the intent (an array of attributes).",
+      "description": "JSON schema for a concept lattice. Each concept consists of the extent (an array of objects) and the intent (an array of attributes). The lattice structure can be saved as well.",
       "required": [
         "formal_concepts"
       ],
@@ -160,28 +201,13 @@
         "formal_concepts": {
           "type": "array",
           "items": {
-            "formal_concept": {
-              "type": "object",
-              "properties": {
-                "extent": {
-                  "type": "array",
-                  "description": "Array of objects",
-                  "items": {
-                    "$ref": "#/$defs/object"
-                  }
-                },
-                "intent": {
-                  "type": "array",
-                  "description": "Array of attributes",
-                  "items": {
-                    "$ref": "#/$defs/attribute"
-                  }
-                },
-                "valuation": {
-                  "type": "number"
-                }
-              }
-            }
+            "$ref": "#/$defs/formal_concept"
+          }
+        },
+        "lattice_structure": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/link"
           }
         },
         "additional_information": {
