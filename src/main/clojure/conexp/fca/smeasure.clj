@@ -274,6 +274,40 @@
                    (extent? cxt))
              (attributes s)))))
 
+(defn invalid-attributes
+  "Returns all attributes of the scale whichs derivation pre-image is
+  not an extents of cxt."
+  ([sm]
+   (valid-attributes (context sm)
+                      (scale sm)
+                      (measure sm)))
+  ([cxt s m]
+   (let [v (valid-attributes cxt s m)]
+     (difference (attributes s) v))))
+
+(defn conceptual-scaling-error
+  "Computes the conceptual scaling error, i.e.,  the number of falsely
+  reflected extents by the scaling sm.
+  DOI:https://doi.org/10.1007/978-3-030-86982-3_8"
+  ([sm & {:keys [relative] :or {relative false}}]
+   (let [o (original-extents sm)
+         error (count (filter #(not (extent? (context sm) %))))]
+     (if relative 
+       (/ (count error) (count o))
+       (count error)))))
+
+(defn attribute-scaling-error
+  "Computes the attribute scaling error, i.e., the number attributes that 
+  induce an inconsistent data scaling. This score is an approximation of
+  the conceptual scaling error.
+  DOI:https://doi.org/10.1007/978-3-030-86982-3_8 "
+  ([sm & {:keys [relative] :or {relative false}}]
+   (let [a (-> sm scale attributes)
+         error (-> sm invalid-attributes count)]
+     (if relative 
+       (/ (count error) (count a))
+       (count error)))))
+
 (defn remove-attributes-sm
   "Removes 'attr attributes from the scale."
   [sm attr]
