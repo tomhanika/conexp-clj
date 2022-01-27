@@ -51,7 +51,7 @@
 
 ;; Json helpers
 
-(defn json->concept
+(defn- json->concept
   [json-concept]
   [(into #{} (:extent json-concept)) 
    (into #{} (:intent json-concept))])
@@ -74,7 +74,7 @@
                        :when ((order lattice) [x y])])]
     (map link->json links)))
 
-(defn- lattice->json
+(defn lattice->json
   [lat]
   {:formal_concepts (mapv concept->json (base-set lat))
    :lattice_structure (lattice-structure->json lat)})
@@ -83,6 +83,14 @@
   [json-lattice-order]
   [(into [] (json->concept (:start_concept json-lattice-order)))
    (into [] (json->concept (:end_concept json-lattice-order)))])
+
+(defn json->lattice
+  [json-lattice]
+  (let [json-concepts (:formal_concepts json-lattice)
+          json-lattice-structure (:lattice_structure json-lattice)
+          lattice-base-set (map json->concept json-concepts)
+          lattice-order (map json->lattice-order json-lattice-structure)]
+    (make-lattice lattice-base-set lattice-order)))
 
 ;; Json Format
 
@@ -100,12 +108,8 @@
   [file]
   (with-in-reader file
     (let [_ (get-line)
-          json-lattice (json/read *in* :key-fn keyword)
-          json-concepts (:formal_concepts json-lattice)
-          json-lattice-structure (:lattice_structure json-lattice)
-          lattice-base-set (map json->concept json-concepts)
-          lattice-order (map json->lattice-order json-lattice-structure)]
-      (make-lattice lattice-base-set lattice-order))))
+          json-lattice (json/read *in* :key-fn keyword)]
+      (json->lattice json-lattice))))
 
 ;;; ConExp lattice format
 

@@ -32,12 +32,11 @@
                              :success))))
 
 (define-fca-output-format :json
-  [[ctx concepts implications] file]
+  [[ctx lattice implications] file]
   (with-out-writer file
-    (println "json")
     (print
      (json/write-str {:context (ctx->json ctx)
-                      :concepts (concepts->json concepts)
+                      :lattice (lattice->json lattice)
                       :implication_sets [(implications->json implications)]}))))
 
 (define-fca-input-format :json
@@ -45,8 +44,8 @@
   (with-in-reader file
     (let [json-fca (json/read *in* :key-fn keyword)
           json-ctx (:context json-fca)
-          json-concepts (:concepts json-fca)
+          json-lattice (:lattice json-fca)
           json-implications (:implication_sets json-fca)]
       {:context (json->ctx (:formal_context json-ctx))
-       :concepts (map json->concept (:formal_concepts json-concepts))
+       :lattice (json->lattice json-lattice)
        :implication-sets (map json->implications json-implications)})))
