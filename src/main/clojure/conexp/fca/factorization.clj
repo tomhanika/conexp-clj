@@ -158,8 +158,8 @@
   )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; https://doi.org/10.1137/1.9781611972801.15
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; https://doi.org/10.1137/1.9781611972801.15;
 (defn- createNewD
 "Returns new Matrix D from Input Matrix to adjust form already calculated vectors"
   [C Dr]
@@ -283,6 +283,185 @@
     (if (<= k i)
       pi
       (recur (inc i) (conj pi (extendCore (findCore cur-D) pi cur-D)) (createNewD (calcOneMatrix (get (extendCore (findCore cur-D) pi cur-D) :ci) (get (extendCore (findCore cur-D) pi cur-D) :ct)) cur-D))
+    )
+  )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; grecond
+(defn grecondMakeMatrixFromConcept
+  [a b n m]
+  ;; make matrix from concept a&b with n m 
+  (loop [i 0 j 0 matrix []]
+    (if (> j (- m 1))
+    matrix
+      (recur 
+        (cond (>= i (- n 1)) 0 :else (inc i)) 
+        (cond (>= i (- n 1)) (inc j) :else j)
+        (cond (and (some #(= j %) a) (some #(= i %) b)) (conj matrix 1) :else (conj matrix 0))
+      )
+    )
+  )  
+)
+
+(defn calcGrecondMatrix
+  [F m n]
+  (loop [i 1 end (grecondMakeMatrixFromConcept (nth (nth F 0) 0) (nth (nth F 0) 1) n m)]
+    (if (>= i (count F))
+      end
+      (recur
+        (inc i)
+        (mapv (fn [x y] (if (or (= 1 x) (= 1 y)) 1 0)) (grecondMakeMatrixFromConcept (nth (nth F i) 0) (nth (nth F i) 1) n m) end)  
+      )
+    )
+  )
+)
+
+(defn- grecondTestFullMatch
+  [A U]
+  (loop [i 0 c 0 u U]
+    (if (>= i (count A))
+      {:u u :c c}
+      (recur (inc i) (cond (= (get A i) (get U i) 1) (inc c) :else c) (cond (= (get A i) (get U i) 1) (assoc u i 0) :else u))
+    )  
+  )
+)
+
+(defn- grecondTestRemainderMatch
+  [A U]
+  (loop [i 0 c 0 u U]
+    (if (>= i (count A))
+      {:u u :c c}
+      (recur (inc i) (cond (= (get A i) (get U i) 1) (inc c) :else c) (cond (= (get A i) (get U i) 1) (assoc u i 0) :else u))
+    )  
+  )
+)
+
+(defn- grecondFullMatch
+  [S U n m]
+  (loop [i 0 u U f []]
+    (if (> i (- (count S) 1))
+      {:u u :f f}
+      (recur 
+        (inc i)
+        (cond (= (* (count (nth (nth S i) 0)) (count (nth (nth S i) 1))) (:c (grecondTestFullMatch (grecondMakeMatrixFromConcept (nth (nth S i) 0) (nth (nth S i) 1) n m) u)))
+        (:u (grecondTestFullMatch (grecondMakeMatrixFromConcept (nth (nth S i) 0) (nth (nth S i) 1) n m) u)) :else u)
+        (cond (= (* (count (nth (nth S i) 0)) (count (nth (nth S i) 1))) (:c (grecondTestFullMatch (grecondMakeMatrixFromConcept (nth (nth S i) 0) (nth (nth S i) 1) n m) u)))
+        (conj f (nth S i)) :else f)
+      ) 
+    )
+  )
+)
+
+(defn- grecondRemainderMatch
+  [S U F n m]
+  (loop [i 0 u U f F]
+    (if (or (every? #(= 0 %) u) (>= i (count S)))
+      f
+      (recur 
+        (inc i)
+        (cond (< 0 (:c (grecondTestRemainderMatch (grecondMakeMatrixFromConcept (nth (nth S i) 0) (nth (nth S i) 1) n m) u)))
+        (:u (grecondTestRemainderMatch (grecondMakeMatrixFromConcept (nth (nth S i) 0) (nth (nth S i) 1) n m) u)) :else u)
+        (cond (< 0 (:c (grecondTestRemainderMatch (grecondMakeMatrixFromConcept (nth (nth S i) 0) (nth (nth S i) 1) n m) u))) (conj f (nth S i)) :else f)
+      )  
+    )
+  )
+)
+
+(defn- grecondCreateUsable
+  [S]
+  (loop [i 0 c []]
+    (if (> i (- (count S) 1))
+      c
+      (recur (inc i)
+      (cond (not= 0 (* (count (nth (nth S i) 0)) (count (nth (nth S i) 1)))) (conj c (nth S i)) :else c))
+    )  
+  )
+)
+
+
+(defn grecond
+  [I]
+  (let [S (reverse (sort-by (fn [[a b]] (* (count a) (count b))) (grecondCreateUsable (concepts I)))) U (make-matrix-from-context (context-to-string I))]
+    (let [full (grecondFullMatch S (into [] (apply concat U)) (count U) (count (get U 0)))]
+      (grecondRemainderMatch (remove (set (:f full)) S) (:u full) (:f full) (count U) (count (get U 0)))
+    )
+  ) 
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; hyper
+
+(defn findHyper
+  [C Coverage]
+  (let [ret ()]
+    (for [c C] (conj ret {:cover (for [x (mapv Coverage (sort (vec (get c 0))))] (mapv x (sort (vec (get c 1))))) :g (sort (vec (get c 0))) :m (sort (vec (get c 1)))}))
+  )
+)
+
+(defn calcCostListHyper
+  [C Coverage]
+  ;;{:cost x :cover[[]] :g [] :m []
+  (let [cost 
+)
+
+(defn calcNewCoverageHyper
+  [C Coverage Input]
+  (let [X (calcCostListHyper C Coverage)])  
+)
+
+(defn hyper
+  [Input]
+  (let [C (concepts input)]
+    (loop [Output Coverage]
+      (if (= Input Coverage)
+        Output
+        (recur (calcNewCoverageHyper C Coverage Input))
+      )
+    )
+  )  
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; evaluation
+
+(defn hamming_Distance
+  [A B]
+  (count (filter #{1} (map (fn [a b] (if (not= a b) 1 0)) A B)))
+)
+
+(defn froebeniusnorm
+  [A]
+  (Math/sqrt (count (filter #{1} A)))
+)
+
+(defn- helper
+  [m1 M2]
+    (for [m2 M2]
+      (double (/ (count (clojure.set/intersection (set (:g m1)) (set (:g m2)))) (count (clojure.set/union (set (:g m1)) (set (:g m2))))))
+    )
+)
+
+(defn importFile [file] 
+  (let [raw (rest
+             (clojure.string/split (slurp file)
+                                   #"\n"))]
+    (map
+     (fn [line]
+       (let [[g c] (clojure.string/split line #"\;")]
+         {:g (map read-string (clojure.string/split g #","))
+          :c (map read-string (clojure.string/split c #","))}))
+     raw)))
+
+(defn biClusterMatch
+  [M1 M2]
+  (loop [result (list) i 0]
+    (if (>= i (count M1))
+      (* (/ 1 (count M1)) (reduce + result))
+      (recur 
+        (conj result (apply max (helper (nth M1 i) M2)))
+        (inc i)
+      )
     )
   )
 )
