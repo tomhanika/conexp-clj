@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.io.fca
+(ns conexp.io.fcas
   (:require [conexp.io.contexts     :refer :all]
             [conexp.io.implications :refer :all]
             [conexp.io.lattices     :refer :all]
@@ -31,21 +31,44 @@
                              (json-schema/validate schema json)
                              :success))))
 
+(defn create-fca-output-map
+  [fca]
+  (let [ctx (:context fca)
+        lattice (:lattice fca)
+        implication-sets (:implication-sets fca)
+        fca-map {:context (ctx->json ctx)}
+        fca-map (if-not (nil? lattice) 
+                  (into fca-map {:lattice (lattice->json lattice)})
+                  fca-map)
+        fca-map (if-not (nil? implication-sets)
+                  (into fca-map {:implication_sets (mapv implications->json implication-sets)})
+                  fca-map)] 
+    fca-map))
+
+(defn create-fca-input-map
+  [json-fca]
+  (let [json-ctx (:context json-fca)
+        json-lattice (:lattice json-fca)
+        json-implication-sets (:implication_sets json-fca)
+        fca-map {:context (json->ctx (:formal_context json-ctx))}
+        fca-map (if-not (nil? json-lattice)
+                  (into fca-map {:lattice (json->lattice json-lattice)})
+                  fca-map)
+        fca-map (if-not (nil? json-implication-sets)
+                  (into fca-map {:implication-sets (map json->implications json-implication-sets)})
+                  fca-map)]
+    fca-map))
+
 (define-fca-output-format :json
-  [[ctx lattice implications] file]
-  (with-out-writer file
-    (print
-     (json/write-str {:context (ctx->json ctx)
-                      :lattice (lattice->json lattice)
-                      :implication_sets [(implications->json implications)]}))))
+  [fca file]
+  (let [fca-map (create-fca-output-map fca)]
+    (with-out-writer file
+      (print
+       (json/write-str fca-map)))))
 
 (define-fca-input-format :json
   [file]
   (with-in-reader file
     (let [json-fca (json/read *in* :key-fn keyword)
-          json-ctx (:context json-fca)
-          json-lattice (:lattice json-fca)
-          json-implications (:implication_sets json-fca)]
-      {:context (json->ctx (:formal_context json-ctx))
-       :lattice (json->lattice json-lattice)
-       :implication-sets (map json->implications json-implications)})))
+          fca-map (create-fca-input-map json-fca)]
+      fca-map)))
