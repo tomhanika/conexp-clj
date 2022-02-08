@@ -14,7 +14,8 @@
             [conexp.io.latex                 :refer :all]
             [clojure.string                  :refer (split)]
             [clojure.data.xml                :as xml]
-            [clojure.data.json               :as json])
+            [clojure.data.json               :as json]
+            [json-schema.core                :as json-schema])
   (:import [java.io PushbackReader]))
 
 
@@ -629,21 +630,22 @@
 
 (add-context-input-format :json
                           (fn [rdr]
-                            (= "json ctx" (read-line))))
+                            (= :success
+                               (let [schema (json-schema/prepare-schema (-> "src/main/resources/schemas/context_schema_v1.0.json" slurp (cheshire.core/parse-string true)))
+                                     json (json/read rdr)]
+                                 (json-schema/validate schema json)
+                                 :success))))
 
 (define-context-output-format :json
   [ctx file]
   (with-out-writer file
-    (println "json ctx")
     (print (json/write-str (ctx->json ctx)))))
 
 (define-context-input-format :json
   [file]
   (with-in-reader file 
-    (let [_ (get-line)
-          json-ctx (:formal_context (json/read *in* :key-fn keyword))]
-      (json->ctx json-ctx)
-      )))
+    (let [json-ctx (:formal_context (json/read *in* :key-fn keyword))]
+      (json->ctx json-ctx))))
 
 ;;; TODO
 

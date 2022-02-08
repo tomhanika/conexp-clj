@@ -174,36 +174,7 @@
       "description": "In 'source', the source of the context / data can be added."
     },
     "context": {
-      "type": "object",
-      "description": "JSON Schema for the formal context. A formal context contains a set of objects, each with corresponding attributes. The minimum number of attributes assigned to an object is 0.",
-      "required": [
-        "formal_context"
-      ],
-      "properties": {
-        "formal_context": {
-          "type": "array",
-          "items": {
-            "item": {
-              "type": "object",
-              "properties": {
-                "$ref": "#/$defs/object",
-                "attributes": {
-                  "type": "array",
-                  "description": "List of attributes",
-                  "items": {
-                    "$ref": "#/$defs/attribute"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "additional_information": {
-          "description": "Information that is additional to the defined properties",
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "context_schema_v1.0.json"
     },
     "lattice": {
       "type": "object",
