@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.lattices
-  (:require [clojure.data.json :as json])
+  (:require [clojure.data.json :as json]
+            [json-schema.core  :as json-schema])
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
@@ -96,19 +97,25 @@
 
 (add-lattice-input-format :json
                           (fn [rdr]
-                            (= "json lat" (read-line))))
+                            (= :success
+                               (let [schema (json-schema/prepare-schema 
+                                             (-> "src/main/resources/schemas/lattice_schema_v1.0.json" slurp 
+                                                 (cheshire.core/parse-string true)) 
+                                             ;; referencing inside of schemas with relative references
+                                             {:classpath-aware? true 
+                                              :default-resolution-scope "classpath://schemas/"})
+                                     json (json/read rdr)]
+                                 :success))))
 
 (define-lattice-output-format :json
   [lattice file]
   (with-out-writer file
-    (println "json lat")
     (print (json/write-str (lattice->json lattice)))))
 
 (define-lattice-input-format :json
   [file]
   (with-in-reader file
-    (let [_ (get-line)
-          json-lattice (json/read *in* :key-fn keyword)]
+    (let [json-lattice (json/read *in* :key-fn keyword)]
       (json->lattice json-lattice))))
 
 ;;; ConExp lattice format

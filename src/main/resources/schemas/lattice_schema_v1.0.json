@@ -1,0 +1,71 @@
+{
+  "$id": "lattice_schema_v1.0",
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "JSON schema for a concept lattice",
+  "type": "object",
+  "description": "JSON schema for a concept lattice. Each concept consists of the extent (an array of objects) and the intent (an array of attributes). The lattice structure can be saved as well.",
+  "$defs": {
+    "formal_concept": {
+      "type": "object",
+      "required": [
+        "extent",
+        "intent"
+      ],
+      "properties": {
+        "extent": {
+          "type": "array",
+          "description": "Array of objects",
+          "items": {
+            "$ref": "fca_schema_v1.0.json#/$defs/object"
+          }
+        },
+        "intent": {
+          "type": "array",
+          "description": "Array of attributes",
+          "items": {
+            "$ref": "fca_schema_v1.0.json#/$defs/attribute"
+          }
+        },
+        "valuation": {
+          "type": "number"
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "required": [
+        "start_concept",
+        "end_concept"
+      ],
+      "properties": {
+        "start_concept": {
+          "$ref": "#/$defs/formal_concept"
+        },
+        "end_concept": {
+          "$ref": "#/$defs/formal_concept"
+        }
+      }
+    }
+  },
+  "required": [
+    "formal_concepts"
+  ],
+  "properties": {
+    "formal_concepts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/formal_concept"
+      }
+    },
+    "lattice_structure": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link"
+      }
+    },
+    "additional_information": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

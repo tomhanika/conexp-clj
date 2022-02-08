@@ -1,5 +1,5 @@
 {
-  "$id": "https://example.com/schemas/context_schema_v1.0",
+  "$id": "context_schema_v1.0",
   "$schema": "https://json-schema.org/draft-07/schema",
   "title": "JSON schema for a formal context",
   "type": "object",
@@ -14,12 +14,12 @@
         "item": {
           "type": "object",
           "properties": {
-            "$ref": "#/$defs/object",
+            "$ref": "fca_schema_v1.0.json#/$defs/object",
             "attributes": {
               "type": "array",
               "description": "List of attributes",
               "items": {
-                "$ref": "#/$defs/attribute"
+                "$ref": "fca_schema_v1.0.json#/$defs/attribute"
               }
             }
           }

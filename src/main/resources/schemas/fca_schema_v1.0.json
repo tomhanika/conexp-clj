@@ -1,5 +1,5 @@
 {
-  "$id": "https://example.com/schemas/fca_schema_v1.0",
+  "$id": "fca_schema_v1.0",
   "$schema": "https://json-schema.org/draft-07/schema",
   "title": "JSON schema for an FCA process",
   "type": "object",
@@ -104,8 +104,8 @@
         }
       },
       "additionalProperties": false,
-      "$comment": "If 'is_base' is false, then a property named 'base_type' may not exist.",
       "if": {
+        "$comment": "If 'is_base' is false, then a property named 'base_type' may not exist.",
         "properties": {
           "is_base": {
             "const": false
@@ -119,52 +119,11 @@
           }
         }
       },
-      "$comment": "If 'base_type' exists, then 'is_base' has to exist as well.",
       "dependentRequired": {
+        "$comment": "If 'base_type' exists, then 'is_base' has to exist as well.",
         "base_type": [
           "is_base"
         ]
-      }
-    },
-    "formal_concept": {
-      "type": "object",
-      "required": [
-        "extent",
-        "intent"
-      ],
-      "properties": {
-        "extent": {
-          "type": "array",
-          "description": "Array of objects",
-          "items": {
-            "$ref": "#/$defs/object"
-          }
-        },
-        "intent": {
-          "type": "array",
-          "description": "Array of attributes",
-          "items": {
-            "$ref": "#/$defs/attribute"
-          }
-        },
-        "valuation": {
-          "type": "number"
-        }
-      }
-    },
-    "link": {
-      "type": "object",
-      "required": [
-        "start_concept",
-        "end_concept"
-      ],
-      "properties": {
-        "start_concept": {
-          "$ref": "#/$defs/formal_concept"
-        },
-        "end_concept": {
-          "$ref": "#/$defs/formal_concept"
-        }
       }
     }
   },
@@ -177,29 +136,7 @@
       "$ref": "context_schema_v1.0.json"
     },
     "lattice": {
-      "type": "object",
-      "description": "JSON schema for a concept lattice. Each concept consists of the extent (an array of objects) and the intent (an array of attributes). The lattice structure can be saved as well.",
-      "required": [
-        "formal_concepts"
-      ],
-      "properties": {
-        "formal_concepts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/formal_concept"
-          }
-        },
-        "lattice_structure": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/link"
-          }
-        },
-        "additional_information": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "lattice_schema_v1.0.json"
     },
     "implication_sets": {
       "type": "array",

@@ -631,7 +631,12 @@
 (add-context-input-format :json
                           (fn [rdr]
                             (= :success
-                               (let [schema (json-schema/prepare-schema (-> "src/main/resources/schemas/context_schema_v1.0.json" slurp (cheshire.core/parse-string true)))
+                               (let [schema (json-schema/prepare-schema 
+                                             (-> "src/main/resources/schemas/context_schema_v1.0.json" slurp 
+                                                 (cheshire.core/parse-string true))
+                                             ;; referencing inside of schemas with relative references
+                                             {:classpath-aware? true 
+                                              :default-resolution-scope "classpath://schemas/"})
                                      json (json/read rdr)]
                                  (json-schema/validate schema json)
                                  :success))))
