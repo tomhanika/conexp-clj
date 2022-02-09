@@ -7,9 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.implications
-  (:require [clojure.data.json :as json]
-            [conexp.fca.implications :refer :all]
-            [conexp.io.util          :refer :all]))
+  (:require [conexp.fca.implications :refer :all]
+            [conexp.io.util          :refer :all]
+            [clojure.data.json :as json]
+            [json-schema.core  :as json-schema]))
 
 ;;; Input format dispatch
 
@@ -44,17 +45,24 @@
 
 (add-implication-input-format :json
                                (fn [rdr]
-                                 (= "json impl" (read-line))))
+                                 (= :success 
+                                    (let [schema (json-schema/prepare-schema
+                                                  (-> "src/main/resources/schemas/implications_schema_v1.0.json" slurp
+                                                      (cheshire.core/parse-string true))
+                                                  ;; referencing inside of schemas with relative references
+                                                  {:classpath-aware? true
+                                                   :default-resolution-scope "classpath://schemas/"})
+                                          json (json/read rdr)]
+                                      (json-schema/validate schema json)
+                                      :success))))
 
 (define-implication-output-format :json
   [impl file]
   (with-out-writer file
-    (println "json impl")
     (print (json/write-str (implications->json impl)))))
 
 (define-implication-input-format :json
   [file]
   (with-in-reader file
-    (let [_ (get-line)
-          impl (json/read *in* :key-fn keyword)]
+    (let [impl (json/read *in* :key-fn keyword)]
       (json->implications impl))))
