@@ -12,7 +12,8 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
-        conexp.io.util)
+        conexp.io.util
+        conexp.io.json)
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
@@ -98,12 +99,7 @@
 (add-lattice-input-format :json
                           (fn [rdr]
                             (= :success
-                               (let [schema (json-schema/prepare-schema 
-                                             (-> "src/main/resources/schemas/lattice_schema_v1.0.json" slurp 
-                                                 (cheshire.core/parse-string true)) 
-                                             ;; referencing inside of schemas with relative references
-                                             {:classpath-aware? true 
-                                              :default-resolution-scope "classpath://schemas/"})
+                               (let [schema (read-schema "src/main/resources/schemas/lattice_schema_v1.0.json")
                                      json (json/read rdr)]
                                  :success))))
 

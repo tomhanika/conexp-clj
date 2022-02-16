@@ -9,6 +9,7 @@
 (ns conexp.io.implications
   (:require [conexp.fca.implications :refer :all]
             [conexp.io.util          :refer :all]
+            [conexp.io.json          :refer :all]
             [clojure.data.json :as json]
             [json-schema.core  :as json-schema]))
 
@@ -46,12 +47,7 @@
 (add-implication-input-format :json
                                (fn [rdr]
                                  (= :success 
-                                    (let [schema (json-schema/prepare-schema
-                                                  (-> "src/main/resources/schemas/implications_schema_v1.0.json" slurp
-                                                      (cheshire.core/parse-string true))
-                                                  ;; referencing inside of schemas with relative references
-                                                  {:classpath-aware? true
-                                                   :default-resolution-scope "classpath://schemas/"})
+                                    (let [schema (read-schema "src/main/resources/schemas/implications_schema_v1.0.json")
                                           json (json/read rdr)]
                                       (json-schema/validate schema json)
                                       :success))))

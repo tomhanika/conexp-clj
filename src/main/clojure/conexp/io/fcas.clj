@@ -9,6 +9,7 @@
 (ns conexp.io.fcas
   (:require [conexp.io.contexts     :refer :all]
             [conexp.io.implications :refer :all]
+            [conexp.io.json         :refer :all]
             [conexp.io.lattices     :refer :all]
             [conexp.io.util         :refer :all]
             [clojure.data.json      :as json]
@@ -26,12 +27,7 @@
 (add-fca-input-format :json
                       (fn [rdr]
                         (= :success
-                           (let [schema (json-schema/prepare-schema 
-                                         (-> "src/main/resources/schemas/fca_schema_v1.0.json" slurp 
-                                             (cheshire.core/parse-string true))
-                                         ;; referencing inside of schemas with relative references
-                                         {:classpath-aware? true
-                                          :default-resolution-scope "classpath://schemas/"})
+                           (let [schema (read-schema "src/main/resources/schemas/fca_schema_v1.0.json")
                                  json (json/read rdr)]
                              (json-schema/validate schema json)
                              :success))))
@@ -40,29 +36,19 @@
   [fca]
   (let [ctx (:context fca)
         lattice (:lattice fca)
-        implication-sets (:implication-sets fca)
-        fca-map {:context (ctx->json ctx)}
-        fca-map (if-not (nil? lattice) 
-                  (into fca-map {:lattice (lattice->json lattice)})
-                  fca-map)
-        fca-map (if-not (nil? implication-sets)
-                  (into fca-map {:implication_sets (mapv implications->json implication-sets)})
-                  fca-map)] 
-    fca-map))
+        implication-sets (:implication-sets fca)] 
+    (cond-> {:context (ctx->json ctx)}
+      (some? lattice) (assoc :lattice (lattice->json lattice))
+      (some? implication-sets) (assoc :implication_sets (mapv implications->json implication-sets)))))
 
 (defn create-fca-input-map
   [json-fca]
   (let [json-ctx (:context json-fca)
         json-lattice (:lattice json-fca)
-        json-implication-sets (:implication_sets json-fca)
-        fca-map {:context (json->ctx (:formal_context json-ctx))}
-        fca-map (if-not (nil? json-lattice)
-                  (into fca-map {:lattice (json->lattice json-lattice)})
-                  fca-map)
-        fca-map (if-not (nil? json-implication-sets)
-                  (into fca-map {:implication-sets (map json->implications json-implication-sets)})
-                  fca-map)]
-    fca-map))
+        json-implication-sets (:implication_sets json-fca)]
+    (cond-> {:context (json->ctx (:formal_context json-ctx))}
+      (some? json-lattice) (assoc :lattice (json->lattice json-lattice))
+      (some? json-implication-sets) (assoc :implication-sets (map json->implications json-implication-sets)))))
 
 (define-fca-output-format :json
   [fca file]

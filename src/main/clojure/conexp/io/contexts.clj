@@ -12,6 +12,7 @@
             [conexp.io.util                  :refer :all]
             [conexp.fca.many-valued-contexts :refer :all]
             [conexp.io.latex                 :refer :all]
+            [conexp.io.json                  :refer :all]
             [clojure.string                  :refer (split)]
             [clojure.data.xml                :as xml]
             [clojure.data.json               :as json]
@@ -631,12 +632,7 @@
 (add-context-input-format :json
                           (fn [rdr]
                             (= :success
-                               (let [schema (json-schema/prepare-schema 
-                                             (-> "src/main/resources/schemas/context_schema_v1.0.json" slurp 
-                                                 (cheshire.core/parse-string true))
-                                             ;; referencing inside of schemas with relative references
-                                             {:classpath-aware? true 
-                                              :default-resolution-scope "classpath://schemas/"})
+                               (let [schema (read-schema "src/main/resources/schemas/context_schema_v1.0.json")
                                      json (json/read rdr)]
                                  (json-schema/validate schema json)
                                  :success))))
