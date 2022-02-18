@@ -7,8 +7,9 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.io.json
-  "Provides funtionality to read and process json files"
-  (:require [json-schema.core :as json-schema]))
+  "Provides functionality to read and process json files"
+  (:require [json-schema.core  :as json-schema]
+            [clojure.data.json :as json]))
 
 (defn read-schema
   [file]
@@ -18,3 +19,15 @@
    ;; referencing inside of schemas with relative references
    {:classpath-aware? true
     :default-resolution-scope "classpath://schemas/"}))
+
+(defn- json-format?
+  "Validate if string is in json format"
+  [string]
+  (try (json/read-str string) true
+       (catch Exception _ false)))
+
+(defn json-object?
+  "Validate if file content is a json object (json format beginning with {)"
+  [rdr]
+  (let [content (slurp rdr)]
+    (and (json-format? content) (= \{ (first content)))))

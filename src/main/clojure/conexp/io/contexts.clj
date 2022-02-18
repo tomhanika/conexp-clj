@@ -627,15 +627,19 @@
         incidence (apply union (mapv object->incidence json-ctx))]
     (make-context objects attributes incidence)))
 
+(defn matches-schema?
+  [json]
+  (let [schema (read-schema "src/main/resources/schemas/context_schema_v1.0.json")]
+    (try (json-schema/validate schema json)
+         true
+         (catch Exception _ false))))
+
 ;; Json Format
 
 (add-context-input-format :json
                           (fn [rdr]
-                            (= :success
-                               (let [schema (read-schema "src/main/resources/schemas/context_schema_v1.0.json")
-                                     json (json/read rdr)]
-                                 (json-schema/validate schema json)
-                                 :success))))
+                            (try (json-object? rdr)
+                                 (catch Exception _))))
 
 (define-context-output-format :json
   [ctx file]
@@ -645,7 +649,10 @@
 (define-context-input-format :json
   [file]
   (with-in-reader file 
-    (let [json-ctx (:formal_context (json/read *in* :key-fn keyword))]
+    (let [file-content (json/read *in* :key-fn keyword)
+          json-ctx (:formal_context file-content)]
+      (assert (matches-schema? file-content)
+              "The input file does not match the schema given at src/main/resources/schemas/context_schema_v1.0.json.")
       (json->ctx json-ctx))))
 
 ;;; TODO
