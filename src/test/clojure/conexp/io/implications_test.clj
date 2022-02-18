@@ -46,3 +46,23 @@
                       fmt (list-implication-formats)]
     (try (out-in-out-in-test impl 'implication fmt)
          (catch UnsupportedOperationException _ true))))
+
+;;;
+ (deftest test-json-not-matching-schema
+  "Read a json format that does not match the given schema."
+  (if-not (.exists (java.io.File. "testing-data/digits-lattice.json"))
+    (warn "Could not verify failing validation of implications schema. Testing file not found.") 
+    (is (thrown?
+         AssertionError
+         (read-implication "testing-data/digits-lattice.json" :json)))))
+
+(deftest test-json-matching-schema
+  "Read a json format that matches the given schema."
+  (if-not (.exists (java.io.File. "testing-data/digits-implication.json"))
+    (warn "Could not verify validation of implications schema. Testing file not found.")
+    (let [implication-set (read-implication "testing-data/digits-implication.json" :json)]
+      (is (= 6 (count implication-set))))))
+
+;;;
+
+nil

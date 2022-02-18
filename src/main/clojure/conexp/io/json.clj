@@ -31,3 +31,11 @@
   [rdr]
   (let [content (slurp rdr)]
     (and (json-format? content) (= \{ (first content)))))
+
+(defn matches-schema?
+  "Json schema validation"
+  [json schema-file]
+  (let [schema (read-schema (str "src/main/resources/schemas/" schema-file))]
+    (try (json-schema/validate schema json)
+         true
+         (catch Exception _ false))))

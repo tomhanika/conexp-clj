@@ -98,10 +98,8 @@
 
 (add-lattice-input-format :json
                           (fn [rdr]
-                            (= :success
-                               (let [schema (read-schema "src/main/resources/schemas/lattice_schema_v1.0.json")
-                                     json (json/read rdr)]
-                                 :success))))
+                            (try (json-object? rdr)
+                                 (catch Exception _))))
 
 (define-lattice-output-format :json
   [lattice file]
@@ -112,6 +110,8 @@
   [file]
   (with-in-reader file
     (let [json-lattice (json/read *in* :key-fn keyword)]
+      (assert (matches-schema? json-lattice "lattice_schema_v1.0.json")
+              "The input file does not match the schema given at src/main/resources/schemas/lattice_schema_v1.0.json.")
       (json->lattice json-lattice))))
 
 ;;; ConExp lattice format

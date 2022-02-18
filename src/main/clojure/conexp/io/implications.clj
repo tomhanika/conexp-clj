@@ -46,11 +46,8 @@
 
 (add-implication-input-format :json
                                (fn [rdr]
-                                 (= :success 
-                                    (let [schema (read-schema "src/main/resources/schemas/implications_schema_v1.0.json")
-                                          json (json/read rdr)]
-                                      (json-schema/validate schema json)
-                                      :success))))
+                                 (try (json-object? rdr)
+                                      (catch Exception _))))
 
 (define-implication-output-format :json
   [impl file]
@@ -61,4 +58,6 @@
   [file]
   (with-in-reader file
     (let [impl (json/read *in* :key-fn keyword)]
+      (assert (matches-schema? impl "implications_schema_v1.0.json")
+              "The input file does not match the schema given at src/main/resources/schemas/implications_schema_v1.0.json.")
       (json->implications impl))))

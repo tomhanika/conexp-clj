@@ -24,14 +24,6 @@
 
 ;; Json Format
 
-(add-fca-input-format :json
-                      (fn [rdr]
-                        (= :success
-                           (let [schema (read-schema "src/main/resources/schemas/fca_schema_v1.0.json")
-                                 json (json/read rdr)]
-                             (json-schema/validate schema json)
-                             :success))))
-
 (defn create-fca-output-map
   [fca]
   (let [ctx (:context fca)
@@ -50,6 +42,12 @@
       (some? json-lattice) (assoc :lattice (json->lattice json-lattice))
       (some? json-implication-sets) (assoc :implication-sets (map json->implications json-implication-sets)))))
 
+
+(add-fca-input-format :json
+                      (fn [rdr]
+                        (try (json-object? rdr)
+                             (catch Exception _))))
+
 (define-fca-output-format :json
   [fca file]
   (let [fca-map (create-fca-output-map fca)]
@@ -60,6 +58,7 @@
 (define-fca-input-format :json
   [file]
   (with-in-reader file
-    (let [json-fca (json/read *in* :key-fn keyword)
-          fca-map (create-fca-input-map json-fca)]
-      fca-map)))
+    (let [json-fca (json/read *in* :key-fn keyword)]
+      (assert (matches-schema? json-fca "fca_schema_v1.0.json")
+              "The input file does not match the schema fiven at src/main/resources/schema/fca_schema_v1.0.json.")
+      (create-fca-input-map json-fca))))

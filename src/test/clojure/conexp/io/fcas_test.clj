@@ -149,3 +149,24 @@
                       fmt (list-fca-formats)]
     (try (out-in-out-in-test fca 'fca fmt)
          (catch UnsupportedOperationException _ true))))
+
+;;;
+
+(deftest test-json-not-matching-schema
+  "Read a json format that does not match the given schema."
+  (if-not (.exists (java.io.File. "testing-data/digits-lattice.json"))
+    (warn "Could not verify failing validation of fca schema. Testing file not found.") 
+    (is (thrown?
+         AssertionError
+         (read-fca "testing-data/digits-lattice.json" :json)))))
+
+(deftest test-json-matching-schema
+  "Read a json format that matches the given schema."
+  (if-not (.exists (java.io.File. "testing-data/digits-fca.json"))
+    (warn "Could not verify validation of fca schema. Testing file not found.")
+    (let [fca (read-fca "testing-data/digits-fca.json" :json)]
+      (is (= 6 (count (first (:implication-sets fca))))))))
+
+;;;
+
+nil
