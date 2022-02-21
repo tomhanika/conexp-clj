@@ -767,7 +767,11 @@
 
 (defn direct-upper-concepts
   "Computes the set of direct upper neighbours of the concept [A B] in
-  the concept lattice of ctx. Uses Lindig's Algorithm for that."
+  the concept lattice of ctx. Uses Lindig's Algorithm for that.
+
+  Lindig, C.: Fast concept analysis. In: Working with Conceptual
+  Structures – Contributions to ICCS 2000. pp. 152--161. Shaker
+  Verlag (2000). "
   [ctx [A B]]
   (assert (concept? ctx [A B])
           "Given pair must a concept in the given context")
@@ -791,7 +795,11 @@
 
 (defn direct-lower-concepts
   "Computes the set of direct upper neighbours of the concept [A B] in
-  the concept lattice of ctx. Uses Lindig's Algorithm for that."
+  the concept lattice of ctx. Uses Lindig's Algorithm for that.
+
+  Lindig, C.: Fast concept analysis. In: Working with Conceptual
+  Structures – Contributions to ICCS 2000. pp. 152--161. Shaker
+  Verlag (2000). "
   [ctx [A B]]
   (assert (concept? ctx [A B])
           "Given pair must a concept in the given context")

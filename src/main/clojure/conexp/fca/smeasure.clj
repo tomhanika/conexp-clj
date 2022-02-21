@@ -636,4 +636,26 @@
          (make-smeasure-nc context (:scale state) identity)
          (recur (exploration-of-scales-iteration state)))))))
 
+;;;;;;;;;;;;;;; local scaling for a single object
 
+;; Computes all concepts containing an object g and the concepts in covering relation
+
+(defn concept-lattice-filter+covering-concepts
+  "Computes all concepts containing object g and their covering
+  concepts."
+  [ctx g]
+  (let [first-C [(attribute-derivation ctx #{}) 
+                 (context-attribute-closure ctx #{})]]
+    (loop [BV #{first-C} 
+           queue #{first-C}]
+      (if (empty? queue) 
+        BV
+        (let [C (first queue)]
+          (let [covering-C (direct-lower-concepts ctx C)
+                ;; those not containing g can be added since they are in cover with a concept containing c
+                out (println "out " covering-C)
+                new-C (difference covering-C BV) 
+                ;; only continue with those that contain g to ensure selection criteria
+                for-queue (filter #(contains? (first %) g) new-C)
+                out (println "queue " for-queue)]
+            (recur (into BV new-C) (into (disj queue C) for-queue))))))))
