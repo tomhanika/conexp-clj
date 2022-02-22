@@ -653,9 +653,7 @@
         (let [C (first queue)]
           (let [covering-C (direct-lower-concepts ctx C)
                 ;; those not containing g can be added since they are in cover with a concept containing c
-                out (println "out " covering-C)
                 new-C (difference covering-C BV) 
                 ;; only continue with those that contain g to ensure selection criteria
-                for-queue (filter #(contains? (first %) g) new-C)
-                out (println "queue " for-queue)]
+                for-queue (filter #(contains? (first %) g) new-C)]
             (recur (into BV new-C) (into (disj queue C) for-queue))))))))
