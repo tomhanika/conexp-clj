@@ -24,7 +24,10 @@
 
 ;; Json Format
 
-(defn create-fca-output-map
+(defn- create-fca-output-map
+  "Returns a map containing the elements of the fca in json format each.
+  
+  The map contains :lattice and :implication-sets only if they are included in the fca."
   [fca]
   (let [ctx (:context fca)
         lattice (:lattice fca)
@@ -33,7 +36,10 @@
       (some? lattice) (assoc :lattice (lattice->json lattice))
       (some? implication-sets) (assoc :implication_sets (mapv implications->json implication-sets)))))
 
-(defn create-fca-input-map
+(defn- create-fca-input-map
+  "Returns a map containing the elements of the fca from the json fca.
+
+  The map contains :lattice and :implication-sets only if they are included in the json fca."
   [json-fca]
   (let [json-ctx (:context json-fca)
         json-lattice (:lattice json-fca)
@@ -58,7 +64,8 @@
 (define-fca-input-format :json
   [file]
   (with-in-reader file
-    (let [json-fca (json/read *in* :key-fn keyword)]
-      (assert (matches-schema? json-fca "fca_schema_v1.0.json")
-              "The input file does not match the schema fiven at src/main/resources/schema/fca_schema_v1.0.json.")
+    (let [json-fca (json/read *in* :key-fn keyword)
+          schema-file "src/main/resources/schemas/fca_schema_v1.0.json"]
+      (assert (matches-schema? json-fca schema-file)
+              (str "The input file does not match the schema given at " schema-file "."))
       (create-fca-input-map json-fca))))

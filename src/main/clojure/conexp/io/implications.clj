@@ -23,21 +23,25 @@
 ;; Json helpers
 
 (defn- implication->json
-  [impl]
-  {:premise (premise impl)
-   :conclusion (conclusion impl)})
+  "Returns one implication in json format."
+  [implication]
+  {:premise (premise implication)
+   :conclusion (conclusion implication)})
 
 (defn implications->json
-  [impl]
+  "Returns a vector of implications in json format."
+  [implication-list]
   {:implications
-     (mapv implication->json impl)})
+     (mapv implication->json implication-list)})
 
 (defn- json->implication
+  "Returns an Implication object for the given json implication."
   [json-impl]
   (make-implication (into #{} (:premise json-impl))
                     (into #{} (:conclusion json-impl))))
 
 (defn json->implications
+  "Returns a sequence of Implication objects for the given json implications."
   [json]
   (let [impl (:implications json)]
     (map json->implication impl)))
@@ -57,7 +61,8 @@
 (define-implication-input-format :json
   [file]
   (with-in-reader file
-    (let [impl (json/read *in* :key-fn keyword)]
-      (assert (matches-schema? impl "implications_schema_v1.0.json")
-              "The input file does not match the schema given at src/main/resources/schemas/implications_schema_v1.0.json.")
+    (let [impl (json/read *in* :key-fn keyword)
+          schema-file "src/main/resources/schemas/implications_schema_v1.0.json"]
+      (assert (matches-schema? impl schema-file)
+              (str "The input file does not match the schema given at " schema-file "."))
       (json->implications impl))))

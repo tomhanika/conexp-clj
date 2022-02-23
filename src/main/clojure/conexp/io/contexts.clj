@@ -606,25 +606,29 @@
 
 ;; Json helpers
 
-(defn- object->incidence
-  [object]
-  (set-of [o a] [o [(:object object)], a (:attributes object)]))
-
-(defn object->json
+(defn- object->json
+  "Returns an objects with its attributes in json format."
   [ctx object]
   {:object object
    :attributes (filter #(incident? ctx object %) (attributes ctx))})
 
 (defn ctx->json
+  "Returns a formal context in json format."
   [ctx]
   {:formal_context 
      (mapv (partial object->json ctx) (objects ctx))})
 
+(defn- json-ctx->incidence
+  "Returns the incidence of a json context as set of tuples."
+  [json-ctx]
+  (set-of [o a] [o [(:object json-ctx)], a (:attributes json-ctx)]))
+
 (defn json->ctx
+  "Returns a Context object for the given json context."
   [json-ctx]
   (let [objects (map :object json-ctx)
         attributes (distinct (flatten (map :attributes json-ctx)))
-        incidence (apply union (mapv object->incidence json-ctx))]
+        incidence (apply union (mapv json-ctx->incidence json-ctx))]
     (make-context objects attributes incidence)))
 
 ;; Json Format
@@ -643,9 +647,10 @@
   [file]
   (with-in-reader file 
     (let [file-content (json/read *in* :key-fn keyword)
-          json-ctx (:formal_context file-content)]
-      (assert (matches-schema? file-content "context_schema_v1.0.json")
-              "The input file does not match the schema given at src/main/resources/schemas/context_schema_v1.0.json.")
+          json-ctx (:formal_context file-content)
+          schema-file "src/main/resources/schemas/context_schema_v1.0.json"]
+      (assert (matches-schema? file-content schema-file)
+              (str "The input file does not match the schema given at " schema-file "."))
       (json->ctx json-ctx))))
 
 ;;; TODO
