@@ -31,6 +31,7 @@ formal contexts on success.  Supported formats for input are
 - Anonymous Burmeister (~:anonymous-burmeister~)
 - GraphML (~:graphml~)
 - Named Binary CSV (~:named-binary-csv~) Python Pandas compatible
+- JSON (~:json~) 
 
 See [[Common-FCA-File-Formats-for-Formal-Contexts.org][Common FCA File Formats for Formal Contexts]] for somewhat more details on
 those formats.
@@ -77,3 +78,37 @@ See [[../testing-data/house-votes-84.data][house-votes-84.data]] and [[../testin
 If the following lines have an entry more then the first line, the first entry
 will become the name of the object.  Otherwise, objects will be given arbitrary
 names.
+
+
+** FCA containing context, lattice and implication sets
+
+An FCA contains the context and can contain the corresponding lattice and several 
+implication sets as well. The I/O functions are ~read-fca~ and ~write-fca~. The 
+standard format is the ~:json~ format. See [[../testing-data/digits-fca.json][digits-fca.json]] for an example 
+of the format.
+
+An FCA can be read using
+
+#+begin_src clojure
+(read-fca "testing-data/digits-fca.json")
+#+end_src
+
+or
+
+#+begin_src clojure
+(read-fca "testing-data/digits-fca.json" :json)
+#+end_src
+
+The reading function returns a map containing the keys ~:context~, ~:lattice~ 
+(optional) and ~implication-sets~ (optional).
+
+Writing an FCA to a file works with a map as well. Suppose you have given a context 
+~ctx~, a corresponding lattice ~lat~ and a set of implications ~impl~, e.g. the 
+canonical base of ~ctx~. Writing all information into one file works with
+
+#+begin_src clojure
+(write-fca :json {:context ctx :lattice lat :implication-sets [impl]} "path/to/file.json")
+#+end_src
+
+While the ~:context~ is always required, ~:lattice~ and ~:implication-sets~ are optional. 
+It is possible to save more than one implication set in the FCA.
