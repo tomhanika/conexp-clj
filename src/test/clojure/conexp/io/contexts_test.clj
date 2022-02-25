@@ -24,12 +24,22 @@
                    ["b" "2"] ["c" "3"]}),
    (null-context #{})])
 
+(def- contexts-oi-fcalgs
+  [(make-context #{0 1}
+                 #{0 1}
+                 #{[0 1] [1 0] [1 1]})])
+
 (deftest test-context-out-in
   (with-testing-data [ctx contexts-oi,
-                      fmt (remove #{:binary-csv :anonymous-burmeister}
+                      fmt (remove #{:binary-csv :anonymous-burmeister :fcalgs}
                                   (list-context-formats))]
     (try (= ctx (out-in ctx 'context fmt))
-         (catch UnsupportedOperationException _ true))))
+         (catch UnsupportedOperationException _ true)))
+  
+  ;; fcalgs throws UnsupportedOperationException at writing and thus needs to be tested with another context
+  (with-testing-data [ctx contexts-oi-fcalgs,
+                      fmt #{:fcalgs}]
+    (= ctx (out-in ctx 'context fmt))))
 
 (defn- possible-isomorphic?
   "Test for equality of some criteria for context isomorphy.  Namely, number of objects and attributes, the size of the incidence relation, and the number of concepts.  Only use with small contexts."
@@ -160,11 +170,6 @@
       (is (= 120 (count (incidence-relation ctx)))))))
 
 ;;;
-
-(def- contexts-oi-fcalgs
-  [(make-context #{0 1}
-                 #{0 1}
-                 #{[0 1] [1 0] [1 1]})])
 
 (deftest test-identify-input-format
   "Test if the automatic identification of the file format works correctly."
