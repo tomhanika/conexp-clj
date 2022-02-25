@@ -161,4 +161,43 @@
 
 ;;;
 
+(def- contexts-oi-fcalgs
+  [(make-context #{0 1}
+                 #{0 1}
+                 #{[0 1] [1 0] [1 1]})])
+
+(deftest test-identify-input-format
+  "Test if the automatic identification of the file format works correctly."
+  (with-testing-data [ctx contexts-oi,
+                      fmt (remove #{:named-binary-csv :anonymous-burmeister 
+                                    :binary-csv :fcalgs} 
+                                  (list-context-formats))]
+    (= ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; The null-context in contexts-io cannot be exported to :named-binary-csv 
+  ;; format.
+  (with-testing-data [ctx [(first contexts-oi)],
+                      fmt #{:named-binary-csv}]
+    (= ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; During writing / reading in :anonymous-burmeister format, object and 
+  ;; attribute names get lost and equality cannot be tested any more.
+  (with-testing-data [ctx contexts-oi,
+                      fmt #{:anonymous-burmeister}]
+    (possible-isomorphic? ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; The null-context in contexts-io cannot be exported to :binary-csv format.
+  ;; During writing / reading in :binary-csv format, object and attribute names 
+  ;; get lost and equality cannot be tested any more.
+  (with-testing-data [ctx [(first contexts-oi)],
+                      fmt #{:binary-csv}]
+    (possible-isomorphic? ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; fcalgs test with another context
+  (with-testing-data [ctx contexts-oi-fcalgs,
+                      fmt #{:fcalgs}]
+    (= ctx (out-in-without-format ctx 'context fmt))))
+
+;;;
+
 nil
