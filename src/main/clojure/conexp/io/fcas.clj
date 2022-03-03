@@ -22,7 +22,7 @@
 
 ;;; Formats
 
-;; Json Format
+;; Json Format (src/main/resources/schemas/fca_schema_v1.0.json)
 
 (defn- create-fca-output-map
   "Returns a map containing the elements of the fca in json format each.
@@ -37,9 +37,9 @@
       (some? implication-sets) (assoc :implication_sets (mapv implications->json implication-sets)))))
 
 (defn- create-fca-input-map
-  "Returns a map containing the elements of the fca from the json fca.
+  "Takes a map {:context context, :lattice lattice, :implication_sets [implication-sets]} as input in which the context, lattice and implication-sets are in json format. Returns a map containing the elements of the fca from the json-fca.
 
-  The map contains :lattice and :implication-sets only if they are included in the json fca."
+  :lattice and :implication-sets are optional. The output map contains them only if they are included in the json-fca."
   [json-fca]
   (let [json-ctx (:context json-fca)
         json-lattice (:lattice json-fca)

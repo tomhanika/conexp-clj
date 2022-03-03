@@ -101,7 +101,7 @@
         lattice-order (map json->concept-pair json-lattice-order)]
     (make-lattice lattice-base-set lattice-order)))
 
-;; Json Format
+;; Json Format (src/main/resources/schemas/lattice_schema_v1.0.json)
 
 (add-lattice-input-format :json
                           (fn [rdr]

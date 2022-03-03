@@ -46,7 +46,7 @@
   (let [impl (:implications json)]
     (map json->implication impl)))
 
-;; Json Format
+;; Json Format (src/main/resources/schemas/implications_schema_v1.0.json)
 
 (add-implication-input-format :json
                                (fn [rdr]

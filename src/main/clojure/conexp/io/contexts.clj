@@ -607,13 +607,22 @@
 ;; Json helpers
 
 (defn- object->json
-  "Returns an objects with its attributes in json format."
+  "Returns an objects with its attributes as a map that can easily be converted into json format.
+  
+  Example output:
+  {object: \"b\",
+   attributes: [\"1\", \"2\"]}"
   [ctx object]
   {:object object
    :attributes (filter #(incident? ctx object %) (attributes ctx))})
 
 (defn ctx->json
-  "Returns a formal context in json format."
+  "Returns a formal context as a map that can easily be converted into json format.
+  
+  Example:
+  {formal_context: {
+     object: \"b\",
+     attributes: [\"1\", \"2\"]}}"
   [ctx]
   {:formal_context 
      (mapv (partial object->json ctx) (objects ctx))})
@@ -631,7 +640,7 @@
         incidence (apply union (mapv json-ctx->incidence json-ctx))]
     (make-context objects attributes incidence)))
 
-;; Json Format
+;; Json Format (src/main/resources/schemas/context_schema_v1.0.json)
 
 (add-context-input-format :json
                           (fn [rdr]
