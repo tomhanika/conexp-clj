@@ -53,6 +53,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;https://doi.org/10.1109/TKDE.2008.53
+
 (defn- calcUnionMatrixAsso
   [B S i j]
   (if (empty? (get B 0))
@@ -289,6 +290,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; grecond
+;; https://doi.org/10.1016/j.jcss.2009.05.002
+
 (defn grecondMakeMatrixFromConcept
   [a b n m]
   ;; make matrix from concept a&b with n m 
@@ -391,32 +394,114 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; hyper
+;; DOI 10.1007/s10618-010-0203-9
 
-(defn findHyper
+(defn- findHyper
+  "Finds all Hyperrectangles and calculates their Coverage in relation to the current Coverage of the Input"
   [C Coverage]
   (let [ret ()]
-    (for [c C] (conj ret {:cover (for [x (mapv Coverage (sort (vec (get c 0))))] (mapv x (sort (vec (get c 1))))) :g (sort (vec (get c 0))) :m (sort (vec (get c 1)))}))
+    (for [c C] (conj ret {:cover (vec (for [x (mapv Coverage (sort (vec (get c 0))))] (mapv x (sort (vec (get c 1)))))) :g (vec (sort (vec (get c 0)))) :m (vec (sort (vec (get c 1))))}))
   )
 )
 
-(defn calcCostListHyper
-  [C Coverage]
-  ;;{:cost x :cover[[]] :g [] :m []
-  (let [cost 
+(defn- calcCoverVector
+  "Calculates a vector with the current Coverage"
+  [v]
+  (loop [i 0 j 0 c 0]
+    (if (>= i (count v))
+      c
+      (recur 
+        (cond (> j (count (first (nth v i)))) (inc i) :else i)
+        (cond (> j (count (first (nth v i)))) 0 :else (inc j))
+        (cond (= (get (first (nth v i)) j) 0) (inc c) :else c))
+    )  
+  )  
 )
 
-(defn calcNewCoverageHyper
-  [C Coverage Input]
-  (let [X (calcCostListHyper C Coverage)])  
+(defn- calcCost
+  "Calcultes the Cost of an Hyperrectangle"
+  [hyper]
+  (let [v ()]
+    (let [sortV (sort-by first (for [x (range (count (get (first hyper) :g)))] (conj v (get (get (first hyper) :g) x) (get (get (first hyper) :cover ) x))))]
+      ;;(println sortV)
+      (loop [i 1 out 
+        (try (/ (+ (count (first (first sortV))) 1) (calcCoverVector (conj () (first sortV))))
+          (catch ArithmeticException e Integer/MAX_VALUE)
+        )
+         oldOut Integer/MAX_VALUE g (conj () (nth (first sortV) 1)) oldg ()]
+        (if (or (> out oldOut) (>= i (count sortV)))
+          (if (> out oldOut)
+            {:cost oldOut :g oldg :m (get (first hyper) :m)}
+            {:cost out :g g :m (get (first hyper) :m)}
+          )
+          (recur 
+            (inc i)
+            (try (/ (+ (count (first (first sortV))) (inc i)) (calcCoverVector (take (inc i) sortV))) (catch ArithmeticException e Integer/MAX_VALUE))
+            out
+            (conj g (nth (nth sortV i) 1))
+            g
+          )
+        )  
+      )
+    )
+  )
+)
+
+(defn- calcCostListHyper
+  "Puts together a List of all Hyperrectangles and their Cost"
+  [C Coverage]
+  (let [hyperList (findHyper C Coverage) costList ()]
+    (for [h hyperList] (conj costList (calcCost h)))
+  ) 
+)
+
+(defn- calcNewCoverageHyper
+  "Calculates the new Coverage in relation to the new Found Output Hyperrectangle"
+  [C Coverage]
+  (let [X (apply min (map :cost (into [] (flatten (calcCostListHyper C Coverage))))) Y (into [] (flatten (calcCostListHyper C Coverage)))]
+    (loop [i 0]
+      (if (= (:cost (nth Y i)) X)
+        {:m (:m (nth Y i)) :g (:g (nth Y i))}
+        (recur (inc i))
+      )  
+    )
+  )  
+)
+
+(defn- createVector
+  "Helper Function to Create a Vector from a Concept"
+  [v n]
+  (loop [i 0 x [] c 0]
+    (if (>= i n)
+      x
+      (recur (inc i) (cond 
+        (and  (< c (count v)) (= i (nth v c))) (conj x 1)
+        :else (conj x 0)   
+        )
+        (cond 
+          (and (< c (count v)) (= i (nth v c)) ) (inc c)
+          :else c   
+        ) 
+      )
+    )  
+  )
+)
+
+(defn- calcNewCoverageMatrixHyper
+  "Calculates the new Coverage Matrix in relation to the new Found Output Hyperrectangle"
+  [new Coverage n m]
+  (unite Coverage (calcOneMatrix (createVector (into [] (sort (:g new))) m) (createVector (into [] (sort (:m new))) n)))
 )
 
 (defn hyper
-  [Input]
-  (let [C (concepts input)]
-    (loop [Output Coverage]
-      (if (= Input Coverage)
-        Output
-        (recur (calcNewCoverageHyper C Coverage Input))
+  "Hyper Algorithm"
+  [Input k]
+  (let [n (count(nth (make-matrix-from-context (context-to-string Input))0)) m (count (make-matrix-from-context (context-to-string Input)))]
+    (loop [Output [] Coverage (calcOneMatrix (vec (repeat (count (objects Input)) 0)) (vec (repeat(count(attributes Input)) 0))) i 0 C (grecondCreateUsable (concepts Input))]
+      ;;(if (= Coverage (make-matrix-from-context (context-to-string Input)))
+        (if (>= i k)
+        [Output Coverage]
+        (recur (conj Output (calcNewCoverageHyper C Coverage)) (calcNewCoverageMatrixHyper (calcNewCoverageHyper C Coverage) Coverage n m) (inc i) C )
       )
     )
   )  
