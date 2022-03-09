@@ -82,12 +82,12 @@ names.
 
 ** Store a complete FCA data study: context, lattice and implication sets
 
-An FCA data format contains the context and can contain the corresponding lattice 
+The FCA data format contains the context and can contain the corresponding lattice 
 and several implication sets as well. The I/O functions are ~read-fca~ and ~write-fca~. The 
 standard format is the ~:json~ format. See [[../testing-data/digits-fca.json][digits-fca.json]] for an example 
-of the format. The schema of the format is given at [[../../src/main/resources/schemas/fca_schema_v1.0.json][fca_schema_v1.0.json]].
+of the format. The json schema of the format is given at [[../../src/main/resources/schemas/fca_schema_v1.0.json][fca_schema_v1.0.json]].
 
-An FCA data study can be read using
+The FCA json format can be read using
 
 #+begin_src clojure
 (read-fca "testing-data/small-fca.json")
