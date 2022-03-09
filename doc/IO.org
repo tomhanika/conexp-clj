@@ -85,9 +85,9 @@ names.
 An FCA data format contains the context and can contain the corresponding lattice 
 and several implication sets as well. The I/O functions are ~read-fca~ and ~write-fca~. The 
 standard format is the ~:json~ format. See [[../testing-data/digits-fca.json][digits-fca.json]] for an example 
-of the format.
+of the format. The schema of the format is given at [[../../src/main/resources/schemas/fca_schema_v1.0.json][fca_schema_v1.0.json]].
 
-An FCA can be read using
+An FCA data study can be read using
 
 #+begin_src clojure
 (read-fca "testing-data/small-fca.json")
@@ -113,6 +113,12 @@ The reading function returns a map containing the keys ~:context~, ~:lattice~
 }
 #+end_src
 
+A context consists of objects, attributes and the incidence relations.
+A concept lattice consists of the concepts and an order on those to display the corresponding 
+lattice. Further information on how to work with concept lattices is given at [[Concept-Lattices.org][Concept Lattices]].
+Implication sets are vectors of implications. Further information on implications can be found 
+at [[Implications.org][Implications]]. It is possible that an FCA data study contains more than one implication set.
+
 Writing an FCA to a file works with a map as well. Suppose you have given a context 
 ~ctx~, a corresponding lattice ~lat~ and a set of implications ~impl~, e.g. the 
 canonical base of ~ctx~. Writing all information into one file works with
@@ -122,7 +128,3 @@ canonical base of ~ctx~. Writing all information into one file works with
 #+end_src
 
 While the ~:context~ is always required, ~:lattice~ and ~:implication-sets~ are optional.
-A concept lattice consists of the concepts and an order on those to display the corresponding 
-lattice. Further information on how to work with concept lattices is given at [[Concept-Lattices.org][Concept Lattices]].
-Implication sets are a vector of implications. Further information on implications can be found 
-at [[Implications.org][Implications]]. It is possible to save more than one implication set in the FCA.
