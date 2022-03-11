@@ -74,10 +74,16 @@
     (/ (counter #{} extent)
        (expt 2 (count extent)))))
 
-(defn concept-separation
+(defn separation-index
   "The concept separation is an importance measure for concepts. It
   computes the size AxB (c-inc) relative to uncovered incidences Ax(M-B)
-  and (G-A)xB (o-inc). Max value is 1."
+  and (G-A)xB (o-inc). Max value is 1.
+
+  Klimushkin M., Obiedkov S., Roth C. (2010) Approaches to the
+  Selection of Relevant Concepts in the Case of Noisy Data. In: Kwuida
+  L., Sertkaya B. (eds) Formal Concept Analysis. ICFCA 2010. Lecture
+  Notes in Computer Science, vol 5986. Springer, Berlin,
+  Heidelberg. https://doi.org/10.1007/978-3-642-11928-6_18"
  [context concept]
   (assert (context? context)
           "First argument must be a formal context.")
@@ -113,30 +119,32 @@
   (let [nr_of_objects (count (objects context))
         n  (if *fast-computation* (double nr_of_objects) nr_of_objects)
         M (attributes context)
-        B (second concept) ; intent of concept
+        B (second concept)              ; intent of concept
         P_M_B (mapv #(/ (count (attribute-derivation context #{%})) n ) (difference M B))
         p_B (r/fold * (map #(/ (count (attribute-derivation context #{%})) n) B))
         one_minus_p_B_n (expt (- 1 p_B) n)]
-    (loop [k 1  ;; since for k=0 the last term is 0, we can start with 1
-           result 0
-           binomial n ;; since k=0 the start binomial is n
-           p_B_k  p_B
-           one_minus_p_B_k  (/ one_minus_p_B_n (- 1 p_B))
-           P_M_B_k P_M_B ]
-      (if (or (== k n) (== p_B_k 0)) ;; either done or underflowed probability (double)
-        result
-        (let [new_res
-              (* binomial p_B_k one_minus_p_B_k
-                 (r/fold * (map #(- 1 %) P_M_B_k)))]
-          (recur
-           (inc k)
-           (+ new_res result)
-           (* binomial (/ (- n k) (inc k)))
-           (* p_B_k p_B)
-           (/ one_minus_p_B_k (- 1 p_B))
-           (mapv (partial *) P_M_B_k P_M_B)))))))
-
-
+    (if (not= (double p_B) 1.0)         ;; if concept's extent= n
+      (loop [k 1 ;; since for k=0 the last term is 0, we can start with 1
+             result 0
+             binomial n ;; since k=0 the start binomial is n
+             p_B_k  p_B
+             one_minus_p_B_k  (/ one_minus_p_B_n (- 1 p_B))
+             P_M_B_k P_M_B ]
+        (if (or (== k n) (== p_B_k 0)) ;; either done or underflowed probability (double)
+          result
+          (let [new_res
+                (* binomial p_B_k one_minus_p_B_k
+                   (r/fold * (map #(- 1 %) P_M_B_k)))]
+            (recur
+             (inc k)
+             (+ new_res result)
+             (* binomial (/ (- n k) (inc k)))
+             (* p_B_k p_B)
+             (/ one_minus_p_B_k (- 1 p_B))
+             (mapv (partial *) P_M_B_k P_M_B)))))
+      1)))
+  
+  
 ;;; Robustness of Concepts
 
 (defn- concept-robustness-add-next-entry
@@ -683,8 +691,6 @@
                   (count (concepts :in-close pctx))
                   (shannon-object-information-entropy-fast pctx))))
            available-atts)))
-
-(ns-unmap *ns* 'next-n-maximal-relevant-approx)
 
 (defmulti next-n-maximal-relevant-approx
   "Compute next-n-maximal-relevant attributes in a consecutive manner
