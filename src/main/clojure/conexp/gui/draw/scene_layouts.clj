@@ -76,11 +76,23 @@
   "Updates layout according to new layout. The underlying lattice must
   not be changed."
   [^GScene scene, layout]
-  (do (add-data-to-scene scene :layout layout)
-      (let [pos (positions layout)]
-        (do-nodes [node scene]
-                  (let [[x y] (pos (get-name node))]
-                    (move-node-unchecked-to node x y))))))
+
+  (do
+    (let [old-layout (-> scene get-layout-from-scene)
+          get-value-fn (fn [L]
+                         (if (or (instance? java.util.concurrent.Future (.valuations L))
+                                 (instance? clojure.lang.Ref (.valuations L)))
+                           (deref (.valuations L))
+                                (.valuations L)))
+          old-value-fn (get-value-fn old-layout)]
+      (if (-> layout get-value-fn empty?)
+        (add-data-to-scene scene :layout
+                           (update-valuations layout old-value-fn))
+        (add-data-to-scene scene :layout layout)))
+    (let [pos (positions layout)]
+      (do-nodes [node scene]
+                (let [[x y] (pos (get-name node))]
+                  (move-node-unchecked-to node x y))))))
 
 (defn update-valuations-of-scene
   "Updates valutions according to new valuation function. The underlying lattice must
