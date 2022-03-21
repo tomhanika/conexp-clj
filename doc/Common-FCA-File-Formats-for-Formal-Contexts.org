@@ -197,3 +197,25 @@ Conexp-clj I/O
 context = pandas.read_table("path/to/context.csv",index_col=0,delimiter=",")
 context.to_csv("path/to/context.csv")
 #+END_SRC
+
+** JSON
+
+The detailed structure of the json format is given at [[../src/main/resources/schemas/context_schema_v1.0.json][context_schema_v1.0.json]].
+
+*** Example
+#+begin_src json
+{
+  "formal_context":[
+    {
+      "object":"a",
+      "attributes":[2]
+    },
+    {
+      "object":"b",
+      "attributes":[1,2]
+    }
+  ]
+}
+#+end_src
+
+There are also formats for lattices ([[../src/main/resources/schemas/lattice_schema_v1.0.json][lattice_schema_v1.0.json]]), implication sets ([[../src/main/resources/schemas/implications_schema_v1.0.json][implications_schema_v1.0.json]]) and an fca ([[../src/main/resources/schemas/fca_schema_v1.0.json][fca_schema_v1.0.json]]) that can contain all context, lattice and implication sets.

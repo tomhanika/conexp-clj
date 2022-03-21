@@ -146,8 +146,35 @@
          (make-context #{"n0" "n1"} 
                        #{"0" "1"} 
                        #{["n0" "0"]["n0" "1"]
-                         ["n1" "0"]["n1" "1"]})))
-  )
+                         ["n1" "0"]["n1" "1"]}))))
+
+;;;
+
+(deftest test-automatically-identify-input-format-galicia
+  "Test if other input formats throw an error when searching for an input format matching the input file."
+  (if-not (.exists (java.io.File. "testing-data/galicia2.bin.xml"))
+    (warn "Could not verify identifying :galicia input format. Testing file not found.")
+    (let [ctx (read-context "testing-data/galicia2.bin.xml")]
+      (is (= 10 (count (attributes ctx))))
+      (is (= 10 (count (objects ctx))))
+      (is (= 27 (count (incidence-relation ctx)))))))
+
+(deftest test-json-not-matching-schema
+  "Read a json format that does not match the given schema."
+  (if-not (.exists (java.io.File. "testing-data/digits-lattice.json"))
+    (warn "Could not verify failing validation of context schema. Testing file not found.") 
+    (is (thrown?
+         AssertionError
+         (read-context "testing-data/digits-lattice.json" :json)))))
+
+(deftest test-json-matching-schema
+  "Read a json format that matches the given schema."
+  (if-not (.exists (java.io.File. "testing-data/digits-context.json"))
+    (warn "Could not verify validation of context schema. Testing file not found.")
+    (let [ctx (read-context "testing-data/digits-context.json" :json)]
+      (is (= 7 (count (attributes ctx))))
+      (is (= 10 (count (objects ctx))))
+      (is (= 47 (count (incidence-relation ctx)))))))
 
 ;;;
 
