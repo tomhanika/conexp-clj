@@ -10,32 +10,43 @@
   (:use conexp.fca.contexts conexp.fca.smeasure conexp.base)
   (:use clojure.test))
 
+(def- ctx1
+  (make-context-nc #{1 2 3 4} #{1 2 3 4 5} 
+                   #{[1 1][2 2][1 3][2 4][3 5][4 1][4 3]}))
+
+(def- ctx2
+  (make-context-nc #{1 2 3} #{1 2 3 4 5} 
+                   #{[1 1][2 2][1 3][2 4][3 5]}))
+
+(def- sm1
+  (make-id-smeasure ctx1))
+
+(def- sm2
+  (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)))
+
+(def- no-sm
+  (make-smeasure-nc ctx1 ctx2 #(case % 1)))
+
 (deftest test-smeasure-to-string
-  (let [ctx1 (make-context-nc #{1 2 3 4} #{1 2 3 4 5} 
-                              #{[1 1][2 2][1 3][2 4][3 5][4 1][4 3]})
-        ctx2 (make-context-nc #{1 2 3} #{1 2 3 4 5} 
-                              #{[1 1][2 2][1 3][2 4][3 5]})
-        sm1  (make-id-smeasure ctx1)
-        sm2  (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3))]
-    (is (= (smeasure-to-string sm1)
-           (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
-                "--+----------     --+----------\n"
-                "1 |x . x . .  ⟶   1 |x . x . . \n"
-                "--+----------     --+----------\n"
-                "4 |x . x . .  ⟶   4 |x . x . . \n"
-                "--+----------     --+----------\n"
-                "3 |. . . . x  ⟶   3 |. . . . x \n"
-                "--+----------     --+----------\n"
-                "2 |. x . x .  ⟶   2 |. x . x . \n")))
-    (is (= (smeasure-to-string sm2)
-           (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
-                "--+----------     --+----------\n"
-                "1 |x . x . .  ⟶   1 |x . x . . \n"
-                "4 |x . x . .        |          \n"
-                "--+----------     --+----------\n"
-                "3 |. . . . x  ⟶   3 |. . . . x \n"
-                "--+----------     --+----------\n"
-                "2 |. x . x .  ⟶   2 |. x . x . \n")))))
+  (is (= (smeasure-to-string sm1)
+         (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
+              "--+----------     --+----------\n"
+              "1 |x . x . .  ⟶   1 |x . x . . \n"
+              "--+----------     --+----------\n"
+              "4 |x . x . .  ⟶   4 |x . x . . \n"
+              "--+----------     --+----------\n"
+              "3 |. . . . x  ⟶   3 |. . . . x \n"
+              "--+----------     --+----------\n"
+              "2 |. x . x .  ⟶   2 |. x . x . \n")))
+  (is (= (smeasure-to-string sm2)
+         (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
+              "--+----------     --+----------\n"
+              "1 |x . x . .  ⟶   1 |x . x . . \n"
+              "4 |x . x . .        |          \n"
+              "--+----------     --+----------\n"
+              "3 |. . . . x  ⟶   3 |. . . . x \n"
+              "--+----------     --+----------\n"
+              "2 |. x . x .  ⟶   2 |. x . x . \n"))))
 
 (deftest test-remove-attributes 
   (let [ctx (rand-context (range 6) 0.5)
@@ -48,4 +59,8 @@
 ;(deftest logical-conjunctive-smeasure-representation)
 ;(deftest scale-apposition)
 ;(deftest remove-attributes sm)
-;(deftest scale-measure?)
+
+(deftest test-smeasure?
+  (is (smeasure? sm1))
+  (is (smeasure? sm2))
+  (is (not (smeasure? no-sm))))
