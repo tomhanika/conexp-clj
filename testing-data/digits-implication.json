@@ -1,0 +1,1 @@
+{"implications":[{"premise":["e"],"conclusion":["c"]},{"premise":["e","g","c"],"conclusion":["d"]},{"premise":["e","a","c"],"conclusion":["f"]},{"premise":["f","c"],"conclusion":["a"]},{"premise":["d"],"conclusion":["g"]},{"premise":["d","f","a","g","c"],"conclusion":["e"]}]}

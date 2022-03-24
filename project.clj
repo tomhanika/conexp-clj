@@ -17,7 +17,7 @@
   :dependencies [[org.clojure/clojure             "1.10.1"]
                  [org.clojure/core.async          "1.3.610"]
                  [org.clojure/data.int-map        "1.0.0"]
-                 [org.clojure/data.json           "1.0.0"]
+                 [org.clojure/data.json           "2.4.0"]
                  [org.clojure/data.xml            "0.0.8"]
                  [org.clojure/math.combinatorics  "0.1.6"]
                  [org.clojure/math.numeric-tower  "0.0.4"]
@@ -37,7 +37,8 @@
                  [ring/ring-core "1.8.2"]
                  [ring/ring-json "0.5.0"]
                  [http-kit "2.5.0"]
-                 [org.apache.commons/commons-math3 "3.6.1"]]
+                 [org.apache.commons/commons-math3 "3.6.1"]
+                 [luposlip/json-schema             "0.3.3"]]
   :profiles {:uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.4.0"]]
