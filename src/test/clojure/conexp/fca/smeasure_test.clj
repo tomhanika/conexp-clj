@@ -48,6 +48,26 @@
               "--+----------     --+----------\n"
               "2 |. x . x .  ⟶   2 |. x . x . \n"))))
 
+(deftest test-smeasure?
+  (is (smeasure? sm1))
+  (is (smeasure? sm2))
+  (is (not (smeasure? no-sm))))
+
+(deftest test-make-smeasure
+  (is (= (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)) sm2))
+  (is (thrown-with-msg?
+       AssertionError
+       #"The Input is no valid Scale Measure"
+       (make-smeasure ctx1 ctx2 #(case % 1)))))
+
+(deftest test-make-smeasure-nc
+  (is (= (make-smeasure-nc ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)) sm2))
+  (is (= (make-smeasure-nc ctx1 ctx2 #(case % 1))) no-sm))
+
+(deftest test-make-id-smeasure
+  (is (= (make-id-smeasure ctx1)
+         sm1)))
+
 (deftest test-remove-attributes 
   (let [ctx (rand-context (range 6) 0.5)
         sm (make-id-smeasure ctx)
@@ -59,8 +79,3 @@
 ;(deftest logical-conjunctive-smeasure-representation)
 ;(deftest scale-apposition)
 ;(deftest remove-attributes sm)
-
-(deftest test-smeasure?
-  (is (smeasure? sm1))
-  (is (smeasure? sm2))
-  (is (not (smeasure? no-sm))))
