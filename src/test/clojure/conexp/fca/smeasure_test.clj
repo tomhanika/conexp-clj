@@ -77,6 +77,10 @@
     (is (= (scale (smeasure-by-exts ctx1 exts))
            (make-context (objects ctx1) exts #{[1 #{1}]})))))
 
+(deftest test-canonical-smeasure-representation
+  (is (= (scale (canonical-smeasure-representation sm2))
+         (make-context (objects ctx2) #{#{} #{1 4} #{2} #{3} #{1 2 3 4}} #{[1 #{1 4}] [1 #{1 2 3 4}] [2 #{2}] [2 #{1 2 3 4}] [3 #{3}] [3 #{1 2 3 4}]}))))
+
 ;(deftest scale-apposition)
 
 (deftest test-remove-attributes 
