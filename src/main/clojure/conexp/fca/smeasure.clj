@@ -211,18 +211,6 @@
     (scale-apposition (canonical-smeasure-representation sm1)
                       (canonical-smeasure-representation sm2))))
 
-(defn scale-apposition 
-  [sm1 sm2]
-  (assert (= (context sm1) (context sm2)) "Both scale-measure must be for the same context.")
-  (if (and
-       (= (objects (scale sm1)) (objects (scale sm2)))
-       (= (measure sm1) (measure sm2)))
-    (make-smeasure-nc (context sm1)
-                      (context-apposition (scale sm1) (scale sm2))
-                      (measure sm1))
-    (scale-apposition (canonical-smeasure-representation sm1)
-                      (canonical-smeasure-representation sm2))))
-
 (defalias join-smeasure scale-apposition)
 
 (defn meet-smeasure

@@ -48,6 +48,10 @@
               "--+----------     --+----------\n"
               "2 |. x . x .  ⟶   2 |. x . x . \n"))))
 
+(deftest test-original-extents
+  (is (= (original-extents sm2)
+         (list #{} #{2} #{3} #{1 4} #{1 4 3 2}))))
+
 (deftest test-smeasure?
   (is (smeasure? sm1))
   (is (smeasure? sm2))
@@ -68,6 +72,8 @@
   (is (= (make-id-smeasure ctx1)
          sm1)))
 
+;(deftest scale-apposition)
+
 (deftest test-remove-attributes 
   (let [ctx (rand-context (range 6) 0.5)
         sm (make-id-smeasure ctx)
@@ -77,5 +83,5 @@
 
 ;(deftest rename-scale)
 ;(deftest logical-conjunctive-smeasure-representation)
-;(deftest scale-apposition)
-;(deftest remove-attributes sm)
+
+nil
