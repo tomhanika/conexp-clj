@@ -72,6 +72,11 @@
   (is (= (make-id-smeasure ctx1)
          sm1)))
 
+(deftest test-smeasure-by-exts
+  (let [exts #{#{} #{1}}]
+    (is (= (scale (smeasure-by-exts ctx1 exts))
+           (make-context (objects ctx1) exts #{[1 #{1}]})))))
+
 ;(deftest scale-apposition)
 
 (deftest test-remove-attributes 
