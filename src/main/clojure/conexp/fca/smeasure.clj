@@ -219,7 +219,7 @@
   (assert (= (context sm1) (context sm2)) "Both scale-measure must be for the same context.")
   (smeasure-by-exts (context sm1)
                     (intersection (set (original-extents sm1))
-                                  (set (original-extents sm1)))))
+                                  (set (original-extents sm2)))))
 
 (defn join-complement 
   "Returns the canonical representation of the join-complement of sm in the scale-hierarchy."

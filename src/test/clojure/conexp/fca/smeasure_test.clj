@@ -18,11 +18,25 @@
   (make-context-nc #{1 2 3} #{1 2 3 4 5} 
                    #{[1 1][2 2][1 3][2 4][3 5]}))
 
+(def- ctx3
+  (make-context-nc #{1 2 3 4} #{1 2 5} 
+                   #{[1 1][2 2][3 5][4 1]}))
+
+(def- ctx4
+  (make-context-nc #{1 2 3 4} #{3 5} 
+                   #{[1 3][3 5][4 3]}))
+
 (def- sm1
   (make-id-smeasure ctx1))
 
 (def- sm2
   (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)))
+
+(def- sm3
+  (make-smeasure ctx1 ctx3 identity))
+
+(def- sm4
+  (make-smeasure ctx1 ctx4 identity))
 
 (def- no-sm
   (make-smeasure-nc ctx1 ctx2 #(case % 1)))
@@ -82,6 +96,18 @@
          (make-context (objects ctx2) #{#{} #{1 4} #{2} #{3} #{1 2 3 4}} #{[1 #{1 4}] [1 #{1 2 3 4}] [2 #{2}] [2 #{1 2 3 4}] [3 #{3}] [3 #{1 2 3 4}]}))))
 
 ;(deftest scale-apposition)
+
+(deftest test-meet-smeasure
+  (let [sm-meet-1 (meet-smeasure sm1 sm2)
+        sm-meet-2 (meet-smeasure sm3 sm4)]
+    (is (= (context sm-meet-1) ctx1))
+    (is (= (scale sm-meet-1)
+           (make-context (objects ctx1) #{#{} #{2} #{3} #{1 4} #{1 2 3 4}} 
+                         #{[1 #{1 4}] [1 #{1 2 3 4}] [2 #{2}] [2 #{1 2 3 4}] [3 #{3}] [3 #{1 2 3 4}] [4 #{1 4}] [4 #{1 2 3 4}]})))
+    (is (= (context sm-meet-2) ctx1))
+    (is (= (scale sm-meet-2)
+           (make-context (objects ctx3) #{#{} #{3} #{1 4} #{1 2 3 4}} 
+                         #{[1 #{1 4}] [1 #{1 2 3 4}] [2 #{1 2 3 4}] [3 #{3}] [3 #{1 2 3 4}] [4 #{1 4}] [4 #{1 2 3 4}]})))))
 
 (deftest test-remove-attributes 
   (let [ctx (rand-context (range 6) 0.5)
