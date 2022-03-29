@@ -197,7 +197,9 @@
   [sm]
   (let [scon (scale sm)
         o (original-extents sm)]
-    (make-smeasure-nc (context sm) (make-context (objects scon) o #(contains? %2 %1)) identity)))
+    (make-smeasure-nc (context sm) 
+                      (make-context (objects (context sm)) o #(contains? %2 %1)) 
+                      identity)))
 
 (defn scale-apposition 
   [sm1 sm2]
