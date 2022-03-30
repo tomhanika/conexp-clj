@@ -26,6 +26,12 @@
   (make-context-nc #{1 2 3 4} #{3 5} 
                    #{[1 3][3 5][4 3]}))
 
+(def- ctx-equality
+  (make-context #{1 2 3} #{1 2 3} =))
+
+(def- ctx-inequality
+  (make-context #{1 2 3} #{1 2 3} not=))
+
 (def- sm1
   (make-id-smeasure ctx1))
 
@@ -40,6 +46,9 @@
 
 (def- no-sm
   (make-smeasure-nc ctx1 ctx2 #(case % 1)))
+
+(def- sm5
+  (make-smeasure-nc ctx-equality ctx-inequality identity))
 
 (deftest test-smeasure-to-string
   (is (= (smeasure-to-string sm1)
@@ -113,6 +122,12 @@
     (is (= (scale sm-meet-2)
            (make-context (objects ctx3) #{#{} #{3} #{1 4} #{1 2 3 4}} 
                          #{[1 #{1 4}] [1 #{1 2 3 4}] [2 #{1 2 3 4}] [3 #{3}] [3 #{1 2 3 4}] [4 #{1 4}] [4 #{1 2 3 4}]})))))
+
+(deftest test-error-in-smeasure
+  (are [x] (= (error-in-smeasure x) [])
+    sm1 sm2 sm3 sm4)
+  (is (= (error-in-smeasure sm5)
+         [#{3 2} #{1 2} #{1 3}])))
 
 (deftest test-remove-attributes 
   (let [ctx (rand-context (range 6) 0.5)
