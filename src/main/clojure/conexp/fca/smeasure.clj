@@ -268,7 +268,7 @@
   "Returns all attributes of the scale whichs derivation pre-image is
   not an extents of cxt."
   ([sm]
-   (valid-attributes (context sm)
+   (invalid-attributes (context sm)
                       (scale sm)
                       (measure sm)))
   ([cxt s m]

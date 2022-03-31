@@ -78,7 +78,7 @@
 (deftest test-smeasure?
   (is (smeasure? sm1))
   (is (smeasure? sm2))
-  (is (not (smeasure? no-sm))))
+  (is (not (smeasure? sm5))))
 
 (deftest test-make-smeasure
   (is (= (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)) sm2))
@@ -124,10 +124,26 @@
                          #{[1 #{1 4}] [1 #{1 2 3 4}] [2 #{1 2 3 4}] [3 #{3}] [3 #{1 2 3 4}] [4 #{1 4}] [4 #{1 2 3 4}]})))))
 
 (deftest test-error-in-smeasure
-  (are [x] (= (error-in-smeasure x) [])
+  (are [sm] (= (error-in-smeasure sm) [])
     sm1 sm2 sm3 sm4)
   (is (= (error-in-smeasure sm5)
          [#{3 2} #{1 2} #{1 3}])))
+
+(deftest test-valid-attributes
+  (are [sm valid-atts] (= (set (valid-attributes sm)) (set valid-atts))
+    sm1 [1 2 3 4 5]
+    sm2 [1 2 3 4 5]
+    sm3 [1 2 5]
+    sm4 [3 5]
+    sm5 []))
+
+(deftest test-invalid-attributes
+  (are [sm invalid-atts] (= (set (invalid-attributes sm)) (set invalid-atts))
+    sm1 []
+    sm2 []
+    sm3 []
+    sm4 []
+    sm5 [1 2 3]))
 
 (deftest test-remove-attributes 
   (let [ctx (rand-context (range 6) 0.5)
