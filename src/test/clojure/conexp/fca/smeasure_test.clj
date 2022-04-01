@@ -145,6 +145,34 @@
     sm4 []
     sm5 [1 2 3]))
 
+(deftest test-conceptual-scaling-error
+  (are [sm error] (= (conceptual-scaling-error sm) error)
+    sm1 0
+    sm2 0
+    sm3 0
+    sm4 0
+    sm5 3)
+  (are [sm error] (= (conceptual-scaling-error sm :relative true) error)
+    sm1 0
+    sm2 0
+    sm3 0
+    sm4 0
+    sm5 (/ 3 8)))
+
+(deftest test-attribute-scaling-error
+  (are [sm error] (= (attribute-scaling-error sm) error)
+    sm1 0
+    sm2 0
+    sm3 0
+    sm4 0
+    sm5 3)
+  (are [sm error] (= (attribute-scaling-error sm :relative true) error)
+    sm1 0
+    sm2 0
+    sm3 0
+    sm4 0
+    sm5 1))
+
 (deftest test-remove-attributes 
   (let [ctx (rand-context (range 6) 0.5)
         sm (make-id-smeasure ctx)

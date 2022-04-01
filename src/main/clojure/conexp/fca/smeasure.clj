@@ -281,7 +281,7 @@
   DOI:https://doi.org/10.1007/978-3-030-86982-3_8"
   ([sm & {:keys [relative] :or {relative false}}]
    (let [o (original-extents sm)
-         error (count (filter #(not (extent? (context sm) %))))]
+         error (filter #(not (extent? (context sm) %)) o)]
      (if relative 
        (/ (count error) (count o))
        (count error)))))
@@ -293,7 +293,7 @@
   DOI:https://doi.org/10.1007/978-3-030-86982-3_8 "
   ([sm & {:keys [relative] :or {relative false}}]
    (let [a (-> sm scale attributes)
-         error (-> sm invalid-attributes count)]
+         error (-> sm invalid-attributes)]
      (if relative 
        (/ (count error) (count a))
        (count error)))))
