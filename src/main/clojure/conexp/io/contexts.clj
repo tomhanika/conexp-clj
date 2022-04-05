@@ -16,7 +16,9 @@
             [clojure.string                  :refer (split)]
             [clojure.data.xml                :as xml]
             [clojure.data.json               :as json]
-            [json-schema.core                :as json-schema])
+            [json-schema.core                :as json-schema]
+            [clojure.data.csv                :as csv]
+            [clojure.java.io                 :as io])
   (:import [java.io PushbackReader]))
 
 
@@ -408,20 +410,21 @@
 
 (define-context-input-format :named-binary-csv
   [file]
-  (with-in-reader file
-    "named binary CSV"
-    (let [[_ & atts] (split (read-line) #",")
-          atts-idx (reduce #(assoc %1 %2 (.indexOf atts %2)) {} atts)
-          [o & second-line] (split (read-line) #",")]
-      (loop [objs      #{o},
-             incidence (set-of [o a] | a atts, :when (= (nth second-line (get atts-idx a)) "1"))]
-        (if-let [line (read-line)]
-          (let [[o & line] (split line #",")]
-            (recur (conj objs o)
-                   (into incidence
-                         (for [a atts :when (= (nth line (get atts-idx a)) "1")]
-                           [o a]))))
-          (make-context objs atts incidence))))))
+  (with-open [reader (io/reader file)]
+    (let [csv-list (doall
+                    (csv/read-csv reader))]
+      (let [M ((comp rest first) csv-list) rows (rest csv-list)
+                     G (reduce (fn [s row] 
+                                 (conj s (first row))) 
+                               [] 
+                               rows)
+                     I (reduce (fn [s row] 
+                                 (into s 
+                                       (map #(Integer/parseInt %) 
+                                            (rest row)))) 
+                               []
+                               rows)]
+                 (make-context-from-matrix G M I)))))
 
 (define-context-output-format :named-binary-csv
   [ctx file]
