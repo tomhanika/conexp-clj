@@ -35,8 +35,29 @@
 (def- sm1
   (make-id-smeasure ctx1))
 
+(def- sm1-str
+  (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
+       "--+----------     --+----------\n"
+       "1 |x . x . .  ⟶   1 |x . x . . \n"
+       "--+----------     --+----------\n"
+       "4 |x . x . .  ⟶   4 |x . x . . \n"
+       "--+----------     --+----------\n"
+       "3 |. . . . x  ⟶   3 |. . . . x \n"
+       "--+----------     --+----------\n"
+       "2 |. x . x .  ⟶   2 |. x . x . \n"))
+
 (def- sm2
   (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)))
+
+(def- sm2-str
+  (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
+       "--+----------     --+----------\n"
+       "1 |x . x . .  ⟶   1 |x . x . . \n"
+       "4 |x . x . .        |          \n"
+       "--+----------     --+----------\n"
+       "3 |. . . . x  ⟶   3 |. . . . x \n"
+       "--+----------     --+----------\n"
+       "2 |. x . x .  ⟶   2 |. x . x . \n"))
 
 (def- sm3
   (make-smeasure ctx1 ctx3 identity))
@@ -52,24 +73,9 @@
 
 (deftest test-smeasure-to-string
   (is (= (smeasure-to-string sm1)
-         (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
-              "--+----------     --+----------\n"
-              "1 |x . x . .  ⟶   1 |x . x . . \n"
-              "--+----------     --+----------\n"
-              "4 |x . x . .  ⟶   4 |x . x . . \n"
-              "--+----------     --+----------\n"
-              "3 |. . . . x  ⟶   3 |. . . . x \n"
-              "--+----------     --+----------\n"
-              "2 |. x . x .  ⟶   2 |. x . x . \n")))
+         sm1-str))
   (is (= (smeasure-to-string sm2)
-         (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
-              "--+----------     --+----------\n"
-              "1 |x . x . .  ⟶   1 |x . x . . \n"
-              "4 |x . x . .        |          \n"
-              "--+----------     --+----------\n"
-              "3 |. . . . x  ⟶   3 |. . . . x \n"
-              "--+----------     --+----------\n"
-              "2 |. x . x .  ⟶   2 |. x . x . \n"))))
+         sm2-str)))
 
 (deftest test-original-extents
   (is (= (original-extents sm2)
@@ -81,19 +87,30 @@
   (is (not (smeasure? sm5))))
 
 (deftest test-make-smeasure
-  (is (= (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)) sm2))
+  (is (= (smeasure-to-string (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)))
+         sm2-str))
   (is (thrown-with-msg?
        AssertionError
        #"The Input is no valid Scale Measure"
        (make-smeasure ctx1 ctx2 #(case % 1)))))
 
 (deftest test-make-smeasure-nc
-  (is (= (make-smeasure-nc ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)) sm2))
-  (is (= (make-smeasure-nc ctx1 ctx2 #(case % 1))) no-sm))
+  (is (= (smeasure-to-string (make-smeasure-nc ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)))
+         sm2-str))
+  (is (= (smeasure-to-string (make-smeasure-nc ctx1 ctx2 #(case % 1))))
+      (str "  |1 4 3 2 5        |1 4 3 2 5 \n"
+           "--+----------     --+----------\n"
+           "1 |x . x . .  ⟶   1 |x . x . . \n"
+           "--+----------     --+----------\n"
+           "4 |x . x . .  ⟶     |          \n"
+           "--+----------     --+----------\n"
+           "3 |. . . . x  ⟶     |          \n"
+           "--+----------     --+----------\n"
+           "2 |. x . x .  ⟶     |          \n")))
 
 (deftest test-make-id-smeasure
-  (is (= (make-id-smeasure ctx1)
-         sm1)))
+  (is (= (smeasure-to-string (make-id-smeasure ctx1))
+         sm1-str)))
 
 (deftest test-smeasure-by-exts
   (let [exts #{#{} #{1}}]
