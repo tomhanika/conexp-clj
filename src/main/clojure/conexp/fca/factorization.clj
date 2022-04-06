@@ -40,16 +40,37 @@
     )
   )
 
-(defn calcPandaMatrix
- "Creates binary Matrix from panda-algo result vectors"
+ (defn calcPandaContext
+  "Creates Context from panda-algo result vectors"
   [pi]
   (loop [i 0 end (calcOneMatrix (get (nth pi i) :ci) (get (nth pi i) :ct))]
-    (if (>= i (count pi) i)
-      (into [] (apply concat end))
+    (if (>= i (count pi))
+      (make-context-from-matrix  (count (get (nth pi 0) :ci)) (count (get (nth pi 0) :ct)) (into [] (flatten end)))
       (recur (inc i) (unite end (calcOneMatrix (get (nth pi i) :ci) (get (nth pi i) :ct))))
     )
   )
 )
+
+(defn calcGrecondContext
+  "Creates Context from grecond-algo result vectors"
+  [F m n]
+  (loop [i 1 end (grecondMakeMatrixFromConcept (nth (nth F 0) 0) (nth (nth F 0) 1) n m)]
+    (if (>= i (count F))
+      (make-context-from-matrix 6 6 end)
+      (recur
+        (inc i)
+        (mapv (fn [x y] (if (or (= 1 x) (= 1 y)) 1 0)) (grecondMakeMatrixFromConcept (nth (nth F i) 0) (nth (nth F i) 1) n m) end)  
+      )
+    )
+  )
+)
+
+(defn calcHyperContext
+  "Creates Context from hyper-algo result vectors"
+  [hyper]
+  (make-context-from-matrix  (count (nth hyper 1)) (count (nth (nth hyper 1) 0)) (into [] (flatten (nth hyper 1))))
+)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;https://doi.org/10.1109/TKDE.2008.53
@@ -305,19 +326,6 @@
       )
     )
   )  
-)
-
-(defn calcGrecondMatrix
-  [F m n]
-  (loop [i 1 end (grecondMakeMatrixFromConcept (nth (nth F 0) 0) (nth (nth F 0) 1) n m)]
-    (if (>= i (count F))
-      end
-      (recur
-        (inc i)
-        (mapv (fn [x y] (if (or (= 1 x) (= 1 y)) 1 0)) (grecondMakeMatrixFromConcept (nth (nth F i) 0) (nth (nth F i) 1) n m) end)  
-      )
-    )
-  )
 )
 
 (defn- grecondTestFullMatch
