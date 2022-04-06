@@ -197,6 +197,24 @@
     (is (= (attributes (scale removed)) #{0 3 4 5}))
     (is (smeasure? removed))))
 
+(deftest test-smeasure-valid-attr
+  (are [sm scale-ctx] (= (scale (smeasure-valid-attr sm)) scale-ctx)
+    sm1 ctx1
+    sm2 ctx2
+    sm3 ctx3
+    sm4 ctx4)
+  (is (= (scale (smeasure-valid-attr sm5))
+         (make-context (objects ctx-equality) #{} identity))))
+
+(deftest test-smeasure-invalid-attr
+  (are [sm ctx] (= (scale (smeasure-invalid-attr sm))
+                   (make-context (objects ctx) #{} identity))
+    sm1 ctx1
+    sm2 ctx2
+    sm3 ctx3
+    sm4 ctx4)
+  (is (= (scale (smeasure-invalid-attr sm5))
+         ctx-inequality)))
 ;(deftest rename-scale)
 ;(deftest logical-conjunctive-smeasure-representation)
 
