@@ -244,7 +244,35 @@
   (is (= (attributes (scale (smeasure-invalid-exts sm5)))
          #{#{1 2} #{1 3} #{2 3}})))
 
-;(deftest rename-scale)
+(deftest test-rename-scale-objects
+  ;; rename all objects in scale with a map
+  (is (= (objects (scale (#'conexp.fca.smeasure/rename-scale :objects sm1 {1 "A" 2 "B" 3 "C" 4 "D"})))
+         #{"A" "B" "C" "D"}))
+  (is (= (scale (#'conexp.fca.smeasure/rename-scale :objects sm4 {1 "A" 2 "B" 3 "C" 4 "D"})))
+      (make-context #{"A" "B" "C" "D"} #{3 5} #{["A" 3] ["C" 5] ["D" 3]}))
+  ;; rename one object in scale
+  (is (= (objects (scale (#'conexp.fca.smeasure/rename-scale :objects sm2 1 5)))
+         #{5 2 3}))
+  (is (= (scale (#'conexp.fca.smeasure/rename-scale :objects sm3 1 5))
+         (make-context #{5 2 3 4} #{1 2 5} #{[5 1] [2 2] [3 5] [4 1]})))
+  ;; rename object that does not exist
+  (is (= (scale (#'conexp.fca.smeasure/rename-scale :objects sm5 4 5))
+         (scale sm5))))
+
+(deftest test-rename-scale-attributes
+  ;; rename all attributes in scale with a map
+  (is (= (attributes (scale (#'conexp.fca.smeasure/rename-scale :attributes sm1 {1 "A" 2 "B" 3 "C" 4 "D" 5 "E"})))
+         #{"A" "B" "C" "D" "E"}))
+  (is (= (scale (#'conexp.fca.smeasure/rename-scale :attributes sm2 {1 10 2 20 3 30 4 40 5 50}))
+         (make-context #{1 2 3} #{10 20 30 40 50} #{[1 10] [1 30] [2 20] [2 40] [3 50]})))
+  ;; rename one attribute in scale
+  (is (= (attributes (scale (#'conexp.fca.smeasure/rename-scale :attributes sm3 2 "C")))
+         #{1 "C" 5}))
+  (is (= (scale (#'conexp.fca.smeasure/rename-scale :attributes sm4 3 1))
+         (make-context #{1 2 3 4} #{1 5} #{[1 1] [3 5] [4 1]})))
+  ;; rename attribute that does not exist
+  (is (= (scale (#'conexp.fca.smeasure/rename-scale :attributes sm5 4 5))
+         (scale sm5))))
 
 (def- cnf-1
   (str "  |1 4 3 2 5        |() (5) (4 :and 2) (1 :and 3) (1 :and 4 :and 3 :and 2 :and 5) \n"
