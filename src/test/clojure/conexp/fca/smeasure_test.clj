@@ -224,6 +224,26 @@
   (is (= (scale (smeasure-invalid-attr sm5))
          ctx-inequality)))
 
+(deftest test-smeasure-valid-exts
+  (are [sm] (= (attributes (scale (smeasure-valid-exts sm)))
+               #{#{} #{2} #{3} #{1 4} #{1 2 3 4}})
+    sm1
+    sm2
+    sm3
+    sm4)
+  (is (= (attributes (scale (smeasure-valid-exts sm5)))
+         #{#{} #{1} #{2} #{3} #{1 2 3}})))
+
+(deftest test-smeasure-invalid-exts
+  (are [sm] (= (attributes (scale (smeasure-invalid-exts sm)))
+               #{})
+    sm1
+    sm2
+    sm3
+    sm4)
+  (is (= (attributes (scale (smeasure-invalid-exts sm5)))
+         #{#{1 2} #{1 3} #{2 3}})))
+
 ;(deftest rename-scale)
 
 (def- cnf-1

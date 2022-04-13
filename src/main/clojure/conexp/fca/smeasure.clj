@@ -315,7 +315,7 @@
     (remove-attributes-sm sm inval-attr)))
 
 (defn smeasure-invalid-attr
-  "Filters the scale-measure scale attributes to the set of valid attributes."
+  "Filters the scale-measure scale attributes to the set of invalid attributes."
   [sm]
   (let [val-attr (valid-attributes sm)]
     (remove-attributes-sm sm val-attr)))
@@ -323,7 +323,7 @@
 
 
 (defn smeasure-valid-exts
-  "Filters the scale-measure scale attributes to the set of valid attributes."
+  "Filters the scale-measure extents to the set of valid extents."
   [sm]
   (let [invalid-exts (error-in-smeasure sm) ]
     (smeasure-by-exts (context sm) 
@@ -331,7 +331,7 @@
                                   (set invalid-exts)))))
 
 (defn smeasure-invalid-exts
-  "Filters the scale-measure scale attributes to the set of valid attributes."
+  "Filters the scale-measure extents to the set of invalid extents."
   [sm]
   (let [invalid-exts (error-in-smeasure sm) ]
     (smeasure-by-exts (context sm)
@@ -347,8 +347,8 @@
 (defmethod rename-scale :objects
   ([_ sm rename-fn]
    (make-smeasure-nc (context sm) 
-                       (rename-objects (scale sm) rename-fn)
-                       (comp rename-fn (measure sm))))
+                     (rename-objects (scale sm) rename-fn)
+                     (comp rename-fn (measure sm))))
   ([_ sm key val & keyvals]
    (let [rename-map (apply hash-map key val keyvals)
          rename-fn  (fn [o] (or (get rename-map o) o))]
@@ -504,7 +504,7 @@
 
 (define-repl-fn logical-attr
   "Generates a new attribute as logical formula of existing attributes."
-  (let [formula (ask (str "Current Attributes: \n " (clojure.string/join " " (attributes scale)) "\n Please enter a logical formula using logical formuals e.g. \"(C :or (A :and (:not B)))\": \n ")
+  (let [formula (ask (str "Current Attributes: \n " (clojure.string/join " " (attributes scale)) "\n Please enter a logical formula using logical formuals e.g. \"[\"C\" :or [1 :and [:not \"B\"]]]\": \n ")
                      #(read-string (str (read-line)))
                      #(formula-syntax-checker % scale attributes)
                      "Enter a formula in nested list format using only attributes of the scale: \n")
