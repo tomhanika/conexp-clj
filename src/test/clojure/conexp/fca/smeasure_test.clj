@@ -77,6 +77,14 @@
   (is (= (smeasure-to-string sm2)
          sm2-str)))
 
+(deftest test-pre-image-measure
+  (are [sm pre-image] (= (#'conexp.fca.smeasure/pre-image-measure sm) pre-image)
+    sm1 {1 #{1}, 2 #{2}, 3 #{3}, 4 #{4}}
+    sm2 {1 #{1 4}, 2 #{2}, 3 #{3}}
+    sm3 {1 #{1}, 2 #{2}, 3 #{3}, 4 #{4}}
+    sm4 {1 #{1}, 2 #{2}, 3 #{3}, 4 #{4}}
+    sm5 {1 #{1}, 2 #{2}, 3 #{3}}))
+
 (deftest test-original-extents
   (is (= (original-extents sm2)
          (list #{} #{2} #{3} #{1 4} #{1 4 3 2}))))
