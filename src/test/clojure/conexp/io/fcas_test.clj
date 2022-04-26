@@ -32,8 +32,7 @@
   "Context is the only input"
   (with-testing-data [fca [fca-ctx-oi],
                       fmt (list-fca-formats)]
-    (try (= fca (out-in fca 'fca fmt))
-         (catch UnsupportedOperationException _ true))))
+    (= fca (out-in fca 'fca fmt))))
 
 (def- lattice-oi
   "Lattice to use for out-in testing"
@@ -47,8 +46,7 @@
   "Context and lattice as input"
   (with-testing-data [fca [fca-lat-oi],
                       fmt (list-fca-formats)]
-    (try (= fca (out-in fca 'fca fmt))
-         (catch UnsupportedOperationException _ true))))
+    (= fca (out-in fca 'fca fmt))))
 
 (def- implications-oi
   "Implications to use for out-in testing"
@@ -62,8 +60,7 @@
   "Context and implications as input"
   (with-testing-data [fca [fca-impl-oi],
                       fmt (list-fca-formats)]
-    (try (= fca (out-in fca 'fca fmt))
-         (catch UnsupportedOperationException _ true))))
+    (= fca (out-in fca 'fca fmt))))
 
 (def- fca-oi
   "FCA with context, lattice and implications"
@@ -73,8 +70,7 @@
   "Context, lattice and implications as input"
   (with-testing-data [fca [fca-oi],
                       fmt (list-fca-formats)]
-    (try (= fca (out-in fca 'fca fmt))
-         (catch UnsupportedOperationException _ true))))
+    (= fca (out-in fca 'fca fmt))))
 
 (def- fca-several-implication-sets-oi
   "FCA with context, lattice and several implication sets"
@@ -84,8 +80,7 @@
   "Context, lattice and several implication sets as input"
   (with-testing-data [fca [fca-several-implication-sets-oi],
                       fmt (list-fca-formats)]
-    (try (= fca (out-in fca 'fca fmt))
-         (catch UnsupportedOperationException _ true))))
+    (= fca (out-in fca 'fca fmt))))
 
 (def- contexts-oioi
   "Contexts to use for out-in-out-in testing"
@@ -100,8 +95,7 @@
     "Several tests with only-context input"
     (with-testing-data [fca fca-ctx-oioi,
                         fmt (list-fca-formats)]
-      (try (= fca (out-in fca 'fca fmt))
-           (catch UnsupportedOperationException _ true))))
+      (out-in-out-in-test fca 'fca fmt)))
 
 (def- lattice-oioi
   "Lattice to use for out-in-out-in testing"
@@ -117,8 +111,7 @@
   "Several tests with context and lattice input"
   (with-testing-data [fca fca-lat-oioi,
                       fmt (list-fca-formats)]
-    (try (= fca (out-in fca 'fca fmt))
-         (catch UnsupportedOperationException _ true))))
+    (out-in-out-in-test fca 'fca fmt)))
 
 (def- implications-oioi
   "Implications to use for out-in-out-in testing"
@@ -134,8 +127,7 @@
   "Several tests with context and implication input"
   (with-testing-data [fca fca-impl-oioi,
                       fmt (list-fca-formats)]
-    (try (= fca (out-in fca 'fca fmt))
-         (catch UnsupportedOperationException _ true))))
+    (out-in-out-in-test fca 'fca fmt)))
 
 (def- fca-oioi
   "FCAs for out-in-out-in testing with context, concepts and implications"
@@ -147,8 +139,7 @@
   "Several tests with complete FCA"
   (with-testing-data [fca fca-oioi,
                       fmt (list-fca-formats)]
-    (try (out-in-out-in-test fca 'fca fmt)
-         (catch UnsupportedOperationException _ true))))
+    (out-in-out-in-test fca 'fca fmt)))
 
 ;;;
 
@@ -166,6 +157,15 @@
     (warn "Could not verify validation of fca schema. Testing file not found.")
     (let [fca (read-fca "testing-data/digits-fca.json" :json)]
       (is (= 6 (count (first (:implication-sets fca))))))))
+
+(deftest test-identify-input-format
+  "Test if the automatic identification of the file format works correctly."
+  (with-testing-data [fca [fca-oi],
+                      fmt (list-fca-formats)]
+    (= fca (out-in-without-format fca 'fca fmt)))
+  (with-testing-data [fca [(first fca-oioi)],
+                      fmt (list-fca-formats)]
+    (= fca (out-in-without-format fca 'fca fmt))))
 
 ;;;
 
