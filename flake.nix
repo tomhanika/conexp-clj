@@ -37,9 +37,6 @@
             clojure-lsp
             leiningen
           ];
-          shellHook = ''
-            export "PATH=${conexp-clj}/bin:$PATH"
-          '';
         };
       });
 }
