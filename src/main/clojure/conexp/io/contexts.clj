@@ -336,15 +336,13 @@
 
 (define-context-input-format :csv
   [file]
-  (with-in-reader file
-    (loop [inz #{}]
-      (let [line (read-line)]
-        (if (not line)
-          (make-context-nc (set-of g [[g m] inz])
-                           (set-of m [[g m] inz])
-                           inz)
-          (let [[r g m] (re-matches #"^((?:[^,]+|\".*\")),((?:[^,]+|\".*\"))$" line)]
-            (recur (conj inz [g m]))))))))
+  (with-open [reader (io/reader file)]
+    (let [csv-list (doall
+                    (csv/read-csv reader))
+          obj (set (map first csv-list))
+          attr (set (map second csv-list))
+          inc (set csv-list)]
+      (make-context-nc obj attr inc))))
 
 (define-context-output-format :csv
   [ctx file]
