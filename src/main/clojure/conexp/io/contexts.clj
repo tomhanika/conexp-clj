@@ -341,8 +341,8 @@
                     (csv/read-csv reader))
           obj (set (map first csv-list))
           attr (set (map second csv-list))
-          inc (set csv-list)]
-      (make-context-nc obj attr inc))))
+          incidence (set csv-list)]
+      (make-context-nc obj attr incidence))))
 
 (define-context-output-format :csv
   [ctx file]
@@ -350,9 +350,9 @@
                 (and (string? x) (some #(= \, %) x)))
               (concat (objects ctx) (attributes ctx)))
     (unsupported-operation "Cannot export to :csv format, object or attribute names contain \",\"."))
-  (with-out-writer file
-    (doseq [[g m] (incidence-relation ctx)]
-      (println (str g "," m)))))
+  (with-open [writer (io/writer file)]
+    (csv/write-csv writer
+                   (incidence-relation ctx))))
 
 
 ;; Binary CSV (:binary-csv)
