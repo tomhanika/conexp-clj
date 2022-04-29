@@ -363,20 +363,15 @@
 
 (define-context-input-format :binary-csv
   [file]
-  (with-in-reader file
-    (read-line)
-    (let [first-line (split (read-line) #",")
-          atts       (range (count first-line))]
-      (loop [objs      #{0},
-             incidence (set-of [0 n] | n atts, :when (= (nth first-line n) "1"))]
-        (if-let [line (read-line)]
-          (let [line (split line #","),
-                i    (count objs)]
-            (recur (conj objs i)
-                   (into incidence
-                         (for [n atts :when (= (nth line n) "1")]
-                           [i n]))))
-          (make-context objs atts incidence))))))
+  (with-open [reader (io/reader file)]
+    (let [csv-list (rest ; remove the first element [binary CSV]
+                    (doall
+                          (csv/read-csv reader)))
+          num-objects (count csv-list)
+          num-attributes (count (first csv-list))
+          incidences (map #(Integer/parseInt %) 
+                              (into [] (apply concat csv-list)))]
+      (make-context-from-matrix num-objects num-attributes incidences))))
 
 (define-context-output-format :binary-csv
   [ctx file]
