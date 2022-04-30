@@ -383,19 +383,14 @@
             (concat (objects ctx) (attributes ctx)))
   (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
-        atts (sort (attributes ctx))]
-    (with-out-writer file
-      (println "binary CSV")
-      (doseq [g objs]
-        (loop [atts atts]
-          (when-let [m (first atts)]
-            (print (if (incident? ctx g m)
-                     "1"
-                     "0"))
-            (when (next atts)
-              (print ","))
-            (recur (rest atts))))
-        (println)))))
+        atts (sort (attributes ctx))
+        output-matrix (for [obj objs]
+                        (for [att atts]
+                          (if (incident? ctx obj att) 1 0)))]
+    (with-open [writer (io/writer file)]
+      (csv/write-csv writer
+                     (conj output-matrix ["binary CSV"]) ; add "binary CSV as first line of output
+                     ))))
 
 (add-context-input-format :named-binary-csv
                           (fn [rdr]
