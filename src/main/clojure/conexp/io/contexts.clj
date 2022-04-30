@@ -424,13 +424,16 @@
               (concat (objects ctx) (attributes ctx)))
     (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
-        atts (sort (attributes ctx))]
-    (with-out-writer file
-      (println (clojure.string/join "," (into ["NB"] atts)))
-      (doseq [g objs]
-        (println (clojure.string/join "," 
-                                      (into [g] 
-                                            (map #(if (incident? ctx g %) 1 0) atts))))))))
+        atts (sort (attributes ctx))
+        output-matrix (conj (for [obj objs] 
+                              (into [obj] (for [att atts] 
+                                            (if (incident? ctx obj att) 
+                                              1 
+                                              0)))) 
+                            (into ["NB"] atts))]
+    (with-open [writer (io/writer file)]
+      (csv/write-csv writer
+                     output-matrix))))
 
 
 ;; output as tex array
