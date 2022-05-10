@@ -24,12 +24,22 @@
                    ["b" "2"] ["c" "3"]}),
    (null-context #{})])
 
+(def- contexts-oi-fcalgs
+  [(make-context #{0 1}
+                 #{0 1}
+                 #{[0 1] [1 0] [1 1]})])
+
 (deftest test-context-out-in
   (with-testing-data [ctx contexts-oi,
-                      fmt (remove #{:binary-csv :anonymous-burmeister}
+                      fmt (remove #{:binary-csv :anonymous-burmeister :fcalgs}
                                   (list-context-formats))]
     (try (= ctx (out-in ctx 'context fmt))
-         (catch UnsupportedOperationException _ true))))
+         (catch UnsupportedOperationException _ true)))
+  
+  ;; fcalgs throws UnsupportedOperationException at writing and thus needs to be tested with another context
+  (with-testing-data [ctx contexts-oi-fcalgs,
+                      fmt #{:fcalgs}]
+    (= ctx (out-in ctx 'context fmt))))
 
 (defn- possible-isomorphic?
   "Test for equality of some criteria for context isomorphy.  Namely, number of objects and attributes, the size of the incidence relation, and the number of concepts.  Only use with small contexts."
@@ -185,6 +195,40 @@
       (is (= 42 (count (attributes ctx))))
       (is (= 10 (count (objects ctx))))
       (is (= 120 (count (incidence-relation ctx)))))))
+
+;;;
+
+(deftest test-identify-input-format
+  "Test if the automatic identification of the file format works correctly."
+  (with-testing-data [ctx contexts-oi,
+                      fmt (remove #{:named-binary-csv :anonymous-burmeister 
+                                    :binary-csv :fcalgs} 
+                                  (list-context-formats))]
+    (= ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; The null-context in contexts-io cannot be exported to :named-binary-csv 
+  ;; format.
+  (with-testing-data [ctx [(first contexts-oi)],
+                      fmt #{:named-binary-csv}]
+    (= ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; During writing / reading in :anonymous-burmeister format, object and 
+  ;; attribute names get lost and equality cannot be tested any more.
+  (with-testing-data [ctx contexts-oi,
+                      fmt #{:anonymous-burmeister}]
+    (possible-isomorphic? ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; The null-context in contexts-io cannot be exported to :binary-csv format.
+  ;; During writing / reading in :binary-csv format, object and attribute names 
+  ;; get lost and equality cannot be tested any more.
+  (with-testing-data [ctx [(first contexts-oi)],
+                      fmt #{:binary-csv}]
+    (possible-isomorphic? ctx (out-in-without-format ctx 'context fmt)))
+  
+  ;; fcalgs test with another context
+  (with-testing-data [ctx contexts-oi-fcalgs,
+                      fmt #{:fcalgs}]
+    (= ctx (out-in-without-format ctx 'context fmt))))
 
 ;;;
 

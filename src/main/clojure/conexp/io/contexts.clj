@@ -394,7 +394,11 @@
 
 (add-context-input-format :named-binary-csv
                           (fn [rdr]
-                            (= "NB" (subs (read-line) 0 2))))
+                            (try (= "NB" (subs (read-line) 0 2))
+                                 ;; if file is empty, read-line returns nil
+                                 (catch NullPointerException _)
+                                 ;; first line of file can contain less than 2 characters
+                                 (catch StringIndexOutOfBoundsException _))))
 
 (define-context-input-format :named-binary-csv
   [file]

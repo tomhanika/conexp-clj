@@ -151,7 +151,7 @@ The layout used by ~draw-lattice~ is defined in ~standard-layout~.  Other
 layouts can be provided to ~draw-lattice~ as an additional argument
 
 #+begin_src clojure :results silent
-(draw-concept-lattice (concept-lattice (adiag-context 2))
+(draw-lattice (concept-lattice (adiag-context 2))
               :layout-fn inf-additive-layout)
 #+end_src
 
@@ -160,10 +160,13 @@ provided by the ~:value-fn~ argument. The following example annotates
 the extent size.
 
 #+begin_src clojure :results silent
-(draw-concept-lattice (concept-lattice (adiag-context 2))
+(draw-lattice (concept-lattice (adiag-context 2))
               :layout-fn inf-additive-layout
               :value-fn (comp count first))
 #+end_src
+
+The evaluations defined via ~:value-fn~ are displayed after the labels are
+switched on.
 
 #+caption: Lattice Editor Example
 [[./images/draw-lattice-02.png]]

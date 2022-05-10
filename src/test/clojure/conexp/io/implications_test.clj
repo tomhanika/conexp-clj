@@ -48,7 +48,8 @@
          (catch UnsupportedOperationException _ true))))
 
 ;;;
- (deftest test-json-not-matching-schema
+
+(deftest test-json-not-matching-schema
   "Read a json format that does not match the given schema."
   (if-not (.exists (java.io.File. "testing-data/digits-lattice.json"))
     (warn "Could not verify failing validation of implications schema. Testing file not found.") 
@@ -62,6 +63,15 @@
     (warn "Could not verify validation of implications schema. Testing file not found.")
     (let [implication-set (read-implication "testing-data/digits-implication.json" :json)]
       (is (= 6 (count implication-set))))))
+
+(deftest test-identify-input-format
+  "Test if the automatic identification of the file format works correctly."
+  (with-testing-data [implication implications-oi,
+                      fmt (list-implication-formats)]
+    (= implication (out-in-without-format implication 'implication fmt)))
+  (with-testing-data [implication [(first  implications-oioi)],
+                      fmt (list-implication-formats)]
+    (= implication (out-in-without-format implication 'implication fmt))))
 
 ;;;
 

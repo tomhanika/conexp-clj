@@ -46,6 +46,12 @@
          AssertionError
          (read-lattice "testing-data/digits-context.json" :json)))))
 
+(deftest test-identify-input-format
+  "Test if the automatic identification of the input format works correctly."
+  (with-testing-data [lat testing-lattices,
+                      fmt (list-lattice-formats)]
+    (= lat (out-in-without-format lat 'lattice fmt))))
+
 ;;;
 
 nil
