@@ -104,3 +104,34 @@ And
 ```
 reconstructing ctx-1 from the factorization-contexts.
 
+# Greess
+The [Greess-Algorithm](https://arxiv.org/abs/1306.4905) is a greedy algorithm, which stars with marking "essential" incidences. When every essential incidence is marked it will try to find the concepts which cover the most of the essintial incidence, until every marked incidence is covered. After that it will generate the Object-Factorization and the Attribute-Factorization.
+
+```clj
+(greess ctx-1 6)
+;;[
+;;[#{0} #{0 1 4 2 5}] -> [1 0 0 0 0 0]/[1 1 1 0 1 1]
+;;[#{0 1} #{1 4}]     -> [1 1 0 0 0 0]/[0 1 0 0 1 0]
+;;[#{0 1 4 3} #{4}]   -> [1 1 0 1 1 0]/[0 0 0 0 1 0]
+;;[#{3} #{4 3 5}]     -> [0 0 0 1 0 0]/[0 0 0 1 1 1]
+;;[#{0 2} #{2 5}]     -> [1 0 1 0 0 0]/[0 0 1 0 0 1]
+;;[#{0 3 2 5} #{5}]]  -> [1 0 1 1 0 1]/[0 0 0 0 0 1]
+
+;; first set being the Attribute-Factorization and second set being the Object-Factorization
+```
+
+And
+
+```clj
+(calcGreessContext (greess ctx-1 6) 6 6)
+;;  |0 1 2 3 4 5 
+;;--+------------
+;;0 |x x x . x x
+;;1 |. x . . x .
+;;2 |. . x . . x
+;;3 |. . . x x x
+;;4 |. . . . x .
+;;5 |. . . . . x
+```
+
+reconstructing ctx-1 from the factorization-contexts.

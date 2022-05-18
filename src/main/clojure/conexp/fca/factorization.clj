@@ -56,7 +56,7 @@
   [F m n]
   (loop [i 1 end (grecondMakeMatrixFromConcept (nth (nth F 0) 0) (nth (nth F 0) 1) n m)]
     (if (>= i (count F))
-      (make-context-from-matrix 6 6 end)
+      (make-context-from-matrix m n end)
       (recur
         (inc i)
         (mapv (fn [x y] (if (or (= 1 x) (= 1 y)) 1 0)) (grecondMakeMatrixFromConcept (nth (nth F i) 0) (nth (nth F i) 1) n m) end)  
@@ -69,6 +69,34 @@
   "Creates Context from hyper-algo result vectors"
   [hyper]
   (make-context-from-matrix  (count (nth hyper 1)) (count (nth (nth hyper 1) 0)) (into [] (flatten (nth hyper 1))))
+)
+
+(defn- greessMakeMatrixFromConcept
+  [a b n m]
+  ;; make matrix from concept a&b with n m 
+  (loop [i 0 j 0 matrix []]
+    (if (> j (- m 1))
+    matrix
+      (recur 
+        (cond (>= i (- n 1)) 0 :else (inc i)) 
+        (cond (>= i (- n 1)) (inc j) :else j)
+        (cond (and (some #(= j %) a) (some #(= i %) b)) (conj matrix 1) :else (conj matrix 0))
+      )
+    )
+  )  
+)
+
+(defn calcGreessContext
+  [F n m]
+  (loop [i 0 end (greessMakeMatrixFromConcept (nth (nth F 0) 0) (nth (nth F 0) 1) n m)]
+    (if (>= i (count F))
+      (make-context-from-matrix m n end)
+      (recur
+        (inc i)
+        (mapv (fn [x y] (if (or (= 1 x) (= 1 y)) 1 0)) (greessMakeMatrixFromConcept (nth (nth F i) 0) (nth (nth F i) 1) n m) end)  
+      )
+    )
+  )
 )
 
 
@@ -513,6 +541,95 @@
       )
     )
   )  
+)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; greess
+;; https://doi.org/10.48550/arXiv.1306.4905
+
+(defn- cartesianProduct
+  [a b]
+  (for [x a y b] [x y])
+)
+
+(defn- remove-indexed
+  [v n]
+  (into (subvec v 0 n) (subvec v (inc n)))
+)
+
+(defn- overlap
+  [concepts mark]
+  (for [x concepts] (count (intersection (set (cartesianProduct (first x) (second x))) (set mark))))
+)
+
+(defn- overlapMark
+  [concept mark]
+  (intersection (set (cartesianProduct (first concept) (second concept)))  (set mark) )
+)
+
+(defn- loopOverlaps
+  "Loops over concepts to determine which should be considered a Factorization Candidate"
+  [concepts mark k]
+  (loop [out [] tempConcepts concepts tempMark mark i 0]
+    (if (>= i k)
+      out
+      (recur
+        (conj out (nth tempConcepts (.indexOf (overlap tempConcepts tempMark) (apply max(overlap tempConcepts tempMark)))))
+        (remove-indexed tempConcepts (.indexOf (overlap tempConcepts tempMark) (apply max(overlap tempConcepts tempMark))))
+        (apply disj (set tempMark) (overlapMark (nth tempConcepts (.indexOf (overlap tempConcepts tempMark) (apply max(overlap tempConcepts tempMark)))) tempMark))
+        (inc i)  
+      )
+    )
+  )   
+)
+
+(defn- testMark
+  "Tests wether Incidence should be marked"
+  [i j v greek]
+  (let [ testGreekGamma (concat (subvec (first greek) 0 i) (subvec (first greek) (inc i)))
+         testGreekDelta (concat (subvec (second greek) 0 j) (subvec (second greek) (inc j)))
+         gamma (nth (first greek) i)
+         delta (nth (second greek) j)
+        ]
+      (if (and (= 1 (nth (nth v j) i)) (nil?
+      (some #(= 1 %) (concat 
+        (for [g testGreekGamma] (if (and (subset? g gamma) (= 1 (nth (nth v j) (.indexOf (first greek) g)))) 1 0))
+        (for [d testGreekDelta] (if (and (subset? d delta) (= 1 (nth (nth v (.indexOf (second greek) d)) i))) 1 0))
+      )))) [j i] nil)
+  )  
+)
+
+(defn- markGreess
+  "Creates List of Marked Incidences"
+  [v greek]
+  (loop [marked [] j 0 i 0]
+    (if (> (inc j) (count v))
+      marked
+      (recur 
+        (conj marked (testMark i j v greek))
+        (cond (>= (inc i) (count (nth v 0))) (inc j) :else j)
+        (cond (>= (inc i) (count (nth v 0))) 0 :else (inc i))
+      )
+    )  
+  )
+)
+
+
+(defn- calcDerivation
+  "Creates derivation for later use in marking progress"
+  [Input x y]
+  (loop [gamma [] i 0]
+    (if (>= i (count (x Input)))
+      gamma
+      (recur (conj gamma (y Input #{i})) (inc i))
+    )  
+  )
+)
+
+(defn greess
+  [Input k]
+  (let [gamma (calcDerivation Input attributes attribute-derivation) mu (calcDerivation Input objects object-derivation)]
+    (loopOverlaps (grecondCreateUsable (concepts Input)) (remove nil? (markGreess (make-matrix-from-context (context-to-string Input)) [gamma mu])) k)
+  )
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
