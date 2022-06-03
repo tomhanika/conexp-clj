@@ -329,7 +329,10 @@
 (add-context-input-format :csv
                           (fn [rdr]
                             (try
-                              (re-matches #"^[^,]+,[^,]+$" (read-line))
+                              (let [first-line (read-line)]
+                                (and (re-matches #"^[^,]+,[^,]+$" first-line)
+                                     ;; do not read empty json context as csv
+                                     (not= first-line "{\"attributes\":[],\"adjacency-list\":[]}")))
                               (catch Exception _))))
 
 (define-context-input-format :csv
@@ -624,11 +627,13 @@
   "Returns a formal context as a map that can easily be converted into json format.
   
   Example:
-  {formal_context: {
-     object: \"b\",
-     attributes: [\"1\", \"2\"]}}"
+  {:attributes (\"1\", \"2\")
+   :adjacency-list 
+     [{:object \"b\",
+       :attributes (\"1\", \"2\")}]}"
   [ctx]
-  {:formal_context 
+  {:attributes (into () (attributes ctx))
+   :adjacency-list 
      (mapv (partial object->json ctx) (objects ctx))})
 
 (defn- json-ctx->incidence
@@ -639,9 +644,10 @@
 (defn json->ctx
   "Returns a Context object for the given json context."
   [json-ctx]
-  (let [objects (map :object json-ctx)
-        attributes (distinct (flatten (map :attributes json-ctx)))
-        incidence (apply union (mapv json-ctx->incidence json-ctx))]
+  (let [attributes (:attributes json-ctx)
+        ctx-list (:adjacency-list json-ctx)
+        objects (map :object ctx-list)
+        incidence (apply union (mapv json-ctx->incidence ctx-list))]
     (make-context objects attributes incidence)))
 
 ;; Json Format (src/main/resources/schemas/context_schema_v1.0.json)
@@ -660,7 +666,7 @@
   [file]
   (with-in-reader file 
     (let [file-content (json/read *in* :key-fn keyword)
-          json-ctx (:formal_context file-content)
+          json-ctx file-content
           schema-file "src/main/resources/schemas/context_schema_v1.0.json"]
       (assert (matches-schema? file-content schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
