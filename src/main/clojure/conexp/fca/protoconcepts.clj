@@ -10,7 +10,8 @@
   "Basis datastructure and definitions for protoconcepts.
   DOI:https://doi.org/10.1007/11528784_2"
   (:require [conexp.base :refer :all]
-            [conexp.fca.contexts :refer :all]))
+            [conexp.fca.contexts :refer :all]
+            [conexp.fca.lattices :refer :all]))
 
 (deftype Protoconcept [base-set]
   Object
@@ -25,20 +26,28 @@
   [ctx [set-of-obj set-of-att]]
   (let [att-derivation (attribute-derivation ctx set-of-att)
         obj-derivation (object-derivation ctx set-of-obj)]
-    (or (clojure.set/subset? set-of-obj att-derivation)
-        (clojure.set/subset? set-of-att obj-derivation))))
+    (and (subset? obj-derivation set-of-att)
+         (subset? att-derivation set-of-obj))))
 
 (defn protoconcept?
   "Tests whether given pair is protoconcept in given context ctx."
   [ctx [set-of-obj set-of-att]]
-  (let [att-derivation (attribute-derivation ctx set-of-att)
-        obj-derivation (object-derivation ctx set-of-obj)]
-    (and (preconcept? ctx [set-of-obj set-of-att]))
-         (concept? ctx [att-derivation obj-derivation])))
+  (or (= (object-derivation ctx set-of-obj)
+         (context-attribute-closure ctx set-of-att))
+      (= (context-object-closure ctx set-of-obj)
+         (attribute-derivation ctx set-of-att))))
 
-;; protoconcept
+(defn protoconcepts
+  "Computes all protoconcepts of a context."
+  [ctx]
+  (let [object-equivalence-classes (group-by #(object-derivation ctx %) (subsets (objects ctx)))
+        attribute-equivalence-classes (group-by #(context-attribute-closure ctx %) (subsets (attributes ctx)))]
+    (into #{} (apply concat (map (fn [key] 
+                                   (for [obj (get object-equivalence-classes key) 
+                                         attr (get attribute-equivalence-classes key)] 
+                                     [obj attr])) (keys object-equivalence-classes))))))
+
 ;; protoconcept-lattice
 ;; order-function
 
-;; TODO: protoconcepts (create protoconcepts)
 ;; TODO: make-protoconcept-lattice or make-protoconcept-order

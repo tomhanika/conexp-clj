@@ -18,7 +18,13 @@
                                      ["b" 1] ["b" 3]
                                      ["c" 0] ["c" 1]}))
 
-(deftest test-preconcept
+(def test-context-02 (make-context #{1 2 3}
+                                   #{'a 'b 'c 'e}
+                                   #{[1 'a] [1 'c]
+                                     [2 'b] [2 'e]
+                                     [3 'b] [3 'c] [3 'e]}))
+
+(deftest test-preconcept?
   ;; test all preconcepts of test-context-01
   (are [object-set attribute-set] (preconcept? test-context-01 [object-set attribute-set])
     #{} #{}
@@ -74,7 +80,7 @@
     #{"c"} #{1 3}
     #{"c"} #{0 1 2 3}))
 
-(deftest test-protoconcept
+(deftest test-protoconcept?
   ;; test all protoconcepts of test-context-01
   (are [object-set attribute-set] (protoconcept? test-context-01 [object-set attribute-set])
     #{} #{0 2}
@@ -129,3 +135,13 @@
     #{"c"} #{1}
     #{"a" "b"} #{}
     #{"b" "c"} #{}))
+
+(deftest test-protoconcepts
+  ;; test protoconcept generation
+  (let [all-protoconcepts (protoconcepts test-context-02)
+        all-combinations
+        (for [obj-subset (subsets (objects test-context-02))
+              attr-subset (subsets (attributes test-context-02))]
+          [obj-subset attr-subset])]
+    (is (= (map #(protoconcept? test-context-02 %) all-combinations)
+           (map #(contains? all-protoconcepts %) all-combinations)))))
