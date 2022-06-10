@@ -37,6 +37,12 @@
       (= (context-object-closure ctx set-of-obj)
          (attribute-derivation ctx set-of-att))))
 
+(defn semiconcept?
+  "Tests whether given pair is a semiconcept in given context ctx."
+  [ctx [set-of-obj set-of-att]]
+  (or (= (object-derivation ctx set-of-obj) set-of-att)
+      (= set-of-obj (attribute-derivation ctx set-of-att))))
+
 (defn protoconcepts
   "Computes all protoconcepts of a context."
   [ctx]

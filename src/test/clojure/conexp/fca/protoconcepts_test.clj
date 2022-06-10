@@ -143,6 +143,32 @@
     #{"a" "b"} #{}
     #{"b" "c"} #{}))
 
+(deftest test-semiconcepts?
+  ;; test all semiconcepts
+  (are [object-set attribute-set] (semiconcept? test-context-02 [object-set attribute-set])
+    #{1 2} #{}
+    #{1 2 3} #{}
+    #{1} #{'a}
+    #{1} #{'a 'c}
+    #{1 3} #{'c}
+    #{2} #{'b 'e}
+    #{2 3} #{'b}
+    #{2 3} #{'e}
+    #{2 3} #{'b 'e}
+    #{3} #{'b 'c}
+    #{3} #{'c 'e}
+    #{3} #{'b 'c 'e}
+    #{} #{'a 'b}
+    #{} #{'a 'e}
+    #{} #{'a 'b 'c}
+    #{} #{'a 'b 'e}
+    #{} #{'a 'c 'e}
+    #{} #{'a 'b 'c 'e})
+  ;; test some non-semiconcepts
+  (are [object-set attribute-set] (not (semiconcept? test-context-02 [object-set attribute-set]))
+    #{2} #{'b}
+    #{2} #{'e}))
+
 (deftest test-protoconcepts
   ;; test protoconcept generation
   (let [all-protoconcepts (protoconcepts test-context-02)
