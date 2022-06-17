@@ -11,7 +11,10 @@
   (:use conexp.base
         conexp.layouts.util
         conexp.layouts.base
-        conexp.fca.lattices))
+        conexp.math.algebra
+        conexp.fca.lattices
+        conexp.fca.cover
+        conexp.fca.protoconcepts))
 
 ;;; Simple Layered Layout
 
@@ -34,6 +37,17 @@
                                  (iterate inc 0)
                                  (layers lattice)))
                   (edges lattice)))
+
+(defn simple-protoconcept-layout
+  "Simple protoconcept layout for protoconcepts visualisation."
+  [protoconcepts]
+  (make-layout-nc protoconcepts
+                  (apply hash-map
+                         (mapcat layer-coordinates
+                                 (iterate inc 0)
+                                 (layers protoconcepts)))
+                  (cover-relation (base-set protoconcepts)
+                                  (order protoconcepts))))
 
 (defn as-chain
   "Returns the layout of lattice as a simple chain."

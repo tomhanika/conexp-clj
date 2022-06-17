@@ -22,6 +22,10 @@
   [lattice]
   (to-inf-additive-layout (standard-layout lattice)))
 
+(def protoconcept-layout
+  "Protoconcept layout function."
+  simple-protoconcept-layout)
+
 ;;;
 
 nil

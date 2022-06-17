@@ -178,3 +178,16 @@
           [obj-subset attr-subset])]
     (is (= (map #(protoconcept? test-context-02 %) all-combinations)
            (map #(contains? all-protoconcepts %) all-combinations)))))
+
+(def test-context-03
+  (make-context-from-matrix #{1 2}
+                            #{'a 'b}
+                            [1 0 1 1]))
+
+(deftest test-protoconcepts-order
+  (is (= (protoconcepts-order test-context-03)
+         (make-protoconcepts-nc #{[#{} #{'b}] [#{} #{'a 'b}] [#{2} #{'b}] [#{2} #{'a 'b}]
+                                  [#{1} #{}] [#{1} #{'a}] [#{1 2} #{}] [#{1 2} #{'a}]}
+                                (fn [[A B] [C D]]
+                                  (and (subset? A C)
+                                       (subset? D B)))))))

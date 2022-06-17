@@ -7,19 +7,33 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.protoconcepts
-  "Basis datastructure and definitions for protoconcepts.
-  DOI:https://doi.org/10.1007/11528784_2"
+  "Basis datastructure and definitions for protoconcepts."
   (:require [conexp.base :refer :all]
+            [conexp.math.algebra :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.lattices :refer :all]))
 
-(deftype Protoconcept [base-set]
+(deftype Protoconcepts [base-set order-function]
   Object
   (equals [this other]
     (and (= (class this) (class other))
-         (= (.base-set this) (.base-set ^Protoconcept other))))
+         (= (.base-set this) (.base-set ^Protoconcepts other))
+         (let [order-this (.order this),
+               order-other (.order other)]
+           (or (= order-this order-other)
+               (forall [x (.base-set this)
+                        y (.base-set this)]
+                       (<=> (order-this x y)
+                            (order-other x y)))))))
   (hashCode [this]
-    (hash-combine-hash Protoconcept base-set)))
+    (hash-combine-hash Protoconcepts base-set))
+  ;;
+  Order
+  (base-set [this] base-set)
+  (order [this]
+    (fn order-fn
+      ([pair] (order-function (first pair) (second pair)))
+      ([x y] (order-function x y)))))
 
 (defn preconcept?
   "Tests whether given pair is preconcept in given context ctx."
@@ -53,7 +67,15 @@
                                          attr (get attribute-equivalence-classes key)] 
                                      [obj attr])) (keys object-equivalence-classes))))))
 
-;; protoconcept-lattice
-;; order-function
+(defn make-protoconcepts-nc
+  "Creates a new protoconcept order from the given base-set and order-function, without any checks."
+  [base-set order-function]
+  (Protoconcepts. base-set order-function))
 
-;; TODO: make-protoconcept-lattice or make-protoconcept-order
+(defn protoconcepts-order
+  "Returns for a given context ctx its protoconcepts with order."
+  [ctx]
+  (make-protoconcepts-nc (protoconcepts ctx)
+                         (fn <= [[A B] [C D]]
+                           (and (subset? A C)
+                                (subset? D B)))))

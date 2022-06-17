@@ -373,3 +373,25 @@
                   (do (await cur-lattice) @cur-lattice)
                   (let [bin-closure (next-closed-set-iterator bin-ctx bin-next)]
                     (recur (to-hashset attr-order bin-closure) bin-closure)))))))))
+
+;;;;;;;;;;;;;;;;;;;;; Cover Methods for Ordered Sets ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- no-direct-neighbors
+  "Finds all relations with elements that are no direct neighbors."
+  [base-set order-relation]
+  (set (for [x base-set
+             y (filter #(order-relation x %) base-set) :when (not= x y)
+             z (filter #(order-relation y %) base-set) :when (and (not= x y)
+                                                                  (not= y z))]
+         [x z])))
+
+(defn cover-relation
+  "Computes the cover relation (as set of tuples) of an ordered set, given by the base set and order-relation."
+  [base-set order-relation]
+  (let [no-neighbors (no-direct-neighbors base-set order-relation)
+        cover (set (for [x base-set
+                         y base-set :when (and (order-relation x y)
+                                               (not= x y))]
+                     [x y]))]
+    (difference cover no-neighbors)))
+
