@@ -9,6 +9,8 @@
 (ns conexp.layouts.layered-test
   (:use conexp.base
         conexp.math.algebra
+        conexp.fca.contexts
+        conexp.fca.protoconcepts
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.util
@@ -36,6 +38,26 @@
              (forall [x coords]
                (exists [y coords]
                  (= x (- y)))))))))
+
+(def test-ctx-1
+  (make-context-from-matrix [1 2 3]
+                            ['a 'b 'c]
+                            [1 0 0
+                             0 1 0
+                             0 1 1]))
+
+(deftest test-simple-protoconcept-layout
+  (let [test-protoconcepts (protoconcepts-order test-ctx-1)
+        protoconcept-layout (simple-protoconcept-layout test-protoconcepts)
+        layers (layers test-protoconcepts)
+        protoconcept-layers (sort
+                             (group-by #(second (second %))
+                                       (positions protoconcept-layout)))]
+    (is (layout? protoconcept-layout))
+    (is (= (count layers)
+              (count protoconcept-layers)))
+    (is (= (map count layers)
+           (map (comp count second) protoconcept-layers)))))
 
 (deftest test-as-chain
   (with-testing-data [lattice test-lattices]
