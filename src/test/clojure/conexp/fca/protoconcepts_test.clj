@@ -26,26 +26,7 @@
 
 (deftest test-preconcept?
   ;; test some preconcepts of test-context-01
-  (are [object-set attribute-set] (preconcept? test-context-01 [object-set attribute-set])
-    #{} #{0 1 2 3}
-    #{"a"} #{2 3}
-    #{"a"} #{0 2 3}
-    #{"a"} #{1 2 3}
-    #{"a"} #{0 1 2 3}
-    #{"b"} #{1 3}
-    #{"b"} #{0 1 3}
-    #{"b"} #{1 2 3}
-    #{"b"} #{0 1 2 3}
-    #{"c"} #{0 1}
-    #{"c"} #{0 1 2}
-    #{"c"} #{0 1 3}
-    #{"c"} #{0 1 2 3}
-    #{"a" "b"} #{3}
-    #{"b" "c"} #{1}
-    #{"a" "b" "c"} #{})
-  ;; test some non-preconcepts of test-context-01
-  (are [object-set attribute-set] (not (preconcept? test-context-01 [object-set attribute-set]))
-    #{} #{}
+  (are [object-set attribute-set] (preconcept? test-context-01 [object-set attribute-set])    #{} #{}
     #{} #{0}
     #{} #{1}
     #{} #{2}
@@ -60,32 +41,49 @@
     #{} #{0 1 3}
     #{} #{0 2 3}
     #{} #{1 2 3}
+    #{} #{0 1 2 3}
     #{"a"} #{}
-    #{"a"} #{0}
-    #{"a"} #{1}
     #{"a"} #{2}
     #{"a"} #{3}
-    #{"a"} #{0 1}
-    #{"a"} #{0 2}
-    #{"a"} #{0 3}
+    #{"a"} #{2 3}
     #{"b"} #{}
     #{"b"} #{1}
     #{"b"} #{3}
-    #{"b"} #{0 3}
-    #{"b"} #{1 2}
-    #{"b"} #{2 3}
-    #{"b"} #{0 2 3}
+    #{"b"} #{1 3}
     #{"c"} #{}
     #{"c"} #{0}
     #{"c"} #{1}
+    #{"c"} #{0 1}
+    #{"a" "b"} #{3}
+    #{"b" "c"} #{1}
+    #{"a" "b" "c"}
+    #{}#{"a" "b"} #{}
+    #{"a" "c"} #{}
+    #{"b" "c"} #{})
+  ;; test some non-preconcepts of test-context-01
+  (are [object-set attribute-set] (not (preconcept? test-context-01 [object-set attribute-set]))
+    #{"a"} #{0}
+    #{"a"} #{1}
+    #{"a"} #{0 1}
+    #{"a"} #{0 2}
+    #{"a"} #{0 3}
+    #{"a"} #{0 2 3}
+    #{"a"} #{1 2 3}
+    #{"a"} #{0 1 2 3}
+    #{"b"} #{0 3}
+    #{"b"} #{1 2}
+    #{"b"} #{2 3}
+    #{"b"} #{0 1 3}
+    #{"b"} #{0 2 3}
+    #{"b"} #{1 2 3}
+    #{"b"} #{0 1 2 3}
     #{"c"} #{2}
     #{"c"} #{3}
     #{"c"} #{1 2}
     #{"c"} #{1 3}
-    #{"a" "b"} #{}
-    #{"a" "c"} #{}
-    #{"b" "c"} #{}
-    ))
+    #{"c"} #{0 1 2}
+    #{"c"} #{0 1 3}
+    #{"c"} #{0 1 2 3}))
 
 (deftest test-protoconcept?
   ;; test all protoconcepts of test-context-01

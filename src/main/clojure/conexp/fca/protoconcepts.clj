@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.protoconcepts
-  "Basis datastructure and definitions for protoconcepts."
+  "Basis datastructure and definitions for protoconcepts.
+  DOI:https://doi.org/10.1007/11528784_2"
   (:require [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
             [conexp.fca.contexts :refer :all]
@@ -38,10 +39,8 @@
 (defn preconcept?
   "Tests whether given pair is preconcept in given context ctx."
   [ctx [set-of-obj set-of-att]]
-  (let [att-derivation (attribute-derivation ctx set-of-att)
-        obj-derivation (object-derivation ctx set-of-obj)]
-    (and (subset? obj-derivation set-of-att)
-         (subset? att-derivation set-of-obj))))
+    ;; equivalent to (subset? set-of-obj (attribute-derivation ctx set-of-att))
+    (subset? set-of-att (object-derivation ctx set-of-obj)))
 
 (defn protoconcept?
   "Tests whether given pair is protoconcept in given context ctx."
