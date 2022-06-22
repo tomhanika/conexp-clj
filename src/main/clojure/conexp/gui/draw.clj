@@ -117,10 +117,11 @@
     - dimension [600 600]
   "
   [layout
-   & {:keys [visible dimension]
+   & {:keys [visible dimension title]
       :or   {visible   true,
-             dimension [600 600]}}]
-  (let [frame          (JFrame. "conexp-clj Lattice"),
+             dimension [600 600]
+             title "conexp-clj Lattice"}}]
+  (let [frame          (JFrame. title),
         lattice-editor (make-lattice-editor frame layout)]
     (doto frame
       (.add lattice-editor)
@@ -143,6 +144,15 @@
   args to draw-lattice."
   [ctx & args]
   (apply draw-lattice (concept-lattice ctx) args))
+
+(defn draw-protoconcepts
+  "Draws protoconcepts (ordered set) with given layout.
+  Passes all other parameters to draw-layout."
+  [protoconcepts & args]
+  (let [map       (apply hash-map args),
+        layout-fn (get map :layout-fn protoconcepts-layout)
+        value-fn (get map :value-fn (constantly nil))]
+    (apply draw-layout (-> protoconcepts layout-fn (to-valued-layout value-fn)) :title "conexp-clj Protoconcepts" args)))
 
 ;;;
 
