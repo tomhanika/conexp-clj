@@ -13,7 +13,8 @@
         conexp.io.latex
         conexp.layouts.util
         conexp.layouts.base)
-  (:require clojure.string)
+  (:require clojure.string
+            [clojure.data.json :as json])
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
@@ -163,6 +164,59 @@
 (define-layout-output-format :fca-style
   [layout file]
   (unsupported-operation "Output in :fca-style is not yet supported."))
+
+;;; Json
+(define-layout-output-format :json
+  [layout file]
+  (let [vertex-pos (positions  layout)
+        sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
+                                     [x_2 y_2] (vertex-pos %2)]
+                                 (or (< y_1 y_2)
+                                     (and (= y_1 y_2)
+                                          (< x_1 x_2))))
+                              (nodes layout)),
+        vertex-idx      (into {}
+                              (map-indexed (fn [i v] [v i])
+                                           sorted-vertices))]
+    (let [nodes (map-invert vertex-idx)
+          pos (into {}
+                    (for [n sorted-vertices]
+                      [(vertex-idx n), (vertex-pos n)]))
+          edges (reduce 
+                 (fn [ncoll [k v]] 
+                   (assoc ncoll k (conj (get ncoll k) v)))
+                 {}
+                 (for [[A B] (connections layout)]
+                   [(vertex-idx A),(str(vertex-idx B))]))
+          v (into {}
+                  (for [n sorted-vertices]
+                    [(vertex-idx n), ((valuations layout) n)]))
+          ann (into {}
+                    (for [n sorted-vertices]
+                      [(vertex-idx n), ((annotation layout) n)]))]
+      (->> (hash-map :nodes nodes
+                     :pos pos
+                     :edges edges
+                     :valuations v
+                     :shorthand-annotation ann)
+           json/write-str
+           (spit file)))))
+
+(define-layout-input-format :json
+  [file]
+  (with-in-reader file
+    (let [file-content (json/read *in* :key-fn keyword)
+          positions (into {} 
+                          (map #(vector (mapv set (get (:nodes file-content) (key %))) 
+                                        (val %)) 
+                               (:pos file-content)))
+          connections (map #(vector 
+                             (mapv set (get (:nodes file-content) (first %))) 
+                             (mapv set (get (:nodes file-content) (keyword (second %)))))
+                           (for [A (keys (:edges file-content)) 
+                                 B (get (:edges file-content) A)] 
+                             [A B]))]
+      (make-layout positions connections))))
 
 ;;;
 
