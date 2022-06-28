@@ -11,6 +11,7 @@
         conexp.fca.contexts
         conexp.fca.lattices
         conexp.layouts
+        conexp.layouts.base
         conexp.io.layouts
         conexp.io.util-test)
   (:use clojure.test))
@@ -26,6 +27,17 @@
                       fmt (list-layout-formats)]
     (try
       (out-in-out-in-test lay 'layout fmt)
+      (catch IllegalArgumentException _ true))))
+
+(def- testing-layouts-with-valuations
+  (map #(update-valuations % (comp count first)) testing-layouts))
+
+(deftest test-layout-with-valuation-oi
+  (with-testing-data [lay testing-layouts-with-valuations,
+                      ;; TODO: add :simple format
+                      fmt (remove #{:text :simple} (list-layout-formats))]
+    (try
+      (= (valuations lay) (valuations (out-in lay 'layout fmt)))
       (catch IllegalArgumentException _ true))))
 
 ;;;

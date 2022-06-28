@@ -215,8 +215,15 @@
                              (mapv set (get (:nodes file-content) (keyword (second %)))))
                            (for [A (keys (:edges file-content)) 
                                  B (get (:edges file-content) A)] 
-                             [A B]))]
-      (make-layout positions connections))))
+                             [A B]))
+          val-function (fn [concept]
+                         (get (into {}
+                                    (map #(vector (mapv set (get (:nodes file-content) (key %)))
+                                                  (val %))
+
+                                         (:valuations file-content)))
+                              concept))]
+      (update-valuations (make-layout positions connections) val-function))))
 
 ;;;
 
