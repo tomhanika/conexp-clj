@@ -216,15 +216,17 @@
                            (for [A (keys (:edges file-content)) 
                                  B (get (:edges file-content) A)] 
                              [A B]))
-          val-function (fn [concept]
-                         (get (into {}
-                                    (map #(vector (mapv set (get (:nodes file-content) (key %)))
-                                                  (val %))
-
-                                         (:valuations file-content)))
-                              concept))]
-      (update-valuations (make-layout positions connections) val-function))))
-
+          layout (make-layout positions connections)]
+      (if (every? #(nil? (val %)) (:valuations file-content))
+        layout
+        (let [val-function (fn [concept]
+                             (get (into {}
+                                        (map #(vector (mapv set (get (:nodes file-content) (key %)))
+                                                      (val %))
+                                             
+                                             (:valuations file-content)))
+                                  concept))]
+          (update-valuations layout val-function))))))
 ;;;
 
 nil

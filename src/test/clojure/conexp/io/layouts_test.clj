@@ -36,9 +36,7 @@
   (with-testing-data [lay testing-layouts-with-valuations,
                       ;; TODO: add :simple format
                       fmt (remove #{:text :simple} (list-layout-formats))]
-    (try
-      (= (valuations lay) (valuations (out-in lay 'layout fmt)))
-      (catch IllegalArgumentException _ true))))
+    (= (valuations lay) (valuations (out-in lay 'layout fmt)))))
 
 ;;;
 
