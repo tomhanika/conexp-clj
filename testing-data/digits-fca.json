@@ -1,6 +1,7 @@
 {
   "context": {
-    "formal_context": [
+    "attributes": ["a","b","c","d","e","f","g"],
+    "adjacency-list": [
       {
         "object": "9",
         "attributes": [
