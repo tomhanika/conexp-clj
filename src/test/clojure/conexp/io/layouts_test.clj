@@ -22,12 +22,10 @@
   (map (comp standard-layout concept-lattice)
        (random-contexts 20 10)))
 
-(deftest test-layout-oioi
+(deftest test-layouts-oioi
   (with-testing-data [lay testing-layouts,
                       fmt (list-layout-formats)]
-    (try
-      (out-in-out-in-test lay 'layout fmt)
-      (catch IllegalArgumentException _ true))))
+    (out-in-out-in-test lay 'layout fmt)))
 
 (def- testing-layouts-with-valuations
   (map #(update-valuations % (comp count first)) testing-layouts))
@@ -37,6 +35,23 @@
                       ;; TODO: add :simple format
                       fmt (remove #{:text :simple} (list-layout-formats))]
     (= (valuations lay) (valuations (out-in lay 'layout fmt)))))
+
+(deftest test-layout-annotations
+  (with-testing-data [lay testing-layouts
+                      fmt (remove #{:text} (list-layout-formats))]
+    (= (annotation lay) (annotation (out-in lay 'layout fmt)))))
+
+(def- testing-layout-with-labels
+  (make-layout {1 [0 0], 2 [0 1]}
+               #{[1 2]}
+               {1 ["1u" nil], 2 ["2u" nil]}
+               {1 ["1l" nil], 2 ["2l" nil]}))
+
+(deftest test-layout-with-labels
+  (with-testing-data [lay [testing-layout-with-labels],
+                      ;; TODO: add :simple format
+                      fmt (remove #{:text :simple} (list-layout-formats))]
+    (= lay (out-in lay 'layout fmt))))
 
 ;;;
 

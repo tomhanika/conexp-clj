@@ -11,6 +11,7 @@
   (:use conexp.base
         conexp.io.util
         conexp.io.latex
+        conexp.io.json
         conexp.layouts.util
         conexp.layouts.base)
   (:require clojure.string
@@ -165,68 +166,126 @@
   [layout file]
   (unsupported-operation "Output in :fca-style is not yet supported."))
 
-;;; Json
+;; Json helpers
+
+(defn- json->positions
+  "Transforms the positions from json format to a map, using the id of the nodes."
+  [json-positions nodes]
+  (into {} 
+        (map #(vector (get nodes (key %)) 
+                      (val %)) 
+             json-positions)))
+
+(defn- json->connections
+  "Transforms the connections from json format to a map, using the id of the nodes."
+  [json-connections nodes]
+  (map #(vector 
+         (get nodes (first %)) 
+         (get nodes (keyword (second %))))
+       (for [A (keys json-connections) 
+             B (get json-connections A)] 
+         [A B])))
+
+(defn json->labels
+  "Transforms the annotations from json format to maps for upper and lower labels."
+  [json-annotations nodes]
+  [(reduce 
+    (fn [ncoll [k v]] 
+      (assoc ncoll (get nodes k) [(first v) nil])) 
+    {} 
+    json-annotations)
+   (reduce 
+    (fn [ncoll [k v]] 
+      (assoc ncoll (get nodes k) [(second v) nil])) 
+    {} 
+    json-annotations)])
+
+(defn- valuation-function
+  "Maps the json-valuations to the correct node."
+  [json-valuations nodes]
+  (fn [concept]
+    (get (into {}
+               (map #(vector (get nodes (key %))
+                             (val %))
+                    json-valuations))
+         concept)))
+
+(defn json->layout
+  "Returns a Layout object for the given json layout."
+  [json-layout]
+  (let [nodes (try
+                (reduce
+                 (fn [ncoll [k v]]
+                   (assoc ncoll k
+                          (mapv set v)))
+                 {}
+                 (apply conj (:nodes json-layout)))
+                (catch java.lang.IllegalArgumentException _
+                  (apply conj (:nodes json-layout))))
+        positions (apply conj (:positions json-layout))
+        edges (apply conj (:edges json-layout))
+        valuations (apply conj (:valuations json-layout))
+        annotations (apply conj (:shorthand-annotation json-layout))
+        positions (json->positions positions nodes)
+        connections (json->connections edges nodes)
+        [upper-labels lower-labels] (json->labels annotations nodes)
+        layout (make-layout positions connections upper-labels lower-labels)]
+    (if (every? #(nil? (val %)) valuations)
+      layout
+      (update-valuations layout (valuation-function valuations nodes)))))
+
+;;; Json Format (src/main/resources/schemas/layout_schema_v1.0.json)
+
+(add-layout-input-format :json
+                         (fn [rdr]
+                           (try (json-object? rdr)
+                                (catch Exception _))))
+
 (define-layout-output-format :json
   [layout file]
-  (let [vertex-pos (positions  layout)
+  (let [vertex-pos (positions layout)
         sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
                                      [x_2 y_2] (vertex-pos %2)]
                                  (or (< y_1 y_2)
                                      (and (= y_1 y_2)
                                           (< x_1 x_2))))
                               (nodes layout)),
-        vertex-idx      (into {}
-                              (map-indexed (fn [i v] [v i])
-                                           sorted-vertices))]
-    (let [nodes (map-invert vertex-idx)
-          pos (into {}
+        vertex-idx (into {}
+                         (map-indexed (fn [i v] [v i])
+                                      sorted-vertices))]
+    (let [nodes (map #(hash-map (key %) (val %)) (map-invert vertex-idx))
+          pos (into []
                     (for [n sorted-vertices]
-                      [(vertex-idx n), (vertex-pos n)]))
-          edges (reduce 
-                 (fn [ncoll [k v]] 
-                   (assoc ncoll k (conj (get ncoll k) v)))
-                 {}
-                 (for [[A B] (connections layout)]
-                   [(vertex-idx A),(str(vertex-idx B))]))
-          v (into {}
+                      {(vertex-idx n), (vertex-pos n)}))
+          edges (map #(hash-map (key %) (val %))
+                     (reduce 
+                      (fn [ncoll [k v]] 
+                        (assoc ncoll k (conj (get ncoll k) v)))
+                      {}
+                      (for [[A B] (connections layout)]
+                        [(vertex-idx A),(str(vertex-idx B))])))
+          v (into []
                   (for [n sorted-vertices]
-                    [(vertex-idx n), ((valuations layout) n)]))
-          ann (into {}
+                    {(vertex-idx n), ((valuations layout) n)}))
+          ann (into []
                     (for [n sorted-vertices]
-                      [(vertex-idx n), ((annotation layout) n)]))]
-      (->> (hash-map :nodes nodes
-                     :pos pos
-                     :edges edges
-                     :valuations v
-                     :shorthand-annotation ann)
-           json/write-str
-           (spit file)))))
+                      {(vertex-idx n), ((annotation layout) n)}))]
+      (with-out-writer file 
+        (print (json/write-str (hash-map :nodes nodes
+                                         :positions pos
+                                         :edges edges
+                                         :valuations v
+                                         :shorthand-annotation ann)))))))
 
 (define-layout-input-format :json
   [file]
   (with-in-reader file
-    (let [file-content (json/read *in* :key-fn keyword)
-          positions (into {} 
-                          (map #(vector (mapv set (get (:nodes file-content) (key %))) 
-                                        (val %)) 
-                               (:pos file-content)))
-          connections (map #(vector 
-                             (mapv set (get (:nodes file-content) (first %))) 
-                             (mapv set (get (:nodes file-content) (keyword (second %)))))
-                           (for [A (keys (:edges file-content)) 
-                                 B (get (:edges file-content) A)] 
-                             [A B]))
-          layout (make-layout positions connections)]
-      (if (every? #(nil? (val %)) (:valuations file-content))
-        layout
-        (let [val-function (fn [concept]
-                             (get (into {}
-                                        (map #(vector (mapv set (get (:nodes file-content) (key %)))
-                                                      (val %))
-                                             
-                                             (:valuations file-content)))
-                                  concept))]
-          (update-valuations layout val-function))))))
+    (let [json-layout (json/read *in* :key-fn keyword)
+          schema-file "src/main/resources/schemas/layout_schema_v1.0.json"]
+      (assert (matches-schema? json-layout schema-file)
+              (str "The input file does not match the schema given at " schema-file "."))
+      (json->layout json-layout))))
+
 ;;;
 
 nil
