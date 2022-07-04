@@ -41,14 +41,18 @@
                       fmt (remove #{:text} (list-layout-formats))]
     (= (annotation lay) (annotation (out-in lay 'layout fmt)))))
 
-(def- testing-layout-with-labels
-  (make-layout {1 [0 0], 2 [0 1]}
-               #{[1 2]}
-               {1 ["1u" nil], 2 ["2u" nil]}
-               {1 ["1l" nil], 2 ["2l" nil]}))
+(def- testing-layouts-with-labels
+  [(make-layout {1 [0 0], 2 [0 1]}
+                 #{[1 2]}
+                 {1 ["1u" nil], 2 ["2u" nil]}
+                 {1 ["1l" nil], 2 ["2l" nil]})
+   (make-layout {1 [0 0], 2 [0 1]}
+                 #{[1 2]}
+                 {1 ["1u" nil], 2 ["2u" [0 2]]}
+                 {1 ["1l" [0 -1]], 2 ["2l" nil]})])
 
 (deftest test-layout-with-labels
-  (with-testing-data [lay [testing-layout-with-labels],
+  (with-testing-data [lay testing-layouts-with-labels,
                       ;; TODO: add :simple format
                       fmt (remove #{:text :simple} (list-layout-formats))]
     (= lay (out-in lay 'layout fmt))))

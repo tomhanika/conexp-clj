@@ -191,12 +191,12 @@
   [json-annotations nodes]
   [(reduce 
     (fn [ncoll [k v]] 
-      (assoc ncoll (get nodes k) [(first v) nil])) 
+      (assoc ncoll (get nodes k) (first v))) 
     {} 
     json-annotations)
    (reduce 
     (fn [ncoll [k v]] 
-      (assoc ncoll (get nodes k) [(second v) nil])) 
+      (assoc ncoll (get nodes k) (second v))) 
     {} 
     json-annotations)])
 
@@ -267,15 +267,17 @@
           v (into []
                   (for [n sorted-vertices]
                     {(vertex-idx n), ((valuations layout) n)}))
-          ann (into []
-                    (for [n sorted-vertices]
-                      {(vertex-idx n), ((annotation layout) n)}))]
+          ;; TODO: labels can be nil
+          labels (into []
+                       (for [n sorted-vertices]
+                         {(vertex-idx n), [((upper-labels layout) n) 
+                                           ((lower-labels layout) n)]}))]
       (with-out-writer file 
         (print (json/write-str (hash-map :nodes nodes
                                          :positions pos
                                          :edges edges
                                          :valuations v
-                                         :shorthand-annotation ann)))))))
+                                         :shorthand-annotation labels)))))))
 
 (define-layout-input-format :json
   [file]
