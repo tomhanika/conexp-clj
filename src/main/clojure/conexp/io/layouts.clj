@@ -225,11 +225,9 @@
         positions (apply conj (:positions json-layout))
         edges (apply conj (:edges json-layout))
         valuations (apply conj (:valuations json-layout))
-        annotations (apply conj (:shorthand-annotation json-layout))
         positions (json->positions positions nodes)
         connections (json->connections edges nodes)
-        [upper-labels lower-labels] (json->labels annotations nodes)
-        layout (make-layout positions connections upper-labels lower-labels)]
+        layout (make-layout positions connections)]
     (if (every? #(nil? (val %)) valuations)
       layout
       (update-valuations layout (valuation-function valuations nodes)))))
@@ -267,17 +265,16 @@
           v (into []
                   (for [n sorted-vertices]
                     {(vertex-idx n), ((valuations layout) n)}))
-          ;; TODO: labels can be nil
-          labels (into []
-                       (for [n sorted-vertices]
-                         {(vertex-idx n), [((upper-labels layout) n) 
-                                           ((lower-labels layout) n)]}))]
+          
+          ann (into []
+                    (for [n sorted-vertices]
+                      {(vertex-idx n), ((concept-lattice-annotation layout) n)}))]
       (with-out-writer file 
         (print (json/write-str (hash-map :nodes nodes
                                          :positions pos
                                          :edges edges
                                          :valuations v
-                                         :shorthand-annotation labels)))))))
+                                         :shortend-annotation ann)))))))
 
 (define-layout-input-format :json
   [file]

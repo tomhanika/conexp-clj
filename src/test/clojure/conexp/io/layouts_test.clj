@@ -27,12 +27,20 @@
                       fmt (list-layout-formats)]
     (out-in-out-in-test lay 'layout fmt)))
 
+(deftest test-layouts-oi
+  (with-testing-data [lay testing-layouts,
+                      fmt (remove #{:simple :text} (list-layout-formats))]
+    (let [out-in-lay (out-in lay 'layout fmt)]
+      ;; only test equality of lattice, positions and connections, as upper- and lower-labels are not saved in json layout format
+      (and (= (lattice lay) (lattice out-in-lay))
+           (= (positions lay) (positions out-in-lay))
+           (= (connections lay) (connections out-in-lay))))))
+
 (def- testing-layouts-with-valuations
   (map #(update-valuations % (comp count first)) testing-layouts))
 
 (deftest test-layout-with-valuation-oi
   (with-testing-data [lay testing-layouts-with-valuations,
-                      ;; TODO: add :simple format
                       fmt (remove #{:text :simple} (list-layout-formats))]
     (= (valuations lay) (valuations (out-in lay 'layout fmt)))))
 
@@ -40,22 +48,6 @@
   (with-testing-data [lay testing-layouts
                       fmt (remove #{:text} (list-layout-formats))]
     (= (annotation lay) (annotation (out-in lay 'layout fmt)))))
-
-(def- testing-layouts-with-labels
-  [(make-layout {1 [0 0], 2 [0 1]}
-                 #{[1 2]}
-                 {1 ["1u" nil], 2 ["2u" nil]}
-                 {1 ["1l" nil], 2 ["2l" nil]})
-   (make-layout {1 [0 0], 2 [0 1]}
-                 #{[1 2]}
-                 {1 ["1u" nil], 2 ["2u" [0 2]]}
-                 {1 ["1l" [0 -1]], 2 ["2l" nil]})])
-
-(deftest test-layout-with-labels
-  (with-testing-data [lay testing-layouts-with-labels,
-                      ;; TODO: add :simple format
-                      fmt (remove #{:text :simple} (list-layout-formats))]
-    (= lay (out-in lay 'layout fmt))))
 
 ;;;
 
