@@ -44,7 +44,7 @@
   (let [json-ctx (:context json-fca)
         json-lattice (:lattice json-fca)
         json-implication-sets (:implication_sets json-fca)]
-    (cond-> {:context (json->ctx (:formal_context json-ctx))}
+    (cond-> {:context (json->ctx json-ctx)}
       (some? json-lattice) (assoc :lattice (json->lattice json-lattice))
       (some? json-implication-sets) (assoc :implication-sets (map json->implications json-implication-sets)))))
 
