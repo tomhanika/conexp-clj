@@ -9,6 +9,7 @@
 (ns conexp.layouts.layered
   "Layered lattice layouts."
   (:use conexp.base
+        conexp.math.algebra
         conexp.layouts.util
         conexp.layouts.base
         conexp.fca.lattices))
@@ -33,7 +34,12 @@
                          (mapcat layer-coordinates
                                  (iterate inc 0)
                                  (layers lattice)))
-                  (edges lattice)))
+                  ;;(edges lattice)
+                  (filter #(directly-neighboured? lattice (first %) (second %)) 
+                          (for [x (base-set lattice)
+                                y (base-set lattice)
+                                :when ((order lattice) x y)]
+                            [x y]))))
 
 (defn as-chain
   "Returns the layout of lattice as a simple chain."

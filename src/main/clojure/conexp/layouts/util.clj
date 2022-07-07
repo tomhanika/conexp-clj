@@ -59,7 +59,7 @@
   "Scales given layout to rectangle [x1 y1], [x2 y2]."
   [[x1 y1] [x2 y2] layout]
   (let [points (seq (positions layout))]
-    (make-layout-nc (lattice layout)
+    (make-layout-nc (poset layout)
                     (zipmap (map first points)
                             (scale-points-to-rectangle [x1 y1] [x2 y2]
                                                        (map second points)))

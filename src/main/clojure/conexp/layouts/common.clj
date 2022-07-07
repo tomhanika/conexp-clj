@@ -40,7 +40,7 @@
   the resulting additive layout."
   ;; this is stupid, do it better!
   [layout]
-  (let [lattice       (lattice layout),
+  (let [lattice       (poset layout),
         old-positions (positions layout),
         top-pos       (old-positions (lattice-one lattice)),
         inf-irr       (set (inf-irreducibles layout)),
@@ -79,8 +79,8 @@
 
 (defn to-valued-layout
   [layout val-fn]
-  (let [lattice   (lattice layout)
-        elements  (lattice-base-set lattice)]
+  (let [lattice   (poset layout)
+        elements  (base-set lattice)]
     (update-valuations layout val-fn)))
 
 ;;;

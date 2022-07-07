@@ -37,13 +37,13 @@
         #"Connections must be given between positioned points."
         (make-layout {1 [0,0]} [[1 2]])))
   (is (thrown-with-msg? IllegalArgumentException
-        #"Positioned points must be the elements of the given lattice."
-        (make-layout (make-lattice-nc [1 2 3] <)
+        #"Positioned points must be the elements of the given poset."
+        (make-layout (make-poset-nc [1 2 3] <)
                      {}
                      [])))
   (is (thrown-with-msg? IllegalArgumentException
-        #"The given connections must represent the edges of the given lattice."
-        (make-layout (make-lattice-nc [1 2 3] <)
+        #"The given connections must represent the edges of the given poset."
+        (make-layout (make-poset-nc [1 2 3] <)
                      {1 [0 0] 2 [1 1] 3 [2 2]}
                      [])))
   (is (thrown-with-msg? IllegalArgumentException
@@ -123,11 +123,11 @@
 
 (deftest test-lattice
   (with-testing-data [lay testing-layouts]
-    (let [lattice (lattice lay)]
-      (and (= (nodes lay) (base-set lattice))
+    (let [poset (poset lay)]
+      (and (= (nodes lay) (base-set poset))
            (forall [x (nodes lay),
                     y (nodes lay)]
-             (<=> (directly-neighboured? lattice x y)
+             (<=> (directly-neighboured? poset x y)
                   (contains? (connections lay) [x y])))))))
 
 (deftest test-update-positions
@@ -170,32 +170,32 @@
     (let [uppers (upper-neighbours lay)]
       (forall [x (nodes lay)]
         (= (set (uppers x))
-           (lattice-upper-neighbours (lattice lay) x))))))
+           (lattice-upper-neighbours (poset lay) x))))))
 
 (deftest test-lower-neighbours
   (with-testing-data [lay testing-layouts]
     (let [lowers (lower-neighbours lay)]
       (forall [x (nodes lay)]
         (= (set (lowers x))
-           (lattice-lower-neighbours (lattice lay) x))))))
+           (lattice-lower-neighbours (poset lay) x))))))
 
 (deftest test-upper-neighbours-of-inf-irreducibles
   (with-testing-data [lay testing-layouts]
     (let [uppers (upper-neighbours-of-inf-irreducibles lay),
-          infs   (lattice-inf-irreducibles (lattice lay))]
+          infs   (lattice-inf-irreducibles (poset lay))]
       (forall [x infs]
         (= (set (list (uppers x)))
-           (lattice-upper-neighbours (lattice lay) x))))))
+           (lattice-upper-neighbours (poset lay) x))))))
 
 (deftest test-inf-irreducibles
   (with-testing-data [lay testing-layouts]
     (= (set (inf-irreducibles lay))
-       (set (lattice-inf-irreducibles (lattice lay))))))
+       (set (lattice-inf-irreducibles (poset lay))))))
 
 (deftest test-sup-irreducibles
   (with-testing-data [lay testing-layouts]
     (= (set (sup-irreducibles lay))
-       (set (lattice-sup-irreducibles (lattice lay))))))
+       (set (lattice-sup-irreducibles (poset lay))))))
 
 (deftest test-full-order-relation
   (let [lay (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
@@ -207,7 +207,7 @@
 (deftest test-context
   (with-testing-data [lay testing-layouts]
     (= (context lay)
-       (standard-context (lattice lay)))))
+       (standard-context (poset lay)))))
 
 (deftest test-concept-lattice-layout?
   (is (concept-lattice-layout?

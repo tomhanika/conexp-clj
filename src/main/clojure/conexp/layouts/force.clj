@@ -142,7 +142,7 @@
   "Returns pair of energy function and function returning the n-th
   partial derivative when given index n."
   [layout seq-of-inf-irrs]
-  (let [lattice  (lattice layout),
+  (let [lattice  (poset layout),
         top-pos  ((positions layout) (lattice-one lattice)),
         energy   (fn [point-coordinates]
                    (let [points            (partition 2 point-coordinates),
@@ -163,7 +163,7 @@
      (force-layout layout nil))
   ([layout iterations]
      (let [;; compute lattice from layout and ensure proper starting layout
-           lattice             (lattice layout),
+           lattice             (poset layout),
            layout              (to-inf-additive-layout layout),
 
            ;; get positions of inf-irreducibles from layout as starting point
