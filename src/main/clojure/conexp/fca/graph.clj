@@ -7,13 +7,14 @@
 
 
 ;;; graph <-> lattice
-
-(defn lattice->graph
-  "Converts a lattice to a directed graph.
+(defn poset->graph
+  "Converts an ordered set to a directed graph.
   For concepts u,v, there will be an edge u->v iff v <= u.
   (This implies that the only loops will be u->u for all u.)"
-  [lat]
-  (make-digraph-from-condition (alg/base-set lat) (alg/order lat)))
+  [poset]
+  (make-digraph-from-condition (alg/base-set poset) (alg/order poset)))
+
+(defalias lattice->graph poset->graph)
 
 (defn graph->lattice-nc
   "Converts a directed graph to a lattice.

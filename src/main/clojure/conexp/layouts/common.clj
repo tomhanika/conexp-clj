@@ -20,8 +20,8 @@
 (defn placement-by-initials
   "Computes placement for all elements by positions of some initial
   nodes. Top element will be at top."
-  [lattice top placement]
-  (let [ord (order lattice),
+  [poset top placement]
+  (let [ord (order poset),
         pos (fn pos [v]
               (get placement v
                    (reduce (fn [p w]
@@ -32,7 +32,7 @@
                                p))
                            top
                            (keys placement))))]
-    (map-by-fn pos (base-set lattice))))
+    (map-by-fn pos (base-set poset))))
 
 (defn to-inf-additive-layout
   "Returns an infimum additive layout from given layout, taking the
@@ -67,20 +67,20 @@
 ;;;
 
 (defn layout-by-placement
-  "Computes additive layout of lattice by given positions of the keys
+  "Computes additive layout of ordered set by given positions of the keys
   of placement. The values of placement should be the positions of the
   corresponding keys. Top element will be at top."
-  [lattice top placement]
-  (make-layout-nc lattice
-                  (placement-by-initials lattice top placement)
-                  (edges lattice)))
+  [poset top placement]
+  (make-layout-nc poset
+                  (placement-by-initials poset top placement)
+                  (edges poset)))
 
 ;;; Valued layout stuff
 
 (defn to-valued-layout
   [layout val-fn]
-  (let [lattice   (poset layout)
-        elements  (base-set lattice)]
+  (let [poset   (poset layout)
+        elements  (base-set poset)]
     (update-valuations layout val-fn)))
 
 ;;;

@@ -12,7 +12,9 @@
             [conexp.math.algebra :refer :all]
             [conexp.fca.lattices :refer :all]
             [conexp.layouts.base :refer :all]
-            [conexp.util.graph :as graph]))
+            [conexp.util.graph :as graph])
+  (:import [conexp.math.algebra Poset]
+           [conexp.fca.lattices Lattice]))
 
 ;;;
 
@@ -112,9 +114,22 @@
                           cover)))
         H))))
 
-(defn edges
-  "Returns a sequence of pairs of vertices of lattice which are
-  directly neighbored in lattice."
+(defmulti edges
+  "Returns a sequence of pairs of vertices of poset (or lattice) which 
+  are directly neighboured in poset."
+  (fn [poset] (type poset)))
+
+(defmethod edges Poset
+  [poset]
+  ;; TODO: This is only a placeholder. Use a function with better runtime complexity.
+  (into #{} 
+        (filter #(directly-neighboured? poset (first %) (second %)) 
+                (for [x (base-set poset)
+                      y (base-set poset)
+                      :when ((order poset) x y)]
+                  [x y]))))
+
+(defmethod edges Lattice
   [lattice]
   (edges-by-border lattice))
 

@@ -17,8 +17,8 @@
 
 (deftest test-freese
   (let [lat (concept-lattice (rand-context 10 10 0.5))]
-    (layout? (freese-layout lat))
-    (layout? ((interactive-freese-layout lat) 0.0))))
+    (is (layout? (freese-layout lat)))
+    (is (layout? ((interactive-freese-layout lat) 0.0)))))
 
 ;;;
 
