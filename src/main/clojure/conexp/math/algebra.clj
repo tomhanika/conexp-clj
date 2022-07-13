@@ -6,7 +6,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.math.algebra
-  (:use conexp.base))
+  (:use conexp.base)
+  (:require [conexp.fca.contexts :refer :all]))
 
 ;;; Datastructure
 
@@ -92,6 +93,16 @@
       (vec
         (for [x base y base]
           (if (ord x y) 1 0))))))
+
+;; Context
+
+(defn poset-context
+  "Returns the context of a poset."
+  [poset]
+  (make-context (base-set poset)
+                (base-set poset)
+                (fn [A B]
+                  ((order poset) [A B]))))
 
 ;;;
 

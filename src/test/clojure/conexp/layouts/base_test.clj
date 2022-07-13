@@ -179,23 +179,33 @@
         (= (set (lowers x))
            (lattice-lower-neighbours (poset lay) x))))))
 
+(def- test-poset-layout
+  (make-layout {1 [0 0] 2 [-1 1] 3 [1 1] 4 [-1 2] 5 [1 2]} 
+               #{[1 2] [1 3] [2 4] [2 5] [3 4] [3 5]}))
+
 (deftest test-upper-neighbours-of-inf-irreducibles
   (with-testing-data [lay testing-layouts]
     (let [uppers (upper-neighbours-of-inf-irreducibles lay),
           infs   (lattice-inf-irreducibles (poset lay))]
       (forall [x infs]
         (= (set (list (uppers x)))
-           (lattice-upper-neighbours (poset lay) x))))))
+           (lattice-upper-neighbours (poset lay) x)))))
+  (is (thrown? AssertionError
+              (upper-neighbours-of-inf-irreducibles test-poset-layout))))
 
 (deftest test-inf-irreducibles
   (with-testing-data [lay testing-layouts]
     (= (set (inf-irreducibles lay))
-       (set (lattice-inf-irreducibles (poset lay))))))
+       (set (lattice-inf-irreducibles (poset lay)))))
+  (is (thrown? AssertionError
+              (inf-irreducibles test-poset-layout))))
 
 (deftest test-sup-irreducibles
   (with-testing-data [lay testing-layouts]
     (= (set (sup-irreducibles lay))
-       (set (lattice-sup-irreducibles (poset lay))))))
+       (set (lattice-sup-irreducibles (poset lay)))))
+  (is (thrown? AssertionError
+              (sup-irreducibles test-poset-layout))))
 
 (deftest test-full-order-relation
   (let [lay (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}

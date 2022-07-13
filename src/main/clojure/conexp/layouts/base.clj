@@ -354,6 +354,8 @@
   "Returns hash-map mapping the infimum irreducible elements to their
   upper neighbours."
   [layout]
+  (assert (has-lattice-order? (poset layout)) 
+          "The given layout does not contain a lattice.")
   (loop [inf-uppers (transient {}),
          all-uppers (seq (upper-neighbours layout))]
     (if (empty? all-uppers)
@@ -367,12 +369,16 @@
 (def-layout-fn inf-irreducibles
   "Returns the set of infimum irreducible elements of layout."
   [layout]
+  (assert (has-lattice-order? (poset layout)) 
+          "The given layout does not contain a lattice.")
   (set-of v [[v uppers] (upper-neighbours layout),
              :when (singleton? uppers)]))
 
 (def-layout-fn sup-irreducibles
   "Returns the set of supremum irreducible elements of layout."
   [layout]
+  (assert (has-lattice-order? (poset layout))
+          "The given layout does not contain a lattice.")
   (set-of v [[v lowers] (lower-neighbours layout),
              :when (singleton? lowers)]))
 
@@ -383,7 +389,7 @@
   (reflexive-transitive-closure (nodes layout) (connections layout)))
 
 (def-layout-fn context
-  "Returns a context whose poset is represented by this layout."
+  "Returns a context whose lattice is represented by this layout."
   [layout]
   (standard-context (poset layout)))
 

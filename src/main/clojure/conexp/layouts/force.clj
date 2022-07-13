@@ -167,7 +167,7 @@
            layout              (to-inf-additive-layout layout),
 
            ;; get positions of inf-irreducibles from layout as starting point
-           inf-irrs            (inf-irreducibles layout),
+           inf-irrs            (inf-irreducibles layout), ;; TODO: find a solution for posets, as they do not have inf-irreducibles
            node-positions      (positions layout),
            inf-irr-points      (map node-positions inf-irrs),
            top-pos             (node-positions (lattice-one lattice)),

@@ -43,7 +43,7 @@
   (let [lattice       (poset layout),
         old-positions (positions layout),
         top-pos       (old-positions (lattice-one lattice)),
-        inf-irr       (set (inf-irreducibles layout)),
+        inf-irr       (set (inf-irreducibles layout)), ;; TODO: find a solution for posets, as they do not have inf-irreducibles
         elements      (filter inf-irr (top-down-elements-in-layout layout))]
     (loop [positions (select-keys old-positions inf-irr),
            nodes     elements]

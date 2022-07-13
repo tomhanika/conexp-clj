@@ -136,6 +136,7 @@
       (println "    \\begin{scope} %draw vertices")
       (println "      \\foreach \\nodename/\\nodetype/\\param/\\xpos/\\ypos in {%")
       (let [infs         (set (inf-irreducibles layout)),
+            ;; TODO: find a solution for posets, as they do not have inf-irreducibles or sup-irreducibles
             sups         (set (sup-irreducibles layout)),
             insu         (intersection infs sups),
             vertex-lines (map (fn [v]
