@@ -391,7 +391,7 @@
 (def-layout-fn context
   "Returns a context whose lattice is represented by this layout."
   [layout]
-  (standard-context (poset layout)))
+  (poset-context (poset layout)))
 
 (def-layout-fn concept-lattice-layout?
   "Tests whether layout comes from a concept lattice.

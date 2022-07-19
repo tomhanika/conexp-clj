@@ -96,8 +96,18 @@
 
 ;; Context
 
-(defn poset-context
-  "Returns the context of a poset."
+(defmulti poset-context
+  "Computes the context of an ordered set."
+  (fn [poset] (type poset)))
+
+(defmethod poset-context :default
+  [poset]
+  (make-context (base-set poset)
+                (base-set poset)
+                (fn [A B]
+                  ((order poset) [A B]))))
+
+(defmethod poset-context Poset
   [poset]
   (make-context (base-set poset)
                 (base-set poset)

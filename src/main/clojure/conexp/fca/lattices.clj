@@ -291,6 +291,10 @@
                 (fn [x y]
                   ((order lat) [x y]))))
 
+(defmethod poset-context Lattice
+  [lattice]
+  (standard-context lattice))
+
 (defn extract-context-from-bv
   "Extracts the objects, attributes and incidence of a concept
   lattice."
