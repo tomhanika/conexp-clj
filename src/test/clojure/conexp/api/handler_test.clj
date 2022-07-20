@@ -322,7 +322,33 @@
                ;; cast vector to set, as JSON only supports lists
                (into #{} (:connections layout)))
            (make-layout lat pos edge)))
-    (is (= (:type (:function result)) "layout"))))
+    (is (= (:type (:function result)) "layout"))
+    (is (= (:valuations layout)
+           nil))))
+
+(deftest test-layout-valuations-write
+  (let [lat (make-lattice #{1 2}
+                          #{[1 2] [1 1] [2 2]})
+        pos (hash-map 1 [0 0] 2 [0 1])
+        connections #{[1 2]}
+        result (mock-request {:layout {:type "function"
+                                       :name "make-layout"
+                                       :args ["lattice" "positions" "connections"]}
+                              :lattice {:type "lattice"
+                                        :data (write-data lat)}
+                              :positions {:type "map"
+                                          :data pos}
+                              :connections {:type "list"
+                                            :data connections}
+                              :update-fn {:type "method"
+                                          :data "identity"}
+                              :function {:type "function"
+                                         :name "update-valuations"
+                                         :args ["layout" "update-fn"]}})
+        layout2 (:result (:function result))]
+    (is (= (:type (:function result)) "layout"))
+    (is (= (:valuations layout2)
+           {:1 1 :2 2}))))
 
 (deftest test-layout-read
   (let [lat (make-lattice #{1 2 3 4}

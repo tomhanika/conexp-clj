@@ -55,7 +55,9 @@
                     (read-data {:type "map" :data (:positions raw)})
                     (:connections raw)
                     (read-data {:type "map" :data (:upper-labels raw)})
-                    (read-data {:type "map" :data (:lower-labels raw)}))))
+                    (read-data {:type "map" :data (:lower-labels raw)})
+                    (read-data {:type "map" :data (:valuations raw)}))))
+      "method" (resolve (symbol raw))
       raw)))
 
 (defn write-data 
@@ -83,7 +85,10 @@
               :positions (.positions data) 
               :connections (.connections data)
               :upper-labels (.upper-labels data) 
-              :lower-labels (.lower-labels data)}
+              :lower-labels (.lower-labels data)
+              :valuations (if (= clojure.lang.Ref (type (.valuations data)))
+                            nil
+                            (.valuations data))}
       data)))
 
 ;;; Process functions
