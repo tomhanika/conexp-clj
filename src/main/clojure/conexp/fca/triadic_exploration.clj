@@ -7,6 +7,7 @@
             ))
 
 
+
 (defn triadic-context->context-family
   "Transform a triadic context into a family of contexts.  A triadic context is a quadrupel (G,M,B,Y) of objects G, attributes M, conditions B, and an incidence relation Y\\subseteq G \times M \\times B where [g m b]\\in Y reads as object g has attribute m under condition b.  The triadic context is sliced into one formal context per condition, i.e., contexts K^c (G,M,I^c), c\\in B where (g,m)\\in I^c \\Leftrightarrow (g,m,c)\\in Y.  The function returns a map {:c K^c ...} mapping the conditions to their respective contexts.  The triadic context must be represented as a map with keys :objects :attributes :conditions and :incidence, otherwise an error is thrown."
   [triadic-context]
@@ -55,8 +56,8 @@
     (throw (Throwable. "context-family is not triadic"))))
 
 
-(defn- context-union
-  "compute (G_1 u G_2, M, I_1 u I_2) for contexts (G_1,M,I_1) and (G_2,M,I_2)"
+(defn- context-union-nf
+  "compute (G_1 u G_2, M, I_1 u I_2) for contexts (G_1,M,I_1) and (G_2,M,I_2); In contrast to contexts/context-union this functions returns a context and *not* a function"
   [cxt1 cxt2]
   (let [objs (clojure.set/union (set (cxt/objects cxt1))
                                 (set (cxt/objects cxt2)))
@@ -260,7 +261,7 @@
            (recur (first other)
                   (rest other)
                   ED
-                  (context-union C CD))))))))
+                  (context-union-nf C CD))))))))
 
 
 (defn empty-triadic-context-from-triadic-context
@@ -343,8 +344,8 @@
                     :Sat sa
                     :Sun so})
 
-(def ^{:doc "This example is part of the paper \"Triadic Exploration and Exploration with Multiple Experts\", see arXiv:2102.02654"}
-  tcxt-paper (context-family->triadic-context cxt-family-paper))
+;; (def ^{:doc "This example is part of the paper \"Triadic Exploration and Exploration with Multiple Experts\", see arXiv:2102.02654"}
+;;   tcxt-paper (context-family->triadic-context cxt-family-paper))
 
 (def cxt-family-conceptual-exploration-book {:mo-fr (cxt/make-context-from-matrix [1 6 7 8]
                                                                 [:very-early
