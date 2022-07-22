@@ -47,16 +47,7 @@
                   (:edges raw))
       "implication" (apply make-implication raw)
       "implication_set" (map #(apply make-implication %) raw)
-      "layout" (apply make-layout 
-                (filter 
-                  some?
-                  (list 
-                    (read-data {:type "lattice" :data (:lattice raw)}) 
-                    (read-data {:type "map" :data (:positions raw)})
-                    (:connections raw)
-                    (read-data {:type "map" :data (:upper-labels raw)})
-                    (read-data {:type "map" :data (:lower-labels raw)})
-                    (read-data {:type "map" :data (:valuations raw)}))))
+      "layout" (json->layout raw)
       "method" (resolve (symbol raw))
       raw)))
 
@@ -81,14 +72,7 @@
                                y (base-set data)
                                :when ((order data) [x y])])}
       Implication [(premise data)(conclusion data)]
-      Layout {:lattice (write-data (.lattice data)) 
-              :positions (.positions data) 
-              :connections (.connections data)
-              :upper-labels (.upper-labels data) 
-              :lower-labels (.lower-labels data)
-              :valuations (if (= clojure.lang.Ref (type (.valuations data)))
-                            nil
-                            (.valuations data))}
+      Layout (layout->json data)
       data)))
 
 ;;; Process functions

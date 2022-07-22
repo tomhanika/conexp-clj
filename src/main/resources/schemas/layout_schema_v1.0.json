@@ -59,7 +59,7 @@
         "type": "object"
       }
     },
-    "shortend-annotation": {
+    "shorthand-annotation": {
       "type": "array",
       "items": {
         "type": "object"

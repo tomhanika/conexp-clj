@@ -168,7 +168,19 @@
 
 ;; Json helpers
 
-(defn- json->positions
+(defn json->nodes
+  [json-layout]
+  (try
+    (reduce
+     (fn [ncoll [k v]]
+       (assoc ncoll k
+              (mapv set v)))
+     {}
+     (apply conj (:nodes json-layout)))
+    (catch java.lang.IllegalArgumentException _
+      (apply conj (:nodes json-layout)))))
+
+(defn json->positions
   "Transforms the positions from json format to a map, using the id of the nodes."
   [json-positions nodes]
   (into {} 
@@ -176,7 +188,7 @@
                       (val %)) 
              json-positions)))
 
-(defn- json->connections
+(defn json->connections
   "Transforms the connections from json format to a map, using the id of the nodes."
   [json-connections nodes]
   (map #(vector 
@@ -185,20 +197,6 @@
        (for [A (keys json-connections) 
              B (get json-connections A)] 
          [A B])))
-
-(defn json->labels
-  "Transforms the annotations from json format to maps for upper and lower labels."
-  [json-annotations nodes]
-  [(reduce 
-    (fn [ncoll [k v]] 
-      (assoc ncoll (get nodes k) (first v))) 
-    {} 
-    json-annotations)
-   (reduce 
-    (fn [ncoll [k v]] 
-      (assoc ncoll (get nodes k) (second v))) 
-    {} 
-    json-annotations)])
 
 (defn- valuation-function
   "Maps the json-valuations to the correct node."
@@ -213,15 +211,7 @@
 (defn json->layout
   "Returns a Layout object for the given json layout."
   [json-layout]
-  (let [nodes (try
-                (reduce
-                 (fn [ncoll [k v]]
-                   (assoc ncoll k
-                          (mapv set v)))
-                 {}
-                 (apply conj (:nodes json-layout)))
-                (catch java.lang.IllegalArgumentException _
-                  (apply conj (:nodes json-layout))))
+  (let [nodes (json->nodes json-layout)
         positions (apply conj (:positions json-layout))
         edges (apply conj (:edges json-layout))
         valuations (apply conj (:valuations json-layout))
@@ -232,15 +222,9 @@
       layout
       (update-valuations layout (valuation-function valuations nodes)))))
 
-;;; Json Format (src/main/resources/schemas/layout_schema_v1.0.json)
-
-(add-layout-input-format :json
-                         (fn [rdr]
-                           (try (json-object? rdr)
-                                (catch Exception _))))
-
-(define-layout-output-format :json
-  [layout file]
+(defn layout->json
+  ""
+  [layout]
   (let [vertex-pos (positions layout)
         sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
                                      [x_2 y_2] (vertex-pos %2)]
@@ -268,13 +252,24 @@
           
           ann (into []
                     (for [n sorted-vertices]
-                      {(vertex-idx n), ((concept-lattice-annotation layout) n)}))]
-      (with-out-writer file 
-        (print (json/write-str (hash-map :nodes nodes
-                                         :positions pos
-                                         :edges edges
-                                         :valuations v
-                                         :shortend-annotation ann)))))))
+                      {(vertex-idx n), ((annotation layout) n)}))]
+      (hash-map :nodes nodes
+                :positions pos
+                :edges edges
+                :valuations v
+                :shorthand-annotation ann))))
+
+;;; Json Format (src/main/resources/schemas/layout_schema_v1.0.json)
+
+(add-layout-input-format :json
+                         (fn [rdr]
+                           (try (json-object? rdr)
+                                (catch Exception _))))
+
+(define-layout-output-format :json
+  [layout file]
+  (with-out-writer file 
+    (print (json/write-str (layout->json layout)))))
 
 (define-layout-input-format :json
   [file]
