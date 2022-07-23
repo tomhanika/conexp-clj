@@ -339,17 +339,26 @@
   [hyper]
   (make-context-from-matrix  (count (nth hyper 1)) (count (nth (nth hyper 1) 0)) (into [] (flatten (nth hyper 1)))))
 
+(defn- make-object-helper-hyper
+  "Helper function for make-object-hyper"
+  [concept m k j]
+  (loop [i 0 a []]
+    (if (<= m i)
+      a
+      (recur 
+        (inc i)
+        (cond (some #(= i %) (get (get concept j) :g))
+              (conj a 1) :else (conj a 0))))))
+
 (defn- make-object-hyper
   "Creates Object Factorization Context from a given Concept given by Hyper Algo"
   [concept m k]
-  (loop [i 0 j 0 out []]
-    (if (<= k j)
-      (make-context-from-matrix m k out)
+  (loop [i 0 out []]
+    (if (<= k i)
+      (make-context-from-matrix m k (into [](flatten (apply mapv vector out))))
       (recur
-        (cond (>= i (- m 1)) 0 :else (inc i)) 
-        (cond (>= i (- m 1)) (inc j) :else j)
-        (cond (some #(= i %) (get (get concept j) :g))
-              (conj out 1) :else (conj out 0))))))
+        (inc i) 
+        (conj out (make-object-helper-hyper concept m k i))))))
 
 (defn- make-attribute-hyper
   "Creates Attribute Factorization Context from a given Concept given by Hyper Algo"
