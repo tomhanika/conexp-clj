@@ -166,14 +166,13 @@ The [Greess-Algorithm](https://arxiv.org/abs/1306.4905) is a greedy algorithm, w
 ;;5 |x x . . .
 ;;6 |. . . . .
 ;;7 |. x . . .
-;;8 |. . . . .
 
 (attribute-factor waterGreess)
-;;  |0 1 2 3 4 5 6 7
-;;--+----------------
-;;0 |x x . . . . . .
-;;1 |x . x x . x . .
-;;2 |x . . . . . x x
-;;3 |x x x . . . x x
-;;4 |x . x . . . x x
+;;  |0 1 2 3 4 5 6 7 8
+;;--+-----------------
+;;0 |x x . . . . . . .
+;;1 |x . x x . x . . .
+;;2 |x . . . . . x x .
+;;3 |x x x . . . x x .
+;;4 |x . x . . . x x x
 ```
