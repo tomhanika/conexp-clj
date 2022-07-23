@@ -5,7 +5,6 @@
 *~
 /lib
 /resources
-/src/main/resources/data
 /classes
 /pom.xml
 /src/main/clojure/conexp/contrib/java/Main.clj
