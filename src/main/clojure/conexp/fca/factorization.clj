@@ -507,7 +507,7 @@
   [concepts mark k n m]
   (loop [out [] tempConcepts concepts tempMark mark i 0]
     (if (>= i k)
-    [(calc-greess-context out m n) (make-object out m k) (make-attribute out n k)]
+    [(calc-greess-context out m n) (make-object out n k) (make-attribute out m k)]
       (recur
         (conj out (nth tempConcepts (.indexOf (overlap tempConcepts tempMark) (apply max(overlap tempConcepts tempMark)))))
         (remove-indexed tempConcepts (.indexOf (overlap tempConcepts tempMark) (apply max(overlap tempConcepts tempMark))))
