@@ -1,0 +1,58 @@
+{
+  "$id": "fca_schema_v1.0",
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "JSON schema for an FCA process",
+  "type": "object",
+  "description": "JSON schema for FCA (Formal Concept Analysis). The schema contains context, concepts and sets of implications.\n\nIn Python, an instance can be validated with the function 'validate', provided by the 'jsonschema' package.",
+  "$defs": {
+    "object": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "JSON schema for a single object."
+    },
+    "attribute": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "JSON schema for a single attribute."
+    }
+  },
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "In 'source', the source of the context / data can be added."
+    },
+    "context": {
+      "$ref": "context_schema_v1.0.json"
+    },
+    "lattice": {
+      "$ref": "lattice_schema_v1.0.json"
+    },
+    "implication_sets": {
+      "type": "array",
+      "description": "Several sets of implications can be added.",
+      "items": {
+        "$ref": "implications_schema_v1.0.json"
+      }
+    },
+    "additional_information": {
+      "description": "Information that is additional to the defined properties",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "context"
+  ]
+}

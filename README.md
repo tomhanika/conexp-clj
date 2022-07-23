@@ -36,6 +36,7 @@ much more.
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [Factoriszing Formal Contexts](doc/Factoriszing-Formal-Contexts.md)
    3. [REST-API Usage](doc/REST-API-usage.md)
+   4. [triadic-exploration](doc/Triadic-Exploration.org)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 

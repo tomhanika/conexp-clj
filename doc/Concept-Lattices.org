@@ -155,6 +155,22 @@ layouts can be provided to ~draw-lattice~ as an additional argument
               :layout-fn inf-additive-layout)
 #+end_src
 
+The layout supports annotation by valuation functions. These can be
+provided by the ~:value-fn~ argument. The following example annotates
+the extent size.
+
+#+begin_src clojure :results silent
+(draw-lattice (concept-lattice (adiag-context 2))
+              :layout-fn inf-additive-layout
+              :value-fn (comp count first))
+#+end_src
+
+The evaluations defined via ~:value-fn~ are displayed after the labels are
+switched on.
+
+#+caption: Lattice Editor Example
+[[./images/draw-lattice-02.png]]
+
 Other interesting functions are ~draw-layout~, which implements the drawing of
 layouts, and ~draw-concept-lattice~, which draws the concept-lattice of a given
 formal context.
