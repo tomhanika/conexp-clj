@@ -10,7 +10,8 @@
   "Basis datastructure and definitions for abstract lattices."
   (:use conexp.base
         conexp.math.algebra
-        conexp.fca.contexts))
+        conexp.fca.contexts
+        conexp.fca.posets))
 
 ;;; Datastructure
 

@@ -13,7 +13,7 @@
             [conexp.fca.lattices :refer :all]
             [conexp.layouts.base :refer :all]
             [conexp.util.graph :as graph])
-  (:import [conexp.math.algebra Poset]
+  (:import [conexp.fca.posets Poset]
            [conexp.fca.lattices Lattice]))
 
 ;;;

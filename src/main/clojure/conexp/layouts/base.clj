@@ -11,6 +11,7 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
+        conexp.fca.posets
         clojure.pprint))
 
 ;;;
