@@ -8,7 +8,10 @@
 
 (ns conexp.fca.posets-test
   (:use clojure.test)
-  (:require [conexp.fca.posets :refer :all]))
+  (:require [conexp.base :refer :all]
+            [conexp.fca.contexts :refer [make-context-from-matrix]]
+            [conexp.fca.posets :refer :all]
+            [conexp.math.algebra :refer [base-set order]]))
 
 (def adj0 #{})
 
@@ -30,6 +33,9 @@
 
 (def fast-poset (fn [a] (make-poset (set (apply concat a))
                                     (fn [x y] (some #{[x y]} a)))))
+
+(def testing-posets
+  (map fast-poset [adj0 adj1 adj4]))
 
 (deftest test-make-poset
   (is (fast-poset adj0))
@@ -59,3 +65,50 @@
           0 0 0 0  0 0 0 1] ;d
          (poset-to-matrix (fast-poset adj4)
                           [1 2 3 4 'a 'b 'c 'd]))))
+
+(deftest test-poset-context
+  (are [poset context] (= (poset-context poset) context)
+    (fast-poset adj0) (make-context-from-matrix [] [] #{})
+    (fast-poset adj1) (make-context-from-matrix ['a 'b 'c 'd] ['a 'b 'c 'd]
+                                                [1 0 1 1
+                                                 0 1 0 1
+                                                 0 0 1 0
+                                                 0 0 0 1])
+    (fast-poset adj4) (make-context-from-matrix [1 2 3 4 'a 'b 'c 'd]
+                                                [1 2 3 4 'a 'b 'c 'd]
+                                                [1 1 1 1  1 1 1 1
+                                                 0 1 1 1  0 1 1 1
+                                                 0 0 1 1  0 0 1 1
+                                                 0 0 0 1  0 0 0 1
+                                                 0 0 0 0  1 0 0 0
+                                                 0 0 0 0  0 1 0 0
+                                                 0 0 0 0  0 0 1 0
+                                                 0 0 0 0  0 0 0 1])))
+
+(deftest test-directly-neighboured?
+  (with-testing-data [poset testing-posets]
+    (forall [x (base-set poset),
+             y (base-set poset)]
+            (<=> (directly-neighboured? poset x y)
+                 (and (not= x y)
+                      ((order poset) x y)
+                      (forall [z (base-set poset)]
+                              (=> (and ((order poset) x z)
+                                       ((order poset) z y))
+                                  (or (= x z) (= y z)))))))))
+
+(deftest test-poset-upper-neighbours
+  (with-testing-data [poset testing-posets]
+    (forall [x (base-set poset)]
+            (let [xs (set (poset-upper-neighbours poset x))]
+              (forall [y (base-set poset)]
+                      (<=> (directly-neighboured? poset x y)
+                           (contains? xs y)))))))
+
+(deftest test-poset-lower-neighbours
+  (with-testing-data [poset testing-posets]
+    (forall [x (base-set poset)]
+            (let [xs (set (poset-lower-neighbours poset x))]
+              (forall [y (base-set poset)]
+                      (<=> (directly-neighboured? poset y x)
+                           (contains? xs y)))))))
