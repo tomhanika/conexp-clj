@@ -10,18 +10,36 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
+        conexp.fca.posets
         conexp.layouts.base
         conexp.layouts.common)
   (:use clojure.test))
 
 ;;;
 
+(def- test-lattice (make-lattice (subsets #{1 2 3})
+                                 subset?))
+
+(def- test-poset (make-poset [1 2 3 4 5]
+                             (fn [A B]
+                               (contains? #{[1 1] [1 3] [1 4] [1 5]
+                                            [2 2] [2 3] [2 4] [2 5]
+                                            [3 3] [3 5]
+                                            [4 4] [4 5]
+                                            [5 5]}
+                                          [A B]))))
+
 (deftest test-placement-by-initials
-  (let [placement (placement-by-initials (make-lattice (subsets #{1 2 3})
-                                                       subset?)
-                                         [1 1]
-                                         {#{1 2} [-2 0], #{1 3} [0 0], #{2 3} [2 0]})]
-    (is (= placement
+  (let [lattice-placement (placement-by-initials test-lattice
+                                                 [1 1]
+                                                 {#{1 2} [-2 0], 
+                                                  #{1 3} [0 0], 
+                                                  #{2 3} [2 0]})
+        poset-placement (placement-by-initials test-poset
+                                               [1 1]
+                                               {3 [0 0],
+                                                4 [2 0]})]
+    (is (= lattice-placement
            {#{} [-2 -2],
             #{1} [-3 -1],
             #{2} [-1 -1],
@@ -29,10 +47,13 @@
             #{1 2} [-2 0],
             #{1 3} [0 0],
             #{2 3} [2 0],
-            #{1 2 3} [1 1]}))))
-
-(def- test-lattice (make-lattice (subsets #{1 2 3})
-                                     subset?))
+            #{1 2 3} [1 1]}))
+    (is (= poset-placement
+           {5 [1 1],
+            4 [2 0],
+            3 [0 0],
+            2 [1 -1]
+            1 [1 -1]}))))
 
 (def- test-layout (make-layout {#{} [-2 -6],
                                 #{1} [-5 -1],

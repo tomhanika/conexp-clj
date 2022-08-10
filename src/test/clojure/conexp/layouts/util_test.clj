@@ -11,6 +11,7 @@
         conexp.fca.contexts
         conexp.math.algebra
         conexp.fca.lattices
+        conexp.fca.posets
         conexp.layouts.util
         conexp.layouts.base)
   (:use clojure.test))
