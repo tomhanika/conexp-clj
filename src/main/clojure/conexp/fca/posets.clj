@@ -109,3 +109,27 @@
                 (base-set poset)
                 (fn [A B]
                   ((order poset) [A B]))))
+
+;; Neighbours
+
+(defn directly-neighboured?
+  "Checks whether x is direct lower neighbour of y in poset."
+  [poset x y]
+  (let [order (order poset)]
+    (and (not= x y)
+         (order x y)
+         (let [base  (disj (base-set poset) x y)]
+           (forall [z base]
+             (not (and (order x z) (order z y))))))))
+
+(defn poset-upper-neighbours
+  "Returns all direct upper neighbours of x in poset."
+  [poset x]
+  (set-of y [y (base-set poset)
+             :when (directly-neighboured? poset x y)]))
+
+(defn poset-lower-neighbours
+  "Returns all direct lower neighbours of y in poset."
+  [poset y]
+  (set-of x [x (base-set poset)
+             :when (directly-neighboured? poset x y)]))

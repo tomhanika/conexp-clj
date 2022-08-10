@@ -178,14 +178,14 @@
     (let [uppers (upper-neighbours lay)]
       (forall [x (nodes lay)]
         (= (set (uppers x))
-           (lattice-upper-neighbours (poset lay) x))))))
+           (poset-upper-neighbours (poset lay) x))))))
 
 (deftest test-lower-neighbours
   (with-testing-data [lay (concat testing-poset-layouts testing-lattice-layouts)]
     (let [lowers (lower-neighbours lay)]
       (forall [x (nodes lay)]
         (= (set (lowers x))
-           (lattice-lower-neighbours (poset lay) x))))))
+           (poset-lower-neighbours (poset lay) x))))))
 
 (def- test-poset-layout
   (make-layout {1 [0 0] 2 [-1 1] 3 [1 1] 4 [-1 2] 5 [1 2]} 
@@ -304,7 +304,19 @@
                                   (constantly ['y nil])))
          {1 ['x 'y],
           2 ['x 'y],
-          3 ['x 'y]})))
+          3 ['x 'y]}))
+  (is (= (annotation (make-layout {1 [0 0], 2 [1 0], 3 [1 1]}
+                                  #{[1 3] [2 3]}))
+         {1 [1, ""],
+          2 [2, ""],
+          3 [3, ""]}))
+  (is (= (annotation (simple-layered-layout 
+                      (make-poset [[#{2} #{2 3}] [#{1 2 3} #{3}] [#{1} #{1 3}]]
+                                  (fn [A B]
+                                    (subset? (first A) (first B))))))
+         {[#{1} #{1 3}] ["1" "1"],
+          [#{2} #{2 3}] ["2" "2"],
+          [#{1 2 3} #{3}] ["3" "3"]})))
 
 ;;;
 
