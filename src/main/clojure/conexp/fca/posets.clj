@@ -133,3 +133,31 @@
   [poset y]
   (set-of x [x (base-set poset)
              :when (directly-neighboured? poset x y)]))
+
+(defn order-ideal
+  "Returns the order ideal of a set x in poset."
+  [poset x]
+  (assert (subset? x (base-set poset))
+          "x must be a subset of the ordered set.")
+  (loop [ideal #{}
+         lower-neighbours x
+         next-element (first (difference lower-neighbours ideal))]
+    (if (nil? next-element)
+      ideal
+      (recur (union ideal #{next-element})
+             (union lower-neighbours (poset-lower-neighbours poset next-element))
+             (first (difference lower-neighbours ideal))))))
+
+(defn order-filter
+  "Returns the order filter of a set x in poset."
+  [poset x]
+  (assert (subset? x (base-set poset))
+          "x must be a subset of the ordered set.")
+  (loop [filter #{}
+         upper-neighbours x
+         next-element (first (difference upper-neighbours filter))]
+    (if (nil? next-element)
+      filter
+      (recur (union filter #{next-element})
+             (union upper-neighbours (poset-upper-neighbours poset next-element))
+             (first (difference upper-neighbours filter))))))

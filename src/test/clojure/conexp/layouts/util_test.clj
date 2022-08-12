@@ -33,7 +33,15 @@
                  2 [-1 1],
                  3 [1 1],
                  4 [0 2]}
-                #{[1 2] [1 3] [2 4] [3 4]})])
+                #{[1 2] [1 3] [2 4] [3 4]})
+   (make-layout {1 [0 0],
+                 2 [-1 1],
+                 3 [1 1]}
+                #{[1 2] [1 3]})
+   (make-layout {2 [-1 1],
+                 3 [1 1],
+                 4 [0 2]}
+                #{[2 4] [3 4]})])
 
 ;;;
 
@@ -60,9 +68,9 @@
 ;;;
 
 (deftest test-layers
-  (with-testing-data [lattice test-lattices]
-    (let [<=     (order lattice),
-          layers (layers lattice)]
+  (with-testing-data [poset (apply conj test-lattices test-posets)]
+    (let [<=     (order poset),
+          layers (layers poset)]
       (every? (fn [[lower upper]]
                 (forall [x lower]
                   (exists [y upper]
@@ -70,12 +78,12 @@
               (partition 2 1 layers)))))
 
 (deftest test-edges
-  (with-testing-data [lattice test-lattices]
-    (let [edges (edges lattice)]
-      (forall [a (base-set lattice),
-               b (base-set lattice)]
+  (with-testing-data [poset (apply conj test-lattices test-posets)]
+    (let [edges (edges poset)]
+      (forall [a (base-set poset),
+               b (base-set poset)]
         (<=> (contains? edges [a b])
-             (directly-neighboured? lattice a b))))))
+             (directly-neighboured? poset a b))))))
 
 (deftest test-top-down-elements-in-layout
   (with-testing-data [layout test-layouts]

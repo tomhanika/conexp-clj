@@ -11,9 +11,12 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
+        conexp.fca.posets
         conexp.layouts.util
         conexp.layouts.layered
-        conexp.layouts.base))
+        conexp.layouts.base)
+  (:import [conexp.fca.posets Poset]
+           [conexp.fca.lattices Lattice]))
 
 ;;; inf-irreducible additive layout
 
@@ -34,16 +37,22 @@
                            (keys placement))))]
     (map-by-fn pos (base-set poset))))
 
-(defn to-inf-additive-layout
-  "Returns an infimum additive layout from given layout, taking the
-  positions of the infimum irreducible elements as initial positions for
-  the resulting additive layout."
+(defmulti to-inf-additive-layout
+  "Returns an infimum additive layout from given layout."
+  ;;(fn [layout] (type (poset layout)))
+  ;; TODO: change this
+  (fn [layout] (has-lattice-order? (poset layout))))
+
+(defmethod to-inf-additive-layout true ;; Lattice
+  ;; Returns an infimum additive layout from given layout, taking the
+  ;; positions of the infimum irreducible elements as initial positions for
+  ;; the resulting additive layout.
   ;; this is stupid, do it better!
   [layout]
   (let [lattice       (poset layout),
         old-positions (positions layout),
         top-pos       (old-positions (lattice-one lattice)),
-        inf-irr       (set (inf-irreducibles layout)), ;; TODO: find a solution for posets, as they do not have inf-irreducibles
+        inf-irr       (set (inf-irreducibles layout)), 
         elements      (filter inf-irr (top-down-elements-in-layout layout))]
     (loop [positions (select-keys old-positions inf-irr),
            nodes     elements]
@@ -63,6 +72,40 @@
           (recur (assoc positions next
                         [x-old (min y-old y-new)])
                  (rest nodes)))))))
+
+(defmethod to-inf-additive-layout false ;; Poset
+  ;; TODO: description
+  [layout]
+  ;; TODO: what if (has-lattice-order? (poset layout))
+  (let [poset (poset layout)
+        lattice (concept-lattice (poset-context poset)) ;; Dedekind MacNeille completion
+        embedding (into {} 
+                        (map #(vector % [(order-ideal poset #{%}) 
+                                         (order-filter poset #{%})]) 
+                             (base-set poset)))
+        old-positions (into {} (map #(vector 
+                                  (get embedding %) 
+                                  (get (positions layout) %)) 
+                                (base-set poset)))
+        new-layout (update-positions (simple-layered-layout lattice) 
+                                     (merge 
+                                      (into {} (map #(vector % [0 0]) ;; TODO: instead, take max y-value + 1 
+                                                    (base-set lattice)))
+                                      old-positions))
+        new-layout (to-inf-additive-layout new-layout)
+        new-positions (into {} (map #(vector
+                                      (get (map-invert embedding) %)
+                                      (get (positions new-layout) %))
+                                    (nodes new-layout)))
+        new-positions (into {} (filter #(not (nil? (key %))) new-positions))
+        new-connections (into {} (map #(vector
+                                        (get (map-invert embedding) (first %))
+                                        (get (map-invert embedding) (second %)))
+                                      (connections new-layout)))
+        new-connections (into {} (filter #(and (not (nil? (first %)))
+                                               (not (nil? (second %))))
+                                         new-connections))]
+    (make-layout new-positions new-connections)))
 
 ;;;
 

@@ -55,7 +55,7 @@
             2 [1 -1]
             1 [1 -1]}))))
 
-(def- test-layout (make-layout {#{} [-2 -6],
+(def- test-layout-1 (make-layout {#{} [-2 -6],
                                 #{1} [-5 -1],
                                 #{2} [-1 -1],
                                 #{3} [0 -1],
@@ -70,9 +70,17 @@
                                 [#{1 2} #{1 2 3}],
                                 [#{1 3} #{1 2 3}],
                                 [#{2 3} #{1 2 3}]]))
+(def test-layout-2 (make-layout {1 [1 1],
+                                  2 [-2 3],
+                                  3 [0 3],
+                                  4 [4 -1],
+                                  5 [4 4],
+                                  6 [-1 3]}
+                                 [[1 2] [1 3] [1 5]
+                                  [2 6] [3 6] [4 5]]))
 
 (deftest test-to-inf-additive-layout
-  (is (= (positions (to-inf-additive-layout test-layout))
+  (is (= (positions (to-inf-additive-layout test-layout-1))
          {#{} [-2 -2],
           #{1} [-3 -1],
           #{2} [-1 -1],
@@ -80,11 +88,12 @@
           #{1 2} [-2 0],
           #{1 3} [0 0],
           #{2 3} [2 0],
-          #{1 2 3} [1 1]})))
+          #{1 2 3} [1 1]}))
+  (is (= (count (positions (to-inf-additive-layout test-layout-2)))
+         6)))
 
 (deftest test-layout-by-placement
-  (is (= (positions (layout-by-placement (make-lattice (subsets #{1 2 3})
-                                                       subset?)
+  (is (= (positions (layout-by-placement test-lattice
                                          [1 1]
                                          {#{1 2} [-2 0], #{1 3} [0 0], #{2 3} [2 0]}))
          {#{} [-2 -2],
@@ -94,8 +103,15 @@
           #{1 2} [-2 0],
           #{1 3} [0 0],
           #{2 3} [2 0],
-          #{1 2 3} [1 1]})))
-
+          #{1 2 3} [1 1]}))
+  (is (= (positions (layout-by-placement test-poset
+                                         [1 1]
+                                         {3 [0 0], 4 [2 0]}))
+         {5 [1 1],
+          4 [2 0],
+          3 [0 0],
+          2 [1 -1],
+          1 [1 -1]})))
 
 ;;;
 
