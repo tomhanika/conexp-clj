@@ -87,9 +87,10 @@
                                   (get embedding %) 
                                   (get (positions layout) %)) 
                                 (base-set poset)))
+        max-y-position (apply max (map second (vals old-positions)))
         new-layout (update-positions (simple-layered-layout lattice) 
                                      (merge 
-                                      (into {} (map #(vector % [0 0]) ;; TODO: instead, take max y-value + 1 
+                                      (into {} (map #(vector % [0 (inc max-y-position)])
                                                     (base-set lattice)))
                                       old-positions))
         new-layout (to-inf-additive-layout new-layout)
@@ -98,13 +99,13 @@
                                       (get (positions new-layout) %))
                                     (nodes new-layout)))
         new-positions (into {} (filter #(not (nil? (key %))) new-positions))
-        new-connections (into {} (map #(vector
-                                        (get (map-invert embedding) (first %))
-                                        (get (map-invert embedding) (second %)))
-                                      (connections new-layout)))
-        new-connections (into {} (filter #(and (not (nil? (first %)))
-                                               (not (nil? (second %))))
-                                         new-connections))]
+        new-connections (map #(vector
+                               (get (map-invert embedding) (first %))
+                               (get (map-invert embedding) (second %)))
+                             (connections new-layout))
+        new-connections (filter #(and (not (nil? (first %)))
+                                      (not (nil? (second %))))
+                                new-connections)]
     (make-layout new-positions new-connections)))
 
 ;;;
