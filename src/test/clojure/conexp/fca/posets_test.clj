@@ -112,3 +112,31 @@
               (forall [y (base-set poset)]
                       (<=> (directly-neighboured? poset y x)
                            (contains? xs y)))))))
+
+(deftest test-order-ideal
+  (is (thrown-with-msg? AssertionError
+                        #"Assert failed: x must be a subset of the ordered set."
+                        (order-ideal (fast-poset adj1) #{1})))
+  (are [poset x ideal] (= (order-ideal poset x)
+                             ideal)
+       (fast-poset adj0) #{} #{}
+       (fast-poset adj1) #{} #{}
+       (fast-poset adj1) #{'d} #{'a 'b 'd}
+       (fast-poset adj1) #{'c} #{'a 'c}
+       (fast-poset adj1) #{'c 'd} #{'a 'b 'c 'd}
+       (fast-poset adj4) #{'a 3} #{1 2 3 'a}
+       (fast-poset adj4) #{1} #{1}))
+
+(deftest test-order-filter
+  (is (thrown-with-msg? AssertionError
+                        #"Assert failed: x must be a subset of the ordered set."
+                        (order-filter (fast-poset adj1) #{1})))
+  (are [poset x o-filter] (= (order-filter poset x)
+                                 o-filter)
+    (fast-poset adj0) #{} #{}
+    (fast-poset adj1) #{} #{}
+    (fast-poset adj1) #{'d} #{'d}
+    (fast-poset adj1) #{'a} #{'a 'c 'd}
+    (fast-poset adj1) #{'b} #{'b 'd}
+    (fast-poset adj4) #{'a 3} #{3 4 'a 'c 'd}
+    (fast-poset adj4) #{1} #{1 2 3 4 'a 'b 'c 'd}))
