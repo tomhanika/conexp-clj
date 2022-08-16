@@ -9,7 +9,7 @@
 (ns conexp.layouts.freese
   (:use conexp.base
         [conexp.math.algebra :only (base-set)]
-        [conexp.fca.lattices :only (lattice-upper-neighbours)]
+        [conexp.fca.posets   :only (poset-upper-neighbours)]
         [conexp.layouts.util :only (edges)]
         [conexp.layouts.base :only (make-layout-nc)])
   (:import [org.latdraw.diagram Diagram Vertex]))
@@ -22,7 +22,7 @@
   corresponding layout."
   [poset]
   (let [nodes (seq (base-set poset)),
-        ucs   (map #(or (seq (lattice-upper-neighbours poset %)) [])
+        ucs   (map #(or (seq (poset-upper-neighbours poset %)) [])
                    nodes),
         ^Diagram
         diag  (Diagram. "" nodes ucs),
