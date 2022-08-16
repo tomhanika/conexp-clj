@@ -305,8 +305,8 @@
         edge #{[1 2][1 3][2 4][3 4]}
         result (mock-request {:function {:type "function"
                                          :name "make-layout"
-                                         :args ["lattice" "positions" "edges"]}
-                              :lattice {:type "lattice"
+                                         :args ["poset" "positions" "edges"]}
+                              :poset {:type "lattice"
                                         :data (write-data lat)}
                               :positions {:type "map"
                                           :data pos}
@@ -315,8 +315,8 @@
         layout (:result (:function result))]
     (is (= (make-layout-nc 
                ;; Lattice object
-               (make-lattice-nc (:nodes (:lattice layout))
-                                (:edges (:lattice layout))) 
+               (make-lattice-nc (:nodes (:poset layout))
+                                (:edges (:poset layout))) 
                ;; remove colons from keys
                (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists
@@ -341,8 +341,8 @@
         layout (:result (:function result))]
     (is (= (make-layout-nc 
                ;; Lattice object
-               (make-lattice-nc (:nodes (:lattice layout))
-                                (:edges (:lattice layout))) 
+               (make-lattice-nc (:nodes (:poset layout))
+                                (:edges (:poset layout))) 
                ;; remove colons from keys
                (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists
@@ -369,8 +369,8 @@
         layout (:result (:function result))]
     (is (= (make-layout-nc 
                ;; Lattice object
-               (make-lattice-nc (:nodes (:lattice layout))
-                                (:edges (:lattice layout))) 
+               (make-lattice-nc (:nodes (:poset layout))
+                                (:edges (:poset layout))) 
                ;; remove colons from keys
                (read-data {:type "map" :data (:positions layout)})
                ;; cast vector to set, as JSON only supports lists

@@ -51,7 +51,7 @@
                 (filter 
                   some?
                   (list 
-                    (read-data {:type "lattice" :data (:lattice raw)}) 
+                    (read-data {:type "lattice" :data (:poset raw)}) 
                     (read-data {:type "map" :data (:positions raw)})
                     (:connections raw)
                     (read-data {:type "map" :data (:upper-labels raw)})
@@ -79,7 +79,7 @@
                                y (base-set data)
                                :when ((order data) [x y])])}
       Implication [(premise data)(conclusion data)]
-      Layout {:lattice (write-data (.lattice data)) 
+      Layout {:poset (write-data (.poset data)) 
               :positions (.positions data) 
               :connections (.connections data)
               :upper-labels (.upper-labels data) 
