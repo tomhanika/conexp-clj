@@ -132,6 +132,8 @@
 (defn layout-energy
   "Returns the overall energy of the given layout."
   [layout]
+  (assert (has-lattice-order? (poset layout))
+          "The given layout does not contain a lattice.")
   (+ (* *repulsive-amount* (repulsive-energy layout))
      (* *attractive-amount* (attractive-energy layout))
      (* *gravitative-amount* (gravitative-energy layout))))
@@ -162,7 +164,9 @@
   ([layout]
      (force-layout layout nil))
   ([layout iterations]
-     (let [;; compute lattice from layout and ensure proper starting layout
+   (assert (has-lattice-order? (poset layout))
+          "The given layout does not contain a lattice.")
+   (let [;; compute lattice from layout and ensure proper starting layout
            lattice             (poset layout),
            layout              (to-inf-additive-layout layout),
 
