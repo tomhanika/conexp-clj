@@ -38,9 +38,9 @@
   "Given a set and a relation, generates a graph of comparable elements.
   For elements u,v, there will be an edge u<->v iff (u,v) or (v,u) in relation.
   Note: If the relation is reflexive, u<->u for all u in the set."
-  ([lattice] (comparability
-               (alg/base-set lattice)
-               (alg/order lattice)))
+  ([poset] (comparability
+               (alg/base-set poset)
+               (alg/order poset)))
   ([base-set relation]
    (make-graph-from-condition base-set relation)))
 
@@ -49,9 +49,9 @@
   For elements u,v, there will be an edge u<->v iff neither (u,v) nor (v,u) in
   relation.
   Note: If the relation not reflexive, u<->u for all u in the set."
-  ([lattice] (co-comparability
-               (alg/base-set lattice)
-               (alg/order lattice)))
+  ([poset] (co-comparability
+               (alg/base-set poset)
+               (alg/order poset)))
   ([base-set relation]
    (make-graph-from-condition base-set #(and (not (relation %1 %2))
                                              (not (relation %2 %1))))))

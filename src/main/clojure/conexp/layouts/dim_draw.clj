@@ -1,8 +1,8 @@
 (ns conexp.layouts.dim-draw
   (:require [loom.graph :as lg]
             [conexp.math.algebra :as alg]
-            [conexp.fca.lattices :as lat]
             [conexp.fca.graph :refer :all]
+            [conexp.fca.posets :refer :all]
             [conexp.util.graph :refer :all]
             [conexp.layouts.base :as lay]
             [conexp.base :exclude [transitive-closure] :refer :all]
@@ -284,7 +284,7 @@
       coords)))
 
 (defn dim-draw-layout
-  "Returns a layout for a given lattice.
+  "Returns a layout for a given ordered set.
 
   The positions in the layout are computed using DimDraw, see
   Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
@@ -300,7 +300,7 @@
     (lay/make-layout-nc poset
                         positions
                         (mapcat (fn [n] (map #(vector n %)
-                                             (lat/lattice-upper-neighbours poset n)))
+                                             (poset-upper-neighbours poset n)))
                                 (alg/base-set poset)))))
 
 (defn- replicate-str
