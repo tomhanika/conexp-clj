@@ -247,7 +247,14 @@
                             [6 6] [1 1] [5 6] [1 3] [3 6]
                             [0 3] [1 4] [2 6] [0 4] [1 5]
                             [0 5] [5 1] [6 2] [3 0] [4 1]
-                            [2 0]})]
+                            [2 0]})
+        poset (make-poset #{[#{1} #{5}]
+                            [#{4} #{5 6}]
+                            [#{1 3 4} #{}]
+                            [#{1 2 4} #{5}]}
+                          (fn [[A B] [C D]]
+                            (and (subset? A C)
+                                 (subset? D B))))]
     (is (= (concept-lattice-annotation (simple-layered-layout (concept-lattice ctx)))
            {[#{1 4} #{1 3}] [#{} #{4}],
             [#{1 5} #{1 4}] [#{} #{}],
@@ -265,7 +272,16 @@
             [#{1 2 3} #{0}] [#{0} #{}],
             [#{1 2} #{0 1}] [#{} #{}],
             [#{0 1 4} #{3}] [#{3} #{}],
-            [#{0 1 5} #{4}] [#{4} #{}]}))))
+            [#{0 1 5} #{4}] [#{4} #{}]}))
+    (is (= (concept-lattice-annotation
+            (simple-layered-layout poset))
+           {[#{1} #{5}] [#{} #{1}],
+            [#{4} #{5 6}] [#{6} #{4}],
+            [#{1 3 4} #{}] [#{} #{3}],
+            [#{1 2 4} #{5}] [#{5} #{2}]}))
+    (is (thrown-with-msg? AssertionError
+                          #"Layout must be that of a concept lattice."
+                          (concept-lattice-annotation test-poset-layout)))))
 
 (deftest test-annotation
   (let [ctx (make-context (range 7)
