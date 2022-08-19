@@ -37,7 +37,7 @@
 ;;; helper functions
 
 (defn- poset-from-layout-data
-  "Returns poset represented by layout."
+  "Returns poset or lattice represented by layout."
   [positions connections]
   ;; error checking
   (when-not (map? positions)
@@ -75,11 +75,16 @@
     (when (exists [x (keys positions)] (cycles? x))
       (illegal-argument "Given set of edges is cyclic."))
     ;; actual construction
-    (make-poset-nc (set (keys positions))
-                     (memo-fn order [x y]
-                       (or (= x y)
-                           (exists [z (uppers x)]
-                             (order z y)))))))
+    (let [poset-base-set (set (keys positions)),
+          poset-order (memo-fn order [x y]
+                               (or (= x y)
+                                   (exists [z (uppers x)]
+                                           (order z y))))]
+      (try (make-lattice poset-base-set
+                         poset-order)
+           (catch IllegalArgumentException _ ;; no lattice order -> create a poset instead of a lattice
+             (make-poset-nc poset-base-set
+                            poset-order))))))
 
 ;;; plain construction
 

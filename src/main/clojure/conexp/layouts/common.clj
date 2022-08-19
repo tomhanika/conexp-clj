@@ -39,11 +39,9 @@
 
 (defmulti to-inf-additive-layout
   "Returns an infimum additive layout from given layout."
-  ;;(fn [layout] (type (poset layout)))
-  ;; TODO: change this
-  (fn [layout] (has-lattice-order? (poset layout))))
+  (fn [layout] (type (poset layout))))
 
-(defmethod to-inf-additive-layout true ;; Lattice
+(defmethod to-inf-additive-layout Lattice
   ;; Returns an infimum additive layout from given layout, taking the
   ;; positions of the infimum irreducible elements as initial positions for
   ;; the resulting additive layout.
@@ -73,10 +71,13 @@
                         [x-old (min y-old y-new)])
                  (rest nodes)))))))
 
-(defmethod to-inf-additive-layout false ;; Poset
-  ;; TODO: description
+(defmethod to-inf-additive-layout Poset
+  ;; Returns an infimum additive layout from given layout. The poset of the 
+  ;; given layout is transformed into a lattice, using the Dedekind MacNeille
+  ;; completion. After computing the inf-additive layout, the layout is
+  ;; re-transformed to the previous layout by deleting all nodes added in the
+  ;; Dedekind MacNeille completion.
   [layout]
-  ;; TODO: what if (has-lattice-order? (poset layout))
   (let [poset (poset layout)
         lattice (concept-lattice (poset-context poset)) ;; Dedekind MacNeille completion
         embedding (into {} 
