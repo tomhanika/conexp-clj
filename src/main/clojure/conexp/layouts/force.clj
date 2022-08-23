@@ -13,8 +13,11 @@
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.common
+        conexp.layouts.util
         conexp.math.util
-        conexp.math.optimize))
+        conexp.math.optimize)
+  (:import [conexp.fca.posets Poset]
+           [conexp.fca.lattices Lattice]))
 
 ;; Helpers
 
@@ -159,19 +162,21 @@
 
 ;;; Force Layout
 
-(defn force-layout
+(defmulti force-layout
   "Improves given layout with force layout."
+  (fn [layout & iterations] (type (poset layout))))
+
+(defmethod force-layout Lattice
+  ;; Improves given lattice layout with force layout.
   ([layout]
      (force-layout layout nil))
   ([layout iterations]
-   (assert (has-lattice-order? (poset layout))
-          "The given layout does not contain a lattice.")
    (let [;; compute lattice from layout and ensure proper starting layout
            lattice             (poset layout),
            layout              (to-inf-additive-layout layout),
 
            ;; get positions of inf-irreducibles from layout as starting point
-           inf-irrs            (inf-irreducibles layout), ;; TODO: find a solution for posets, as they do not have inf-irreducibles
+           inf-irrs            (inf-irreducibles layout), 
            node-positions      (positions layout),
            inf-irr-points      (map node-positions inf-irrs),
            top-pos             (node-positions (lattice-one lattice)),
@@ -184,10 +189,18 @@
 
            ;; make hash
            point-hash          (apply hash-map (interleave inf-irrs
-                                                           (partition 2 new-points)))]
+                                                           (map #(into []%)
+                                                                (partition 2 new-points))))]
 
        ;; final layout
        (layout-by-placement lattice top-pos point-hash))))
+
+(defmethod force-layout Poset
+  ;; Improves given poset layout with force layout.
+  ([layout]
+   (force-layout layout nil))
+  ([layout iterations]
+   (layout-fn-on-poset force-layout layout iterations)))
 
 ;;;
 

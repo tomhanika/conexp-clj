@@ -12,9 +12,12 @@
         conexp.math.algebra
         conexp.fca.lattices
         conexp.fca.posets
+        conexp.layouts.common
+        conexp.layouts.force
         conexp.layouts.util
         conexp.layouts.base)
-  (:use clojure.test))
+  (:use clojure.test)
+  (:import [conexp.fca.posets Poset]))
 
 (def test-lattices
   [(make-lattice [1 2 3 4 5] <=),
@@ -131,6 +134,28 @@
            2 #{2 3 4 5},
            1 #{1 2 3 4 5}}])))
 
+;;;
+
+(deftest test-layout-fn-on-poset
+  (let [poset-layouts (filter #(= Poset (type (poset %))) test-layouts)]
+    (with-testing-data [layout poset-layouts]
+      (let [new-layout (layout-fn-on-poset force-layout layout)]
+        (= (nodes layout)
+           (nodes new-layout))
+        (= (connections layout)
+           (connections new-layout))))
+    (with-testing-data [layout poset-layouts]
+      (let [new-layout (layout-fn-on-poset force-layout layout 10)]
+        (= (nodes layout)
+           (nodes new-layout))
+        (= (connections layout)
+           (connections new-layout))))
+    (with-testing-data [layout poset-layouts]
+      (let [new-layout (layout-fn-on-poset to-inf-additive-layout layout)]
+        (= (nodes layout)
+           (nodes new-layout))
+        (= (connections layout)
+           (connections new-layout))))))
 
 ;;;
 

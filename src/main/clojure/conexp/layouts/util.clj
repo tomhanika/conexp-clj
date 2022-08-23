@@ -122,7 +122,7 @@
 
 (defmethod edges Poset
   [poset]
-  ;; TODO: This is only a placeholder. Use a function with better runtime complexity.
+  ;; TODO: use covering relation instead?
   (into #{} 
         (filter #(directly-neighboured? poset (first %) (second %)) 
                 (for [x (base-set poset)
@@ -244,6 +244,60 @@
             below   (assoc! below b
                             (into (below b) (below a)))]
         (recur above below (rest edges))))))
+
+;; Layouts for Posets, using Dedekind MacNeille completion
+
+(defn- order-embedding
+  "Return an order embedding using the Dedekind MacNeille completion."
+  [poset]
+  (into {} 
+        (map #(vector [(order-ideal poset #{%}) 
+                       (order-filter poset #{%})]
+                      %) 
+             (base-set poset))))
+
+(defn- poset-layout->lattice-layout
+  "The poset of the  given layout is transformed into a lattice, using the Dedekind MacNeille completion."
+  [layout]
+  (let [poset (poset layout)]
+    (if (= Lattice (type poset))
+      layout
+      (let [lattice (concept-lattice (poset-context poset)) ;; Dedekind MacNeille completion
+            embedding (order-embedding poset)
+            new-base-set (map #(get embedding % %) (base-set lattice))
+            max-y-position (apply max (map second (vals (positions layout))))]
+        (make-layout (merge 
+                      (into {} (map #(vector % [0 (inc max-y-position)])
+                                    new-base-set))
+                      (positions layout))
+                     (map #(vector 
+                            (get embedding (first %) (first %))
+                            (get embedding (second %) (second %)))
+                          (edges lattice)))))))
+
+(defn- lattice-layout->poset-layout
+  "The lattice of the given layout is transformed into a poset. Only the given nodes remain in the layout."
+  [layout nodes]
+  (let [new-positions (into {} (filter #(contains? nodes (key %))
+                                       (positions layout)))
+        new-connections (into [] (filter #(and (contains? nodes (first %)) 
+                                               (contains? nodes (second %)))
+                                         (connections layout)))]
+    (make-layout new-positions new-connections)))
+
+(defn layout-fn-on-poset
+  "The poset of the given layout is transformed into a lattice, using 
+  the Dedekind MacNeille completion. After computing the new layout 
+  with the given layout-fn, the layout is re-transformed to the previous
+  layout by deleting all nodes added in the Dedekind MacNeille completion."
+  ([layout-fn layout]
+   (let [lattice-layout (poset-layout->lattice-layout layout),
+         new-layout (layout-fn lattice-layout)]
+     (lattice-layout->poset-layout new-layout (nodes layout))))
+  ([layout-fn layout args]
+   (let [lattice-layout (poset-layout->lattice-layout layout),
+         new-layout (layout-fn lattice-layout args)]
+     (lattice-layout->poset-layout new-layout (nodes layout)))))
 
 ;;;
 

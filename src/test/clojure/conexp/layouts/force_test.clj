@@ -11,6 +11,7 @@
         conexp.fca.contexts
         conexp.fca.lattices
         conexp.fca.posets
+        conexp.layouts.base
         conexp.layouts.layered
         conexp.layouts.force)
   (:use clojure.test))
@@ -43,10 +44,11 @@
         layout  (simple-layered-layout lattice),
         layouts (take 10 (iterate #(force-layout % 100) layout))]
     (is (apply > (map layout-energy layouts))))
-  (is (thrown-with-msg? AssertionError
-                        #"The given layout does not contain a lattice."
-                        (force-layout
-                         (simple-layered-layout test-poset)))))
+  (let [poset-layout (simple-layered-layout test-poset)]
+    (is (= (nodes (force-layout poset-layout))
+           (nodes poset-layout)))
+    (is (= (connections (force-layout poset-layout))
+           (connections poset-layout)))))
 
 ;;;
 
