@@ -149,6 +149,26 @@
               (map-by-fn (constantly [0 0])
                          (keys (positions layout))))))))
 
+(deftest test-update-valuations
+  (with-testing-data [layout (concat testing-poset-layouts testing-lattice-layouts)]
+    (let [updated (update-valuations layout
+                                     (map-by-fn (constantly 0)
+                                                (nodes layout)))]
+      (and (= (connections layout)
+              (connections updated))
+           (= (positions layout)
+              (positions updated))
+           (= (valuations updated)
+              (map-by-fn (constantly 0)
+                         (nodes layout)))))))
+
+(deftest test-update-valuations-err
+  (with-testing-data [layout (concat testing-poset-layouts testing-lattice-layouts)]
+    (let [updated (update-valuations-error layout)]
+      (and (= (valuations updated)
+              (map-by-fn (constantly "err")
+                         (nodes layout)))))))
+
 (deftest test-nodes
   (with-testing-data [layout (concat testing-poset-layouts testing-lattice-layouts)]
     (= (nodes layout)

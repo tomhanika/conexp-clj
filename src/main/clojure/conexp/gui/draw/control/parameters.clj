@@ -92,7 +92,9 @@
                       thelattice (poset layout)
                       thens (find-ns 'conexp.gui.draw.control.parameters)
                       val-fn (ns-resolve thens @current-valuation-mode)
-                      newlayout (update-valuations layout (partial val-fn thelattice))]
+                      newlayout (try (update-valuations layout (partial val-fn thelattice))
+                                     (catch Exception e
+                                       (update-valuations-error layout)))]
                   (update-valuations-of-scene scn newlayout)
                   (fit-scene-to-layout scn newlayout))))))
   

@@ -143,6 +143,12 @@
            (reduce (fn [e x] (assoc e x (val-fn x))) {} elements)
            (.information layout))))
 
+(defn update-valuations-error
+  "Write \"err\" to each valuation in layout."
+  [^Layout layout]
+  (let [error-fn (fn [_] "err")]
+    (update-valuations layout error-fn)))
+
 ;;; argument verification
 
 (defn- verify-poset-positions-connections
