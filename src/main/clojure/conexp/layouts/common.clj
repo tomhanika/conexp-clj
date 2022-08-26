@@ -72,42 +72,9 @@
                  (rest nodes)))))))
 
 (defmethod to-inf-additive-layout Poset
-  ;; Returns an infimum additive layout from given layout. The poset of the 
-  ;; given layout is transformed into a lattice, using the Dedekind MacNeille
-  ;; completion. After computing the inf-additive layout, the layout is
-  ;; re-transformed to the previous layout by deleting all nodes added in the
-  ;; Dedekind MacNeille completion.
+  ;; Returns an infimum additive layout from given poset layout.
   [layout]
-  (let [poset (poset layout)
-        lattice (concept-lattice (poset-context poset)) ;; Dedekind MacNeille completion
-        embedding (into {} 
-                        (map #(vector % [(order-ideal poset #{%}) 
-                                         (order-filter poset #{%})]) 
-                             (base-set poset)))
-        old-positions (into {} (map #(vector 
-                                  (get embedding %) 
-                                  (get (positions layout) %)) 
-                                (base-set poset)))
-        max-y-position (apply max (map second (vals old-positions)))
-        new-layout (update-positions (simple-layered-layout lattice) 
-                                     (merge 
-                                      (into {} (map #(vector % [0 (inc max-y-position)])
-                                                    (base-set lattice)))
-                                      old-positions))
-        new-layout (to-inf-additive-layout new-layout)
-        new-positions (into {} (map #(vector
-                                      (get (map-invert embedding) %)
-                                      (get (positions new-layout) %))
-                                    (nodes new-layout)))
-        new-positions (into {} (filter #(not (nil? (key %))) new-positions))
-        new-connections (map #(vector
-                               (get (map-invert embedding) (first %))
-                               (get (map-invert embedding) (second %)))
-                             (connections new-layout))
-        new-connections (filter #(and (not (nil? (first %)))
-                                      (not (nil? (second %))))
-                                new-connections)]
-    (make-layout new-positions new-connections)))
+  (layout-fn-on-poset to-inf-additive-layout layout))
 
 ;;;
 
