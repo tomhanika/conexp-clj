@@ -446,19 +446,19 @@
   [layout]
   (cond
    (and (upper-labels layout)
-        (lower-labels layout))
-   (map-by-fn (fn [x]
-                [(first ((upper-labels layout) x)),
-                 (first ((lower-labels layout) x))])
-              (nodes layout)),
-   ;;
-   (and (upper-labels layout)
         (lower-labels layout)
         (valuations layout))
    (map-by-fn (fn [x]
                 [(first ((upper-labels layout) x)),
                  (first ((lower-labels layout) x)),
-                 (valuations ((valuations layout) x))])
+                 (get (valuations layout) x)])
+              (nodes layout)),
+   ;;
+   (and (upper-labels layout)
+        (lower-labels layout))
+   (map-by-fn (fn [x]
+                [(first ((upper-labels layout) x)),
+                 (first ((lower-labels layout) x))])
               (nodes layout)),
    ;;
    (concept-lattice-layout? layout)

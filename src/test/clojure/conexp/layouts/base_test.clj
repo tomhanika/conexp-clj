@@ -352,7 +352,16 @@
                                     (subset? (first A) (first B))))))
          {[#{1} #{1 3}] ["1" "1"],
           [#{2} #{2 3}] ["2" "2"],
-          [#{1 2 3} #{3}] ["3" "3"]})))
+          [#{1 2 3} #{3}] ["3" "3"]}))
+  (is (= (annotation (update-valuations
+                      (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
+                                   #{[1 2] [2 3]}
+                                   (constantly ['x nil])
+                                   (constantly ['y nil]))
+                      identity))
+         {1 [1, ""],
+          2 [2, ""],
+          3 [3, ""]})))
 
 ;;;
 
