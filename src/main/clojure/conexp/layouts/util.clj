@@ -122,7 +122,6 @@
 
 (defmethod edges Poset
   [poset]
-  ;; TODO: use covering relation instead?
   (into #{} 
         (filter #(directly-neighboured? poset (first %) (second %)) 
                 (for [x (base-set poset)
