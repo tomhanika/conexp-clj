@@ -40,7 +40,7 @@
                  [ring-cors "0.1.13"]
                  [http-kit "2.5.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
-                 [luposlip/json-schema             "0.3.3"]
+                 [luposlip/json-schema             "0.3.4"]
                  [org.clojure/data.csv "1.0.1"]]
   :profiles {:uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
