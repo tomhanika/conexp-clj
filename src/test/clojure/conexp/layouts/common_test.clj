@@ -10,18 +10,36 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
+        conexp.fca.posets
         conexp.layouts.base
         conexp.layouts.common)
   (:use clojure.test))
 
 ;;;
 
+(def- test-lattice (make-lattice (subsets #{1 2 3})
+                                 subset?))
+
+(def- test-poset (make-poset [1 2 3 4 5]
+                             (fn [A B]
+                               (contains? #{[1 1] [1 3] [1 4] [1 5]
+                                            [2 2] [2 3] [2 4] [2 5]
+                                            [3 3] [3 5]
+                                            [4 4] [4 5]
+                                            [5 5]}
+                                          [A B]))))
+
 (deftest test-placement-by-initials
-  (let [placement (placement-by-initials (make-lattice (subsets #{1 2 3})
-                                                       subset?)
-                                         [1 1]
-                                         {#{1 2} [-2 0], #{1 3} [0 0], #{2 3} [2 0]})]
-    (is (= placement
+  (let [lattice-placement (placement-by-initials test-lattice
+                                                 [1 1]
+                                                 {#{1 2} [-2 0], 
+                                                  #{1 3} [0 0], 
+                                                  #{2 3} [2 0]})
+        poset-placement (placement-by-initials test-poset
+                                               [1 1]
+                                               {3 [0 0],
+                                                4 [2 0]})]
+    (is (= lattice-placement
            {#{} [-2 -2],
             #{1} [-3 -1],
             #{2} [-1 -1],
@@ -29,29 +47,41 @@
             #{1 2} [-2 0],
             #{1 3} [0 0],
             #{2 3} [2 0],
-            #{1 2 3} [1 1]}))))
+            #{1 2 3} [1 1]}))
+    (is (= poset-placement
+           {5 [1 1],
+            4 [2 0],
+            3 [0 0],
+            2 [1 -1]
+            1 [1 -1]}))))
 
-(def- test-lattice (make-lattice (subsets #{1 2 3})
-                                     subset?))
+(def- test-layout-1 (make-layout {#{} [-2 -6],
+                                  #{1} [-5 -1],
+                                  #{2} [-1 -1],
+                                  #{3} [0 -1],
+                                  #{1 2} [-2 0],
+                                  #{1 3} [0 0],
+                                  #{2 3} [2 0],
+                                  #{1 2 3} [1 1]}
+                                 [[#{} #{1}], [#{} #{2}], [#{} #{3}],
+                                  [#{1} #{1 2}], [#{1} #{1 3}],
+                                  [#{2} #{1 2}], [#{2} #{2 3}],
+                                  [#{3} #{1 3}], [#{3} #{2 3}],
+                                  [#{1 2} #{1 2 3}],
+                                  [#{1 3} #{1 2 3}],
+                                  [#{2 3} #{1 2 3}]]))
 
-(def- test-layout (make-layout {#{} [-2 -6],
-                                #{1} [-5 -1],
-                                #{2} [-1 -1],
-                                #{3} [0 -1],
-                                #{1 2} [-2 0],
-                                #{1 3} [0 0],
-                                #{2 3} [2 0],
-                                #{1 2 3} [1 1]}
-                               [[#{} #{1}], [#{} #{2}], [#{} #{3}],
-                                [#{1} #{1 2}], [#{1} #{1 3}],
-                                [#{2} #{1 2}], [#{2} #{2 3}],
-                                [#{3} #{1 3}], [#{3} #{2 3}],
-                                [#{1 2} #{1 2 3}],
-                                [#{1 3} #{1 2 3}],
-                                [#{2 3} #{1 2 3}]]))
+(def- test-layout-2 (make-layout {1 [1 1],
+                                  2 [-2 2],
+                                  3 [0 2],
+                                  4 [4 -1],
+                                  5 [4 4],
+                                  6 [-1 3]}
+                                 [[1 2] [1 3] [1 5]
+                                  [2 6] [3 6] [4 5]]))
 
 (deftest test-to-inf-additive-layout
-  (is (= (positions (to-inf-additive-layout test-layout))
+  (is (= (positions (to-inf-additive-layout test-layout-1))
          {#{} [-2 -2],
           #{1} [-3 -1],
           #{2} [-1 -1],
@@ -59,11 +89,21 @@
           #{1 2} [-2 0],
           #{1 3} [0 0],
           #{2 3} [2 0],
-          #{1 2 3} [1 1]})))
+          #{1 2 3} [1 1]}))
+  (is (= (nodes (to-inf-additive-layout test-layout-2))
+         (nodes test-layout-2)))
+  (is (= (connections (to-inf-additive-layout test-layout-2))
+         (connections test-layout-2)))
+  (is (= (positions (to-inf-additive-layout test-layout-2))
+         {1 [1 -4],
+          2 [-2 2],
+          3 [0 2],
+          4 [4 -1],
+          5 [4 4],
+          6 [-1 3]})))
 
 (deftest test-layout-by-placement
-  (is (= (positions (layout-by-placement (make-lattice (subsets #{1 2 3})
-                                                       subset?)
+  (is (= (positions (layout-by-placement test-lattice
                                          [1 1]
                                          {#{1 2} [-2 0], #{1 3} [0 0], #{2 3} [2 0]}))
          {#{} [-2 -2],
@@ -73,8 +113,15 @@
           #{1 2} [-2 0],
           #{1 3} [0 0],
           #{2 3} [2 0],
-          #{1 2 3} [1 1]})))
-
+          #{1 2 3} [1 1]}))
+  (is (= (positions (layout-by-placement test-poset
+                                         [1 1]
+                                         {3 [0 0], 4 [2 0]}))
+         {5 [1 1],
+          4 [2 0],
+          3 [0 0],
+          2 [1 -1],
+          1 [1 -1]})))
 
 ;;;
 

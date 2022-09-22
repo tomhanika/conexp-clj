@@ -11,17 +11,20 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.lattices
+        conexp.fca.posets
         conexp.layouts.util
         conexp.layouts.layered
-        conexp.layouts.base))
+        conexp.layouts.base)
+  (:import [conexp.fca.posets Poset]
+           [conexp.fca.lattices Lattice]))
 
 ;;; inf-irreducible additive layout
 
 (defn placement-by-initials
   "Computes placement for all elements by positions of some initial
   nodes. Top element will be at top."
-  [lattice top placement]
-  (let [ord (order lattice),
+  [poset top placement]
+  (let [ord (order poset),
         pos (fn pos [v]
               (get placement v
                    (reduce (fn [p w]
@@ -32,18 +35,22 @@
                                p))
                            top
                            (keys placement))))]
-    (map-by-fn pos (base-set lattice))))
+    (map-by-fn pos (base-set poset))))
 
-(defn to-inf-additive-layout
-  "Returns an infimum additive layout from given layout, taking the
-  positions of the infimum irreducible elements as initial positions for
-  the resulting additive layout."
+(defmulti to-inf-additive-layout
+  "Returns an infimum additive layout from given layout."
+  (fn [layout] (type (poset layout))))
+
+(defmethod to-inf-additive-layout Lattice
+  ;; Returns an infimum additive layout from given layout, taking the
+  ;; positions of the infimum irreducible elements as initial positions for
+  ;; the resulting additive layout.
   ;; this is stupid, do it better!
   [layout]
-  (let [lattice       (lattice layout),
+  (let [lattice       (poset layout),
         old-positions (positions layout),
         top-pos       (old-positions (lattice-one lattice)),
-        inf-irr       (set (inf-irreducibles layout)),
+        inf-irr       (set (inf-irreducibles layout)), 
         elements      (filter inf-irr (top-down-elements-in-layout layout))]
     (loop [positions (select-keys old-positions inf-irr),
            nodes     elements]
@@ -64,23 +71,28 @@
                         [x-old (min y-old y-new)])
                  (rest nodes)))))))
 
+(defmethod to-inf-additive-layout Poset
+  ;; Returns an infimum additive layout from given poset layout.
+  [layout]
+  (layout-fn-on-poset to-inf-additive-layout layout))
+
 ;;;
 
 (defn layout-by-placement
-  "Computes additive layout of lattice by given positions of the keys
+  "Computes additive layout of ordered set by given positions of the keys
   of placement. The values of placement should be the positions of the
   corresponding keys. Top element will be at top."
-  [lattice top placement]
-  (make-layout-nc lattice
-                  (placement-by-initials lattice top placement)
-                  (edges lattice)))
+  [poset top placement]
+  (make-layout-nc poset
+                  (placement-by-initials poset top placement)
+                  (edges poset)))
 
 ;;; Valued layout stuff
 
 (defn to-valued-layout
   [layout val-fn]
-  (let [lattice   (lattice layout)
-        elements  (lattice-base-set lattice)]
+  (let [poset   (poset layout)
+        elements  (base-set poset)]
     (update-valuations layout val-fn)))
 
 ;;;

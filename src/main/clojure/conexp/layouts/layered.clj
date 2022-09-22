@@ -7,11 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.layouts.layered
-  "Layered lattice layouts."
+  "Layered poset layouts."
   (:use conexp.base
+        conexp.math.algebra
         conexp.layouts.util
-        conexp.layouts.base
-        conexp.fca.lattices))
+        conexp.layouts.base))
 
 ;;; Simple Layered Layout
 
@@ -26,26 +26,26 @@
                      (iterate inc start)))))
 
 (defn simple-layered-layout
-  "Simple layered layout for lattice visualization."
-  [lattice]
-  (make-layout-nc lattice
+  "Simple layered layout for poset visualization."
+  [poset]
+  (make-layout-nc poset
                   (apply hash-map
                          (mapcat layer-coordinates
                                  (iterate inc 0)
-                                 (layers lattice)))
-                  (edges lattice)))
+                                 (layers poset)))
+                  (edges poset)))
 
 (defn as-chain
-  "Returns the layout of lattice as a simple chain."
-  [lattice]
-  (make-layout-nc lattice
+  "Returns the layout of poset as a simple chain."
+  [poset]
+  (make-layout-nc poset
                   (into {}
                         (mapcat (fn [i layer]
                                   (map (fn [x] [x [0, i]])
                                        layer))
                                 (iterate inc 0)
-                                (layers lattice)))
-                  (edges lattice)))
+                                (layers poset)))
+                  (edges poset)))
 
 ;;;
 

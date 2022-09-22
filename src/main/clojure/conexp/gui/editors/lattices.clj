@@ -66,7 +66,7 @@
     (let [layout (get-layout-from-panel (current-tab frame))]
       (if (nil? layout)
         (illegal-argument "Current tab does not contain a lattice editor.")
-        (add-tab frame (make-context-editor (standard-context (lattice layout)))
+        (add-tab frame (make-context-editor (standard-context (poset layout)))
                  "Standard-Context")))))
 
 
@@ -97,7 +97,7 @@
                                     (menu-item :text (str "Format " (name format)),
                                                :listen [:action (fn [_]
                                                                   (save-layout frame
-                                                                               lattice
+                                                                               poset
                                                                                write-lattice
                                                                                format))]))
                                   (list-lattice-output-formats))),

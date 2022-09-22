@@ -32,7 +32,7 @@
                       fmt (remove #{:simple :text} (list-layout-formats))]
     (let [out-in-lay (out-in lay 'layout fmt)]
       ;; only test equality of lattice, positions and connections, as upper- and lower-labels are not saved in json layout format
-      (and (= (lattice lay) (lattice out-in-lay))
+      (and (= (poset lay) (poset out-in-lay))
            (= (positions lay) (positions out-in-lay))
            (= (connections lay) (connections out-in-lay))))))
 
