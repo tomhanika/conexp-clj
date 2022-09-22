@@ -36,6 +36,10 @@
       ([pair] (order-function (first pair) (second pair)))
       ([x y] (order-function x y)))))
 
+(defmethod print-method Protoconcept [^Protoconcept protoconcept, ^java.io.Writer out]
+  (.write out
+          ^String (str "Protoconcept on " (count (base-set protoconcept)) " elements.")))
+
 (defn preconcept?
   "Tests whether given pair is preconcept in given context ctx."
   [ctx [set-of-obj set-of-att]]
