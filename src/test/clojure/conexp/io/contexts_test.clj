@@ -230,6 +230,13 @@
                       fmt #{:fcalgs}]
     (= ctx (out-in-without-format ctx 'context fmt))))
 
-;;;
+(deftest test-ctx->json
+  ;; test that attributes with empty column are not dropped
+  (let [K (make-context-from-matrix [1 2] [:a :b] [1 0 0 0])]
+    (is (= (ctx->json K)
+           {:attributes '(:a :b)
+            :adjacency-list
+            [{:object 1, :attributes '(:a)}
+             {:object 2, :attributes '()}]}))))
 
 nil

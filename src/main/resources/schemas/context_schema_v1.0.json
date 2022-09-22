@@ -28,10 +28,18 @@
     }
   },
   "required": [
-    "formal_context"
+    "attributes",
+    "adjacency-list"
   ],
   "properties": {
-    "formal_context": {
+    "attributes": {
+      "type": "array",
+      "description": "List of all attributes",
+      "items": {
+        "$ref": "fca_schema_v1.0.json#/$defs/attribute"
+      }
+    },
+    "adjacency-list": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/context_item"
