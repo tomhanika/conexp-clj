@@ -33,6 +33,7 @@
       outputsBuilder = channels:
         let
           inherit (inputs.gitignore.lib) gitignoreSource;
+          inherit (inputs.clj-nix.lib) mk-deps-cache;
           inherit (channels.nixpkgs) mkCljBin mkShell writeShellScriptBin;
 
           conexp = let
@@ -63,9 +64,17 @@
           apps = rec {
             conexp-clj = mkApp { drv = conexp; };
             default = conexp-clj;
+
             deps-lock = mkApp {
               drv = writeShellScriptBin "deps-lock" ''
                 ${channels.nixpkgs.deps-lock}/bin/deps-lock --lein $@
+              '';
+            };
+
+            test = let deps = mk-deps-cache { lock-file = ./deps-lock.json; };
+            in mkApp {
+              drv = writeShellScriptBin "conexp-clj-tests" ''
+                lein test $@
               '';
             };
           };
