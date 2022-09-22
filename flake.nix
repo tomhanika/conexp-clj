@@ -1,42 +1,82 @@
 {
-  description = "conexp-clj, a general purpose software tool for Formal Concept Analysis";
+  description =
+    "conexp-clj, a general purpose software tool for Formal Concept Analysis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-21.11";
-    flake-utils.url = "github:numtide/flake-utils";
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
+    utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
+
+    clj-nix = {
+      #url = "github:jlesquembre/clj-nix";
+      url =
+        "github:mmarx/clj-nix/fix-lein"; # we need to wait for PR 31 to go through.
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "utils/flake-utils";
+      };
     };
-    gitignoresrc = {
+
+    gitignore = {
       url = "github:hercules-ci/gitignore.nix";
-      flake = false;
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }@inputs:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        gitignoreSource = (import inputs.gitignoresrc { inherit (pkgs) lib; }).gitignoreSource;
-        conexp-clj = pkgs.callPackage ./nix/conexp-clj
-          {
-            inherit gitignoreSource;
-          };
-      in
-      rec {
-        packages = flake-utils.lib.flattenTree {
-          conexp-clj = conexp-clj;
-        };
-        defaultPackage = packages.conexp-clj;
-        apps.conexp-clj = flake-utils.lib.mkApp { drv = packages.conexp-clj; };
-        defaultApp = apps.conexp-clj;
+  outputs = { self, nixpkgs, utils, ... }@inputs:
+    let inherit (utils.lib) mkApp mkFlake;
+    in mkFlake {
+      inherit self inputs;
 
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            clojure-lsp
-            leiningen
-          ];
+      channels.nixpkgs.overlaysBuilder = channels:
+        [ inputs.clj-nix.overlays.default ];
+
+      outputsBuilder = channels:
+        let
+          inherit (inputs.gitignore.lib) gitignoreSource;
+          inherit (channels.nixpkgs) mkCljBin mkShell writeShellScriptBin;
+
+          conexp = let
+            pname = "conexp-clj";
+            version = "2.3.0-SNAPSHOT";
+          in mkCljBin rec {
+            name = "conexp/${pname}";
+            inherit version;
+
+            projectSrc = gitignoreSource ./.;
+            main-ns = "conexp";
+
+            buildCommand = ''
+              lein uberjar
+              mkdir -p target
+              cp builds/uberjar/${pname}-${version}-standalone.jar target
+            '';
+            doCheck = true;
+            checkPhase = "lein test";
+          };
+
+        in {
+          packages = rec {
+            conexp-clj = conexp;
+            default = conexp-clj;
+          };
+
+          apps = rec {
+            conexp-clj = mkApp { drv = conexp; };
+            default = conexp-clj;
+            deps-lock = mkApp {
+              drv = writeShellScriptBin "deps-lock" ''
+                ${channels.nixpkgs.deps-lock}/bin/deps-lock --lein $@
+              '';
+            };
+          };
+
+          devShells.default = mkShell {
+            buildinputs = with channels.nixpkgs; [ clojure-lsp leiningen ];
+          };
+
+          formatter = channels.nixpkgs.alejandra;
+
         };
-      });
+
+    };
 }
