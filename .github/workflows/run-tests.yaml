@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - dev
-      - clj-nix
 
 jobs:
   unit-tests:
