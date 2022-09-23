@@ -40,15 +40,17 @@
                  [ring-cors "0.1.13"]
                  [http-kit "2.5.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
-                 [luposlip/json-schema             "0.3.3"]
+                 [luposlip/json-schema             "0.3.4"]
                  [org.clojure/data.csv "1.0.1"]]
   :profiles {:uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
-                                      [ring/ring-mock "0.4.0"]]
+                                      [ring/ring-mock "0.4.0"]
+                                      [nrepl/nrepl "0.6.0"]]
                        :aot :all}
              :dev {:main conexp.main
                    :dependencies [[javax.servlet/servlet-api "2.5"]
-                                  [ring/ring-mock "0.4.0"]]
+                                  [ring/ring-mock "0.4.0"]
+                                  [nrepl/nrepl "0.6.0"]]
                    :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]}
              :gorilla {:main conexp.main
                        :plugins [[org.clojars.benfb/lein-gorilla "0.7.0"]]}}
