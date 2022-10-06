@@ -1,13 +1,11 @@
 (ns conexp.layouts.dim-draw-test
   (:require [clojure.test :refer :all]
-            [conexp.fca.lattices :as lat]
             [conexp.fca.graph :refer :all]
             [conexp.util.graph :refer :all]
             [conexp.base :exclude [transitive-closure] :refer :all]
             [loom.graph :as lg]
             [loom.alg :as la]
-            [rolling-stones.core :as sat :refer :all]
-            [conexp.layouts.base :as lay])
+            [rolling-stones.core :as sat :refer :all])
   (:use conexp.layouts.dim-draw))
 
 ;;;
@@ -95,6 +93,12 @@
           [9 12] [10 15] [10 17] [11 13] [11 16] [12 15] [13 17] [14 18]
           [15 18] [16 18] [17 18])))))
 
+(def g-poset
+  (transitive-closure
+   (add-loops
+    (lg/digraph
+     [1 2] [1 3] [1 5] [2 6] [3 6] [4 5]))))
+
 ;;;
 
 (deftest test-compute-conjugate-order
@@ -162,6 +166,17 @@
         edgelist 
           #{[6 2] [6 3] [6 4] [6 8] [5 3] [5 4] [5 2] [5 8]
             [7 3] [7 2] [7 4] [7 8] [8 2] [8 3] [8 4] [9 4]}]
+    (is (la/dag? graph))
+    (is (= graph (transitive-closure graph)))
+    (is (= (set (map set edgelist))
+           (set (map set (lg/edges graph))))))
+  (let [graph 
+         (lg/add-edges* 
+           (lg/digraph)
+           (compute-conjugate-order (nodes g-poset)
+                                    #(lg/has-edge? g-poset %1 %2)))
+        edgelist 
+          #{[1 4] [2 3] [2 4] [2 5] [3 4] [3 5] [4 6] [5 6]}]
     (is (la/dag? graph))
     (is (= graph (transitive-closure graph)))
     (is (= (set (map set edgelist))
@@ -317,7 +332,9 @@
          #{[0 [0 0]] [7 [3 9]] [1 [4 4]] [4 [10 10]] [6 [2 8]] [3 [6 6]] 
            [2 [5 5]] [9 [8 2]] [5 [1 7]] [10 [9 3]] [8 [7 1]]}))
   (is (= (set (compute-coordinates gParallel nil))
-         #{[0 [0 0]] [1 [1 4]] [5 [5 5]] [2 [4 1]] [3 [3 2]] [4 [2 3]]})))
+         #{[0 [0 0]] [1 [1 4]] [5 [5 5]] [2 [4 1]] [3 [3 2]] [4 [2 3]]}))
+  (is (= (set (compute-coordinates g-poset nil))
+         #{[1 [0 1]] [2 [2 3]] [3 [1 4]] [4 [4 0]] [5 [5 2]] [6 [3 5]]})))
 
 
 ;; test drawing layout

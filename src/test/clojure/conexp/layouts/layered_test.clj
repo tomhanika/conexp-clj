@@ -9,7 +9,6 @@
 (ns conexp.layouts.layered-test
   (:use conexp.base
         conexp.math.algebra
-        conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.util
         conexp.layouts.layered
@@ -19,12 +18,12 @@
 ;;;
 
 (deftest test-simple-layered-layout
-  (with-testing-data [lattice test-lattices]
-    (let [simply-layered (simple-layered-layout lattice),
-          layers         (layers lattice),
+  (with-testing-data [poset (apply conj test-lattices test-posets)]
+    (let [simply-layered (simple-layered-layout poset),
+          layers         (layers poset),
           simple-layers  (sort-by first
                                   (reduce! (fn [map [a [x y]]]
-                                    (assoc! map y (conj (get map y) x)))
+                                             (assoc! map y (conj (get map y) x)))
                                            {}
                                            (positions simply-layered)))]
       (and (layout? simply-layered)
@@ -33,20 +32,20 @@
            (= (map count layers)
               (map (comp count second) simple-layers))
            (forall [[_ coords] simple-layers]
-             (forall [x coords]
-               (exists [y coords]
-                 (= x (- y)))))))))
+                   (forall [x coords]
+                           (exists [y coords]
+                                   (= x (- y)))))))))
 
 (deftest test-as-chain
-  (with-testing-data [lattice test-lattices]
-    (let [chain (as-chain lattice)]
+  (with-testing-data [poset (apply conj test-lattices test-posets)]
+    (let [chain (as-chain poset)]
       (and (layout? chain)
            (>= 1 (count (set-of a | [a _] (vals (positions chain)))))
            (forall [[x [_ b]] (positions chain),
                     [y [_ d]] (positions chain)]
-             (=> (and ((order lattice) x y)
-                      (not= x y))
-                 (< b d)))))))
+                   (=> (and ((order poset) x y)
+                            (not= x y))
+                       (< b d)))))))
 
 ;;;
 
