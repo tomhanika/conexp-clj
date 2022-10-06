@@ -8,8 +8,9 @@
 
 (ns conexp.layouts.base-test
   (:use conexp.base
-        conexp.fca.contexts
         conexp.math.algebra
+        conexp.fca.contexts
+        conexp.fca.posets
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.layered)
@@ -19,10 +20,14 @@
 
 (deftest test-make-layout
   (is (layout? (make-layout {} [])))
+  ;; lattice layouts
   (is (layout? (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
                             #{[1 2] [2 3]})))
   (is (layout? (make-layout {1 [0 0], 2 [1 1], 3 [2 2]}
                             [[1 2] [2 3]])))
+  ;; poset layout
+  (is (layout? (make-layout {1 [0 0], 2 [1 0], 3 [1 1]}
+                            [[1 3] [2 3]])))
   (is (thrown-with-msg? IllegalArgumentException
         #"Positions must be a map."
         (make-layout 1 2)))
@@ -37,13 +42,13 @@
         #"Connections must be given between positioned points."
         (make-layout {1 [0,0]} [[1 2]])))
   (is (thrown-with-msg? IllegalArgumentException
-        #"Positioned points must be the elements of the given lattice."
-        (make-layout (make-lattice-nc [1 2 3] <)
+        #"Positioned points must be the elements of the given poset."
+        (make-layout (make-poset-nc [1 2 3] <)
                      {}
                      [])))
   (is (thrown-with-msg? IllegalArgumentException
-        #"The given connections must represent the edges of the given lattice."
-        (make-layout (make-lattice-nc [1 2 3] <)
+        #"The given connections must represent the edges of the given poset."
+        (make-layout (make-poset-nc [1 2 3] <)
                      {1 [0 0] 2 [1 1] 3 [2 2]}
                      [])))
   (is (thrown-with-msg? IllegalArgumentException
@@ -61,27 +66,27 @@
   (is (thrown-with-msg? IllegalArgumentException
         #"Labels must be given as map."
         (make-layout {1 [0 0], 2 [0 1]}
-                            #{[1 2]}
-                            [1 ["1u" nil], 2 ["2u" [0 2]]]
-                            {1 ["1l" [0 -1]], 2 ["2l" nil]})))
+                     #{[1 2]}
+                     [1 ["1u" nil], 2 ["2u" [0 2]]]
+                     {1 ["1l" [0 -1]], 2 ["2l" nil]})))
   (is (thrown-with-msg? IllegalArgumentException
         #"Nodes in layout and given labeled nodes are different."
         (make-layout {1 [0 0], 2 [0 1]}
-                            #{[1 2]}
-                            {1 ["1u" nil], 2 ["2u" [0 2]], 3 ["3u" [0 3]]}
-                            {1 ["1l" [0 -1]]})))
+                     #{[1 2]}
+                     {1 ["1u" nil], 2 ["2u" [0 2]], 3 ["3u" [0 3]]}
+                     {1 ["1l" [0 -1]]})))
   (is (thrown-with-msg? IllegalArgumentException
         #"Nodes must be labeled with pairs"
         (make-layout {1 [0 0], 2 [0 1]}
-                            #{[1 2]}
-                            {1 ["1u" nil], 2 ["2u" 0 2]}
-                            {1 ["1l" [0 -1]], 2 ["2l" nil]})))
+                     #{[1 2]}
+                     {1 ["1u" nil], 2 ["2u" 0 2]}
+                     {1 ["1l" [0 -1]], 2 ["2l" nil]})))
   (is (thrown-with-msg? IllegalArgumentException
         #"Labels must be above the labeled node"
         (make-layout {1 [0 0], 2 [0 1]}
-                            #{[1 2]}
-                            {1 ["1u" nil], 2 ["2u" [0 1]]}
-                            {1 ["1l" [0 1]], 2 ["2l" nil]}))))
+                     #{[1 2]}
+                     {1 ["1u" nil], 2 ["2u" [0 1]]}
+                     {1 ["1l" [0 1]], 2 ["2l" nil]}))))
 
 (deftest test-positions-and-connections
   (let [pos {1 [0,0], 2 [1,1], 3 [2,2]},
@@ -113,25 +118,28 @@
                                             (first (indexes y)))))]
     (simple-layered-layout lattice)))
 
-(def- testing-layouts
-  (concat
-   [(make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
-                 #{[1 2] [2 3]})]
-   (repeatedly 10 rand-layout)))
+(def- testing-poset-layouts
+  [(make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
+                #{[1 2] [2 3]})
+   (make-layout {1 [0 0], 2 [1 0], 3 [1 1]}
+                [[1 3] [2 3]])])
+
+(def- testing-lattice-layouts
+  (repeatedly 10 rand-layout))
 
 ;;;
 
-(deftest test-lattice
-  (with-testing-data [lay testing-layouts]
-    (let [lattice (lattice lay)]
-      (and (= (nodes lay) (base-set lattice))
+(deftest test-connections
+  (with-testing-data [lay (concat testing-poset-layouts testing-lattice-layouts)]
+    (let [poset (poset lay)]
+      (and (= (nodes lay) (base-set poset))
            (forall [x (nodes lay),
                     y (nodes lay)]
-             (<=> (directly-neighboured? lattice x y)
+             (<=> (directly-neighboured? poset x y)
                   (contains? (connections lay) [x y])))))))
 
 (deftest test-update-positions
-  (with-testing-data [layout testing-layouts]
+  (with-testing-data [layout (concat testing-poset-layouts testing-lattice-layouts)]
     (let [updated (update-positions layout
                                     (map-by-fn (constantly [0 0])
                                                (keys (positions layout))))]
@@ -141,15 +149,35 @@
               (map-by-fn (constantly [0 0])
                          (keys (positions layout))))))))
 
+(deftest test-update-valuations
+  (with-testing-data [layout (concat testing-poset-layouts testing-lattice-layouts)]
+    (let [updated (update-valuations layout
+                                     (map-by-fn (constantly 0)
+                                                (nodes layout)))]
+      (and (= (connections layout)
+              (connections updated))
+           (= (positions layout)
+              (positions updated))
+           (= (valuations updated)
+              (map-by-fn (constantly 0)
+                         (nodes layout)))))))
+
+(deftest test-update-valuations-err
+  (with-testing-data [layout (concat testing-poset-layouts testing-lattice-layouts)]
+    (let [updated (update-valuations-error layout)]
+      (and (= (valuations updated)
+              (map-by-fn (constantly "err")
+                         (nodes layout)))))))
+
 (deftest test-nodes
-  (with-testing-data [layout testing-layouts]
+  (with-testing-data [layout (concat testing-poset-layouts testing-lattice-layouts)]
     (= (nodes layout)
        (set (keys (positions layout))))))
 
 ;;;
 
 (deftest test-layout-memoization
-  (with-testing-data [lay testing-layouts]
+  (with-testing-data [lay (concat testing-poset-layouts testing-lattice-layouts)]
     (let [layout  (make-layout-nc (positions lay) ;get fresh layout
                                   (connections lay)),
           counter (atom 0),
@@ -166,48 +194,62 @@
 ;;;
 
 (deftest test-upper-neighbours
-  (with-testing-data [lay testing-layouts]
+  (with-testing-data [lay (concat testing-poset-layouts testing-lattice-layouts)]
     (let [uppers (upper-neighbours lay)]
       (forall [x (nodes lay)]
         (= (set (uppers x))
-           (lattice-upper-neighbours (lattice lay) x))))))
+           (poset-upper-neighbours (poset lay) x))))))
 
 (deftest test-lower-neighbours
-  (with-testing-data [lay testing-layouts]
+  (with-testing-data [lay (concat testing-poset-layouts testing-lattice-layouts)]
     (let [lowers (lower-neighbours lay)]
       (forall [x (nodes lay)]
         (= (set (lowers x))
-           (lattice-lower-neighbours (lattice lay) x))))))
+           (poset-lower-neighbours (poset lay) x))))))
+
+(def- test-poset-layout
+  (make-layout {1 [0 0] 2 [-1 1] 3 [1 1] 4 [-1 2] 5 [1 2]} 
+               #{[1 2] [1 3] [2 4] [2 5] [3 4] [3 5]}))
 
 (deftest test-upper-neighbours-of-inf-irreducibles
-  (with-testing-data [lay testing-layouts]
+  (with-testing-data [lay testing-lattice-layouts]
     (let [uppers (upper-neighbours-of-inf-irreducibles lay),
-          infs   (lattice-inf-irreducibles (lattice lay))]
+          infs   (lattice-inf-irreducibles (poset lay))]
       (forall [x infs]
         (= (set (list (uppers x)))
-           (lattice-upper-neighbours (lattice lay) x))))))
+           (lattice-upper-neighbours (poset lay) x)))))
+  (is (thrown? AssertionError
+              (upper-neighbours-of-inf-irreducibles test-poset-layout))))
 
 (deftest test-inf-irreducibles
-  (with-testing-data [lay testing-layouts]
+  (with-testing-data [lay testing-lattice-layouts]
     (= (set (inf-irreducibles lay))
-       (set (lattice-inf-irreducibles (lattice lay))))))
+       (set (lattice-inf-irreducibles (poset lay)))))
+  (is (thrown? AssertionError
+              (inf-irreducibles test-poset-layout))))
 
 (deftest test-sup-irreducibles
-  (with-testing-data [lay testing-layouts]
+  (with-testing-data [lay testing-lattice-layouts]
     (= (set (sup-irreducibles lay))
-       (set (lattice-sup-irreducibles (lattice lay))))))
+       (set (lattice-sup-irreducibles (poset lay)))))
+  (is (thrown? AssertionError
+              (sup-irreducibles test-poset-layout))))
 
 (deftest test-full-order-relation
-  (let [lay (make-layout {1 [0,0], 2 [1,1], 3 [2,2]}
-                         #{[1 2] [2 3]})]
-    (is (= (full-order-relation lay)
-           #{[1 1] [2 2] [3 3]
-             [1 2] [2 3] [1 3]}))))
+  (is (= (full-order-relation (first testing-poset-layouts))
+         #{[1 1] [2 2] [3 3]
+           [1 2] [2 3] [1 3]}))
+  (is (= (full-order-relation (second testing-poset-layouts))
+         #{[1 1] [2 2] [3 3]
+           [1 3] [2 3]})))
 
 (deftest test-context
-  (with-testing-data [lay testing-layouts]
+  (with-testing-data [lay testing-poset-layouts]
     (= (context lay)
-       (standard-context (lattice lay)))))
+       (poset-context (poset lay))))
+  (with-testing-data [lay testing-lattice-layouts]
+    (= (context lay)
+       (standard-context (poset lay)))))
 
 (deftest test-concept-lattice-layout?
   (is (concept-lattice-layout?
@@ -225,7 +267,14 @@
                             [6 6] [1 1] [5 6] [1 3] [3 6]
                             [0 3] [1 4] [2 6] [0 4] [1 5]
                             [0 5] [5 1] [6 2] [3 0] [4 1]
-                            [2 0]})]
+                            [2 0]})
+        poset (make-poset #{[#{1} #{5}]
+                            [#{4} #{5 6}]
+                            [#{1 3 4} #{}]
+                            [#{1 2 4} #{5}]}
+                          (fn [[A B] [C D]]
+                            (and (subset? A C)
+                                 (subset? D B))))]
     (is (= (concept-lattice-annotation (simple-layered-layout (concept-lattice ctx)))
            {[#{1 4} #{1 3}] [#{} #{4}],
             [#{1 5} #{1 4}] [#{} #{}],
@@ -243,7 +292,16 @@
             [#{1 2 3} #{0}] [#{0} #{}],
             [#{1 2} #{0 1}] [#{} #{}],
             [#{0 1 4} #{3}] [#{3} #{}],
-            [#{0 1 5} #{4}] [#{4} #{}]}))))
+            [#{0 1 5} #{4}] [#{4} #{}]}))
+    (is (= (concept-lattice-annotation
+            (simple-layered-layout poset))
+           {[#{1} #{5}] [#{} #{1}],
+            [#{4} #{5 6}] [#{6} #{4}],
+            [#{1 3 4} #{}] [#{} #{3}],
+            [#{1 2 4} #{5}] [#{5} #{2}]}))
+    (is (thrown-with-msg? AssertionError
+                          #"Layout must be that of a concept lattice."
+                          (concept-lattice-annotation test-poset-layout)))))
 
 (deftest test-annotation
   (let [ctx (make-context (range 7)
@@ -282,7 +340,19 @@
                                   (constantly ['y nil])))
          {1 ['x 'y],
           2 ['x 'y],
-          3 ['x 'y]})))
+          3 ['x 'y]}))
+  (is (= (annotation (make-layout {1 [0 0], 2 [1 0], 3 [1 1]}
+                                  #{[1 3] [2 3]}))
+         {1 [1, ""],
+          2 [2, ""],
+          3 [3, ""]}))
+  (is (= (annotation (simple-layered-layout 
+                      (make-poset [[#{2} #{2 3}] [#{1 2 3} #{3}] [#{1} #{1 3}]]
+                                  (fn [A B]
+                                    (subset? (first A) (first B))))))
+         {[#{1} #{1 3}] ["1" "1"],
+          [#{2} #{2 3}] ["2" "2"],
+          [#{1 2 3} #{3}] ["3" "3"]})))
 
 ;;;
 

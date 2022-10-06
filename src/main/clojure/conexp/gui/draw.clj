@@ -21,11 +21,14 @@
             [conexp.gui.draw.scenes :refer :all]
             [conexp.io.layouts :refer :all]
             [conexp.layouts :refer :all]
+            [conexp.layouts.base :refer :all]
             [conexp.layouts.common :refer :all]
             [conexp.layouts.util :refer :all]
             [seesaw.core :refer [listen]])
   (:import [java.awt BorderLayout Dimension]
-           [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]))
+           [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]
+           [conexp.fca.posets Poset]
+           [conexp.fca.lattices Lattice]))
 
 ;;; Lattice Editor
 
@@ -105,9 +108,19 @@
   (when-let [scn (get-scene-from-panel panel)]
     (get-layout-from-scene scn)))
 
+(defmulti make-frame
+  "Returns a frame with correct title"
+  (fn [layout] (type (poset layout))))
+
+(defmethod make-frame Lattice
+  [layout]
+  (JFrame. "conexp-clj Lattice"))
+
+(defmethod make-frame Poset
+  [layout]
+  (JFrame. "conexp-clj Ordered Set"))
 
 ;;; Drawing Routine for the REPL
-
 (defn draw-layout
   "Draws given layout on a canvas. Returns the frame and the scene (as
   map). The following options are allowed, their default values are
@@ -119,9 +132,8 @@
   [layout
    & {:keys [visible dimension title]
       :or   {visible   true,
-             dimension [600 600]
-             title "conexp-clj Lattice"}}]
-  (let [frame          (JFrame. title),
+             dimension [600 600]}}]
+  (let [frame          (make-frame layout),
         lattice-editor (make-lattice-editor frame layout)]
     (doto frame
       (.add lattice-editor)
