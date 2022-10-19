@@ -15,7 +15,8 @@
             [conexp.layouts.base :refer :all]
             [conexp.util.graph :as graph])
   (:import [conexp.fca.posets Poset]
-           [conexp.fca.lattices Lattice]))
+           [conexp.fca.lattices Lattice]
+           [conexp.fca.protoconcepts Protoconcepts]))
 
 ;;;
 
@@ -120,7 +121,7 @@
   are directly neighboured in poset."
   (fn [poset] (type poset)))
 
-(defmethod edges Poset
+(defn- poset-edges
   [poset]
   (into #{} 
         (filter #(directly-neighboured? poset (first %) (second %)) 
@@ -129,9 +130,17 @@
                       :when ((order poset) x y)]
                   [x y]))))
 
+(defmethod edges Poset
+  [poset]
+  (poset-edges poset))
+
 (defmethod edges Lattice
   [lattice]
   (edges-by-border lattice))
+
+(defmethod edges Protoconcepts
+  [protoconcepts]
+  (poset-edges protoconcepts))
 
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."

@@ -28,7 +28,8 @@
   (:import [java.awt BorderLayout Dimension]
            [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]
            [conexp.fca.posets Poset]
-           [conexp.fca.lattices Lattice]))
+           [conexp.fca.lattices Lattice]
+           [conexp.fca.protoconcepts Protoconcepts]))
 
 ;;; Lattice Editor
 
@@ -119,6 +120,10 @@
 (defmethod make-frame Poset
   [layout]
   (JFrame. "conexp-clj Ordered Set"))
+
+(defmethod make-frame Protoconcepts
+  [layout]
+  (JFrame. "conexp-clj Protoconcepts"))
 
 ;;; Drawing Routine for the REPL
 (defn draw-layout

@@ -40,12 +40,6 @@
   (.write out
           ^String (str "Protoconcepts on " (count (base-set protoconcepts)) " elements.")))
 
-(defn preconcept?
-  "Tests whether given pair is preconcept in given context ctx."
-  [ctx [set-of-obj set-of-att]]
-    ;; equivalent to (subset? set-of-obj (attribute-derivation ctx set-of-att))
-    (subset? set-of-att (object-derivation ctx set-of-obj)))
-
 (defn protoconcept?
   "Tests whether given pair is protoconcept in given context ctx."
   [ctx [set-of-obj set-of-att]]
@@ -53,12 +47,6 @@
          (context-attribute-closure ctx set-of-att))
       (= (context-object-closure ctx set-of-obj)
          (attribute-derivation ctx set-of-att))))
-
-(defn semiconcept?
-  "Tests whether given pair is a semiconcept in given context ctx."
-  [ctx [set-of-obj set-of-att]]
-  (or (= (object-derivation ctx set-of-obj) set-of-att)
-      (= set-of-obj (attribute-derivation ctx set-of-att))))
 
 (defn protoconcepts
   "Computes all protoconcepts of a context."

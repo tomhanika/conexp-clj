@@ -24,67 +24,6 @@
                                      [2 'b] [2 'e]
                                      [3 'b] [3 'c] [3 'e]}))
 
-(deftest test-preconcept?
-  ;; test some preconcepts of test-context-01
-  (are [object-set attribute-set] (preconcept? test-context-01 [object-set attribute-set])    #{} #{}
-    #{} #{0}
-    #{} #{1}
-    #{} #{2}
-    #{} #{3}
-    #{} #{0 1}
-    #{} #{0 2}
-    #{} #{0 3}
-    #{} #{1 2}
-    #{} #{1 3}
-    #{} #{2 3}
-    #{} #{0 1 2}
-    #{} #{0 1 3}
-    #{} #{0 2 3}
-    #{} #{1 2 3}
-    #{} #{0 1 2 3}
-    #{"a"} #{}
-    #{"a"} #{2}
-    #{"a"} #{3}
-    #{"a"} #{2 3}
-    #{"b"} #{}
-    #{"b"} #{1}
-    #{"b"} #{3}
-    #{"b"} #{1 3}
-    #{"c"} #{}
-    #{"c"} #{0}
-    #{"c"} #{1}
-    #{"c"} #{0 1}
-    #{"a" "b"} #{3}
-    #{"b" "c"} #{1}
-    #{"a" "b" "c"}
-    #{}#{"a" "b"} #{}
-    #{"a" "c"} #{}
-    #{"b" "c"} #{})
-  ;; test some non-preconcepts of test-context-01
-  (are [object-set attribute-set] (not (preconcept? test-context-01 [object-set attribute-set]))
-    #{"a"} #{0}
-    #{"a"} #{1}
-    #{"a"} #{0 1}
-    #{"a"} #{0 2}
-    #{"a"} #{0 3}
-    #{"a"} #{0 2 3}
-    #{"a"} #{1 2 3}
-    #{"a"} #{0 1 2 3}
-    #{"b"} #{0 3}
-    #{"b"} #{1 2}
-    #{"b"} #{2 3}
-    #{"b"} #{0 1 3}
-    #{"b"} #{0 2 3}
-    #{"b"} #{1 2 3}
-    #{"b"} #{0 1 2 3}
-    #{"c"} #{2}
-    #{"c"} #{3}
-    #{"c"} #{1 2}
-    #{"c"} #{1 3}
-    #{"c"} #{0 1 2}
-    #{"c"} #{0 1 3}
-    #{"c"} #{0 1 2 3}))
-
 (deftest test-protoconcept?
   ;; test all protoconcepts of test-context-01
   (are [object-set attribute-set] (protoconcept? test-context-01 [object-set attribute-set])
@@ -140,32 +79,6 @@
     #{"c"} #{1}
     #{"a" "b"} #{}
     #{"b" "c"} #{}))
-
-(deftest test-semiconcepts?
-  ;; test all semiconcepts
-  (are [object-set attribute-set] (semiconcept? test-context-02 [object-set attribute-set])
-    #{1 2} #{}
-    #{1 2 3} #{}
-    #{1} #{'a}
-    #{1} #{'a 'c}
-    #{1 3} #{'c}
-    #{2} #{'b 'e}
-    #{2 3} #{'b}
-    #{2 3} #{'e}
-    #{2 3} #{'b 'e}
-    #{3} #{'b 'c}
-    #{3} #{'c 'e}
-    #{3} #{'b 'c 'e}
-    #{} #{'a 'b}
-    #{} #{'a 'e}
-    #{} #{'a 'b 'c}
-    #{} #{'a 'b 'e}
-    #{} #{'a 'c 'e}
-    #{} #{'a 'b 'c 'e})
-  ;; test some non-semiconcepts
-  (are [object-set attribute-set] (not (semiconcept? test-context-02 [object-set attribute-set]))
-    #{2} #{'b}
-    #{2} #{'e}))
 
 (deftest test-protoconcepts
   ;; test protoconcept generation
