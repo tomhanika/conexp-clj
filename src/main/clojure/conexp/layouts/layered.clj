@@ -14,7 +14,6 @@
         conexp.layouts.base
         conexp.math.algebra
         conexp.fca.lattices
-        conexp.fca.cover
         conexp.fca.protoconcepts))
 
 ;;; Simple Layered Layout
@@ -38,17 +37,6 @@
                                  (iterate inc 0)
                                  (layers poset)))
                   (edges poset)))
-
-(defn simple-protoconcept-layout
-  "Simple protoconcept layout for protoconcepts visualisation."
-  [protoconcepts]
-  (make-layout-nc protoconcepts
-                  (apply hash-map
-                         (mapcat layer-coordinates
-                                 (iterate inc 0)
-                                 (layers protoconcepts)))
-                  (cover-relation (base-set protoconcepts)
-                                  (order protoconcepts))))
 
 (defn as-chain
   "Returns the layout of poset as a simple chain."

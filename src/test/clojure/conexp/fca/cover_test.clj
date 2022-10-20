@@ -93,20 +93,3 @@
     (is (= new-cover
            (cover-reducer cover ctx new-ctx 4)))))
 
-;;;
-
-(def test-ctx-1
-  (make-context-from-matrix [1 2 3]
-                            [1 2 3]
-                            [1 0 0
-                             0 1 0
-                             0 1 1]))
-
-(deftest test-cover-relation
-  (let [lattice (concept-lattice test-ctx-1)]
-    (is (= (cover-relation (base-set lattice) (order lattice))
-           #{[[#{} #{1 2 3}] [#{3} #{2 3}]]
-             [[#{} #{1 2 3}] [#{1} #{1}]]
-             [[#{3} #{2 3}] [#{2 3} #{2}]]
-             [[#{2 3} #{2}] [#{1 2 3} #{}]]
-             [[#{1} #{1}] [#{1 2 3} #{}]]}))))

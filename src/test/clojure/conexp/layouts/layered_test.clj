@@ -20,6 +20,13 @@
 
 ;;;
 
+(def test-ctx-1
+  (make-context-from-matrix [1 2 3]
+                            ['a 'b 'c]
+                            [1 0 0
+                             0 1 0
+                             0 1 1]))
+
 (deftest test-simple-layered-layout
   (with-testing-data [poset (apply conj test-lattices test-posets)]
     (let [simply-layered (simple-layered-layout poset),
@@ -37,18 +44,10 @@
            (forall [[_ coords] simple-layers]
                    (forall [x coords]
                            (exists [y coords]
-                                   (= x (- y)))))))))
-
-(def test-ctx-1
-  (make-context-from-matrix [1 2 3]
-                            ['a 'b 'c]
-                            [1 0 0
-                             0 1 0
-                             0 1 1]))
-
-(deftest test-simple-protoconcept-layout
+                                   (= x (- y))))))))
+  ;; for protoconcepts
   (let [test-protoconcepts (protoconcepts-order test-ctx-1)
-        protoconcept-layout (simple-protoconcept-layout test-protoconcepts)
+        protoconcept-layout (simple-layered-layout test-protoconcepts)
         layers (layers test-protoconcepts)
         protoconcept-layers (sort
                              (group-by #(second (second %))
