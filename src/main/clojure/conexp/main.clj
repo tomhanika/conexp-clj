@@ -25,7 +25,6 @@
     conexp.fca.dependencies
     conexp.fca.lattices
     conexp.fca.more
-    conexp.fca.protoconcepts
     conexp.fca.posets
     conexp.io.latex
     conexp.io.contexts

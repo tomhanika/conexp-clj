@@ -36,6 +36,7 @@ much more.
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
    3. [triadic-exploration](doc/Triadic-Exploration.org)
+   4. [protoconcepts](doc/Protoconcepts.org)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 

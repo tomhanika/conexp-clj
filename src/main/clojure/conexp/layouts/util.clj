@@ -11,6 +11,7 @@
   (:require [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
             [conexp.fca.lattices :refer :all]
+            [conexp.fca.protoconcepts :refer :all]
             [conexp.fca.posets :refer :all]
             [conexp.layouts.base :refer :all]
             [conexp.util.graph :as graph])
