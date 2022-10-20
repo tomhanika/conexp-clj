@@ -147,14 +147,24 @@
     {:frame frame,
      :scene (get-scene-from-panel lattice-editor)}))
 
+(defn draw-poset
+  "Draws poset with given layout. Passes all other parameters to draw-layout."
+  [poset & args]
+  (let [map (apply hash-map args),
+        layout-fn (get map :layout-fn standard-layout),
+        value-fn (get map :value-fn (constantly nil))]
+    (apply draw-layout (-> poset layout-fn (to-valued-layout value-fn)) args)))
+
+(defn draw-protoconcepts
+  "Draws protoconcepts with given layout."
+  [protoconcepts & args]
+  (draw-poset protoconcepts args))
+
 (defn draw-lattice
   "Draws lattice with given layout. Passes all other parameters to
   draw-layout."
   [lattice & args]
-  (let [map       (apply hash-map args),
-        layout-fn (get map :layout-fn standard-layout)
-        value-fn (get map :value-fn (constantly nil))]
-    (apply draw-layout (-> lattice layout-fn (to-valued-layout value-fn)) args)))
+  (draw-poset lattice args))
 
 (defn draw-concept-lattice
   "Draws the concept lattice of a given context, passing all remaining
@@ -167,7 +177,7 @@
   Passes all other parameters to draw-layout."
   [protoconcepts & args]
   (let [map       (apply hash-map args),
-        layout-fn (get map :layout-fn protoconcepts-layout)
+        layout-fn (get map :layout-fn standard-layout)
         value-fn (get map :value-fn (constantly nil))]
     (apply draw-layout (-> protoconcepts layout-fn (to-valued-layout value-fn)) :title "conexp-clj Protoconcepts" args)))
 
