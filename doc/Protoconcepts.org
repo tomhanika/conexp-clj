@@ -15,7 +15,7 @@ namespace needs to be loaded.
 #+end_src
 
 Let the context be
-#+begin_src clojure :results silent
+#+begin_src clojure :exports both
 (def ctx 
   (make-context-from-matrix [1 2 3 4]
                             ['A 'B 'C]
@@ -36,7 +36,7 @@ Let the context be
 #+end_src
 
 The protoconcepts can be computed with the ~protoconcepts~ function.
-#+begin_src clojure :results silent
+#+begin_src clojure :exports both
 (protoconcepts ctx)
 #+end_src
 
@@ -50,7 +50,7 @@ The protoconcepts can be computed with the ~protoconcepts~ function.
 #+end_src
 
 To compute the protoconcepts as an ordered set, the ~protoconcepts-order~ function can be used.
-#+begin_src clojure :results silent
+#+begin_src clojure :exports both
 (protoconcepts-order ctx)
 #+end_src
 
@@ -74,7 +74,7 @@ To draw the ordered protoconcepts of a context, the ~draw-protoconcepts~ functio
 The protoconcepts graph is shown in an additional window.
 
 #+caption: Protoconcept example
-./images/draw-protoconcepts.png
+[[./images/draw-protoconcepts.png]]
 
 Like for [lattices](./Concept-Lattices.org), the layout function can be specified for 
 protoconcepts.
@@ -85,7 +85,7 @@ protoconcepts.
 #+end_src
 
 #+caption: Protoconcept example with DimDraw layout
-./images/draw-protoconcepts-dimdraw.png
+[[./images/draw-protoconcepts-dimdraw.png]]
 
 Notice that the protoconcept orders do not necessarily are a lattice. As many 
 of the value functions only work on lattices, they cannot be applied to protoconcepts.
