@@ -24,6 +24,10 @@
                                      [2 'b] [2 'e]
                                      [3 'b] [3 'c] [3 'e]}))
 
+(deftest test-protoconcepts-equals
+  (is (= (make-protoconcepts-nc #{1 2 3} <=) (make-protoconcepts-nc #{1 2 3} <=)))
+  (is (not= (make-protoconcepts-nc #{1 2 3} <=) (make-protoconcepts-nc #{1 2 3} >=))))
+ 
 (deftest test-protoconcept?
   ;; test all protoconcepts of test-context-01
   (are [object-set attribute-set] (protoconcept? test-context-01 [object-set attribute-set])
@@ -80,6 +84,31 @@
     #{"a" "b"} #{}
     #{"b" "c"} #{}))
 
+(deftest test-protoconcepts?
+  ;; 
+  (is (protoconcepts? test-context-01 
+                      #{[#{} #{0 2}]
+                        [#{} #{0 3}]
+                        [#{} #{1 2}]
+                        [#{} #{0 1 2}]
+                        [#{} #{0 1 3}]
+                        [#{} #{0 2 3}]
+                        [#{} #{1 2 3}]
+                        [#{} #{0 1 2 3}]
+                        [#{"a"} #{2}]
+                        [#{"a"} #{2 3}]
+                        [#{"b"} #{1 3}]
+                        [#{"c"} #{0}]
+                        [#{"c"} #{0 1}]
+                        [#{"a" "b"} #{3}]
+                        [#{"a" "c"} #{}]
+                        [#{"b" "c"} #{1}]
+                        [#{"a" "b" "c"} #{}]}))
+  (is (not (protoconcepts? test-context-01 
+                           #{[#{} #{0 2}]
+                             [#{"a"} #{0 3}]
+                             [#{"a" "b" "c"} #{}]}))))
+
 (deftest test-protoconcepts
   ;; test protoconcept generation
   (let [all-protoconcepts (protoconcepts test-context-02)
@@ -102,3 +131,28 @@
                                 (fn [[A B] [C D]]
                                   (and (subset? A C)
                                        (subset? D B)))))))
+
+(deftest test-make-protoconcepts
+  (is (make-protoconcepts #{1 2 3} <=))
+  (is (thrown? IllegalArgumentException (make-protoconcepts #{1 2 3} <)))
+  (is (make-protoconcepts-nc #{1 2 3} <))
+  (is (make-protoconcepts #{[#{} #{0 2}]
+                            [#{} #{0 3}]
+                            [#{} #{1 2}]
+                            [#{} #{0 1 2}]
+                            [#{} #{0 1 3}]
+                            [#{} #{0 2 3}]
+                            [#{} #{1 2 3}]
+                            [#{} #{0 1 2 3}]
+                            [#{"a"} #{2}]
+                            [#{"a"} #{2 3}]
+                            [#{"b"} #{1 3}]
+                            [#{"c"} #{0}]
+                            [#{"c"} #{0 1}]
+                            [#{"a" "b"} #{3}]
+                            [#{"a" "c"} #{}]
+                            [#{"b" "c"} #{1}]
+                            [#{"a" "b" "c"} #{}]}
+                          (fn [[A B] [C D]]
+                            (and (subset? A C) (subset? D B)))
+                          test-context-01)))
