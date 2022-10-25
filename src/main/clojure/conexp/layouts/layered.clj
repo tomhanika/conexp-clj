@@ -11,7 +11,10 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.layouts.util
-        conexp.layouts.base))
+        conexp.layouts.base
+        conexp.math.algebra
+        conexp.fca.lattices
+        conexp.fca.protoconcepts))
 
 ;;; Simple Layered Layout
 

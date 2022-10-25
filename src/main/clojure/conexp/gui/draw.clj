@@ -28,7 +28,8 @@
   (:import [java.awt BorderLayout Dimension]
            [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]
            [conexp.fca.posets Poset]
-           [conexp.fca.lattices Lattice]))
+           [conexp.fca.lattices Lattice]
+           [conexp.fca.protoconcepts Protoconcepts]))
 
 ;;; Lattice Editor
 
@@ -120,6 +121,10 @@
   [layout]
   (JFrame. "conexp-clj Ordered Set"))
 
+(defmethod make-frame Protoconcepts
+  [layout]
+  (JFrame. "conexp-clj Protoconcepts"))
+
 ;;; Drawing Routine for the REPL
 (defn draw-layout
   "Draws given layout on a canvas. Returns the frame and the scene (as
@@ -130,7 +135,7 @@
     - dimension [600 600]
   "
   [layout
-   & {:keys [visible dimension]
+   & {:keys [visible dimension title]
       :or   {visible   true,
              dimension [600 600]}}]
   (let [frame          (make-frame layout),
@@ -142,20 +147,39 @@
     {:frame frame,
      :scene (get-scene-from-panel lattice-editor)}))
 
+(defn draw-poset
+  "Draws poset with given layout. Passes all other parameters to draw-layout."
+  [poset & args]
+  (let [map (apply hash-map args),
+        layout-fn (get map :layout-fn standard-layout),
+        value-fn (get map :value-fn (constantly nil))]
+    (apply draw-layout (-> poset layout-fn (to-valued-layout value-fn)) args)))
+
+(defn draw-protoconcepts
+  "Draws protoconcepts with given layout."
+  [protoconcepts & args]
+  (draw-poset protoconcepts args))
+
 (defn draw-lattice
   "Draws lattice with given layout. Passes all other parameters to
   draw-layout."
   [lattice & args]
-  (let [map       (apply hash-map args),
-        layout-fn (get map :layout-fn standard-layout)
-        value-fn (get map :value-fn (constantly nil))]
-    (apply draw-layout (-> lattice layout-fn (to-valued-layout value-fn)) args)))
+  (draw-poset lattice args))
 
 (defn draw-concept-lattice
   "Draws the concept lattice of a given context, passing all remaining
   args to draw-lattice."
   [ctx & args]
   (apply draw-lattice (concept-lattice ctx) args))
+
+(defn draw-protoconcepts
+  "Draws protoconcepts (ordered set) with given layout.
+  Passes all other parameters to draw-layout."
+  [protoconcepts & args]
+  (let [map       (apply hash-map args),
+        layout-fn (get map :layout-fn standard-layout)
+        value-fn (get map :value-fn (constantly nil))]
+    (apply draw-layout (-> protoconcepts layout-fn (to-valued-layout value-fn)) :title "conexp-clj Protoconcepts" args)))
 
 ;;;
 
