@@ -40,7 +40,7 @@
         layout    (standard-layout (concept-lattice trace-ctx)),
         ann       (concept-lattice-annotation layout),
         label     #(apply str (interpose ", " %))]
-    (make-layout (lattice layout)
+    (make-layout (poset layout)
                  (positions layout)
                  (connections layout)
                  (fn [x]

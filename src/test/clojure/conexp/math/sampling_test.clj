@@ -8,6 +8,7 @@
 
 (ns conexp.math.sampling-test
   (:use conexp.math.algebra)
+  (:use conexp.fca.posets)
   (:use conexp.math.sampling)
   (:use clojure.test))
 

@@ -318,7 +318,7 @@ public class OrderedSet {
     for (Iterator it = elems.iterator(); it.hasNext(); ) {
       // was label()
       elemOrder.put(((POElem)it.next()).getUnderlyingObject(), 
-                                                   new Integer(k++));
+                                                   Integer.valueOf(k++));
     }
   }
 
