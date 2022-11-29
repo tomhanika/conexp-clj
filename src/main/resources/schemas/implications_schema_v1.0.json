@@ -65,7 +65,8 @@
       "$comment": "Further base_type enums can be added.",
       "type": "string",
       "enum": [
-        "canonical"
+        "canonical",
+        "ganter"
       ]
     },
     "implications": {

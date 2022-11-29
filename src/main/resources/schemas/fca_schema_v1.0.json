@@ -46,6 +46,13 @@
         "$ref": "implications_schema_v1.0.json"
       }
     },
+    "layouts":{
+      "type": "array",
+      "description": "Several layouts can be added.",
+      "items": {
+        "$ref": "layout_schema_v1.0.json"
+      }
+    },
     "additional_information": {
       "description": "Information that is additional to the defined properties",
       "type": "string"

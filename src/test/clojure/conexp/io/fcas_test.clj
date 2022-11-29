@@ -12,7 +12,8 @@
         conexp.fca.lattices
         conexp.fca.implications
         conexp.io.fcas
-        conexp.io.util-test)
+        conexp.io.util-test
+        conexp.layouts)
   (:use clojure.test))
 
 ;;;
@@ -138,6 +139,22 @@
 (deftest test-fca-out-in-out-in
   "Several tests with complete FCA"
   (with-testing-data [fca fca-oioi,
+                      fmt (list-fca-formats)]
+    (out-in-out-in-test fca 'fca fmt)))
+
+(def- layouts-oioi
+  "Layout for out-in-out-in testing"
+  (mapv standard-layout lattice-oioi))
+
+(def- fca-layout-oioi
+  "FCAs for out-in-out-in testing with context and layout"
+  (into [] (for [[ctx layout]
+                 (map list contexts-oioi layouts-oioi)]
+             {:context ctx :layouts [layout]})))
+
+(deftest test-fca-with-layouts-out-in-out-in
+  "Several tests with context and layout input"
+  (with-testing-data [fca fca-layout-oioi,
                       fmt (list-fca-formats)]
     (out-in-out-in-test fca 'fca fmt)))
 
