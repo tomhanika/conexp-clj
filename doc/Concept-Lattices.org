@@ -173,4 +173,5 @@ switched on.
 
 Other interesting functions are ~draw-layout~, which implements the drawing of
 layouts, and ~draw-concept-lattice~, which draws the concept-lattice of a given
-formal context.
+formal context. With ~draw-poset~ and ~draw-protoconcepts~, Ordered Sets and 
+Protoconcepts can be drawn as well.

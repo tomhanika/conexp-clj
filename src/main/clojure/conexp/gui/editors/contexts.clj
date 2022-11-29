@@ -3,6 +3,7 @@
   (:require [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.lattices :refer :all]
+            [conexp.fca.protoconcepts :refer :all]
             [conexp.gui.draw :refer :all]
             [conexp.gui.editors.context-editor.context-editor :refer :all]
             [conexp.gui.plugins.base :refer :all]
@@ -78,6 +79,16 @@
                                     (standard-layout (concept-lattice thing)))
                "Concept-Lattice"))))
 
+(defn- show-protoconcepts-and-go
+  "Shows protoconcepts of current tab."
+  [frame]
+  (with-swing-error-msg frame "Error"
+    (let [thing (get-context-from-panel (current-tab frame))]
+      (add-tab frame
+               (make-lattice-editor frame
+                                    (standard-layout (protoconcepts-order thing)))
+               "Protoconcepts"))))
+
 ;;; The Hooks
 
 (defn- context-menu
@@ -116,7 +127,10 @@
                 :separator
                 (menu-item :text "Show Concept Lattice",
                            :listen [:action (fn [_]
-                                              (show-lattice-and-go frame))])]))
+                                              (show-lattice-and-go frame))])
+                (menu-item :text "Show Protoconcepts",
+                           :listen [:action (fn [_]
+                                              (show-protoconcepts-and-go frame))])]))
 
 (let [menu-hash (atom {})]
 
