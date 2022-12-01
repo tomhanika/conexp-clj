@@ -1,0 +1,13 @@
+{"attributes":["color","size"],
+"adjacency-list":[
+    {"object":"1","attribute":"color","value":"blue"},
+    {"object":"1","attribute":"size","value":"large"},
+    {"object":"2","attribute":"color","value":"green"},
+    {"object":"2","attribute":"size","value":"very-large"},
+    {"object":"3","attribute":"color","value":"red"},
+    {"object":"3","attribute":"size","value":"small"}
+],
+"attribute-scales":[
+    {"attribute":"color","scale":"nominal"},
+    {"attribute":"size","scale":"biordinal"}
+]}
