@@ -162,18 +162,20 @@
 
 (deftest test-json-not-matching-schema
   "Read a json format that does not match the given schema."
-  (if-not (.exists (java.io.File. "testing-data/digits-lattice.json"))
-    (warn "Could not verify failing validation of fca schema. Testing file not found.") 
-    (is (thrown?
-         AssertionError
-         (read-fca "testing-data/digits-lattice.json" :json)))))
+  (let [file "testing-data/digits-lattice.json"]
+    (if-not (.exists (java.io.File. file))
+      (warn "Could not verify failing validation of fca schema. Testing file not found.") 
+      (is (thrown?
+           AssertionError
+           (read-fca file :json))))))
 
 (deftest test-json-matching-schema
   "Read a json format that matches the given schema."
-  (if-not (.exists (java.io.File. "testing-data/digits-fca.json"))
-    (warn "Could not verify validation of fca schema. Testing file not found.")
-    (let [fca (read-fca "testing-data/digits-fca.json" :json)]
-      (is (= 6 (count (first (:implication-sets fca))))))))
+  (let [file "testing-data/digits-fca-2.json"]
+    (if-not (.exists (java.io.File. file))
+      (warn "Could not verify validation of fca schema. Testing file not found.")
+      (let [fca (read-fca file :json)]
+        (is (= 6 (count (first (:implication-sets fca)))))))))
 
 (deftest test-identify-input-format
   "Test if the automatic identification of the file format works correctly."
