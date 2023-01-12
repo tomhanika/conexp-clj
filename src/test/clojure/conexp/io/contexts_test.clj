@@ -179,12 +179,13 @@
 
 (deftest test-json-matching-schema
   "Read a json format that matches the given schema."
-  (if-not (.exists (java.io.File. "testing-data/digits-context.json"))
-    (warn "Could not verify validation of context schema. Testing file not found.")
-    (let [ctx (read-context "testing-data/digits-context.json" :json)]
-      (is (= 7 (count (attributes ctx))))
-      (is (= 10 (count (objects ctx))))
-      (is (= 47 (count (incidence-relation ctx)))))))
+  (let [file "testing-data/digits-context1.1.json"]
+    (if-not (.exists (java.io.File. file))
+      (warn "Could not verify validation of context schema. Testing file not found.")
+      (let [ctx (read-context file :json)]
+        (is (= 7 (count (attributes ctx))))
+        (is (= 10 (count (objects ctx))))
+        (is (= 47 (count (incidence-relation ctx))))))))
 
 ;;;
 
@@ -234,9 +235,8 @@
   ;; test that attributes with empty column are not dropped
   (let [K (make-context-from-matrix [1 2] [:a :b] [1 0 0 0])]
     (is (= (ctx->json K)
-           {:attributes '(:a :b)
-            :adjacency-list
-            [{:object 1, :attributes '(:a)}
-             {:object 2, :attributes '()}]}))))
+           {:attributes #{:a :b}
+            :objects #{1 2}
+            :incidence #{[1 :a]}}))))
 
 nil

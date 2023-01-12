@@ -1,0 +1,48 @@
+{
+  "$id": "context_schema_v1.1",
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "JSON schema for a formal context",
+  "type": "object",
+  "description": "JSON Schema for the formal context. A formal context contains a set of objects, each with corresponding attributes. The minimum number of attributes assigned to an object is 0.",
+  "$defs": {
+    "incidence_item": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "fca_schema_v1.0.json#/$defs/object"},
+        {"type": "fca_schema_v1.0.json#/$defs/attribute"}
+      ]
+    }
+  },
+  "required": [
+    "objects",
+    "attributes",
+    "incidence"
+  ],
+  "properties": {
+    "objects": {
+      "type": "array",
+      "description": "List of all objects",
+      "items": {
+        "$ref": "fca_schema_v1.0.json#/$defs/object"
+      }
+    },
+    "attributes": {
+      "type": "array",
+      "description": "List of all attributes",
+      "items": {
+        "$ref": "fca_schema_v1.0.json#/$defs/attribute"
+      }
+    },
+    "incidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/incidence_item"
+      }
+    },
+    "additional_information": {
+      "description": "Information that is additional to the defined properties",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -30,7 +30,10 @@
     (condp = (:type data)
       ;; remove colons from map
       "map" (if (some? raw)
-                (into {} (for [[k v] raw] [(edn/read-string (name k)) v])))
+              (into {} (for [[k v] raw] [(edn/read-string (name k)) 
+                                         (if (= (type v) clojure.lang.PersistentArrayMap) 
+                                           (read-data v)
+                                           v)])))
       "context" (make-context 
                   (:objects raw) 
                   (:attributes raw) 
@@ -60,9 +63,7 @@
   (if (and (coll? data)(not (map? data)))
     (mapv write-data data)
     (condp instance? data
-      Formal-Context {:objects (objects data)
-                      :attributes (attributes data)
-                      :incidence (incidence data)}
+      Formal-Context (ctx->json data)
       Many-Valued-Context {:objects (objects data)
                            :attributes (attributes data)
                            :incidence (incidence data)}
@@ -73,6 +74,8 @@
                                :when ((order data) [x y])])}
       Implication [(premise data)(conclusion data)]
       Layout (layout->json data)
+      clojure.lang.PersistentArrayMap (into {} (mapv #(vector (key %) 
+                                                              (write-data (val %))) data))
       data)))
 
 ;;; Process functions
