@@ -1,0 +1,64 @@
+{
+  "$id": "lattice_schema_v1.1",
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "JSON schema for a concept lattice",
+  "type": "object",
+  "description": "JSON schema for a concept lattice. Each concept (node) consists of the extent (an array of objects) and the intent (an array of attributes). The lattice structure can be saved as well (edges).",
+  "$defs": {
+    "extent": {
+      "type": "array",
+      "description": "Array of objects",
+      "items": {
+        "$ref": "fca_schema_v1.0.json#/$defs/object"
+      }
+    },
+    "intent": {
+      "type": "array",
+      "description": "Array of attributes",
+      "items": {
+        "$ref": "fca_schema_v1.0.json#/$defs/attribute"
+      }
+    },
+    "node": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "#/$defs/extent"},
+        {"type": "#/$defs/intent"}
+      ],
+      "items": {
+        "valuation": {
+          "type": "number"
+        }
+      }
+    },
+    "edge": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "#/$defs/node"},
+        {"type": "#/$defs/node"}
+      ]
+    }
+  },
+  "required": [
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "additional_information": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

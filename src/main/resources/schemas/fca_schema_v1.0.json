@@ -37,7 +37,7 @@
       "$ref": "context_schema_v1.1.json"
     },
     "lattice": {
-      "$ref": "lattice_schema_v1.0.json"
+      "$ref": "lattice_schema_v1.1.json"
     },
     "implication_sets": {
       "type": "array",

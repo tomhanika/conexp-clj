@@ -77,8 +77,11 @@
 (defn lattice->json
   "Returns a concept lattice, consisting of the base set and order, in json format."
   [lat]
-  {:formal_concepts (mapv concept->json (base-set lat))
-   :lattice_structure (lattice-order->json lat)})
+  {:nodes (base-set lat)
+   :edges (set-of [x y]
+                  [x (base-set lat)
+                   y (base-set lat)
+                   :when ((order lat) [x y])])})
 
 (defn- json->concept
   "Returns a vector containing one map each for extent and intent."
@@ -95,13 +98,13 @@
 (defn json->lattice
   "Returns a Lattice object for the given json lattice."
   [json-lattice]
-  (let [json-concepts (:formal_concepts json-lattice)
-        json-lattice-order (:lattice_structure json-lattice)
-        lattice-base-set (map json->concept json-concepts)
-        lattice-order (map json->concept-pair json-lattice-order)]
+  (let [json-base-set (:nodes json-lattice)
+        lattice-base-set (map #(vector (set (first %)) (set (second %))) json-base-set)
+        json-order (:edges json-lattice)
+        lattice-order (map #(vector (vector (set (first (first %))) (set (second (first %)))) (vector (set (first (second %))) (set (second (second %))))) json-order)]
     (make-lattice lattice-base-set lattice-order)))
 
-;; Json Format (src/main/resources/schemas/lattice_schema_v1.0.json)
+;; Json Format (src/main/resources/schemas/lattice_schema_v1.1.json)
 
 (add-lattice-input-format :json
                           (fn [rdr]
@@ -117,7 +120,7 @@
   [file]
   (with-in-reader file
     (let [json-lattice (json/read *in* :key-fn keyword)
-          schema-file "src/main/resources/schemas/lattice_schema_v1.0.json"]
+          schema-file "src/main/resources/schemas/lattice_schema_v1.1.json"]
       (assert (matches-schema? json-lattice schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
       (json->lattice json-lattice))))
