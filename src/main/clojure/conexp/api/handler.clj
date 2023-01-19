@@ -43,8 +43,8 @@
                      (read-data {:type "map" :data (:incidence raw)}))
       "mv_context_file" (read-mv-context (char-array raw))
       "lattice" (json->lattice raw)
-      "implication" (apply make-implication raw)
-      "implication_set" (map #(apply make-implication %) raw)
+      "implication" (json->implication raw) 
+      "implication_set" (json->implications raw) ;(map #(apply make-implication % ) raw)
       "layout" (json->layout raw)
       "method" (resolve (symbol raw))
       raw)))
@@ -63,7 +63,7 @@
                            :attributes (attributes data)
                            :incidence (incidence data)}
       Lattice (lattice->json data)
-      Implication [(premise data)(conclusion data)]
+      Implication (implication->json data)
       Layout (layout->json data)
       clojure.lang.PersistentArrayMap (into {} (mapv #(vector (key %) 
                                                               (write-data (val %))) data))

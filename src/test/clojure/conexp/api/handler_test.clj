@@ -255,7 +255,7 @@
                               :conclusion {:type "list"
                                            :data ["2" "1"]}})
         impl (:result (:function result))]
-    (is (= (make-implication (first impl)(second impl))
+    (is (= (make-implication (:premise impl)(:conclusion impl))
            (make-implication ["a" "b"]["2" "1"])))
     (is (= (:type (:function result)) "implication"))))
 
@@ -264,7 +264,7 @@
                                          :name "premise"
                                          :args ["impl1"]}
                               :impl1 {:type "implication"
-                                     :data [["a"] ["b"]]}})
+                                      :data {:premise ["a"] :conclusion ["b"]}}})
         premise (:result (:function result))]
     (is (= premise
            ["a"]))
@@ -279,7 +279,7 @@
                               :ctx1 {:type "context"
                                      :data (write-data context)}})
         impls (:result (:function result))]
-    (is (= (map #(make-implication (first %) (last %)) impls)
+    (is (= (map #(make-implication (:premise %) (:conclusion %)) impls)
            (canonical-base context)))
     (is (= (:type (:function result)) "implication_set"))))
 
