@@ -44,7 +44,7 @@
       "mv_context_file" (read-mv-context (char-array raw))
       "lattice" (json->lattice raw)
       "implication" (json->implication raw) 
-      "implication_set" (json->implications raw) ;(map #(apply make-implication % ) raw)
+      "implication_set" (json->implications raw)
       "layout" (json->layout raw)
       "method" (resolve (symbol raw))
       raw)))
