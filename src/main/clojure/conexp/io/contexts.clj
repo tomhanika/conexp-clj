@@ -425,11 +425,11 @@
   [ctx file]
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
-    (unsupported-operation "Cannot export empty context in binary-csv format"))
+    (unsupported-operation "Cannot export empty context in named-binary-csv format"))
   (when (some (fn [x]
                 (and (string? x) (some #(= \, %) x)))
               (concat (objects ctx) (attributes ctx)))
-    (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
+    (unsupported-operation "Cannot export to :named-binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
         atts (sort (attributes ctx))
         output-matrix (conj (for [obj objs] 
