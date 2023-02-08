@@ -52,28 +52,6 @@
       (apply make-lattice lattice))))
 
 ;; Json helpers
-
-(defn- concept->json
-  "Returns the concept in json format."
-  [concept]
-  {:extent (first concept)
-   :intent (second concept)})
-
-(defn- concept-pair->json
-  "Returns the pair of concepts in json format."
-  [pair]
-  {:start_concept (concept->json (first pair)) 
-   :end_concept (concept->json (second pair))})
-
-(defn- lattice-order->json
-  "Returns the order of the concept lattice in json format."
-  [lattice]
-  (let [pairs (set-of [x y]
-                      [x (base-set lattice)
-                       y (base-set lattice)
-                       :when ((order lattice) [x y])])]
-    (map concept-pair->json pairs)))
-
 (defn lattice->json
   "Returns a concept lattice, consisting of the base set and order, in json format."
   [lat]
@@ -84,29 +62,27 @@
                    :when ((order lat) [x y])])})
 
 (defn- json->concept
-  "Returns a vector containing one map each for extent and intent."
+  "Returns a vector containing both extent and intent."
   [json-concept]
-  [(into #{} (:extent json-concept)) 
-   (into #{} (:intent json-concept))])
+  [(set (first json-concept))
+   (set (second json-concept))])
 
 (defn- json->concept-pair
   "Returns a vector containing the concept pair."
   [json-concept-pair]
-  [(into [] (json->concept (:start_concept json-concept-pair)))
-   (into [] (json->concept (:end_concept json-concept-pair)))])
+  [(json->concept (first json-concept-pair)) 
+   (json->concept (second json-concept-pair))])
 
 (defn json->lattice
   "Returns a Lattice object for the given json lattice."
   [json-lattice]
   (let [json-base-set (:nodes json-lattice)
         json-order (:edges json-lattice)
-        lattice-base-set (if (coll? (first json-base-set))
-                            (map #(vector (set (first %)) (set (second %))) json-base-set)
-                            (set json-base-set))
-        lattice-order (if (coll? (first (first json-order)))
-                        (map #(vector (vector (set (first (first %))) (set (second (first %)))) 
-                                      (vector (set (first (second %))) (set (second (second %))))) 
-                             json-order)
+        lattice-base-set (if (coll? (first json-base-set))   ;; if it is a concept-lattice
+                           (map json->concept json-base-set)
+                           (set json-base-set))
+        lattice-order (if (coll? (first (first json-order))) ;; if it is a concept-lattice
+                        (map json->concept-pair json-order)
                         (set json-order))]
     (make-lattice lattice-base-set lattice-order)))
 
