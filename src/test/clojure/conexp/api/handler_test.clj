@@ -223,13 +223,11 @@
                               :ctx1 {:type "context_file"
                                      :data (slurp "testing-data/myctx.cxt")}})
         lat (:result (:function result))]
-    (let [lat-base-set (map second (json->nodes lat))
-          lat-connections (json->connections (apply conj (:edges lat)) (json->nodes lat))]
-      (is (= (make-lattice-nc lat-base-set ;(map #(mapv set %) (:nodes lat)) 
-                              (reflexive-transitive-closure lat-base-set lat-connections) 
-                              ;(map (fn [a] (map (fn [b] (mapv set b))a)) (:edges lat))
-                              )
-             (concept-lattice (read-context "testing-data/myctx.cxt")))))
+    (is (= (make-lattice-nc (map #(mapv set %) (:nodes lat)) 
+                            (map 
+                             (fn [a] (map (fn [b] (mapv set b))a))
+                             (:edges lat)))
+           (concept-lattice (read-context "testing-data/myctx.cxt"))))
     (is (= (:type (:function result)) "lattice"))))
 
 (deftest test-lattice-read
@@ -300,21 +298,20 @@
     (is (= (:type (:function result)) "boolean"))))
 
 ;Layout
-
 (deftest test-layout-write
   (let [lat (make-lattice #{1 2 3 4}
                           #{[1 2][1 3][2 4][3 4][1 4][1 1][2 2][3 3][4 4]})
         pos (hash-map 1 [0 0] 2 [-1 1] 3 [1 1] 4 [0 2])
         edge #{[1 2][1 3][2 4][3 4]}
-           result (mock-request {:function {:type "function"
-                                            :name "make-layout"
-                                            :args ["poset" "positions" "edges"]}
-                                 :poset {:type "lattice"
-                                         :data (write-data lat)}
-                                 :positions {:type "map"
-                                             :data pos}
-                                 :edges {:type "list"
-                                         :data edge}})
+        result (mock-request {:function {:type "function"
+                                         :name "make-layout"
+                                         :args ["poset" "positions" "edges"]}
+                              :poset {:type "lattice"
+                                        :data (write-data lat)}
+                              :positions {:type "map"
+                                          :data pos}
+                              :edges {:type "list"
+                                      :data edge}})
         layout (:result (:function result))]
     (is (= (:type (:function result)) "layout"))
     (let [nodes (json->nodes layout)
@@ -324,12 +321,10 @@
       (is (= (set connections) edge)))))
 
 (deftest test-layout-valuations-write
-  (let [lat (make-lattice #{[#{} #{1 2}] [#{1 2} #{}]}
-                          #{[[#{1 2} #{}] [#{1 2} #{}]]
-                            [[#{1 2} #{}] [#{} #{1 2}]]
-                            [[#{} #{1 2}] [#{} #{1 2}]]})
-        pos (hash-map [#{} #{1 2}] [0 0] [#{1 2} #{}] [0 1])
-        connections #{[[#{1 2} #{}] [#{} #{1 2}]]}
+  (let [lat (make-lattice #{1 2}
+                          #{[1 2] [1 1] [2 2]})
+        pos (hash-map 1 [0 0] 2 [0 1])
+        connections #{[1 2]}
         result (mock-request {:layout {:type "function"
                                        :name "make-layout"
                                        :args ["lattice" "positions" "connections"]}
@@ -347,8 +342,8 @@
         layout (:result (:function result))]
     (is (= (:type (:function result)) "layout"))
     (is (= (:valuations layout)
-           ;; node [#{} #{1 2}] gets key :0 and node [#{1 2} #{}] gets key :1
-           [{:0 [[] [1 2]]} {:1 [[1 2] []]}]))))
+           ;; node 1 gets key :0 and node 2 gets key :1
+           [{:0 1} {:1 2}]))))
 
 (deftest test-layout-read
   (let [lat (make-lattice #{1 2 3 4}

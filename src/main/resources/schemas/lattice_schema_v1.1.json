@@ -20,10 +20,17 @@
       }
     },
     "node": {
-      "type": "array",
-      "prefixItems": [
-        {"type": "#/$defs/extent"},
-        {"type": "#/$defs/intent"}
+      "anyOf": [
+        {
+          "type": ["integer","string"]
+        },
+        {
+          "type": "array",
+          "prefixItems": [
+            {"type": "#/$defs/extent"},
+            {"type": "#/$defs/intent"}
+          ]
+        }
       ],
       "items": {
         "valuation": {

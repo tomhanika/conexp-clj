@@ -99,9 +99,15 @@
   "Returns a Lattice object for the given json lattice."
   [json-lattice]
   (let [json-base-set (:nodes json-lattice)
-        lattice-base-set (map #(vector (set (first %)) (set (second %))) json-base-set)
         json-order (:edges json-lattice)
-        lattice-order (map #(vector (vector (set (first (first %))) (set (second (first %)))) (vector (set (first (second %))) (set (second (second %))))) json-order)]
+        lattice-base-set (if (coll? (first json-base-set))
+                            (map #(vector (set (first %)) (set (second %))) json-base-set)
+                            (set json-base-set))
+        lattice-order (if (coll? (first (first json-order)))
+                        (map #(vector (vector (set (first (first %))) (set (second (first %)))) 
+                                      (vector (set (first (second %))) (set (second (second %))))) 
+                             json-order)
+                        (set json-order))]
     (make-lattice lattice-base-set lattice-order)))
 
 ;; Json Format (src/main/resources/schemas/lattice_schema_v1.1.json)
