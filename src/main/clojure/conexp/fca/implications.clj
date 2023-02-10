@@ -45,6 +45,14 @@
   (.write ^java.io.Writer out
           ^String (str impl)))
 
+(defmethod print-dup Implication
+  [impl out]
+  (print-ctor impl (fn [impl out]
+                     (print-dup (premise impl) out)
+                     (.write out " ")
+                     (print-dup (conclusion impl) out)) out))
+
+
 (defn implication?
   "Returns true iff thing is an implication."
   [thing]

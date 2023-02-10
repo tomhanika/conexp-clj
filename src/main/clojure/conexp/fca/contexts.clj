@@ -96,6 +96,15 @@
   (.write ^java.io.Writer out
           ^String (context-to-string ctx)))
 
+
+(defmethod print-dup Formal-Context [cxt out]
+  (print-ctor cxt (fn [cxt out]
+                               (print-dup (objects cxt) out)
+                               (.write out " ")
+                               (print-dup (attributes cxt) out)
+                               (.write out " ")
+                               (print-dup (incidence cxt) out)) out)) 
+
 ;;;
 
 (defn make-context-nc
