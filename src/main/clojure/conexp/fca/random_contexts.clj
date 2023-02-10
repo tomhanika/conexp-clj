@@ -359,7 +359,7 @@
                           (contexts/make-context Gfiltered Mfiltered Inew)
                           Inew)))))))))))
 
-(alias imitate-context-with-edge-swapping randomize-context-by-edge-swapping)
+(defalias imitate-context-with-edge-swapping randomize-context-by-edge-swapping)
 
 
 (defn randomize-context-by-edge-rewiring
@@ -392,5 +392,5 @@
                       (conj [g m]))
                   )))))))
 
-(alias imitate-context-with-edge-rewiring randomize-context-by-edge-rewiring)
+(defalias imitate-context-with-edge-rewiring randomize-context-by-edge-rewiring)
 nil
