@@ -160,6 +160,12 @@
   (with-out-writer file
     (println (latex layout :tikz))))
 
+(define-layout-output-format :tikz-better-defaults
+  [layout file]
+  (with-out-writer file
+    (println (latex layout :tikz-better-defaults))))
+
+
 ;;; FCA-style
 
 (define-layout-output-format :fca-style

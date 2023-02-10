@@ -32,7 +32,7 @@
      \> "\\textgreater "
      \~ "\\textasciitilde "
      \^ "\\textasciicircum "
-     \\ "\\textbackslash "}))
+     \\ "\\"}))                       ; fromerly \\textbackslash
 
 ;;;
 
@@ -93,6 +93,7 @@
 ;;; Layouts
 
 (declare layout->tikz)
+(declare layout->tikz-better-defaults)
 
 (extend-type conexp.layouts.base.Layout
   LaTeX
@@ -102,6 +103,7 @@
    ([this choice]
       (case choice
         :tikz (layout->tikz this)
+        :tikz-better-defaults (layout->tikz-better-defaults this)
         true  (illegal-argument "Unsupported latex format " choice " for layouts.")))))
 
 (defn- layout->tikz [layout]
@@ -194,6 +196,88 @@
       (println "  \\end{scope}")
       (println "\\end{tikzpicture}"))))
 
+
+(defn- layout->tikz-better-defaults
+  [layout]
+  (let [vertex-pos      (positions layout),
+        sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
+                                     [x_2 y_2] (vertex-pos %2)]
+                                 (or (< y_1 y_2)
+                                     (and (= y_1 y_2)
+                                          (< x_1 x_2))))
+                              (nodes layout)),
+        vertex-idx      (into {}
+                              (map-indexed (fn [i v] [v i])
+                                           sorted-vertices))
+        sort-label-fn (fn [s] (apply str (interpose ", " (sort (clojure.string/split s #", "))))) ;this is an ad-hoc fix -> should be fixed in the annotation function itself (too much of a hassle right now)
+        ]
+    (with-out-str
+      (println "% requires:")
+      (println "% \\usepackage[outline]{contour}")
+      (println "% \\contourlength{2.5pt} ")
+      (println "\\def\\tikzlatticelabelwidth{4cm}")
+      (println "\\colorlet{mivertexcolor}{white}")
+      (println "\\colorlet{jivertexcolor}{white}")
+      (println "\\colorlet{vertexcolor}{mivertexcolor!50}")
+      (println "\\colorlet{bordercolor}{black}")
+      (println "\\colorlet{linecolor}{black}")
+      (println "\\tikzset{vertexbase/.style={thick, shape=circle, inner sep=2.5pt, outer sep=1pt, draw=bordercolor},%")
+      (println "  vertex/.style={vertexbase, fill=vertexcolor!45},%")
+      (println "  mivertex/.style={vertexbase, fill=mivertexcolor!45},%")
+      (println "  jivertex/.style={vertexbase, fill=jivertexcolor!45},%")
+      (println "  divertex/.style={vertexbase, top color=mivertexcolor!45, bottom color=jivertexcolor!45},%")
+      (println "  conn/.style={-, thick, color=linecolor}%")
+      (println "}")
+      (println "\\begin{tikzpicture}")
+      (println "  \\begin{scope}[scale = 1.0] %for scaling and the like")
+      (println "    \\begin{scope} %draw vertices")
+      (println "      \\foreach \\nodename/\\nodetype/\\xpos/\\ypos in {%")
+      (let [infs         (set (inf-irreducibles layout)),
+            sups         (set (sup-irreducibles layout)),
+            insu         (intersection infs sups),
+            vertex-lines (map (fn [v]
+                                (let [i     (vertex-idx v),
+                                      [x y] (vertex-pos v)]
+                                  (str "        " i "/"
+                                       (cond
+                                        (contains? insu v)  "divertex"
+                                        (contains? sups v)  "jivertex"
+                                        (contains? infs v)  "mivertex"
+                                        :else               "vertex")
+                                       "/" x "/" y)))
+                              sorted-vertices)]
+        (doseq [x (interpose ",\n" vertex-lines)]
+          (print x))
+        (println))
+      (println "      } \\node[\\nodetype] (\\nodename) at (\\xpos, \\ypos) {};")
+      (println "    \\end{scope}")
+      (println "    \\begin{scope} %draw connections")
+      (doseq [[v w] (connections layout)]
+        (println (str "      \\path (" (vertex-idx v) ") edge[conn] (" (vertex-idx w) ");")))
+      (println "    \\end{scope}")
+      (println "    \\begin{scope} %add labels")
+      (println "      \\foreach \\nodename/\\labelpos/\\labelopts/\\labelcontent in {%")
+      (let [ann       (annotation layout),
+            ann-lines (mapcat (fn [v]
+                                (let [[u l] (ann v), ;(map tex-escape (ann v)), ; remove escaping of objects
+                                      lmultiline (clojure.string/replace l ", " "\\newline ")
+                                      lines (if-not (= "" u)
+                                              (list (str "        " (vertex-idx v) "/above//{" (sort-label-fn u) "}"))
+                                              ()),
+                                      lines (if-not (= "" l)
+                                              (conj lines
+                                                    (str "        " (vertex-idx v) "/below//\\parbox{\\tikzlatticelabelwidth}{\\centering " (sort-label-fn l) "}"))
+                                              lines)]
+                                  lines))
+                              sorted-vertices)]
+        (doseq [x (interpose ",\n" ann-lines)]
+          (print x))
+        (println))
+      #_(println "      } \\coordinate[label={[\\labelopts]\\labelpos:{\\labelcontent}}](c) at (\\nodename);")
+      (println "      } \\coordinate[shape=circle, inner sep=2pt, outer sep=1pt,label={[\\labelopts]\\labelpos:{\\contour{white}{\\labelcontent}}}](c) at (\\nodename);")
+      (println "    \\end{scope}")
+      (println "  \\end{scope}")
+      (println "\\end{tikzpicture}"))))
 ;;;
 
 nil
