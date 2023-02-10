@@ -247,8 +247,8 @@
                           (map reverse
                             (cond 
                               (= (first args) "greedy")
-                                (difference (set (lg/nodes graph)
-                                            (fill-graph graph #{})))
+                                (difference (set (lg/nodes graph))
+                                            (fill-graph graph #{}))
                               (= (first args) "genetic")
                                 (genetic-bipartite-subgraph graph 
                                                             (nth args 1)
