@@ -37,10 +37,7 @@
       "context" (json->ctx raw)
       ;; casting its content to char-array is the same as using the filename
       "context_file" (read-context (char-array raw))
-      "mv_context" (make-mv-context 
-                     (:objects raw)
-                     (:attributes raw)
-                     (read-data {:type "map" :data (:incidence raw)}))
+      "mv_context" (json->mv-context raw)
       "mv_context_file" (read-mv-context (char-array raw))
       "lattice" (json->lattice raw)
       "implication" (json->implication raw) 
@@ -59,9 +56,7 @@
     (mapv write-data data)
     (condp instance? data
       Formal-Context (ctx->json data)
-      Many-Valued-Context {:objects (objects data)
-                           :attributes (attributes data)
-                           :incidence (incidence data)}
+      Many-Valued-Context (mv-context->json data)
       Lattice (lattice->json data)
       Implication (implication->json data)
       Layout (layout->json data)
