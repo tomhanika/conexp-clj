@@ -37,6 +37,7 @@ much more.
    2. [REST-API Usage](doc/REST-API-usage.md)
    3. [triadic-exploration](doc/Triadic-Exploration.org)
    4. [protoconcepts](doc/Protoconcepts.org)
+   5. [Incomplete Contexts](doc/IncompleteContexts.org)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 
