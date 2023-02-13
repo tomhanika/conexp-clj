@@ -31,8 +31,7 @@
                 "pattern": "^\\[([^ ])+ ([^ ])+\\]$"
             },
             "patternProperties": {
-                "^\\[\\]$": {
-                    "$comment": "All property names already follow the specified regex pattern, so there is no need to check the whole pattern again.",
+                "^\\[([^ ])+ ([^ ])+\\]$": {
                     "type": ["string", "number"]
                 }
             }

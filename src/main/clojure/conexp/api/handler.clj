@@ -150,6 +150,7 @@
         data (into {} (for [[k v] body 
                             :when (not (some #{(:type v)} fn-types))] 
                            [k (read-data v)]))
+        
         ;; each name from function types is run as an acutal function
         results (process-functions 
                    (filter (fn [a](some #{(:type (val a))} fn-types)) body)

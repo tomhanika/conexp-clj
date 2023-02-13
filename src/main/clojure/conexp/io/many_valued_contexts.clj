@@ -141,10 +141,8 @@
   "Returns a mv-context object for the given json mv-context."
   [json-mv-context]
   (let [incidence (set (for [[k v] (:incidence json-mv-context)]
-                         (conj (edn/read-string (name k)) v)))]
-    (print "\n\n" (:objects json-mv-context) ", " (type (first (:objects json-mv-context))))
-    (print "\n" (:attributes json-mv-context) ", " (type (first (:attributes json-mv-context))))
-    (print "\n" incidence ", (" (type (first (first incidence))) ", " (type (second (first incidence))) ", " (type (get (first incidence) 2)) ")\n")
+                         (map #(if (symbol? %) (str %) %)
+                              (conj (edn/read-string (name k)) v))))]
     (make-mv-context 
      (:objects json-mv-context)
      (:attributes json-mv-context)
