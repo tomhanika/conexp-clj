@@ -334,7 +334,7 @@
                               (let [first-line (read-line)]
                                 (and (re-matches #"^[^,]+,[^,]+$" first-line)
                                      ;; do not read empty json context as csv
-                                     (not= first-line "{\"attributes\":[],\"adjacency-list\":[]}")))
+                                     (not= first-line "{\"objectsn:[],\"attributes\":[],\"incidence\":[]}")))
                               (catch Exception _))))
 
 (define-context-input-format :csv

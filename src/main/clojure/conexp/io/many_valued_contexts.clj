@@ -69,7 +69,10 @@
 (add-mv-context-input-format :data-table
                              (fn [rdr]
                                (try
-                                (re-matches #"^[^,]+,[^,]+.*$" (read-line))
+                                 (let [first-line (read-line)]
+                                   (and (re-matches #"^[^,]+,[^,]+.*$" (read-line))
+                                        ;; do not read empty json mv-context as data-table
+                                        (not= first-line "{\"objectsn:[],\"attributes\":[],\"incidence\":[]}")))
                                 (catch Exception _))))
 
 (define-mv-context-output-format :data-table

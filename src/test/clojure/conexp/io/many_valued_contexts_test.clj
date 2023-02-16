@@ -40,7 +40,16 @@
                     '[color size]
                     '#{[1 color blue] [1 size large]
                        [2 color green] [2 size very-large]
-                       [3 color red] [3 size small]})])
+                       [3 color red] [3 size small]})
+   (make-mv-context '[a b c]
+                    '[d e]
+                    '#{[a d 1] [a e 2]
+                       [b d 3] [b e 4]
+                       [c d 5] [c e 6]})
+   (make-mv-context '[a b]
+                    [1 2]
+                    '#{[a 1 d] [a 2 e]
+                       [b 1 1] [b 2 2]})])
 
 (deftest test-mv-context-out-in-out-in
   (with-testing-data [mv-ctx mv-contexts-oioi,
@@ -51,6 +60,14 @@
                       fmt #{:data-table}]
     (out-in-out-in-test mv-ctx 'many-valued-context fmt)))
 
+(deftest test-automatically-identify-input-format-json
+  "Test if other input formats throw an error when searching for an input format matching the json input file."
+  (if-not (.exists (java.io.File. "testing-data/mv-context.json"))
+    (warn "Could not verify identifying :json input format. Testing file not found.")
+    (let [mv-ctx (read-mv-context "testing-data/mv-context.json")]
+      (comment (is (= '[color size] (attributes mv-ctx)))
+               (is (= #{1 2 3} (objects mv-ctx))))
+      (is (= #{"blue" "large"} (values-of-object mv-ctx 1))))))
 ;;;
 
 nil
