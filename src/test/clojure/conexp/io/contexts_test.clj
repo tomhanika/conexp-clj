@@ -106,10 +106,19 @@
 
 ;;
 
+(def- random-test-contexts
+  (vec (random-contexts 20 50)))
+
 (deftest test-for-random-contexts
-  (with-testing-data [ctx (random-contexts 20 50),
+  (with-testing-data [ctx random-test-contexts,
                       ;; colibri and fcalgs cannot handle empty rows or columns
-                      fmt (remove #{:anonymous-burmeister :colibri :fcalgs} (list-context-formats))]
+                      ;; binary-csv and named-binary-csv cannot handle empty contexts
+                      fmt (remove #{:anonymous-burmeister :colibri :fcalgs :binary-csv :named-binary-csv}
+                                  (list-context-formats))]
+    (out-in-out-in-test ctx 'context fmt))
+  (with-testing-data [ctx (filter #(not (empty? (incidence-relation %))) 
+                                  random-test-contexts),
+                      fmt #{:binary-csv :named-binary-csv}]
     (out-in-out-in-test ctx 'context fmt)))
 
 (deftest test-anonymous-burmeister-out-in-out-in-for-random-contexts
