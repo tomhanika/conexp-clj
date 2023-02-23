@@ -165,6 +165,42 @@
   dispatch-random-dirichlet-context)
 
 
+(defn- contains-maximal-contranominal-scale?
+  "Given a formal context K, computes whether K contains the largest contranominal scale, i.e., if there are objects such that each set of |M|-1 attributes is an intent."
+  [K]
+  (let [M (set (contexts/attributes K))
+        G (set (contexts/objects K))]
+    (loop [g (first G)
+           restG (rest G)
+           S (set (for [m M] (difference M #{m})))]
+      (cond (empty? S)
+            true
+            (nil? g)
+            false
+            true
+            (recur (first restG)
+                   (rest restG)
+                   (difference S #{(set (contexts/object-derivation K #{g}))}))))))
+
+
+(defn random-dirichlet-context-no-maximal-contranominal
+  "Try to generate a random dirichlet context that contains no maximal contranominal scale.
+  Try at most 10 times.
+  The parameters are the same as for random-dirichlet-context."
+  [& {:keys [attributes objects base-measure precision-parameter]}]
+  (loop [try 10
+         generatedK (random-dirichlet-context :attributes attributes
+                                        :objects objects
+                                        :base-measure base-measure
+                                        :precision-parameter precision-parameter)]
+    (if (and (contains-maximal-contranominal-scale? generatedK) (< 0 try))
+      (recur (dec try)
+             (random-dirichlet-context :attributes attributes
+                                        :objects objects
+                                        :base-measure base-measure
+                                        :precision-parameter precision-parameter))
+      generatedK)))
+
 (defn- init-base-measure 
   "normalizes base measure"
   [base-measure num_attributes]
