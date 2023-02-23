@@ -334,7 +334,7 @@
                               (let [first-line (read-line)]
                                 (and (re-matches #"^[^,]+,[^,]+$" first-line)
                                      ;; do not read empty json context as csv
-                                     (not= first-line "{\"attributes\":[],\"adjacency-list\":[]}")))
+                                     (not= first-line "{\"objectsn:[],\"attributes\":[],\"incidence\":[]}")))
                               (catch Exception _))))
 
 (define-context-input-format :csv
@@ -425,11 +425,11 @@
   [ctx file]
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
-    (unsupported-operation "Cannot export empty context in binary-csv format"))
+    (unsupported-operation "Cannot export empty context in named-binary-csv format"))
   (when (some (fn [x]
                 (and (string? x) (some #(= \, %) x)))
               (concat (objects ctx) (attributes ctx)))
-    (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
+    (unsupported-operation "Cannot export to :named-binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
         atts (sort (attributes ctx))
         output-matrix (conj (for [obj objs] 
@@ -621,14 +621,22 @@
   "Returns a formal context as a map that can easily be converted into json format.
   
   Example:
-  {:attributes (\"1\", \"2\")
-   :adjacency-list 
-     [{:object \"b\",
-       :attributes (\"1\", \"2\")}]}"
+  {:objects #{\"b\"}
+   :attributes #{\"1\" \"2\"}
+   :incidence #{[\"b\" \"1\"] [\"b\" \"2\"]}"
   [ctx]
-  {:attributes (into () (attributes ctx))
-   :adjacency-list 
-     (mapv (partial object->json ctx) (objects ctx))})
+  {:objects (objects ctx)
+   :attributes (attributes ctx)
+   :incidence (if (= (type ctx) clojure.lang.PersistentHashSet)
+                (incidence ctx)
+                (into #{} (for [o (objects ctx)
+                                a (attributes ctx)
+                                :when (incident? ctx o a)]
+                            [o a])))} 
+  ;; {:attributes (into () (attributes ctx))
+  ;; :adjacency-list
+  ;; (mapv (partial object->json ctx) (objects ctx))}
+  )
 
 (defn- json-ctx->incidence
   "Returns the incidence of a json context as set of tuples."
@@ -639,12 +647,11 @@
   "Returns a Context object for the given json context."
   [json-ctx]
   (let [attributes (:attributes json-ctx)
-        ctx-list (:adjacency-list json-ctx)
-        objects (map :object ctx-list)
-        incidence (apply union (mapv json-ctx->incidence ctx-list))]
+        objects (:objects json-ctx)
+        incidence (:incidence json-ctx)]
     (make-context objects attributes incidence)))
 
-;; Json Format (src/main/resources/schemas/context_schema_v1.0.json)
+;; Json Format (src/main/resources/schemas/context_schema_v1.1.json)
 
 (add-context-input-format :json
                           (fn [rdr]
@@ -660,11 +667,10 @@
   [file]
   (with-in-reader file 
     (let [file-content (json/read *in* :key-fn keyword)
-          json-ctx file-content
-          schema-file "src/main/resources/schemas/context_schema_v1.0.json"]
+          schema-file "src/main/resources/schemas/context_schema_v1.1.json"]
       (assert (matches-schema? file-content schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
-      (json->ctx json-ctx))))
+      (json->ctx file-content))))
 
 ;;; TODO
 

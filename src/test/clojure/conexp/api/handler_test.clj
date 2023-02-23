@@ -255,7 +255,7 @@
                               :conclusion {:type "list"
                                            :data ["2" "1"]}})
         impl (:result (:function result))]
-    (is (= (make-implication (first impl)(second impl))
+    (is (= (make-implication (:premise impl)(:conclusion impl))
            (make-implication ["a" "b"]["2" "1"])))
     (is (= (:type (:function result)) "implication"))))
 
@@ -264,7 +264,7 @@
                                          :name "premise"
                                          :args ["impl1"]}
                               :impl1 {:type "implication"
-                                     :data [["a"] ["b"]]}})
+                                      :data {:premise ["a"] :conclusion ["b"]}}})
         premise (:result (:function result))]
     (is (= premise
            ["a"]))
@@ -279,7 +279,7 @@
                               :ctx1 {:type "context"
                                      :data (write-data context)}})
         impls (:result (:function result))]
-    (is (= (map #(make-implication (first %) (last %)) impls)
+    (is (= (map #(make-implication (:premise %) (:conclusion %)) impls)
            (canonical-base context)))
     (is (= (:type (:function result)) "implication_set"))))
 
@@ -366,6 +366,61 @@
           connections (json->connections (apply conj (:edges layout)) nodes)]
       (is (= positions new-pos))
       (is (= (set connections) edge)))))
+
+;; FCA
+(deftest test-fca-write
+  (let [file "testing-data/digits-fca-2.json"
+        result (mock-request {:function {:type "function"
+                                         :name "read-fca"
+                                         :args ["file"]}
+                              :file {:type "string"
+                                     :data file}})
+        fca (:result (:function result))]
+    (is (= (:type (:function result)) "map"))
+    (let [ctx (json->ctx (:context fca))
+          lat (json->lattice (:lattice fca))
+          impl (map json->implications (:implication_sets fca))
+          file-fca (read-fca file)]
+      (= (:context file-fca) ctx)
+      (= (:lattice file-fca) lat)
+      (= (:implication_sets file-fca) impl))))
+
+(deftest test-fca-read
+  (let [ctx (make-context-from-matrix ["a" "b"] ["x" "y"] [1 0 0 1])
+        lattice (concept-lattice ctx)
+        result-ctx-fca (mock-request {:function {:type "function"
+                                                 :name "map-invert"
+                                                 :args ["fca"]}
+                                      :fca {:type "map"
+                                            :data {":context" {:type "context"
+                                                               :data (write-data ctx)}}}})
+        result-ctx-lat-fca (mock-request {:function {:type "function"
+                                                     :name "map-invert"
+                                                     :args ["fca"]}
+                                          :fca {:type "map"
+                                                :data {":context" {:type "context"
+                                                                   :data (write-data ctx)}
+                                                       ":lattice" {:type "lattice"
+                                                                   :data (write-data lattice)}}}})
+        result-ctx-lat-impl-fca (mock-request {:function {:type "function"
+                                                          :name "map-invert"
+                                                          :args ["fca"]}
+                                               :fca {:type "map"
+                                                     :data {":context" {:type "context"
+                                                                        :data (write-data ctx)}
+                                                            ":lattice" {:type "lattice"
+                                                                        :data (write-data lattice)}
+                                                            ":implication_sets" {:type "list"
+                                                                                 :data #{(write-data (canonical-base ctx))}}}}})]
+    (is (= (:status (:function result-ctx-fca)) 200))
+    (is (= (:type (:function result-ctx-fca)) "map"))
+    (is (= (vals (:result (:function result-ctx-fca))) '("context")))
+    (is (= (:status (:function result-ctx-lat-fca)) 200))
+    (is (= (:type (:function result-ctx-fca)) "map"))
+    (is (= (vals (:result (:function result-ctx-lat-fca))) '("context" "lattice")))
+    (is (= (:status (:function result-ctx-lat-impl-fca)) 200))
+    (is (= (:type (:function result-ctx-lat-impl-fca)) "map"))
+    (is (= (vals (:result (:function result-ctx-lat-impl-fca))) '("context" "lattice" "implication_sets")))))
 
 ;;;
 
