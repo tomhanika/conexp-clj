@@ -3,7 +3,11 @@
   "$schema": "https://json-schema.org/draft-07/schema",
   "title": "JSON schema for a formal context",
   "type": "object",
+<<<<<<< HEAD
   "description": "JSON Schema for the formal context. A formal context contains a set of objects, each with corresponding attributes. The minimum number of attributes assigned to an object is 0.",
+=======
+  "description": "JSON Schema for the formal context. A formal context contains a list of objects, a list of attributes and the incidence between them.",
+>>>>>>> dev
   "$defs": {
     "incidence_item": {
       "type": "array",

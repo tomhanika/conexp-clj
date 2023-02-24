@@ -52,56 +52,41 @@
       (apply make-lattice lattice))))
 
 ;; Json helpers
-
-(defn- concept->json
-  "Returns the concept in json format."
-  [concept]
-  {:extent (first concept)
-   :intent (second concept)})
-
-(defn- concept-pair->json
-  "Returns the pair of concepts in json format."
-  [pair]
-  {:start_concept (concept->json (first pair)) 
-   :end_concept (concept->json (second pair))})
-
-(defn- lattice-order->json
-  "Returns the order of the concept lattice in json format."
-  [lattice]
-  (let [pairs (set-of [x y]
-                      [x (base-set lattice)
-                       y (base-set lattice)
-                       :when ((order lattice) [x y])])]
-    (map concept-pair->json pairs)))
-
 (defn lattice->json
   "Returns a concept lattice, consisting of the base set and order, in json format."
   [lat]
-  {:formal_concepts (mapv concept->json (base-set lat))
-   :lattice_structure (lattice-order->json lat)})
+  {:nodes (base-set lat)
+   :edges (set-of [x y]
+                  [x (base-set lat)
+                   y (base-set lat)
+                   :when ((order lat) [x y])])})
 
 (defn- json->concept
-  "Returns a vector containing one map each for extent and intent."
+  "Returns a vector containing both extent and intent."
   [json-concept]
-  [(into #{} (:extent json-concept)) 
-   (into #{} (:intent json-concept))])
+  [(set (first json-concept))
+   (set (second json-concept))])
 
 (defn- json->concept-pair
   "Returns a vector containing the concept pair."
   [json-concept-pair]
-  [(into [] (json->concept (:start_concept json-concept-pair)))
-   (into [] (json->concept (:end_concept json-concept-pair)))])
+  [(json->concept (first json-concept-pair)) 
+   (json->concept (second json-concept-pair))])
 
 (defn json->lattice
   "Returns a Lattice object for the given json lattice."
   [json-lattice]
-  (let [json-concepts (:formal_concepts json-lattice)
-        json-lattice-order (:lattice_structure json-lattice)
-        lattice-base-set (map json->concept json-concepts)
-        lattice-order (map json->concept-pair json-lattice-order)]
+  (let [json-base-set (:nodes json-lattice)
+        json-order (:edges json-lattice)
+        lattice-base-set (if (coll? (first json-base-set))   ;; if it is a concept-lattice
+                           (map json->concept json-base-set)
+                           (set json-base-set))
+        lattice-order (if (coll? (first (first json-order))) ;; if it is a concept-lattice
+                        (map json->concept-pair json-order)
+                        (set json-order))]
     (make-lattice lattice-base-set lattice-order)))
 
-;; Json Format (src/main/resources/schemas/lattice_schema_v1.0.json)
+;; Json Format (src/main/resources/schemas/lattice_schema_v1.1.json)
 
 (add-lattice-input-format :json
                           (fn [rdr]
@@ -117,7 +102,7 @@
   [file]
   (with-in-reader file
     (let [json-lattice (json/read *in* :key-fn keyword)
-          schema-file "src/main/resources/schemas/lattice_schema_v1.0.json"]
+          schema-file "src/main/resources/schemas/lattice_schema_v1.1.json"]
       (assert (matches-schema? json-lattice schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
       (json->lattice json-lattice))))

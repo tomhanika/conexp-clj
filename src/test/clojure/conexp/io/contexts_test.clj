@@ -31,12 +31,15 @@
 
 (deftest test-context-out-in
   (with-testing-data [ctx contexts-oi,
-                      fmt (remove #{:binary-csv :anonymous-burmeister :fcalgs}
+                      fmt (remove #{:binary-csv :anonymous-burmeister :fcalgs :named-binary-csv}
                                   (list-context-formats))]
-    (try (= ctx (out-in ctx 'context fmt))
-         (catch UnsupportedOperationException _ true)))
-  
-  ;; fcalgs throws UnsupportedOperationException at writing and thus needs to be tested with another context
+    (= ctx (out-in ctx 'context fmt)))
+  ;; named-binary-csv cannot export empty context
+  (with-testing-data [ctx [(first contexts-oi)],
+                      fmt #{:named-binary-csv}]
+    (= ctx (out-in ctx 'context fmt)))
+  ;; fcalgs can only store contexts with integral objects and attributes >=0,
+  ;; and thus needs to be tested with another context
   (with-testing-data [ctx contexts-oi-fcalgs,
                       fmt #{:fcalgs}]
     (= ctx (out-in ctx 'context fmt))))
@@ -50,9 +53,13 @@
      (incidence-relation ctx1) (incidence-relation ctx2)
      (concepts ctx1) (concepts ctx2)))
 
-(deftest test-anonymous-burmeister-out-in
+(deftest test-isomorphic-out-in
   (with-testing-data [ctx contexts-oi
                       fmt #{:anonymous-burmeister}]
+    (possible-isomorphic? ctx (out-in ctx 'context fmt)))
+  ;; binary-csv cannot export empty context
+  (with-testing-data [ctx [(first contexts-oi)]
+                      fmt #{ :binary-csv}]
     (possible-isomorphic? ctx (out-in ctx 'context fmt))))
 ;;
 
@@ -63,9 +70,13 @@
 
 (deftest test-context-out-in-out-in
   (with-testing-data [ctx contexts-oioi,
-                      fmt (remove #{:anonymous-burmeister} (list-context-formats))]
-    (try (out-in-out-in-test ctx 'context fmt)
-         (catch UnsupportedOperationException _ true))))
+                      fmt (remove #{:anonymous-burmeister :fcalgs} (list-context-formats))]
+    (out-in-out-in-test ctx 'context fmt))
+  ;; fcalgs can only store contexts with integral objects and attributes >=0,
+  ;; and thus needs to be tested with another context
+  (with-testing-data [ctx contexts-oi-fcalgs,
+                      fmt #{:fcalgs}]
+    (out-in-out-in-test ctx 'context fmt)))
 
 (deftest test-anonymous-burmeister-out-in-out-in
   (with-testing-data [ctx contexts-oioi
@@ -78,24 +89,37 @@
 
 (def- contexts-with-empty-columns
   "Context with empty columns, to test for corner cases"
-  [(null-context #{1 2 3 4}),
+  [(null-context #{}),
+   (null-context #{1 2 3 4}),
    (null-context #{1 2 3}),
-   (null-context #{}),
    (make-context #{1 2 3} #{1 2 3} #{[1 2] [2 3] [3 2]})])
 
 (deftest test-empty-columns
   (with-testing-data [ctx contexts-with-empty-columns,
-                      fmt (list-context-formats)]
-    (try (out-in-out-in-test ctx 'context fmt)
-         (catch UnsupportedOperationException _ true))))
+                      ;; colibri and fcalgs cannot handle empty rows or columns
+                      ;; empty contexts cannot be exported to named-binary-csv or binary-csv
+                      fmt (remove #{:colibri :fcalgs :named-binary-csv :binary-csv} (list-context-formats))]
+    (out-in-out-in-test ctx 'context fmt))
+  (with-testing-data [ctx (rest contexts-with-empty-columns),
+                      fmt #{:named-binary-csv :binary-csv}]
+    (out-in-out-in-test ctx 'context fmt)))
 
 ;;
 
+(def- random-test-contexts
+  (vec (random-contexts 20 50)))
+
 (deftest test-for-random-contexts
-  (with-testing-data [ctx (random-contexts 20 50),
-                      fmt (remove #{:anonymous-burmeister} (list-context-formats))]
-    (try (out-in-out-in-test ctx 'context fmt)
-         (catch UnsupportedOperationException _ true))))
+  (with-testing-data [ctx random-test-contexts,
+                      ;; colibri and fcalgs cannot handle empty rows or columns
+                      ;; binary-csv and named-binary-csv cannot handle empty contexts
+                      fmt (remove #{:anonymous-burmeister :colibri :fcalgs :binary-csv :named-binary-csv}
+                                  (list-context-formats))]
+    (out-in-out-in-test ctx 'context fmt))
+  (with-testing-data [ctx (filter #(not (empty? (incidence-relation %))) 
+                                  random-test-contexts),
+                      fmt #{:binary-csv :named-binary-csv}]
+    (out-in-out-in-test ctx 'context fmt)))
 
 (deftest test-anonymous-burmeister-out-in-out-in-for-random-contexts
   (with-testing-data [ctx (random-contexts 20 10),
