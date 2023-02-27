@@ -34,16 +34,23 @@
       "description": "In 'source', the source of the context / data can be added."
     },
     "context": {
-      "$ref": "context_schema_v1.0.json"
+      "$ref": "context_schema_v1.1.json"
     },
     "lattice": {
-      "$ref": "lattice_schema_v1.0.json"
+      "$ref": "lattice_schema_v1.1.json"
     },
     "implication_sets": {
       "type": "array",
       "description": "Several sets of implications can be added.",
       "items": {
         "$ref": "implications_schema_v1.0.json"
+      }
+    },
+    "layouts":{
+      "type": "array",
+      "description": "Several layouts can be added.",
+      "items": {
+        "$ref": "layout_schema_v1.0.json"
       }
     },
     "additional_information": {

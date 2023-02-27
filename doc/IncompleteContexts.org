@@ -1,0 +1,72 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Incomplete Contexts in ~conexp-clj~
+
+Incomplete Contexts are used to represent contexts where some relations are unknown.
+See papers by Burmeister and Holzer for an introduction.
+
+#+begin_src clojure :exports both
+  (def K (make-incomplete-context-from-matrix
+          [1 2 3 4]
+          [:a :b :c]
+          [0 1 "?" "?" "?" 0 1 1 0 "?" "?" 1]))
+
+  K
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+    |:a :b :c 
+  --+---------
+  1 |.  x  ?  
+  2 |?  ?  .  
+  3 |x  x  .  
+  4 |?  ?  x  
+#+end_src
+
+
+We can compute possible and certain derivations:
+#+begin_src clojure :exports both
+(possible-attribute-derivation K [:a])
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+#{4 3 2}
+#+end_src
+
+#+begin_src clojure :exports both
+(certain-attribute-derivation K [:a])
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+#{3}
+#+end_src
+
+and we can test if an implication is satisfiable in an incomplete context:
+#+begin_src clojure :exports both
+(satisfiable? (make-implication [:a] [:b]) K)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+true
+#+end_src
+
+#+begin_src clojure :exports both
+(satisfiable? (make-implication [:a] [:b :c]) K)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+false
+#+end_src
+
+
+There are some convenience functions to convert between formal and incomplete contexts, e.g., ~to-incomplete-context~,  ~to-formal-context~, ~incomplete-context->possible-incidences-context~, ~incomplete-context->certain-incidences-context~, and to draw the (certain/possible) concept lattice for an incomplete context, ~draw-certain-concept-lattice~, ~draw-possible-concept-lattice~.
+
+Also, there is support for attribute exploration with incomplete information.
+Additionally there is support for attribute exploration with multiple experts that have compatible views (collaboration strategies) and incompatible views (shared implications).
+

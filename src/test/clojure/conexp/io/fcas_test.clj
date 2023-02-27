@@ -12,7 +12,8 @@
         conexp.fca.lattices
         conexp.fca.implications
         conexp.io.fcas
-        conexp.io.util-test)
+        conexp.io.util-test
+        conexp.layouts)
   (:use clojure.test))
 
 ;;;
@@ -141,22 +142,40 @@
                       fmt (list-fca-formats)]
     (out-in-out-in-test fca 'fca fmt)))
 
+(def- layouts-oioi
+  "Layout for out-in-out-in testing"
+  (mapv standard-layout lattice-oioi))
+
+(def- fca-layout-oioi
+  "FCAs for out-in-out-in testing with context and layout"
+  (into [] (for [[ctx layout]
+                 (map list contexts-oioi layouts-oioi)]
+             {:context ctx :layouts [layout]})))
+
+(deftest test-fca-with-layouts-out-in-out-in
+  "Several tests with context and layout input"
+  (with-testing-data [fca fca-layout-oioi,
+                      fmt (list-fca-formats)]
+    (out-in-out-in-test fca 'fca fmt)))
+
 ;;;
 
 (deftest test-json-not-matching-schema
   "Read a json format that does not match the given schema."
-  (if-not (.exists (java.io.File. "testing-data/digits-lattice.json"))
-    (warn "Could not verify failing validation of fca schema. Testing file not found.") 
-    (is (thrown?
-         AssertionError
-         (read-fca "testing-data/digits-lattice.json" :json)))))
+  (let [file "testing-data/digits-lattice.json"]
+    (if-not (.exists (java.io.File. file))
+      (warn "Could not verify failing validation of fca schema. Testing file not found.") 
+      (is (thrown?
+           AssertionError
+           (read-fca file :json))))))
 
 (deftest test-json-matching-schema
   "Read a json format that matches the given schema."
-  (if-not (.exists (java.io.File. "testing-data/digits-fca.json"))
-    (warn "Could not verify validation of fca schema. Testing file not found.")
-    (let [fca (read-fca "testing-data/digits-fca.json" :json)]
-      (is (= 6 (count (first (:implication-sets fca))))))))
+  (let [file "testing-data/digits-fca-2.json"]
+    (if-not (.exists (java.io.File. file))
+      (warn "Could not verify validation of fca schema. Testing file not found.")
+      (let [fca (read-fca file :json)]
+        (is (= 6 (count (first (:implication-sets fca)))))))))
 
 (deftest test-identify-input-format
   "Test if the automatic identification of the file format works correctly."

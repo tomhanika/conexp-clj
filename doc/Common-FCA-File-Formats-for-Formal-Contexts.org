@@ -190,7 +190,7 @@ Conexp-clj I/O
 
 #+BEGIN_SRC clojure
 (write-context :named-binary-csv context "path/to/context.csv")
-(read-context  :named-binary-csv)
+(read-context "path/to/context.csv" :named-binary-csv)
 #+END_SRC
 
 #+BEGIN_SRC python

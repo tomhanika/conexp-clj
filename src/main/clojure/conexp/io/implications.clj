@@ -22,7 +22,7 @@
 
 ;; Json helpers
 
-(defn- implication->json
+(defn implication->json
   "Returns one implication in json format."
   [implication]
   {:premise (premise implication)
@@ -34,7 +34,7 @@
   {:implications
      (mapv implication->json implication-list)})
 
-(defn- json->implication
+(defn json->implication
   "Returns an Implication object for the given json implication."
   [json-impl]
   (make-implication (into #{} (:premise json-impl))

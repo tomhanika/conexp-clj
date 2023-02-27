@@ -30,23 +30,18 @@
     (condp = (:type data)
       ;; remove colons from map
       "map" (if (some? raw)
-                (into {} (for [[k v] raw] [(edn/read-string (name k)) v])))
-      "context" (make-context 
-                  (:objects raw) 
-                  (:attributes raw) 
-                  (:incidence raw))
+              (into {} (for [[k v] raw] [(edn/read-string (name k)) 
+                                         (if (= (type v) clojure.lang.PersistentArrayMap) 
+                                           (read-data v)
+                                           v)])))
+      "context" (json->ctx raw)
       ;; casting its content to char-array is the same as using the filename
       "context_file" (read-context (char-array raw))
-      "mv_context" (make-mv-context 
-                     (:objects raw)
-                     (:attributes raw)
-                     (read-data {:type "map" :data (:incidence raw)}))
+      "mv_context" (json->mv-context raw)
       "mv_context_file" (read-mv-context (char-array raw))
-      "lattice" (make-lattice 
-                  (:nodes raw)
-                  (:edges raw))
-      "implication" (apply make-implication raw)
-      "implication_set" (map #(apply make-implication %) raw)
+      "lattice" (json->lattice raw)
+      "implication" (json->implication raw) 
+      "implication_set" (json->implications raw)
       "layout" (json->layout raw)
       "method" (resolve (symbol raw))
       raw)))
@@ -60,19 +55,13 @@
   (if (and (coll? data)(not (map? data)))
     (mapv write-data data)
     (condp instance? data
-      Formal-Context {:objects (objects data)
-                      :attributes (attributes data)
-                      :incidence (incidence data)}
-      Many-Valued-Context {:objects (objects data)
-                           :attributes (attributes data)
-                           :incidence (incidence data)}
-      Lattice {:nodes (base-set data)
-               :edges (set-of [x y]
-                              [x (base-set data)
-                               y (base-set data)
-                               :when ((order data) [x y])])}
-      Implication [(premise data)(conclusion data)]
+      Formal-Context (ctx->json data)
+      Many-Valued-Context (mv-context->json data)
+      Lattice (lattice->json data)
+      Implication (implication->json data)
       Layout (layout->json data)
+      clojure.lang.PersistentArrayMap (into {} (mapv #(vector (key %) 
+                                                              (write-data (val %))) data))
       data)))
 
 ;;; Process functions
@@ -161,6 +150,7 @@
         data (into {} (for [[k v] body 
                             :when (not (some #{(:type v)} fn-types))] 
                            [k (read-data v)]))
+        
         ;; each name from function types is run as an acutal function
         results (process-functions 
                    (filter (fn [a](some #{(:type (val a))} fn-types)) body)

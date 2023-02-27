@@ -33,10 +33,11 @@
 
 (deftest test-json-matching-schema
   "Read a json format that matches the given schema."
-  (if-not (.exists (java.io.File. "testing-data/digits-lattice.json"))
-    (warn "Could not verify validation of lattice schema. Testing file not found.")
-    (let [lattice (read-lattice "testing-data/digits-lattice.json" :json)]
-      (is (= 48 (count (lattice-base-set lattice)))))))
+  (let [file "testing-data/digits-lattice1.1.json"]
+    (if-not (.exists (java.io.File. file))
+      (warn "Could not verify validation of lattice schema. Testing file not found.")
+      (let [lattice (read-lattice file :json)]
+        (is (= 48 (count (lattice-base-set lattice))))))))
 
 (deftest test-json-not-matching-schema
   "Read a json format that does not match the given schema."
