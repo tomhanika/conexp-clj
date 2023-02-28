@@ -216,7 +216,7 @@
 (defalias join-smeasure scale-apposition)
 
 (defn meet-smeasure
-  "Returns the canonical representation of the join-complement of sm in the scale-hierarchy."
+  "Returns the meet smeasure of sm1 and sm2."
   [sm1 sm2]
   (assert (= (context sm1) (context sm2)) "Both scale-measure must be for the same context.")
   (smeasure-by-exts (context sm1)

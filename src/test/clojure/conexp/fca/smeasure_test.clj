@@ -156,6 +156,23 @@
            (make-context (objects ctx3) #{#{} #{3} #{1 4} #{1 2 3 4}} 
                          #{[1 #{1 4}] [1 #{1 2 3 4}] [2 #{1 2 3 4}] [3 #{3}] [3 #{1 2 3 4}] [4 #{1 4}] [4 #{1 2 3 4}]})))))
 
+(deftest test-join-complement
+  (is (= (join-complement sm2)
+         (make-smeasure ctx1
+                        (make-context [1 2 3 4] 
+                                      [#{1 2 3 4}] 
+                                      (fn [o a] (contains? a o)))
+                        identity)))
+  (let [ctx1 (make-context-from-matrix [1 2 3] [4 5 6] [1 0 1 0 1 0 0 0 1])
+        ctx2 (make-context-from-matrix [1 2] [4 5 6] [1 0 1 0 1 0])
+        sm (make-smeasure ctx1 ctx2 #(case % 1 1 2 2 3 1))]
+    (is (= (join-complement sm)
+           (make-smeasure ctx1
+                          (make-context [1 2 3] 
+                                        [#{1} #{1 2 3}] 
+                                        (fn [o a] (contains? a o)))
+                          identity)))))
+
 (deftest test-error-in-smeasure
   (are [sm] (= (error-in-smeasure sm) [])
     sm1 sm2 sm3 sm4)
