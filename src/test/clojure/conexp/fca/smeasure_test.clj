@@ -32,6 +32,14 @@
 (def- ctx-inequality
   (make-context #{1 2 3} #{1 2 3} not=))
 
+(def- ctx5
+  (make-context-nc #{1 2 3} #{4 5 6}
+                   #{[1 4] [1 6] [2 5] [3 6]}))
+
+(def- ctx6
+  (make-context-nc #{1 2} #{4 5 6}
+                   #{[1 4] [1 6] [2 5]}))
+
 (def- sm1
   (make-id-smeasure ctx1))
 
@@ -163,11 +171,9 @@
                                       [#{1 2 3 4}] 
                                       (fn [o a] (contains? a o)))
                         identity)))
-  (let [ctx1 (make-context-from-matrix [1 2 3] [4 5 6] [1 0 1 0 1 0 0 0 1])
-        ctx2 (make-context-from-matrix [1 2] [4 5 6] [1 0 1 0 1 0])
-        sm (make-smeasure ctx1 ctx2 #(case % 1 1 2 2 3 1))]
+  (let [sm (make-smeasure ctx5 ctx6 #(case % 1 1 2 2 3 1))]
     (is (= (join-complement sm)
-           (make-smeasure ctx1
+           (make-smeasure ctx5
                           (make-context [1 2 3] 
                                         [#{1} #{1 2 3}] 
                                         (fn [o a] (contains? a o)))
@@ -337,5 +343,18 @@
     sm3 cnf-1
     sm4 cnf-2
     sm5 cnf-3))
+
+(deftest test-recommend-by-importance
+  (are [ctx n recommended] (= (scale (recommend-by-importance 
+                                      ctx 
+                                      (fn [context concept] (count (first concept)))
+                                      n))
+                              recommended)
+    ctx1 3 (make-context #{1 2 3 4} #{#{1 4} #{2} #{3}}
+                         (fn [o a] (contains? a o)))
+    ctx-inequality 4 (make-context #{1 2 3} #{#{1} #{2} #{3} #{2 3}}
+                                   (fn [o a] (contains? a o)))
+    ctx5 3 (make-context #{1 2 3} #{#{1} #{2} #{1 3}}
+                         (fn [o a] (contains? a o)))))
 
 nil
