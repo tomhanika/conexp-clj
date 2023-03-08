@@ -357,4 +357,49 @@
     ctx5 3 (make-context #{1 2 3} #{#{1} #{2} #{1 3}}
                          (fn [o a] (contains? a o)))))
 
+(defn- command-iteration
+  "Creates an iterable list of commands that can be used for redefinition of read-line in tests that expect user input."
+  [data]
+  (let [iter (.iterator (sequence data))]
+    #(when (.hasNext iter) (.next iter))))
+
+(deftest test-conceptual-navigation
+  (is (thrown? java.lang.AssertionError
+               (conceptual-navigation sm1)))
+  (with-redefs [read-line (fn [] "done")]
+    (let [result (conceptual-navigation ctx1)]
+      (is (= result (make-id-smeasure ctx1))))))
+
+(deftest test-conceptual-navigation-rename
+  (let [next-command (command-iteration ["rename" ":objects" "1;\"a\"" "done"])]
+    (with-redefs [read-line (fn [] (next-command))]
+      (let [result (conceptual-navigation ctx1)
+            renamed-ctx (make-context-nc #{"a" 2 3 4} #{1 2 3 4 5} 
+                                         #{["a" 1][2 2]["a" 3][2 4][3 5][4 1][4 3]})]
+        (is (= result (make-smeasure ctx1
+                                     renamed-ctx
+                                     #(case % 1 "a" 4 4 2 2 3 3))))))))
+
+(deftest test-conceptual-navigation-logical-attr
+  (let [next-command (command-iteration ["logical-attr" "[[1 :and 3] :or 5]" "6" "done"])]
+    (with-redefs [read-line (fn [] (next-command))]
+      (let [result (conceptual-navigation ctx1)
+            new-ctx (make-context-nc #{1 2 3 4} #{1 2 3 4 5 6} 
+                                         #{[1 1][2 2][1 3][2 4][3 5][4 1][4 3][1 6][3 6][4 6]})]
+        (is (= result (make-smeasure ctx1 new-ctx identity)))))))
+
+(deftest test-conceptual-navigation-truncate
+  (let [next-command (command-iteration ["truncate" "1;3" "done"])]
+    (with-redefs [read-line (fn [] (next-command))]
+      (let [result (conceptual-navigation ctx1)
+            new-ctx (make-context-nc #{1 2 3 4} #{2 4 5} 
+                                         #{[2 2][2 4][3 5]})]
+        (is (= result (make-smeasure ctx1 new-ctx identity)))))))
+
+(deftest test-conceptual-navigation-clear
+  (let [next-command (command-iteration ["rename" ":objects" "1;\"a\"" "clear" "done"])]
+    (with-redefs [read-line (fn [] (next-command))]
+      (let [result (conceptual-navigation ctx1)]
+        (is (= result (make-id-smeasure ctx1)))))))
+
 nil

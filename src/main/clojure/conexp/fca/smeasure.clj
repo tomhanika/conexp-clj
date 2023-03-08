@@ -576,8 +576,8 @@
                                        (constantly true)
                                        "Input must be a valid command: \n") state)]
       (if (:done evaluated) 
-        (:smeasure  evaluated)
-        (recur  evaluated)))))
+           (:smeasure  evaluated)
+           (recur  evaluated)))))
 
 
 (defn- provide-counter-example
