@@ -80,7 +80,7 @@
           };
 
           devShells.default = mkShell {
-            buildinputs = with channels.nixpkgs; [ clojure-lsp leiningen ];
+            buildInputs = with channels.nixpkgs; [ clojure-lsp leiningen ];
           };
 
           formatter = channels.nixpkgs.alejandra;
