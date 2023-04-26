@@ -2,6 +2,8 @@
   "Causal Implications for Formal Concept Analysis."
   (:require
    [conexp.base :refer :all]
+   [conexp.io.contexts :refer :all]
+   [conexp.io.fcas :refer :all]
    [conexp.fca.contexts :refer :all]
    [clojure.set :as set]))
 
@@ -10,12 +12,15 @@
   ;itemset needs to consist of two entries a and b, both sets of attributes
   ;computes the support of the itemset with all attributes in a and the negation of each attribute in b
   (let [[attributes neg-attributes] itemset, objects (objects ctx), incidence (incidence-relation ctx)]
-   (count (filter identity (for [object objects]
+    (max (count (filter identity (for [object objects]
                                  (every? true? (concat
-                                              (for [attribute attributes]
-                                                (some? (incident? ctx object attribute)))
-                                              (for [attribute neg-attributes]
-                                                (not (some? (incident? ctx object attribute)))))))))))
+                                                (for [attribute attributes]
+                                                  (some? (incident? ctx object attribute)))
+                                                (for [attribute neg-attributes]
+                                                  (not (some? (incident? ctx object attribute)))))))))
+
+         1    
+)))
 
 (defn conf [ctx rule]
   (let [[premise conclusion] rule]
@@ -26,18 +31,25 @@
   (let [[premise conclusion] rule]
     (/ (* (supp ctx [(set/union premise conclusion) #{}]) (supp ctx [#{} (set/union premise conclusion)]))
        (* (supp ctx [premise conclusion]) (supp ctx [conclusion premise]))
+       
        )))
 
 (defn lsupp [ctx rule] 
   (let [[premise conclusion] rule]
-    (/ ((supp ctx [(set/union premise conclusion) #{}]))
-       ((supp ctx [conclusion #{}])))))
+    (/ (supp ctx [(set/union premise conclusion) #{}])
+       (supp ctx [conclusion #{}]))))
 
-
+;!!!!!!!!!BROKEN considers all attributes in stead of only controlled variables
 (defn matched-record-pair? [ctx rule controlled-variables a b]
 ;returns true, if objects a and b form a matched record pair, false otherwise
-  (let [[premise conclusion] rule, all-attributes (attributes ctx),
+  (let [[premise conclusion] rule, all-attributes controlled-variables,
         a-attributes (object-derivation ctx [a]), b-attributes (object-derivation ctx [b])]
+
+(println premise)
+(println a-attributes)
+(println b-attributes)
+(println (or (and (subset? premise a-attributes) (not (subset? premise b-attributes)))
+             (and (subset? premise b-attributes) (not (subset? premise a-attributes)))))
 
     (and (or (and (subset? premise a-attributes) (not (subset? premise b-attributes)))
              (and (subset? premise b-attributes) (not (subset? premise a-attributes))))
@@ -65,7 +77,6 @@
 (defn fair-data-set [ctx rule controlled-variables]
 ;computes the fair data set of ctx by finding matched record pairs among the objects
 ;each object may only be matched with exactly one other object
-;may contain empty sets if no partern is found for an object
   (let [objs (objects ctx)]
     (filter seq 
             (reduce (fn[present-objs new-obj]
@@ -127,17 +138,19 @@
 (defn fair-confidence-interval [ctx rule fair-odds-ratio fair-data zconf]
   (let [premise (first (first rule)), conclusion (first (first (rest rule)))]
     [(Math/exp (+ (Math/log fair-odds-ratio)
-                 (* zconf (Math/sqrt (+ (/ 1 (reduce + 
-                                             (for [pair fair-data]
-                                             (let [a  (first pair), b (first (rest pair))]
-                                             (if (or (and (incident? ctx a premise) 
-                                             (and (incident? ctx a conclusion) 
-                                             (not (incident? ctx b conclusion))))
-                                             (and (incident? ctx b premise) 
-                                             (and (incident? ctx b conclusion) 
-                                             (not (incident? ctx a conclusion)))))
-                                              1
-                                              0)))))
+                 (* zconf (Math/sqrt (+ (/ 1 (max (reduce + 
+                                                    (for [pair fair-data]
+                                                    (let [a  (first pair), b (first (rest pair))]
+                                                    (if (or (and (incident? ctx a premise) 
+                                                                 (and (incident? ctx a conclusion) 
+                                                                      (not (incident? ctx b conclusion))))
+                                                            (and (incident? ctx b premise) 
+                                                                 (and (incident? ctx b conclusion) 
+                                                                      (not (incident? ctx a conclusion)))))
+                                                     1
+                                                     0))))
+                                                  
+                                                  1))
                                         (/ 1 (max 
                                              (reduce +  (for [pair fair-data]
                                              (let [a  (first pair), b (first (rest pair))]
@@ -155,17 +168,19 @@
                                      
                                      ))))
      (Math/exp (- (Math/log fair-odds-ratio)
-                 (* zconf (Math/sqrt (+ (/ 1 (reduce + 
-                                             (for [pair fair-data]
-                                             (let [a  (first pair), b (first (rest pair))]
-                                             (if (or (and (incident? ctx a premise) 
-                                             (and (incident? ctx a conclusion) 
-                                             (not (incident? ctx b conclusion))))
-                                             (and (incident? ctx b premise) 
-                                             (and (incident? ctx b conclusion) 
-                                             (not (incident? ctx a conclusion)))))
+                 (* zconf (Math/sqrt (+ (/ 1 (max (reduce + 
+                                                    (for [pair fair-data]
+                                                    (let [a  (first pair), b (first (rest pair))]
+                                                    (if (or (and (incident? ctx a premise) 
+                                                                 (and (incident? ctx a conclusion) 
+                                                                      (not (incident? ctx b conclusion))))
+                                                            (and (incident? ctx b premise) 
+                                                                 (and (incident? ctx b conclusion) 
+                                                                      (not (incident? ctx a conclusion)))))
                                               1
-                                              0)))))
+                                              0))))
+
+                                                  1))
                                         (/ 1 (max 
                                              (reduce +  (for [pair fair-data]
                                              (let [a  (first pair), b (first (rest pair))]
@@ -215,34 +230,65 @@
                                              (set/union conclusion irrelevant-vars E premise))
         fair-data (fair-data-set ctx rule controlled-variables)
         fair-odds (fair-odds-ratio ctx rule fair-data)]
+(println (exclusive-variables ctx premise thresh))
+(println controlled-variables)
+(println fair-data)
+(println fair-odds)
+(println (fair-confidence-interval ctx rule fair-odds fair-data zconf))
 
     (< 1 (last (fair-confidence-interval ctx rule fair-odds fair-data zconf)) )    
 ))
 
 (defn generate-causal-rules [ctx premises response-var irrelevant-vars zconf thresh]
   (filter (fn [x] (causal? ctx [x #{response-var}] irrelevant-vars zconf thresh)) premises)
-)
+  )
 
 
 ;TODO
 (defn causal-association-rule-discovery 
-  ([ctx min-lsupp max-length response-var]
-    (let [frequent-vars (filter (fn [x] 
-                                  ( > (lsupp ctx [x #{response-var}]) min-lsupp)) 
-                                (for [x (attributes ctx)] #{x}))]
-      (causal-association-rule-discovery ctx #{} frequent-vars  min-lsupp 0 max-length response-var)) 
+  ([ctx min-lsupp max-length response-var zconf]
+    (let [frequent-vars (set (filter (fn [x] 
+                                       ( > (lsupp ctx [#{x} #{response-var}]) min-lsupp)) 
+                                         (attributes ctx))) 
+          ivars (irrelevant-variables ctx frequent-vars response-var zconf)]
+(println (set/difference frequent-vars ivars))
+      (causal-association-rule-discovery 
+         ctx ;context
+         #{} ;current causal rules
+         frequent-vars ;frequent single variables
+         (for [x frequent-vars] #{x}) ;itemsets of the current iteration
+         ivars ;irrelevant variables in respect to response-var
+         min-lsupp ;minimum local support
+         0 ;counter, counts up to max-length
+         max-length ;maximum length of rules
+         response-var ;response variable
+         zconf ;confidence for significance test (1.7)
+         )) 
  ) 
   
-  ([ctx rule-set item-sets min-lsupp counter max-length zconf]
-
+  ([ctx rule-set variables current ivars min-lsupp counter max-length response-var zconf]
+   
+   (println "rules-set:")
+   (println rule-set)
+   (println "Current:")
+   (println current)
     (if (= counter max-length)
       rule-set
- 
+      (let [new-causal-rules (generate-causal-rules ctx current response-var ivars zconf 1)
+            new-item-sets (set (filter (fn [x] (= (count x) (+ counter 2))) (for [c current, i variables] (conj c i))))]
 
-
-
-
-)))
+      (causal-association-rule-discovery 
+         ctx
+         (set/union rule-set new-causal-rules)
+         variables
+         new-item-sets
+         ivars
+         min-lsupp
+         (inc counter)
+         max-length
+         response-var
+         zconf)
+))))
 
 
 
@@ -301,19 +347,15 @@
 (def fds (fair-data-set ctx [#{"smoking"} #{"cancer"}] #{"male" "female" "education-level-high" "education-level-low"}))
 
 (def smoking-odds-ratio (odds-ratio ctx smoking-rule))
+(def ivars-smoking (irrelevant-variables ctx a "cancer" 1.7))
 (def fair-smoking-odds-ratio (fair-odds-ratio ctx smoking-rule fds))
 
+(def birds (read-context "testing-data/Bird-Diet.ctx"))
 
-(fair-odds-ratio ctx smoking-rule fds)
-
-(odds-ratio ctx smoking-rule)
-
-(confidence-interval ctx smoking-rule smoking-odds-ratio 1.96)
-
-(relevant? ctx "smoking" "cancer" 1.3)
+(def diagnosis (read-context "testing-data/Diagnosis.ctx"))
 
 
-(apriori a 0.5 supp ctx)
+(causal-association-rule-discovery ctx 0.7 3 "smoking" 1.7)
 
-(fair-confidence-interval ctx smoking-rule fair-smoking-odds-ratio fds 1.7)
+(causal-association-rule-discovery diagnosis 0.7 3 "[Burning yes]" 1.7)
 
