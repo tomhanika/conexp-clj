@@ -39,27 +39,22 @@
     (/ (supp ctx [(set/union premise conclusion) #{}])
        (supp ctx [conclusion #{}]))))
 
-;!!!!!!!!!BROKEN considers all attributes in stead of only controlled variables
+
 (defn matched-record-pair? [ctx rule controlled-variables a b]
 ;returns true, if objects a and b form a matched record pair, false otherwise
-  (let [[premise conclusion] rule, all-attributes controlled-variables,
-        a-attributes (object-derivation ctx [a]), b-attributes (object-derivation ctx [b])]
+  (let [[premise conclusion] rule,
+        a-attributes (object-derivation ctx [a]), 
+        b-attributes (object-derivation ctx [b])]
 
-(println premise)
-(println a-attributes)
-(println b-attributes)
-(println (or (and (subset? premise a-attributes) (not (subset? premise b-attributes)))
-             (and (subset? premise b-attributes) (not (subset? premise a-attributes)))))
-
+;check whether premise is present in exactly one of the objects
     (and (or (and (subset? premise a-attributes) (not (subset? premise b-attributes)))
              (and (subset? premise b-attributes) (not (subset? premise a-attributes))))
-
-         (= (set/difference (set/union (set/intersection a-attributes b-attributes)
-                                       (set/intersection (set/difference all-attributes a-attributes) 
-                                                         (set/difference all-attributes b-attributes)))
-                            conclusion)
-            controlled-variables)
-)))
+;check whether controlled variables have same realizations in both objects
+         (subset? controlled-variables
+                  (set/union (set/intersection a-attributes b-attributes)
+                             (set/intersection (set/difference controlled-variables a-attributes) 
+                                               (set/difference controlled-variables b-attributes))))))
+)
 
 (defn find-matched-record-pair [ctx rule controlled-variables objs-considered a]
 ;returns set containing a and an object it forms a matched record pair with, the empty set if none exists
@@ -230,11 +225,7 @@
                                              (set/union conclusion irrelevant-vars E premise))
         fair-data (fair-data-set ctx rule controlled-variables)
         fair-odds (fair-odds-ratio ctx rule fair-data)]
-(println (exclusive-variables ctx premise thresh))
-(println controlled-variables)
-(println fair-data)
-(println fair-odds)
-(println (fair-confidence-interval ctx rule fair-odds fair-data zconf))
+
 
     (< 1 (last (fair-confidence-interval ctx rule fair-odds fair-data zconf)) )    
 ))
@@ -243,20 +234,26 @@
   (filter (fn [x] (causal? ctx [x #{response-var}] irrelevant-vars zconf thresh)) premises)
   )
 
+(defn find-redundant [ctx current-item-sets new-item-sets response-var]
+  (set (for [new new-item-sets, old current-item-sets]
+    (if (and (subset? old new) 
+             (= (lsupp ctx [new #{response-var}]) 
+                (lsupp ctx [old #{response-var}])))
+     (println new old)
+))))
 
-;TODO
+;discovers causes of the response variable
 (defn causal-association-rule-discovery 
   ([ctx min-lsupp max-length response-var zconf]
-    (let [frequent-vars (set (filter (fn [x] 
-                                       ( > (lsupp ctx [#{x} #{response-var}]) min-lsupp)) 
-                                         (attributes ctx))) 
-          ivars (irrelevant-variables ctx frequent-vars response-var zconf)]
-(println (set/difference frequent-vars ivars))
+   ;initial setup
+   (let [frequent-vars (set (filter #(> (lsupp ctx [#{%} #{response-var}]) min-lsupp) (attributes ctx))) 
+         ivars (irrelevant-variables ctx frequent-vars response-var zconf)]
+
       (causal-association-rule-discovery 
          ctx ;context
          #{} ;current causal rules
-         frequent-vars ;frequent single variables
-         (for [x frequent-vars] #{x}) ;itemsets of the current iteration
+         (set/difference frequent-vars #{response-var})  ;frequent single variables
+         (for [x (set/difference frequent-vars #{response-var})] #{x}) ;itemsets of the current iteration
          ivars ;irrelevant variables in respect to response-var
          min-lsupp ;minimum local support
          0 ;counter, counts up to max-length
@@ -267,21 +264,20 @@
  ) 
   
   ([ctx rule-set variables current ivars min-lsupp counter max-length response-var zconf]
-   
-   (println "rules-set:")
-   (println rule-set)
-   (println "Current:")
-   (println current)
+
     (if (= counter max-length)
       rule-set
       (let [new-causal-rules (generate-causal-rules ctx current response-var ivars zconf 1)
             new-item-sets (set (filter (fn [x] (= (count x) (+ counter 2))) (for [c current, i variables] (conj c i))))]
 
+   (println (find-redundant ctx current new-item-sets response-var))
+
       (causal-association-rule-discovery 
          ctx
          (set/union rule-set new-causal-rules)
          variables
-         new-item-sets
+         (set/difference (filter #(> (lsupp ctx [#{%} #{response-var}]) min-lsupp) new-item-sets) 
+                         (find-redundant ctx current new-item-sets response-var));filter item sets
          ivars
          min-lsupp
          (inc counter)
@@ -355,7 +351,7 @@
 (def diagnosis (read-context "testing-data/Diagnosis.ctx"))
 
 
-(causal-association-rule-discovery ctx 0.7 3 "smoking" 1.7)
+(causal-association-rule-discovery ctx 0.7 3 "cancer" 1.7)
 
-(causal-association-rule-discovery diagnosis 0.7 3 "[Burning yes]" 1.7)
+(causal-association-rule-discovery diagnosis 0.7 3 "[Urine pushing yes]" 1.7)
 
