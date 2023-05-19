@@ -3,9 +3,8 @@
   (:require
    [conexp.base :refer :all]
    [conexp.io.contexts :refer :all]
-   [conexp.io.fcas :refer :all]
    [conexp.fca.contexts :refer :all]
-   [conexp.fca.implications :refer :all]
+   [conexp.fca.implications :as imp]
    [clojure.set :as set]))
 
 (defn asupp [ctx itemset]
