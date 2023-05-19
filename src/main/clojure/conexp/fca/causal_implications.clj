@@ -4,44 +4,8 @@
    [conexp.base :refer :all]
    [conexp.io.contexts :refer :all]
    [conexp.fca.contexts :refer :all]
-   [conexp.fca.implications :as imp]
+   [conexp.fca.implications :refer :all]
    [clojure.set :as set]))
-
-(defn asupp [ctx itemset]
-  "Counts the total number of  occurences of an itemset in the context.
-   itemset needs to consist of two entries a and b, both sets of attributes.
-   asupp computes the support of the itemset with all attributes in a and the 
-   negation of each attribute in b."
-  (let [[attributes neg-attributes] itemset, objects (objects ctx), incidence (incidence-relation ctx)]
-    (max (count (filter identity (for [object objects]
-                                 (every? true? (concat
-                                                (for [attribute attributes]
-                                                  (some? (incident? ctx object attribute)))
-                                                (for [attribute neg-attributes]
-                                                  (not (some? (incident? ctx object attribute)))))))))
-         1    
-)))
-
-(defn conf [ctx impl]
-  "Computes the confidence of an implication using the asupp method."
-  (let [premise (premise impl) conclusion (conclusion impl)]
-    (/ (asupp ctx [(set/union premise conclusion) #{}]) 
-       (asupp ctx [premise #{}]))))
-
-(defn odds-ratio [ctx impl]
-  "Computes the odds ratio of an implication using the asupp method."
-  (let [premise (premise impl) conclusion (conclusion impl)]
-    (/ (* (asupp ctx [(set/union premise conclusion) #{}]) (asupp ctx [#{} (set/union premise conclusion)]))
-       (* (asupp ctx [premise conclusion]) (asupp ctx [conclusion premise]))
-       )))
-
-(defn lsupp [ctx impl] 
-  "Computes the local support of an implication by dividing the support of the implication
-   by the support of its conclusion. Uses the asupp function."
-  ;computes the local support of a rule
-  (let [premise (premise impl) conclusion (conclusion impl)]
-    (/ (asupp ctx [(set/union premise conclusion) #{}])
-       (asupp ctx [conclusion #{}]))))
 
 
 (defn matched-record-pair? [ctx impl controlled-variables a b]
@@ -131,15 +95,15 @@
    level of confidence. (1.7 => 70% confidence)"
   (let [premise (premise impl) conclusion (conclusion impl)]
     [(Math/exp (+ (Math/log odds-ratio)
-                  (* zconf (Math/sqrt (+ (/ 1 (asupp ctx [(set/union premise conclusion) #{}]))
-                                         (/ 1 (asupp ctx [premise conclusion]))
-                                         (/ 1 (asupp ctx [conclusion premise])) 
-                                         (/ 1 (asupp ctx [#{} (set/union premise conclusion)])))))))
+                  (* zconf (Math/sqrt (+ (/ 1 (imp/absolute-support ctx [(set/union premise conclusion) #{}]))
+                                         (/ 1 (imp/absolute-support ctx [premise conclusion]))
+                                         (/ 1 (imp/absolute-support ctx [conclusion premise])) 
+                                         (/ 1 (imp/absolute-support ctx [#{} (set/union premise conclusion)])))))))
      (Math/exp (- (Math/log odds-ratio)
-                  (* zconf (Math/sqrt (+ (/ 1 (asupp ctx [(set/union premise conclusion) #{}]))
-                                         (/ 1 (asupp ctx [premise conclusion]))
-                                         (/ 1 (asupp ctx [conclusion premise])) 
-                                         (/ 1 (asupp ctx [#{} (set/union premise conclusion)])))))))] 
+                  (* zconf (Math/sqrt (+ (/ 1 (imp/absolute-support ctx [(set/union premise conclusion) #{}]))
+                                         (/ 1 (imp/absolute-support ctx [premise conclusion]))
+                                         (/ 1 (imp/absolute-support ctx [conclusion premise])) 
+                                         (/ 1 (imp/absolute-support ctx [#{} (set/union premise conclusion)])))))))] 
 ))
 
 (defn fair-confidence-interval [ctx impl fair-odds-ratio fair-data zconf]
@@ -208,8 +172,8 @@
     (filter some? 
       (for [a item-set, b (attributes ctx)]
         (if (not (= a b))
-          (if (or (<= (asupp ctx [#{a b} #{}]) thresh) 
-                  (<= (asupp ctx [#{b} #{a}]) thresh))
+          (if (or (<= (imp/absolute-support ctx [#{a b} #{}]) thresh) 
+                  (<= (imp/absolute-support ctx [#{b} #{a}]) thresh))
             #{a b})))))
   )
 
@@ -238,8 +202,8 @@
    If they have the same support, they cover the same objects, and the more specific rule redundant."
   (set (for [new new-item-sets, old current-item-sets]
     (if (and (subset? old new) 
-             (= (lsupp ctx (->Implication  new #{response-var})) 
-                (lsupp ctx (->Implication  old #{response-var}))))
+             (= (imp/local-support ctx (->Implication  new #{response-var})) 
+                (imp/local-support ctx (->Implication  old #{response-var}))))
      new  
 ))))
 
@@ -248,7 +212,9 @@
    "Computes all causal implication rules with response-var as the conclusion. Returns only the premises of the causal 
     implications. Trivial implications are not considered."
    ;initial setup
-   (let [frequent-vars (set (filter #(> (lsupp ctx (->Implication #{%} #{response-var})) min-lsupp) (attributes ctx))) 
+   (let [frequent-vars (set (filter
+                             #(> (imp/local-support ctx (->Implication #{%} #{response-var})) min-lsupp) 
+                             (attributes ctx))) 
          ivars (irrelevant-variables ctx frequent-vars response-var zconf)]
 
       (causal-association-rule-discovery 
@@ -276,7 +242,7 @@
          ctx
          (set/union rule-set new-causal-rules)
          variables
-         (set/difference (filter #(> (lsupp ctx (->Implication #{%} #{response-var})) min-lsupp) new-item-sets) 
+         (set/difference (filter #(> (imp/local-support ctx (->Implication #{%} #{response-var})) min-lsupp) new-item-sets) 
                          (find-redundant ctx current new-item-sets response-var));filter item sets
          ivars
          min-lsupp
@@ -286,70 +252,3 @@
          zconf)
 ))))
 
-
-;TESTING DATA
-(def o [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-        21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40])
-(def a ["smoking" "male" "female" "education-level-high" "education-level-low" "cancer"])
-(def i #{[0 "smoking"] [0 "male"] [0 "education-level-high"] [0 "cancer"]
-         [1 "smoking"] [1 "male"] [1 "education-level-high"] [1 "cancer"]
-         [2 "smoking"] [2 "male"] [2 "education-level-high"] [2 "cancer"]
-         [3 "smoking"] [3 "male"] [3 "education-level-high"] [3 "cancer"]
-         [4 "smoking"] [4 "male"] [4 "education-level-high"] [4 "cancer"]
-         [5 "smoking"] [5 "male"] [5 "education-level-high"] [5 "cancer"]
-         [6 "smoking"] [6 "male"] [6 "education-level-high"]
-         [7 "smoking"] [7 "male"] [7 "education-level-high"]
-         [8 "smoking"] [8 "male"] [8 "education-level-low"] [8 "cancer"]
-         [9 "smoking"] [9 "male"] [9 "education-level-low"] [9 "cancer"]
-         [10 "smoking"] [10 "male"] [10 "education-level-low"] [10 "cancer"]
-         [11 "smoking"] [11 "male"] [11 "education-level-low"] [11 "cancer"]
-         [12 "smoking"] [12 "male"] [12 "education-level-low"] 
-         [13 "smoking"] [13 "female"] [13 "education-level-high"] [13 "cancer"]
-         [14 "smoking"] [14 "female"] [14 "education-level-high"] [14 "cancer"]
-         [15 "smoking"] [15 "female"] [15 "education-level-high"] [15 "cancer"]
-         [16 "smoking"] [16 "female"] [16 "education-level-high"] [16 "cancer"]
-         [17 "smoking"] [17 "female"] [17 "education-level-high"] [17 "cancer"]
-         [18 "smoking"] [18 "female"] [18 "education-level-high"] 
-         [19 "smoking"] [19 "female"] [19 "education-level-high"]
-         [20 "smoking"] [20 "female"] [20 "education-level-low"] [20 "cancer"]
-         [21 "smoking"] [21 "female"] [21 "education-level-low"] [21 "cancer"]
-         [22 "smoking"] [22 "female"] [22 "education-level-low"] [22 "cancer"]
-         [23 "smoking"] [23 "female"] [23 "education-level-low"] [23 "cancer"]
-         [24 "smoking"] [24 "female"] [24 "education-level-low"] 
-         [25 "male"] [25 "education-level-high"] [25 "cancer"]
-         [26 "male"] [26 "education-level-high"] [26 "cancer"]
-         [27 "male"] [27 "education-level-high"] 
-         [28 "male"] [28 "education-level-high"]
-         [29 "male"] [29 "education-level-high"]
-         [30 "male"] [30 "education-level-low"] [30 "cancer"]
-         [31 "male"] [31 "education-level-low"] 
-         [32 "male"] [32 "education-level-low"] 
-         [33 "male"] [33 "education-level-low"]
-         [34 "female"] [34 "education-level-high"] [34 "cancer"]
-         [35 "female"] [35 "education-level-high"] 
-         [36 "female"] [36 "education-level-high"]
-         [37 "female"] [37 "education-level-low"] [37 "cancer"]
-         [38 "female"] [38 "education-level-low"]
-         [39 "female"] [39 "education-level-low"]
-         [40 "female"] [40 "education-level-low"]})
-
-(def ctx (make-context o a i))
-
-(def premise #{"smoking"})
-(def conclusion #{"cancer"})
-(def smoking-rule [premise conclusion])
-
-(def fds (fair-data-set ctx [#{"smoking"} #{"cancer"}] #{"male" "female" "education-level-high" "education-level-low"}))
-
-(def smoking-odds-ratio (odds-ratio ctx smoking-rule))
-(def ivars-smoking (irrelevant-variables ctx a "cancer" 1.7))
-(def fair-smoking-odds-ratio (fair-odds-ratio ctx smoking-rule fds))
-
-(def birds (read-context "testing-data/Bird-Diet.ctx"))
-
-(def diagnosis (read-context "testing-data/Diagnosis.ctx"))
-
-
-(causal-association-rule-discovery ctx 0.7 3 "cancer" 1.7)
-
-(causal-association-rule-discovery diagnosis 0.7 3 "[Urine pushing yes]" 1.7)
