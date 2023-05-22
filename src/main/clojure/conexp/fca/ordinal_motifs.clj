@@ -5,8 +5,8 @@
             [conexp.io.contexts :refer :all]
             [conexp.fca.implications :refer :all]
             [clojure.math.combinatorics :as comb]
-            [clojure.algo.generic.functor :only (fmap)]
-            [clojure.algo.generic.collection :as generic-col])
+            [clojure.algo.generic.functor :refer :all]
+            [clojure.algo.generic.collection :as generic-col]))
 
 ;;;;;;;; ordinal motifs
 
@@ -152,10 +152,34 @@
     (and equal-sized
          (extent-chain? exts1-restricted-to-base-set)) ))
 
+(defn- get-two-element-chain
+  "Derives chain from extents of size 2. If no such chain exists, returns nil."
+  [exts-tuples]
+  (let [unique-elements (map first 
+                             (filter #(= (second %) 1)
+                                     (frequencies
+                                      (reduce into '() exts-tuples))))]
+    (if (not= (count unique-elements) 2)
+      nil
+      (loop [current-element (first unique-elements)
+             order [current-element]
+             remaining-exts (set exts-tuples)
+             current-exts (filter #(contains? % current-element) remaining-exts)]
+        (if (empty? remaining-exts)
+          order
+          (if (not= (count current-exts) 1)
+            nil
+            (let [next-element (first (difference
+                                       (first current-exts)
+                                       #{current-element}))
+                  order (vec (concat order [next-element]))
+                  remaining-exts (difference remaining-exts (set current-exts))
+                  next-exts (filter #(contains? % next-element) remaining-exts)]
+              (recur next-element order remaining-exts next-exts))))))))
 
 (defn- identify-full-scale-measures-check-interordinal
   "Checks if exts2-set is isomorph to the sub-closure system of exts1
-  given by the base-set. Used in case exts2 is of ordinal scale."
+  given by the base-set. Used in case exts2 is of interordinal scale."
   [exts1 base-set exts2-set]
   (let [base-set-seq (seq base-set)
         exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set) 
@@ -163,8 +187,25 @@
                        (count exts2-set)) ;; for computational speed-up
         ]
     (and equal-sized
-         ;; TODO Jana
-         ) ))
+         (let [exts1-two-elements (filter #(= (count %) 2) exts1-restricted-to-base-set)
+               exts2-two-elements (filter #(= (count %) 2) exts2-set)
+               equal-sized-two-elements (= (count exts1-two-elements)
+                                           (count exts2-two-elements))]
+           (and equal-sized-two-elements
+                (let [two-element-chain-exts1 (get-two-element-chain exts1-two-elements)]
+                  (if (nil? two-element-chain-exts1)
+                    nil
+                    (let [two-element-chain-exts2 (get-two-element-chain exts2-two-elements)
+                          two-element-chains-exts1 [two-element-chain-exts1 
+                                                    (vec (reverse two-element-chain-exts1))]
+                          object-maps (map #(map-from-tuple % two-element-chain-exts2) 
+                                          two-element-chains-exts1)]
+                      (some
+                       (fn [object-map]
+                         (isomorphic-closure-systems? exts1-restricted-to-base-set
+                                                      object-map
+                                                      exts2-set))
+                       object-maps)))))))))
 
 
 (defn- sized-like-a-crown?
@@ -306,20 +347,25 @@
 
 (defmulti scale-complex (fn [scale-type & rest] scale-type))
 
-;; TODO reduce computational time
-(defn- candidates-by-subset-heredity 
-  "Returns only those subsets of G such that all subsets are in the complex."
+(defn- candidates-by-subset-heredity
+  "Returns only those subsets of obj such that all subsets are in the complex."
   [complex obj subset-size]
-  (let [candidates (pmap set (comb/combinations (seq obj) subset-size))
-              ;; only subsets of G such that each subset is already of the scale familiy
-        candidates (r/foldcat (r/filter
-                               (fn [objects] 
-                                 (let [subsets (map set (comb/combinations (seq objects)
-                                                                           (dec subset-size)))]
-                                   (every? #(contains? complex %) 
-                                           subsets) ))
-                               candidates))]
-    candidates))
+  (let [n-1-sized-subsets (filter #(= (count %) (dec subset-size)) complex)
+        n-1-sized-subsets (filter #(subset? % obj) n-1-sized-subsets)
+        combination-candidates (comb/combinations n-1-sized-subsets 2)
+        combination-candidates (filter 
+                                #(= (count (intersection (first %) (second %)))
+                                    (dec (dec subset-size)))
+                                combination-candidates)
+        combinations (set (map #(union (first %) (second %)) combination-candidates))
+        combinations (filter
+                      (fn [objects] 
+                        (let [subsets (map set (comb/combinations (seq objects)
+                                                                  (dec subset-size)))]
+                          (every? #(contains? complex %) 
+                                  subsets) ))
+                      combinations)]
+    combinations))
 
 (defn- objects-sets-of-scale-type 
   "Filters object-sets to those that are of the scale-type"
