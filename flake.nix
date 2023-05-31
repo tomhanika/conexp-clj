@@ -3,13 +3,11 @@
     "conexp-clj, a general purpose software tool for Formal Concept Analysis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
     clj-nix = {
-      #url = "github:jlesquembre/clj-nix";
-      url =
-        "github:mmarx/clj-nix/fix-lein"; # we need to wait for PR 31 to go through.
+      url = "github:jlesquembre/clj-nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "utils/flake-utils";
