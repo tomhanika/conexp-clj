@@ -46,7 +46,8 @@
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.4.0"]
                                       [nrepl/nrepl "1.0.0"]]
-                       :aot :all}
+                       :plugins [[lein-aot-order "0.1.0"]]
+                       :aot :order}
              :dev {:main conexp.main
                    :dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring/ring-mock "0.4.0"]
