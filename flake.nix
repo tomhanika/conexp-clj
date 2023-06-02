@@ -28,6 +28,10 @@
       channels.nixpkgs.overlaysBuilder = channels:
         [ inputs.clj-nix.overlays.default ];
 
+      overlays.default = final: prev: {
+        inherit (self.packages."${final.system}") conexp-clj;
+      };
+
       outputsBuilder = channels:
         let
           inherit (inputs.gitignore.lib) gitignoreSource;

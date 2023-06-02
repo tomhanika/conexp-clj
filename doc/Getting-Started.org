@@ -59,6 +59,61 @@ This will give you a command prompt as in the previous case.
 
 If you want a more sophisticated repl, you may try [[https://github.com/clojure-emacs/cider][Emacs Cider]].
 
+** Running conexp-clj via nix
+
+Using the [[https://nixos.org/manual/nix/stable/][nix]] package manager, you can directly run ~conexp-clj~ without
+installing it:
+
+#+begin_src shell :eval never
+nix run github:tomhanika/conexp-clj
+#+end_src
+
+Instead of running it directly, you can also just start a shell that
+has ~conexp-clj~ in its path (again without installing it):
+
+#+begin_src shell :eval never
+nix shell github:tomhanika/conexp-clj
+#+end_src
+
+We also provide ~conexp-clj~ as a *package* in the [[https://nixos.wiki/wiki/Flakes][nix flake]], so you can
+add it to, e.g., a system configuration or use it from within a
+[[https://github.com/nix-community/home-manager/][home-manager]] configuration. First, add ~conexp-clj~ as a flake input:
+
+#+begin_src nix :eval never
+{
+  inputs = {
+    nixpkgs.url = "…";
+    conexp-clj = {
+      url = "github:tomhanika/conexp-clj";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+}
+#+end_src
+
+Then, you can, e.g., add ~conexp-clj~ to a system configuration to have
+it installed permanently, where ~system~ is the appropriate system
+type, e.g., ~x86_64-linux~.
+
+#+begin_src nix :eval never
+  environment.systemPackages = [ conexp-clj.packages."system".conexp-clj ];
+#+end_src
+
+There is also an *overlay* than can be applied to ~nixpkgs~:
+
+#+begin_src nix :eval never
+  nixpkgs.overlays = [ conexp-clj.overlays.default ];
+  environment.systemPackages = [ pkgs.conexp-clj ];
+#+end_src
+
+Lastly, for development on ~conexp-clj~, the ~nix~ flake provides a
+*devshell* that has ~leiningen~ and ~clojure-lsp~ in its path. From the
+source directory, run:
+
+#+begin_src shell :eval never
+nix develop
+#+end_src
+
 ** Loading Code from a File
 
 Typing in long sequences of commands is tedious, and ~conexp-clj~ inherits from
