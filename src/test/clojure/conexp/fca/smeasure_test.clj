@@ -7,7 +7,10 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.smeasure-test
-  (:use conexp.fca.contexts conexp.fca.smeasure conexp.base)
+  (:use conexp.fca.contexts
+        conexp.fca.implications
+        conexp.fca.smeasure
+        conexp.base)
   (:use clojure.test))
 
 (def- ctx1
@@ -423,5 +426,65 @@
                   println no-print]
       (let [result (conceptual-navigation ctx1)]
         (is (= result (make-id-smeasure ctx1)))))))
+
+(def- test-state-1
+  {:scale (make-context [1 2 3 4] [#{} #{2}] [[2 #{2}]])
+   :cur #{3}
+   :object-order [1 4 3 2]
+   :imps #{(make-implication #{2 3} #{1 2 3 4})
+           (make-implication #{4} #{1 4})
+           (make-implication #{1} #{1 4})
+           (make-implication #{1 2 4} #{1 2 3 4})
+           (make-implication #{1 3 4} #{1 2 3 4})}
+   :inc (fn ([a b] (contains? b a))
+          ([[a b]] (contains? b a)))
+   :context ctx1})
+
+(def- test-state-2
+  {:scale (make-context [1 2 3 4] [] [])
+   :cur #{}
+   :object-order [1 4 3 2]
+   ;; canonical base of dual-context
+   :imps #{(make-implication #{2 3} #{1 2 3 4})
+           (make-implication #{4} #{1 4})
+           (make-implication #{1} #{1 4})
+           (make-implication #{1 2 4} #{1 2 3 4})
+           (make-implication #{1 3 4} #{1 2 3 4})}
+   :inc (fn ([a b] (contains? b a))
+          ([[a b]] (contains? b a)))
+   :context ctx1})
+
+(deftest test-exploration-of-scales-iteration
+  (with-redefs-fn {#'conexp.fca.smeasure/coarsened-by-imp?
+                   (fn [state cur cur-conclusion] "all")}
+    #(let [new-state (exploration-of-scales-iteration test-state-1)]
+      (is (= (:scale new-state)
+             (make-context [1 2 3 4] [#{} #{2} #{3}] [[2 #{2}] [3 #{3}]])))
+      (is (= (:cur new-state)
+             #{1 4}))
+      (is (= (:imps new-state)
+             (:imps test-state-1)))))
+  (with-redefs-fn {#'conexp.fca.smeasure/coarsened-by-imp?
+                   (fn [state cur cur-conclusion] "none")}
+    #(let [new-state (exploration-of-scales-iteration test-state-1)]
+      (is (= (:scale new-state)
+             (:scale test-state-1)))
+      (is (= (:cur new-state)
+             #{1 4}))
+      (is (= (:imps new-state)
+             (union (:imps test-state-1) #{(make-implication #{3} #{1 2 3 4})})))))
+  ;; TODO: check recur in "yes" case
+  (let [next-command (command-iteration ["yes" "none"])]
+    (with-redefs-fn {#'conexp.fca.smeasure/coarsened-by-imp?
+                     (fn [state cur cur-conclusion] (next-command)), 
+                     #'conexp.fca.smeasure/provide-counter-example
+                     (fn [state cur cur-conclusion] #{1 4})}
+      #(let [new-state (exploration-of-scales-iteration test-state-2)]
+         (is (= (:scale new-state)
+                (make-context [1 2 3 4] [#{1 4}] [[1 #{1 4}] [4 #{1 4}]])))
+         (is (= (:cur new-state)
+                #{1 4}))
+         (is (= (:imps new-state)
+                (union (:imps test-state-2) #{(make-implication #{} #{1 4})})))))))
 
 nil
