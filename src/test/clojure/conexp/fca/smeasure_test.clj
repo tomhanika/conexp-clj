@@ -473,7 +473,6 @@
              #{1 4}))
       (is (= (:imps new-state)
              (union (:imps test-state-1) #{(make-implication #{3} #{1 2 3 4})})))))
-  ;; TODO: check recur in "yes" case
   (let [next-command (command-iteration ["yes" "none"])]
     (with-redefs-fn {#'conexp.fca.smeasure/coarsened-by-imp?
                      (fn [state cur cur-conclusion] (next-command)), 
@@ -486,5 +485,12 @@
                 #{1 4}))
          (is (= (:imps new-state)
                 (union (:imps test-state-2) #{(make-implication #{} #{1 4})})))))))
+
+(deftest test-exploration-of-scales
+  (let [next-command (command-iteration ["all" "all" "all" "none"])]
+    (with-redefs-fn {#'conexp.fca.smeasure/coarsened-by-imp?
+                     (fn [state cur cur-conclusion] (next-command))}
+      #(is (= (scale (exploration-of-scales ctx1))
+              (make-context [1 2 3 4] [#{} #{2} #{3}] [[2 #{2}] [3 #{3}]]))))))
 
 nil
