@@ -103,7 +103,8 @@
 (deftest test-smeasure?
   (is (smeasure? sm1))
   (is (smeasure? sm2))
-  (is (not (smeasure? sm5))))
+  (is (not (smeasure? sm5)))
+  (is (not (smeasure? ctx1))))
 
 (deftest test-make-smeasure
   (is (= (smeasure-to-string (make-smeasure ctx1 ctx2 #(case % 1 1 4 1 2 2 3 3)))
@@ -146,6 +147,8 @@
                          [4 #{1 4}] [4 #{1 2 3 4}]}))))
 
 (deftest test-scale-apposition
+  (is (thrown? java.lang.AssertionError
+               (scale-apposition sm1 sm5)))
   (is (= (scale (scale-apposition sm3 sm4))
          (make-context (objects ctx1)
                        #{[1 0] [2 0] [5 0] [3 1] [5 1]}
@@ -156,6 +159,8 @@
                        #{[1 [#{1 4} 0]] [1 [#{1 4} 1]] [4 [#{1 4} 0]] [4 [#{1 4} 1]] [2 [#{2} 0]] [3 [#{3} 0]] [3 [#{3} 1]] [1 [#{1 2 3 4} 0]] [1 [#{1 2 3 4} 1]] [2 [#{1 2 3 4} 0]] [2 [#{1 2 3 4} 1]] [3 [#{1 2 3 4} 0]] [3 [#{1 2 3 4} 1]] [4 [#{1 2 3 4} 0]] [4 [#{1 2 3 4} 1]]}))))
 
 (deftest test-meet-smeasure
+  (is (thrown? java.lang.AssertionError
+               (meet-smeasure sm1 sm5)))
   (let [sm-meet-1 (meet-smeasure sm1 sm2)
         sm-meet-2 (meet-smeasure sm3 sm4)]
     (is (= (context sm-meet-1) ctx1))
