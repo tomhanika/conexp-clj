@@ -10,6 +10,29 @@
 
 ;;;;;;;; ordinal motifs
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;FCA Theorem 55
+
+(defn nominally-measurable [ctx]
+  (let [lat (concept-lattice ctx)]
+     (= (lattice-atoms lat) (lattice-sup-irreducibles lat))
+))
+
+(defn ordinally-measurable [ctx] true)
+
+(defn interordinally-measurable [ctx])
+;TODO
+
+(defn contranominally-measurable [ctx]
+  (interordinally-measurable ctx))
+
+(defn dichotomically-measurable [ctx]
+  (interordinally-measurable ctx))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (defmulti generate-scale (fn [scale-type & rest] scale-type))
 
 (defmethod generate-scale :nominal
