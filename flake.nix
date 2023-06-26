@@ -3,13 +3,11 @@
     "conexp-clj, a general purpose software tool for Formal Concept Analysis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
     clj-nix = {
-      #url = "github:jlesquembre/clj-nix";
-      url =
-        "github:mmarx/clj-nix/fix-lein"; # we need to wait for PR 31 to go through.
+      url = "github:jlesquembre/clj-nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "utils/flake-utils";
@@ -30,6 +28,10 @@
       channels.nixpkgs.overlaysBuilder = channels:
         [ inputs.clj-nix.overlays.default ];
 
+      overlays.default = final: prev: {
+        inherit (self.packages."${final.system}") conexp-clj;
+      };
+
       outputsBuilder = channels:
         let
           inherit (inputs.gitignore.lib) gitignoreSource;
@@ -38,7 +40,7 @@
 
           conexp = let
             pname = "conexp-clj";
-            version = "2.3.0-SNAPSHOT";
+            version = "2.3.1-SNAPSHOT";
           in mkCljBin rec {
             name = "conexp/${pname}";
             inherit version;
@@ -80,7 +82,7 @@
           };
 
           devShells.default = mkShell {
-            buildinputs = with channels.nixpkgs; [ clojure-lsp leiningen ];
+            buildInputs = with channels.nixpkgs; [ clojure-lsp leiningen ];
           };
 
           formatter = channels.nixpkgs.alejandra;
