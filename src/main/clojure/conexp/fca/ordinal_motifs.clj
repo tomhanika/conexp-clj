@@ -133,7 +133,7 @@
 (defn- extent-chain? 
   "Checks if the extents ordered by setinclusion is a linear order."
   [exts]
-  (let [sorted-exts (sort-by exts count)
+  (let [sorted-exts (sort-by count exts)
         sorted-exts-idxs (-> sorted-exts count dec range)]
     (every? (fn [i]
               (subset? (nth sorted-exts i)
