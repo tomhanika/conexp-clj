@@ -498,4 +498,19 @@
       #(is (= (scale (exploration-of-scales ctx1))
               (make-context [1 2 3 4] [#{} #{2} #{3}] [[2 #{2}] [3 #{3}]]))))))
 
+(def- ctx-lattice-filter+covering-concepts
+  (make-context #{1 2 3 4} #{1 2 3 4 5}
+                #{[1 1] [1 3] [2 2] [2 3] [2 4] [3 1] [3 5] [4 1] [4 3]}))
+
+(deftest test-concept-lattice-filter+covering-concepts
+  (are [g concepts]
+      (= (concept-lattice-filter+covering-concepts ctx-lattice-filter+covering-concepts g)
+         concepts)
+    1 #{[#{} #{1 2 3 4 5}] [#{3} #{1 5}] [#{1 4} #{1 3}] [#{2} #{2 3 4}]
+        [#{1 3 4} #{1}] [#{1 2 4} #{3}] [#{1 2 3 4} #{}]}
+    2 #{[#{} #{1 2 3 4 5}] [#{1 4} #{1 3}] [#{2} #{2 3 4}]
+        [#{1 3 4} #{1}] [#{1 2 4} #{3}] [#{1 2 3 4} #{}]}
+    3 #{[#{} #{1 2 3 4 5}] [#{3} #{1 5}] [#{1 4} #{1 3}]
+        [#{1 3 4} #{1}] [#{1 2 4} #{3}] [#{1 2 3 4} #{}]}))
+
 nil
