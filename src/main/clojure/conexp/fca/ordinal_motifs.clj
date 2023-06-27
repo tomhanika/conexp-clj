@@ -133,7 +133,7 @@
 (defn- extent-chain? 
   "Checks if the extents ordered by setinclusion is a linear order."
   [exts]
-  (let [sorted-exts (sort-by exts count)
+  (let [sorted-exts (sort-by count exts)
         sorted-exts-idxs (-> sorted-exts count dec range)]
     (every? (fn [i]
               (subset? (nth sorted-exts i)
@@ -276,6 +276,13 @@
   [_ exts1 base-set exts2-set]
   (identify-full-scale-measures-check-crown exts1 base-set exts2-set))
 
+
+(defn is-of-scale?
+  [scale-type ctx]
+  (let [exts1 (extents ctx)
+        base-set (objects ctx)
+        exts2-set (set (extents (generate-scale scale-type (count base-set))))]
+    (boolean (identify-full-scale-measures scale-type exts1 base-set exts2-set))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 
