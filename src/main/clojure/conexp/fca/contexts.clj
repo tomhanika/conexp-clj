@@ -767,7 +767,11 @@
 
 (defn direct-upper-concepts
   "Computes the set of direct upper neighbours of the concept [A B] in
-  the concept lattice of ctx. Uses Lindig's Algorithm for that."
+  the concept lattice of ctx. Uses Lindig's Algorithm for that.
+
+  Lindig, C.: Fast concept analysis. In: Working with Conceptual
+  Structures – Contributions to ICCS 2000. pp. 152--161. Shaker
+  Verlag (2000). "
   [ctx [A B]]
   (assert (concept? ctx [A B])
           "Given pair must a concept in the given context")
@@ -791,7 +795,11 @@
 
 (defn direct-lower-concepts
   "Computes the set of direct upper neighbours of the concept [A B] in
-  the concept lattice of ctx. Uses Lindig's Algorithm for that."
+  the concept lattice of ctx. Uses Lindig's Algorithm for that.
+
+  Lindig, C.: Fast concept analysis. In: Working with Conceptual
+  Structures – Contributions to ICCS 2000. pp. 152--161. Shaker
+  Verlag (2000). "
   [ctx [A B]]
   (assert (concept? ctx [A B])
           "Given pair must a concept in the given context")
@@ -855,6 +863,51 @@
                                           (not (contains? down-down [g m]))))]
     (for [[G-H N] (concepts compatible-ctx)]
       (make-context-nc (difference (objects ctx) G-H) N (incidence ctx)))))
+
+;;; logical derivations
+; syntax checker
+(defn- valid-formula-level?
+  "Checks that every level of the formula has valid syntax."
+  [ctx kind level] 
+  (let [ops (set (filter keyword? level))]
+    (and (= 1 (count ops))
+         (if (= :not (first ops))
+           (and (= 2 (count level))
+                (= :not (first level))) ; (:not attr)
+           (and (-> level count (> 0)) (-> level count even? not)
+                (->> level rest (take-nth 2) set (= ops)) ; every uneven is the operator
+                (->> level (take-nth 2) (every? #(or (vector? %) (contains? (kind ctx) %))))))))); every even is either a formula or attributes
+
+(defn formula-syntax-checker 
+  "Syntex checker for propositional logic. Expected Format is a list [A :or [B :and C] [:not D]], where A,B,C,D are Attributes or Objects of ctx.
+  Kind is either the 'objects' or 'attributes' function." 
+  [formula ctx kind]
+  (if (-> formula vector? not) false
+      (loop [level [formula]]
+        (if (empty? level) true
+            (if (every? (partial valid-formula-level? ctx kind) level)
+              (recur (reduce into [] (map (partial filter vector?) level)) )
+              false)))))
+; derivations
+(defn logical-object-derivation 
+  "Returns the derivation of a propositional formula of objects. Expected Format is a list [A :or [B :and C] [:not D]], where A,B,C,D are Objects of ctx." 
+  [ctx formula]
+  (assert (formula-syntax-checker formula ctx objects) "Expected Format is a list [A :or [B :and C] [:not D]], where A,B,C,D are Objects of the context.")
+  (let [incidence-ops {:or union :and intersection :not #(difference (attributes ctx) %)}
+        op (->> formula (filter keyword?) first (get incidence-ops))]
+    (let [[f & other] (map #(if (list? %) % (object-derivation ctx #{%})) (filter (comp not keyword?) formula))]
+      (reduce (fn [a b] (op a (if (list? b) (logical-object-derivation ctx b) b))) 
+              (-> (if (list? f) (logical-object-derivation ctx f) f) op) other))))
+
+(defn logical-attribute-derivation
+  "Returns the derivation of a propositional formula of objects. Expected Format is a list [A :or [B :and C] [:not D]], where A,B,C,D are Attributes of ctx." 
+  [ctx formula]
+  (assert (formula-syntax-checker formula ctx attributes) "Expected Format is a list [A :or [B :and C] [:not D]], where A,B,C,D are Attributes of the context.")
+  (let [incidence-ops {:or union :and intersection :not #(difference (objects ctx) %)}
+        op (->> formula (filter keyword?) first (get incidence-ops))]
+    (let [[f & other] (map #(if (list? %) % (attribute-derivation ctx #{%})) (filter (comp not keyword?) formula))]
+      (reduce (fn [a b] (op a (if (list? b) (logical-attribute-derivation ctx b) b))) 
+              (-> (if (list? f) (logical-attribute-derivation ctx f) f) op) other))))
 
 ;;;
 
