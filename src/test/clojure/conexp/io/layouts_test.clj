@@ -11,6 +11,7 @@
         conexp.fca.contexts
         conexp.fca.lattices
         conexp.layouts
+        conexp.layouts.base
         conexp.io.layouts
         conexp.io.util-test)
   (:use clojure.test))
@@ -21,12 +22,32 @@
   (map (comp standard-layout concept-lattice)
        (random-contexts 20 10)))
 
-(deftest test-layout-oioi
+(deftest test-layouts-oioi
   (with-testing-data [lay testing-layouts,
                       fmt (list-layout-formats)]
-    (try
-      (out-in-out-in-test lay 'layout fmt)
-      (catch IllegalArgumentException _ true))))
+    (out-in-out-in-test lay 'layout fmt)))
+
+(deftest test-layouts-oi
+  (with-testing-data [lay testing-layouts,
+                      fmt (remove #{:simple :text} (list-layout-formats))]
+    (let [out-in-lay (out-in lay 'layout fmt)]
+      ;; only test equality of lattice, positions and connections, as upper- and lower-labels are not saved in json layout format
+      (and (= (poset lay) (poset out-in-lay))
+           (= (positions lay) (positions out-in-lay))
+           (= (connections lay) (connections out-in-lay))))))
+
+(def- testing-layouts-with-valuations
+  (map #(update-valuations % (comp count first)) testing-layouts))
+
+(deftest test-layout-with-valuation-oi
+  (with-testing-data [lay testing-layouts-with-valuations,
+                      fmt (remove #{:text :simple} (list-layout-formats))]
+    (= (valuations lay) (valuations (out-in lay 'layout fmt)))))
+
+(deftest test-layout-annotations
+  (with-testing-data [lay testing-layouts
+                      fmt (remove #{:text} (list-layout-formats))]
+    (= (annotation lay) (annotation (out-in lay 'layout fmt)))))
 
 ;;;
 

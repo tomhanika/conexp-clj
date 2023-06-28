@@ -134,7 +134,7 @@ public class BasicPartition extends IntArray implements Partition, Comparable {
     Integer v;
     int j;
     for( i=0; i<size; i++ ) {
-      v= new Integer(part[i]);
+      v= Integer.valueOf(part[i]);
       if( inverse.containsKey(v) ) {
         j = ((Integer)inverse.get(v)).intValue();
         array[i] = j;
@@ -142,7 +142,7 @@ public class BasicPartition extends IntArray implements Partition, Comparable {
       }
       else {
         array[i] = -1;
-        inverse.put(v, new Integer(i) );
+        inverse.put(v, Integer.valueOf(i) );
       }
     }
     return new BasicPartition(array);
@@ -330,7 +330,7 @@ public class BasicPartition extends IntArray implements Partition, Comparable {
         ans[i] = r;
       }
       else {
-        ht.put(rootPair, new Integer(i));
+        ht.put(rootPair, Integer.valueOf(i));
         ans[i] = -1;
       }
     }
@@ -427,7 +427,7 @@ public class BasicPartition extends IntArray implements Partition, Comparable {
     for(int i = 0; i < part.length; i++) {
       int r = root(i, part);
       if (blocks[r] == null) blocks[r] = new ArrayList();
-      blocks[r].add(new Integer(i));
+      blocks[r].add(Integer.valueOf(i));
     }
     int[][] ans = new int[numberOfBlocks()][];
     int blockNum = 0;
@@ -473,7 +473,7 @@ public class BasicPartition extends IntArray implements Partition, Comparable {
     for(i=0; i<part.length; i++) {
       int r = root(i,part);
       if (blocks[r] == null) blocks[r] = new ArrayList();
-      blocks[r].add(new Integer(i + delta));
+      blocks[r].add(Integer.valueOf(i + delta));
     }
     final String vert = "|";
     final String dash = "-";

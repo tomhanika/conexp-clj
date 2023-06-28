@@ -1,0 +1,105 @@
+{
+  "$id": "implications_schema_v1.0.json",
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "JSON schema for a set of implications",
+  "type": "object",
+  "description": "JSON schema for a set of implications in FCA (Formal Concept Analysis). The schema contains information about the set of implications (whether it is a base, the type of the base, additional information).",
+  "$defs": {
+    "implication": {
+      "type": "object",
+      "description": "JSON schema for a single implication. Premise and conclusion are required, other properties (id, support, confidence) are optional.",
+      "required": [
+        "premise",
+        "conclusion"
+      ],
+      "properties": {
+        "id": {
+          "description": "Identifier of the implication. The id can be of any type, e.g. integer or string.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "premise": {
+          "description": "The premise of the implication",
+          "type": "array",
+          "items": {
+            "$ref": "fca_schema_v1.0.json#/$defs/attribute"
+          }
+        },
+        "conclusion": {
+          "description": "The conclusion of the implication",
+          "type": "array",
+          "items": {
+            "$ref": "fca_schema_v1.0.json#/$defs/attribute"
+          }
+        },
+        "support": {
+          "$comment": "If the support is given, the corresponding context set should be referenced.",
+          "description": "The support of the implication in a specific data set",
+          "type": "number"
+        },
+        "confidence": {
+          "$comment": "If the confidence is given, the corresponding context should be referenced.",
+          "description": "The confidence of the implication in a specific data set",
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "implications"
+  ],
+  "properties": {
+    "is_base": {
+      "description": "Indicates, whether the set of implications is a base or not.",
+      "type": "boolean"
+    },
+    "base_type": {
+      "description": "Specifies the type of the base, if 'is_base' is true. If the set of implications is not a base, the base_type has to be empty.",
+      "$comment": "Further base_type enums can be added.",
+      "type": "string",
+      "enum": [
+        "canonical",
+        "ganter"
+      ]
+    },
+    "implications": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/implication"
+      }
+    },
+    "additional information": {
+      "description": "Information that is additional to the defined properties",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "if": {
+    "$comment": "If 'is_base' is false, then a property named 'base_type' may not exist.",
+    "properties": {
+      "is_base": {
+        "const": false
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "base_type": {
+        "not": {}
+      }
+    }
+  },
+  "dependentRequired": {
+    "$comment": "If 'base_type' exists, then 'is_base' has to exist as well.",
+    "base_type": [
+      "is_base"
+    ]
+  }
+}
