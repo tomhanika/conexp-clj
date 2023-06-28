@@ -581,3 +581,29 @@
         ordinal-motifs+stats (compute-ordinal-motifs+stats scale-complex scale-types)]
     (->Ordinal-Motif-Covering
      (ordinal-motif-covering-seq ordinal-motifs+stats normalized)) ) )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;tests if there is a scale-measure from a context into a standard scale of size |G|
+
+(defmulti accepts-scale (fn [type ctx] type))
+
+(defmethod accepts-scale :nominal [type ctx]
+  (let [objects (objects ctx)]
+    (every? identity (for [g objects]
+       (= #{g} (attribute-derivation ctx (object-derivation ctx #{g}))))))
+)
+
+(defmethod accepts-scale :contranominal [type ctx]
+  (let [objects (objects ctx)]
+  (valid-scale-measure?
+   (make-smeasure-nc ctx
+                     (generate-scale :contranominal (count objects))
+                     (one-bijective-map objects)))))
+
+(defmethod accepts-scale :ordinal [type ctx]);exhaustive search
+
+(defmethod accepts-scale :interordinal [type ctx]);exhaustive search
+
+(defmethod accepts-scale :crown [type ctx]);exhaustive search
+
