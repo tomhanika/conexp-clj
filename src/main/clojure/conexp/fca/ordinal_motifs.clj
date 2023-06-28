@@ -6,7 +6,8 @@
             [conexp.fca.implications :refer :all]
             [clojure.math.combinatorics :as comb]
             [clojure.algo.generic.functor :refer :all]
-            [clojure.algo.generic.collection :as generic-col]))
+            [clojure.algo.generic.collection :as generic-col]
+            [clojure.set :as set]))
 
 ;;;;;;;; ordinal motifs
 
@@ -20,15 +21,24 @@
 
 (defn ordinally-measurable [ctx] true)
 
-(defn interordinally-measurable [ctx])
-;TODO
+(defn interordinally-measurable [ctx]
+  (let [objects (objects ctx) attributes (attributes ctx)]
+     (every? identity (concat
+                       (for [g objects h objects]
+       ;does not contravene {g}' subseteq {h}' => {g}'={h}' 
+       (or (not (subset? (object-derivation ctx #{g}) (object-derivation ctx #{h})))
+           (= (object-derivation ctx #{g}) (object-derivation ctx #{h}))))
+     (for [m attributes]
+        ;does not contravene (G\{m}')''=G\{m}'
+        (= (attribute-derivation ctx (object-derivation ctx (set/difference objects (attribute-derivation ctx #{m}))))
+           (set/difference objects (attribute-derivation ctx #{m}))))))
+))
 
 (defn contranominally-measurable [ctx]
   (interordinally-measurable ctx))
 
 (defn dichotomically-measurable [ctx]
   (interordinally-measurable ctx))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
