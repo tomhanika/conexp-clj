@@ -4,6 +4,7 @@
             [conexp.fca.contexts :refer :all]
             [conexp.io.contexts :refer :all]
             [conexp.fca.implications :refer :all]
+            [conexp.fca.smeasure :refer :all]
             [clojure.math.combinatorics :as comb]
             [clojure.algo.generic.functor :refer :all]
             [clojure.algo.generic.collection :as generic-col]
