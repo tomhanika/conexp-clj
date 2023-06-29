@@ -122,3 +122,18 @@
       complex #{0 1 2 3 4} 3 #{#{0 1 2}}
       complex #{0 1 2 3 4} 2 #{#{0 1} #{0 2} #{0 3} #{0 4} #{1 2} #{1 3} #{1 4} #{2 3} #{2 4} #{3 4}}
       complex #{0 1 3 4} 3 #{#{}})))
+
+(deftest is-of-scale-test
+  (are [scale-type ctx result]
+      (= (is-of-scale? scale-type ctx)
+         result)
+    :nominal (generate-scale :nominal 4) true
+    :nominal (generate-scale :ordinal 4) false
+    :contranominal (generate-scale :contranominal 4) true
+    :contranominal (generate-scale :nominal 4) false
+    :ordinal (generate-scale :ordinal 4) true
+    :ordinal (generate-scale :nominal 4) false
+    :interordinal (generate-scale :interordinal 4) true
+    :interordinal (generate-scale :ordinal 4) false
+    :crown (generate-scale :crown 4) true
+    :crown (generate-scale :nominal 4) false))
