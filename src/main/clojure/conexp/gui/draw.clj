@@ -150,7 +150,8 @@
 (defn draw-poset
   "Draws poset with given layout. Passes all other parameters to draw-layout."
   [poset & args]
-  (let [map (apply hash-map args),
+  (let [args (flatten args)
+        map (apply hash-map args),
         layout-fn (get map :layout-fn standard-layout),
         value-fn (get map :value-fn (constantly nil))]
     (apply draw-layout (-> poset layout-fn (to-valued-layout value-fn)) args)))
