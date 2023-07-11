@@ -89,10 +89,12 @@
                 (reset! current-valuation-mode valuation-mode))
               (if (not (nil? @current-valuation-mode))
                 (let [layout (get-layout-from-scene scn)
-                      thelattice (lattice layout)
+                      thelattice (poset layout)
                       thens (find-ns 'conexp.gui.draw.control.parameters)
                       val-fn (ns-resolve thens @current-valuation-mode)
-                      newlayout (update-valuations layout (partial val-fn thelattice))]
+                      newlayout (try (update-valuations layout (partial val-fn thelattice))
+                                     (catch Exception e
+                                       (update-valuations-error layout)))]
                   (update-valuations-of-scene scn newlayout)
                   (fit-scene-to-layout scn newlayout))))))
   
@@ -135,7 +137,7 @@
                     layout-fn (get layouts selected),
                     layout    (scale-layout [0.0 0.0]
                                             [100.0 100.0]
-                                            (layout-fn (lattice (get-layout-from-scene scn))))]
+                                            (layout-fn (poset (get-layout-from-scene scn))))]
                 (update-layout-of-scene scn layout)
                 (fit-scene-to-layout scn layout)))))
 

@@ -12,8 +12,13 @@
             [conexp.io.util                  :refer :all]
             [conexp.fca.many-valued-contexts :refer :all]
             [conexp.io.latex                 :refer :all]
+            [conexp.io.json                  :refer :all]
             [clojure.string                  :refer (split)]
-            [clojure.data.xml                :as xml])
+            [clojure.data.xml                :as xml]
+            [clojure.data.json               :as json]
+            [json-schema.core                :as json-schema]
+            [clojure.data.csv                :as csv]
+            [clojure.java.io                 :as io])
   (:import [java.io PushbackReader]))
 
 
@@ -326,20 +331,21 @@
 (add-context-input-format :csv
                           (fn [rdr]
                             (try
-                              (re-matches #"^[^,]+,[^,]+$" (read-line))
+                              (let [first-line (read-line)]
+                                (and (re-matches #"^[^,]+,[^,]+$" first-line)
+                                     ;; do not read empty json context as csv
+                                     (not= first-line "{\"objectsn:[],\"attributes\":[],\"incidence\":[]}")))
                               (catch Exception _))))
 
 (define-context-input-format :csv
   [file]
-  (with-in-reader file
-    (loop [inz #{}]
-      (let [line (read-line)]
-        (if (not line)
-          (make-context-nc (set-of g [[g m] inz])
-                           (set-of m [[g m] inz])
-                           inz)
-          (let [[r g m] (re-matches #"^((?:[^,]+|\".*\")),((?:[^,]+|\".*\"))$" line)]
-            (recur (conj inz [g m]))))))))
+  (with-open [reader (io/reader file)]
+    (let [csv-list (doall
+                    (csv/read-csv reader))
+          obj (set (map first csv-list))
+          attr (set (map second csv-list))
+          incidence (set csv-list)]
+      (make-context-nc obj attr incidence))))
 
 (define-context-output-format :csv
   [ctx file]
@@ -347,9 +353,9 @@
                 (and (string? x) (some #(= \, %) x)))
               (concat (objects ctx) (attributes ctx)))
     (unsupported-operation "Cannot export to :csv format, object or attribute names contain \",\"."))
-  (with-out-writer file
-    (doseq [[g m] (incidence-relation ctx)]
-      (println (str g "," m)))))
+  (with-open [writer (io/writer file)]
+    (csv/write-csv writer
+                   (incidence-relation ctx))))
 
 
 ;; Binary CSV (:binary-csv)
@@ -360,20 +366,15 @@
 
 (define-context-input-format :binary-csv
   [file]
-  (with-in-reader file
-    (read-line)
-    (let [first-line (split (read-line) #",")
-          atts       (range (count first-line))]
-      (loop [objs      #{0},
-             incidence (set-of [0 n] | n atts, :when (= (nth first-line n) "1"))]
-        (if-let [line (read-line)]
-          (let [line (split line #","),
-                i    (count objs)]
-            (recur (conj objs i)
-                   (into incidence
-                         (for [n atts :when (= (nth line n) "1")]
-                           [i n]))))
-          (make-context objs atts incidence))))))
+  (with-open [reader (io/reader file)]
+    (let [csv-list (rest ; remove the first element [binary CSV]
+                    (doall
+                          (csv/read-csv reader)))
+          num-objects (count csv-list)
+          num-attributes (count (first csv-list))
+          incidences (map #(Integer/parseInt %) 
+                              (into [] (apply concat csv-list)))]
+      (make-context-from-matrix num-objects num-attributes incidences))))
 
 (define-context-output-format :binary-csv
   [ctx file]
@@ -385,58 +386,61 @@
             (concat (objects ctx) (attributes ctx)))
   (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
-        atts (sort (attributes ctx))]
-    (with-out-writer file
-      (println "binary CSV")
-      (doseq [g objs]
-        (loop [atts atts]
-          (when-let [m (first atts)]
-            (print (if (incident? ctx g m)
-                     "1"
-                     "0"))
-            (when (next atts)
-              (print ","))
-            (recur (rest atts))))
-        (println)))))
+        atts (sort (attributes ctx))
+        output-matrix (for [obj objs]
+                        (for [att atts]
+                          (if (incident? ctx obj att) 1 0)))]
+    (with-open [writer (io/writer file)]
+      (csv/write-csv writer
+                     (conj output-matrix ["binary CSV"]) ; add "binary CSV as first line of output
+                     ))))
 
 (add-context-input-format :named-binary-csv
                           (fn [rdr]
-                            (= "NB" (subs (read-line) 0 2))))
+                            (try (= "NB" (subs (read-line) 0 2))
+                                 ;; if file is empty, read-line returns nil
+                                 (catch NullPointerException _)
+                                 ;; first line of file can contain less than 2 characters
+                                 (catch StringIndexOutOfBoundsException _))))
 
 (define-context-input-format :named-binary-csv
   [file]
-  (with-in-reader file
-    "named binary CSV"
-    (let [[_ & atts] (split (read-line) #",")
-          atts-idx (reduce #(assoc %1 %2 (.indexOf atts %2)) {} atts)
-          [o & second-line] (split (read-line) #",")]
-      (loop [objs      #{o},
-             incidence (set-of [o a] | a atts, :when (= (nth second-line (get atts-idx a)) "1"))]
-        (if-let [line (read-line)]
-          (let [[o & line] (split line #",")]
-            (recur (conj objs o)
-                   (into incidence
-                         (for [a atts :when (= (nth line (get atts-idx a)) "1")]
-                           [o a]))))
-          (make-context objs atts incidence))))))
+  (with-open [reader (io/reader file)]
+    (let [csv-list (doall
+                    (csv/read-csv reader))]
+      (let [M ((comp rest first) csv-list) rows (rest csv-list)
+                     G (reduce (fn [s row] 
+                                 (conj s (first row))) 
+                               [] 
+                               rows)
+                     I (reduce (fn [s row] 
+                                 (into s 
+                                       (map #(Integer/parseInt %) 
+                                            (rest row)))) 
+                               []
+                               rows)]
+                 (make-context-from-matrix G M I)))))
 
 (define-context-output-format :named-binary-csv
   [ctx file]
   (when (or (empty? (objects ctx))
             (empty? (attributes ctx)))
-    (unsupported-operation "Cannot export empty context in binary-csv format"))
+    (unsupported-operation "Cannot export empty context in named-binary-csv format"))
   (when (some (fn [x]
                 (and (string? x) (some #(= \, %) x)))
               (concat (objects ctx) (attributes ctx)))
-    (unsupported-operation "Cannot export to :binary-csv format, object or attribute names contain \",\"."))
+    (unsupported-operation "Cannot export to :named-binary-csv format, object or attribute names contain \",\"."))
   (let [objs (sort (objects ctx)),
-        atts (sort (attributes ctx))]
-    (with-out-writer file
-      (println (clojure.string/join "," (into ["NB"] atts)))
-      (doseq [g objs]
-        (println (clojure.string/join "," 
-                                      (into [g] 
-                                            (map #(if (incident? ctx g %) 1 0) atts))))))))
+        atts (sort (attributes ctx))
+        output-matrix (conj (for [obj objs] 
+                              (into [obj] (for [att atts] 
+                                            (if (incident? ctx obj att) 
+                                              1 
+                                              0)))) 
+                            (into ["NB"] atts))]
+    (with-open [writer (io/writer file)]
+      (csv/write-csv writer
+                     output-matrix))))
 
 
 ;; output as tex array
@@ -601,6 +605,72 @@
                         "}{" o "}")))
         (println "\\end{cxt}")))))
 
+;; Json helpers
+
+(defn- object->json
+  "Returns an objects with its attributes as a map that can easily be converted into json format.
+  
+  Example output:
+  {object: \"b\",
+   attributes: [\"1\", \"2\"]}"
+  [ctx object]
+  {:object object
+   :attributes (filter #(incident? ctx object %) (attributes ctx))})
+
+(defn ctx->json
+  "Returns a formal context as a map that can easily be converted into json format.
+  
+  Example:
+  {:objects #{\"b\"}
+   :attributes #{\"1\" \"2\"}
+   :incidence #{[\"b\" \"1\"] [\"b\" \"2\"]}"
+  [ctx]
+  {:objects (objects ctx)
+   :attributes (attributes ctx)
+   :incidence (if (= (type ctx) clojure.lang.PersistentHashSet)
+                (incidence ctx)
+                (into #{} (for [o (objects ctx)
+                                a (attributes ctx)
+                                :when (incident? ctx o a)]
+                            [o a])))} 
+  ;; {:attributes (into () (attributes ctx))
+  ;; :adjacency-list
+  ;; (mapv (partial object->json ctx) (objects ctx))}
+  )
+
+(defn- json-ctx->incidence
+  "Returns the incidence of a json context as set of tuples."
+  [json-ctx]
+  (set-of [o a] [o [(:object json-ctx)], a (:attributes json-ctx)]))
+
+(defn json->ctx
+  "Returns a Context object for the given json context."
+  [json-ctx]
+  (let [attributes (:attributes json-ctx)
+        objects (:objects json-ctx)
+        incidence (:incidence json-ctx)]
+    (make-context objects attributes incidence)))
+
+;; Json Format (src/main/resources/schemas/context_schema_v1.1.json)
+
+(add-context-input-format :json
+                          (fn [rdr]
+                            (try (json-object? rdr)
+                                 (catch Exception _))))
+
+(define-context-output-format :json
+  [ctx file]
+  (with-out-writer file
+    (print (json/write-str (ctx->json ctx)))))
+
+(define-context-input-format :json
+  [file]
+  (with-in-reader file 
+    (let [file-content (json/read *in* :key-fn keyword)
+          schema-file "src/main/resources/schemas/context_schema_v1.1.json"]
+      (assert (matches-schema? file-content schema-file)
+              (str "The input file does not match the schema given at " schema-file "."))
+      (json->ctx file-content))))
 
 ;;; TODO
 

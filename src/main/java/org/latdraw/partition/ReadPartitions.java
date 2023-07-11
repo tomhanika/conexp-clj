@@ -50,7 +50,7 @@ public class ReadPartitions {
           for (int j = 0; j < block.length; j++) {
             int u = Integer.parseInt(block[j]);
             max = Math.max(max, u);
-            blk.add(new Integer(u));
+            blk.add(Integer.valueOf(u));
           }
           part.add(blk);
         }
