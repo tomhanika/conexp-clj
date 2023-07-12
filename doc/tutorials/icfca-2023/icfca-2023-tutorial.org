@@ -33,6 +33,16 @@ Ben-and-Jerrys ice cream context.
 
 It is possible to read formal contexts in several formats, e.g., Burmeister and csv. 
 A more detailed overview of the context formats can be found in [[../../IO.org][Input/Output of Formal Contexts]]. 
+In addition, you can show all input formats with 
+
+#+begin_src clojure :exports both
+(list-context-input-formats)
+#+end_src
+
+#+begin_src text
+(:burmeister :csv :conexp :named-binary-csv :anonymous-burmeister :graphml :simple :binary-csv :fcalgs :colibri :json :galicia)
+#+end_src
+
 When reading a context, the format will be automatically determined:
 
 #+begin_src clojure :results silent
@@ -187,7 +197,7 @@ The extents and intents of a formal context can be computed via:
 #+end_src
 
 #+begin_src clojure :export :both
-(extents ben-and-jerrys-ctx)
+(intents ben-and-jerrys-ctx)
 #+end_src
 
 #+RESULTS
@@ -260,7 +270,7 @@ explain how to draw a concept lattice.
 To be able to draw concept lattices, first use this command once:
 #+begin_src clojure :results silent
 (use 'conexp.gui.draw)
- #+end_src
+#+end_src
 
 You can either draw the lattice from the initial context.
 
@@ -306,8 +316,6 @@ After enabeling the labels, the concept lattice looks like this:
 *** Outputs
 
 
-** Scaling data and scale-measures
-
 ** Computing implications
 
 *** Canonical base
@@ -337,6 +345,8 @@ The canonical base of a context can be computed with:
  (#{"Choco Ice" "Peanut Ice" "Choco Pieces" "Peanut Butter"} ⟶  #{"Brownie" "Dough" "Caramel Ice" "Vanilla" "Caramel"}))
 #+end_src
 
+
+** Scaling data and scale-measures
 
 ** Attribute exploration
 
