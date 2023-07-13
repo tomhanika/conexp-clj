@@ -647,5 +647,5 @@
         (some #(= some-context %) (compatible-subcontexts test-ctx-08)))))
 
 ;;;
-
+;(deftest logical-derivation)
 true
