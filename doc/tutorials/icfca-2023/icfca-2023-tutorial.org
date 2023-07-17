@@ -14,13 +14,13 @@ To run ~conexp-clj~, a Java Runtime Environment with version 1.8 or higher is ne
 A pre-compiled version of ~conexp-clj~ is available [[https://algebra20.de/conexp/][here]]. The jar file can be used 
 like this:
 
-#+begin_src sh :eval never
+#+begin_src sh :exports both
 java -jar conexp-clj-2.3.0-SNAPSHOT-standalone.jar
 #+end_src
 
 A prompt for ~conexp-clj~ like this will appear:
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
 conexp.main=>
 #+end_src
@@ -32,21 +32,27 @@ During the workshop, you can use your own context or, for example, the
 Ben-and-Jerrys ice cream context.
 
 It is possible to read formal contexts in several formats, e.g., Burmeister and csv. 
-A more detailed overview of the context formats can be found in [[../../IO.org][Input/Output of Formal Contexts]]. 
-In addition, you can show all input formats with 
+A more detailed overview of the context formats can be found in [[../../IO.org][Input/Output of Formal Contexts]]. When reading a context, in most cases the format will be automatically determined:
+
+#+begin_src clojure :results silent
+(def ben-and-jerrys-ctx (read-context "path-to-file/ben-and-jerrys-flavors.ctx"))
+#+end_src
+
+If this does not work, you can specify the input format. A list of all input formats can be shown with 
 
 #+begin_src clojure :exports both
 (list-context-input-formats)
 #+end_src
 
+#+RESULTS:
 #+begin_src text
 (:burmeister :csv :conexp :named-binary-csv :anonymous-burmeister :graphml :simple :binary-csv :fcalgs :colibri :json :galicia)
 #+end_src
 
-When reading a context, the format will be automatically determined:
+You can read a context, e.g., in ~:burmeister~ format, by writing the format after the file path:
 
 #+begin_src clojure :results silent
-(def ben-and-jerrys-ctx (read-context "path-to-file/ben-and-jerrys-flavors.ctx"))
+(def ben-and-jerrys-ctx (read-context "path-to-file/ben-and-jerrys-flavors.ctx" :burmeister))
 #+end_src
 
 To see the formal context, evaluate the ~ben-and-jerrys-ctx~ variable explicitly.
@@ -58,7 +64,7 @@ ben-and-jerrys-ctx
 The ben-and-jerrys context contains ice cream types as objects and ingredients as 
 attributes:
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
                        |Brownie Caramel Caramel Ice Choco Ice Choco Pieces Dough Peanut Butter Peanut Ice Vanilla 
 -----------------------+------------------------------------------------------------------------------------------
@@ -79,16 +85,13 @@ The attributes, objects and the whole context can be reduced with ~reduce-attrib
 
 The whole example context can be clarified as follows:
 
-#+begin_src clojure :results silent
+#+begin_src clojure :exports both
 (def ben-and-jerrys-clarified
   (clarify-context ben-and-jerrys-ctx)
-#+end_src
-
-#+begin_src clojure :exports both
 ben-and-jerrys-clarified
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
                        |Brownie Caramel Caramel Ice Choco Ice Choco Pieces Dough Peanut Ice Vanilla 
 -----------------------+----------------------------------------------------------------------------
@@ -102,7 +105,7 @@ Salted Caramel Brownie |x       x       .           .         x            .    
 #+end_src
 
 As the attributes ~Peanut Butter~ and ~Peanut Ice~ have the same derivation, one of them (in this 
-case ~Peanut Butter~ is removed.
+case ~Peanut Butter~) is removed.
 
 *** Compute derivations
 
@@ -110,39 +113,56 @@ case ~Peanut Butter~ is removed.
 In the following example, the object derivation of two types of ice cream is 
 computed (to see what they have in common):
 
-#+begin_src clojure :export :both
+#+begin_src clojure :exports both
 (object-derivation ben-and-jerrys-ctx #{"Cookie Dough" "Half Baked"})
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
 #{"Choco Pieces" "Dough" "Vanilla"}
 #+end_src
 
-The same can be done for a set of attributes with ~attribute-derivation~.
+The same can be done for a set of attributes with ~attribute-derivation~:
 
-To compute the closure of a set of objects, you can use
-
-#+begin_src clojure :export :both
-(context-object-closure ben-and-jerrys-ctx #{"Caramel Chew Chew"})
+#+begin_src clojure :exports both
+(attribute-derivation ben-and-jerrys-ctx #{"Choco Pieces" "Dough" "Vanilla"})
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
-#{"Caramel Sutra" "Caramel Chew Chew"}
+#{"Half Baked" "Cookie Dough"}
+#+end_src
+
+This example shows that ~#{"Half Baked" "Cookie Dough"}~ is a closed set. 
+To directly compute the closure of a set of objects, you can use
+
+#+begin_src clojure :exports both
+(context-object-closure ben-and-jerrys-ctx #{"Half Baked" "Cookie Dough"})
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+#{"Half Baked" "Cookie Dough"}
 #+end_src
 
 The closure of a set of attributes can be computed with ~context-attribute-closure~.
 
-*** Compute the concept lattice
+#+begin_src clojure :exports both
+(context-attribute-closure ben-and-jerrys-ctx #{"Choco Pieces" "Dough" "Vanilla"})
+#+end_src
 
-The formal concepts of the context can be computed as
+#+RESULTS:
+#+begin_src text
+#{"Choco Pieces" "Dough" "Vanilla"}
+#+end_src
 
-#+begin_src clojure :export :both
+All formal concepts of the context can be computed as
+
+#+begin_src clojure :exports both
 (concepts ben-and-jerrys-ctx)
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
 ([#{"Peanut Butter Cup" "Fudge Brownie" "Caramel Sutra" "Salted Caramel Brownie" "Caramel Chew Chew" "Half Baked" "Cookie Dough"} #{}]
  [#{"Fudge Brownie" "Caramel Sutra" "Half Baked"} #{"Choco Ice"}]
@@ -162,42 +182,12 @@ The formal concepts of the context can be computed as
  [#{"Fudge Brownie" "Salted Caramel Brownie" "Half Baked"} #{"Brownie"}])
 #+end_src
 
-The concept lattice, consisting of the concepts and their order, can be computed via
-
-#+begin_src clojure :result silent
-(def ben-and-jerrys-lattice (concept-lattice ben-and-jerrys-ctx)
-#+end_src
-
-#+begin_src clojure :export :both
-ben-and-jerrys-lattice
-#+end_src
-
-#+RESULTS
-#+begin_src text
-Lattice on 16 elements.
-#+end_src
-
-The lattice consists of a ~base-set~ (~(base-set ben-and-jerrys-lattice)~ contains the 
-concepts from the previous output) and an ~order~ function. The next section will 
-explain how to draw a concept lattice.
-
 *** Draw the concept lattice
 
-To be able to draw concept lattices, first use this command once:
+To draw the concept lattice of a formal context, use these commands:
 #+begin_src clojure :results silent
 (use 'conexp.gui.draw)
-#+end_src
-
-You can either draw the lattice from the initial context.
-
-#+begin_src clojure :results silent
 (draw-concept-lattice ben-and-jerrys-ctx)
-#+end_src
-
-You can also draw the already computed ~ben-and-jerrys-lattice~.
-
-#+begin_src clojure :result silent
-(draw-lattice ben-and-jerrys-lattice)
 #+end_src
 
 The lattice will appear in a new window.
@@ -207,13 +197,13 @@ The lattice will appear in a new window.
 
 In left bar of the ~Lattice~ window, you have several options, e.g., you can change the 
 layout and turn on the labels. In addition, you have the option to show several 
-valuations, like probability, distributivity and support.
+valuations, like probability, distributivity and stability.
 
-The ~ben-and-jerrys-lattice~ with DimDraw layout, labels and support looks like this:
+The ~ben-and-jerrys-lattice~ with DimDraw layout, labels and stability looks like this:
 
 #+caption: Concept lattice of ben-and-jerrys context with DimDraw layout, labels and 
-support
-[[./images/ben-and-jerrys-lattice-dimdraw-labels-support.png]]
+stability
+[[./images/ben-and-jerrys-lattice-dimdraw-labels-stability.png]]
 
 You can also create your own valuations, e.g., the extent and intent size of each formal 
 concept.
@@ -229,19 +219,24 @@ After enabeling the labels, the concept lattice looks like this:
 #+caption: Concept lattice of ben-and-jerrys context with manually set valuations
 [[./images/ben-and-jerrys-lattice-manual_valuations.png]]
 
+You can save the lattice in several formats. To do so, click ~Export to File~ (the second 
+last button on the left). A new window opens, in which you can specify the path and format.
+In the example, the lattice is saved in ~tikz~ format. It is important to write the file 
+ending in the file name that matches the file type. Otherwise an error occurs.
+
+#+caption: Window to save concept lattice in tikz format
+[[./images/ben-an-jerrys-export-tikz.png]]
+
 *** Computing implications - Canonical base
 
 The canonical base of a context can be computed with:
 
-#+begin_src clojure :result silent
-(def ben-and-jerrys-implications (canonical-base ben-and-jerrys-ctx))
-#+end_src
-
 #+begin_src clojure :exports both
+(def ben-and-jerrys-implications (canonical-base ben-and-jerrys-ctx))
 ben-and-jerrys-implications
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
 ((#{"Caramel"} ⟶  #{"Choco Pieces"})
  (#{"Vanilla"} ⟶  #{"Choco Pieces"})
@@ -266,11 +261,11 @@ Depending on the size of the contexts, the computation of the concept can take a
 Therefore, the results can be saved so that the computation does not need to be repeated. 
 For the output, the format needs to be specified. The formats to save a concept lattice are
 
-#+begin_src clojure :export both
+#+begin_src clojure :exports both
 (list-lattice-output-formats)
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
 (:simple :json)
 #+end_src
@@ -278,6 +273,7 @@ For the output, the format needs to be specified. The formats to save a concept 
 A concept lattice can be saved in the ~:json~ format with the following command
 
 #+begin_src clojure :result silent
+(def ben-and-jerrys-lattice (concept-lattice ben-and-jerrys-ctx))
 (write-lattice :json ben-and-jerrys-lattice "path/ben-and-jerrys-lattice.json")
 #+end_src
 
@@ -312,18 +308,15 @@ Note that such an FCA object can contain several implication sets. The
 ~conexp-clj~ provides the functionality for conceptual scaling. For an example, 
 load the smaller ~ben-and-jerrys-flavors-small.ctx~:
 
-#+begin_src clojure :results silent
-(def ben-and-jerrys-small-ctx (read-context "path-to-file/ben-and-jerrys-flavors-small.ctx"))
-#+end_src
-
 #+begin_src clojure :exports both
+(def ben-and-jerrys-small-ctx (read-context "path-to-file/ben-and-jerrys-flavors-small.ctx"))
 ben-and-jerrys-small-ctx
 #+end_src
 
 The ben-and-jerrys context contains the same ice cream types as objects, but a smaller 
 set of flavors as attributes:
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
                        |Brownie Caramel Choco Dough Peanut Vanilla 
 -----------------------+-------------------------------------------
@@ -344,7 +337,7 @@ scaling error is computed:
 (conceptual-scaling-error (make-smeasure-nc ben-and-jerrys-ctx ben-and-jerrys-small-ctx identity))
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
 0
 #+end_src
@@ -353,15 +346,12 @@ As the error is 0, the ~ben-and-jerrys-small-ctx~ is a scale of the ~ben-and-jer
 
 Another context uses the same ice cream types, but allergens instead of flavors.
 
-#+begin_src clojure :results silent
-(def ben-and-jerrys-allergens-ctx (read-context "path-to-file/ben-and-jerrys-allergens.ctx"))
-#+end_src
-
 #+begin_src clojure :exports both
+(def ben-and-jerrys-allergens-ctx (read-context "path-to-file/ben-and-jerrys-allergens.ctx"))
 ben-and-jerrys-allergens-ctx
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
                        |almond barley egg milk peanuts soy wheat 
 -----------------------+-----------------------------------------
@@ -380,13 +370,39 @@ You can compute the conceptual scaling error in the same way as for the ~ben-and
 (conceptual-scaling-error (make-smeasure-nc ben-and-jerrys-ctx ben-and-jerrys-allergens-ctx identity))
 #+end_src
 
-#+RESULTS
+#+RESULTS:
 #+begin_src text
 1
 #+end_src
 
 In this case, the error is 1 and therefore the allergens context is not a scale of the 
 original ~ben-and-jerrys-ctx~.
+
+To get more information about the scaling error, you can use
+
+#+begin_src clojure :exports both
+(error-in-smeasure (make-smeasure-nc ben-and-jerrys-ctx ben-and-jerrys-allergens-ctx identity))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+(#{"Fudge Brownie" "Salted Caramel Brownie" "Half Baked" "Cookie Dough"})
+#+end_src
+
+This set of objects is closed in ~ben-and-jerrys-allergens-ctx~, but not in ~ben-and-jerrys-ctx~,
+as can be seen with
+
+#+begin_src clojure :exports both
+(context-object-closure ben-and-jerrys-ctx 
+                        #{"Fudge Brownie" "Salted Caramel Brownie" "Half Baked" "Cookie Dough"})
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+#{"Peanut Butter Cup" "Fudge Brownie" "Caramel Sutra"
+  "Salted Caramel Brownie" "Caramel Chew Chew" "Half Baked"
+  "Cookie Dough"}
+#+end_src
 
 
 ** Attribute exploration
