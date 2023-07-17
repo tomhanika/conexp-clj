@@ -225,7 +225,7 @@ In the example, the lattice is saved in ~tikz~ format. It is important to write 
 ending in the file name that matches the file type. Otherwise an error occurs.
 
 #+caption: Window to save concept lattice in tikz format
-[[./images/ben-an-jerrys-export-tikz.png]]
+[[./images/ben-and-jerrys-export-tikz.png]]
 
 *** Computing implications - Canonical base
 
