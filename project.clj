@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 
-(defproject conexp-clj "2.4.0-SNAPSHOT"
+(defproject conexp-clj "2.4.0"
 
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
