@@ -21,10 +21,15 @@
             [conexp.gui.draw.scenes :refer :all]
             [conexp.io.layouts :refer :all]
             [conexp.layouts :refer :all]
+            [conexp.layouts.base :refer :all]
+            [conexp.layouts.common :refer :all]
             [conexp.layouts.util :refer :all]
             [seesaw.core :refer [listen]])
   (:import [java.awt BorderLayout Dimension]
-           [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]))
+           [javax.swing BoxLayout JFrame JPanel JScrollBar JScrollPane]
+           [conexp.fca.posets Poset]
+           [conexp.fca.lattices Lattice]
+           [conexp.fca.protoconcepts Protoconcepts]))
 
 ;;; Lattice Editor
 
@@ -61,7 +66,8 @@
                       "Freese" freese,
                       "Force"  improve-layout-by-force),
       snapshot-saver,
-      export-as-file)
+      export-as-file
+      import-from-file)
 
     ;; drawing area
     (doto canvas-panel
@@ -103,9 +109,23 @@
   (when-let [scn (get-scene-from-panel panel)]
     (get-layout-from-scene scn)))
 
+(defmulti make-frame
+  "Returns a frame with correct title"
+  (fn [layout] (type (poset layout))))
+
+(defmethod make-frame Lattice
+  [layout]
+  (JFrame. "conexp-clj Lattice"))
+
+(defmethod make-frame Poset
+  [layout]
+  (JFrame. "conexp-clj Ordered Set"))
+
+(defmethod make-frame Protoconcepts
+  [layout]
+  (JFrame. "conexp-clj Protoconcepts"))
 
 ;;; Drawing Routine for the REPL
-
 (defn draw-layout
   "Draws given layout on a canvas. Returns the frame and the scene (as
   map). The following options are allowed, their default values are
@@ -115,10 +135,10 @@
     - dimension [600 600]
   "
   [layout
-   & {:keys [visible dimension]
+   & {:keys [visible dimension title]
       :or   {visible   true,
              dimension [600 600]}}]
-  (let [frame          (JFrame. "conexp-clj Lattice"),
+  (let [frame          (make-frame layout),
         lattice-editor (make-lattice-editor frame layout)]
     (doto frame
       (.add lattice-editor)
@@ -127,19 +147,45 @@
     {:frame frame,
      :scene (get-scene-from-panel lattice-editor)}))
 
+(defn draw-poset
+  "Draws poset with given layout. Passes all other parameters to draw-layout."
+  [poset & args]
+  (let [args (flatten args)
+        map (apply hash-map args),
+        layout-fn (get map :layout-fn standard-layout),
+        value-fn (get map :value-fn (constantly nil))]
+    (apply draw-layout (-> poset layout-fn (to-valued-layout value-fn)) args)))
+
+(defn draw-protoconcepts
+  "Draws protoconcepts with given layout."
+  [protoconcepts & args]
+  (if (nil? args)
+    (draw-poset protoconcepts)
+    (draw-poset protoconcepts args)))
+
 (defn draw-lattice
   "Draws lattice with given layout. Passes all other parameters to
   draw-layout."
   [lattice & args]
-  (let [map       (apply hash-map args),
-        layout-fn (get map :layout-fn standard-layout)]
-    (apply draw-layout (layout-fn lattice) args)))
+  (if (nil? args)
+    (draw-poset lattice)
+    (draw-poset lattice args)))
+
 
 (defn draw-concept-lattice
   "Draws the concept lattice of a given context, passing all remaining
   args to draw-lattice."
   [ctx & args]
   (apply draw-lattice (concept-lattice ctx) args))
+
+(defn draw-protoconcepts
+  "Draws protoconcepts (ordered set) with given layout.
+  Passes all other parameters to draw-layout."
+  [protoconcepts & args]
+  (let [map       (apply hash-map args),
+        layout-fn (get map :layout-fn standard-layout)
+        value-fn (get map :value-fn (constantly nil))]
+    (apply draw-layout (-> protoconcepts layout-fn (to-valued-layout value-fn)) :title "conexp-clj Protoconcepts" args)))
 
 ;;;
 

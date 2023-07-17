@@ -531,10 +531,10 @@ public class SimpleList implements List, Serializable {
     SimpleList foo = EMPTY_LIST;
     SimpleList bar = EMPTY_LIST;
     for(int i = 0; i < n; i++) {
-      bar = bar.cons(new Integer(i));
+      bar = bar.cons(Integer.valueOf(i));
       foo = foo.cons(bar);
-      //foo = new SimpleList(new Integer(i), foo);
-      //foo = foo.cons(new Integer(i));
+      //foo = new SimpleList(Integer.valueOf(i), foo);
+      //foo = foo.cons(Integer.valueOf(i));
     }
 
 System.out.println("before: equals? " 
@@ -551,7 +551,7 @@ System.out.println("foo constructed from itself is " + new SimpleList(foo));
     SimpleList goo = EMPTY_LIST;
     SimpleList tails = EMPTY_LIST;
     for(int i = 0; i < n; i++) {
-      goo = goo.cons(new Integer(i));
+      goo = goo.cons(Integer.valueOf(i));
       tails = tails.cons(goo);
     }
 

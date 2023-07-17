@@ -1,0 +1,65 @@
+%necessary tikz libraries
+%\usetikzlibrary{tikzmark,arrows,positioning}
+\begin{figure}
+  \centering
+  \begin{minipage}[c]{.5\textwidth}
+    \centering
+    \begin{cxt}%
+      \cxtName{}%
+     \att{\tikzmarknode{ca1}{1}}%
+     \att{\tikzmarknode{ca4}{4}}%
+     \att{\tikzmarknode{ca3}{3}}%
+     \att{\tikzmarknode{ca2}{2}}%
+     \att{\tikzmarknode{ca5}{5}}%
+      \obj{.....}{7}
+      \obj{x.x..}{1}
+      \obj{.....}{4}
+      \obj{.x.x.}{2}
+      \obj{.....}{5}
+      \obj{.....}{6}
+      \obj{....x}{3}
+      \obj{.....}{9}
+      \obj{.....}{8}
+    \end{cxt}
+  \end{minipage}%
+  \begin{minipage}[c]{.5\textwidth}
+    \centering
+    \begin{cxt}%
+      \cxtName{}%
+     \att{1}%
+     \att{4}%
+     \att{3}%
+     \att{2}%
+     \att{5}%
+      \obj{x.x..}{\tikzmarknode{so1}{1}}
+      \obj{.x.x.}{\tikzmarknode{so2}{2}}
+      \obj{....x}{\tikzmarknode{so3}{3}}
+      \obj{x.x..}{\tikzmarknode{so4}{4}}
+    \end{cxt}
+  \end{minipage}%
+\end{figure}
+\begin{tikzpicture}[overlay,remember picture]
+  \node[right = 0.45cm of ca2] (za) {};
+  \node[below = 0.25cm of za] (co7) {};
+  \node[below = 0.16cm of co7] (co1) {};
+  \node[below = 0.16cm of co1] (co4) {};
+  \node[below = 0.16cm of co4] (co2) {};
+  \node[below = 0.16cm of co2] (co5) {};
+  \node[below = 0.16cm of co5] (co6) {};
+  \node[below = 0.16cm of co6] (co3) {};
+  \node[below = 0.16cm of co3] (co9) {};
+  \node[below = 0.16cm of co9] (co8) {};
+  \node[left = 0cm of so1](lso1){};
+  \node[left = 0cm of so4](lso4){};
+  \node[left = 0cm of so3](lso3){};
+  \node[left = 0cm of so2](lso2){};
+  \draw[->, >=stealth] (co7) -- (lso1);
+  \draw[->, >=stealth] (co1) -- (lso1);
+  \draw[->, >=stealth] (co4) -- (lso1);
+  \draw[->, >=stealth] (co2) -- (lso1);
+  \draw[->, >=stealth] (co5) -- (lso1);
+  \draw[->, >=stealth] (co6) -- (lso2);
+  \draw[->, >=stealth] (co3) -- (lso2);
+  \draw[->, >=stealth] (co9) -- (lso3);
+  \draw[->, >=stealth] (co8) -- (lso4);
+\end{tikzpicture}
