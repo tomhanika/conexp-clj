@@ -28,7 +28,7 @@ conexp.main=>
 *** Read a context
  
 During the workshop, you can use your own context or, for example, the 
-[[../../../testing-data/Living-Beings-and-Water.ctx][Living-Beings-and-Water]] or [[../../../testing-data/ben-and-jerrys.ctx][Ben-and-Jerrys]] context. The examples in this tutorial use the 
+[[../../../testing-data/Living-Beings-and-Water.ctx][Living-Beings-and-Water]] or [[../../../testing-data/ben-and-jerrys-flavors.ctx][Ben-and-Jerrys]] context. The examples in this tutorial use the 
 Ben-and-Jerrys ice cream context.
 
 It is possible to read formal contexts in several formats, e.g., Burmeister and csv. 
@@ -46,7 +46,7 @@ In addition, you can show all input formats with
 When reading a context, the format will be automatically determined:
 
 #+begin_src clojure :results silent
-(def ben-and-jerrys-ctx (read-context "path-to-file/ben-and-jerrys.ctx"))
+(def ben-and-jerrys-ctx (read-context "path-to-file/ben-and-jerrys-flavors.ctx"))
 #+end_src
 
 To see the formal context, evaluate the ~ben-and-jerrys-ctx~ variable explicitly.
@@ -71,6 +71,411 @@ Peanut Butter Cup      |.       .       .           .         x            .    
 Salted Caramel Brownie |x       x       .           .         x            .     .             .          x       
 #+end_src
 
+*** Reduce, clarify
+
+With ~reduced?~ and ~clarified?~, you can check if a context is reduced or clarified. 
+The attributes, objects and the whole context can be reduced with ~reduce-attributes~, 
+~reduce-objects~ and ~reduce-context~. The same applies to ~clarify~. 
+
+The whole example context can be clarified as follows:
+
+#+begin_src clojure :results silent
+(def ben-and-jerrys-clarified
+  (clarify-context ben-and-jerrys-ctx)
+#+end_src
+
+#+begin_src clojure :exports both
+ben-and-jerrys-clarified
+#+end_src
+
+#+RESULTS
+#+begin_src text
+                       |Brownie Caramel Caramel Ice Choco Ice Choco Pieces Dough Peanut Ice Vanilla 
+-----------------------+----------------------------------------------------------------------------
+Caramel Chew Chew      |.       x       x           .         x            .     .          .       
+Caramel Sutra          |.       x       x           x         x            .     .          .       
+Cookie Dough           |.       .       .           .         x            x     .          x       
+Fudge Brownie          |x       .       .           x         .            .     .          .       
+Half Baked             |x       .       .           x         x            x     .          x       
+Peanut Butter Cup      |.       .       .           .         x            .     x          .       
+Salted Caramel Brownie |x       x       .           .         x            .     .          x       
+#+end_src
+
+As the attributes ~Peanut Butter~ and ~Peanut Ice~ have the same derivation, one of them (in this 
+case ~Peanut Butter~ is removed.
+
+*** Compute derivations
+
+~conexp-clj~ provides functions to compute the attribute and object derivation.
+In the following example, the object derivation of two types of ice cream is 
+computed (to see what they have in common):
+
+#+begin_src clojure :export :both
+(object-derivation ben-and-jerrys-ctx #{"Cookie Dough" "Half Baked"})
+#+end_src
+
+#+RESULTS
+#+begin_src text
+#{"Choco Pieces" "Dough" "Vanilla"}
+#+end_src
+
+The same can be done for a set of attributes with ~attribute-derivation~.
+
+To compute the closure of a set of objects, you can use
+
+#+begin_src clojure :export :both
+(context-object-closure ben-and-jerrys-ctx #{"Caramel Chew Chew"})
+#+end_src
+
+#+RESULTS
+#+begin_src text
+#{"Caramel Sutra" "Caramel Chew Chew"}
+#+end_src
+
+The closure of a set of attributes can be computed with ~context-attribute-closure~.
+
+*** Compute the concept lattice
+
+The formal concepts of the context can be computed as
+
+#+begin_src clojure :export :both
+(concepts ben-and-jerrys-ctx)
+#+end_src
+
+#+RESULTS
+#+begin_src text
+([#{"Peanut Butter Cup" "Fudge Brownie" "Caramel Sutra" "Salted Caramel Brownie" "Caramel Chew Chew" "Half Baked" "Cookie Dough"} #{}]
+ [#{"Fudge Brownie" "Caramel Sutra" "Half Baked"} #{"Choco Ice"}]
+ [#{} #{"Choco Ice" "Peanut Ice" "Choco Pieces" "Brownie" "Dough" "Peanut Butter" "Caramel Ice" "Vanilla" "Caramel"}]
+ [#{"Caramel Sutra" "Half Baked"} #{"Choco Ice" "Choco Pieces"}]
+ [#{"Half Baked"} #{"Choco Ice" "Choco Pieces" "Brownie" "Dough" "Vanilla"}]
+ [#{"Caramel Sutra"} #{"Choco Ice" "Choco Pieces" "Caramel Ice" "Caramel"}]
+ [#{"Fudge Brownie" "Half Baked"} #{"Choco Ice" "Brownie"}]
+ [#{"Peanut Butter Cup"} #{"Peanut Ice" "Choco Pieces" "Peanut Butter"}]
+ [#{"Peanut Butter Cup" "Caramel Sutra" "Salted Caramel Brownie" "Caramel Chew Chew" "Half Baked" "Cookie Dough"} #{"Choco Pieces"}]
+ [#{"Salted Caramel Brownie" "Half Baked"} #{"Choco Pieces" "Brownie" "Vanilla"}]
+ [#{"Salted Caramel Brownie"} #{"Choco Pieces" "Brownie" "Vanilla" "Caramel"}]
+ [#{"Half Baked" "Cookie Dough"} #{"Choco Pieces" "Dough" "Vanilla"}]
+ [#{"Caramel Sutra" "Caramel Chew Chew"} #{"Choco Pieces" "Caramel Ice" "Caramel"}]
+ [#{"Salted Caramel Brownie" "Half Baked" "Cookie Dough"} #{"Choco Pieces" "Vanilla"}]
+ [#{"Caramel Sutra" "Salted Caramel Brownie" "Caramel Chew Chew"} #{"Choco Pieces" "Caramel"}]
+ [#{"Fudge Brownie" "Salted Caramel Brownie" "Half Baked"} #{"Brownie"}])
+#+end_src
+
+The concept lattice, consisting of the concepts and their order, can be computed via
+
+#+begin_src clojure :result silent
+(def ben-and-jerrys-lattice (concept-lattice ben-and-jerrys-ctx)
+#+end_src
+
+#+begin_src clojure :export :both
+ben-and-jerrys-lattice
+#+end_src
+
+#+RESULTS
+#+begin_src text
+Lattice on 16 elements.
+#+end_src
+
+The lattice consists of a ~base-set~ (~(base-set ben-and-jerrys-lattice)~ contains the 
+concepts from the previous output) and an ~order~ function. The next section will 
+explain how to draw a concept lattice.
+
+*** Draw the concept lattice
+
+To be able to draw concept lattices, first use this command once:
+#+begin_src clojure :results silent
+(use 'conexp.gui.draw)
+#+end_src
+
+You can either draw the lattice from the initial context.
+
+#+begin_src clojure :results silent
+(draw-concept-lattice ben-and-jerrys-ctx)
+#+end_src
+
+You can also draw the already computed ~ben-and-jerrys-lattice~.
+
+#+begin_src clojure :result silent
+(draw-lattice ben-and-jerrys-lattice)
+#+end_src
+
+The lattice will appear in a new window.
+
+#+caption: Concept lattice of ben-and-jerrys context
+[[./images/ben-and-jerrys-lattice.png]]
+
+In left bar of the ~Lattice~ window, you have several options, e.g., you can change the 
+layout and turn on the labels. In addition, you have the option to show several 
+valuations, like probability, distributivity and support.
+
+The ~ben-and-jerrys-lattice~ with DimDraw layout, labels and support looks like this:
+
+#+caption: Concept lattice of ben-and-jerrys context with DimDraw layout, labels and 
+support
+[[./images/ben-and-jerrys-lattice-dimdraw-labels-support.png]]
+
+You can also create your own valuations, e.g., the extent and intent size of each formal 
+concept.
+
+#+begin_src clojure :result silent
+(draw-concept-lattice ben-and-jerrys-ctx 
+                      :value-fn (fn [concept]
+                                  [(count (first c)) (count (second c))]))
+#+end_src
+
+After enabeling the labels, the concept lattice looks like this:
+
+#+caption: Concept lattice of ben-and-jerrys context with manually set valuations
+[[./images/ben-and-jerrys-lattice-manual_valuations.png]]
+
+*** Computing implications - Canonical base
+
+The canonical base of a context can be computed with:
+
+#+begin_src clojure :result silent
+(def ben-and-jerrys-implications (canonical-base ben-and-jerrys-ctx))
+#+end_src
+
+#+begin_src clojure :exports both
+ben-and-jerrys-implications
+#+end_src
+
+#+RESULTS
+#+begin_src text
+((#{"Caramel"} ⟶  #{"Choco Pieces"})
+ (#{"Vanilla"} ⟶  #{"Choco Pieces"})
+ (#{"Caramel Ice"} ⟶  #{"Choco Pieces" "Caramel"})
+ (#{"Peanut Butter"} ⟶  #{"Peanut Ice" "Choco Pieces"})
+ (#{"Dough"} ⟶  #{"Choco Pieces" "Vanilla"})
+ (#{"Choco Pieces" "Vanilla" "Caramel"} ⟶  #{"Brownie"})
+ (#{"Choco Pieces" "Brownie"} ⟶  #{"Vanilla"})
+ (#{"Choco Pieces" "Brownie" "Caramel Ice" "Vanilla" "Caramel"} ⟶  #{"Choco Ice" "Peanut Ice" "Dough" "Peanut Butter"})
+ (#{"Choco Pieces" "Brownie" "Dough" "Vanilla"} ⟶  #{"Choco Ice"})
+ (#{"Peanut Ice"} ⟶  #{"Choco Pieces" "Peanut Butter"})
+ (#{"Peanut Ice" "Choco Pieces" "Peanut Butter" "Caramel"} ⟶  #{"Choco Ice" "Brownie" "Dough" "Caramel Ice" "Vanilla"})
+ (#{"Peanut Ice" "Choco Pieces" "Peanut Butter" "Vanilla"} ⟶  #{"Choco Ice" "Brownie" "Dough" "Caramel Ice" "Caramel"})
+ (#{"Choco Ice" "Choco Pieces" "Caramel"} ⟶  #{"Caramel Ice"})
+ (#{"Choco Ice" "Choco Pieces" "Vanilla"} ⟶  #{"Brownie" "Dough"})
+ (#{"Choco Ice" "Peanut Ice" "Choco Pieces" "Peanut Butter"} ⟶  #{"Brownie" "Dough" "Caramel Ice" "Vanilla" "Caramel"}))
+#+end_src
+
+*** Outputs
+
+Depending on the size of the contexts, the computation of the concept can take a long time. 
+Therefore, the results can be saved so that the computation does not need to be repeated. 
+For the output, the format needs to be specified. The formats to save a concept lattice are
+
+#+begin_src clojure :export both
+(list-lattice-output-formats)
+#+end_src
+
+#+RESULTS
+#+begin_src text
+(:simple :json)
+#+end_src
+
+A concept lattice can be saved in the ~:json~ format with the following command
+
+#+begin_src clojure :result silent
+(write-lattice :json ben-and-jerrys-lattice "path/ben-and-jerrys-lattice.json")
+#+end_src
+
+(It can be loaded again with ~(read-lattice "path/ben-and-jerrys-lattice.json")~.)
+
+For implications, there is only the ~:json~ output format. Implications can be saved via
+
+#+begin_src clojure :result silent
+(write-implication :json ben-and-jerrys-implications "path/ben-and-jerrys-implications.json") 
+#+end_src
+
+~conexp-clj~ also provides the option to save a whole Formal Concept Analysis in one 
+file (in ~:json~) format. This FCA needs to contain a formal context. The ~:lattice~ 
+and ~:implication-sets~ in the following map are optional.
+
+#+begin_src clojure :result silent
+(def ben-and-jerrys-fca {:context ben-and-jerrys-context
+                         :lattice ben-and-jerrys-lattice
+                         :implication-sets [ben-and-jerrys-implications]})
+#+end_src
+
+Note that such an FCA object can contain several implication sets. The 
+~ben-and-jerrys-fca~ can be saved with
+
+#+begin_src clojure :result silent
+(write-fca :json ben-and-jerrys-fca "path/ben-and-jerrys-fca.json")
+#+end_src
+
+
+** Scaling data and scale-measures
+
+~conexp-clj~ provides the functionality for conceptual scaling. For an example, 
+load the smaller ~ben-and-jerrys-flavors-small.ctx~:
+
+#+begin_src clojure :results silent
+(def ben-and-jerrys-small-ctx (read-context "path-to-file/ben-and-jerrys-flavors-small.ctx"))
+#+end_src
+
+#+begin_src clojure :exports both
+ben-and-jerrys-small-ctx
+#+end_src
+
+The ben-and-jerrys context contains the same ice cream types as objects, but a smaller 
+set of flavors as attributes:
+
+#+RESULTS
+#+begin_src text
+                       |Brownie Caramel Choco Dough Peanut Vanilla 
+-----------------------+-------------------------------------------
+Caramel Chew Chew      |.       x       x     .     .      .       
+Caramel Sutra          |.       x       x     .     .      .       
+Cookie Dough           |.       .       x     x     .      x       
+Fudge Brownie          |x       .       x     .     .      .       
+Half Baked             |x       .       x     x     .      x       
+Peanut Butter Cup      |.       .       x     .     x      .       
+Salted Caramel Brownie |x       x       x     .     .      x       
+#+end_src
+
+To check if this smaller context is a scale of the ~ben-and-jerrys-ctx~, the conceptual 
+scaling error is computed:
+
+#+begin_src clojure :exports both
+(use 'conexp.fca.smeasure)
+(conceptual-scaling-error (make-smeasure-nc ben-and-jerrys-ctx ben-and-jerrys-small-ctx identity))
+#+end_src
+
+#+RESULTS
+#+begin_src text
+0
+#+end_src
+
+As the error is 0, the ~ben-and-jerrys-small-ctx~ is a scale of the ~ben-and-jerrys-ctx~.
+
+Another context uses the same ice cream types, but allergens instead of flavors.
+
+#+begin_src clojure :results silent
+(def ben-and-jerrys-allergens-ctx (read-context "path-to-file/ben-and-jerrys-allergens.ctx"))
+#+end_src
+
+#+begin_src clojure :exports both
+ben-and-jerrys-allergens-ctx
+#+end_src
+
+#+RESULTS
+#+begin_src text
+                       |almond barley egg milk peanuts soy wheat 
+-----------------------+-----------------------------------------
+Caramel Chew Chew      |.      .      x   x    .       x   .     
+Caramel Sutra          |x      .      x   x    .       x   .     
+Cookie Dough           |.      .      x   x    .       x   x     
+Fudge Brownie          |.      x      x   x    .       .   x     
+Half Baked             |.      x      x   x    .       x   x     
+Peanut Butter Cup      |.      .      x   x    x       x   .     
+Salted Caramel Brownie |.      .      x   x    .       x   x    
+#+end_src
+
+You can compute the conceptual scaling error in the same way as for the ~ben-and-jerrys-small-ctx~.
+
+#+begin_src clojure :exports both
+(conceptual-scaling-error (make-smeasure-nc ben-and-jerrys-ctx ben-and-jerrys-allergens-ctx identity))
+#+end_src
+
+#+RESULTS
+#+begin_src text
+1
+#+end_src
+
+In this case, the error is 1 and therefore the allergens context is not a scale of the 
+original ~ben-and-jerrys-ctx~.
+
+
+** Attribute exploration
+
+~conexp-clj~ provides a function for attribute exploration. 
+
+#+begin_src clojure :results silent
+(attribute-exploration :context ben-and-jerrys-small-ctx)
+#+end_src
+
+The following attribute exploration is interactive. For a suggested implication, the 
+user accepts or rejects it with ~yes~ or ~no~:
+
+#+begin_src text
+Does the implication (#{} ⟶  #{Choco}) hold? no
+#+end_src
+
+If an implication is rejected, a counterexample needs to be provided. First, the object 
+of the counterexample needs to be given. In this case, we give an additional "Peanut" 
+ice cream.
+
+#+begin_src text
+Then please provide a counterexample
+counterexample> object
+Please enter new object: "Peanut"
+#+end_src
+
+After that, the attributes of the counterexample are given in the following input format.
+
+#+begin_src text
+counterexample> attributes
+Please enter new attributes: "Peanut" "Vanilla"
+#+end_src
+
+The process of providing a counterexample is finished with the input ~q~. It is possible 
+to give another counterexample.
+
+#+begin_src text
+counterexample> q
+Do you want to give another counterexample? no
+#+end_src
+
+The following example shows an attribute exploration of the ~ben-and-jerrys-small-ctx~. 
+In the end, the attribute exploration returns the list of learned implications and the 
+new context.
+
+#+begin_src text
+conexp.main=> (explore-attributes :context ben-and-jerrys-small-ctx)
+Does the implication (#{} ⟶  #{Choco}) hold? no
+Then please provide a counterexample
+counterexample> object
+Please enter new object: "Peanut"
+counterexample> attributes
+Please enter the attributes the new object should have: "Peanut" "Vanilla"
+counterexample> q
+Do you want to give another counterexample? no
+Does the implication (#{Caramel} ⟶  #{Choco}) hold? yes
+Does the implication (#{Dough} ⟶  #{Choco Vanilla}) hold? yes
+Does the implication (#{Brownie} ⟶  #{Choco}) hold? yes
+Does the implication (#{Choco Vanilla Caramel} ⟶  #{Brownie}) hold? yes
+Does the implication (#{Choco Peanut Caramel} ⟶  #{Brownie Dough Vanilla}) hold? yes
+Does the implication (#{Choco Peanut Vanilla} ⟶  #{Brownie Dough Caramel}) hold? yes
+Does the implication (#{Choco Brownie Caramel} ⟶  #{Vanilla}) hold? yes
+Does the implication (#{Choco Brownie Peanut} ⟶  #{Dough Vanilla Caramel}) hold? yes
+Does the implication (#{Choco Brownie Dough Vanilla Caramel} ⟶  #{Peanut}) hold? yes
+{:implications #{(#{"Choco" "Peanut" "Caramel"} ⟶  #{"Brownie" "Dough" "Vanilla"})
+                 (#{"Brownie"} ⟶  #{"Choco"})
+                 (#{"Choco" "Brownie" "Caramel"} ⟶  #{"Vanilla"})
+                 (#{"Caramel"} ⟶  #{"Choco"})
+                 (#{"Choco" "Vanilla" "Caramel"} ⟶  #{"Brownie"})
+                 (#{"Choco" "Brownie" "Dough" "Vanilla" "Caramel"} ⟶  #{"Peanut"})
+                 (#{"Choco" "Peanut" "Vanilla"} ⟶  #{"Brownie" "Dough" "Caramel"})
+                 (#{"Dough"} ⟶  #{"Choco" "Vanilla"})
+                 (#{"Choco" "Brownie" "Peanut"} ⟶  #{"Dough" "Vanilla" "Caramel"})},
+:context               |Brownie Caramel Choco Dough Peanut Vanilla 
+-----------------------+-------------------------------------------
+Caramel Chew Chew      |.       x       x     .     .      .       
+Caramel Sutra          |.       x       x     .     .      .       
+Cookie Dough           |.       .       x     x     .      x       
+Fudge Brownie          |x       .       x     .     .      .       
+Half Baked             |x       .       x     x     .      x       
+Peanut Butter Cup      |.       .       x     .     x      .       
+Peanut                 |.       .       .     .     x      x       
+Salted Caramel Brownie |x       x       x     .     .      x       
+}
+#+end_src
+
+
+** optional
 *** Remove objects and attributes
 
 In case you want to make your formal context smaller (to decrease computation time 
@@ -135,41 +540,7 @@ Salted Caramel Brownie |x       x       x     .     .      x
 
 The same can be applied to objects with ~rename-objects~.
 
-*** Reduce, clarify
-
-With ~reduced?~ and ~clarified?~, you can check if a context is reduced or clarified. 
-The attributes, objects and the whole context can be reduced with ~reduce-attributes~, 
-~reduce-objects~ and ~reduce-context~. The same applies to ~clarify~. 
-
-The whole example context can be clarified as follows:
-
-#+begin_src clojure :results silent
-(def ben-and-jerrys-clarified
-  (clarify-context ben-and-jerrys-ctx)
-#+end_src
-
-#+begin_src clojure :exports both
-ben-and-jerrys-clarified
-#+end_src
-
-#+RESULTS
-#+begin_src text
-                       |Brownie Caramel Caramel Ice Choco Ice Choco Pieces Dough Peanut Ice Vanilla 
------------------------+----------------------------------------------------------------------------
-Caramel Chew Chew      |.       x       x           .         x            .     .          .       
-Caramel Sutra          |.       x       x           x         x            .     .          .       
-Cookie Dough           |.       .       .           .         x            x     .          x       
-Fudge Brownie          |x       .       .           x         .            .     .          .       
-Half Baked             |x       .       .           x         x            x     .          x       
-Peanut Butter Cup      |.       .       .           .         x            .     x          .       
-Salted Caramel Brownie |x       x       .           .         x            .     .          x       
-#+end_src
-
-As the attributes ~Peanut Butter~ and ~Peanut Ice~ have the same derivation, one of them (in this 
-case ~Peanut Butter~ is removed.
-
-*** Compute the concept lattice
-
+*** Extents and intents
 The extents and intents of a formal context can be computed via:
 
 #+begin_src clojure :export :both
@@ -218,224 +589,4 @@ The extents and intents of a formal context can be computed via:
  #{"Choco Ice" "Choco Pieces" "Caramel Ice" "Caramel"}
  #{"Choco Ice" "Choco Pieces" "Brownie" "Dough" "Vanilla"}
  #{"Choco Ice" "Peanut Ice" "Choco Pieces" "Brownie" "Dough" "Peanut Butter" "Caramel Ice" "Vanilla" "Caramel"})
-#+end_src
-
-In combination, the extents and intents form the formal concepts:
-
-#+begin_src clojure :export :both
-(concepts ben-and-jerrys-ctx)
-#+end_src
-
-#+RESULTS
-#+begin_src text
-([#{"Peanut Butter Cup" "Fudge Brownie" "Caramel Sutra" "Salted Caramel Brownie" "Caramel Chew Chew" "Half Baked" "Cookie Dough"} #{}]
- [#{"Fudge Brownie" "Caramel Sutra" "Half Baked"} #{"Choco Ice"}]
- [#{} #{"Choco Ice" "Peanut Ice" "Choco Pieces" "Brownie" "Dough" "Peanut Butter" "Caramel Ice" "Vanilla" "Caramel"}]
- [#{"Caramel Sutra" "Half Baked"} #{"Choco Ice" "Choco Pieces"}]
- [#{"Half Baked"} #{"Choco Ice" "Choco Pieces" "Brownie" "Dough" "Vanilla"}]
- [#{"Caramel Sutra"} #{"Choco Ice" "Choco Pieces" "Caramel Ice" "Caramel"}]
- [#{"Fudge Brownie" "Half Baked"} #{"Choco Ice" "Brownie"}]
- [#{"Peanut Butter Cup"} #{"Peanut Ice" "Choco Pieces" "Peanut Butter"}]
- [#{"Peanut Butter Cup" "Caramel Sutra" "Salted Caramel Brownie" "Caramel Chew Chew" "Half Baked" "Cookie Dough"} #{"Choco Pieces"}]
- [#{"Salted Caramel Brownie" "Half Baked"} #{"Choco Pieces" "Brownie" "Vanilla"}]
- [#{"Salted Caramel Brownie"} #{"Choco Pieces" "Brownie" "Vanilla" "Caramel"}]
- [#{"Half Baked" "Cookie Dough"} #{"Choco Pieces" "Dough" "Vanilla"}]
- [#{"Caramel Sutra" "Caramel Chew Chew"} #{"Choco Pieces" "Caramel Ice" "Caramel"}]
- [#{"Salted Caramel Brownie" "Half Baked" "Cookie Dough"} #{"Choco Pieces" "Vanilla"}]
- [#{"Caramel Sutra" "Salted Caramel Brownie" "Caramel Chew Chew"} #{"Choco Pieces" "Caramel"}]
- [#{"Fudge Brownie" "Salted Caramel Brownie" "Half Baked"} #{"Brownie"}])
-#+end_src
-
-The concept lattice can be computed via
-
-#+begin_src clojure :result silent
-(def ben-and-jerrys-lattice (concept-lattice ben-and-jerrys-ctx)
-#+end_src
-
-#+begin_src clojure :export :both
-ben-and-jerrys-lattice
-#+end_src
-
-#+RESULTS
-#+begin_src text
-Lattice on 16 elements.
-#+end_src
-
-The lattice consists of a ~base-set~ (~(base-set ben-and-jerrys-lattice)~ contains the 
-concepts from the previous example) and an ~order~ function. The next section will 
-explain how to draw a concept lattice.
-
-*** Draw the concept lattice
-
-To be able to draw concept lattices, first use this command once:
-#+begin_src clojure :results silent
-(use 'conexp.gui.draw)
-#+end_src
-
-You can either draw the lattice from the initial context.
-
-#+begin_src clojure :results silent
-(draw-concept-lattice ben-and-jerrys-ctx)
-#+end_src
-
-You can also draw the already computed ~ben-and-jerrys-lattice~.
-
-#+begin_src clojure :result silent
-(draw-lattice ben-and-jerrys-lattice)
-#+end_src
-
-The lattice will appear in a new window.
-
-#+caption: Concept lattice of ben-and-jerrys context
-[[./images/ben-and-jerrys-lattice.png]]
-
-In left bar of the ~Lattice~ window, you have several options, e.g., you can change the 
-layout and turn on the labels. In addition, you have the option to show several 
-valuations, like probability, distributivity and support.
-
-The ~ben-and-jerrys-lattice~ with DimDraw layout, labels and support looks like this:
-
-#+caption: Concept lattice of ben-and-jerrys context with DimDraw layout, labels and 
-support
-[[./images/ben-and-jerrys-lattice-dimdraw-labels-support.png]]
-
-You can also create your own valuations, e.g., the extent and intent size of each formal 
-concept.
-
-#+begin_src clojure :result silent
-(draw-concept-lattice ben-and-jerrys-ctx 
-                      :value-fn (fn [concept]
-                                  [(count (first c)) (count (second c))]))
-#+end_src
-
-After enabeling the labels, the concept lattice looks like this:
-
-#+caption: Concept lattice of ben-and-jerrys context with manually set valuations
-[[./images/ben-and-jerrys-lattice-manual_valuations.png]]
-
-*** Outputs
-
-
-** Computing implications
-
-*** Canonical base
-
-The canonical base of a context can be computed with:
-
-#+begin_src clojure :exports both
-(canonical-base ben-and-jerrys-ctx)
-#+end_src
-
-#+RESULTS
-#+begin_src text
-((#{"Caramel"} ⟶  #{"Choco Pieces"})
- (#{"Vanilla"} ⟶  #{"Choco Pieces"})
- (#{"Caramel Ice"} ⟶  #{"Choco Pieces" "Caramel"})
- (#{"Peanut Butter"} ⟶  #{"Peanut Ice" "Choco Pieces"})
- (#{"Dough"} ⟶  #{"Choco Pieces" "Vanilla"})
- (#{"Choco Pieces" "Vanilla" "Caramel"} ⟶  #{"Brownie"})
- (#{"Choco Pieces" "Brownie"} ⟶  #{"Vanilla"})
- (#{"Choco Pieces" "Brownie" "Caramel Ice" "Vanilla" "Caramel"} ⟶  #{"Choco Ice" "Peanut Ice" "Dough" "Peanut Butter"})
- (#{"Choco Pieces" "Brownie" "Dough" "Vanilla"} ⟶  #{"Choco Ice"})
- (#{"Peanut Ice"} ⟶  #{"Choco Pieces" "Peanut Butter"})
- (#{"Peanut Ice" "Choco Pieces" "Peanut Butter" "Caramel"} ⟶  #{"Choco Ice" "Brownie" "Dough" "Caramel Ice" "Vanilla"})
- (#{"Peanut Ice" "Choco Pieces" "Peanut Butter" "Vanilla"} ⟶  #{"Choco Ice" "Brownie" "Dough" "Caramel Ice" "Caramel"})
- (#{"Choco Ice" "Choco Pieces" "Caramel"} ⟶  #{"Caramel Ice"})
- (#{"Choco Ice" "Choco Pieces" "Vanilla"} ⟶  #{"Brownie" "Dough"})
- (#{"Choco Ice" "Peanut Ice" "Choco Pieces" "Peanut Butter"} ⟶  #{"Brownie" "Dough" "Caramel Ice" "Vanilla" "Caramel"}))
-#+end_src
-
-
-** Scaling data and scale-measures
-
-** Attribute exploration
-
-~conexp-clj~ offers a function for attribute exploration. 
-
-#+begin_src clojure :results silent
-(attribute-exploration :context small-ben-and-jerrys-ctx)
-#+end_src
-
-The following attribute exploration is interactive. For a suggested implication, the 
-user accepts or rejects it with ~yes~ or ~no~:
-
-#+begin_src text
-Does the implication (#{Vanilla} ⟶  #{Choco Pieces Dough}) hold? no
-#+end_src
-
-If an implication is rejected, a counterexample needs to be provided. First, the object 
-of the counterexample needs to be given. In this case, we use the "Salted Caramel Brownie" 
-ice cream type from the original ben-and-jerrys-ctx.
-
-#+begin_src text
-Then please provide a counterexample
-counterexample> object
-Please enter new object: "Salted Caramel Brownie"
-#+end_src
-
-After that, the attributes of the counterexample are given in the following input format.
-
-#+begin_src text
-counterexample> attributes
-Please enter new attributes: "Brownie" "Choco Pieces" "Vanilla"
-#+end_src
-
-The process of providing a counterexample is finished with the input ~q~. It is possible 
-to give another counterexample.
-
-#+begin_src text
-counterexample> q
-Do you want to give another counterexample? no
-#+end_src
-
-The following example shows the attribute exploration of the small-ben-and-jerrys-ctx 
-with knowledge from the original ben-and-jerrys-ctx. In the end, the attribute exploration 
-returns the list of learned implications and the new context, which in this case is a 
-subcontext of the original ben-and-jerrys context.
-
-#+begin_src text
-conexp.main=> (explore-attributes :context small-ben-and-jerrys-ctx)
-Does the implication (#{Vanilla} ⟶  #{Choco Pieces Dough}) hold? no
-Then please provide a counterexample
-counterexample> object
-Please enter new object: "Salted Caramel Brownie"
-counterexample> attributes
-Please enter new attributes: "Brownie" "Choco Pieces" "Vanilla"
-counterexample> q
-Do you want to give another counterexample? no
-Does the implication (#{Vanilla} ⟶  #{Choco Pieces}) hold? yes
-Does the implication (#{Dough} ⟶  #{Choco Pieces Vanilla}) hold? yes  
-Does the implication (#{Choco Pieces} ⟶  #{Vanilla}) hold? no
-Then please provide a counterexample
-counterexample> object
-Please enter new object: "Caramel Chew Chew"
-counterexample> attributes
-Please enter the attributes the new object should have: "Choco Pieces"
-counterexample> q
-Do you want to give another counterexample? no
-Does the implication (#{Choco Pieces Brownie} ⟶  #{Vanilla}) hold? yes
-Does the implication (#{Choco Pieces Brownie Dough Vanilla} ⟶  #{Choco Ice}) hold? yes
-Does the implication (#{Choco Ice} ⟶  #{Brownie}) hold? no
-Then please provide a counterexample
-counterexample> object
-Please enter new object: "Caramel Sutra"
-counterexample> attributes
-Please enter the attributes the new object should have: "Choco Ice" "Choco Pieces"
-counterexample> q
-Do you want to give another counterexample? no
-Does the implication (#{Choco Ice Choco Pieces Vanilla} ⟶  #{Brownie Dough}) hold? yes
-{:implications #{(#{"Choco Pieces" "Brownie"} ⟶  #{"Vanilla"})
-                 (#{"Vanilla"} ⟶  #{"Choco Pieces"})
-                 (#{"Choco Ice" "Choco Pieces" "Vanilla"} ⟶  #{"Brownie" "Dough"})
-                 (#{"Choco Pieces" "Brownie" "Dough" "Vanilla"} ⟶  #{"Choco Ice"})
-                 (#{"Dough"} ⟶  #{"Choco Pieces" "Vanilla"})},
- :context              |Brownie Choco Ice Choco Pieces Dough Vanilla 
------------------------+---------------------------------------------
-Caramel Chew Chew      |.       .         x            .     .       
-Salted Caramel Brownie |x       .         x            .     x       
-Caramel Sutra          |.       x         x            .     .       
-Cookie Dough           |.       .         x            x     x       
-Fudge Brownie          |x       x         .            .     .       
-Half Baked             |x       x         x            x     x       
-}
 #+end_src
