@@ -79,9 +79,9 @@ Salted Caramel Brownie |x       x       .           .         x            .    
 
 *** Reduce, clarify
 
-With ~reduced?~ and ~clarified?~, you can check if a context is reduced or clarified. 
+With ~context-reduced?~ and ~context-clarified?~, you can check if a context is reduced or clarified. 
 The attributes, objects and the whole context can be reduced with ~reduce-attributes~, 
-~reduce-objects~ and ~reduce-context~. The same applies to ~clarify~. 
+~reduce-objects~ and ~reduce-context~. The same applies to clarify. 
 
 The whole example context can be clarified as follows:
 
@@ -225,7 +225,7 @@ In the example, the lattice is saved in ~tikz~ format. It is important to write 
 ending in the file name that matches the file type. Otherwise an error occurs.
 
 #+caption: Window to save concept lattice in tikz format
-[[./images/ben-an-jerrys-export-tikz.png]]
+[[./images/ben-and-jerrys-export-tikz.png]]
 
 *** Computing implications - Canonical base
 
