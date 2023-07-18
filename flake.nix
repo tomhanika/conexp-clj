@@ -40,7 +40,7 @@
 
           conexp = let
             pname = "conexp-clj";
-            version = "2.3.1-SNAPSHOT";
+            version = "2.4.1-SNAPSHOT";
           in mkCljBin rec {
             name = "conexp/${pname}";
             inherit version;
