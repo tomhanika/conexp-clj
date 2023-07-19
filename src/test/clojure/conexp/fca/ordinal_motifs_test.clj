@@ -137,3 +137,11 @@
     :interordinal (generate-scale :ordinal 4) false
     :crown (generate-scale :crown 4) true
     :crown (generate-scale :nominal 4) false))
+
+(deftest cycles-of-g-test
+  (let [ctx (make-context-from-matrix [0 1 2] 
+                                      ['a 'b 'c]
+                                      [1 1 0 0 1 1 1 0 1])
+        neighbors {0 #{1 2}, 1 #{0 2}, 2 #{0 1}}]
+    (is (= (cycles-of-g ctx neighbors 0)
+           #{[0 1 2 0] [0 2 1 0]}))))
