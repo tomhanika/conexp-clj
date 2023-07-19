@@ -49,6 +49,13 @@
             name = "conexp/${pname}";
             version = versionFromDefproject pname;
 
+            meta = {
+              description =
+                "A General-Purpose Tool for Formal Concept Analysis";
+              homepage = "https://github.com/tomhanika/conexp-clj";
+              license = channels.nixpkgs.lib.licenses.epl10;
+            };
+
             projectSrc = gitignoreSource ./.;
             main-ns = "conexp";
 
