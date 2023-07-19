@@ -37,13 +37,20 @@
           inherit (inputs.gitignore.lib) gitignoreSource;
           inherit (inputs.clj-nix.lib) mk-deps-cache;
           inherit (channels.nixpkgs) mkCljBin mkShell writeShellScriptBin;
+          inherit (channels.nixpkgs.lib) pipe;
 
           conexp = let
+            versionFromDefproject = name:
+              pipe ./project.clj [
+                builtins.readFile
+                (builtins.match ''
+                  .*\([[:SPACE:]]*defproject[[:SPACE:]]+${name}[[:SPACE:]]+"([^"]+)".*'')
+                builtins.head
+              ];
             pname = "conexp-clj";
-            version = "2.4.1-SNAPSHOT";
           in mkCljBin rec {
             name = "conexp/${pname}";
-            inherit version;
+            version = versionFromDefproject pname;
 
             projectSrc = gitignoreSource ./.;
             main-ns = "conexp";
