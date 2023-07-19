@@ -1,6 +1,5 @@
 {
-  description =
-    "conexp-clj, a general purpose software tool for Formal Concept Analysis";
+  description = "conexp-clj, a general purpose software tool for Formal Concept Analysis";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
@@ -17,41 +16,45 @@
     };
   };
 
-  outputs = { self, nixpkgs, utils, ... }@inputs:
-    let inherit (utils.lib) mkApp mkFlake;
-    in mkFlake {
+  outputs = {
+    self,
+    nixpkgs,
+    utils,
+    ...
+  } @ inputs: let
+    inherit (utils.lib) mkApp mkFlake;
+  in
+    mkFlake {
       inherit self inputs;
 
-      channels.nixpkgs.overlaysBuilder = channels:
-        [ inputs.clj-nix.overlays.default ];
+      channels.nixpkgs.overlaysBuilder = channels: [inputs.clj-nix.overlays.default];
 
       overlays.default = final: prev: {
         inherit (self.packages."${final.system}") conexp-clj;
       };
 
-      outputsBuilder = channels:
-        let
-          inherit (inputs.gitignore.lib) gitignoreSource;
-          inherit (inputs.clj-nix.lib) mk-deps-cache;
-          inherit (channels.nixpkgs) mkCljBin mkShell writeShellScriptBin;
-          inherit (channels.nixpkgs.lib) pipe;
+      outputsBuilder = channels: let
+        inherit (inputs.gitignore.lib) gitignoreSource;
+        inherit (inputs.clj-nix.lib) mk-deps-cache;
+        inherit (channels.nixpkgs) mkCljBin mkShell writeShellScriptBin;
+        inherit (channels.nixpkgs.lib) pipe;
 
-          conexp = let
-            versionFromDefproject = name:
-              pipe ./project.clj [
-                builtins.readFile
-                (builtins.match ''
+        conexp = let
+          versionFromDefproject = name:
+            pipe ./project.clj [
+              builtins.readFile
+              (builtins.match ''
                   .*\([[:SPACE:]]*defproject[[:SPACE:]]+${name}[[:SPACE:]]+"([^"]+)".*'')
-                builtins.head
-              ];
-            pname = "conexp-clj";
-          in mkCljBin rec {
+              builtins.head
+            ];
+          pname = "conexp-clj";
+        in
+          mkCljBin rec {
             name = "conexp/${pname}";
             version = versionFromDefproject pname;
 
             meta = {
-              description =
-                "A General-Purpose Tool for Formal Concept Analysis";
+              description = "A General-Purpose Tool for Formal Concept Analysis";
               homepage = "https://github.com/tomhanika/conexp-clj";
               license = channels.nixpkgs.lib.licenses.epl10;
             };
@@ -67,35 +70,37 @@
             doCheck = true;
             checkPhase = "lein test";
           };
+      in rec {
+        packages = {
+          conexp-clj = conexp;
+          default = conexp;
+        };
 
-        in rec {
-          packages = {
-            conexp-clj = conexp;
-            default = conexp;
+        apps = rec {
+          deps-lock = mkApp {
+            drv = writeShellScriptBin "deps-lock" ''
+              ${channels.nixpkgs.deps-lock}/bin/deps-lock --lein $@
+            '';
           };
 
-          apps = rec {
-            deps-lock = mkApp {
-              drv = writeShellScriptBin "deps-lock" ''
-                ${channels.nixpkgs.deps-lock}/bin/deps-lock --lein $@
-              '';
-            };
-
-            test = let deps = mk-deps-cache { lock-file = ./deps-lock.json; };
-            in mkApp {
+          test = let
+            deps = mk-deps-cache {lock-file = ./deps-lock.json;};
+          in
+            mkApp {
               drv = writeShellScriptBin "conexp-clj-tests" ''
                 lein test $@
               '';
             };
-          };
-
-          devShells.default = mkShell {
-            buildInputs = with channels.nixpkgs; [ clojure-lsp leiningen ];
-          };
-
-          formatter = channels.nixpkgs.alejandra;
-
         };
 
+        devShells.default = mkShell {
+          buildInputs = with channels.nixpkgs; [clojure-lsp leiningen];
+        };
+
+        formatter = channels.nixpkgs.alejandra;
+      };
     };
 }
+# Local Variables:
+# apheleia-formatter: alejandra
+# End:
