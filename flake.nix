@@ -8,10 +8,7 @@
 
     clj-nix = {
       url = "github:jlesquembre/clj-nix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "utils/flake-utils";
-      };
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     gitignore = {
@@ -64,16 +61,13 @@
             checkPhase = "lein test";
           };
 
-        in {
-          packages = rec {
+        in rec {
+          packages = {
             conexp-clj = conexp;
-            default = conexp-clj;
+            default = conexp;
           };
 
           apps = rec {
-            conexp-clj = mkApp { drv = conexp; };
-            default = conexp-clj;
-
             deps-lock = mkApp {
               drv = writeShellScriptBin "deps-lock" ''
                 ${channels.nixpkgs.deps-lock}/bin/deps-lock --lein $@
