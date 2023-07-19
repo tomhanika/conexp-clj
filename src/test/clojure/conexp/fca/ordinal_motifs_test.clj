@@ -139,9 +139,20 @@
     :crown (generate-scale :nominal 4) false))
 
 (deftest cycles-of-g-test
-  (let [ctx (make-context-from-matrix [0 1 2] 
-                                      ['a 'b 'c]
-                                      [1 1 0 0 1 1 1 0 1])
-        neighbors {0 #{1 2}, 1 #{0 2}, 2 #{0 1}}]
+  (let [ctx (make-context-from-matrix [0 1 2 3] 
+                                      ['a 'b 'c 'd]
+                                      [1 1 0 0 0 1 1 0 0 0 1 1 1 0 0 1])
+        neighbors {0 #{1 3}, 1 #{0 2}, 2 #{1 3}, 3 #{0 2}}]
     (is (= (cycles-of-g ctx neighbors 0)
-           #{[0 1 2 0] [0 2 1 0]}))))
+           #{[0 1 2 3 0] [0 3 2 1 0]}))))
+
+(deftest scale-complex-test
+  (let [ctx (make-context-from-matrix [0 1 2 3] 
+                                      ['a 'b 'c 'd]
+                                      [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])]
+    (are [type result]
+        (= (scale-complex type ctx) result)
+      :nominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
+      :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
+      :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
+      :crown ())))
