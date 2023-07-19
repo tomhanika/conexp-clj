@@ -27,6 +27,13 @@
     mkFlake {
       inherit self inputs;
 
+      supportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
+
       channels.nixpkgs.overlaysBuilder = channels: [inputs.clj-nix.overlays.default];
 
       overlays.default = final: prev: {
@@ -91,6 +98,11 @@
                 lein test $@
               '';
             };
+        };
+
+        checks = {
+          inherit (packages) conexp-clj;
+          devShell = devShells.default;
         };
 
         devShells.default = mkShell {
