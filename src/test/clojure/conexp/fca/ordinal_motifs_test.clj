@@ -1,7 +1,8 @@
 (ns conexp.fca.ordinal-motifs-test
   (:use conexp.fca.contexts
         conexp.fca.ordinal-motifs)
-  (:use clojure.test))
+  (:use clojure.test)
+  (:import [conexp.fca.ordinal_motifs Scale-Complex]))
 
 (deftest generate-scale-test
   (are [scale-type scale]
@@ -156,3 +157,16 @@
       :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
       :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
       :crown ())))
+
+(deftest maximal-sets-test
+  (let [sets #{#{0} #{} #{1} #{0 1} #{2 3} #{1 3 4}}]
+    (is (= (set (maximal-sets sets))
+           #{#{0 1} #{2 3} #{1 3 4}}))))
+
+(deftest make-scale-complex-test
+  (let [ctx (make-context-from-matrix [0 1 2] 
+                                      ['a 'b 'c]
+                                      [1 1 0 0 1 1 0 0 1])
+        complex (make-scale-complex ctx)]
+    (is (= (type complex)
+           Scale-Complex))))
