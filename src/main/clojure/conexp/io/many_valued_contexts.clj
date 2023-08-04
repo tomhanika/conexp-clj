@@ -165,7 +165,7 @@
   [file]
   (with-in-reader file
     (let [json-mv-context (json/read *in* :key-fn keyword)
-          schema-file "src/main/resources/schemas/mv-context_schema_v1.0.json"]
+          schema-file "schemas/mv-context_schema_v1.0.json"]
       (assert (matches-schema? json-mv-context schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
       (json->mv-context json-mv-context))))

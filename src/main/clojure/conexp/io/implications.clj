@@ -62,7 +62,7 @@
   [file]
   (with-in-reader file
     (let [impl (json/read *in* :key-fn keyword)
-          schema-file "src/main/resources/schemas/implications_schema_v1.0.json"]
+          schema-file "schemas/implications_schema_v1.0.json"]
       (assert (matches-schema? impl schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
       (json->implications impl))))
