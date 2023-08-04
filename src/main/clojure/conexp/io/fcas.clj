@@ -65,7 +65,7 @@
   [file]
   (with-in-reader file
     (let [json-fca (json/read *in* :key-fn keyword)
-          schema-file "src/main/resources/schemas/fca_schema_v1.0.json"]
+          schema-file "schemas/fca_schema_v1.0.json"]
       (assert (matches-schema? json-fca schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
       (create-fca-input-map json-fca))))
