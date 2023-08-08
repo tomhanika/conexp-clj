@@ -3,6 +3,7 @@
             [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.io.contexts :refer :all]
+            [conexp.fca.lattices :refer :all]
             [conexp.fca.implications :refer :all]
             [conexp.fca.smeasure :refer :all]
             [clojure.math.combinatorics :as comb]
@@ -602,9 +603,45 @@
                      (generate-scale :contranominal (count objects))
                      (one-bijective-map objects)))))
 
-(defmethod accepts-scale :ordinal [type ctx]);exhaustive search
+
+(defmethod accepts-scale :ordinal [type ctx]
+  (let [concepts (concepts ctx) 
+        len (count (objects ctx))]
+(println concepts)
+     (loop [current #{} chain [] conc concepts]
+(println chain)
+        (if ( =(count chain) len) chain
+                                    (let [new-candidates (filter #(= (count (set/difference (first %) current)) 1) conc)
+                                          next (first (first new-candidates))]
+                                       (println)
+                                       (println chain)
+                                       (println current)
+                                       (println new-candidates)
+                                       (println next)
+                                       (println conc)
+                                       (if (some? next) (recur 
+                                                         next 
+                                                         (conj chain next) 
+                                                         conc)
+
+                                                        (if (not= (count current) 0) (recur 
+                                                                                (last (drop-last chain)) 
+                                                                                (drop-last chain)
+                                                                                (filter #(not= (first %) current) conc))))
+                                     )))
+
+   )
+)
+
 
 (defmethod accepts-scale :interordinal [type ctx]);exhaustive search
 
 (defmethod accepts-scale :crown [type ctx]);exhaustive search
+
+
+
+;test contexts
+
+(def ctx (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["B" 2] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
+(def ctx2 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
 
