@@ -154,6 +154,7 @@
     (are [type result]
         (= (scale-complex type ctx) result)
       :nominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
+      :ordinal #{#{} #{0} #{1} #{2} #{3}}
       :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
       :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
       :crown ())))
@@ -170,3 +171,27 @@
         complex (make-scale-complex ctx)]
     (is (= (type complex)
            Scale-Complex))))
+
+(deftest get-complex-test
+  (let [ctx (make-context-from-matrix [0 1 2 3] 
+                                      ['a 'b 'c 'd]
+                                      [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])
+        s-complex (make-scale-complex ctx)]
+    (are [type result]
+        (= (get-complex s-complex type) result)
+      :nominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
+      :ordinal #{#{} #{0} #{1} #{2} #{3}}
+      :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
+      :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
+      :crown ()))
+  (let [ctx (make-context-from-matrix [0 1 2 3] 
+                                      ['a 'b 'c 'd]
+                                      [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])
+        s-complex (make-scale-complex ctx)]
+    (are [type result]
+        (= (set (get-complex s-complex type :maximal true)) result)
+      :nominal #{#{0 1} #{0 2} #{1 2} #{1 3}}
+      :ordinal #{#{0} #{1} #{2} #{3}}
+      :interordinal #{#{1 3} #{0 1 2}}
+      :contranominal #{#{0 1} #{0 2} #{1 2} #{1 3}}
+      :crown #{})))
