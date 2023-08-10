@@ -38,12 +38,13 @@
   "is the partial interpretation total for n variables?"
   [n pint]
   (subset?
-   (map variable-name (truth-values n))
+   (map variable-name (range 0 n))
    (domain pint)))
 
 (defstruct formula :variables :semantics)
 (def conjunction (struct formula 2 #(let [{x :x0, y :x1} %] (min x y))))
 (def disjunction (struct formula 2 #(let [{x :x0, y :x1} %] (max x y))))
+(def example (struct formula 3 #(let [{x :x0, y :x1, z :x2} %] (min (max (- 1 x) (- 1 z)) (max (- 1 y) (- 1 z))))))
 
 (defn totalise
   [arity pint]
