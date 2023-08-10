@@ -607,18 +607,10 @@
 (defmethod accepts-scale :ordinal [type ctx]
   (let [concepts (concepts ctx) 
         len (count (objects ctx))]
-(println concepts)
      (loop [current #{} chain [] conc concepts]
-(println chain)
         (if ( =(count chain) len) chain
                                     (let [new-candidates (filter #(= (count (set/difference (first %) current)) 1) conc)
                                           next (first (first new-candidates))]
-                                       (println)
-                                       (println chain)
-                                       (println current)
-                                       (println new-candidates)
-                                       (println next)
-                                       (println conc)
                                        (if (some? next) (recur 
                                                          next 
                                                          (conj chain next) 
@@ -627,14 +619,30 @@
                                                         (if (not= (count current) 0) (recur 
                                                                                 (last (drop-last chain)) 
                                                                                 (drop-last chain)
-                                                                                (filter #(not= (first %) current) conc))))
-                                     )))
-
-   )
+                                                                                (filter #(not= (first %) current) conc))))))))
 )
 
+;not functional
+(defmethod accepts-scale :interordinal [type ctx]
+  (let [concepts (concepts ctx)
+        extents (filter first concepts)
+        objects (objects ctx)
+        len (count (objects ctx))]
+     (loop [current #{} chain [] conc concepts]
+        (if ( =(count chain) len) chain
+                                    (let [new-candidates (filter #(and (= (count (set/difference (first %) current)) 1)
+                                                                       (some (fn [x] (= x (set/difference objects current))) extents)) conc)
+                                          next (first (first new-candidates))]
+                                       (if (some? next) (recur 
+                                                         next 
+                                                         (conj chain next) 
+                                                         conc)
 
-(defmethod accepts-scale :interordinal [type ctx]);exhaustive search
+                                                        (if (not= (count current) 0) (recur 
+                                                                                (last (drop-last chain)) 
+                                                                                (drop-last chain)
+                                                                                (filter #(not= (first %) current) conc))))))))
+)
 
 (defmethod accepts-scale :crown [type ctx]);exhaustive search
 
@@ -644,4 +652,7 @@
 
 (def ctx (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["B" 2] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
 (def ctx2 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
+
+(def ctx3 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
+                                                            ["C" 3] ["C" 4] ["C" 5] ["C" 6] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
 
