@@ -85,21 +85,22 @@
 
 ;; identify scale-measure using extents
 (defn- restrict-extents-to-base-set 
-  "For a collection of extents restricts them to the base-set. In case
+  "For a context restrict its extents to the base-set. In case
   the extents are a closure system the result is the closure system on
   the smaller base-set."
-  [exts base-set]
-  (->> exts
-       (pmap (fn [ext] 
-               (intersection base-set ext)) )
-       set))
+  [ctx base-set]
+  (let [exts (extents ctx)]
+    (->> exts
+         (pmap (fn [ext] 
+                 (context-object-closure ctx (intersection base-set ext))) )
+         set)))
 
 (defn- identify-full-scale-measures-check-all
-  "Checks if exts2-set is isomorph to the sub-closure system of exts1
-  given by the base-set. Checks all bijective maps for this."
-  [exts1 base-set exts2-set]
+  "Checks if exts2-set is isomorph to the sub-closure system of the extents 
+  of ctx given by the base-set. Checks all bijective maps for this."
+  [ctx base-set exts2-set]
   (let [base-set-seq (seq base-set)
-        exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set) 
+        exts1-restricted-to-base-set (restrict-extents-to-base-set ctx base-set) 
         object-maps (all-bijective-maps base-set-seq)
         equal-sized (= (count exts1-restricted-to-base-set)
                        (count exts2-set)) ;; for computational speed-up
@@ -113,12 +114,12 @@
           object-maps)) ))
 
 (defn- identify-full-scale-measures-check-one
-  "Checks if exts2-set is isomorph to the sub-closure system of exts1
-  given by the base-set. Checks only one bijective map for this. Used
+  "Checks if exts2-set is isomorph to the sub-closure system of the extents
+  of ctx given by the base-set. Checks only one bijective map for this. Used
   in case all bijective maps within exts2 are automorphisms."
-  [exts1 base-set exts2-set]
+  [ctx base-set exts2-set]
   (let [base-set-seq (seq base-set)
-        exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set) 
+        exts1-restricted-to-base-set (restrict-extents-to-base-set ctx base-set) 
         object-map (one-bijective-map base-set-seq)
         equal-sized (= (count exts1-restricted-to-base-set)
                        (count exts2-set)) ;; for computational speed-up
@@ -127,7 +128,6 @@
          (isomorphic-closure-systems? exts1-restricted-to-base-set
                                       object-map
                                       exts2-set))))
-
 
 
 (defn- extent-chain? 
@@ -141,11 +141,11 @@
             sorted-exts-idxs) ))
 
 (defn- identify-full-scale-measures-check-ordinal
-  "Checks if exts2-set is isomorph to the sub-closure system of exts1
-  given by the base-set. Used in case exts2 is of ordinal scale."
-  [exts1 base-set exts2-set]
+  "Checks if exts2-set is isomorph to the sub-closure system of the extents 
+  of ctx given by the base-set. Used in case exts2 is of ordinal scale."
+  [ctx base-set exts2-set]
   (let [base-set-seq (seq base-set)
-        exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set) 
+        exts1-restricted-to-base-set (restrict-extents-to-base-set ctx base-set) 
         equal-sized (= (count exts1-restricted-to-base-set)
                        (count exts2-set)) ;; for computational speed-up
         ]
@@ -178,11 +178,11 @@
               (recur next-element order remaining-exts next-exts))))))))
 
 (defn- identify-full-scale-measures-check-interordinal
-  "Checks if exts2-set is isomorph to the sub-closure system of exts1
-  given by the base-set. Used in case exts2 is of interordinal scale."
-  [exts1 base-set exts2-set]
+  "Checks if exts2-set is isomorph to the sub-closure system of the extents 
+  of ctx given by the base-set. Used in case exts2 is of interordinal scale."
+  [ctx base-set exts2-set]
   (let [base-set-seq (seq base-set)
-        exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set) 
+        exts1-restricted-to-base-set (restrict-extents-to-base-set ctx base-set) 
         equal-sized (= (count exts1-restricted-to-base-set)
                        (count exts2-set)) ;; for computational speed-up
         ]
@@ -245,11 +245,11 @@
           false)) ) ))
 
 (defn identify-full-scale-measures-check-crown
-  "Checks if exts2-set is isomorph to the sub-closure system of exts1
-  given by the base-set. Used in case exts2 is of crown scale."
-  [exts1 base-set exts2-set]
+  "Checks if exts2-set is isomorph to the sub-closure system of the extents 
+  of ctx given by the base-set. Used in case exts2 is of crown scale."
+  [ctx base-set exts2-set]
   (let [base-set-seq (seq base-set)
-        exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set)]
+        exts1-restricted-to-base-set (restrict-extents-to-base-set ctx base-set)]
     
     (and (sized-like-a-crown? exts1-restricted-to-base-set base-set exts2-set) 
          (is-of-crown-scale? exts1-restricted-to-base-set)) ))
@@ -257,32 +257,31 @@
 (defmulti identify-full-scale-measures (fn [scale & rest] scale))
 
 (defmethod identify-full-scale-measures :nominal
-  [_ exts1 base-set exts2-set]
-  (identify-full-scale-measures-check-one exts1 base-set exts2-set))
+  [_ ctx base-set exts2-set]
+  (identify-full-scale-measures-check-one ctx base-set exts2-set))
 
 (defmethod identify-full-scale-measures :contranominal
-  [_ exts1 base-set exts2-set]
-  (identify-full-scale-measures-check-one exts1 base-set exts2-set))
+  [_ ctx base-set exts2-set]
+  (identify-full-scale-measures-check-one ctx base-set exts2-set))
 
 (defmethod identify-full-scale-measures :ordinal
-  [_ exts1 base-set exts2-set]
-  (identify-full-scale-measures-check-ordinal exts1 base-set exts2-set))
+  [_ ctx base-set exts2-set]
+  (identify-full-scale-measures-check-ordinal ctx base-set exts2-set))
 
 (defmethod identify-full-scale-measures :interordinal
-  [_ exts1 base-set exts2-set]
-  (identify-full-scale-measures-check-interordinal exts1 base-set exts2-set))
+  [_ ctx base-set exts2-set]
+  (identify-full-scale-measures-check-interordinal ctx base-set exts2-set))
 
 (defmethod identify-full-scale-measures :crown
-  [_ exts1 base-set exts2-set]
-  (identify-full-scale-measures-check-crown exts1 base-set exts2-set))
+  [_ ctx base-set exts2-set]
+  (identify-full-scale-measures-check-crown ctx base-set exts2-set))
 
 
 (defn is-of-scale?
   [scale-type ctx]
-  (let [exts1 (extents ctx)
-        base-set (objects ctx)
+  (let [base-set (objects ctx)
         exts2-set (set (extents (generate-scale scale-type (count base-set))))]
-    (boolean (identify-full-scale-measures scale-type exts1 base-set exts2-set))))
+    (boolean (identify-full-scale-measures scale-type ctx base-set exts2-set))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 
@@ -376,25 +375,24 @@
 
 (defn- objects-sets-of-scale-type 
   "Filters object-sets to those that are of the scale-type"
-  [object-sets scale-type exts scale-extents]
+  [object-sets scale-type ctx scale-extents]
   (->> object-sets
        (r/filter (fn [object-set] 
                    (identify-full-scale-measures scale-type
-                                                 exts object-set scale-extents)))
+                                                 ctx object-set scale-extents)))
        r/foldcat))
 
 (defmethod scale-complex :default
   [scale-type ctx]
-    (let [exts (extents ctx)]
-      (loop [subset-size 2 
-             scale-complex (into #{#{}} (map (fn [g] #{g}) (objects ctx)))]
-        (let [candidates (candidates-by-subset-heredity scale-complex (objects ctx) subset-size)
-              scale-extents (-> scale-type (generate-scale subset-size) extents set)]
-          (if (empty? candidates)
-            scale-complex
-            (let [found-full-scale-measures (objects-sets-of-scale-type candidates scale-type exts scale-extents)
-                  new-scale-complex (into scale-complex found-full-scale-measures)]
-              (recur (inc subset-size) new-scale-complex)) )) )) )
+  (loop [subset-size 2 
+         scale-complex (into #{#{}} (map (fn [g] #{g}) (objects ctx)))]
+    (let [candidates (candidates-by-subset-heredity scale-complex (objects ctx) subset-size)
+          scale-extents (-> scale-type (generate-scale subset-size) extents set)]
+      (if (empty? candidates)
+        scale-complex
+        (let [found-full-scale-measures (objects-sets-of-scale-type candidates scale-type ctx scale-extents)
+              new-scale-complex (into scale-complex found-full-scale-measures)]
+          (recur (inc subset-size) new-scale-complex)) )) ) )
 
 (defmethod scale-complex :crown
   [scale-type ctx]
@@ -402,7 +400,7 @@
         candidates (crown-candidates ctx)]
     (filter (fn [base-set]
               (let [exts2-set (set (extents (generate-scale :crown  (count base-set))))]
-                (identify-full-scale-measures :crown exts base-set exts2-set)))
+                (identify-full-scale-measures :crown ctx base-set exts2-set)))
             candidates)) )
 
 
