@@ -145,7 +145,12 @@
   given by the base-set. Used in case exts2 is of ordinal scale."
   [exts1 base-set exts2-set]
   (let [base-set-seq (seq base-set)
-        exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set) 
+        ;; For scales we consider ([n],[n],>=) and ([n],[n+1],>=) since some sub-contexts
+        ;; may have a closed empty set while the ordinal scale does not. We consider both 
+        ;; cases to be of ordinal scale.
+        exts1-restricted-to-base-set (difference
+                                      (restrict-extents-to-base-set exts1 base-set)
+                                      #{#{}}) 
         equal-sized (= (count exts1-restricted-to-base-set)
                        (count exts2-set)) ;; for computational speed-up
         ]
