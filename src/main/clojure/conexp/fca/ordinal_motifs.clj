@@ -609,7 +609,8 @@
         len (count (objects ctx))]
      (loop [current #{} chain [] conc concepts]
         (if ( =(count chain) len) chain
-                                    (let [new-candidates (filter #(= (count (set/difference (first %) current)) 1) conc)
+                                    (let [new-candidates (filter #(and (subset? current (first  %))
+                                                                       ( = (count (set/difference (first %) current)) 1)) conc)
                                           next (first (first new-candidates))]
                                        (if (some? next) (recur 
                                                          next 
@@ -622,27 +623,31 @@
                                                                                 (filter #(not= (first %) current) conc))))))))
 )
 
-;not functional
 (defmethod accepts-scale :interordinal [type ctx]
   (let [concepts (concepts ctx)
-        extents (filter first concepts)
-        objects (objects ctx)
-        len (count (objects ctx))]
-     (loop [current #{} chain [] conc concepts]
+        extents (map first concepts)
+        objs (objects ctx)
+        len (count objs)]
+     (loop [current #{} chain [] ext extents]
+
         (if ( =(count chain) len) chain
-                                    (let [new-candidates (filter #(and (= (count (set/difference (first %) current)) 1)
-                                                                       (some (fn [x] (= x (set/difference objects current))) extents)) conc)
-                                          next (first (first new-candidates))]
+                                  (let [new-candidates (filter #(and (subset? current %)
+                                                                     (= (count (set/difference % current)) 1)
+                                                                     (some (fn [x] (= x (set/difference objs current))) ext)) ext)
+                                        next (first new-candidates)]
+                                       (println current)
+                                       (println new-candidates)
                                        (if (some? next) (recur 
                                                          next 
                                                          (conj chain next) 
-                                                         conc)
+                                                         ext)
 
                                                         (if (not= (count current) 0) (recur 
-                                                                                (last (drop-last chain)) 
-                                                                                (drop-last chain)
-                                                                                (filter #(not= (first %) current) conc))))))))
+                                                                                      (last (drop-last chain)) 
+                                                                                      (drop-last chain)
+                                                                                      (filter #(not= % current) ext))))))))
 )
+
 
 (defmethod accepts-scale :crown [type ctx]);exhaustive search
 
@@ -655,4 +660,16 @@
 
 (def ctx3 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
                                                             ["C" 3] ["C" 4] ["C" 5] ["C" 6] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
+
+(def ctx4 (make-context #{"A" "B" "C" "D" "E" "F"} #{1 2 3 12 23 123} 
+                           #{["A" 1] ["A" 12] ["A" 123]
+                             ["B" 2] ["B" 12] ["B" 23] ["B" 123]
+                             ["C" 3] ["C" 23] ["C" 123]
+                             ["D" 12] ["D" 123]
+                             ["E" 23] ["E" 123]
+                             ["F" 123]}
+                           ))
+
+(def ctx5 (make-context #{"A" "B" "C"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
+                                                            ["C" 3] ["C" 4] ["C" 5] ["C" 6]}))
 
