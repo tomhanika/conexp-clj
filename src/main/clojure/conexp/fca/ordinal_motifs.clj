@@ -649,8 +649,14 @@
 )
 
 
-(defmethod accepts-scale :crown [type ctx]);exhaustive search
-
+(defmethod accepts-scale :crown [type ctx]
+  (let [objects (objects ctx)
+        obj-pairs (filter #(= 2 (count %)) (extents ctx))
+        possible-paths (filter #(= (count objects) (count %)) (subsets obj-pairs))
+        ]
+     (if (every? #(= #{%} (attribute-derivation ctx (object-derivation  ctx #{%}))) objects);check if all objects form concepts
+        (some identity (for [p possible-paths] (is-of-crown-scale? p)))
+)))
 
 
 ;test contexts
@@ -673,3 +679,11 @@
 (def ctx5 (make-context #{"A" "B" "C"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
                                                             ["C" 3] ["C" 4] ["C" 5] ["C" 6]}))
 
+(def ctx6 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["B" 2] ["B" 3] ["C" 3] ["C" 4] ["D" 4] ["D" 1]}))
+
+(def ctx7 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["B" 2] ["B" 3] ["C" 3] ["C" 4] ["D" 4] ["D" 1]}))
+
+(def ctx8 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["A" 3] ["A" 4]
+                                                        ["B" 1] ["B" 2] ["B" 3] ["B" 4]
+                                                        ["C" 1] ["C" 2] ["C" 3] ["C" 4]
+                                                        ["D" 1] ["D" 2] ["D" 3] ["D" 4]}))
