@@ -635,8 +635,6 @@
                                                                      (= (count (set/difference % current)) 1)
                                                                      (some (fn [x] (= x (set/difference objs current))) ext)) ext)
                                         next (first new-candidates)]
-                                       (println current)
-                                       (println new-candidates)
                                        (if (some? next) (recur 
                                                          next 
                                                          (conj chain next) 
@@ -651,12 +649,33 @@
 
 (defmethod accepts-scale :crown [type ctx]
   (let [objects (objects ctx)
-        obj-pairs (filter #(= 2 (count %)) (extents ctx))
-        possible-paths (filter #(= (count objects) (count %)) (subsets obj-pairs))
-        ]
+        obj-pairs (filter #(= 2 (count %)) (extents ctx))]
+
      (if (every? #(= #{%} (attribute-derivation ctx (object-derivation  ctx #{%}))) objects);check if all objects form concepts
-        (some identity (for [p possible-paths] (is-of-crown-scale? p)))
-)))
+        (loop [path []
+               search-tree (into [] obj-pairs)]
+
+            
+             (if (and (= ( count path) (count objects));cycle has correct length
+                      (set/difference (second path) (set/difference (first path) (last path))));first and last elements overlap with unique element
+                
+                path
+                (let [candidates (filter #(= (count (set/intersection ;pair overlaps with last pair but on a new element
+                                                     (set/difference 
+                                                      (first path) 
+                                                      (second path)) 
+                                                     %)) 
+                                             1) 
+                                         (set/difference (set obj-pairs) (set path)))
+
+                      [next & updated-search-tree] (into (into [] candidates) search-tree)]
+
+
+                    (if candidates (recur (into (vector next) path) updated-search-tree)
+                                   (recur (into (vector next) (drop 1 path)) updated-search-tree))                     
+))))))
+             
+
 
 
 ;test contexts
