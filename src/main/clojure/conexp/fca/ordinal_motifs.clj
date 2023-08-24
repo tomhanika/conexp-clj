@@ -515,21 +515,22 @@
   "Returns a lazy-seq of the "
   ([ordinal-motifs+stats normalized] (ordinal-motif-covering-seq ordinal-motifs+stats normalized #{}))
   ([ordinal-motifs+stats normalized covered-exts]
-   (let [;; get max key
-         [most-covering-motif {:keys [scale-type extents covering] :as stats}] 
-                              (apply max-key (fn [[motif {:keys [covering extents]}]]
-                                               (if normalized
-                                                 (/ (count covering) (count extents))
-                                                 (count covering))) 
-                                     ordinal-motifs+stats)
-         ;; update motif-concept-map by set difference
-         updated-ordinal-motifs+stats (as-> ordinal-motifs+stats $
-                                        (dissoc $ most-covering-motif)
-                                        (fmap (fn [remaining-stats] 
-                                                (update remaining-stats :covering #(difference % covering))) $ ))
-         new-covered-exts (clojure.set/union covered-exts covering)]
-     (cons [most-covering-motif stats]
-           (lazy-seq (ordinal-motif-covering-seq updated-ordinal-motifs+stats normalized new-covered-exts ))))))
+   (if (not (empty? ordinal-motifs+stats))
+     (let [ ;; get max key
+           [most-covering-motif {:keys [scale-type extents covering] :as stats}] 
+           (apply max-key (fn [[motif {:keys [covering extents]}]]
+                            (if normalized
+                              (/ (count covering) (count extents))
+                              (count covering))) 
+                  ordinal-motifs+stats)
+           ;; update motif-concept-map by set difference
+           updated-ordinal-motifs+stats (as-> ordinal-motifs+stats $
+                                          (dissoc $ most-covering-motif)
+                                          (fmap (fn [remaining-stats] 
+                                                  (update remaining-stats :covering #(difference % covering))) $ ))
+           new-covered-exts (clojure.set/union covered-exts covering)]
+       (cons [most-covering-motif stats]
+             (lazy-seq (ordinal-motif-covering-seq updated-ordinal-motifs+stats normalized new-covered-exts )))))))
 
 (defn- compute-ordinal-motifs+stats 
   "Computes a map for each ordinal motif base set H \\subseteq G to the extents of K[H,M]"
