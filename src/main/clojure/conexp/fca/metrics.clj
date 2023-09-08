@@ -1604,32 +1604,37 @@
 ;tripe must be a collection of three concepts in "lat"
 (defn generate-from-triple [triple lat]
 
-  (let [stage1-meets (for [a triple b triple] ((inf lat) a b))
-        stage1-joins (for [a triple b triple] ((sup lat) a b))
+  (let [stage1-meets (set (filter some? (for [a triple b triple] (if (not= a b) ((inf lat) a b)))))
+        stage1-joins (set (filter some? (for [a triple b triple] (if (not= a b) ((sup lat) a b)))))
         
-        stage2-meets (for [a stage1-joins b stage1-joins] ((inf lat) a b))
-        stage2-joins (for [a stage1-meets b stage1-meets] ((sup lat) a b))
+        stage2-meets (set (filter some? (for [a stage1-joins b stage1-joins] (if (not= a b) ((inf lat) a b)))))
+        stage2-joins (set (filter some? (for [a stage1-meets b stage1-meets] (if (not= a b) ((sup lat) a b)))))
 
-        final-meet ((inf lat) ((inf lat) (first stage1-joins) (second stage1-joins)) (last stage1-joins))
 
-        base-set (set/union stage1-meets 
-                              stage1-joins
-                              stage2-meets
-                              stage2-joins
-                              final-meet)
-        ]
-      
-      (make-lattice-nc base-set
+        final-meet #{ (into [] ((inf lat) 
+                                 ((inf lat) (first stage1-joins) (second stage1-joins)) 
+                                 (last stage1-joins)))}
+
+        base-set (set/union triple
+                            stage1-meets 
+                            stage1-joins
+                            stage2-meets
+                            stage2-joins
+                            final-meet)]
+     
+        (make-lattice-nc base-set
                        (lattice-order lat)
                        (inf lat)
-                       (sup lat)))
-)
+                       (sup lat))
+
+))
 
 ;verifies if "concept" is a neutral element in "lat"
 (defn neutral? [concept lat]
   (let [base-set (lattice-base-set lat)]
-     (some identity (for [x base-set y base-set] (distributive? (generate-from-triple [concept x y] lat))))
-))
+     (every? identity (for [x base-set y base-set] (distributive? (generate-from-triple [concept x y] lat))))
+)
+)
 
 ;return all neutral elements in "lat"
 (defn neutral-concepts [lat]
@@ -1638,13 +1643,35 @@
 )
 )
 
-;retruns a complement of "concept" in "lat"
-(defn complemnt [concept lat]
+;retruns all complement of "concept" in "lat"
+(defn element-complement [concept lat]
   (let [base-set (lattice-base-set lat)
-        top ])
+        top (first(filter #(= (second %) #{}) base-set))
+        bot (reduce #(if (> (count (second %1)) (count (second %2))) %1
+                                                                     %2
+                                                                       ) base-set)]
+
+      (filter #(and (not= % concept)
+                    (= ((sup lat) concept %) top)
+                    (= ((inf lat) concept %) bot))
+              base-set))
+)
+
+;returns a decomposition pair of "lat", if a Libkin decomposition is possible
+(defn decomposition [lat]
+  (let [neutral-element (first (neutral-concepts lat))
+        complement (first (element-complement neutral-element lat))]
+
+      [neutral-element complement]
+)
 
 
 )
+
+
+
+
+
 
 ;meets:
 x-y
@@ -1673,10 +1700,14 @@ x-y+x-z+y-z
                        #{"A" "B" "C" "D" "E"} 
                        #{[1 "A"] [2 "A"] [2 "B"] [3 "B"] [3 "C"] [4 "A"] [4 "B"] [4 "C"] [5 "C"] [5 "D"] [5 "E"]}))
 (def lat (concept-lattice ctx))
-((inf lat2) [#{1} 0] [#{2} 0])
 
 
-(def lat2 (generate-from-triple [[#{5} #{"E" "C" "D"}] [#{4 3} #{"C" "B"}] [#{4 2} #{"B" "A"}]] lat))
+(def ctx2 (make-context #{1 2 3 4 5} 
+                       #{"A" "B" "C" "D" "E"} 
+                       #{[1 "A"] [2 "A"]   [4 "A"] [4 "B"] [4 "C"] [5 "C"] [5 "D"] [5 "E"]}))
+(def lat2 (concept-lattice ctx))
+
+
 
 
 
