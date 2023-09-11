@@ -295,7 +295,9 @@
 (defn cycles-of-g
   "Returns for an object g all cycles that can be found using the
   neighbors relations. Here neighbors is a map from the objects to all
-  other objects that have a shared attribute. Breadth first search."
+  other objects that have a shared attribute. Breadth first search.
+  Only such cycles of g are returned, where elements can only be 
+  reached by their neighbors."
   [ctx neighbours start-g]
   (let [obj-seq (into [start-g] (seq (disj (objects ctx) start-g)))
         obj-order (fn [obj] (doall (sort-by #(.indexOf obj-seq %) obj)))]
