@@ -102,7 +102,7 @@
   [file]
   (with-in-reader file
     (let [json-lattice (json/read *in* :key-fn keyword)
-          schema-file "src/main/resources/schemas/lattice_schema_v1.1.json"]
+          schema-file "schemas/lattice_schema_v1.1.json"]
       (assert (matches-schema? json-lattice schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
       (json->lattice json-lattice))))
