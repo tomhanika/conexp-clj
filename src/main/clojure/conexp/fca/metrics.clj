@@ -1657,16 +1657,11 @@
               base-set))
 )
 
-;returns a decomposition pair of "lat", if a Libkin decomposition is possible
-(defn decomposition [lat]
-  (let [neutral-element (first (neutral-concepts lat))
-        complement (first (element-complement neutral-element lat))]
-
-      [neutral-element complement]
-)
-
-
-)
+;returns all decompositions pair of "lat" for Libkin decompositions
+(defn decompositions [lat]
+  (let [neutral-elements (neutral-concepts lat)]
+      (for [n neutral-elements c (element-complement n lat)] [n c])
+))
 
 
 
@@ -1708,7 +1703,10 @@ x-y+x-z+y-z
 (def lat2 (concept-lattice ctx))
 
 
-
+(def ctx3 (make-context #{1 2 3 4 5 6 7} #{"A" "B" "C"} #{[1 "A"] [2 "B"] [3 "C"]
+                                                          [4 "A"] [4 "B"] [5 "B"] [5 "C"] [6 "A"] [6 "C"]
+                                                          [7 "A"] [7 "B"] [7 "C"]}))
+(def lat3 (concept-lattice ctx3))
 
 
 
