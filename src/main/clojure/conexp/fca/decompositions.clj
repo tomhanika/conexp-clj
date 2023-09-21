@@ -25,7 +25,7 @@
 
 (defn libkin-decomposition-lattices 
   "Computes the Lattices Resulting from the Libkin-Decomposition on the 
-  Providen Decomposition Pair."
+  Provided Decomposition Pair."
   [lat decomp-pair]
   (let [set1 (order-ideal lat (conj #{} (first decomp-pair)))
         set2 (order-ideal lat (conj #{} (last decomp-pair)))
