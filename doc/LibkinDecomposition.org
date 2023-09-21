@@ -1,0 +1,632 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Libkin Decomposition
+
+~conexp-clj~ allows for the computation of Libkin Decompositions of lattices.
+For an explanation of the concept consult "Direct product decompositions of lattices, closures and relation schemes" by Leonid Libkin
+
+We will consider the following lattice as an example:
+
+#+begin_src clojure :exports both
+(def ctx (make-context #{1 2 3 4 5 6 7} #{"A" "B" "C"} #{[1 "A"] [2 "B"] [3 "C"]
+                                                          [4 "A"] [4 "B"] [5 "B"] [5 "C"] [6 "A"] [6 "C"]
+                                                          [7 "A"] [7 "B"] [7 "C"]}))
+(def lat (concept-lattice ctx))
+#+end_src
+
+** Creating Formal Contexts
+
+~conexp-clj~ lets you easily create formal contexts in a number of ways.  We
+shall describe some of them in the following.
+
+A context ~(G,M,I)~ consists of two sets G and M and an incidence realtion I ⊆
+G×M. G is a set of /objects/, M is a set of /attributes/ and ~gIm~ (short for
+(g,m) ∈ I) can be read as /g has the attribute m/. To create a context you only
+have to define these sets. There a (at least) three options:
+
+*** Using a defined relation
+
+The fasted way to construct a formal context is just by writing it down, as in the following example.
+
+#+begin_src clojure :results silent
+(def ctx-1 (make-context [1 2 3] [1 2 3] <=))
+#+end_src
+
+To see the formal context, just evaluate its variable explicitly
+
+#+begin_src clojure :exports both
+ctx-1
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |1 2 3 
+--+------
+1 |x x x 
+2 |. x x 
+3 |. . x 
+
+#+end_src
+
+*** Defining all sets explicitly
+
+A formal context can also be specified by directly listing the incidence
+relation (using Clojure's own syntax for sets and tuples):
+
+#+begin_src clojure :exports both
+(def ctx-2 (make-context #{1 2 3 4 5 6}
+                         #{1 2 3 4 5 6}
+                         #{[1 1] [1 2] [1 3] [1 5]
+                           [1 6] [2 2] [2 5] [3 3]
+                           [3 6] [4 4] [4 5] [4 6]
+                           [5 5] [6 6]}))
+ctx-2
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |1 2 3 4 5 6 
+--+------------
+1 |x x x . x x 
+2 |. x . . x . 
+3 |. . x . . x 
+4 |. . . x x x 
+5 |. . . . x . 
+6 |. . . . . x 
+
+#+end_src
+  
+One can enter the cross-table explicitly, using the function
+~make-context-from-matrix~, like this
+
+#+begin_src clojure :exports both
+(def ctx-3 (make-context-from-matrix 6 6
+                                     [1 1 1 0 1 1
+                                      0 1 0 0 1 0
+                                      0 0 1 0 0 1
+                                      0 0 0 1 1 1
+                                      0 0 0 0 1 0
+                                      0 0 0 0 0 1]))
+ctx-3
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |0 1 2 3 4 5 
+--+------------
+0 |x x x . x x 
+1 |. x . . x . 
+2 |. . x . . x 
+3 |. . . x x x 
+4 |. . . . x . 
+5 |. . . . . x 
+
+#+end_src
+
+Here, instead of writing out the sets of objects and attributes explicitly, we
+have just entered their cardinality ~6~.  With this, the set of objects and
+attributes automatically gets set to ~#{1 2 3 4 5 6}~.  From time to time, this
+make save some typing time.
+
+### Using a custom function
+
+This will create a formal context with G = M = {1,2,3,4,5,6} and (n,m) in I if
+and only if gcd(n,m) = 1:
+
+#+begin_src clojure :exports both
+(def ctx-4 (make-context [1 2 3 4 5 6]
+                         [1 2 3 4 5 6]
+                         (fn [x y]
+                           (= 1 (gcd x y)))))
+ctx-4
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |1 2 3 4 5 6 
+--+------------
+1 |x x x x x x 
+2 |x . x . x . 
+3 |x x . x x . 
+4 |x . x . x . 
+5 |x x x x . x 
+6 |x . . . x . 
+
+#+end_src
+
+
+*** Creating Random Contexts
+
+For some experiments it is often helpful to randomly create contexts.  Here is
+how this can be done in conexp-clj.  Of course, the exact result is probably not
+the one you see here
+
+#+begin_src clojure :exports both
+(rand-context #{1 2 3} 0.5)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |1 2 3 
+--+------
+1 |x x x 
+2 |x x . 
+3 |x . x 
+
+#+end_src
+
+Here, the first parameter is the set of objects and attributes and the second
+parameter is the probality for the incidence.
+
+** Working with Formal Contexts
+
+Having created a formal context, there a plenty of possibilities to work with
+it.
+
+*** Basic Accessors
+
+The most basic operation on formal contexts is to retrieve its components.  This
+can be done as follows
+
+#+begin_src clojure :exports both
+[(objects ctx-2), (attributes ctx-2), (incidence ctx-2)]
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+[#{1 4 6 3 2 5}
+ #{1 4 6 3 2 5}
+ #{[2 2] [2 5] [3 3] [1 1] [6 6] [4 6] [1 3] [1 5] [5 5] [3 6] [4 5]
+   [1 6] [4 4] [1 2]}]
+#+end_src
+
+*** Clarifying and Reducing Contexts
+
+To see if ~ctx-2~ is clarified, you can use the functions ~object-clarified?~,
+~attribute-clarified?~, and ~context-clarified?~.
+
+#+begin_src clojure :exports both
+[(object-clarified? ctx-2),
+ (attribute-clarified? ctx-2),
+ (context-clarified? ctx-2)]
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+[true true true]
+#+end_src
+
+If ~ctx-2~ would not be clarified, one could obtain a clarified version of it by
+using
+
+#+begin_src clojure :eval never :exports code
+(clarify-attributes ctx-2)
+(clarify-objects ctx-2)
+(clarify-context ctx-2)
+#+end_src
+
+As another example, for ~ctx-2~, we could for instance compute the arrow
+relations (e.g. to see which objects or attributes are irreducible)
+
+#+begin_src clojure :exports both
+[(up-arrows ctx-2), (down-arrows ctx-2)]
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+[#{[4 3] [6 3] [4 2] [6 5] [5 2] [1 4] [5 6] [2 6] [3 5]}
+ #{[4 3] [2 3] [4 2] [4 1] [1 4] [3 1] [2 1] [2 6] [3 5] [3 2]}]
+#+end_src
+
+To directly see whether ~ctx-2~ is reduced, use ~context-reduced?~, and to
+obtain a reduced version of ~ctx-2~, call ~reduce-context~ like so:
+
+#+begin_src clojure :exports both
+(reduce-context ctx-2)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |2 3 4 5 6 
+--+----------
+1 |x x . x x 
+2 |x . . x . 
+3 |. x . . x 
+4 |. . x x x 
+
+#+end_src
+
+*** Derivation Operations
+
+Now I want to get all objects, which attribute ~1~ and ~2~ have in common
+
+#+begin_src clojure :exports both
+(attribute-derivation ctx-2 #{1 2})
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+#{1}
+#+end_src
+
+The same can be done for sets of objects
+
+#+begin_src clojure :exports both
+(object-derivation ctx-1 #{1 2})
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+#{3 2}
+#+end_src
+
+Instead of using this long function names, there are also the abbreviations
+~aprime~ and ~oprime~ available.
+
+If you want to compute the closure of a given set of objects or attributes in
+our context use
+
+#+begin_src clojure :exports both
+[ (context-attribute-closure ctx-2 #{1 2}),
+  (context-object-closure ctx-2 #{1 2}) ]
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+[#{1 6 3 2 5} #{1 2}]
+#+end_src
+
+*** Formal Concepts and Concept Lattices
+
+We can compute all intents and extents via
+
+#+begin_src clojure :exports both
+[(extents ctx-2), (intents ctx-2)]
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+[(#{}
+  #{4}
+  #{1}
+  #{1 4}
+  #{1 2}
+  #{1 3}
+  #{1 4 2 5}
+  #{1 4 6 3}
+  #{1 4 6 3 2 5})
+ (#{}
+  #{5}
+  #{2 5}
+  #{6}
+  #{6 5}
+  #{6 3}
+  #{4 6 5}
+  #{1 6 3 2 5}
+  #{1 4 6 3 2 5})]
+#+end_src
+  
+To get all formal concepts use
+
+#+begin_src clojure :exports both
+(concepts ctx-2)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+([#{1 4 6 3 2 5} #{}]
+ [#{1} #{1 6 3 2 5}]
+ [#{} #{1 4 6 3 2 5}]
+ [#{4} #{4 6 5}]
+ [#{1 4 6 3} #{6}]
+ [#{1 3} #{6 3}]
+ [#{1 4} #{6 5}]
+ [#{1 2} #{2 5}]
+ [#{1 4 2 5} #{5}])
+#+end_src
+
+If you are only interested in the number of formal concepts, you can instead
+just ~count~ the concepts, like so
+
+#+begin_src clojure :exports both
+(count (concepts ctx-2))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+9
+#+end_src
+
+This can be combined neatly with ~map~ to get the number of concepts for all the
+formal contexts we have defined to far
+
+#+begin_src clojure :exports both
+(map (comp count concepts) [ctx-1 ctx-2 ctx-3 ctx-4])
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+(3 9 9 8)
+#+end_src
+
+The standard ~comp~ functions implements function composition in Clojure.
+
+Finally, you can compute the concept lattice using the ~concept-lattice~
+function like so:
+
+#+begin_src clojure :exports both
+(concept-lattice ctx-2)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+Lattice on 9 elements.
+#+end_src
+
+Note that this will not give you a picture of the lattice, but a representation
+of the algebraic structure.
+
+*** Canonical Base
+
+You get the canonical base with (who would have guessed that!)
+
+user=> (canonical-base ctx-1)
+#{(#{b}  ==>  #{e}) (#{c}  ==>  #{f}) (#{c f e}  ==>  #{a b})
+  (#{a}  ==>  #{c b f e}) (#{d}  ==>  #{f e}) (#{b f e}  ==>  #{a c})}
+
+The ~canonical-base~ function can take additional arguments like background
+knowledge and filter predicates.  See the documentation of this function for
+further details:
+
+#+begin_src clojure :exports both
+(doc canonical-base)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+-------------------------
+conexp.fca.implications/canonical-base
+([ctx] [ctx background-knowledge] [ctx background-knowledge predicate])
+  Returns the canonical base of given context, as a lazy sequence.  Uses
+  «background-knowledge» as starting set of implications, which will not appear
+  in the result.  If «predicate» is given (a function), computes only those
+  implications from the canonical base whose premise satisfy this predicate,
+  i.e. «predicate» returns true on these premises.  Note that «predicate» has to
+  satisfy the same conditions as the predicate to «next-closed-set-in-family».
+nil
+#+end_src
+
+*** Further Operations
+
+There a several further operations you can do with contexts, e.g., the context
+apposition, context subposition, and more.  For illustration, let us define two
+contexts:
+
+#+begin_src clojure :exports both
+(def ctx-5 (make-context #{1 2 3} #{1 2 3} <))
+(def ctx-6 (make-context-from-matrix [1 2 3]
+                                     ['a 'b 'c 'd]
+                                     [1 1 0 1
+                                      1 0 1 0
+                                      0 0 1 1]))
+[ctx-5 ctx-6]
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+[  |1 2 3 
+--+------
+1 |. x x 
+2 |. . x 
+3 |. . . 
+   |a b c d 
+--+--------
+1 |x x . x 
+2 |x . x . 
+3 |. . x x 
+]
+#+end_src
+
+The apposition of these two contexts is
+
+#+begin_src clojure :exports both
+(context-apposition ctx-5 ctx-6)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |[1 0] [2 0] [3 0] [a 1] [b 1] [c 1] [d 1] 
+--+------------------------------------------
+1 |.     x     x     x     x     .     x     
+2 |.     .     x     x     .     x     .     
+3 |.     .     .     .     .     x     x     
+
+#+end_src
+
+Note how the two sets of attributes are automatically made disjoint by
+considering pairs with different second entry.
+
+Context apposition is a partial operation, as the contexts must have the same
+set of objects.  The following would not work:
+
+#+begin_src clojure :exports both
+(context-apposition ctx-1 ctx-2)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+class java.lang.IllegalArgumentExceptionclass java.lang.IllegalArgumentExceptionIllegalArgumentException Cannot do context apposition, since object sets are not equal.  conexp.base/illegal-argument (base.clj:280)
+#+end_src
+
+To compute the dual context, use what you would expect to use:
+
+#+begin_src clojure :exports both
+(dual-context ctx-5)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |1 2 3 
+--+------
+1 |. . . 
+2 |x . . 
+3 |x x . 
+
+#+end_src
+
+Now we can build the subposition of ~ctx-5~ and the dual of ~ctx-6~
+
+#+begin_src clojure :exports both
+(context-subposition ctx-5 (dual-context ctx-6))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+      |1 2 3 
+------+------
+[1 0] |. x x 
+[2 0] |. . x 
+[3 0] |. . . 
+[a 1] |x x . 
+[b 1] |x . . 
+[c 1] |. x x 
+[d 1] |x . x 
+
+#+end_src
+
+If you want to invert a given context use
+
+#+begin_src clojure :exports both
+(invert-context ctx-5)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |1 2 3 
+--+------
+1 |x . . 
+2 |x x . 
+3 |x x x 
+
+#+end_src
+
+You can create a composition of two (suitable) contexts with
+
+#+begin_src clojure :exports both
+(context-composition ctx-5 ctx-6)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |a b c d 
+--+--------
+1 |x . x x 
+2 |. . x x 
+3 |. . . . 
+
+#+end_src
+
+The union of two contexts is created by
+
+#+begin_src clojure :exports both
+(context-union ctx-5 ctx-6)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |a b c d 1 2 3 
+--+--------------
+1 |x x . x . x x 
+2 |x . x . . . x 
+3 |. . x x . . . 
+
+#+end_src
+
+Sum to contexts with
+
+#+begin_src clojure :exports both
+(context-sum ctx-5 ctx-6)
+#+end_src
+
+To compute the intersection of two contexts (which is essentially empty), use
+
+#+begin_src clojure :exports both
+(context-intersection ctx-5 ctx-6)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |
+--+
+1 |
+2 |
+3 |
+
+#+end_src
+
+The context product goes like this
+
+#+begin_src clojure :exports both
+(context-product ctx-5 ctx-6)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+      |[1 a] [2 a] [3 a] [1 b] [2 b] [3 b] [1 c] [2 c] [3 c] [1 d] [2 d] [3 d] 
+------+------------------------------------------------------------------------
+[1 1] |x     x     x     x     x     x     .     x     x     x     x     x     
+[2 1] |x     x     x     x     x     x     .     .     x     x     x     x     
+[3 1] |x     x     x     x     x     x     .     .     .     x     x     x     
+[1 2] |x     x     x     .     x     x     x     x     x     .     x     x     
+[2 2] |x     x     x     .     .     x     x     x     x     .     .     x     
+[3 2] |x     x     x     .     .     .     x     x     x     .     .     .     
+[1 3] |.     x     x     .     x     x     x     x     x     x     x     x     
+[2 3] |.     .     x     .     .     x     x     x     x     x     x     x     
+[3 3] |.     .     .     .     .     .     x     x     x     x     x     x     
+
+#+end_src
+
+If you want to do a context semiproduct
+
+#+begin_src clojure :exports both
+(context-semiproduct ctx-5 ctx-6)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+      |[1 0] [2 0] [3 0] [a 1] [b 1] [c 1] [d 1] 
+------+------------------------------------------
+[1 1] |.     x     x     x     x     .     x     
+[2 1] |.     .     x     x     x     .     x     
+[3 1] |.     .     .     x     x     .     x     
+[1 2] |.     x     x     x     .     x     .     
+[2 2] |.     .     x     x     .     x     .     
+[3 2] |.     .     .     x     .     x     .     
+[1 3] |.     x     x     .     .     x     x     
+[2 3] |.     .     x     .     .     x     x     
+[3 3] |.     .     .     .     .     x     x     
+
+#+end_src
+
+Compute Xia's product
+
+#+begin_src clojure :exports both
+(context-xia-product ctx-5 ctx-6)
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+      |[1 a] [2 a] [3 a] [1 b] [2 b] [3 b] [1 c] [2 c] [3 c] [1 d] [2 d] [3 d] 
+------+------------------------------------------------------------------------
+[1 1] |.     x     x     .     x     x     x     .     .     .     x     x     
+[2 1] |.     .     x     .     .     x     x     x     .     .     .     x     
+[3 1] |.     .     .     .     .     .     x     x     x     .     .     .     
+[1 2] |.     x     x     x     .     .     .     x     x     x     .     .     
+[2 2] |.     .     x     x     x     .     .     .     x     x     x     .     
+[3 2] |.     .     .     x     x     x     .     .     .     x     x     x     
+[1 3] |x     .     .     x     .     .     .     x     x     .     x     x     
+[2 3] |x     x     .     x     x     .     .     .     x     .     .     x     
+[3 3] |x     x     x     x     x     x     .     .     .     .     .     .     
+
+#+end_src
