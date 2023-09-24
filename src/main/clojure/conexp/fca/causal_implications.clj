@@ -7,10 +7,15 @@
    [conexp.fca.implications :refer :all]
    [clojure.set :as set]))
 
+;For a full Explanation of the Concepts refer to *Mining Causal Association Rules*
+;https://www.researchgate.net/publication/262240022_Mining_Causal_Association_Rules
+
 
 (defn matched-record-pair? [ctx impl controlled-variables a b]
-  "Returns true if a and b form a matched record pair in respect to the context and controlled variables,
-   false otherwise."
+  "Returns true if a and b form a matched record pair in respect to the context, implication and controlled variables,
+   false otherwise.
+   a and b for a matched record pair, if they both have the same value for each controlled variable, but only one contains
+   the premise of the implication."
   (let [premise (premise impl) 
         conclusion (conclusion impl)
         a-attributes (object-derivation ctx [a])
@@ -39,7 +44,7 @@
 
 
 (defn fair-data-set [ctx impl controlled-variables]
-  "computes the fair data set of ctx in respect to impl by finding matched record pairs
+  "Computes the fair data set of ctx in respect to impl by finding matched record pairs
    among the objects. Each object may only be matched with exactly one other object."
   (let [objs (objects ctx)]
     (filter seq 
@@ -56,7 +61,7 @@
       ))
 
 (defn fair-odds-ratio [ctx impl fair-data]
-  "computes the odds ratio of an implication by dividing the number of matched pairs, 
+  "Computes the odds ratio of an implication by dividing the number of matched pairs, 
    where the only the exposed element contains the conclusion by the number of matched pairs,
    where only the non-exposed object contains the conclusion. 
    (The divisor is capped at a minimum of 1)
@@ -95,15 +100,15 @@
    level of confidence. (1.7 => 70% confidence)"
   (let [premise (premise impl) conclusion (conclusion impl)]
     [(Math/exp (+ (Math/log odds-ratio)
-                  (* zconf (Math/sqrt (+ (/ 1 (imp/absolute-support ctx [(set/union premise conclusion) #{}]))
-                                         (/ 1 (imp/absolute-support ctx [premise conclusion]))
-                                         (/ 1 (imp/absolute-support ctx [conclusion premise])) 
-                                         (/ 1 (imp/absolute-support ctx [#{} (set/union premise conclusion)])))))))
+                  (* zconf (Math/sqrt (+ (/ 1 (absolute-support ctx [(set/union premise conclusion) #{}]))
+                                         (/ 1 (absolute-support ctx [premise conclusion]))
+                                         (/ 1 (absolute-support ctx [conclusion premise])) 
+                                         (/ 1 (absolute-support ctx [#{} (set/union premise conclusion)])))))))
      (Math/exp (- (Math/log odds-ratio)
-                  (* zconf (Math/sqrt (+ (/ 1 (imp/absolute-support ctx [(set/union premise conclusion) #{}]))
-                                         (/ 1 (imp/absolute-support ctx [premise conclusion]))
-                                         (/ 1 (imp/absolute-support ctx [conclusion premise])) 
-                                         (/ 1 (imp/absolute-support ctx [#{} (set/union premise conclusion)])))))))] 
+                  (* zconf (Math/sqrt (+ (/ 1 (absolute-support ctx [(set/union premise conclusion) #{}]))
+                                         (/ 1 (absolute-support ctx [premise conclusion]))
+                                         (/ 1 (absolute-support ctx [conclusion premise])) 
+                                         (/ 1 (absolute-support ctx [#{} (set/union premise conclusion)])))))))] 
 ))
 
 (defn fair-confidence-interval [ctx impl fair-odds-ratio fair-data zconf]
@@ -149,8 +154,8 @@
 ))
 
 
-(defn relevant? [ctx variable response-variable zconfidence]
-  "Computes whather a viariable is relevant to the response variable, by computing whether or not it
+(defn causally-relevant? [ctx variable response-variable zconfidence]
+  "Computes whether a variable is relevant to the response variable, by computing whether or not it
    is associated with the response variable.
    A variable p is associated with the response variable z, if the lower bound of the confidence interval of the 
    implication p -> z is greater than 1."
@@ -161,7 +166,7 @@
 
 (defn irrelevant-variables [ctx vars response-variable zconfidence]
   "Returns a set that contains all variables in vars that are irrelevant to response-var."
-  (set (filter #(not (relevant? ctx % response-variable zconfidence)) vars))
+  (set (filter #(not (causally-relevant? ctx % response-variable zconfidence)) vars))
 )
 
 (defn exclusive-variables [ctx item-set thresh] 
@@ -172,8 +177,8 @@
     (filter some? 
       (for [a item-set, b (attributes ctx)]
         (if (not (= a b))
-          (if (or (<= (imp/absolute-support ctx [#{a b} #{}]) thresh) 
-                  (<= (imp/absolute-support ctx [#{b} #{a}]) thresh))
+          (if (or (<= (absolute-support ctx [#{a b} #{}]) thresh) 
+                  (<= (absolute-support ctx [#{b} #{a}]) thresh))
             #{a b})))))
   )
 
@@ -202,8 +207,8 @@
    If they have the same support, they cover the same objects, and the more specific rule redundant."
   (set (for [new new-item-sets, old current-item-sets]
     (if (and (subset? old new) 
-             (= (imp/local-support ctx (->Implication  new #{response-var})) 
-                (imp/local-support ctx (->Implication  old #{response-var}))))
+             (= (local-support ctx (->Implication  new #{response-var})) 
+                (local-support ctx (->Implication  old #{response-var}))))
      new  
 ))))
 
@@ -213,7 +218,7 @@
     implications. Trivial implications are not considered."
    ;initial setup
    (let [frequent-vars (set (filter
-                             #(> (imp/local-support ctx (->Implication #{%} #{response-var})) min-lsupp) 
+                             #(> (local-support ctx (->Implication #{%} #{response-var})) min-lsupp) 
                              (attributes ctx))) 
          ivars (irrelevant-variables ctx frequent-vars response-var zconf)]
 
@@ -242,7 +247,7 @@
          ctx
          (set/union rule-set new-causal-rules)
          variables
-         (set/difference (filter #(> (imp/local-support ctx (->Implication #{%} #{response-var})) min-lsupp) new-item-sets) 
+         (set/difference (filter #(> (local-support ctx (->Implication #{%} #{response-var})) min-lsupp) new-item-sets) 
                          (find-redundant ctx current new-item-sets response-var));filter item sets
          ivars
          min-lsupp
