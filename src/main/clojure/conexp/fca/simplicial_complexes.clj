@@ -7,25 +7,42 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.simplicial-complexes
-  "Provides the implementation of simplicial complexes and functions on them.")
+  "Provides the implementation of simplicial complexes and functions on them."
+  (:require [conexp.base :refer [hash-combine-hash]]))
 
-(defrecord Simplicial-Complex [base-set subsets])
+(defprotocol SimplicialComplex
+  (base-set [this] "Returns the base set.")
+  (simplices [this] "Returns the simplices of the simplicial complex, 
+                     which are subsets of its base_set."))
 
-(defn make-simplicial-complex-nc
-  "Create a simplicial complex from
+(deftype FullSimplicialComplex [base-set simplices]
+  Object
+  (equals [this other]
+    (and (= (class this) (class other))
+         (= (.base-set this) (.base-set ^FullSimplicialComplex other))
+         (= (set (.simplices this)) (set (.simplices ^FullSimplicialComplex other)))))
+  (hashCode [this]
+    (hash-combine-hash FullSimplicialComplex base-set simplices))
+  ;;
+  SimplicialComplex
+  (base-set [this] base-set)
+  (simplices [this] simplices))
+
+(comment (defn make-simplicial-complex-nc
+           "Create a simplicial complex from
   TODO: whatever the input value is
-  without checks.")
+  without checks."))
 
-(defn is-simplicial-complex?
-  "Check if given object follows the definition of a simplicial complex.
+(comment (defn is-simplicial-complex?
+           "Check if given object follows the definition of a simplicial complex.
   TODO: write definition"
-  [complex])
+           [complex]))
 
-(defn make-simplicial-complex
-  "Create a simplicial complex from 
+(comment (defn make-simplicial-complex
+           "Create a simplicial complex from 
   TODO: whatever the input value is."
-  [& args]
-  (let [simplicial-complex (apply make-simplicial-complex-nc args)]
-    (when-not (is-simplicial-complex? simplicial-complex)
-      (illegal-argument "Given arguments do not describe a simplicial complex."))
-    simplicial-complex))
+           [& args]
+           (let [simplicial-complex (apply make-simplicial-complex-nc args)]
+             (when-not (is-simplicial-complex? simplicial-complex)
+               (illegal-argument "Given arguments do not describe a simplicial complex."))
+             simplicial-complex)))
