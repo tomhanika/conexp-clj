@@ -9,7 +9,8 @@
 (ns conexp.fca.posets
   (:require [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
-            [conexp.fca.contexts :refer :all]))
+            [conexp.fca.contexts :refer :all]
+            [clojure.math.combinatorics :refer [cartesian-product]]))
 
 (deftype Poset [base-set order-function]
   Object
@@ -161,3 +162,10 @@
       (recur (union filter #{next-element})
              (union upper-neighbours (poset-upper-neighbours poset next-element))
              (first (difference upper-neighbours filter))))))
+
+(defn poset-product 
+  [a b]
+  (make-poset (cartesian-product (base-set a) (base-set b))
+              (fn [x y] (and ((order a) (first x) (first y)) 
+                             ((order b) (last x) (last y)))))
+)
