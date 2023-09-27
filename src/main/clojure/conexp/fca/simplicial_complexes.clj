@@ -8,7 +8,14 @@
 
 (ns conexp.fca.simplicial-complexes
   "Provides the implementation of simplicial complexes and functions on them."
-  (:require [conexp.base :refer [hash-combine-hash]]))
+  (:require [conexp.base :refer [clojure-coll
+                                 clojure-set
+                                 clojure-type
+                                 hash-combine-hash
+                                 illegal-argument
+                                 union]]))
+
+;;; Data structure
 
 (defprotocol SimplicialComplex
   (base-set [this] "Returns the base set.")
@@ -23,22 +30,42 @@
          (= (set (.simplices this)) (set (.simplices ^FullSimplicialComplex other)))))
   (hashCode [this]
     (hash-combine-hash FullSimplicialComplex base-set simplices))
+  (toString [this]
+    (str (set (.simplices this))))
   ;;
   SimplicialComplex
   (base-set [this] base-set)
   (simplices [this] simplices))
 
-(comment (defn make-simplicial-complex-nc
-           "Create a simplicial complex from
-  TODO: whatever the input value is
-  without checks."))
+(defmethod print-method FullSimplicialComplex [^FullSimplicialComplex simplicial-complex,
+                                               ^java.io.Writer out]
+  (.write out
+          ^String (str simplicial-complex)))
+
+;;; Constructors
+
+(defmulti make-full-simplicial-complex-nc
+  "Creates a full simplicial complex from the given arguments, without any checks."
+  {:arglist '([simplices]
+              [base-set simplices])}
+  (fn [& args] (vec (map clojure-type args))))
+
+(defmethod make-full-simplicial-complex-nc [clojure-set clojure-coll] [base-set simplices]
+  (FullSimplicialComplex. base-set simplices))
+
+(defmethod make-full-simplicial-complex-nc [clojure-coll] [simplices]
+  (let [base-set (apply union simplices)]
+    (make-full-simplicial-complex-nc base-set simplices)))
+
+(defmethod make-full-simplicial-complex-nc :default [& args]
+  (illegal-argument "The arguments " args " are not valid for a Full Simplicial Complex."))
 
 (comment (defn is-simplicial-complex?
            "Check if given object follows the definition of a simplicial complex.
   TODO: write definition"
            [complex]))
 
-(comment (defn make-simplicial-complex
+(comment (defn make-full-simplicial-complex
            "Create a simplicial complex from 
   TODO: whatever the input value is."
            [& args]

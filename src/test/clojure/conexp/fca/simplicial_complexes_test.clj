@@ -29,3 +29,25 @@
   (is (not= (FullSimplicialComplex. #{} #{})
             (Object.))))
 
+(deftest test-FullSimplicialComplex-hashCode
+  (let [simplicial-complex-1 (FullSimplicialComplex. #{1 2} #{#{} #{1} #{2} #{1 2}})
+        simplicial-complex-2 (FullSimplicialComplex. #{1 2} #{#{} #{1} #{2} #{1 2}})
+        simplicial-complex-3 (FullSimplicialComplex. #{1 2} #{#{} #{1} #{2}})]
+    (is (= (hash simplicial-complex-1) (hash simplicial-complex-1)))
+    (is (= (hash simplicial-complex-1) (hash simplicial-complex-2)))
+    (is (not= (hash simplicial-complex-1) (hash simplicial-complex-3)))))
+
+(deftest test-FullSimplicialComplex-toString
+  (is (= (str (FullSimplicialComplex. #{1} #{#{1}}))
+         "#{#{1}}"))
+  (is (= (str (FullSimplicialComplex. #{1} [#{1}]))
+         "#{#{1}}")))
+
+(deftest test-make-full-simplicial-complex-nc
+  (is (= (make-full-simplicial-complex-nc #{1 2 3} [#{} #{1} #{2} #{3}])
+         (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3}})))
+  (is (= (make-full-simplicial-complex-nc [#{} #{1} #{2} #{3}])
+         (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3}})))
+  (is (= (make-full-simplicial-complex-nc [#{} #{1} #{2} #{3} #{1 2} #{1 3}])
+         (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3} #{1 2} #{1 3}})))
+  (is (thrown? IllegalArgumentException (make-full-simplicial-complex-nc 0))))
