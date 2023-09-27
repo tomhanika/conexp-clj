@@ -17,6 +17,9 @@ We will consider the following lattice as an example:
 
 [[./images/cube-lattice.png]]
 
+A Libkin decomposition of a lattice L is a pair of sublattices of L, whose product is isomorphic to L.
+Libkin decompositions are each induced by a decomposition pair, a neutral element in L and its Complement.
+
 All decomposition pairs of the lattice can be computed using the method ~libkin-decomposition-pairs~:
 
 #+begin_src clojure :exports both
@@ -35,13 +38,19 @@ All decomposition pairs of the lattice can be computed using the method ~libkin-
  [[#{7 4} #{"B" "A"}] [#{7 6 3 5} #{"C"}]])
 #+end_src
 
+Computing the order ideal of both entries of the pair yields the two sublattices forming the decomposition.
+
 The lattices implied by the decomposition through a specific decomposition pair can be exlicitely generated using ~libkin-decomposition-lattices~:
 
 #+begin_src clojure :exports both
 (libkin-decomposition-lattices lat [[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]])
 #+end_src
 
+These lattices may be visualized as described in Concept-Lattices.org .
+
 [[./images/decomposed-lattice1.png]]
 [[./images/decomposed-lattice2.png]]
 
-These lattices may be visualized as described in Concept-Lattices.org .
+The product of these lattices yields a lattice isomorphic to L:
+
+[[./images/prod-lattice.png]]
