@@ -1,0 +1,139 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Computing Causal Rules in ~conexp-clj~
+
+~conexp-clj~ provides methods to discover causal rules within a context as described in "Mining Causal Association Rules" (https://www.researchgate.net/publication/262240022_Mining_Causal_Association_Rules).
+We will consider the following data set:
+
+#+begin_src clojure
+(def smoking-ctx (make-context [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+                                21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40]
+                               ["smoking" "male" "female" "education-level-high" "education-level-low" "cancer"]
+                               #{[0 "smoking"] [0 "male"] [0 "education-level-high"] [0 "cancer"]
+                                 [1 "smoking"] [1 "male"] [1 "education-level-high"] [1 "cancer"]
+                                 [2 "smoking"] [2 "male"] [2 "education-level-high"] [2 "cancer"]
+                                 [3 "smoking"] [3 "male"] [3 "education-level-high"] [3 "cancer"]
+                                 [4 "smoking"] [4 "male"] [4 "education-level-high"] [4 "cancer"]
+                                 [5 "smoking"] [5 "male"] [5 "education-level-high"] [5 "cancer"]
+                                 [6 "smoking"] [6 "male"] [6 "education-level-high"]
+                                 [7 "smoking"] [7 "male"] [7 "education-level-high"]
+                                 [8 "smoking"] [8 "male"] [8 "education-level-low"] [8 "cancer"]
+                                 [9 "smoking"] [9 "male"] [9 "education-level-low"] [9 "cancer"]
+                                 [10 "smoking"] [10 "male"] [10 "education-level-low"] [10 "cancer"]
+                                 [11 "smoking"] [11 "male"] [11 "education-level-low"] [11 "cancer"]
+                                 [12 "smoking"] [12 "male"] [12 "education-level-low"] 
+                                 [13 "smoking"] [13 "female"] [13 "education-level-high"] [13 "cancer"]
+                                 [14 "smoking"] [14 "female"] [14 "education-level-high"] [14 "cancer"]
+                                 [15 "smoking"] [15 "female"] [15 "education-level-high"] [15 "cancer"]
+                                 [16 "smoking"] [16 "female"] [16 "education-level-high"] [16 "cancer"]
+                                 [17 "smoking"] [17 "female"] [17 "education-level-high"] [17 "cancer"]
+                                 [18 "smoking"] [18 "female"] [18 "education-level-high"] 
+                                 [19 "smoking"] [19 "female"] [19 "education-level-high"]
+                                 [20 "smoking"] [20 "female"] [20 "education-level-low"] [20 "cancer"]
+                                 [21 "smoking"] [21 "female"] [21 "education-level-low"] [21 "cancer"]
+                                 [22 "smoking"] [22 "female"] [22 "education-level-low"] [22 "cancer"]
+                                 [23 "smoking"] [23 "female"] [23 "education-level-low"] [23 "cancer"]
+                                 [24 "smoking"] [24 "female"] [24 "education-level-low"] 
+                                 [25 "male"] [25 "education-level-high"] [25 "cancer"]
+                                 [26 "male"] [26 "education-level-high"] [26 "cancer"]
+                                 [27 "male"] [27 "education-level-high"] 
+                                 [28 "male"] [28 "education-level-high"]
+                                 [29 "male"] [29 "education-level-high"]
+                                 [30 "male"] [30 "education-level-low"] [30 "cancer"]
+                                 [31 "male"] [31 "education-level-low"] 
+                                 [32 "male"] [32 "education-level-low"] 
+                                 [33 "male"] [33 "education-level-low"]
+                                 [34 "female"] [34 "education-level-high"] [34 "cancer"]
+                                 [35 "female"] [35 "education-level-high"] 
+                                 [36 "female"] [36 "education-level-high"]
+                                 [37 "female"] [37 "education-level-low"] [37 "cancer"]
+                                 [38 "female"] [38 "education-level-low"]
+                                 [39 "female"] [39 "education-level-low"]
+                                 [40 "female"] [40 "education-level-low"]})
+)
+#+end_src
+
+We would like to ascertain, if smoking is causally related to cancer:
+
+(def smoking-rule (make-implication #{"smoking"} #{"cancer"}))
+
+The algorith determines causality by emulating a conrolled study, in which one group is exposed to the premise attribute, in this case "smoking" and the control group is not. Addiationally, we chose a set of controlled variables.
+These are supposed to have the same values, across pairs of objects in the exposure group and control group, to make sure neither of the is the true cause for conclusion attribute, in this case "cancer".
+
+If two objects in the context satisfy these conditions, they are considerd a matched record pair. For example, if we control for variables "male" "female" "education-level-high" and "education-level-low" (0, 25), (9, 31) and (13 34)
+each form a matched record pair. This can be verified using the method ~matched-record-pair?~:
+
+#+begin_src clojure :exports both
+(matched-record-pair? smoking-ctx 
+                            smoking-rule 
+                            #{"male" "female" "education-level-high" "education-level-low"}
+                            0
+                            25)
+
+(matched-record-pair? smoking-ctx 
+                            smoking-rule 
+                            #{"male" "female" "education-level-high" "education-level-low"}
+                            9
+                            31)
+(matched-record-pair? smoking-ctx 
+                            smoking-rule 
+                            #{"male" "female" "education-level-high" "education-level-low"}
+                            13
+                            34)
+#+end_src
+
+The method ~fair-data-set~ computes a set of matched record pairs, by trying to match each object to exectly one different pair.
+
+#+begin_src clojure :exports both
+(= (fair-data-set smoking-ctx 
+                        smoking-rule 
+                        #{"male" "female" "education-level-high" "education-level-low"})
+         smoking-fair-data-set)
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+([#{7 29}
+  #{13 34}
+  #{15 36}
+  #{6 26}
+  #{1 28}
+  #{0 27}
+  #{17 35}
+  #{33 9}
+  #{31 12}
+  #{30 10}
+  #{22 37}
+  #{4 25}
+  #{21 38}
+  #{32 11}
+  #{24 40}
+  #{20 39}])
+#+end_src
+
+This set is used to verify whether an assiciation rule is causal in nature.
+The method ~causal?~ tests causality for a specific implication:
+
+#+begin_src clojure :exports both
+(causal? smoking-ctx smoking-rule #{} 1.7 1)
+#+end_src
+
+The final three parameters are: 
+-the irrelevant variables, variables that will not be controlled for 
+-the confidence in the causality of the implication; a value of 1.7 corresponds to a 70% confidence
+-a threshold for computing exclusive variables. Two variables a and b are mutually exclusive, if the absolute support for (a and b) or (b and not a) is no larger than the threshold
+
+To discover all causes of a certain attribute in the context the method ~causal-association-rule-discovery~ can be used:
+
+#+begin_src clojure :exports both
+(causal-association-rule-discovery  smoking-ctx 0.7 3 "cancer" 1.7)
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+(#{"smoking"})
+#+end_src
+
+1.7 again represents the confidence of the rule, and 3 represents the maximum number of attributes of the premise.
+
