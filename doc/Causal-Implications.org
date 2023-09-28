@@ -56,10 +56,12 @@ We will consider the following data set:
 
 We would like to ascertain, if smoking is causally related to cancer:
 
+#+begin_src clojure :exports both
 (def smoking-rule (make-implication #{"smoking"} #{"cancer"}))
+#+end_src
 
-The algorith determines causality by emulating a conrolled study, in which one group is exposed to the premise attribute, in this case "smoking" and the control group is not. Addiationally, we chose a set of controlled variables.
-These are supposed to have the same values, across pairs of objects in the exposure group and control group, to make sure neither of the is the true cause for conclusion attribute, in this case "cancer".
+The algorith determines causality by emulating a controlled study, in which one group is exposed to the premise attribute, in this case "smoking" and the control group is not. Additionally, we choose a set of controlled variables.
+These are supposed to have the same values across pairs of objects in the exposure group and control group, to make sure neither of these is the true cause for the conclusion attribute, in this case "cancer".
 
 If two objects in the context satisfy these conditions, they are considerd a matched record pair. For example, if we control for variables "male" "female" "education-level-high" and "education-level-low" (0, 25), (9, 31) and (13 34)
 each form a matched record pair. This can be verified using the method ~matched-record-pair?~:
@@ -83,7 +85,7 @@ each form a matched record pair. This can be verified using the method ~matched-
                             34)
 #+end_src
 
-The method ~fair-data-set~ computes a set of matched record pairs, by trying to match each object to exectly one different pair.
+The method ~fair-data-set~ computes a set of matched record pairs, by trying to match each object to exactly one different object.
 
 #+begin_src clojure :exports both
 (= (fair-data-set smoking-ctx 
@@ -112,7 +114,7 @@ The method ~fair-data-set~ computes a set of matched record pairs, by trying to 
   #{20 39}])
 #+end_src
 
-This set is used to verify whether an assiciation rule is causal in nature.
+This set is used to verify whether an association rule is causal in nature.
 The method ~causal?~ tests causality for a specific implication:
 
 #+begin_src clojure :exports both
