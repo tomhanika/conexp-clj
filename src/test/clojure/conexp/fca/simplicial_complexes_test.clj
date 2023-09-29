@@ -48,6 +48,33 @@
          (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3}})))
   (is (= (make-full-simplicial-complex-nc [#{} #{1} #{2} #{3}])
          (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3}})))
-  (is (= (make-full-simplicial-complex-nc [#{} #{1} #{2} #{3} #{1 2} #{1 3}])
+  (is (= (make-full-simplicial-complex-nc  [#{} #{1} #{2} #{3} #{1 2} #{1 3}])
          (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3} #{1 2} #{1 3}})))
+  (is (thrown? IllegalArgumentException (make-full-simplicial-complex-nc 0))))
+
+(deftest test-is-simplicial-complex
+  (is (is-simplicial-complex? 
+       (make-full-simplicial-complex-nc #{#{} #{1} #{2} #{3} #{1 2} #{1 3}})))
+  (is (is-simplicial-complex? 
+       (make-full-simplicial-complex-nc #{1 2 3} [#{} #{1} #{2} #{3}])))
+  (is (not (is-simplicial-complex? 
+            (make-full-simplicial-complex-nc #{#{} #{2} #{3} #{1 2} #{1 3}}))))
+  (is (not (is-simplicial-complex? 
+            (make-full-simplicial-complex-nc #{#{1} #{2} #{3} #{1 2} #{1 3}}))))
+  (is (is-simplicial-complex? 
+       (make-full-simplicial-complex-nc #{1 2 3} #{#{} #{1} #{2} #{3} #{1 2} #{1 3}})))
+  (is (is-simplicial-complex? 
+       (make-full-simplicial-complex-nc #{1 2 3 4} #{#{} #{1} #{2} #{3} #{1 2} #{1 3}})))
+  (is (not (is-simplicial-complex? 
+            (make-full-simplicial-complex-nc #{1 2} #{#{} #{1} #{2} #{3} #{1 2} #{1 3}})))))
+
+(deftest test-make-full-simplicial-complex
+  (is (= (make-full-simplicial-complex #{1 2 3} [#{} #{1} #{2} #{3}])
+         (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3}})))
+  (is (= (make-full-simplicial-complex [#{} #{1} #{2} #{3}])
+         (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3}})))
+  (is (= (make-full-simplicial-complex [#{} #{1} #{2} #{3} #{1 2} #{1 3}])
+         (FullSimplicialComplex. #{1 2 3} #{#{} #{1} #{2} #{3} #{1 2} #{1 3}})))
+  (is (thrown? IllegalArgumentException (make-full-simplicial-complex [#{} #{1} #{2} #{1 2} #{1 3}])))
+  (is (thrown? IllegalArgumentException (make-full-simplicial-complex #{1 2} [#{} #{1} #{2} #{3} #{1 2} #{1 3}])))
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex-nc 0))))

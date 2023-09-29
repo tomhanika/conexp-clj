@@ -11,8 +11,10 @@
   (:require [conexp.base :refer [clojure-coll
                                  clojure-set
                                  clojure-type
+                                 difference
                                  hash-combine-hash
                                  illegal-argument
+                                 subset?
                                  union]]))
 
 ;;; Data structure
@@ -60,16 +62,34 @@
 (defmethod make-full-simplicial-complex-nc :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Full Simplicial Complex."))
 
-(comment (defn is-simplicial-complex?
-           "Check if given object follows the definition of a simplicial complex.
-  TODO: write definition"
-           [complex]))
+(defn is-simplicial-complex?
+  "Check if given object follows the definition of a simplicial complex."
+  [simplicial-complex]
+  (and
+   (let [simplices-set (set (.simplices simplicial-complex))]
+     (every? (fn [simplex]
+               (if (not= simplex #{})
+                 (let [direct-sub-simplices 
+                       (map #(difference (set simplex) #{%}) simplex)]
+                   (every? #(contains? simplices-set %) direct-sub-simplices))
+                 true))
+             simplices-set))
+   ;; also check if base-set is correct (contains all elements contained in simplices)
+   (let [base-set-derived-from-simplices (apply union (.simplices simplicial-complex))]
+     (subset? base-set-derived-from-simplices (.base-set simplicial-complex)))))
 
-(comment (defn make-full-simplicial-complex
-           "Create a simplicial complex from 
-  TODO: whatever the input value is."
-           [& args]
-           (let [simplicial-complex (apply make-simplicial-complex-nc args)]
-             (when-not (is-simplicial-complex? simplicial-complex)
-               (illegal-argument "Given arguments do not describe a simplicial complex."))
-             simplicial-complex)))
+(defmulti make-full-simplicial-complex
+  "Creates a full simplicial complex from the given arguments, and checks that it really is a full simplicial complex."
+  {:arglist '([simplices]
+              [base-set simplices])}
+  (fn [& args] (vec (map clojure-type args))))
+
+(defmethod make-full-simplicial-complex [clojure-set clojure-coll] [base-set simplices]
+  (let [simplicial-complex (make-full-simplicial-complex-nc base-set simplices)]
+    (when-not (is-simplicial-complex? simplicial-complex)
+      (illegal-argument "Given arguments do not describe a simplicial complex."))
+    simplicial-complex))
+
+(defmethod make-full-simplicial-complex [clojure-coll] [simplices]
+  (let [base-set (apply union simplices)]
+    (make-full-simplicial-complex base-set simplices)))
