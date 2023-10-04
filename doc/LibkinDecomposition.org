@@ -15,7 +15,7 @@ We will consider the following lattice as an example:
 (def lat (concept-lattice ctx))
 #+end_src
 
-[[./images/cube-lattice.png]]
+[[./images/car-lattice.png]]
 
 A Libkin decomposition of a lattice L is a pair of sublattices of L, whose product is isomorphic to L.
 Libkin decompositions are each induced by a decomposition pair, a neutral element in L and its Complement.
@@ -43,10 +43,15 @@ Computing the order ideal of both entries of the pair yields the two sublattices
 The lattices implied by the decomposition through a specific decomposition pair can be exlicitely generated using ~libkin-decomposition-lattices~:
 
 #+begin_src clojure :exports both
-(libkin-decomposition-lattices lat [[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]])
+(def lattice-pair (libkin-decomposition-lattices lat [[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]]))
 #+end_src
 
 These lattices may be visualized as described in Concept-Lattices.org .
+
+#+begin_src text
+(draw-lattice (first lattice-pair))
+(draw-lattice (last lattice-pair))
+#+end_src
 
 [[./images/decomposed-lattice1.png]]
 [[./images/decomposed-lattice2.png]]
