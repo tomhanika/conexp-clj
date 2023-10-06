@@ -127,7 +127,7 @@
          birds-fair-data-set))
 )
 
-(deftest test-fair-podds-ratio 
+(deftest test-fair-odds-ratio 
 
   (is (= (fair-odds-ratio smoking-ctx smoking-rule smoking-fair-data-set)
          smoking-fair-odds-ratio))

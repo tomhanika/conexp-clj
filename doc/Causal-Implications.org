@@ -137,5 +137,5 @@ To discover all causes of a certain attribute in the context the method ~causal-
 (#{"smoking"})
 #+end_src
 
-1.7 again represents the confidence of the rule, and 3 represents the maximum number of attributes of the premise.
+0.7 represents the minimum local support that a generated variable must exceet to be considered. 1.7 again represents the confidence of the rule, and 3 represents the maximum number of attributes of the premise.
 
