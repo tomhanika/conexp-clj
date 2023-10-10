@@ -15,7 +15,13 @@
                                  hash-combine-hash
                                  illegal-argument
                                  subset?
-                                 union]]))
+                                 union]]
+            [conexp.fca.lattices :refer [concept-lattice
+                                         lattice-base-set
+                                         lattice-order
+                                         sup]])
+  (:import conexp.fca.contexts.Formal-Context
+           conexp.fca.lattices.Lattice))
 
 ;;; Data structure
 
@@ -93,3 +99,40 @@
 (defmethod make-full-simplicial-complex [clojure-coll] [simplices]
   (let [base-set (apply union simplices)]
     (make-full-simplicial-complex base-set simplices)))
+
+;; FCA
+
+(defmulti t-simplex
+  "Creates a t-simplex from a given object."
+  (fn [object t] (type object)))
+
+(defmethod t-simplex Lattice
+  [lattice t]
+  (let [not>= (fn [concept]
+                (not ((lattice-order lattice) t concept))),
+        simplicial-complex-base-set (set (filter not>= (lattice-base-set lattice))),
+        queue (mapv #(set (list %)) simplicial-complex-base-set),
+        simplices (set (union #{#{}} queue)),
+        join (sup lattice)]
+    (loop [element (first queue)
+           queue (vec (next queue))
+           simplices simplices]
+      (let [join-elements (filter #(contains? simplicial-complex-base-set
+                                              (join (first element) (first %))) queue),
+            new-queue-elements (mapv #(union element %) join-elements),
+            new-queue (vec (union (set queue) (set new-queue-elements)))]
+        (if (empty? new-queue-elements)
+          (FullSimplicialComplex. simplicial-complex-base-set simplices)
+          (recur (first new-queue)
+                 (vec (next queue))
+                 (union simplices new-queue-elements))))
+      )))
+
+(defmethod t-simplex Formal-Context
+  [ctx t]
+  (let [lattice (concept-lattice ctx)]
+    (t-simplex lattice t)))
+
+(defmethod t-simplex :default
+  [object & args]
+  (illegal-argument "Cannot compute a simplicial complex from type " (type object) "."))

@@ -8,7 +8,8 @@
 
 (ns conexp.fca.simplicial-complexes-test
   (:use clojure.test)
-  (:require [conexp.fca.simplicial-complexes :refer :all])
+  (:require [conexp.fca.simplicial-complexes :refer :all]
+            [conexp.fca.contexts :refer [make-context-from-matrix]])
   (:import conexp.fca.simplicial_complexes.FullSimplicialComplex))
 
 (deftest test-FullSimplicialComplex-equals
@@ -78,3 +79,11 @@
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex [#{} #{1} #{2} #{1 2} #{1 3}])))
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex #{1 2} [#{} #{1} #{2} #{3} #{1 2} #{1 3}])))
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex-nc 0))))
+
+(deftest test-t-simplex
+  (let [ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
+                                      [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1])]
+    (is (= (t-simplex ctx [#{0 3} #{'a 'c 'd}])
+           (FullSimplicialComplex. #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}
+                                   #{#{} #{[#{0} #{'a 'b 'c 'd}]} #{[#{0 2} #{'b 'd}]}
+                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}})))))
