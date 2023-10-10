@@ -11,6 +11,7 @@ Additional Contributors are
 * Immanuel Albrecht     (Context Editor Plugin for the GUI)
 * Sebastian Benner      (API)
 * Stefan Borgwardt      (Shared Intents)
+* Jana Fischer          (json format)
 * Tom Hanika            (Concept Probability)
 * Johannes Hirth        (pq-cores)
 * Gleb Kanterov         (interval-scale)
@@ -18,5 +19,3 @@ Additional Contributors are
 * Maximilian Stubbemann (concept-robustness)
 * Anselm von Wangenheim (DimDraw)
 * Johannes Wollbold     (bug reports, feature requests)
-
-

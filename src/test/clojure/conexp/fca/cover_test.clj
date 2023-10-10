@@ -7,9 +7,11 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.cover-test
-  (:use conexp.fca.pqcores conexp.fca.cover
-        conexp.fca.contexts)
-  (:use conexp.fca.contexts)
+  (:use conexp.fca.pqcores
+        conexp.fca.cover
+        conexp.fca.contexts
+        conexp.fca.lattices
+        conexp.math.algebra)
   (:use clojure.test clojure.set))
 
 (deftest test-generate-cover
@@ -90,3 +92,4 @@
         new-cover (generate-cover (map last (concepts new-ctx)))]
     (is (= new-cover
            (cover-reducer cover ctx new-ctx 4)))))
+

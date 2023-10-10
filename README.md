@@ -36,6 +36,9 @@ much more.
 5. Advanced Topics
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
+   3. [triadic-exploration](doc/Triadic-Exploration.org)
+   4. [protoconcepts](doc/Protoconcepts.org)
+   5. [Incomplete Contexts](doc/IncompleteContexts.org)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 
@@ -61,10 +64,37 @@ software](http://www.upriss.org.uk/fca/fcasoftware.html).
 
 See [AUTHORS.md](AUTHORS.md).
 
+## How to cite `conexp-clj`?
+If you have used `conexp-clj` for your scientific work, the developers
+would appreciate if you use the following reference.
+
+```
+@inproceedings{DBLP:conf/icfca/HanikaH19,
+  author    = {Tom Hanika and
+               Johannes Hirth},
+  editor    = {Diana Cristea and
+               Florence Le Ber and
+               Rokia Missaoui and
+               L{\'{e}}onard Kwuida and
+               Baris Sertkaya},
+  title     = {Conexp-Clj - {A} Research Tool for {FCA}},
+  booktitle = {Supplementary Proceedings of {ICFCA} 2019 Conference and Workshops,
+               Frankfurt, Germany, June 25-28, 2019},
+  series    = {{CEUR} Workshop Proceedings},
+  volume    = {2378},
+  pages     = {70--75},
+  publisher = {CEUR-WS.org},
+  year      = {2019},
+  url       = {http://ceur-ws.org/Vol-2378/shortAT8.pdf},
+  timestamp = {Wed, 12 Feb 2020 16:44:55 +0100},
+  biburl    = {https://dblp.org/rec/conf/icfca/HanikaH19.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
 
 ## License
 
-Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2020 Tom Hanika
+Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2023 Tom Hanika
 
 Distributed under the Eclipse Public License.
 

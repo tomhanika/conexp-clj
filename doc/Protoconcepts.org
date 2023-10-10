@@ -1,0 +1,91 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Protoconcepts in ~conexp-clj~
+
+Protoconcepts are defined as $(A, B)$, $A \subseteq G$ and $B \subseteq M$ with 
+$A' = B''$ or $B' = A''$.
+
+** Computing Protoconcepts
+
+The protoconcepts of a given context can be computed. First, the respective 
+namespace needs to be loaded.
+#+begin_src clojure :results silent
+(use 'conexp.fca.protoconcepts)
+#+end_src
+
+Let the context be
+#+begin_src clojure :exports both
+(def ctx 
+  (make-context-from-matrix [1 2 3 4]
+                            ['A 'B 'C]
+                            [1 1 0
+                             1 0 0
+                             0 1 0
+                             0 1 0]))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+  |A B C 
+--+------
+1 |x x . 
+2 |x . . 
+3 |. x .
+4 |. x .
+#+end_src
+
+The protoconcepts can be computed with the ~protoconcepts~ function.
+#+begin_src clojure :exports both
+(protoconcepts ctx)
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+#{[#{4 2} #{}] [#{1 3 2} #{}] [#{1 2} #{A}] [#{1} #{A B}]
+  [#{} #{B C}] [#{} #{C}] [#{1 4 2} #{}] [#{4} #{B}] [#{1 4 3 2} #{}]
+  [#{4 3 2} #{}] [#{1 3} #{B}] [#{3 2} #{}] [#{1 4 3} #{B}]
+  [#{3} #{B}] [#{4 3} #{B}] [#{2} #{A}] [#{1 4} #{B}] [#{} #{A C}]
+  [#{} #{A B C}]}
+#+end_src
+
+To compute the protoconcepts as an ordered set, the ~protoconcepts-order~ function can be used.
+#+begin_src clojure :exports both
+(protoconcepts-order ctx)
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+Protoconcepts on 19 elements.
+#+end_src
+
+** Draw Protoconcepts
+
+Drawing must be enabled via
+#+begin_src clojure :results silent
+(use 'conexp.gui.draw)
+#+end_src
+
+To draw the ordered protoconcepts of a context, the ~draw-protoconcepts~ function can be used.
+#+begin_src clojure :results silent
+(draw-protoconcepts (protoconcepts-order ctx))
+#+end_src
+
+The protoconcepts graph is shown in an additional window.
+
+#+caption: Protoconcept example
+[[./images/protoconcept-lattice.png]]
+
+Like for [lattices](./Concept-Lattices.org), the layout function can be specified for 
+protoconcepts.
+
+#+begin_src clojure :results silent
+(draw-protoconcepts (protoconcepts-order ctx) 
+                    :layout-fn conexp.layouts.dim-draw/dim-draw-layout)
+#+end_src
+
+#+caption: Protoconcept example with DimDraw layout
+[[./images/protoconcept-lattice-dimdraw.png]]
+
+Notice that the protoconcept orders do not necessarily are a lattice. As many 
+of the value functions only work on lattices, they cannot be applied to protoconcepts.

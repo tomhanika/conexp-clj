@@ -373,3 +373,5 @@
                   (do (await cur-lattice) @cur-lattice)
                   (let [bin-closure (next-closed-set-iterator bin-ctx bin-next)]
                     (recur (to-hashset attr-order bin-closure) bin-closure)))))))))
+
+
