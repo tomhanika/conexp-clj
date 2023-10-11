@@ -110,23 +110,22 @@
   [lattice t]
   (let [not>= (fn [concept]
                 (not ((lattice-order lattice) t concept))),
-        simplicial-complex-base-set (set (filter not>= (lattice-base-set lattice))),
-        queue (mapv #(set (list %)) simplicial-complex-base-set),
+        one-element-simplices (set (filter not>= (lattice-base-set lattice))),
+        queue (mapv #(set (list %)) one-element-simplices),
         simplices (set (union #{#{}} queue)),
         join (sup lattice)]
     (loop [element (first queue)
            queue (vec (next queue))
            simplices simplices]
-      (let [join-elements (filter #(contains? simplicial-complex-base-set
+      (let [join-elements (filter #(contains? one-element-simplices
                                               (join (first element) (first %))) queue),
             new-queue-elements (mapv #(union element %) join-elements),
-            new-queue (vec (union (set queue) (set new-queue-elements)))]
-        (if (empty? new-queue-elements)
-          (FullSimplicialComplex. simplicial-complex-base-set simplices)
+            new-queue (vec (distinct (apply conj queue new-queue-elements)))]
+        (if (empty? new-queue)
+          (FullSimplicialComplex. (lattice-base-set lattice) simplices)
           (recur (first new-queue)
-                 (vec (next queue))
-                 (union simplices new-queue-elements))))
-      )))
+                 (vec (next new-queue))
+                 (union simplices new-queue-elements)))))))
 
 (defmethod t-simplex Formal-Context
   [ctx t]
