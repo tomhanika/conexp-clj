@@ -19,7 +19,8 @@
             [conexp.fca.lattices :refer [concept-lattice
                                          lattice-base-set
                                          lattice-order
-                                         sup]])
+                                         sup]]
+            [conexp.fca.next-closure :refer [t-simplex-pseudo-intents]])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.lattices.Lattice))
 
@@ -133,5 +134,23 @@
     (t-simplex lattice t)))
 
 (defmethod t-simplex :default
+  [object & args]
+  (illegal-argument "Cannot compute a simplicial complex from type " (type object) "."))
+
+(defmulti t-simplex-next-closure
+  "Creates a t-simplex from a given object with next closure algorithm."
+  (fn [object t] (type object)))
+
+(defmethod t-simplex-next-closure Lattice
+  [lattice t]
+  (FullSimplicialComplex. (lattice-base-set lattice) 
+                          (second (t-simplex-pseudo-intents lattice t))))
+
+(defmethod t-simplex-next-closure Formal-Context
+  [ctx t]
+  (let [lattice (concept-lattice ctx)]
+    (t-simplex-next-closure lattice t)))
+
+(defmethod t-simplex-next-closure :default
   [object & args]
   (illegal-argument "Cannot compute a simplicial complex from type " (type object) "."))
