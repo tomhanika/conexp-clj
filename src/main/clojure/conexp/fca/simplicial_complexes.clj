@@ -18,9 +18,7 @@
                                  union]]
             [conexp.fca.contexts :refer [objects]]
             [conexp.fca.lattices :refer [concept-lattice
-                                         lattice-base-set
-                                         lattice-order
-                                         sup]]
+                                         lattice-base-set]]
             [conexp.fca.next-closure :refer [ordinal-motifs-pseudo-intents-ordinal-scale
                                              t-simplex-pseudo-intents]])
   (:import conexp.fca.contexts.Formal-Context
@@ -31,7 +29,7 @@
 (defprotocol SimplicialComplex
   (base-set [this] "Returns the base set.")
   (simplices [this] "Returns the simplices of the simplicial complex, 
-                     which are subsets of its base_set."))
+                     which are subsets of its base set."))
 
 (deftype FullSimplicialComplex [base-set simplices]
   Object

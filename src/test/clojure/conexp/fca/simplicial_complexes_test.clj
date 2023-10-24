@@ -80,37 +80,38 @@
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex #{1 2} [#{} #{1} #{2} #{3} #{1 2} #{1 3}])))
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex-nc 0))))
 
+;; FCA
+
+(def ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
+                                   [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1]))
+
 (deftest test-t-simplex-next-closure
-  (let [ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
-                                      [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1])]
-    (is (= (t-simplex-next-closure ctx [#{0 3} #{'a 'c 'd}])
-           (FullSimplicialComplex. #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]
-                                     [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]
-                                     [#{0 1 3} #{'a}] [#{0 1 2 3} #{}]}
-                                   #{#{} #{[#{0} #{'a 'b 'c 'd}]} #{[#{0 2} #{'b 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}})))
-    (is (= (t-simplex-next-closure ctx [#{0 1 3} #{'a}])
-           (FullSimplicialComplex. #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]
-                                     [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]
-                                     [#{0 1 3} #{'a}] [#{0 1 2 3} #{}]}
-                                   #{#{} #{[#{0} #{'a 'b 'c 'd}]} #{[#{0 2} #{'b 'd}]}
-                                     #{[#{0 3} #{'a 'c 'd}]} #{[#{0 2 3} #{'d}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}})))))
+  (is (= (t-simplex-next-closure ctx [#{0 3} #{'a 'c 'd}])
+         (FullSimplicialComplex. #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]
+                                   [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]
+                                   [#{0 1 3} #{'a}] [#{0 1 2 3} #{}]}
+                                 #{#{} #{[#{0} #{'a 'b 'c 'd}]} #{[#{0 2} #{'b 'd}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}})))
+  (is (= (t-simplex-next-closure ctx [#{0 1 3} #{'a}])
+         (FullSimplicialComplex. #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]
+                                   [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]
+                                   [#{0 1 3} #{'a}] [#{0 1 2 3} #{}]}
+                                 #{#{} #{[#{0} #{'a 'b 'c 'd}]} #{[#{0 2} #{'b 'd}]}
+                                   #{[#{0 3} #{'a 'c 'd}]} #{[#{0 2 3} #{'d}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 3} #{'a 'c 'd}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2 3} #{'d}]}
+                                   #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}]}
+                                   #{[#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]}
+                                   #{[#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]}
+                                   #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}}))))
 
 (deftest test-ordinal-motif-next-closure
-  (let [ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
-                                      [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1])]
-    (is (= (ordinal-motif-next-closure ctx :ordinal)
-           (FullSimplicialComplex. #{0 1 2 3}
-                                   #{#{} #{0} #{1} #{2} #{3}
-                                     #{0 1} #{0 2} #{0 3} #{1 3} #{0 1 3}})))))
+  (is (= (ordinal-motif-next-closure ctx :ordinal)
+         (FullSimplicialComplex. #{0 1 2 3}
+                                 #{#{} #{0} #{1} #{2} #{3}
+                                   #{0 1} #{0 2} #{0 3} #{1 3} #{0 1 3}}))))
