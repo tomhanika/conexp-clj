@@ -1,6 +1,7 @@
 (ns conexp.analysis
   "Dafault Namespace."
   (:require
+   [conexp.main :refer :all]
    [conexp.base :refer :all]
    [conexp.fca 
         [causal-implications :refer :all]
@@ -38,5 +39,7 @@
     [plugins :refer :all]
     [repl :refer :all]
     [repl-utils :refer :all]]
-   [clojure.set :as set]))
+   [clojure.set :as set]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]))
 
