@@ -133,3 +133,11 @@
                                      #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}
                                      #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
                                      #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}})))))
+
+(deftest test-ordinal-motif-next-closure
+  (let [ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
+                                      [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1])]
+    (is (= (ordinal-motif-next-closure ctx :ordinal)
+           (FullSimplicialComplex. #{0 1 2 3}
+                                   #{#{} #{0} #{1} #{2} #{3}
+                                     #{0 1} #{0 2} #{0 3} #{1 3} #{0 1 3}})))))

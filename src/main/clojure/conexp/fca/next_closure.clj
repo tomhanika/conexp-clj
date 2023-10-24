@@ -1,10 +1,14 @@
 (ns conexp.fca.next-closure
-  (:require [conexp.base :refer [difference
+  (:require [clojure.math.combinatorics :refer [combinations]]
+            [conexp.base :refer [difference
+                                 illegal-argument
                                  subset?
                                  topological-sort
                                  union]]
             [conexp.fca.contexts :refer [attributes
-                                         context-attribute-closure]]
+                                         context-attribute-closure
+                                         objects
+                                         object-derivation]]
             [conexp.fca.lattices :refer [inf
                                          lattice-base-set
                                          lattice-order
@@ -45,33 +49,49 @@
   (fn [concept-set]
     ((not>=t-operator lattice t) ((join-operator lattice) concept-set))))
 
-(defn- next-closure-for-simplices
-  "Computes the next closure of a given set A on a given operator."
-  [operator lattice A]
-  (let [base-set (topological-sort (lattice-order lattice)
-                                   (lattice-base-set lattice))]
-    (loop [A A
-           M base-set
-           i (last M)]
-      (if (contains? A i)
-        (let [A (disj A i)
-              M (remove #{i} M) 
-              i (last M)]
-          (recur A M i))
-        (let [B (operator (conj A i))
-              X (difference B A)
-              elements-smaller-than-i (filter #(< (.indexOf base-set %)
-                                                  (.indexOf base-set i)) X)]
-          (if (empty? elements-smaller-than-i)
-            B
-            (let [M (remove #{i} M)
-                  i (last M)]
-              (recur A M i))))))))
+(defn- pairwise-subsets?
+  [attribute-sets]
+  (let [attribute-set-combinations (combinations attribute-sets 2)]
+    (every? 
+     #(or (subset? (first %) (second %))
+          (subset? (second %) (first %)))
+     attribute-set-combinations)))
+
+(defn- ordinal-operator
+  [context]
+  (fn [object-set]
+    (if (< (count object-set) 2)
+      true
+      (let [attribute-sets (mapv #(object-derivation context %) (mapv #(hash-set %) object-set))]
+        (pairwise-subsets? attribute-sets)))))
+
+(defn- next-closure-with-operator
+  "Computes the next closure of an element A given a sorted base-set and closure operator."
+  [sorted-base-set operator A]
+  (loop [A A
+         M sorted-base-set
+         i (last M)]
+    (if (contains? A i)
+      (let [A (disj A i)
+            M (remove #{i} M)
+            i (last M)]
+        (recur A M i))
+      (let [B (operator (conj A i))
+            X (difference B A)
+            elements-smaller-than-i (filter #(< (.indexOf sorted-base-set %)
+                                                (.indexOf sorted-base-set i)) X)]
+        (if (empty? elements-smaller-than-i)
+          B
+          (let [M (remove #{i} M)
+                i (last M)]
+            (recur A M i)))))))
 
 (defn t-simplex-pseudo-intents
   "Compute the pseudo intents of a given closure operator and lattice."
   [lattice t]
   (let [base-set (lattice-base-set lattice)
+        sorted-base-set (topological-sort (lattice-order lattice)
+                                          (lattice-base-set lattice))
         closure-operator (t-simplex-operator lattice t)]
     (loop [implications #{}
            A #{}
@@ -80,15 +100,45 @@
         [(set (map first implications)) t-simplex]
         (if (closure-operator A)
           (recur implications 
-                 (next-closure-for-simplices 
-                  (implication-operator implications) lattice A)
+                 (next-closure-with-operator
+                  sorted-base-set (implication-operator implications) A)
                  (conj t-simplex A))
           (if (= ((implication-operator implications) A) base-set)
             [(set (map first implications)) t-simplex]
             (let [new-implications 
                   (conj implications [A base-set])]
               (recur new-implications 
-                     (next-closure-for-simplices 
-                      (implication-operator new-implications)
-                      lattice A)
+                     (next-closure-with-operator
+                      sorted-base-set (implication-operator new-implications) A)
                      t-simplex))))))))
+
+(defn operator-pseudo-intents
+  "Compute the pseudo intents of a given closure operator and base-set."
+  [base-set closure-operator]
+  (loop [implications #{}
+         A #{}
+         simplicial-complex #{}]
+    (if (= A base-set)
+      [(set (map first implications)) simplicial-complex]
+      (if (closure-operator A)
+        (recur implications
+               (next-closure-with-operator
+                (sort base-set) (implication-operator implications) A)
+               (conj simplicial-complex A))
+        (if (= ((implication-operator implications) A) base-set)
+          [(set (map first implications)) simplicial-complex]
+          (let [new-implications
+                (conj implications [A base-set])]
+            (recur new-implications
+                   (next-closure-with-operator
+                    (sort base-set) (implication-operator new-implications) A)
+                   simplicial-complex)))))))
+
+(defn ordinal-motifs-pseudo-intents
+  "Compute ordinal motifs over next closure algorithm."
+  [context scale-type]
+  (let [base-set (objects context)]
+    (if (= scale-type :ordinal)
+      (let [closure-operator (ordinal-operator context)]
+        (operator-pseudo-intents base-set closure-operator))
+      (illegal-argument "Cannot compute ordinal motifs for scale " scale-type "."))))

@@ -16,11 +16,13 @@
                                  illegal-argument
                                  subset?
                                  union]]
+            [conexp.fca.contexts :refer [objects]]
             [conexp.fca.lattices :refer [concept-lattice
                                          lattice-base-set
                                          lattice-order
                                          sup]]
-            [conexp.fca.next-closure :refer [t-simplex-pseudo-intents]])
+            [conexp.fca.next-closure :refer [ordinal-motifs-pseudo-intents
+                                             t-simplex-pseudo-intents]])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.lattices.Lattice))
 
@@ -154,3 +156,16 @@
 (defmethod t-simplex-next-closure :default
   [object & args]
   (illegal-argument "Cannot compute a simplicial complex from type " (type object) "."))
+
+(defmulti ordinal-motif-next-closure
+  "Creates ordinal motifs from a given object with next closure algorithm."
+  (fn [object scale-type] (type object)))
+
+(defmethod ordinal-motif-next-closure Formal-Context
+  [ctx scale-type]
+  (FullSimplicialComplex. (objects ctx)
+                          (second (ordinal-motifs-pseudo-intents ctx scale-type))))
+
+(defmethod ordinal-motif-next-closure :default
+  [object & args]
+  (illegal-argument "Cannot compute ordinal motifs from type " (type object) "."))
