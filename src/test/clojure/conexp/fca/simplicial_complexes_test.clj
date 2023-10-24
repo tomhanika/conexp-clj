@@ -80,33 +80,6 @@
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex #{1 2} [#{} #{1} #{2} #{3} #{1 2} #{1 3}])))
   (is (thrown? IllegalArgumentException (make-full-simplicial-complex-nc 0))))
 
-(deftest test-t-simplex
-  (let [ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
-                                      [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1])]
-    (is (= (t-simplex ctx [#{0 3} #{'a 'c 'd}])
-           (FullSimplicialComplex. #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]
-                                     [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]
-                                     [#{0 1 3} #{'a}] [#{0 1 2 3} #{}]}
-                                   #{#{} #{[#{0} #{'a 'b 'c 'd}]} #{[#{0 2} #{'b 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}})))
-    (is (= (t-simplex ctx [#{0 1 3} #{'a}])
-           (FullSimplicialComplex. #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]
-                                     [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]
-                                     [#{0 1 3} #{'a}] [#{0 1 2 3} #{}]}
-                                   #{#{} #{[#{0} #{'a 'b 'c 'd}]} #{[#{0 2} #{'b 'd}]}
-                                     #{[#{0 3} #{'a 'c 'd}]} #{[#{0 2 3} #{'d}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]}
-                                     #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
-                                     #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}})))))
-
 (deftest test-t-simplex-next-closure
   (let [ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
                                       [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1])]

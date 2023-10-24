@@ -86,59 +86,40 @@
                 i (last M)]
             (recur A M i)))))))
 
+(defn operator-pseudo-intents
+  "Compute the pseudo intents of a given closure operator and base-set."
+  [sorted-base-set closure-operator]
+  (let [base-set (set sorted-base-set)]
+    (loop [implications #{}
+           A #{}
+           simplicial-complex #{}]
+      (if (= A base-set)
+        [(set (map first implications)) simplicial-complex]
+        (if (closure-operator A)
+          (recur implications
+                 (next-closure-with-operator
+                  sorted-base-set (implication-operator implications) A)
+                 (conj simplicial-complex A))
+          (if (= ((implication-operator implications) A) base-set)
+            [(set (map first implications)) simplicial-complex]
+            (let [new-implications
+                  (conj implications [A base-set])]
+              (recur new-implications
+                     (next-closure-with-operator
+                      sorted-base-set (implication-operator new-implications) A)
+                     simplicial-complex))))))))
+
 (defn t-simplex-pseudo-intents
   "Compute the pseudo intents of a given closure operator and lattice."
   [lattice t]
-  (let [base-set (lattice-base-set lattice)
-        sorted-base-set (topological-sort (lattice-order lattice)
+  (let [sorted-base-set (topological-sort (lattice-order lattice)
                                           (lattice-base-set lattice))
         closure-operator (t-simplex-operator lattice t)]
-    (loop [implications #{}
-           A #{}
-           t-simplex #{}]
-      (if (= A base-set)
-        [(set (map first implications)) t-simplex]
-        (if (closure-operator A)
-          (recur implications 
-                 (next-closure-with-operator
-                  sorted-base-set (implication-operator implications) A)
-                 (conj t-simplex A))
-          (if (= ((implication-operator implications) A) base-set)
-            [(set (map first implications)) t-simplex]
-            (let [new-implications 
-                  (conj implications [A base-set])]
-              (recur new-implications 
-                     (next-closure-with-operator
-                      sorted-base-set (implication-operator new-implications) A)
-                     t-simplex))))))))
+    (operator-pseudo-intents sorted-base-set closure-operator)))
 
-(defn operator-pseudo-intents
-  "Compute the pseudo intents of a given closure operator and base-set."
-  [base-set closure-operator]
-  (loop [implications #{}
-         A #{}
-         simplicial-complex #{}]
-    (if (= A base-set)
-      [(set (map first implications)) simplicial-complex]
-      (if (closure-operator A)
-        (recur implications
-               (next-closure-with-operator
-                (sort base-set) (implication-operator implications) A)
-               (conj simplicial-complex A))
-        (if (= ((implication-operator implications) A) base-set)
-          [(set (map first implications)) simplicial-complex]
-          (let [new-implications
-                (conj implications [A base-set])]
-            (recur new-implications
-                   (next-closure-with-operator
-                    (sort base-set) (implication-operator new-implications) A)
-                   simplicial-complex)))))))
-
-(defn ordinal-motifs-pseudo-intents
-  "Compute ordinal motifs over next closure algorithm."
-  [context scale-type]
-  (let [base-set (objects context)]
-    (if (= scale-type :ordinal)
-      (let [closure-operator (ordinal-operator context)]
-        (operator-pseudo-intents base-set closure-operator))
-      (illegal-argument "Cannot compute ordinal motifs for scale " scale-type "."))))
+(defn ordinal-motifs-pseudo-intents-ordinal-scale
+  "Compute ordinal motifs for ordinal scale over next closure algorithm."
+  [context]
+  (let [sorted-base-set (sort (objects context))]
+    (let [closure-operator (ordinal-operator context)]
+      (operator-pseudo-intents sorted-base-set closure-operator))))

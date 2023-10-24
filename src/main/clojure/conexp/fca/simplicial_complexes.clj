@@ -21,7 +21,7 @@
                                          lattice-base-set
                                          lattice-order
                                          sup]]
-            [conexp.fca.next-closure :refer [ordinal-motifs-pseudo-intents
+            [conexp.fca.next-closure :refer [ordinal-motifs-pseudo-intents-ordinal-scale
                                              t-simplex-pseudo-intents]])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.lattices.Lattice))
@@ -105,40 +105,6 @@
 
 ;; FCA
 
-(defmulti t-simplex
-  "Creates a t-simplex from a given object."
-  (fn [object t] (type object)))
-
-(defmethod t-simplex Lattice
-  [lattice t]
-  (let [not>= (fn [concept]
-                (not ((lattice-order lattice) t concept))),
-        one-element-simplices (set (filter not>= (lattice-base-set lattice))),
-        queue (mapv #(set (list %)) one-element-simplices),
-        simplices (set (union #{#{}} queue)),
-        join (sup lattice)]
-    (loop [element (first queue)
-           queue (vec (next queue))
-           simplices simplices]
-      (let [join-elements (filter #(contains? one-element-simplices
-                                              (join (first element) (first %))) queue),
-            new-queue-elements (mapv #(union element %) join-elements),
-            new-queue (vec (distinct (apply conj queue new-queue-elements)))]
-        (if (empty? new-queue)
-          (FullSimplicialComplex. (lattice-base-set lattice) simplices)
-          (recur (first new-queue)
-                 (vec (next new-queue))
-                 (union simplices new-queue-elements)))))))
-
-(defmethod t-simplex Formal-Context
-  [ctx t]
-  (let [lattice (concept-lattice ctx)]
-    (t-simplex lattice t)))
-
-(defmethod t-simplex :default
-  [object & args]
-  (illegal-argument "Cannot compute a simplicial complex from type " (type object) "."))
-
 (defmulti t-simplex-next-closure
   "Creates a t-simplex from a given object with next closure algorithm."
   (fn [object t] (type object)))
@@ -158,14 +124,14 @@
   (illegal-argument "Cannot compute a simplicial complex from type " (type object) "."))
 
 (defmulti ordinal-motif-next-closure
-  "Creates ordinal motifs from a given object with next closure algorithm."
-  (fn [object scale-type] (type object)))
+  "Creates ordinal motifs from a given context and scale-type with next closure algorithm."
+  (fn [context scale-type] scale-type))
 
-(defmethod ordinal-motif-next-closure Formal-Context
+(defmethod ordinal-motif-next-closure :ordinal
   [ctx scale-type]
   (FullSimplicialComplex. (objects ctx)
-                          (second (ordinal-motifs-pseudo-intents ctx scale-type))))
+                          (second (ordinal-motifs-pseudo-intents-ordinal-scale ctx))))
 
 (defmethod ordinal-motif-next-closure :default
-  [object & args]
-  (illegal-argument "Cannot compute ordinal motifs from type " (type object) "."))
+  [ctx scale-type & args]
+  (illegal-argument "Cannot compute ordinal motifs for scale " scale-type "."))
