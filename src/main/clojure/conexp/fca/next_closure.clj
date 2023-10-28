@@ -9,6 +9,7 @@
                                          context-attribute-closure
                                          objects
                                          object-derivation]]
+            [conexp.fca.implications :refer [canonical-base-from-clop]]
             [conexp.fca.lattices :refer [inf
                                          lattice-base-set
                                          lattice-order
@@ -93,21 +94,21 @@
     (loop [implications #{}
            A #{}
            simplicial-complex #{}]
-      (if (= A base-set)
-        [(set (map first implications)) simplicial-complex]
-        (if (closure-operator A)
+      (if (closure-operator A)
+        (if (= A base-set)
+          [(set (map first implications)) (conj simplicial-complex A)]
           (recur implications
                  (next-closure-with-operator
                   sorted-base-set (implication-operator implications) A)
-                 (conj simplicial-complex A))
-          (if (= ((implication-operator implications) A) base-set)
-            [(set (map first implications)) simplicial-complex]
-            (let [new-implications
-                  (conj implications [A base-set])]
-              (recur new-implications
-                     (next-closure-with-operator
-                      sorted-base-set (implication-operator new-implications) A)
-                     simplicial-complex))))))))
+                 (conj simplicial-complex A)))
+        (if (= ((implication-operator implications) A) base-set)
+          [(set (map first implications)) simplicial-complex]
+          (let [new-implications
+                (conj implications [A base-set])]
+            (recur new-implications
+                   (next-closure-with-operator
+                    sorted-base-set (implication-operator new-implications) A)
+                   simplicial-complex)))))))
 
 (defn t-simplex-pseudo-intents
   "Compute the pseudo intents of a given closure operator and lattice."
@@ -120,6 +121,14 @@
 (defn ordinal-motifs-pseudo-intents-ordinal-scale
   "Compute ordinal motifs for ordinal scale over next closure algorithm."
   [context]
-  (let [sorted-base-set (sort (objects context))]
-    (let [closure-operator (ordinal-operator context)]
-      (operator-pseudo-intents sorted-base-set closure-operator))))
+  (let [sorted-base-set (sort (objects context))
+        closure-operator (ordinal-operator context)]
+    (operator-pseudo-intents sorted-base-set closure-operator)))
+
+;;; use the next closure implementation from base.clj
+
+(defn t-simplex-pseudo-intents-base
+  [lattice t]
+  (let [base-set (lattice-base-set lattice)
+        closure-operator (t-simplex-operator lattice t)]
+    (canonical-base-from-clop (constantly true) base-set #{} closure-operator)))

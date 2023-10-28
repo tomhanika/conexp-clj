@@ -114,4 +114,15 @@
   (is (= (ordinal-motif-next-closure ctx :ordinal)
          (FullSimplicialComplex. #{0 1 2 3}
                                  #{#{} #{0} #{1} #{2} #{3}
-                                   #{0 1} #{0 2} #{0 3} #{1 3} #{0 1 3}}))))
+                                   #{0 1} #{0 2} #{0 3} #{1 3} #{0 1 3}})))
+  (let [ctx1 (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd]
+                                       [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])
+        ctx2 (make-context-from-matrix [0 1 2 3] [0 1 2 3] [1 1 1 1 0 1 1 1 0 0 1 1 0 0 0 1])]
+    (is (= (ordinal-motif-next-closure ctx1 :ordinal)
+           (FullSimplicialComplex. #{0 1 2 3}
+                                   #{#{} #{0} #{1} #{2} #{3} #{0 3} #{2 3}})))
+    (is (= (ordinal-motif-next-closure ctx2 :ordinal)
+           (FullSimplicialComplex. #{0 1 2 3}
+                                   #{#{} #{0} #{1} #{2} #{3} 
+                                     #{0 1} #{0 2} #{0 3} #{1 2} #{1 3} #{2 3}
+                                     #{0 1 2} #{0 1 3} #{0 2 3} #{1 2 3} #{0 1 2 3}})))))
