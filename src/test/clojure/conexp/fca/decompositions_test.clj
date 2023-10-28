@@ -50,6 +50,9 @@
                           [5 3] [5 5]}))
 (def lat2 (concept-lattice ctx2))
 
+(def decomp-pairs-2 (seq [[[#{1 4 3 2 5} #{3}] [#{} #{1 4 3 2 5}]]
+                          [[#{} #{1 4 3 2 5}] [#{1 4 3 2 5} #{3}]]]))
+
 ;only decomposable by top and bot
 (def ctx3 (make-context #{1 2 3 4 5 6}
                         #{1 2 3 4 5 6}
@@ -71,7 +74,8 @@
   (is (= (libkin-decomposition-lattices lat1 [[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]]) 
          [ctx1-decomp-1 ctx1-decomp-2]))
 
-  (is (empty? (libkin-decomposition-pairs lat2)))
+  (is (= (libkin-decomposition-pairs lat2)
+         decomp-pairs-2))
 
   (is (= (libkin-decomposition-pairs lat3) 
          decomp-pairs3))
