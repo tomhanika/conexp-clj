@@ -837,20 +837,23 @@
 )
 )
 
-;retruns all complements of "concept" in "lat"
-(defn element-complement [concept lat]
-  (let [base-set (lattice-base-set lat)
-        top (first(filter #(= (second %) #{}) base-set))
-        bot (reduce #(if (> (count (second %1)) (count (second %2))) %1
-                                                                     %2
-                                                                       ) base-set)]
-
-      (filter #(and (not= % concept)
-                    (= ((sup lat) concept %) top)
-                    (= ((inf lat) concept %) bot))
-              base-set))
+(defn top-element [lat]
+  (reduce #((sup lat) %1 %2) (lattice-base-set lat))
 )
 
+(defn bot-element [lat]
+  (reduce #((inf lat) %1 %2) (lattice-base-set lat))
+)
+
+;retruns all complements of "concept" in "lat"
+(defn element-complement [concept lat]
+  (let [base-set (lattice-base-set lat)]
+
+      (filter #(and (not= % concept)
+                    (= ((sup lat) concept %) (top-element lat))
+                    (= ((inf lat) concept %) (bot-element lat)))
+              base-set))
+)
 
 
 
