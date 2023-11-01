@@ -17,7 +17,7 @@ java -jar conexp-clj-2.1.1-SNAPSHOT-standalone.jar
 This will get you a prompt for ~conexp-clj~ much like
 
 #+begin_src text
-conexp.main=>
+conexp.analysis=>
 #+end_src
 
 You can now use all the power of formal concept analysis from ~conexp-clj~, and
@@ -25,7 +25,7 @@ also everything Clojure provides.  For example, you can compute the value of the
 expression ~1 + 1~ as
 
 #+begin_src text
-conexp.main=> (+ 1 1)
+conexp.analysis=> (+ 1 1)
 2
 #+end_src
 
