@@ -35,7 +35,9 @@
                                make-lattice-nc
                                concept-lattice 
                                lattice-order
-                               distributive?]]]
+                               distributive?
+                               lattice-one
+                               lattice-zero]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
@@ -837,26 +839,16 @@
 )
 )
 
-(defn top-element [lat]
-  (reduce #((sup lat) %1 %2) (lattice-base-set lat))
-)
-
-(defn bot-element [lat]
-  (reduce #((inf lat) %1 %2) (lattice-base-set lat))
-)
 
 ;retruns all complements of "concept" in "lat"
 (defn element-complement [concept lat]
   (let [base-set (lattice-base-set lat)]
 
       (filter #(and (not= % concept)
-                    (= ((sup lat) concept %) (top-element lat))
-                    (= ((inf lat) concept %) (bot-element lat)))
+                    (= ((sup lat) concept %) (lattice-one lat))
+                    (= ((inf lat) concept %) (lattice-zero lat)))
               base-set))
 )
-
-
-
 
 ;;;
 nil
