@@ -6,6 +6,15 @@
 ~conexp-clj~ allows for the computation of Libkin Decompositions of lattices.
 For an explanation of the concept consult "Direct product decompositions of lattices, closures and relation schemes" by Leonid Libkin
 
+Some of the following functions require the ~decompositions~ namespace:
+
+
+#+begin_src clojure
+(use 'conexp.fca.decompositions)
+#+end_src
+
+(use 'conexp.fca.decompositions)
+
 We will consider the following lattice as an example:
 
 #+begin_src clojure :exports both
