@@ -2,7 +2,8 @@
   (:use conexp.fca.contexts
         conexp.fca.ordinal-motifs)
   (:use clojure.test)
-  (:import [conexp.fca.ordinal_motifs Scale-Complex]))
+  (:import [conexp.fca.ordinal_motifs Scale-Complex]
+           [conexp.fca.ordinal_motifs Ordinal-Motif-Covering]))
 
 (deftest generate-scale-test
   (are [scale-type scale]
@@ -195,3 +196,16 @@
       :interordinal #{#{1 3} #{0 1 2}}
       :contranominal #{#{0 1} #{0 2} #{1 2} #{1 3}}
       :crown #{})))
+
+(deftest greedy-motif-covering-test
+  (let [ctx (make-context-from-matrix '[a b c d]
+                                      [0 1 2 3]
+                                      [1 1 1 0 0 0 1 1 0 1 1 1 0 1 0 1])
+        s-complex (make-scale-complex ctx)
+        covering (greedy-motif-covering s-complex)]
+    (is (= (type covering) Ordinal-Motif-Covering))
+    (let [ordinal-motifs (set (map first (:covering-seq covering)))]
+      (are [ordinal-motif]
+          (contains? ordinal-motifs ordinal-motif)
+        #{'a 'b 'd}
+        #{'a 'c}))))

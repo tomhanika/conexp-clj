@@ -667,7 +667,7 @@
   [file]
   (with-in-reader file 
     (let [file-content (json/read *in* :key-fn keyword)
-          schema-file "src/main/resources/schemas/context_schema_v1.1.json"]
+          schema-file "schemas/context_schema_v1.1.json"]
       (assert (matches-schema? file-content schema-file)
               (str "The input file does not match the schema given at " schema-file "."))
       (json->ctx file-content))))

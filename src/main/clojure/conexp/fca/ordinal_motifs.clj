@@ -295,7 +295,9 @@
 (defn cycles-of-g
   "Returns for an object g all cycles that can be found using the
   neighbors relations. Here neighbors is a map from the objects to all
-  other objects that have a shared attribute. Breadth first search."
+  other objects that have a shared attribute. Breadth first search.
+  Only such cycles of g are returned, where elements can only be 
+  reached by their neighbors."
   [ctx neighbours start-g]
   (let [obj-seq (into [start-g] (seq (disj (objects ctx) start-g)))
         obj-order (fn [obj] (doall (sort-by #(.indexOf obj-seq %) obj)))]
@@ -515,21 +517,22 @@
   "Returns a lazy-seq of the "
   ([ordinal-motifs+stats normalized] (ordinal-motif-covering-seq ordinal-motifs+stats normalized #{}))
   ([ordinal-motifs+stats normalized covered-exts]
-   (let [;; get max key
-         [most-covering-motif {:keys [scale-type extents covering] :as stats}] 
-                              (apply max-key (fn [[motif {:keys [covering extents]}]]
-                                               (if normalized
-                                                 (/ (count covering) (count extents))
-                                                 (count covering))) 
-                                     ordinal-motifs+stats)
-         ;; update motif-concept-map by set difference
-         updated-ordinal-motifs+stats (as-> ordinal-motifs+stats $
-                                        (dissoc $ most-covering-motif)
-                                        (fmap (fn [remaining-stats] 
-                                                (update remaining-stats :covering #(difference % covering))) $ ))
-         new-covered-exts (clojure.set/union covered-exts covering)]
-     (cons [most-covering-motif stats]
-           (lazy-seq (ordinal-motif-covering-seq updated-ordinal-motifs+stats normalized new-covered-exts ))))))
+   (if (not (empty? ordinal-motifs+stats))
+     (let [ ;; get max key
+           [most-covering-motif {:keys [scale-type extents covering] :as stats}] 
+           (apply max-key (fn [[motif {:keys [covering extents]}]]
+                            (if normalized
+                              (/ (count covering) (count extents))
+                              (count covering))) 
+                  ordinal-motifs+stats)
+           ;; update motif-concept-map by set difference
+           updated-ordinal-motifs+stats (as-> ordinal-motifs+stats $
+                                          (dissoc $ most-covering-motif)
+                                          (fmap (fn [remaining-stats] 
+                                                  (update remaining-stats :covering #(difference % covering))) $ ))
+           new-covered-exts (clojure.set/union covered-exts covering)]
+       (cons [most-covering-motif stats]
+             (lazy-seq (ordinal-motif-covering-seq updated-ordinal-motifs+stats normalized new-covered-exts )))))))
 
 (defn- compute-ordinal-motifs+stats 
   "Computes a map for each ordinal motif base set H \\subseteq G to the extents of K[H,M]"
