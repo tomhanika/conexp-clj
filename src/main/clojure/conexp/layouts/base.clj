@@ -12,6 +12,7 @@
         conexp.math.algebra
         conexp.fca.lattices
         conexp.fca.posets
+        conexp.fca.closure-systems
         clojure.pprint))
 
 ;;;

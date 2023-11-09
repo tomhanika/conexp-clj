@@ -13,7 +13,8 @@
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]
-             [implications :refer :all]]
+             [implications :refer :all]
+             [closure-systems :refer :all]]
             [conexp.math.util :refer [eval-polynomial]]))
 
 ;;; Bonds

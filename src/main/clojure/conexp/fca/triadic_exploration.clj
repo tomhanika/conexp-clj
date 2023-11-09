@@ -1,10 +1,10 @@
 (ns conexp.fca.triadic-exploration
   (:require [clojure.algo.generic.functor :refer [fmap]]
+            [conexp.fca.closure-systems :refer [next-closed-set]]
             [conexp.fca.contexts :as cxt]
             [conexp.fca.implications :as impl]
             [conexp.fca.exploration :as expl]
-            [conexp.base :as base]
-            ))
+            [conexp.base :as base]))
 
 
 
@@ -154,7 +154,7 @@
 (defn- next-closure-by-implications
   "Given a set of attributes A from the base set M and a set of implications L on M, returns the next closed set for A"
   [A M L]
-  (base/next-closed-set
+  (next-closed-set
    M
    (impl/clop-by-implications L)
    A))

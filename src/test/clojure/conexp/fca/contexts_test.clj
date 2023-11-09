@@ -8,7 +8,8 @@
 
 (ns conexp.fca.contexts-test
   (:use conexp.base
-        conexp.fca.contexts)
+        conexp.fca.contexts
+        conexp.fca.closure-systems)
   (:use clojure.test))
 
 ;;;

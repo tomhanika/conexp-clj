@@ -1,3 +1,4 @@
+
 ;; Copyright ⓒ the conexp-clj developers; all rights reserved.
 ;; The use and distribution terms for this software are covered by the
 ;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
@@ -8,6 +9,7 @@
 
 (ns conexp.fca.smeasure
   (:require [conexp.base :refer :all]
+            [conexp.fca.closure-systems :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.concept-transform :refer :all]
             [conexp.fca.cover :refer [generate-concept-cover]]
