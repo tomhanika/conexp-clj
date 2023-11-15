@@ -8,19 +8,20 @@
 
 (ns conexp.fca.simplicial-complexes
   "Provides the implementation of simplicial complexes and functions on them."
-  (:require [conexp.base :refer [clojure-coll
-                                 clojure-set
-                                 clojure-type
-                                 difference
-                                 hash-combine-hash
-                                 illegal-argument
-                                 subset?
-                                 union]]
-            [conexp.fca.contexts :refer [objects]]
+  (:require [clojure.math.combinatorics :refer [combinations]]
+            [conexp.base :refer :all]
+            [conexp.fca.closure-systems :refer [next-closed-set-in-family]]
+            [conexp.fca.contexts :refer [objects
+                                         object-derivation]]
+            [conexp.fca.implications :refer [clop-by-implications
+                                             close-under-implications
+                                             implication?
+                                             make-implication]]
             [conexp.fca.lattices :refer [concept-lattice
-                                         lattice-base-set]]
-            [conexp.fca.next-closure :refer [ordinal-motifs-pseudo-intents-ordinal-scale
-                                             t-simplex-pseudo-intents]])
+                                         inf
+                                         lattice-base-set
+                                         lattice-order
+                                         sup]])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.lattices.Lattice))
 
@@ -103,14 +104,81 @@
 
 ;; FCA
 
+(defn simplicial-complex-from-clop
+  "Given a closure operator «clop» on the set «base», computes its canonical base,
+   optionally using the set «background-knowledge» of implications on «base-set»
+  as background knowledge.  The result will be a lazy sequence.  If «predicate»
+  is given as third argument, computes only those implications whose premise
+  satisfy this predicate.  Note that «predicate» has to satisfy the same
+  conditions as the one of «next-closed-set-in-family»."
+  ([clop base]
+     (simplicial-complex-from-clop clop base #{} (constantly true)))
+  ([clop base background-knowledge]
+     (simplicial-complex-from-clop clop base background-knowledge (constantly true)))
+  ([clop base background-knowledge predicate]
+     (assert (fn? clop)
+             "Given closure operator must be a function")
+     (assert (coll? base)
+             "Base must be a collection")
+     (assert (fn? predicate)
+             "Predicate must be a function")
+     (assert (and (set? background-knowledge)
+                  (forall [x background-knowledge]
+                    (implication? x)))
+             "Background knowledge must be a set of implications")
+     (let [next-closure (fn [implications last]
+                          (next-closed-set-in-family predicate
+                                                     base
+                                                     (clop-by-implications implications)
+                                                     last)),
+           runner       (fn runner [implications simplicial-complex candidate]
+                          (when candidate
+                            (if (not (clop candidate))
+                              (let [impl  (make-implication candidate base),
+                                    impls (conj implications impl)]
+                                (recur impls simplicial-complex (next-closure impls candidate)))
+                              (let [s-complex (conj simplicial-complex candidate)]
+                                (cons candidate
+                                      (lazy-seq (runner implications
+                                                        s-complex
+                                                        (next-closure implications candidate))))))))]
+       (lazy-seq (runner background-knowledge
+                         #{}
+                         (close-under-implications background-knowledge #{}))))))
+
+;;
+
+(defn- join-operator
+  "Join operator of a given lattice for an input set of arbitrary length."
+  [lattice]
+  (fn [concept-set]
+    (if (= 0 (count concept-set))
+      ;; bottom element
+      (reduce (inf lattice) (lattice-base-set lattice))
+      (if (= 1 (count concept-set))
+        (first concept-set)
+        (reduce (sup lattice) concept-set)))))
+
+(defn- not>=t-operator
+  [lattice t]
+  (fn [concept]
+    (not ((lattice-order lattice) t concept))))
+
+(defn- t-simplex-operator
+  [lattice t]
+  (fn [concept-set]
+    ((not>=t-operator lattice t) ((join-operator lattice) concept-set))))
+
 (defmulti t-simplex-next-closure
   "Creates a t-simplex from a given object with next closure algorithm."
   (fn [object t] (type object)))
 
 (defmethod t-simplex-next-closure Lattice
   [lattice t]
-  (FullSimplicialComplex. (lattice-base-set lattice) 
-                          (second (t-simplex-pseudo-intents lattice t))))
+  (let [base-set (lattice-base-set lattice)
+        closure-condition (t-simplex-operator lattice t)
+        simplices (simplicial-complex-from-clop closure-condition base-set)]
+    (FullSimplicialComplex. base-set simplices)))
 
 (defmethod t-simplex-next-closure Formal-Context
   [ctx t]
@@ -121,15 +189,38 @@
   [object & args]
   (illegal-argument "Cannot compute a simplicial complex from type " (type object) "."))
 
+;;
+
+(defn- pairwise-subsets?
+  [attribute-sets]
+  (let [attribute-set-combinations (combinations attribute-sets 2)]
+    (every? 
+     #(or (subset? (first %) (second %))
+          (subset? (second %) (first %)))
+     attribute-set-combinations)))
+
+(defn- ordinal-operator
+  [context]
+  (fn [object-set]
+    (if (< (count object-set) 2)
+      true
+      (let [attribute-sets (mapv #(object-derivation context %) (mapv #(hash-set %) object-set))]
+        (pairwise-subsets? attribute-sets)))))
+
 (defmulti ordinal-motif-next-closure
   "Creates ordinal motifs from a given context and scale-type with next closure algorithm."
   (fn [context scale-type] scale-type))
 
 (defmethod ordinal-motif-next-closure :ordinal
   [ctx scale-type]
-  (FullSimplicialComplex. (objects ctx)
-                          (second (ordinal-motifs-pseudo-intents-ordinal-scale ctx))))
+  (let [base-set (objects ctx)
+        closure-condition (ordinal-operator ctx)
+        simplices (simplicial-complex-from-clop closure-condition base-set)]
+    (FullSimplicialComplex. base-set
+                            simplices)))
 
 (defmethod ordinal-motif-next-closure :default
   [ctx scale-type & args]
   (illegal-argument "Cannot compute ordinal motifs for scale " scale-type "."))
+
+

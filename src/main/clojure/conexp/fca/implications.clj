@@ -11,7 +11,9 @@
   (:require [clojure.core.reducers :as r]
             [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
-            [conexp.fca.closure-systems :refer :all]
+            [conexp.fca.closure-systems :refer [next-closed-set-in-family
+                                                all-closed-sets-in-family
+                                                extension-set]]
             [conexp.fca.contexts :refer :all]))
 
 ;;;
