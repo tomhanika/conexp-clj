@@ -191,21 +191,21 @@
 
 ;;
 
-(defn- pairwise-subsets?
-  [attribute-sets]
-  (let [attribute-set-combinations (combinations attribute-sets 2)]
-    (every? 
-     #(or (subset? (first %) (second %))
-          (subset? (second %) (first %)))
-     attribute-set-combinations)))
+(defn- extent-chain? 
+  "Checks if the extents ordered by setinclusion is a linear order."
+  [exts]
+  (let [sorted-exts (sort-by count exts)
+        sorted-exts-idxs (-> sorted-exts count dec range)]
+    (every? (fn [i]
+              (subset? (nth sorted-exts i)
+                       (nth sorted-exts (inc i))))
+            sorted-exts-idxs)))
 
 (defn- ordinal-operator
   [context]
   (fn [object-set]
-    (if (< (count object-set) 2)
-      true
-      (let [attribute-sets (mapv #(object-derivation context %) (mapv #(hash-set %) object-set))]
-        (pairwise-subsets? attribute-sets)))))
+    (let [extents (mapv #(object-derivation context #{%}) object-set)]
+      (extent-chain? extents))))
 
 (defmulti ordinal-motif-next-closure
   "Creates ordinal motifs from a given context and scale-type with next closure algorithm."
