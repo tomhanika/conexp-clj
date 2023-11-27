@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-#(ns conexp.fca.decompositions
+(ns conexp.fca.decompositions
   (:require [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
             [conexp.io.contexts :refer :all]
@@ -63,6 +63,8 @@
              rest-attr attr
              object-next true]
 
+(println (count (objects subctx)))
+
          (let [new-obj (first (filter #(distributive? (concept-lattice (add-obj subctx % incidence))) rest-objs))
                new-attr (first (filter #(distributive? (concept-lattice (add-attr subctx % incidence))) rest-attr))]
 
@@ -85,8 +87,36 @@
          )
       )))
 
+(for [ctx ctx-list] (println (concept-lattice (read-context ctx))))
+
+(def pair-list (for [ctx ctx-list] (libkin-decomposition-pairs (concept-lattice (read-context ctx)))))
+
+(def ctx-list #{"animals-d.ctx"
+                "bird-diet-d.ctx"
+                "bodiesofwater-d.ctx"
+                "booth-d.ctx"
+                "brunson-club-d.ctx"
+                "cointoss-2-d.ctx"
+                "diagnosis-d.ctx"
+                "digits-d.ctx"
+                "dirichlet-1-d.ctx"
+                "dolphins-d.ctx"
+                "drive_concepts_for_motorcars-d.ctx"
+                "forum-romanum-d.ctx"
+                "gewuerzplaner-d.ctx"
+                "living-beings-and-water-d.ctx"
+                "myctx-d.ctx"
+                "olympic-disciplines-d.ctx"
+                "seasoning-planner-d.ctx"
+                "southern-woman-d.ctx"
+                "testcontext-d.ctx"
+                "triangles-d.ctx"
+                "wood-properties-d.ctx"
+                "zoo-d.ctx"})
 
 
 
-;(def ctx (rad-context "testing-data/Bird-Diet.ctx"))
+;(use 'conexp.io.contexts)
+;(def ctx (read-context "testing-data/Bird-Diet.ctx"))
 ;(make-context #{} #{} (incidence ctx))
+;(write-context :burmeister (distributive-exploration (read-context "testing-data/Bird-Diet.ctx") ectx) "ird-diet-d.ctx")
