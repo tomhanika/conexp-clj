@@ -11,8 +11,10 @@
   (:require [clojure.math.combinatorics :refer [combinations]]
             [conexp.base :refer :all]
             [conexp.fca.closure-systems :refer [next-closed-set-in-family]]
-            [conexp.fca.contexts :refer [objects
-                                         object-derivation]]
+            [conexp.fca.contexts :refer [context-object-closure
+                                         extents
+                                         make-context
+                                         objects]]
             [conexp.fca.implications :refer [clop-by-implications
                                              close-under-implications
                                              implication?
@@ -24,6 +26,23 @@
                                          sup]])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.lattices.Lattice))
+
+;;; From ordinal_motifs.clj: TODO: merge
+(defmulti generate-scale 
+  (fn [scale-type & rest]
+    scale-type))
+
+(defmethod generate-scale :nominal
+  [_ n]
+  (make-context (range 1 (inc n))
+                (range 1 (inc n))
+                =))
+
+(defmethod generate-scale :contranominal
+  [_ n]
+  (make-context (range 1 (inc n))
+                (range 1 (inc n))
+                not=))
 
 ;;; Data structure
 
@@ -204,7 +223,7 @@
 (defn- ordinal-operator
   [context]
   (fn [object-set]
-    (let [extents (mapv #(object-derivation context #{%}) object-set)]
+    (let [extents (mapv #(context-object-closure context #{%}) object-set)]
       (extent-chain? extents))))
 
 (defmulti ordinal-motif-next-closure
@@ -219,8 +238,98 @@
     (FullSimplicialComplex. base-set
                             simplices)))
 
+(defn- no-extent-chain?
+  "Checks that there is no setinclusion between any of the extents."
+  [exts]
+  (let [sorted-exts (sort-by count exts)
+        sorted-exts-idxs (-> sorted-exts count dec range)]
+    (not-any? (fn [i]
+                (subset? (nth sorted-exts i)
+                         (nth sorted-exts (inc i))))
+              sorted-exts-idxs)))
+
+(defn- interordinal-operator
+  [context]
+  (fn [object-set]
+    (let [extents (mapv #(context-object-closure context #{%}) object-set)]
+      (no-extent-chain? extents))))
+
+(defmethod ordinal-motif-next-closure :interordinal
+  [ctx scale-type]
+  (let [base-set (objects ctx)
+        closure-condition (interordinal-operator ctx)
+        simplices (simplicial-complex-from-clop closure-condition base-set)]
+    (FullSimplicialComplex. base-set
+                            simplices)))
+
+(defn- nominal-operator
+  [context]
+  (let [context-extents (extents context)]
+    (fn [object-set]
+      (let [subset-size (count object-set)]
+        (if (< subset-size 2)
+          true
+          (let [extents-restricted-to-base-set (set 
+                                                (map 
+                                                 #(intersection object-set %)
+                                                 context-extents))
+                nominal-scale (generate-scale :nominal subset-size)
+                nominal-extents (set (extents nominal-scale))]
+            (if (not= (count extents-restricted-to-base-set)
+                      (count nominal-extents))
+              false
+              (let [object-map (->> (zip object-set (objects nominal-scale)) 
+                                    ;; all nominal lattices of one size are automorph to each other. 
+                                    ;; Therefore, only one combination of context and scale objects needs to be checked.
+                                    flatten
+                                    (apply hash-map))
+                    extents-mapped (->> extents-restricted-to-base-set
+                                        (map (fn [ext]
+                                               (->> ext (map object-map) set)))
+                                        set)]
+                (= extents-mapped nominal-extents)))))))))
+
+(defmethod ordinal-motif-next-closure :nominal
+  [ctx scale-type]
+  (let [base-set (objects ctx)
+        closure-condition (nominal-operator ctx)
+        simplices (simplicial-complex-from-clop closure-condition base-set)]
+    (FullSimplicialComplex. base-set
+                            simplices)))
+
+(defn- contranominal-operator
+  [context]
+  (let [context-extents (extents context)]
+    (fn [object-set]
+      (let [subset-size (count object-set)]
+        (if (< subset-size 2)
+          true
+          (let [extents-restricted-to-base-set (set
+                                                (map
+                                                 #(intersection object-set %)
+                                                 context-extents))
+                contranominal-scale (generate-scale :contranominal subset-size)
+                contranominal-extents (set (extents contranominal-scale))]
+            (if (not= (count extents-restricted-to-base-set)
+                      (count contranominal-extents))
+              false
+              (let [object-map (->> (zip object-set (objects contranominal-scale))
+                                    flatten
+                                    (apply hash-map))
+                    extents-mapped (->> extents-restricted-to-base-set
+                                        (map (fn [ext]
+                                               (->> ext (map object-map) set)))
+                                        set)]
+                (= extents-mapped contranominal-extents)))))))))
+
+(defmethod ordinal-motif-next-closure :contranominal
+  [ctx scale-type]
+  (let [base-set (objects ctx)
+        closure-condition (contranominal-operator ctx)
+        simplices (simplicial-complex-from-clop closure-condition base-set)]
+    (FullSimplicialComplex. base-set
+                            simplices)))
+
 (defmethod ordinal-motif-next-closure :default
   [ctx scale-type & args]
   (illegal-argument "Cannot compute ordinal motifs for scale " scale-type "."))
-
-

@@ -125,4 +125,20 @@
            (FullSimplicialComplex. #{0 1 2 3}
                                    #{#{} #{0} #{1} #{2} #{3} 
                                      #{0 1} #{0 2} #{0 3} #{1 2} #{1 3} #{2 3}
-                                     #{0 1 2} #{0 1 3} #{0 2 3} #{1 2 3} #{0 1 2 3}})))))
+                                     #{0 1 2} #{0 1 3} #{0 2 3} #{1 2 3} #{0 1 2 3}}))))
+  (is (= (ordinal-motif-next-closure ctx :interordinal)
+         (FullSimplicialComplex. #{0 1 2 3}
+                                 #{#{} #{0} #{1} #{2} #{3}
+                                   #{1 2} #{2 3}})))
+  ;; Test case similar to ordinal-motifs branch.
+  (let [ctx (make-context-from-matrix [0 1 2 3] 
+                                      ['a 'b 'c 'd]
+                                      [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])]
+    (are [type simplices]
+        (= (ordinal-motif-next-closure ctx type) 
+           (FullSimplicialComplex. #{0 1 2 3}
+                                   simplices))
+      :ordinal #{#{} #{0} #{1} #{2} #{3} #{0 3} #{2 3}}
+      :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
+      :nominal #{#{} #{0} #{1} #{2} #{3} #{1 3} #{1 2} #{0 2} #{0 1}}
+      :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}})))
