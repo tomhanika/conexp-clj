@@ -11,7 +11,8 @@
   (:require [clojure.math.combinatorics :refer [combinations]]
             [conexp.base :refer :all]
             [conexp.fca.closure-systems :refer [next-closed-set-in-family]]
-            [conexp.fca.contexts :refer [context-object-closure
+            [conexp.fca.contexts :refer [context-apposition
+                                         context-object-closure
                                          extents
                                          make-context
                                          objects]]
@@ -44,26 +45,43 @@
                 (range 1 (inc n))
                 not=))
 
+(defmethod generate-scale :ordinal
+  [_ n]
+  (make-context (range 1 (inc n))
+                (range 1 (inc n))
+                <=))
+
+(defmethod generate-scale :interordinal
+  [_ n]
+  (let [leq-scale (make-context (range 1 (inc n))
+                                (range 1 (inc n))
+                                <=)
+        geq-scale (make-context (range 1 (inc n))
+                                (range 1 (inc n))
+                                >=)]
+    (context-apposition leq-scale geq-scale)) )
+
+
 ;;; Data structure
 
 (defprotocol SimplicialComplex
-  (base-set [this] "Returns the base set.")
+  (base [this] "Returns the base set.")
   (simplices [this] "Returns the simplices of the simplicial complex, 
                      which are subsets of its base set."))
 
-(deftype FullSimplicialComplex [base-set simplices]
+(deftype FullSimplicialComplex [base simplices]
   Object
   (equals [this other]
     (and (= (class this) (class other))
-         (= (.base-set this) (.base-set ^FullSimplicialComplex other))
+         (= (.base this) (.base ^FullSimplicialComplex other))
          (= (set (.simplices this)) (set (.simplices ^FullSimplicialComplex other)))))
   (hashCode [this]
-    (hash-combine-hash FullSimplicialComplex base-set simplices))
+    (hash-combine-hash FullSimplicialComplex base simplices))
   (toString [this]
     (str (set (.simplices this))))
   ;;
   SimplicialComplex
-  (base-set [this] base-set)
+  (base [this] base)
   (simplices [this] simplices))
 
 (defmethod print-method FullSimplicialComplex [^FullSimplicialComplex simplicial-complex,
@@ -76,15 +94,15 @@
 (defmulti make-full-simplicial-complex-nc
   "Creates a full simplicial complex from the given arguments, without any checks."
   {:arglist '([simplices]
-              [base-set simplices])}
+              [base simplices])}
   (fn [& args] (vec (map clojure-type args))))
 
-(defmethod make-full-simplicial-complex-nc [clojure-set clojure-coll] [base-set simplices]
-  (FullSimplicialComplex. base-set simplices))
+(defmethod make-full-simplicial-complex-nc [clojure-set clojure-coll] [base simplices]
+  (FullSimplicialComplex. base simplices))
 
 (defmethod make-full-simplicial-complex-nc [clojure-coll] [simplices]
-  (let [base-set (apply union simplices)]
-    (make-full-simplicial-complex-nc base-set simplices)))
+  (let [base (apply union simplices)]
+    (make-full-simplicial-complex-nc base simplices)))
 
 (defmethod make-full-simplicial-complex-nc :default [& args]
   (illegal-argument "The arguments " args " are not valid for a Full Simplicial Complex."))
@@ -101,25 +119,25 @@
                    (every? #(contains? simplices-set %) direct-sub-simplices))
                  true))
              simplices-set))
-   ;; also check if base-set is correct (contains all elements contained in simplices)
+   ;; also check if base set is correct (contains all elements contained in simplices)
    (let [base-set-derived-from-simplices (apply union (.simplices simplicial-complex))]
-     (subset? base-set-derived-from-simplices (.base-set simplicial-complex)))))
+     (subset? base-set-derived-from-simplices (.base simplicial-complex)))))
 
 (defmulti make-full-simplicial-complex
   "Creates a full simplicial complex from the given arguments, and checks that it really is a full simplicial complex."
   {:arglist '([simplices]
-              [base-set simplices])}
+              [base simplices])}
   (fn [& args] (vec (map clojure-type args))))
 
-(defmethod make-full-simplicial-complex [clojure-set clojure-coll] [base-set simplices]
-  (let [simplicial-complex (make-full-simplicial-complex-nc base-set simplices)]
+(defmethod make-full-simplicial-complex [clojure-set clojure-coll] [base simplices]
+  (let [simplicial-complex (make-full-simplicial-complex-nc base simplices)]
     (when-not (is-simplicial-complex? simplicial-complex)
       (illegal-argument "Given arguments do not describe a simplicial complex."))
     simplicial-complex))
 
 (defmethod make-full-simplicial-complex [clojure-coll] [simplices]
-  (let [base-set (apply union simplices)]
-    (make-full-simplicial-complex base-set simplices)))
+  (let [base (apply union simplices)]
+    (make-full-simplicial-complex base simplices)))
 
 ;; FCA
 
@@ -194,10 +212,10 @@
 
 (defmethod t-simplex-next-closure Lattice
   [lattice t]
-  (let [base-set (lattice-base-set lattice)
+  (let [base (lattice-base-set lattice)
         closure-condition (t-simplex-operator lattice t)
-        simplices (simplicial-complex-from-clop closure-condition base-set)]
-    (FullSimplicialComplex. base-set simplices)))
+        simplices (simplicial-complex-from-clop closure-condition base)]
+    (FullSimplicialComplex. base simplices)))
 
 (defmethod t-simplex-next-closure Formal-Context
   [ctx t]
@@ -232,10 +250,10 @@
 
 (defmethod ordinal-motif-next-closure :ordinal
   [ctx scale-type]
-  (let [base-set (objects ctx)
+  (let [base (objects ctx)
         closure-condition (ordinal-operator ctx)
-        simplices (simplicial-complex-from-clop closure-condition base-set)]
-    (FullSimplicialComplex. base-set
+        simplices (simplicial-complex-from-clop closure-condition base)]
+    (FullSimplicialComplex. base
                             simplices)))
 
 (defn- no-extent-chain?
@@ -256,10 +274,10 @@
 
 (defmethod ordinal-motif-next-closure :interordinal
   [ctx scale-type]
-  (let [base-set (objects ctx)
+  (let [base (objects ctx)
         closure-condition (interordinal-operator ctx)
-        simplices (simplicial-complex-from-clop closure-condition base-set)]
-    (FullSimplicialComplex. base-set
+        simplices (simplicial-complex-from-clop closure-condition base)]
+    (FullSimplicialComplex. base
                             simplices)))
 
 (defn- nominal-operator
@@ -291,10 +309,10 @@
 
 (defmethod ordinal-motif-next-closure :nominal
   [ctx scale-type]
-  (let [base-set (objects ctx)
+  (let [base (objects ctx)
         closure-condition (nominal-operator ctx)
-        simplices (simplicial-complex-from-clop closure-condition base-set)]
-    (FullSimplicialComplex. base-set
+        simplices (simplicial-complex-from-clop closure-condition base)]
+    (FullSimplicialComplex. base
                             simplices)))
 
 (defn- contranominal-operator
@@ -324,10 +342,10 @@
 
 (defmethod ordinal-motif-next-closure :contranominal
   [ctx scale-type]
-  (let [base-set (objects ctx)
+  (let [base (objects ctx)
         closure-condition (contranominal-operator ctx)
-        simplices (simplicial-complex-from-clop closure-condition base-set)]
-    (FullSimplicialComplex. base-set
+        simplices (simplicial-complex-from-clop closure-condition base)]
+    (FullSimplicialComplex. base
                             simplices)))
 
 (defmethod ordinal-motif-next-closure :default

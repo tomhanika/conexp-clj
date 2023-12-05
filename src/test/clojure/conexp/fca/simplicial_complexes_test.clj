@@ -8,8 +8,17 @@
 
 (ns conexp.fca.simplicial-complexes-test
   (:use clojure.test)
-  (:require [conexp.fca.simplicial-complexes :refer :all]
-            [conexp.fca.contexts :refer [make-context-from-matrix]])
+  (:require [conexp.base :refer [with-testing-data]]
+            [conexp.fca.contexts :refer [attributes
+                                         incidence
+                                         make-context
+                                         make-context-from-matrix
+                                         objects
+                                         rand-context
+                                         random-contexts]]
+            [conexp.fca.simplicial-complexes :refer :all]
+            [conexp.fca.smeasure :refer [make-smeasure-nc
+                                         smeasure?]])
   (:import conexp.fca.simplicial_complexes.FullSimplicialComplex))
 
 (deftest test-FullSimplicialComplex-equals
@@ -142,3 +151,32 @@
       :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
       :nominal #{#{} #{0} #{1} #{2} #{3} #{1 3} #{1 2} #{0 2} #{0 1}}
       :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}})))
+
+(defn- has-smeasure?
+  ;; Check if given context has a scale measure of given scale type.
+  [ctx scale-type]
+  (let [smeasures (map 
+                   #(make-smeasure-nc 
+                     ctx 
+                     (generate-scale scale-type %)
+                     (zipmap (objects ctx) (range 1 (inc %))))
+                   (range (inc (count (objects ctx)))))]
+    (some #(smeasure? %) smeasures)))
+
+(deftest test-ordinal-motif-next-closure-over-smeasure
+  "Test the ordinal-motif-next-closure method by testing if for all
+  subcontexts that contain simplices as objects there is a (local)
+  scale-measure to the given scale-type."
+  (let [contexts (random-contexts 10 10)]
+    (with-testing-data [ctx contexts,
+                        scale-type [:nominal :contranominal :ordinal :interordinal]]
+      (let [ordinal-motifs (ordinal-motif-next-closure ctx scale-type)
+            subcontexts (map #(make-context % (attributes ctx) (incidence ctx)) 
+                             (simplices ordinal-motifs))
+            smeasures (map 
+                       #(make-smeasure-nc 
+                         % 
+                         (generate-scale scale-type (count (objects %)))
+                         (zipmap (objects %) (range 1 (inc (count (objects %))))))
+                       subcontexts)]
+        (every? #(has-smeasure? % scale-type) subcontexts)))))
