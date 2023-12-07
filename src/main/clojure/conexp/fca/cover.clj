@@ -380,29 +380,3 @@
                   (do (await cur-lattice) @cur-lattice)
                   (let [bin-closure (next-closed-set-iterator bin-ctx bin-next)]
                     (recur (to-hashset attr-order bin-closure) bin-closure)))))))))
-
-;; Variation without fast implementation
-;; (defn attribute-insertion-cover 
-;; "This method updates the concept lattice given by cover on an
-;;   insertion of attributes to the context. The added attributes are
-;;   already included in new-context and are further given by
-;;   new-attributes."
-;;   [cover new-ctx new-attributes]
-;;   (if (empty? new-attributes) cover
-;;       (let [intent-chan (next-intent-async new-ctx new-attributes :exlusive)
-;;             prev-attributes (difference 
-;;                              (attributes new-ctx)
-;;                              new-attributes)
-;;             cur-lattice (agent cover)]
-;;         (loop [next-intent (<!! intent-chan)]
-;;           (if (= :fin next-intent) (do (await cur-lattice) @cur-lattice)
-;;               (let [old (intersection next-intent prev-attributes)]
-;;                 ;; async update cover
-;;                 (send-off cur-lattice insert-concept next-intent (attribute-derivation new-ctx next-intent))
-                
-;;                 (send-off cur-lattice 
-;;                           #(if (= old (context-attribute-closure new-ctx old))
-;;                              %
-;;                              (reassign-cover % old)))
-;;                 (recur (<!! intent-chan))))))))
-
