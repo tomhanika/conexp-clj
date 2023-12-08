@@ -3,7 +3,6 @@
             [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.io.contexts :refer :all]
-            [conexp.fca.lattices :refer :all]
             [conexp.fca.implications :refer :all]
             [conexp.fca.smeasure :refer :all]
             [clojure.math.combinatorics :as comb]
@@ -603,106 +602,9 @@
                      (generate-scale :contranominal (count objects))
                      (one-bijective-map objects)))))
 
+(defmethod accepts-scale :ordinal [type ctx]);exhaustive search
 
-(defmethod accepts-scale :ordinal [type ctx]
-  (let [concepts (concepts ctx) 
-        len (count (objects ctx))]
-     (loop [current #{} chain [] conc concepts]
-        (if ( =(count chain) len) chain
-                                    (let [new-candidates (filter #(and (subset? current (first  %))
-                                                                       ( = (count (set/difference (first %) current)) 1)) conc)
-                                          next (first (first new-candidates))]
-                                       (if (some? next) (recur 
-                                                         next 
-                                                         (conj chain next) 
-                                                         conc)
+(defmethod accepts-scale :interordinal [type ctx]);exhaustive search
 
-                                                        (if (not= (count current) 0) (recur 
-                                                                                (last (drop-last chain)) 
-                                                                                (drop-last chain)
-                                                                                (filter #(not= (first %) current) conc))))))))
-)
+(defmethod accepts-scale :crown [type ctx]);exhaustive search
 
-(defmethod accepts-scale :interordinal [type ctx]
-  (let [concepts (concepts ctx)
-        extents (map first concepts)
-        objs (objects ctx)
-        len (count objs)]
-     (loop [current #{} chain [] ext extents]
-
-        (if ( =(count chain) len) chain
-                                  (let [new-candidates (filter #(and (subset? current %)
-                                                                     (= (count (set/difference % current)) 1)
-                                                                     (some (fn [x] (= x (set/difference objs current))) ext)) ext)
-                                        next (first new-candidates)]
-                                       (if (some? next) (recur 
-                                                         next 
-                                                         (conj chain next) 
-                                                         ext)
-
-                                                        (if (not= (count current) 0) (recur 
-                                                                                      (last (drop-last chain)) 
-                                                                                      (drop-last chain)
-                                                                                      (filter #(not= % current) ext))))))))
-)
-
-
-(defmethod accepts-scale :crown [type ctx]
-  (let [objects (objects ctx)
-        obj-pairs (filter #(= 2 (count %)) (extents ctx))]
-
-     (if (every? #(= #{%} (attribute-derivation ctx (object-derivation  ctx #{%}))) objects);check if all objects form concepts
-        (loop [path []
-               search-tree (into [] obj-pairs)]
-
-            
-             (if (and (= ( count path) (count objects));cycle has correct length
-                      (set/difference (second path) (set/difference (first path) (last path))));first and last elements overlap with unique element
-                
-                path
-                (let [candidates (filter #(= (count (set/intersection ;pair overlaps with last pair but on a new element
-                                                     (set/difference 
-                                                      (first path) 
-                                                      (second path)) 
-                                                     %)) 
-                                             1) 
-                                         (set/difference (set obj-pairs) (set path)))
-
-                      [next & updated-search-tree] (into (into [] candidates) search-tree)]
-
-
-                    (if candidates (recur (into (vector next) path) updated-search-tree)
-                                   (recur (into (vector next) (drop 1 path)) updated-search-tree))                     
-))))))
-             
-
-
-
-;test contexts
-
-(def ctx (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["B" 2] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
-(def ctx2 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
-
-(def ctx3 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
-                                                            ["C" 3] ["C" 4] ["C" 5] ["C" 6] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
-
-(def ctx4 (make-context #{"A" "B" "C" "D" "E" "F"} #{1 2 3 12 23 123} 
-                           #{["A" 1] ["A" 12] ["A" 123]
-                             ["B" 2] ["B" 12] ["B" 23] ["B" 123]
-                             ["C" 3] ["C" 23] ["C" 123]
-                             ["D" 12] ["D" 123]
-                             ["E" 23] ["E" 123]
-                             ["F" 123]}
-                           ))
-
-(def ctx5 (make-context #{"A" "B" "C"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
-                                                            ["C" 3] ["C" 4] ["C" 5] ["C" 6]}))
-
-(def ctx6 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["B" 2] ["B" 3] ["C" 3] ["C" 4] ["D" 4] ["D" 1]}))
-
-(def ctx7 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["B" 2] ["B" 3] ["C" 3] ["C" 4] ["D" 4] ["D" 1]}))
-
-(def ctx8 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["A" 3] ["A" 4]
-                                                        ["B" 1] ["B" 2] ["B" 3] ["B" 4]
-                                                        ["C" 1] ["C" 2] ["C" 3] ["C" 4]
-                                                        ["D" 1] ["D" 2] ["D" 3] ["D" 4]}))
