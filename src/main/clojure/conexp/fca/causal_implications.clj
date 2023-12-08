@@ -57,33 +57,42 @@
                                            new-obj))))
               #{} objs))))
 
+(defn- only-exposed [exposed nonexposed ctx premise-attr conclusion-attr]
+  "Returns true, if *exposed* contains both the premise and conclusion attributes, 
+  and *nonexposed* does not contain the conclusion."
+  (and (incident? ctx exposed premise-attr) 
+       (and (incident? ctx exposed conclusion-attr) 
+            (not (incident? ctx nonexposed conclusion-attr))))
+)
+
+(defn- only-nonexposed [exposed nonexposed ctx premise-attr conclusion-attr]
+  "Returns true, if *exposed* contains the premise attribute, but only *nonexposed*
+  contains the conclusion attribute."
+  (and (incident? ctx exposed premise-attr) 
+       (and (not (incident? ctx exposed conclusion-attr)) 
+            (incident? ctx nonexposed conclusion-attr)))
+)
+
 (defn fair-odds-ratio [ctx impl fair-data]
   "Computes the odds ratio of an implication by dividing the number of matched pairs, 
    where the only the exposed element contains the conclusion by the number of matched pairs,
    where only the non-exposed object contains the conclusion. 
    (The divisor is capped at a minimum of 1)
    Only works on implications with single attributes as premise and conclusion."
-  (let [premise-attr  (first (premise impl)), conclusion-attr (first (conclusion impl))]
+  (let [premise-attr  (first (premise impl))
+        conclusion-attr (first (conclusion impl))]
 
     (/ (reduce +  (for [pair fair-data]
       (let [a  (first pair), b (first (rest pair))]
-        (if (or (and (incident? ctx a premise-attr) 
-                     (and (incident? ctx a conclusion-attr) 
-                          (not (incident? ctx b conclusion-attr))))
-                (and (incident? ctx b premise-attr) 
-                     (and (incident? ctx b conclusion-attr) 
-                          (not (incident? ctx a conclusion-attr)))))
+        (if (or (only-exposed a b ctx premise-attr conclusion-attr)
+                (only-exposed b a ctx premise-attr conclusion-attr))
         1
         0))))
 
    (max (reduce +  (for [pair fair-data]
       (let [a  (first pair), b (first (rest pair))]
-        (if (or (and (incident? ctx a premise-attr) 
-                     (and (not (incident? ctx a conclusion-attr)) 
-                          (incident? ctx b conclusion-attr)))
-                (and (incident? ctx b premise-attr) 
-                     (and (not (incident? ctx b conclusion-attr)) 
-                          (incident? ctx a conclusion-attr))))
+        (if (or (only-nonexposed a b ctx premise-attr conclusion-attr)
+                (only-nonexposed b a ctx premise-attr conclusion-attr))
         1
         0))))
         
@@ -115,12 +124,8 @@
                   (* zconf (Math/sqrt (+ (/ 1 (max (reduce + 
                                                     (for [pair fair-data]
                                                     (let [a  (first pair), b (first (rest pair))]
-                                                    (if (or (and (incident? ctx a premise-attr) 
-                                                                 (and (incident? ctx a conclusion-attr) 
-                                                                      (not (incident? ctx b conclusion-attr))))
-                                                            (and (incident? ctx b premise-attr) 
-                                                                 (and (incident? ctx b conclusion-attr) 
-                                                                      (not (incident? ctx a conclusion-attr)))))
+                                                    (if (or (only-exposed a b ctx premise-attr conclusion-attr)
+                                                            (only-exposed b a ctx premise-attr conclusion-attr))
                                                      1
                                                      0))))
                                                   
@@ -128,12 +133,8 @@
                                          (/ 1 (max (reduce +  
                                              (for [pair fair-data]
                                              (let [a  (first pair), b (first (rest pair))]
-                                             (if (or (and (incident? ctx a premise-attr) 
-                                                          (and (not (incident? ctx a conclusion-attr)) 
-                                                               (incident? ctx b conclusion-attr)))
-                                                     (and (incident? ctx b premise-attr) 
-                                                          (and (not (incident? ctx b conclusion-attr)) 
-                                                               (incident? ctx a conclusion-attr))))
+                                             (if (or (only-nonexposed a b ctx premise-attr conclusion-attr)
+                                                     (only-nonexposed b a ctx premise-attr conclusion-attr))
                                               1
                                               0))))
                                               1)) ))))))
