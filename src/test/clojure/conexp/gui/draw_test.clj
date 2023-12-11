@@ -29,6 +29,12 @@
     (let [result (draw-lattice test-lattice)]
       (is (= result result)))))
 
+(deftest test-draw-lattice-with-valuations
+  "Check that draw-lattice with valuations does not throw an exception."
+  (with-redefs [draw-layout mock-draw-layout]
+    (let [result (draw-lattice test-lattice :value-fn (fn [c] 0))]
+      (is (= result result)))))
+
 (deftest test-draw-protoconcepts
   "Check that draw-protoconcepts does not throw an exception."
   (with-redefs [draw-layout mock-draw-layout]

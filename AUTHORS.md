@@ -13,7 +13,7 @@ Additional Contributors are
 * Stefan Borgwardt      (Shared Intents)
 * Jana Fischer          (json format)
 * Tom Hanika            (Concept Probability)
-* Johannes Hirth        (pq-cores)
+* Johannes Hirth        (pq-cores, scale-measures)
 * Gleb Kanterov         (interval-scale)
 * Maximilian Marx       (Wikidata)
 * Maximilian Stubbemann (concept-robustness)
