@@ -14,9 +14,9 @@
                                          make-context
                                          make-context-from-matrix
                                          objects
-                                         rand-context
                                          random-contexts]]
             [conexp.fca.simplicial-complexes :refer :all]
+            [conexp.fca.ordinal-motifs :refer [generate-scale]]
             [conexp.fca.smeasure :refer [make-smeasure-nc
                                          smeasure?]])
   (:import conexp.fca.simplicial_complexes.FullSimplicialComplex))
