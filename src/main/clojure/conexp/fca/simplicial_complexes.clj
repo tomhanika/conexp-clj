@@ -231,6 +231,10 @@
   [ctx scale-type]
   (compute-ordinal-motifs-next-closure ctx scale-type))
 
+(defmethod ordinal-motif-next-closure :crown
+  [ctx scale-type]
+  (compute-ordinal-motifs-next-closure ctx scale-type))
+
 (defmethod ordinal-motif-next-closure :default
   [ctx scale-type & args]
   (illegal-argument "Cannot compute ordinal motifs for scale " scale-type "."))

@@ -137,7 +137,7 @@
   scale-measure to the given scale-type."
   (let [contexts (random-contexts 10 10)]
     (with-testing-data [ctx contexts,
-                        scale-type [:nominal :contranominal :ordinal :interordinal]]
+                        scale-type [:nominal :contranominal :ordinal :interordinal :crown]]
       (let [ordinal-motifs (ordinal-motif-next-closure ctx scale-type)
             subcontexts (map #(make-context % (attributes ctx) (incidence ctx)) 
                              (simplices ordinal-motifs))
