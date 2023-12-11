@@ -1,0 +1,114 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Ordinal Motifs - Textual Explanations of Ordinal Structures
+
+Ordinal motifs can help to interpret concept lattices.
+
+** Scales 
+
+The method ~is-of-scale~ checks if a given context ~ctx~ is of one of the 
+standard scales ~:nominal~, ~:ordinal~, ~:interordinal~, ~:contranominal~ or ~:crown~.
+
+*** Example
+
+#+begin_src clojure :result silent
+(is-of-scale? :nominal ctx)
+#+end_src
+
+** Scale complex
+
+The ordinal motifs of a context ~ctx~ can be computed for each individual standard scale 
+(e.g., ~:nominal~) with:
+
+#+begin_src clojure :result silent
+(scale-complex :nominal ctx)
+#+end_src 
+
+A ~Scale-Complex~ object contains the ordinal motifs of the 
+standard scales ~:nominal~, ~:ordinal~, ~:interordinal~, ~:contranominal~ or ~:crown~.
+It can be created with:
+
+#+begin_src clojure :result silent
+(make-scale-complex ctx)
+#+end_src
+
+As the computation of an ordinal motif, in particular for large contexts, needs some time, 
+the individual ordinal motifs of a ~scale-complex~ will only be computed when 
+requested (e.g., ~:nominal~) with:
+
+#+begin_src clojure :result silent
+(get-complex scale-complex :nominal)
+#+end_src
+
+To only get maximal ordinal motifs, the option ~:maximal true~ can be used:
+
+#+begin_src clojure :result silent
+(get-complex scale-complex :nominal :maximal true)
+#+end_src
+
+*** Example
+
+In this example, some ordinal motifs of the *bodiesofwater* context are computed.
+
+#+begin_src clojure :result silent
+(ns explainer 
+  (:require [conexp.fca.contexts :refer :all]
+            [conexp.fca.ordinal-motifs :refer :all]
+            [conexp.io.contexts :refer :all]))
+#+end_src
+
+Load the context.
+
+#+begin_src clojure :result silent
+(def water-ctx (read-context "testing-data/bodiesofwater.cxt"))
+(def water-ctx-dual (dual-context water-ctx))
+#+end_src
+
+Create a ~Scale-Complex~.
+
+#+begin_src clojure :result silent
+(def water-complex (make-scale-complex water-ctx-dual))
+#+end_src
+
+Get the maximal ~:nominal~ ordinal motifs.
+
+#+begin_src clojure
+(get-complex water-complex :nominal :maximal true)
+#+end_src
+
+The returned ordinal motifs each form a partition.
+
+#+begin_src clojure
+[#{"natural" "stagnant"}
+ #{"running" "maritime"}
+ #{"constant" "stagnant"}
+ #{"running" "natural"}
+ #{"running" "stagnant"}
+ #{"constant" "natural"}]
+#+end_src
+
+Get the maximal ~:interordinal~ ordinal motifs.
+
+#+begin_src clojure
+(get-complex water-complex :interordinal :maximal true)
+#+end_src
+
+#+begin_src clojure
+[#{"running" "maritime"}
+ #{"running" "natural" "stagnant"}
+ #{"constant" "stagnant"}
+ #{"constant" "natural"}]
+#+end_src
+
+** Standalone jar
+
+The repository [[https://github.com/jana-fischer/scale-complexes][scale-complexes]] contains a standalore jar that can be used to compute 
+all ordinal motifs of a context at once.
+
+** Further information
+
+You can find further information on ordinal motifs in the following papers:
+- [[https://arxiv.org/abs/2304.04827][Ordinal Motifs in Lattices]]
+- [[https://arxiv.org/abs/2304.08093][Automatic Textual Explanation of Concept Lattices]]
+

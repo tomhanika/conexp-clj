@@ -11,7 +11,7 @@ Additional Contributors are
 * Immanuel Albrecht     (Context Editor Plugin for the GUI)
 * Sebastian Benner      (API)
 * Stefan Borgwardt      (Shared Intents)
-* Jana Fischer          (json format)
+* Jana Fischer          (json format,Ordinal Motifs)
 * Tom Hanika            (Concept Probability)
 * Johannes Hirth        (pq-cores, scale-measures)
 * Gleb Kanterov         (interval-scale)
