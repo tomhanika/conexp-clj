@@ -117,40 +117,8 @@
                                    #{[#{0} #{'a 'b 'c 'd}] [#{0 3} #{'a 'c 'd}] [#{0 2 3} #{'d}]}
                                    #{[#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}
                                    #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 3} #{'a 'c 'd}]}
-                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}}))))
-
-(deftest test-ordinal-motif-next-closure
-  (is (= (ordinal-motif-next-closure ctx :ordinal)
-         (FullSimplicialComplex. #{0 1 2 3}
-                                 #{#{} #{0} #{1} #{2} #{3}
-                                   #{0 1} #{0 2} #{0 3} #{1 3} #{0 1 3}})))
-  (let [ctx1 (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd]
-                                       [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])
-        ctx2 (make-context-from-matrix [0 1 2 3] [0 1 2 3] [1 1 1 1 0 1 1 1 0 0 1 1 0 0 0 1])]
-    (is (= (ordinal-motif-next-closure ctx1 :ordinal)
-           (FullSimplicialComplex. #{0 1 2 3}
-                                   #{#{} #{0} #{1} #{2} #{3} #{0 3} #{2 3}})))
-    (is (= (ordinal-motif-next-closure ctx2 :ordinal)
-           (FullSimplicialComplex. #{0 1 2 3}
-                                   #{#{} #{0} #{1} #{2} #{3} 
-                                     #{0 1} #{0 2} #{0 3} #{1 2} #{1 3} #{2 3}
-                                     #{0 1 2} #{0 1 3} #{0 2 3} #{1 2 3} #{0 1 2 3}}))))
-  (is (= (ordinal-motif-next-closure ctx :interordinal)
-         (FullSimplicialComplex. #{0 1 2 3}
-                                 #{#{} #{0} #{1} #{2} #{3}
-                                   #{1 2} #{2 3}})))
-  ;; Test case similar to ordinal-motifs branch.
-  (let [ctx (make-context-from-matrix [0 1 2 3] 
-                                      ['a 'b 'c 'd]
-                                      [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])]
-    (are [type simplices]
-        (= (ordinal-motif-next-closure ctx type) 
-           (FullSimplicialComplex. #{0 1 2 3}
-                                   simplices))
-      :ordinal #{#{} #{0} #{1} #{2} #{3} #{0 3} #{2 3}}
-      :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
-      :nominal #{#{} #{0} #{1} #{2} #{3} #{1 3} #{1 2} #{0 2} #{0 1}}
-      :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}})))
+                                   #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}})))
+  (is (thrown? IllegalArgumentException (t-simplex-next-closure [#{0 3} #{'a 'c 'd}] [#{0 3} #{'a 'c 'd}]))))
 
 (defn- has-smeasure?
   ;; Check if given context has a scale measure of given scale type.
@@ -163,7 +131,7 @@
                    (range (inc (count (objects ctx)))))]
     (some #(smeasure? %) smeasures)))
 
-(deftest test-ordinal-motif-next-closure-over-smeasure
+(deftest test-ordinal-motif-next-closure
   "Test the ordinal-motif-next-closure method by testing if for all
   subcontexts that contain simplices as objects there is a (local)
   scale-measure to the given scale-type."
@@ -179,4 +147,5 @@
                          (generate-scale scale-type (count (objects %)))
                          (zipmap (objects %) (range 1 (inc (count (objects %))))))
                        subcontexts)]
-        (every? #(has-smeasure? % scale-type) subcontexts)))))
+        (every? #(has-smeasure? % scale-type) subcontexts))))
+  (is (thrown? IllegalArgumentException (ordinal-motif-next-closure ctx :other))))
