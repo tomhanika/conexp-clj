@@ -32,6 +32,7 @@ much more.
    8. [Computing Traces in Contexts](doc/code/trace-context.clj)
    9. [Counting Quasiorders](doc/code/quasiorders.clj)
    10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
+   11. [Libkin Decompositions](doc/LibkinDecomposition.org)
 5. Advanced Topics
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)

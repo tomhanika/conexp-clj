@@ -1,0 +1,70 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Libkin Decomposition
+
+~conexp-clj~ allows for the computation of Libkin Decompositions of lattices.
+For an explanation of the concept consult "Direct product decompositions of lattices, closures and relation schemes" by Leonid Libkin
+
+Some of the following functions require the ~decompositions~ namespace:
+
+
+#+begin_src clojure
+(use 'conexp.fca.decompositions)
+#+end_src
+
+(use 'conexp.fca.decompositions)
+
+We will consider the following lattice as an example:
+
+#+begin_src clojure :exports both
+(def ctx (make-context #{1 2 3 4 5 6 7} #{"A" "B" "C"} #{[1 "A"] [2 "B"] [3 "C"]
+                                                          [4 "A"] [4 "B"] [5 "B"] [5 "C"] [6 "A"] [6 "C"]
+                                                          [7 "A"] [7 "B"] [7 "C"]}))
+(def lat (concept-lattice ctx))
+#+end_src
+
+[[./images/car-lattice.png]]
+
+A Libkin decomposition of a lattice L is a pair of sublattices of L, whose product is isomorphic to L.
+Libkin decompositions are each induced by a decomposition pair, a neutral element in L and its Complement.
+
+All decomposition pairs of the lattice can be computed using the method ~libkin-decomposition-pairs~:
+
+#+begin_src clojure :exports both
+(def pairs (libkin-decomposition-pairs lat))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+([[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]]
+ [[#{7 4 2 5} #{"B"}] [#{7 6} #{"C" "A"}]]
+ [[#{7 1 4 6} #{"A"}] [#{7 5} #{"C" "B"}]]
+ [[#{7 5} #{"C" "B"}] [#{7 1 4 6} #{"A"}]]
+ [[#{7 6 3 5} #{"C"}] [#{7 4} #{"B" "A"}]]
+ [[#{7 1 4 6 3 2 5} #{}] [#{7} #{"C" "B" "A"}]]
+ [[#{7} #{"C" "B" "A"}] [#{7 1 4 6 3 2 5} #{}]]
+ [[#{7 4} #{"B" "A"}] [#{7 6 3 5} #{"C"}]])
+#+end_src
+
+Computing the order ideal of both entries of the pair yields the two sublattices forming the decomposition.
+
+The lattices implied by the decomposition through a specific decomposition pair can be exlicitely generated using ~libkin-decomposition-lattices~:
+
+#+begin_src clojure :exports both
+(def lattice-pair (libkin-decomposition-lattices lat [[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]]))
+#+end_src
+
+These lattices may be visualized as described in Concept-Lattices.org .
+
+#+begin_src text
+(draw-lattice (first lattice-pair))
+(draw-lattice (last lattice-pair))
+#+end_src
+
+[[./images/decomposed-lattice1.png]]
+[[./images/decomposed-lattice2.png]]
+
+The product of these lattices yields a lattice isomorphic to L:
+
+[[./images/prod-lattice.png]]
