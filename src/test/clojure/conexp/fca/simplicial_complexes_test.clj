@@ -120,6 +120,43 @@
                                    #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}] [#{0 2 3} #{'d}] [#{0 3} #{'a 'c 'd}]}})))
   (is (thrown? IllegalArgumentException (t-simplex-next-closure [#{0 3} #{'a 'c 'd}] [#{0 3} #{'a 'c 'd}]))))
 
+(deftest test-ordinal-motif-sample-cases
+  (is (= (ordinal-motif-next-closure ctx :ordinal)
+         (FullSimplicialComplex. #{0 1 2 3}
+                                 #{#{} #{0} #{1} #{2} #{3}
+                                   #{0 1} #{0 2} #{0 3} #{1 3} #{0 1 3}})))
+  (let [ctx1 (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd]
+                                       [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])
+        ctx2 (make-context-from-matrix [0 1 2 3] [0 1 2 3] [1 1 1 1 0 1 1 1 0 0 1 1 0 0 0 1])]
+    (is (= (ordinal-motif-next-closure ctx1 :ordinal)
+           (FullSimplicialComplex. #{0 1 2 3}
+                                   #{#{} #{0} #{1} #{2} #{3} #{0 3} #{2 3}})))
+    (is (= (ordinal-motif-next-closure ctx2 :ordinal)
+           (FullSimplicialComplex. #{0 1 2 3}
+                                   #{#{} #{0} #{1} #{2} #{3} 
+                                     #{0 1} #{0 2} #{0 3} #{1 2} #{1 3} #{2 3}
+                                     #{0 1 2} #{0 1 3} #{0 2 3} #{1 2 3} #{0 1 2 3}}))))
+  (is (= (ordinal-motif-next-closure ctx :interordinal)
+         (FullSimplicialComplex. #{0 1 2 3}
+                                 #{#{} #{0} #{1} #{2} #{3}
+                                   #{1 2} #{2 3}})))
+  (is (= (ordinal-motif-next-closure (generate-scale :crown 4) :crown)
+         (FullSimplicialComplex. #{1 2 3 4}
+                                #{#{1 2 3 4}})))
+  ;; Test case similar to ordinal-motifs branch.
+  (let [ctx (make-context-from-matrix [0 1 2 3] 
+                                      ['a 'b 'c 'd]
+                                      [1 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1])]
+    (are [type simplices]
+        (= (ordinal-motif-next-closure ctx type) 
+           (FullSimplicialComplex. #{0 1 2 3}
+                                   simplices))
+      :ordinal #{#{} #{0} #{1} #{2} #{3} #{0 3} #{2 3}}
+      :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
+      :nominal #{#{} #{0} #{1} #{2} #{3} #{1 3} #{1 2} #{0 2} #{0 1}}
+      :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
+      :crown #{})))
+
 (defn- has-smeasure?
   ;; Check if given context has a scale measure of given scale type.
   [ctx scale-type]
