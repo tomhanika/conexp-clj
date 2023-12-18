@@ -206,19 +206,10 @@
                                           context-extents object-set
   scale-extents)))))))
 
-(defn- closure-condition-operator-crown
-  "Closure operator for :crown scale."
-  [context scale-type]
-  (let [context-extents (extents context)]
-    (fn [object-set]
-      (let [subset-size (count object-set)
-            scale-extents (set (extents (generate-scale scale-type subset-size)))]
-        (identify-full-scale-measures scale-type
-                                      context-extents object-set scale-extents)))))
-
 (defn- compute-ordinal-motifs-next-closure
-  [ctx scale-type closure-condition]
+  [ctx scale-type]
   (let [base (objects ctx)
+        closure-condition (closure-condition-operator ctx scale-type)
         simplices (simplicial-complex-from-clop closure-condition base)]
     (FullSimplicialComplex. base
                             simplices)))
@@ -229,28 +220,19 @@
 
 (defmethod ordinal-motif-next-closure :ordinal
   [ctx scale-type]
-  (let [closure-condition (closure-condition-operator ctx scale-type)]
-    (compute-ordinal-motifs-next-closure ctx scale-type closure-condition)))
+  (compute-ordinal-motifs-next-closure ctx scale-type))
 
 (defmethod ordinal-motif-next-closure :interordinal
   [ctx scale-type]
-  (let [closure-condition (closure-condition-operator ctx scale-type)]
-    (compute-ordinal-motifs-next-closure ctx scale-type closure-condition)))
+  (compute-ordinal-motifs-next-closure ctx scale-type))
 
 (defmethod ordinal-motif-next-closure :nominal
   [ctx scale-type]
-  (let [closure-condition (closure-condition-operator ctx scale-type)]
-    (compute-ordinal-motifs-next-closure ctx scale-type closure-condition)))
+  (compute-ordinal-motifs-next-closure ctx scale-type))
 
 (defmethod ordinal-motif-next-closure :contranominal
   [ctx scale-type]
-  (let [closure-condition (closure-condition-operator ctx scale-type)]
-    (compute-ordinal-motifs-next-closure ctx scale-type closure-condition)))
-
-(defmethod ordinal-motif-next-closure :crown
-  [ctx scale-type]
-  (let [closure-condition (closure-condition-operator-crown ctx scale-type)]
-    (compute-ordinal-motifs-next-closure ctx scale-type closure-condition)))
+  (compute-ordinal-motifs-next-closure ctx scale-type))
 
 (defmethod ordinal-motif-next-closure :default
   [ctx scale-type & args]

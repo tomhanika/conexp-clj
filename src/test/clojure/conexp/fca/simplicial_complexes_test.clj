@@ -140,9 +140,6 @@
          (FullSimplicialComplex. #{0 1 2 3}
                                  #{#{} #{0} #{1} #{2} #{3}
                                    #{1 2} #{2 3}})))
-  (is (= (ordinal-motif-next-closure (generate-scale :crown 4) :crown)
-         (FullSimplicialComplex. #{1 2 3 4}
-                                #{#{1 2 3 4}})))
   ;; Test case similar to ordinal-motifs branch.
   (let [ctx (make-context-from-matrix [0 1 2 3] 
                                       ['a 'b 'c 'd]
@@ -154,8 +151,7 @@
       :ordinal #{#{} #{0} #{1} #{2} #{3} #{0 3} #{2 3}}
       :interordinal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3} #{0 1 2}}
       :nominal #{#{} #{0} #{1} #{2} #{3} #{1 3} #{1 2} #{0 2} #{0 1}}
-      :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}}
-      :crown #{})))
+      :contranominal #{#{} #{0} #{1} #{2} #{3} #{0 1} #{0 2} #{1 2} #{1 3}})))
 
 (defn- has-smeasure?
   ;; Check if given context has a scale measure of given scale type.
@@ -174,7 +170,7 @@
   scale-measure to the given scale-type."
   (let [contexts (random-contexts 10 10)]
     (with-testing-data [ctx contexts,
-                        scale-type [:nominal :contranominal :ordinal :interordinal :crown]]
+                        scale-type [:nominal :contranominal :ordinal :interordinal]]
       (let [ordinal-motifs (ordinal-motif-next-closure ctx scale-type)
             subcontexts (map #(make-context % (attributes ctx) (incidence ctx)) 
                              (simplices ordinal-motifs))
