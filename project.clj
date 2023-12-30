@@ -64,4 +64,6 @@
   :resource-paths ["src/main/resources"]
   :target-path "builds/%s"
   :compile-path "%s/classes/"
-  :java-opts ["-Dawt.useSystemAAFontSettings=lcd_hbgr" "-Xmx4G"])
+  :java-opts ["-Dawt.useSystemAAFontSettings=on" "-Xmx4G"]
+  :repl-options {:init-ns conexp.analysis
+               :init (use 'conexp.analysis :reload)})
