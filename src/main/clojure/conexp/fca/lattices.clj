@@ -11,7 +11,8 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.contexts
-        conexp.fca.posets))
+        conexp.fca.posets)
+  (:gen-class))
 
 ;;; Datastructure
 
