@@ -52,11 +52,11 @@
              :dev {:main conexp.main
                    :dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring/ring-mock "0.4.0"]
-                                  [nrepl/nrepl "1.0.0"]]
+                                  [nrepl/nrepl "1.0.0"]
+                                  [com.clojure-goes-fast/clj-async-profiler "1.0.5"]]
                    :plugins [[lein-aot-order "0.1.0"]]
-                   :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]}
-             :gorilla {:main conexp.main
-                       :plugins [[org.clojars.benfb/lein-gorilla "0.7.0"]]}}
+                   :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]
+                   :jvm-opts ["-Djdk.attach.allowAttachSelf"]}}
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
