@@ -18,9 +18,7 @@ Some of the following functions require the ~decompositions~ namespace:
 We will consider the following lattice as an example:
 
 #+begin_src clojure :exports both
-(def ctx (make-context #{1 2 3 4 5 6 7} #{"A" "B" "C"} #{[1 "A"] [2 "B"] [3 "C"]
-                                                          [4 "A"] [4 "B"] [5 "B"] [5 "C"] [6 "A"] [6 "C"]
-                                                          [7 "A"] [7 "B"] [7 "C"]}))
+(def ctx (read-context "testing-data/drive_concepts_for_motorcars.cxt"))
 (def lat (concept-lattice ctx))
 #+end_src
 
@@ -37,14 +35,26 @@ All decomposition pairs of the lattice can be computed using the method ~libkin-
 
 #+RESULTS:
 #+begin_src text
-([[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]]
- [[#{7 4 2 5} #{"B"}] [#{7 6} #{"C" "A"}]]
- [[#{7 1 4 6} #{"A"}] [#{7 5} #{"C" "B"}]]
- [[#{7 5} #{"C" "B"}] [#{7 1 4 6} #{"A"}]]
- [[#{7 6 3 5} #{"C"}] [#{7 4} #{"B" "A"}]]
- [[#{7 1 4 6 3 2 5} #{}] [#{7} #{"C" "B" "A"}]]
- [[#{7} #{"C" "B" "A"}] [#{7 1 4 6 3 2 5} #{}]]
- [[#{7 4} #{"B" "A"}] [#{7 6 3 5} #{"C"}]])
+([[#{"Conventional" "All-wheel" "Rear-wheel" "Mid-engine"} #{"Dl+"}]
+  [#{"Front-wheel"}
+   #{"E+" "C-l" "De+" "C-vl" "E++" "Dl-" "S-u" "R+" "M+" "R++"}]]
+ [[#{}
+   #{"E+" "C-l" "E-" "C-h" "De+" "Dl+" "C-vl" "E++" "S-u/n" "Dl++"
+     "Dl-" "M++" "S-u" "R+" "S-n" "S-o" "De-" "De++" "M+" "M--" "R--"
+     "C-m" "M-" "R++" "E--"}]
+  [#{"Conventional" "All-wheel" "Rear-wheel" "Mid-engine"
+     "Front-wheel"}
+   #{}]]
+ [[#{"Conventional" "All-wheel" "Rear-wheel" "Mid-engine"
+     "Front-wheel"}
+   #{}]
+  [#{}
+   #{"E+" "C-l" "E-" "C-h" "De+" "Dl+" "C-vl" "E++" "S-u/n" "Dl++"
+     "Dl-" "M++" "S-u" "R+" "S-n" "S-o" "De-" "De++" "M+" "M--" "R--"
+     "C-m" "M-" "R++" "E--"}]]
+ [[#{"Front-wheel"}
+   #{"E+" "C-l" "De+" "C-vl" "E++" "Dl-" "S-u" "R+" "M+" "R++"}]
+  [#{"Conventional" "All-wheel" "Rear-wheel" "Mid-engine"} #{"Dl+"}]])
 #+end_src
 
 Computing the order ideal of both entries of the pair yields the two sublattices forming the decomposition.
@@ -52,7 +62,9 @@ Computing the order ideal of both entries of the pair yields the two sublattices
 The lattices implied by the decomposition through a specific decomposition pair can be exlicitely generated using ~libkin-decomposition-lattices~:
 
 #+begin_src clojure :exports both
-(def lattice-pair (libkin-decomposition-lattices lat [[#{7 6} #{"C" "A"}] [#{7 4 2 5} #{"B"}]]))
+(def lattice-pair (libkin-decomposition-lattices lat [[#{"Conventional" "All-wheel" "Rear-wheel" "Mid-engine"} #{"Dl+"}]
+  [#{"Front-wheel"}
+   #{"E+" "C-l" "De+" "C-vl" "E++" "Dl-" "S-u" "R+" "M+" "R++"}]]))
 #+end_src
 
 These lattices may be visualized as described in Concept-Lattices.org .
@@ -64,6 +76,11 @@ These lattices may be visualized as described in Concept-Lattices.org .
 
 [[./images/decomposed-lattice1.png]]
 [[./images/decomposed-lattice2.png]]
+
+#+begin_src text
+(def prod-lat (lattice-product (first lattice-pair) (last lattice-pair)))
+(draw-lattice prod-lat)
+#+end_src
 
 The product of these lattices yields a lattice isomorphic to L:
 
