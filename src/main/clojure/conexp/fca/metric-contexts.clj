@@ -76,26 +76,136 @@
   )
 
 
-(defn convert-to-metric-context [ctx & metrics]
-  "Converts a context to a metric context. Metrics to add to the new metric context may be specified.
-   The metrics need to be input as maps of names/keys and corresponding functions for both object and attribute metrics.
-   The first map will be interpreted as the object metrics. The second map for attribute metrics may be omitted. The first 
-   map may be empty if only attribute metrics shall be added."
-  (let [mctx (metric-context. ctx {:o-hamm object-hamming} {:a-hamm attribute-hamming})]
-     (if (second metrics) (add-attribute-metrics (add-object-metrics mctx (first metrics)) (second metrics))
-                          (if (first metrics) (add-object-metrics mctx (first metrics))
-                                               mctx)))
+(defn convert-to-metric-context 
+  (
+   [ctx] 
+   "Converts a context to a metric context. Adds hamming metrics by default."
+   (metric-context. ctx {:o-hamm object-hamming} {:a-hamm attribute-hamming}))
+
+  (
+   [ctx object-metrics attribute-metrics]
+   "Converts a context to a metric context and adds specified metrics. 
+    The metrics need to be input as maps of names/keys and corresponding functions for both object and attribute metrics."
+   (add-attribute-metrics (add-object-metrics (convert-to-metric-context ctx) object-metrics) attribute-metrics))
+  )
+
+
+(defn make-metric-context
+  (
+   [objects attributes incidence]
+   "Creates a new metric context, based on its objects, attributes and incidence relation."
+   (convert-to-metric-context (make-context objects attributes incidence)))
+  
+  (
+   [objects attributes incidence object-metrics attribute-metrics]
+   "Creates a new metric context, based on its objects, attributes and incidence relation, and adds metrics to the new context.
+    The metrics need to be input as maps of names/keys and corresponding functions for both object and attribute metrics."
+   (convert-to-metric-context (make-context objects attributes incidence) object-metrics attribute-metrics))
 )
 
-(defn make-metric-context [objects attributes incidence & metrics]
-  "Creates a new metric context, based on its objects, attributes and incidence relation.
-   Metrics to add to the new metric context may be specified.
-   The metrics need to be input as maps of names/keys and corresponding functions for both object and attribute metrics.
-   The first map will be interpreted as the object metrics. The second map for attribute metrics may be omitted. The first 
-   map may be empty if only attribute metrics shall be added."
-  (apply convert-to-metric-context (cons (make-context objects attributes incidence) metrics)))
 
 
+(defn max-object-distance 
+  (
+   [mctx metric-name]
+   "Computes the maximum distance between objects of the context using the specified metric."
+   (max-object-distance mctx metric-name (objects mctx))
+   )
+  
+  (
+   [mctx metric-name objs]
+   "Computes the maximum distance between the specified objects using the specified metric."
+   (apply max (for [obj1 objs
+                    obj2 (set/difference objs #{obj1})] 
+                       (object-distance mctx metric-name obj1 obj2))))
+)
+
+(defn min-object-distance 
+  (
+   [mctx metric-name]
+   "Computes the minimum distance between objects of the context using the specified metric."
+   (min-object-distance mctx metric-name (objects mctx))
+   )
+  
+  (
+   [mctx metric-name objs]
+   "Computes the minimum distance between the specified objects using the specified metric."
+   (apply min (for [obj1 objs
+                    obj2 (set/difference objs #{obj1})] 
+                       (object-distance mctx metric-name obj1 obj2))))
+)
+
+(defn average-object-distance 
+  (
+   [mctx metric-name]
+   "Computes the average distance between objects of the context using the specified metric."
+   (average-object-distance mctx metric-name (objects mctx))
+   )
+  
+  (
+   [mctx metric-name objs]
+   "Computes the average distance between the specified objects using the specified metric."
+   (apply #(/ (reduce + %) (count %)) [(for [obj1 objs 
+                                             obj2 (set/difference objs #{obj1})] 
+                                                (object-distance mctx metric-name obj1 obj2))]))
+)
+
+
+(defn max-attribute-distance 
+  (
+   [mctx metric-name]
+   "Computes the maximum distance between attributess of the context using the specified metric."
+   (max-attribute-distance mctx metric-name (attributes mctx))
+   )
+  
+  (
+   [mctx metric-name attrs]
+   "Computes the maximum distance between the specified attributes using the specified metric."
+   (apply max (for [attr1 attrs
+                    attr2 (set/difference attrs #{attr1})] 
+                       (attribute-distance mctx metric-name attr1 attr2))))
+)
+
+(defn min-attr-distance 
+  (
+   [mctx metric-name]
+   "Computes the minimum distance between attributes of the context using the specified metric."
+   (min-attribute-distance mctx metric-name (attributes mctx))
+   )
+  
+  (
+   [mctx metric-name attrs]
+   "Computes the minimum distance between the specified attributes using the specified metric."
+   (apply min (for [attr1 attrs
+                    attr2 (set/difference attrs #{attr1})] 
+                       (attribute-distance mctx metric-name attr1 attr2))))
+)
+
+(defn average-attribute-distance 
+  (
+   [mctx metric-name]
+   "Computes the average distance between attributes of the context using the specified metric."
+   (average-attribute-distance mctx metric-name (attributes mctx))
+   )
+  
+  (
+   [mctx metric-name attrs]
+   "Computes the average distance between the specified attributes using the specified metric."
+   (apply #(/ (reduce + %) (count %)) [(for [attr1 attrs 
+                                             attr2 (set/difference attrs #{attr1})] 
+                                                (attribute-distance mctx metric-name attr1 attr2))]))
+)
+
+
+
+(defn object-confusion-matrix [mctx metric-name & opts]
+  "Return a matrix of all distances between objects computed using the specified metric."
+
+  (into [] (for [obj1 (objects mctx)]
+    (into [] (for [obj2 (objects mctx)]
+      (object-distance mctx metric-name obj1 obj2)))))
+
+)
 
   
 ;(def rctx (rand-context #{1 2 3 4} #{"A" "B" "C" "D"} 0.5))
