@@ -3,22 +3,6 @@
             [conexp.fca.contexts :refer :all]
             [clojure.set :as set]))
 
-(defn object-hamming [ctx obj1 obj2]
-  (if (and (.contains (objects ctx) obj1)
-           (.contains (objects ctx) obj2))
-   (count (set/union (set/difference (object-derivation ctx #{obj1}) 
-                                     (object-derivation ctx #{obj2}))
-                     (set/difference (object-derivation ctx #{obj2}) 
-                                     (object-derivation ctx #{obj1}))))))
-
-(defn attribute-hamming [ctx attr1 attr2]
-  (if (and (.contains (attributes ctx) attr1)
-           (.contains (attributes ctx) attr2))
-   (count (set/union (set/difference (attribute-derivation ctx #{attr1}) 
-                                     (attribute-derivation ctx #{attr2}))
-                     (set/difference (attribute-derivation ctx #{attr2}) 
-                                     (attribute-derivation ctx #{attr1}))))))
-
 (defprotocol Metric-Context
 
   (context [this] "Returns the underlying context.")
@@ -45,9 +29,28 @@
 
 )
 
- (defn add-object-metrics [mctx metrics]
-   "Adds metrics to the context's object metrics. 
-    The metrics need to be input as a map of names/keys and the corresponding functions."
+(defn object-hamming [ctx obj1 obj2]
+  "Computes the Hamming distance between objects by comparing the incident attributes."
+  (if (and (.contains (objects ctx) obj1)
+           (.contains (objects ctx) obj2))
+   (count (set/union (set/difference (object-derivation ctx #{obj1}) 
+                                     (object-derivation ctx #{obj2}))
+                     (set/difference (object-derivation ctx #{obj2}) 
+                                     (object-derivation ctx #{obj1}))))))
+
+(defn attribute-hamming [ctx attr1 attr2]
+  "Computes the Hamming distance between attributes by comparing the incident objects."
+  (if (and (.contains (attributes ctx) attr1)
+           (.contains (attributes ctx) attr2))
+   (count (set/union (set/difference (attribute-derivation ctx #{attr1}) 
+                                     (attribute-derivation ctx #{attr2}))
+                     (set/difference (attribute-derivation ctx #{attr2}) 
+                                     (attribute-derivation ctx #{attr1}))))))
+
+
+(defn add-object-metrics [mctx metrics]
+  "Adds metrics to the context's object metrics. 
+   The metrics need to be input as a map of names/keys and the corresponding functions."
   (metric-context. (context mctx) 
                    (merge (object-metrics mctx) metrics) 
                    (attribute-metrics mctx))
@@ -61,14 +64,14 @@
                    (merge (attribute-metrics mctx) metrics))
   )
 
-(defn remove-object-metrics [mctx metric-name]
+(defn remove-object-metric [mctx metric-name]
   "Removes the metric with the specified name/key from the context's object metrics."
   (metric-context. (context mctx) 
                    (dissoc (object-metrics mctx) metric-name) 
                    (attribute-metrics mctx))
   )
 
-(defn remove-attribute-metrics [mctx metric-name]
+(defn remove-attribute-metric [mctx metric-name]
   "Removes the metric with the specified name/key from the context's attribute metrics."
   (metric-context. (context mctx) 
                    (object-metrics mctx) 
@@ -166,7 +169,7 @@
                        (attribute-distance mctx metric-name attr1 attr2))))
 )
 
-(defn min-attr-distance 
+(defn min-attribute-distance 
   (
    [mctx metric-name]
    "Computes the minimum distance between attributes of the context using the specified metric."
@@ -199,14 +202,24 @@
 
 
 (defn object-confusion-matrix [mctx metric-name & opts]
-  "Return a matrix of all distances between objects computed using the specified metric."
-
-  (into [] (for [obj1 (objects mctx)]
-    (into [] (for [obj2 (objects mctx)]
-      (object-distance mctx metric-name obj1 obj2)))))
-
+  "Return a matrix of all distances between objects computed using the specified metric.
+  Use :norm to mormalize the distances."
+  (let [divisor (if (and opts (.contains opts :norm)) (max-object-distance mctx metric-name) 1)]
+     (into [] (for [obj1 (objects mctx)]
+       (into [] (for [obj2 (objects mctx)]
+         (/ (object-distance mctx metric-name obj1 obj2) divisor))))))
 )
 
-  
+(defn attribute-confusion-matrix [mctx metric-name & opts]
+  "Return a matrix of all distances between attributes computed using the specified metric.
+  Use :norm to mormalize the distances."
+  (let [divisor (if (and opts (.contains opts :norm)) (max-attribute-distance mctx metric-name) 1)]
+     (into [] (for [attr1 (attributes mctx)]
+       (into [] (for [attr2 (attributes mctx)]
+         (/ (attribute-distance mctx metric-name attr1 attr2) divisor))))))
+)
+
+
 ;(def rctx (rand-context #{1 2 3 4} #{"A" "B" "C" "D"} 0.5))
 ;(def mctx (convert-to-metric-context rctx))
+
