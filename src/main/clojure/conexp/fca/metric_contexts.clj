@@ -219,6 +219,57 @@
          (/ (attribute-distance mctx metric-name attr1 attr2) divisor))))))
 )
 
+(defn dual-metric-context [mctx]
+  (convert-to-metric-context (dual-context (context mctx))
+                             (object-metrics mctx)
+                             (attribute-metrics mctx))
+)
+
+(defn invert-metric-context [mctx]
+  (convert-to-metric-context (invert-context (context mctx))
+                             (object-metrics mctx)
+                             (attribute-metrics mctx))
+)
+
+(defn metric-context-union [mctx1 mctx2]
+  (convert-to-metric-context (context-union (context mctx1) (context mctx2))
+                             (merge (object-metrics mctx1) (object-metrics mctx2))
+                             (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
+)
+
+(defn metric-context-disjoint-union [mctx1 mctx2]
+  (convert-to-metric-context (context-disjoint-union (context mctx1) (context mctx2))
+                             (merge (object-metrics mctx1) (object-metrics mctx2))
+                             (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
+)
+
+(defn metric-context-intersection [mctx1 mctx2]
+  (convert-to-metric-context (context-intersection (context mctx1) (context mctx2))
+                             (merge (object-metrics mctx1) (object-metrics mctx2))
+                             (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
+)
+
+(defn metric-context-composition [mctx1 mctx2]
+  (convert-to-metric-context (context-composition (context mctx1) (context mctx2))
+                             (merge (object-metrics mctx1) (object-metrics mctx2))
+                             (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
+)
+
+(defn metric-context-apposition [mctx1 mctx2]
+  (convert-to-metric-context (context-apposition (context mctx1) (context mctx2))
+                             (merge (object-metrics mctx1) (object-metrics mctx2))
+                             (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
+)
+
+(defn metric-context-subposition [mctx1 mctx2]
+  (convert-to-metric-context (context-subposition (context mctx1) (context mctx2))
+                             (merge (object-metrics mctx1) (object-metrics mctx2))
+                             (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
+)
+
+
+
+
 
 ;(def rctx (rand-context #{1 2 3 4} #{"A" "B" "C" "D"} 0.5))
 ;(def mctx (convert-to-metric-context rctx))
