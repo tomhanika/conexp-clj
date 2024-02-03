@@ -203,20 +203,26 @@
 
 (defn object-confusion-matrix [mctx metric-name & opts]
   "Return a matrix of all distances between objects computed using the specified metric.
-  Use :norm to mormalize the distances."
-  (let [divisor (if (and opts (.contains opts :norm)) (max-object-distance mctx metric-name) 1)]
-     (into [] (for [obj1 (objects mctx)]
-       (into [] (for [obj2 (objects mctx)]
-         (/ (object-distance mctx metric-name obj1 obj2) divisor))))))
+   Also returns a vector denoting the order of entries.
+   Use :norm to mormalize the distances."
+  (let [objs (into [] (objects mctx)) 
+        divisor (if (and opts (.contains opts :norm)) (max-object-distance mctx metric-name) 1)]
+     [objs
+     (into [] (for [obj1 objs]
+       (into [] (for [obj2 objs]
+         (/ (object-distance mctx metric-name obj1 obj2) divisor)))))])
 )
 
 (defn attribute-confusion-matrix [mctx metric-name & opts]
   "Return a matrix of all distances between attributes computed using the specified metric.
-  Use :norm to mormalize the distances."
-  (let [divisor (if (and opts (.contains opts :norm)) (max-attribute-distance mctx metric-name) 1)]
-     (into [] (for [attr1 (attributes mctx)]
-       (into [] (for [attr2 (attributes mctx)]
-         (/ (attribute-distance mctx metric-name attr1 attr2) divisor))))))
+   Also returns a vector denoting the order of entries.
+   Use :norm to mormalize the distances."
+  (let [attrs (into [] (attributes mctx))
+        divisor (if (and opts (.contains opts :norm)) (max-attribute-distance mctx metric-name) 1)]
+     [attrs
+     (into [] (for [attr1 attrs]
+       (into [] (for [attr2 attrs]
+         (/ (attribute-distance mctx metric-name attr1 attr2) divisor)))))])
 )
 
 (defn dual-metric-context [mctx]
