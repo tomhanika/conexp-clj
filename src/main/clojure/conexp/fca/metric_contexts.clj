@@ -48,6 +48,15 @@
                                      (attribute-derivation ctx #{attr1}))))))
 
 
+(defn make-object-valuation [mctx dist-fn metric-name]
+  #(dist-fn mctx metric-name (first %))
+)
+
+(defn make-object-valuation [mctx dist-fn metric-name]
+  #(dist-fn mctx metric-name (second %))
+)
+
+
 (defn add-object-metrics [mctx metrics]
   "Adds metrics to the context's object metrics. 
    The metrics need to be input as a map of names/keys and the corresponding functions."
