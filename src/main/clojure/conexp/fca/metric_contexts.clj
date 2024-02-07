@@ -60,11 +60,19 @@
 
 
 (defn make-object-valuation [mctx dist-fn metric-name]
+  "Returns a valuation function that displays the result of dist-fn on each nodes extent."
   #(dist-fn mctx metric-name (first %))
 )
 
-(defn make-object-valuation [mctx dist-fn metric-name]
+(defn make-attribute-valuation [mctx dist-fn metric-name]
+  "Returns a valuation function that displays the result of dist-fn on each nodes intent."
   #(dist-fn mctx metric-name (second %))
+)
+
+(defn make-combined-valuation [obj-value-fn attr-value-fn]
+  "Returns a valuation function that displays a tuple of the results of the specified function.
+   The first of those functions is meant to compute valuations on extents, the second one on intents."
+  #( identity [(obj-value-fn %) (attr-value-fn %)])
 )
 
 
@@ -137,10 +145,12 @@
   
   (
    [mctx metric-name objs]
-   "Computes the maximum distance between the specified objects using the specified metric."
-   (apply max (for [obj1 objs
-                    obj2 (set/difference objs #{obj1})] 
-                       (object-distance mctx metric-name obj1 obj2))))
+   "Computes the maximum distance between the specified objects using the specified metric.
+    The maximum distance on an empty set of objects is by convention defined to be 0."
+   (if (< (count objs) 2) 0
+                         (apply max (for [obj1 objs
+                                          obj2 (set/difference objs #{obj1})] 
+                                            (object-distance mctx metric-name obj1 obj2)))))
 )
 
 (defn min-object-distance 
@@ -152,10 +162,12 @@
   
   (
    [mctx metric-name objs]
-   "Computes the minimum distance between the specified objects using the specified metric."
-   (apply min (for [obj1 objs
-                    obj2 (set/difference objs #{obj1})] 
-                       (object-distance mctx metric-name obj1 obj2))))
+   "Computes the minimum distance between the specified objects using the specified metric.
+    The minimum distance on an empty set of objects is by convention defined to be 0."
+   (if (< (count objs) 2) 0
+                         (apply min (for [obj1 objs
+                                          obj2 (set/difference objs #{obj1})] 
+                                            (object-distance mctx metric-name obj1 obj2)))))
 )
 
 (defn average-object-distance 
@@ -167,10 +179,12 @@
   
   (
    [mctx metric-name objs]
-   "Computes the average distance between the specified objects using the specified metric."
-   (apply #(/ (reduce + %) (count %)) [(for [obj1 objs 
-                                             obj2 (set/difference objs #{obj1})] 
-                                                (object-distance mctx metric-name obj1 obj2))]))
+   "Computes the average distance between the specified objects using the specified metric.
+    The average distance on an empty set of objects is by convention defined to be 0."
+   (if (< (count objs) 2) 0
+                         (apply #(/ (reduce + %) (count %)) [(for [obj1 objs 
+                                                                   obj2 (set/difference objs #{obj1})] 
+                                                                     (object-distance mctx metric-name obj1 obj2))])))
 )
 
 
@@ -183,10 +197,12 @@
   
   (
    [mctx metric-name attrs]
-   "Computes the maximum distance between the specified attributes using the specified metric."
-   (apply max (for [attr1 attrs
-                    attr2 (set/difference attrs #{attr1})] 
-                       (attribute-distance mctx metric-name attr1 attr2))))
+   "Computes the maximum distance between the specified attributes using the specified metric.
+    The maximum distance on an empty set of attributes is by convention defined to be 0."
+   (if (< (count attrs) 2) 0
+                          (apply max (for [attr1 attrs
+                                           attr2 (set/difference attrs #{attr1})] 
+                                             (attribute-distance mctx metric-name attr1 attr2)))))
 )
 
 (defn min-attribute-distance 
@@ -198,10 +214,12 @@
   
   (
    [mctx metric-name attrs]
-   "Computes the minimum distance between the specified attributes using the specified metric."
-   (apply min (for [attr1 attrs
-                    attr2 (set/difference attrs #{attr1})] 
-                       (attribute-distance mctx metric-name attr1 attr2))))
+   "Computes the minimum distance between the specified attributes using the specified metric.
+    The minimum distance on an empty set of attributes is by convention defined to be 0."
+   (if (< (count attrs) 2) 0
+                          (apply min (for [attr1 attrs
+                                           attr2 (set/difference attrs #{attr1})] 
+                                             (attribute-distance mctx metric-name attr1 attr2)))))
 )
 
 (defn average-attribute-distance 
@@ -213,10 +231,12 @@
   
   (
    [mctx metric-name attrs]
-   "Computes the average distance between the specified attributes using the specified metric."
-   (apply #(/ (reduce + %) (count %)) [(for [attr1 attrs 
-                                             attr2 (set/difference attrs #{attr1})] 
-                                                (attribute-distance mctx metric-name attr1 attr2))]))
+   "Computes the average distance between the specified attributes using the specified metric.
+    The average distance on an empty set of attributes is by convention defined to be 0."
+   (if (< (count attrs) 2) 0
+                     (apply #(/ (reduce + %) (count %)) [(for [attr1 attrs 
+                                                               attr2 (set/difference attrs #{attr1})] 
+                                                                 (attribute-distance mctx metric-name attr1 attr2))])))
 )
 
 
@@ -316,4 +336,7 @@
 
 ;(def rctx (rand-context #{1 2 3 4} #{"A" "B" "C" "D"} 0.5))
 ;(def mctx (convert-to-metric-context rctx))
+;(use 'conexp.fca.lattices)
+;(def lat (concept-lattice mctx))
+;(use 'conexp.gui.draw)
 

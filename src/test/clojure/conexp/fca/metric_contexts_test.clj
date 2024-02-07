@@ -133,3 +133,12 @@
   (is (= (average-attribute-distance testmctx :a-hamm #{"A" "B" "C"}) 10/3))
 
 )
+
+(deftest test-confusion-matrices
+
+  (object-confusion-matrix testmctx :o-hamm)
+  (attribute-confusion-matrix testmctx :a-hamm)
+
+  (object-confusion-matrix testmctx :o-hamm :norm)
+  (attribute-confusion-matrix testmctx :a-hamm :norm)
+)
