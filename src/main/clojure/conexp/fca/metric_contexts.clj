@@ -24,12 +24,12 @@
   (context [this] ctx)
   (object-metrics [this] object-metrics)
   (attribute-metrics [this] attribute-metrics)
-  (object-distance [this metric-key obj1 obj2] ((metric-key object-metrics) this obj1 obj2))
-  (attribute-distance [this metric-key attr1 attr2] ((metric-key attribute-metrics) this attr1 attr2))
+  (object-distance [this metric-key obj1 obj2] ((metric-key object-metrics) obj1 obj2))
+  (attribute-distance [this metric-key attr1 attr2] ((metric-key attribute-metrics) attr1 attr2))
 
 )
 
-(defn object-hamming [ctx obj1 obj2]
+(defn object-hamming-template [ctx obj1 obj2]
   "Computes the Hamming distance between objects by comparing the incident attributes."
   (if (and (.contains (objects ctx) obj1)
            (.contains (objects ctx) obj2))
@@ -38,7 +38,7 @@
                      (set/difference (object-derivation ctx #{obj2}) 
                                      (object-derivation ctx #{obj1}))))))
 
-(defn attribute-hamming [ctx attr1 attr2]
+(defn attribute-hamming-template [ctx attr1 attr2]
   "Computes the Hamming distance between attributes by comparing the incident objects."
   (if (and (.contains (attributes ctx) attr1)
            (.contains (attributes ctx) attr2))
@@ -46,6 +46,17 @@
                                      (attribute-derivation ctx #{attr2}))
                      (set/difference (attribute-derivation ctx #{attr2}) 
                                      (attribute-derivation ctx #{attr1}))))))
+
+
+(defn create-object-hamming [ctx]
+  "Returns a function that computes the Hamming distance between objects of the specified context."
+  #(object-hamming-template ctx %1 %2)
+)
+
+(defn create-attribute-hamming [ctx]
+  "Returns a function that computes the Hamming distance between attributes of the specified context."
+  #(attribute-hamming-template ctx %1 %2)
+)
 
 
 (defn make-object-valuation [mctx dist-fn metric-name]
@@ -92,7 +103,7 @@
   (
    [ctx] 
    "Converts a context to a metric context. Adds hamming metrics by default."
-   (metric-context. ctx {:o-hamm object-hamming} {:a-hamm attribute-hamming}))
+   (metric-context. ctx {:o-hamm (create-object-hamming ctx)} {:a-hamm (create-attribute-hamming ctx)}))
 
   (
    [ctx object-metrics attribute-metrics]
@@ -234,49 +245,66 @@
          (/ (attribute-distance mctx metric-name attr1 attr2) divisor)))))])
 )
 
+
+;;;For the functions below, keep in mind that metrics may no longer work as intended after the context has been altered.
+
 (defn dual-metric-context [mctx]
+  "Computes the dual context of a metric context. Metrics remain unchanged."
   (convert-to-metric-context (dual-context (context mctx))
                              (object-metrics mctx)
                              (attribute-metrics mctx))
 )
 
 (defn invert-metric-context [mctx]
+  "Computes the inverted context of a metric context. Metrics remain unchanged."
   (convert-to-metric-context (invert-context (context mctx))
                              (object-metrics mctx)
                              (attribute-metrics mctx))
 )
 
 (defn metric-context-union [mctx1 mctx2]
+  "Computes the union of two metric contexts. The resulting metric context contains the metrics of both contexts.
+   If metrics have the same name/key, those of the latter context are retained."
   (convert-to-metric-context (context-union (context mctx1) (context mctx2))
                              (merge (object-metrics mctx1) (object-metrics mctx2))
                              (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
 )
 
 (defn metric-context-disjoint-union [mctx1 mctx2]
+  "Computes the disjoint union of two metric contexts. The resulting metric context contains the metrics of both contexts.
+   If metrics have the same name/key, those of the latter context are retained."
   (convert-to-metric-context (context-disjoint-union (context mctx1) (context mctx2))
                              (merge (object-metrics mctx1) (object-metrics mctx2))
                              (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
 )
 
 (defn metric-context-intersection [mctx1 mctx2]
+  "Computes the intersection of two metric contexts. The resulting metric context contains the metrics of both contexts.
+   If metrics have the same name/key, those of the latter context are retained."
   (convert-to-metric-context (context-intersection (context mctx1) (context mctx2))
                              (merge (object-metrics mctx1) (object-metrics mctx2))
                              (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
 )
 
 (defn metric-context-composition [mctx1 mctx2]
+  "Computes the composition of two metric contexts. The resulting metric context contains the metrics of both contexts.
+   If metrics have the same name/key, those of the latter context are retained."
   (convert-to-metric-context (context-composition (context mctx1) (context mctx2))
                              (merge (object-metrics mctx1) (object-metrics mctx2))
                              (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
 )
 
 (defn metric-context-apposition [mctx1 mctx2]
+  "Computes the apposition of two metric contexts. The resulting metric context contains the metrics of both contexts.
+   If metrics have the same name/key, those of the latter context are retained."
   (convert-to-metric-context (context-apposition (context mctx1) (context mctx2))
                              (merge (object-metrics mctx1) (object-metrics mctx2))
                              (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
 )
 
 (defn metric-context-subposition [mctx1 mctx2]
+  "Computes the subposition of two metric contexts. The resulting metric context contains the metrics of both contexts.
+   If metrics have the same name/key, those of the latter context are retained."
   (convert-to-metric-context (context-subposition (context mctx1) (context mctx2))
                              (merge (object-metrics mctx1) (object-metrics mctx2))
                              (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))

@@ -40,8 +40,8 @@
      (is (= (context mctx) testctx))
      (is (= (context mctx-with-metrics) testctx))
      
-     (is (= (object-metrics mctx) {:o-hamm object-hamming}))
-     (is (= (attribute-metrics mctx) {:a-hamm attribute-hamming}))
+     (is (contains? (object-metrics mctx) :o-hamm))
+     (is (contains? (attribute-metrics mctx) :a-hamm))
 
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-1))
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-2))
@@ -57,8 +57,8 @@
      (is (= (context mctx) testctx))
      (is (= (context mctx-with-metrics) testctx))
      
-     (is (= (object-metrics mctx) {:o-hamm object-hamming}))
-     (is (= (attribute-metrics mctx) {:a-hamm attribute-hamming}))
+     (is (contains? (object-metrics mctx) :o-hamm))
+     (is (contains? (attribute-metrics mctx) :a-hamm))
 
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-1))
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-2))
