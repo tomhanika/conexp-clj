@@ -211,14 +211,6 @@
         ext-B (remove nil? (for [concept-B (concepts B)] (if (and (not-empty (first concept-B)) (not-empty (second concept-B))) (first concept-B))))]
         (* (/ 1 (count ext-A)) (clojure.core.reducers/reduce + (for [ext-a ext-A] (apply max (helper-eval ext-a ext-B)))))))
 
-(defn jaccard-index
-  "Computes the Jaccard index of two sets. This is |x ∩ y| / |x ∪ y|.
-  Returns 1 if both sets are empty. Taken from conexp.clj"
-  [x y]
-  (if (and (empty? x) (empty? y))
-    1
-    (/ (count (intersection x y)) (count (union x y)))))
-
 (defn false-incidences
   "Retrieves a list of incidences which are present in context B but not in A"
   [A B]
@@ -228,11 +220,6 @@
   "Retrieves a list of ubcovered incidences that A holds but are not present in context B"
   [A B]
   (difference (incidence-relation (normalize-context A)) (incidence-relation (normalize-context B))))
-
-(defn concept-ratio
-  "Calculates the ratio of the number of concepts of the factorization context against the number of concepts of the original context"
-  [T F]
-  (double (/ F T)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; https://doi.org/10.48550/arXiv.1903.10326
