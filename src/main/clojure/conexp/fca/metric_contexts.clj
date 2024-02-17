@@ -330,13 +330,3 @@
                              (merge (attribute-metrics mctx1) (attribute-metrics mctx2)))
 )
 
-
-
-
-
-;(def rctx (rand-context #{1 2 3 4} #{"A" "B" "C" "D"} 0.5))
-;(def mctx (convert-to-metric-context rctx))
-;(use 'conexp.fca.lattices)
-;(def lat (concept-lattice mctx))
-;(use 'conexp.gui.draw)
-
