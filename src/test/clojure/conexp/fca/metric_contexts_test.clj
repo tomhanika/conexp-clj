@@ -50,7 +50,7 @@
 
 (deftest test-convert-to-metric-context
 
-  (let [mctx (convert-to-metric-context testctx)
+  (let [mctx (convert-to-metric-context testctx :adddefault)
         mctx-with-metrics (convert-to-metric-context testctx 
                                                      {:o-metric-1 object-metric-1 :o-metric-2 object-metric-2} 
                                                      {:a-metric-1 attribute-metric-1})]
@@ -76,12 +76,12 @@
         (is (contains? (object-metrics mctx3) :o-metric-1))  
         (is (contains? (object-metrics mctx3) :o-metric-2)) 
         (is (contains? (object-metrics mctx3) :o-metric-3))
-        (is (= (count (object-metrics mctx3)) 4)) 
+        (is (= (count (object-metrics mctx3)) 3)) 
 
         (is (contains? (attribute-metrics mctx3) :a-metric-1)) 
         (is (contains? (attribute-metrics mctx3) :a-metric-2)) 
         (is (contains? (attribute-metrics mctx3) :a-metric-3))
-        (is (= (count (attribute-metrics mctx3)) 4)))
+        (is (= (count (attribute-metrics mctx3)) 3)))
 )
 
 (deftest test-remove-metrics
@@ -93,13 +93,12 @@
         mctx3 (remove-object-metric mctx2 :o-metric-3)
         mctx4 (remove-attribute-metric mctx3 :a-metric-1)]
 
-(println (object-metrics mctx4))
         (is (not (contains? (object-metrics mctx4) :o-metric-1)))  
         (is (contains? (object-metrics mctx4) :o-metric-2)) 
-        (is (= (count (object-metrics mctx4)) 2)) 
+        (is (= (count (object-metrics mctx4)) 1)) 
 
         (is (not (contains? (attribute-metrics mctx4) :a-metric-1))) 
-        (is (= (count (attribute-metrics mctx4)) 1)))
+        (is (= (count (attribute-metrics mctx4)) 0)))
 )
 
 (deftest test-object-dist-hamming

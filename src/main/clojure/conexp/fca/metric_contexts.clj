@@ -110,14 +110,22 @@
 (defn convert-to-metric-context 
   (
    [ctx] 
-   "Converts a context to a metric context. Adds hamming metrics by default."
-   (metric-context. ctx {:o-hamm (create-object-hamming ctx)} {:a-hamm (create-attribute-hamming ctx)}))
+   "Converts a context to a metric context."
+   (metric-context. ctx {} {})
+   )
+
+  (
+   [ctx _] 
+   "Converts a context to a metric context. Adds hamming metrics."
+   (metric-context. ctx {:o-hamm (create-object-hamming ctx)} {:a-hamm (create-attribute-hamming ctx)})
+   )
 
   (
    [ctx object-metrics attribute-metrics]
    "Converts a context to a metric context and adds specified metrics. 
     The metrics need to be input as maps of names/keys and corresponding functions for both object and attribute metrics."
-   (add-attribute-metrics (add-object-metrics (convert-to-metric-context ctx) object-metrics) attribute-metrics))
+   (add-attribute-metrics (add-object-metrics (convert-to-metric-context ctx) object-metrics) attribute-metrics)
+   )
   )
 
 
@@ -125,7 +133,7 @@
   (
    [objects attributes incidence]
    "Creates a new metric context, based on its objects, attributes and incidence relation."
-   (convert-to-metric-context (make-context objects attributes incidence)))
+   (convert-to-metric-context (make-context objects attributes incidence) :adddefault))
   
   (
    [objects attributes incidence object-metrics attribute-metrics]
@@ -270,10 +278,10 @@
 
 (defn dual-metric-context [mctx]
   "Computes the dual context of a metric context. Metrics remain unchanged, but object metrics become 
-   attribute metrics and vice versa.."
-  (convert-to-metric-context (dual-context (context mctx))
-                             (attribute-metrics mctx)
-                             (object-metrics mctx))
+   attribute metrics and vice versa."
+    (convert-to-metric-context (dual-context (context mctx))
+                               (attribute-metrics mctx)
+                               (object-metrics mctx))
 )
 
 (defn invert-metric-context [mctx]
