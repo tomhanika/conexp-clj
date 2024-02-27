@@ -114,9 +114,29 @@
                 "wood-properties-d.ctx"
                 "zoo-d.ctx"})
 
-
+(defn list-all-decomps [ctx-list]
+  (for [ctx ctx-list
+        pair (libkin-decomposition-pairs (concept-lattice (read-context ctx)))]
+     (println (str ctx ": " (libkin-decomposition-lattices (concept-lattice (read-context ctx)) pair)))))
 
 ;(use 'conexp.io.contexts)
 ;(def ctx (read-context "testing-data/Bird-Diet.ctx"))
 ;(make-context #{} #{} (incidence ctx))
 ;(write-context :burmeister (distributive-exploration (read-context "testing-data/Bird-Diet.ctx") ectx) "ird-diet-d.ctx")
+
+(def ctx (read-context "drive_concepts_for_motorcars-d.ctx"))
+
+(def drive-objs #{"All-wheel" "Conventional" "Front-wheel" "Mid-engine" "Rear-wheel"})
+
+(def drive-attrs #{"C-h" "C-l" "C-vl" "De+" "De++" "Dl+"
+                   "Dl++" "Dl-" "E+" "E++" "E-" "E--"
+                   "M-" "M--" "R+" "R++" "S-n" "S-u/n"})
+
+(def drive-ctx (make-context drive-objs drive-attrs (incidence ctx)))
+
+
+(def drive-ctx1 (make-context drive-objs #{"C-h" "C-l"} (incidence ctx)))
+
+(def drive-ctx2 (make-context drive-objs #{"C-vl" "De+" "De++" "Dl+"
+                   "Dl++" "Dl-" "E+" "E++" "E-" "E--"
+                   "M-" "M--" "R+" "R++" "S-n" "S-u/n"} (incidence ctx)))
