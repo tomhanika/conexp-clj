@@ -269,10 +269,11 @@
 ;;;For the functions below, keep in mind that metrics may no longer work as intended after the context has been altered.
 
 (defn dual-metric-context [mctx]
-  "Computes the dual context of a metric context. Metrics remain unchanged."
+  "Computes the dual context of a metric context. Metrics remain unchanged, but object metrics become 
+   attribute metrics and vice versa.."
   (convert-to-metric-context (dual-context (context mctx))
-                             (object-metrics mctx)
-                             (attribute-metrics mctx))
+                             (attribute-metrics mctx)
+                             (object-metrics mctx))
 )
 
 (defn invert-metric-context [mctx]
