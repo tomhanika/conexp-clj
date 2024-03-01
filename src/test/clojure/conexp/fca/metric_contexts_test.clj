@@ -29,14 +29,76 @@
 (def testmctx (make-metric-context test-objs test-attrs test-inc))
 
 
-(deftest test-create-metric-context
 
-  (let [mctx (make-metric-context test-objs test-attrs test-inc)
-        mctx-with-metrics (make-metric-context test-objs 
-                                                     test-attrs 
-                                                     test-inc
-                                                     {:o-metric-1 object-metric-1 :o-metric-2 object-metric-2} 
-                                                     {:a-metric-1 attribute-metric-1})]
+(def cities-ctx (make-context #{"Washington, D.C." "Berlin" "Beijing" "Cairo" "Canberra" "Brasilia"}
+                              #{"Population > 1M" "Population > 3M" "Population > 10M"
+                                "Area > 100km^2" "Area > 1000km^2" "Area > 10000km^2"}
+
+                              #{["Washington, D.C." "Area > 100km^2"]
+
+                                ["Berlin" "Population > 1M"] ["Berlin" "Population > 3M"] ["Berlin" "Area > 100km^2"]
+
+                                ["Beijing" "Population > 1M"] ["Beijing" "Population > 3M"] ["Beijing" "Population > 10M"]
+                                ["Beijing" "Area > 100km^2"] ["Beijing" "Area > 1000km^2"] ["Beijing" "Area > 10000km^2"]
+
+                                ["Cairo" "Population > 1M"] ["Cairo" "Population > 3M"] ["Cairo" "Population > 10M"] 
+                                ["Cairo"  "Area > 100km^2"] ["Cairo" "Area > 1000km^2"]
+
+                                ["Canberra" "Area > 100km^2"]
+
+                                ["Brasilia" "Population > 1M"] ["Brasilia" "Area > 100km^2"] ["Brasilia" "Area > 1000km^2"]}))
+
+(def cities-mctx (convert-to-metric-context cities-ctx))
+
+(def distance-map {"Washington, D.C." {"Washington, D.C." 0
+                                       "Berlin" 7611
+                                       "Beijing" 11145
+                                       "Cairo" 9348
+                                       "Canberra" 15945
+                                       "Brasilia" 6791} 
+                   "Berlin" {"Washington, D.C." 7611
+                             "Berlin" 0
+                             "Beijing" 3754
+                             "Cairo" 2892
+                             "Canberra" 16066
+                             "Brasilia" 9593}
+                   "Beijing" {"Washington, D.C." 11145
+                              "Berlin" 3754
+                              "Beijing" 0
+                              "Cairo" 7542
+                              "Canberra" 9011
+                              "Brasilia" 16929}
+                   "Cairo" {"Washington, D.C." 9348
+                            "Berlin" 2892
+                            "Beijing" 7542
+                            "Cairo" 0
+                            "Canberra" 14266
+                            "Brasilia" 9877}
+                   "Canberra" {"Washington, D.C." 15945
+                               "Berlin" 16066
+                               "Beijing" 9011
+                               "Cairo" 14266
+                               "Canberra" 0
+                               "Brasilia" 14059}
+                   "Brasilia" {"Washington, D.C." 6791
+                               "Berlin" 9593
+                               "Beijing" 16929
+                               "Cairo" 9877
+                               "Canberra" 14059
+                               "Brasilia" 0}})
+
+(defn distance-metric [a b]((distance-map a) b))
+
+
+
+  (deftest test-create-metric-context
+
+    (let [mctx (make-metric-context test-objs test-attrs test-inc)
+          mctx-with-metrics (make-metric-context test-objs 
+                                                 test-attrs 
+                                                 test-inc
+                                                 {:o-metric-1 object-metric-1 :o-metric-2 object-metric-2} 
+                                                 {:a-metric-1 attribute-metric-1})]
      (is (= (context mctx) testctx))
      (is (= (context mctx-with-metrics) testctx))
      
