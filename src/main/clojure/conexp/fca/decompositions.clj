@@ -114,6 +114,23 @@
                 "wood-properties-d.ctx"
                 "zoo-d.ctx"})
 
+(def ctx-list2 #{"testing-data/Animals.ctx"
+                 "testing-data/Bird-Diet.ctx"
+                 "testing-data/Brunson-Club.ctx"
+                 "testing-data/Forum-Romanum.ctx"
+                 "testing-data/Living-Beings-and-Water.ctx"
+                 "testing-data/Southern-Woman.ctx"
+                 "testing-data/Wood-Properties.ctx"
+                 "testing-data/bodiesofwater.cxt"
+                 "testing-data/digits.cxt"
+                 "testing-data/drive_concepts_for_motorcars.cxt"
+                 "testing-data/living_beings_and_water.cxt"
+                 "testing-data/myctx.cxt"
+                 "testing-data/testcontext.cxt"
+                 "testing-data/triangles.cxt"
+                 "testing-data/california.ctx"
+})
+
 (defn list-all-decomps [ctx-list]
   (for [ctx ctx-list
         pair (libkin-decomposition-pairs (concept-lattice (read-context ctx)))]
