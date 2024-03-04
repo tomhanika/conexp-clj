@@ -3,32 +3,6 @@
             [conexp.fca.contexts :refer :all]
             [clojure.set :as set]))
 
-(defprotocol Metric-Context
-
-  (context [this] "Returns the underlying context.")
-
-  (object-metrics [this] "Returns a map of the metrics on objects and their names/keys.")
-  (attribute-metrics [this] "Returns a map of the metrics on attributes and their names/keys.")
-
-  (object-distance [this metric-key obj1 obj2] "Computes the distance between two objects based on the specified metric.")
-  (attribute-distance [this metric-key attr1 attr2] "Computes the distance between two attributes based on the specified metric."))
-
-(deftype metric-context [ctx object-metrics attribute-metrics]
-
-  Context
-  (objects [this] (objects ctx))
-  (attributes [this] (attributes ctx))
-  (incidence [this] (incidence ctx))
-
-  Metric-Context
-  (context [this] ctx)
-  (object-metrics [this] object-metrics)
-  (attribute-metrics [this] attribute-metrics)
-  (object-distance [this metric-key obj1 obj2] ((metric-key object-metrics) obj1 obj2))
-  (attribute-distance [this metric-key attr1 attr2] ((metric-key attribute-metrics) attr1 attr2))
-
-)
-
 (defn object-hamming-template [ctx obj1 obj2]
   "Computes the Hamming distance between objects by comparing the incident attributes."
   (if (and (.contains (objects ctx) obj1)
@@ -58,6 +32,37 @@
   #(attribute-hamming-template ctx %1 %2)
 )
 
+(defprotocol Metric-Context
+
+  (context [this] "Returns the underlying context.")
+
+  (object-metrics [this] "Returns a map of the metrics on objects and their names/keys.")
+  (attribute-metrics [this] "Returns a map of the metrics on attributes and their names/keys.")
+
+  (object-distance [this metric obj1 obj2] "Computes the distance between two objects based on the specified metric.")
+  (attribute-distance [this metric attr1 attr2] "Computes the distance between two attributes based on the specified metric.")
+
+  (object-hamming [this] "Returns a Hamming metric function for the objects of the current context.")
+  (attribute-hamming [this] "Returns a Hamming metric function for the attributes of the current context."))
+
+(deftype metric-context [ctx object-metrics attribute-metrics]
+
+  Context
+  (objects [this] (objects ctx))
+  (attributes [this] (attributes ctx))
+  (incidence [this] (incidence ctx))
+
+  Metric-Context
+  (context [this] ctx)
+  (object-metrics [this] object-metrics)
+  (attribute-metrics [this] attribute-metrics)
+  (object-distance [this metric obj1 obj2] (metric obj1 obj2))
+  (attribute-distance [this metric attr1 attr2] (metric  attr1 attr2))
+
+  (object-hamming [this] (create-object-hamming this))
+  (attribute-hamming [this] (create-attribute-hamming this))
+ 
+)
 
 (defn make-object-valuation [mctx dist-fn metric-name]
   "Returns a valuation function that displays the result of dist-fn on each nodes extent."
@@ -113,27 +118,20 @@
    "Converts a context to a metric context."
    (metric-context. ctx {} {})
    )
-
-  (
-   [ctx _] 
-   "Converts a context to a metric context. Adds hamming metrics."
-   (metric-context. ctx {:o-hamm (create-object-hamming ctx)} {:a-hamm (create-attribute-hamming ctx)})
-   )
-
   (
    [ctx object-metrics attribute-metrics]
    "Converts a context to a metric context and adds specified metrics. 
     The metrics need to be input as maps of names/keys and corresponding functions for both object and attribute metrics."
    (add-attribute-metrics (add-object-metrics (convert-to-metric-context ctx) object-metrics) attribute-metrics)
    )
-  )
+)
 
 
 (defn make-metric-context
   (
    [objects attributes incidence]
    "Creates a new metric context, based on its objects, attributes and incidence relation."
-   (convert-to-metric-context (make-context objects attributes incidence) :adddefault))
+   (convert-to-metric-context (make-context objects attributes incidence)))
   
   (
    [objects attributes incidence object-metrics attribute-metrics]

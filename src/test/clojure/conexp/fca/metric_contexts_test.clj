@@ -91,7 +91,7 @@
 
 
 
-  (deftest test-create-metric-context
+(deftest test-create-metric-context
 
     (let [mctx (make-metric-context test-objs test-attrs test-inc)
           mctx-with-metrics (make-metric-context test-objs 
@@ -101,9 +101,6 @@
                                                  {:a-metric-1 attribute-metric-1})]
      (is (= (context mctx) testctx))
      (is (= (context mctx-with-metrics) testctx))
-     
-     (is (contains? (object-metrics mctx) :o-hamm))
-     (is (contains? (attribute-metrics mctx) :a-hamm))
 
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-1))
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-2))
@@ -112,15 +109,12 @@
 
 (deftest test-convert-to-metric-context
 
-  (let [mctx (convert-to-metric-context testctx :adddefault)
+  (let [mctx (convert-to-metric-context testctx)
         mctx-with-metrics (convert-to-metric-context testctx 
                                                      {:o-metric-1 object-metric-1 :o-metric-2 object-metric-2} 
                                                      {:a-metric-1 attribute-metric-1})]
      (is (= (context mctx) testctx))
      (is (= (context mctx-with-metrics) testctx))
-     
-     (is (contains? (object-metrics mctx) :o-hamm))
-     (is (contains? (attribute-metrics mctx) :a-hamm))
 
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-1))
      (is (contains? (object-metrics mctx-with-metrics) :o-metric-2))
@@ -165,41 +159,41 @@
 
 (deftest test-object-dist-hamming
 
-  (is (= (object-distance testmctx :o-hamm 1 2) 2))  
-  (is (= (object-distance testmctx :o-hamm 2 6) 3)) 
+  (is (= (object-distance testmctx (object-hamming testmctx) 1 2) 2))  
+  (is (= (object-distance testmctx (object-hamming testmctx) 2 6) 3)) 
 
-  (is (= (max-object-distance testmctx :o-hamm) 5))
-  (is (= (max-object-distance testmctx :o-hamm #{1 3 4 5 6}) 3))
+  (is (= (max-object-distance testmctx (object-hamming testmctx)) 5))
+  (is (= (max-object-distance testmctx (object-hamming testmctx) #{1 3 4 5 6}) 3))
   
-  (is (= (min-object-distance testmctx :o-hamm) 1))
-  (is (= (max-object-distance testmctx :o-hamm #{1 3}) 2))
+  (is (= (min-object-distance testmctx (object-hamming testmctx)) 1))
+  (is (= (max-object-distance testmctx (object-hamming testmctx) #{1 3}) 2))
 
-  (is (= (average-object-distance testmctx :o-hamm)37/15 ))
-  (is (= (average-object-distance testmctx :o-hamm #{1 2 3}) 8/3))
+  (is (= (average-object-distance testmctx (object-hamming testmctx))37/15 ))
+  (is (= (average-object-distance testmctx (object-hamming testmctx) #{1 2 3}) 8/3))
 
 )
 
 (deftest test-attribute-dist-hamming
 
-  (is (= (attribute-distance testmctx :a-hamm "A" "C") 4))  
-  (is (= (attribute-distance testmctx :a-hamm "B" "D") 3)) 
+  (is (= (attribute-distance testmctx (attribute-hamming testmctx) "A" "C") 4))  
+  (is (= (attribute-distance testmctx (attribute-hamming testmctx) "B" "D") 3)) 
 
-  (is (= (max-attribute-distance testmctx :a-hamm) 4))
-  (is (= (max-attribute-distance testmctx :a-hamm #{"A" "B" "D"}) 3))
+  (is (= (max-attribute-distance testmctx (attribute-hamming testmctx)) 4))
+  (is (= (max-attribute-distance testmctx (attribute-hamming testmctx) #{"A" "B" "D"}) 3))
   
-  (is (= (min-attribute-distance testmctx :a-hamm) 1))
-  (is (= (max-attribute-distance testmctx :a-hamm #{"A" "B"}) 2))
+  (is (= (min-attribute-distance testmctx (attribute-hamming testmctx)) 1))
+  (is (= (max-attribute-distance testmctx (attribute-hamming testmctx) #{"A" "B"}) 2))
 
-  (is (= (average-attribute-distance testmctx :a-hamm) 13/5 ))
-  (is (= (average-attribute-distance testmctx :a-hamm #{"A" "B" "C"}) 10/3))
+  (is (= (average-attribute-distance testmctx (attribute-hamming testmctx)) 13/5 ))
+  (is (= (average-attribute-distance testmctx (attribute-hamming testmctx) #{"A" "B" "C"}) 10/3))
 
 )
 
 (deftest test-confusion-matrices
 
-  (object-confusion-matrix testmctx :o-hamm)
-  (attribute-confusion-matrix testmctx :a-hamm)
+  (object-confusion-matrix testmctx (object-hamming testmctx))
+  (attribute-confusion-matrix testmctx (attribute-hamming testmctx))
 
-  (object-confusion-matrix testmctx :o-hamm :norm)
-  (attribute-confusion-matrix testmctx :a-hamm :norm)
+  (object-confusion-matrix testmctx (object-hamming testmctx) :norm)
+  (attribute-confusion-matrix testmctx (attribute-hamming testmctx) :norm)
 )
