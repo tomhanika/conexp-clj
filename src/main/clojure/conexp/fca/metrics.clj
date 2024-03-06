@@ -825,23 +825,26 @@
 
 ))
 
-;verifies if "concept" is a neutral element in "lat"
-(defn neutral? [concept lat]
-  (let [base-set (lattice-base-set lat)]
-     (every? identity (for [x base-set y base-set] (distributive? (generate-from-triple [concept x y] lat))))
+(defn neutral? [a lat]
+  "Verifies if *a* is a neutral element in *lat*."
+  (let [base-set (lattice-base-set lat)
+        join (sup lat)
+        meet (inf lat)]
+     (every? identity (for [x base-set y base-set] (= (meet (meet (join a x) (join a y)) (join x y))
+                                                      (join (join (meet a x) (meet a y)) (meet x y)))))
 )
 )
 
-;return all neutral elements in "lat"
 (defn neutral-concepts [lat]
+  "Returns all neutral elements in *lat*."
   (let [base-set (lattice-base-set lat)]
       (filter #(neutral? % lat) base-set)
 )
 )
 
 
-;retruns all complements of "concept" in "lat"
 (defn element-complement [concept lat]
+  "Returns all complements of *concept* in *lat*."
   (let [base-set (lattice-base-set lat)]
 
       (filter #(and (not= % concept)
