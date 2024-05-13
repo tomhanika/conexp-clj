@@ -14,7 +14,8 @@
              [contexts :refer :all]
              [metrics :refer :all]
              [lattices :refer :all]
-             [posets :refer :all]]))
+             [posets :refer :all]]
+            [clojure.set :as set]))
 
 
 (defn libkin-decomposition-pairs 
@@ -41,6 +42,35 @@
                         order
                         (inf lat)
                         (sup lat))]))
+
+(defn combinatorial-decomposition-lattices 
+  "Computes the Lattices Resulting from the Libkin-Decomposition on the 
+  Provided Decomposition Pair."
+  [lat decomp-pair]
+  (let [set1 (order-filter lat (conj #{} (first decomp-pair)))
+        set2 (order-filter lat (conj #{} (last decomp-pair)))
+        order (lattice-order lat)]
+
+
+      [(make-lattice-nc set1
+                        order
+                        (inf lat)
+                        (sup lat))
+       (make-lattice-nc set2
+                        order
+                        (inf lat)
+                        (sup lat))]))
+
+(defn combinatorial-product [a b]
+
+  (let [con1 (base-set a)
+        con2 (base-set b)
+        new-base-set (for [x con1 y con2]
+                       [(set/intersection (first x) (first y))
+                        (set/union (second x) (second y))])]
+
+    (make-lattice new-base-set #(subset? (first %1) (first %2))))
+)
 
 (defn add-obj [ctx obj incidence] 
   "Returns a new context with obj added."
@@ -89,7 +119,18 @@
 
 (for [ctx ctx-list] (println (concept-lattice (read-context ctx))))
 
-(def pair-list (for [ctx ctx-list] (libkin-decomposition-pairs (concept-lattice (read-context ctx)))))
+(def pair-list (for [ctx ctx-list] (libkin-decomposition-pairs (concept-lattice (reduce-context (read-context ctx))))))
+
+(defn check-combinatorial-decomps [ctx-list]
+  (for [ctx ctx-list]
+    (let [lat (concept-lattice (reduce-context (read-context ctx)))
+          decomposition-pairs (libkin-decomposition-pairs lat)]
+      (for [pair decomposition-pairs]
+        (let [decomp (combinatorial-decomposition-lattices lat pair)]
+          (println (str ctx ":  " (= (combinatorial-product (first decomp) (second decomp)) lat))))
+
+))))
+
 
 (def ctx-list #{"animals-d.ctx"
                 "bird-diet-d.ctx"
