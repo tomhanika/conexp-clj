@@ -17,9 +17,6 @@
 (defn exploration-step
   "Conduct one exploration step using counterexamples and background knowledge about implications"
   [ctx input-implications]
-  (println input-implications)
-  (println (first input-implications))
-  (println (type input-implications))
   (loop [implications input-implications
          last         (close-under-implications implications #{}),
          ctx          ctx]
