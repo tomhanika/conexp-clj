@@ -9,6 +9,7 @@
 (ns conexp.fca.decompositions
   (:require [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
+            [conexp.gui.draw :refer :all]
             [conexp.io.contexts :refer :all]
             [conexp.fca 
              [contexts :refer :all]
@@ -16,6 +17,20 @@
              [lattices :refer :all]
              [posets :refer :all]]
             [clojure.set :as set]))
+
+
+(defn context-from-lattice [lat]
+  (let [concepts (base-set lat)
+        unions (reduce #(vector (set/union (first %1) (first %2)) (set/union (second %1) (second %2))) concepts)
+        objects (first unions)
+        attributes (second unions)
+        incidence (for [c concepts obj (first c) attr (second c)] [obj attr])]
+    (make-context objects attributes incidence)
+ )
+
+)
+
+
 
 
 (defn libkin-decomposition-pairs 
@@ -68,9 +83,73 @@
         new-base-set (for [x con1 y con2]
                        [(set/intersection (first x) (first y))
                         (set/union (second x) (second y))])]
-
     (make-lattice new-base-set #(subset? (first %1) (first %2))))
 )
+
+
+(defn hierarchy [lat]
+  (let [pairs (libkin-decomposition-pairs lat)
+        sublats  (set (flatten (for [p pairs] (combinatorial-decomposition-lattices lat p))))]
+    (make-lattice sublats #(subset? (base-set %1) (base-set %2))))
+)
+
+(defn attr-union [ctx1 ctx2]
+  "ctx1 and ctx2 must have the same set of objects"
+  (if (not (= (objects ctx1) (objects ctx2)))
+    (println "Contexts do not have the same objects!")
+    (make-context (objects ctx1) 
+                  (set/union (attributes ctx1) (attributes ctx2)) 
+                  (set/union (incidence ctx1) (incidence ctx2))))
+
+)
+
+(defn attr-intersection [ctx1 ctx2]
+  "ctx1 and ctx2 must have the same set of objects"
+  (if (not (= (objects ctx1) (objects ctx2)))
+    (println "Contexts do not have the same objects!")
+    (make-context (objects ctx1) 
+                  (set/intersection (attributes ctx1) (attributes ctx2)) 
+                  (set/intersection (incidence ctx1) (incidence ctx2))))
+
+)
+
+(defn ctx-hierarchy [lat]
+  (let [pairs (libkin-decomposition-pairs lat)
+        sublats  (set (flatten (for [p pairs] (combinatorial-decomposition-lattices lat p))))
+        subctxs (map context-from-lattice sublats)]
+
+    (make-lattice subctxs attr-intersection attr-union))
+)
+
+(defn test-hierarchy [lat]
+  (let [hlat (hierarchy lat)
+        base (base-set hlat)
+        join (sup hlat)
+        meet (inf hlat)]
+    (for [lat1 base lat2 base] (if (and (= (join lat1 lat2) 
+                                           (concept-lattice (attr-union (context-from-lattice lat1)
+                                                                       (context-from-lattice lat2))))
+                                        (= (meet lat1 lat2) 
+                                           (concept-lattice (attr-intersection (context-from-lattice lat1)
+                                                                              (context-from-lattice lat2)))))
+                                (println "TRUE")
+                                (do (println "FALSE")
+                                    (println (context-from-lattice lat))
+                                    (println (context-from-lattice lat1))
+                                    (println (context-from-lattice lat2))
+                                   )))
+))
+
+(defn test-combi-decomp [lat]
+  (let [pairs (libkin-decomposition-pairs lat)]
+    (for [pair pairs] (if (= (combinatorial-product (first (combinatorial-decomposition-lattices lat pair))
+                                                    (second (combinatorial-decomposition-lattices lat pair)))
+                             lat)
+                         (println "TRUE")
+                         (println "FALSE")))
+)
+)
+
 
 (defn add-obj [ctx obj incidence] 
   "Returns a new context with obj added."
@@ -198,3 +277,26 @@
 (def drive-ctx2 (make-context drive-objs #{"C-vl" "De+" "De++" "Dl+"
                    "Dl++" "Dl-" "E+" "E++" "E-" "E--"
                    "M-" "M--" "R+" "R++" "S-n" "S-u/n"} (incidence ctx)))
+
+
+
+(def ctx (make-context #{1 2 3 4} #{"A" "B" "C" "D"} #{[1 "A"] [1 "D"]
+                                                       [2 "B"] [2 "D"]
+                                                       [3 "C"] [3 "D"]
+                                                       [4 "A"] [4 "B"] [4 "C"]}))
+
+(def diamond (make-context  #{1 2 3 4} #{"A" "B" "C"} #{[1 "A"]
+                                                        [2 "B"]
+                                                        [3 "C"]
+                                                        [4 "A"] [4 "B"] [4 "C"]}))
+
+(def chain (make-context #{1 2 3 4} #{"E"} #{[1 "E"] [2 "E"] [3 "E"]}))
+
+(def bigctx (make-context #{1 2 3 4 5} #{"A" "B" "C" "D" "E"} #{[1 "A"] [1 "D"] [1 "E"]
+                                                                [2 "B"] [2 "D"] [2 "E"]
+                                                                [3 "C"] [3 "D"] [3 "E"]
+                                                                [4 "A"] [4 "B"] [4 "C"] [4 "D"]
+                                                                [5 "A"] [5 "B"] [5 "C"] [5 "E"]}))
+
+(def testctx (make-context #{1 2 3} #{"A" "B"} #{[1 "A"] [2 "B"]}))
+(def testctx2 (make-context #{1 2 3} #{"C"} #{}))
