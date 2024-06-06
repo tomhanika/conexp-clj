@@ -18,7 +18,7 @@ public class ChainDecomposition {
    */
   public ChainDecomposition(OrderedSet poset) {
     
-    Integer h = new Integer(0);
+    Integer h = Integer.valueOf(0);
     HashMap visited = new HashMap(poset.card());
     HashMap chain_ht = new HashMap(poset.card());
     List elems = poset.univ();
@@ -39,7 +39,7 @@ public class ChainDecomposition {
 	    x = y;
 	  }
 	}
-	h = new Integer(1 + h.intValue());
+	h = Integer.valueOf(1 + h.intValue());
       }
     }
     numChains = h.intValue();

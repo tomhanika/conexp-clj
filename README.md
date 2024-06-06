@@ -1,4 +1,4 @@
-# conexp-clj [![Build Status](https://travis-ci.org/tomhanika/conexp-clj.svg?branch=dev)](https://travis-ci.org/tomhanika/conexp-clj)
+# conexp-clj [![Build Status](https://img.shields.io/github/actions/workflow/status/tomhanika/conexp-clj/run-tests.yaml?branch=dev&label=build)](https://github.com/tomhanika/conexp-clj/actions/workflows/run-tests.yaml) [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
 
 This is conexp-clj, a general purpose software tool for [Formal Concept
 Analysis](http://www.upriss.org.uk/fca/fca.html).    Its main purpose is to
@@ -32,9 +32,13 @@ much more.
    8. [Computing Traces in Contexts](doc/code/trace-context.clj)
    9. [Counting Quasiorders](doc/code/quasiorders.clj)
    10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
+   11. [Discovering Causal Implications](doc/Causal-Implications.org)
 5. Advanced Topics
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
+   3. [triadic-exploration](doc/Triadic-Exploration.org)
+   4. [protoconcepts](doc/Protoconcepts.org)
+   5. [Incomplete Contexts](doc/IncompleteContexts.org)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 
@@ -60,10 +64,37 @@ software](http://www.upriss.org.uk/fca/fcasoftware.html).
 
 See [AUTHORS.md](AUTHORS.md).
 
+## How to cite `conexp-clj`?
+If you have used `conexp-clj` for your scientific work, the developers
+would appreciate if you use the following reference.
+
+```
+@inproceedings{DBLP:conf/icfca/HanikaH19,
+  author    = {Tom Hanika and
+               Johannes Hirth},
+  editor    = {Diana Cristea and
+               Florence Le Ber and
+               Rokia Missaoui and
+               L{\'{e}}onard Kwuida and
+               Baris Sertkaya},
+  title     = {Conexp-Clj - {A} Research Tool for {FCA}},
+  booktitle = {Supplementary Proceedings of {ICFCA} 2019 Conference and Workshops,
+               Frankfurt, Germany, June 25-28, 2019},
+  series    = {{CEUR} Workshop Proceedings},
+  volume    = {2378},
+  pages     = {70--75},
+  publisher = {CEUR-WS.org},
+  year      = {2019},
+  url       = {http://ceur-ws.org/Vol-2378/shortAT8.pdf},
+  timestamp = {Wed, 12 Feb 2020 16:44:55 +0100},
+  biburl    = {https://dblp.org/rec/conf/icfca/HanikaH19.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
 
 ## License
 
-Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2020 Tom Hanika
+Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2023 Tom Hanika
 
 Distributed under the Eclipse Public License.
 

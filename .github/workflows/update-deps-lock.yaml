@@ -1,0 +1,23 @@
+name: "Update deps-lock.json"
+on:
+  push:
+    paths:
+      - "**/project.clj"
+
+jobs:
+  update-lock:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: Update deps-lock
+        run: nix run .#deps-lock
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4.0.3
+        with:
+          commit-message: Update deps-lock.json
+          title: Update deps-lock.json
+          branch: update-deps-lock

@@ -11,6 +11,7 @@
   (:require [conexp.api.handler :refer [handler]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
+            [ring.middleware.cors :refer [wrap-cors]]
             [org.httpkit.server :refer [run-server]]))
 
 ;;;
@@ -20,12 +21,18 @@
   [dev]
   (if dev
     (-> #'handler
-      (wrap-reload)
-      (wrap-json-body {:keywords? true})
-      (wrap-json-response {:pretty true}))
-    (-> handler 
-      (wrap-json-body {:keywords? true})
-      (wrap-json-response {:pretty false}))))
+        (wrap-reload)
+        (wrap-cors :access-control-allow-origin [#".+"]
+                 :access-control-allow-methods [:get :post]
+                 :access-control-allow-headers ["Content-Type" "Authorization"])
+        (wrap-json-body {:keywords? true})
+        (wrap-json-response {:pretty true}))
+    (-> handler
+        (wrap-cors :access-control-allow-origin [#".+"]
+                 :access-control-allow-methods [:get :post]
+                 :access-control-allow-headers ["Content-Type" "Authorization"])
+        (wrap-json-body {:keywords? true})
+        (wrap-json-response {:pretty false}))))
 
 (defonce server (atom nil))
 

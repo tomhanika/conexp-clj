@@ -8,10 +8,13 @@
 
 (ns conexp.io.many-valued-contexts
   "Implements IO for Many-Valued Contexts."
+  (:require [clojure.data.json :as json]
+            [clojure.edn :as edn])
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.many-valued-contexts
-        conexp.io.util)
+        conexp.io.util
+        conexp.io.json)
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
@@ -66,7 +69,10 @@
 (add-mv-context-input-format :data-table
                              (fn [rdr]
                                (try
-                                (re-matches #"^[^,]+,[^,]+.*$" (read-line))
+                                 (let [first-line (read-line)]
+                                   (and (re-matches #"^[^,]+,[^,]+.*$" (read-line))
+                                        ;; do not read empty json mv-context as data-table
+                                        (not= first-line "{\"objectsn:[],\"attributes\":[],\"incidence\":[]}")))
                                 (catch Exception _))))
 
 (define-mv-context-output-format :data-table
@@ -125,6 +131,44 @@
                                           [m w] (map vector attributes values)]
                                       [[g m] w]))]
           (make-mv-context object-set attributes interpretation))))))
+
+;;; Json format
+(defn mv-context->json
+  "Returns a mv-context in json format"
+  [mv-context]
+  {:objects (objects mv-context)
+   :attributes (attributes mv-context)
+   :incidence (incidence mv-context)})
+
+(defn json->mv-context
+  "Returns a mv-context object for the given json mv-context."
+  [json-mv-context]
+  (let [incidence (set (for [[k v] (:incidence json-mv-context)]
+                         (map #(if (symbol? %) (str %) %)
+                              (conj (edn/read-string (name k)) v))))]
+    (make-mv-context 
+     (:objects json-mv-context)
+     (:attributes json-mv-context)
+     incidence)))
+
+(add-mv-context-input-format :json
+                             (fn [rdr]
+                               (try (json-object? rdr)
+                                    (catch Exception _))))
+
+(define-mv-context-output-format :json
+  [mv-context file]
+  (with-out-writer file
+    (print (json/write-str (mv-context->json mv-context)))))
+
+(define-mv-context-input-format :json
+  [file]
+  (with-in-reader file
+    (let [json-mv-context (json/read *in* :key-fn keyword)
+          schema-file "schemas/mv-context_schema_v1.0.json"]
+      (assert (matches-schema? json-mv-context schema-file)
+              (str "The input file does not match the schema given at " schema-file "."))
+      (json->mv-context json-mv-context))))
 
 ;;;
 

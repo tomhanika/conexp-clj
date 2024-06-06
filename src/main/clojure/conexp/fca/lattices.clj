@@ -10,7 +10,9 @@
   "Basis datastructure and definitions for abstract lattices."
   (:use conexp.base
         conexp.math.algebra
-        conexp.fca.contexts))
+        conexp.fca.contexts
+        conexp.fca.posets)
+  (:gen-class))
 
 ;;; Datastructure
 
@@ -217,27 +219,15 @@
               (if (order a x) a x))
             (base-set lat))))
 
-(defn directly-neighboured?
-  "Checks whether x is direct lower neighbour of y in lattice lat."
-  [lat x y]
-  (let [order (order lat)]
-    (and (not= x y)
-         (order x y)
-         (let [base  (disj (base-set lat) x y)]
-           (forall [z base]
-             (not (and (order x z) (order z y))))))))
-
 (defn lattice-upper-neighbours
   "Returns all direct upper neighbours of x in lattice lat."
   [lat x]
-  (set-of y [y (base-set lat)
-             :when (directly-neighboured? lat x y)]))
+  (poset-upper-neighbours lat x))
 
 (defn lattice-lower-neighbours
   "Returns all direct lower neighbours of y in lattice lat."
   [lat y]
-  (set-of x [x (base-set lat)
-             :when (directly-neighboured? lat x y)]))
+  (poset-lower-neighbours lat y))
 
 (defn lattice-atoms
   "Returns the lattice atoms of lat."
@@ -290,6 +280,25 @@
                 (lattice-inf-irreducibles lat)
                 (fn [x y]
                   ((order lat) [x y]))))
+
+(defmethod poset-context Lattice
+  [lattice]
+  (standard-context lattice))
+
+(defn extract-context-from-bv
+  "Extracts the objects, attributes and incidence of a concept
+  lattice."
+  [lat]
+  (let [c (base-set lat)]
+    (assert (every? (fn [[a b]] (and (set? a) (set? b))) c) "Lattice is not a concept lattice")
+    (let [objects (apply max-key count (map first c))
+          attributes (apply max-key count (map second c))
+          i-fn (fn [a b] 
+                 (some (fn [[ext int]] (and (contains? ext a)
+                                           (contains? int b)))
+                        c))]
+      (make-context objects attributes i-fn))))
+
 
 ;;; TITANIC Implementation
 

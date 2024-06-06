@@ -11,9 +11,11 @@
   (:use conexp.base
         conexp.io.util
         conexp.io.latex
+        conexp.io.json
         conexp.layouts.util
         conexp.layouts.base)
-  (:require clojure.string)
+  (:require clojure.string
+            [clojure.data.json :as json])
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
@@ -163,6 +165,120 @@
 (define-layout-output-format :fca-style
   [layout file]
   (unsupported-operation "Output in :fca-style is not yet supported."))
+
+;; Json helpers
+
+(defn json->nodes
+  [json-layout]
+  (try
+    (reduce
+     (fn [ncoll [k v]]
+       (assoc ncoll k
+              (mapv set v)))
+     {}
+     (apply conj (:nodes json-layout)))
+    (catch java.lang.IllegalArgumentException _
+      (apply conj (:nodes json-layout)))))
+
+(defn json->positions
+  "Transforms the positions from json format to a map, using the id of the nodes."
+  [json-positions nodes]
+  (into {} 
+        (map #(vector (get nodes (key %)) 
+                      (val %)) 
+             json-positions)))
+
+(defn json->connections
+  "Transforms the connections from json format to a map, using the id of the nodes."
+  [json-connections nodes]
+  (map #(vector 
+         (get nodes (first %)) 
+         (get nodes (keyword (second %))))
+       (for [A (keys json-connections) 
+             B (get json-connections A)] 
+         [A B])))
+
+(defn- valuation-function
+  "Maps the json-valuations to the correct node."
+  [json-valuations nodes]
+  (fn [concept]
+    (get (into {}
+               (map #(vector (get nodes (key %))
+                             (val %))
+                    json-valuations))
+         concept)))
+
+(defn json->layout
+  "Returns a Layout object for the given json layout."
+  [json-layout]
+  (let [nodes (json->nodes json-layout)
+        positions (apply conj (:positions json-layout))
+        edges (apply conj (:edges json-layout))
+        valuations (apply conj (:valuations json-layout))
+        positions (json->positions positions nodes)
+        connections (json->connections edges nodes)
+        layout (make-layout positions connections)]
+    (if (every? #(nil? (val %)) valuations)
+      layout
+      (update-valuations layout (valuation-function valuations nodes)))))
+
+(defn layout->json
+  ""
+  [layout]
+  (let [vertex-pos (positions layout)
+        sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
+                                     [x_2 y_2] (vertex-pos %2)]
+                                 (or (< y_1 y_2)
+                                     (and (= y_1 y_2)
+                                          (< x_1 x_2))))
+                              (nodes layout)),
+        vertex-idx (into {}
+                         (map-indexed (fn [i v] [v i])
+                                      sorted-vertices))]
+    (let [nodes (map #(hash-map (key %) (val %)) (map-invert vertex-idx))
+          pos (into []
+                    (for [n sorted-vertices]
+                      {(vertex-idx n), (vertex-pos n)}))
+          edges (map #(hash-map (key %) (val %))
+                     (reduce 
+                      (fn [ncoll [k v]] 
+                        (assoc ncoll k (conj (get ncoll k) v)))
+                      {}
+                      (for [[A B] (connections layout)]
+                        [(vertex-idx A),(str(vertex-idx B))])))
+          v (into []
+                  (for [n sorted-vertices]
+                    {(vertex-idx n), ((valuations layout) n)}))
+          
+          ann (into []
+                    (for [n sorted-vertices]
+                      {(vertex-idx n), ((annotation layout) n)}))]
+      (hash-map :nodes nodes
+                :positions pos
+                :edges edges
+                :valuations v
+                :shorthand-annotation ann))))
+
+;;; Json Format (src/main/resources/schemas/layout_schema_v1.0.json)
+
+(add-layout-input-format :json
+                         (fn [rdr]
+                           (try (json-object? rdr)
+                                (catch Exception _))))
+
+(define-layout-output-format :json
+  [layout file]
+  (with-out-writer file 
+    (print (json/write-str (layout->json layout)))))
+
+(define-layout-input-format :json
+  [file]
+  (with-in-reader file
+    (let [json-layout (json/read *in* :key-fn keyword)
+          schema-file "schemas/layout_schema_v1.0.json"]
+      (assert (matches-schema? json-layout schema-file)
+              (str "The input file does not match the schema given at " schema-file "."))
+      (json->layout json-layout))))
 
 ;;;
 

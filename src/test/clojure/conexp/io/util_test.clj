@@ -25,7 +25,7 @@
         (illegal-argument "out-in called with invalid type " type "."))
       (let [tmp (.getAbsolutePath ^java.io.File (tmpfile))]
         (@writer format object tmp)
-        (@reader tmp)))))
+        (@reader tmp format)))))
 
 (defn out-in-out-in-test
   "Checks for object of type type whether it passes out-in-out-in,
@@ -34,6 +34,22 @@
   (let [obj-1 (out-in object type format),
         obj-2 (out-in obj-1 type format)]
     (= obj-1 obj-2)))
+
+;;;
+
+(defn out-in-without-format
+  "Returns object, treates as type, read in from a file where it has
+  previously written to. Format is used for output, but not for input."
+  [object type format]
+  (let [namespace (str "conexp.io." type "s")]
+    (require (symbol namespace))
+    (let [writer (resolve (symbol namespace (str "write-" type))),
+          reader (resolve (symbol namespace (str "read-" type)))]
+      (when (or (nil? writer) (nil? reader))
+        (illegal-argument "out-in called with invalid type " type "."))
+      (let [tmp (.getAbsolutePath ^java.io.File (tmpfile))]
+        (@writer format object tmp)
+        (@reader tmp)))))
 
 ;;;
 

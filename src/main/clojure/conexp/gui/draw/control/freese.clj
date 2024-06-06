@@ -15,7 +15,7 @@
   [frame scn buttons]
   (let [^JButton btn    (make-button buttons "Freese"),
         ^JSpinner spn   (make-spinner buttons 0 (* 2 Math/PI) 0 0.01),
-        layout          (interactive-freese-layout (lattice (get-layout-from-scene scn))),
+        layout          (interactive-freese-layout (poset (get-layout-from-scene scn))),
         get-value       #(.getValue spn),
         ^JButton rotate (make-button buttons "Rotate"),
         rotate-thread   (atom nil),
