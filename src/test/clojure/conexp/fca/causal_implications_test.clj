@@ -83,7 +83,7 @@
 
 (def birds-ctx (read-context "testing-data/Bird-Diet.ctx"))
 (def birds-rule (make-implication #{"haferflocken"} #{"insekten"}))
-(def birds-fair-data-set (seq [#{"bauml‰ufer" "wintergoldh‰hnchen"}]))
+(def birds-fair-data-set (seq [#{"bauml√§ufer" "wintergoldh√§hnchen"}]))
 (def birds-fair-odds-ratio 0)
 
 
@@ -123,7 +123,7 @@
 
   (is (= (fair-data-set birds-ctx
                         birds-rule
-                        #{"beeren" "hirse" "meisenring" "sonnenblume" "talg" "‰pfel"})
+                        #{"beeren" "hirse" "meisenring" "sonnenblume" "talg" "√§pfel"})
          birds-fair-data-set))
 )
 
@@ -139,7 +139,7 @@
 
   (is (causally-relevant? smoking-ctx #{"smoking"} #{"cancer"} 1.9))
   (is (causally-relevant? smoking-ctx #{"male"} #{"cancer"} 1.9))
-  (is (not (causally-relevant? birds-ctx #{"hirse"} #{"‰pfel"} 1.9)))
+  (is (not (causally-relevant? birds-ctx #{"hirse"} #{"√§pfel"} 1.9)))
   (is (not (causally-relevant? birds-ctx #{"insekten"} #{"hirse"} 1.9)))
 
 )
