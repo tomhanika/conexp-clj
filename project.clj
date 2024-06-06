@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 
-(defproject conexp-clj "2.4.0"
+(defproject conexp-clj "2.4.2-SNAPSHOT"
 
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
@@ -52,11 +52,11 @@
              :dev {:main conexp.main
                    :dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring/ring-mock "0.4.0"]
-                                  [nrepl/nrepl "1.0.0"]]
+                                  [nrepl/nrepl "1.0.0"]
+                                  [com.clojure-goes-fast/clj-async-profiler "1.0.5"]]
                    :plugins [[lein-aot-order "0.1.0"]]
-                   :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]}
-             :gorilla {:main conexp.main
-                       :plugins [[org.clojars.benfb/lein-gorilla "0.7.0"]]}}
+                   :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]
+                   :jvm-opts ["-Djdk.attach.allowAttachSelf"]}}
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
@@ -64,4 +64,6 @@
   :resource-paths ["src/main/resources"]
   :target-path "builds/%s"
   :compile-path "%s/classes/"
-  :java-opts ["-Dawt.useSystemAAFontSettings=lcd_hbgr" "-Xmx4G"])
+  :java-opts ["-Dawt.useSystemAAFontSettings=on" "-Xmx4G"]
+  :repl-options {:init-ns conexp.analysis
+               :init (use 'conexp.analysis :reload)})

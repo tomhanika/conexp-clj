@@ -11,7 +11,8 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.contexts
-        conexp.fca.posets))
+        conexp.fca.posets)
+  (:gen-class))
 
 ;;; Datastructure
 
@@ -459,6 +460,18 @@
                        (fn sup [[_ B] [_ D]]
                          (let [B+D (intersection B D)]
                            [(attribute-derivation ctx B+D) B+D]))))))
+
+(defn generated-sublattice [lat generators]
+  "Computes the sublattice of the specified lattice with the specified set of generators."
+  (let [lat-join (sup lat)
+        lat-meet (inf lat)]
+    (loop [X generators]
+      (let [X-new (clojure.set/union (into #{} (for [a X b X] (lat-join a b)))
+                                     (into #{} (for [a X b X] (lat-meet a b))))]
+        (if (= X X-new) (make-lattice X lat-meet lat-join)
+                        (recur X-new)))))
+)
+
 
 ;;;
 
