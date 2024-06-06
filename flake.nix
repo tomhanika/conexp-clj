@@ -35,6 +35,7 @@
       ];
 
       channels.nixpkgs.overlaysBuilder = channels: [inputs.clj-nix.overlays.default];
+
       overlays.default = final: prev: {
         inherit (self.packages."${final.system}") conexp-clj;
       };
@@ -76,7 +77,6 @@
             doCheck = true;
             checkPhase = "lein test";
           };
-
       in rec {
         packages = {
           conexp-clj = conexp;
@@ -94,12 +94,10 @@
             deps = mk-deps-cache {lock-file = ./deps-lock.json;};
           in
             mkApp {
-
               drv = writeShellScriptBin "conexp-clj-tests" ''
                 lein test $@
               '';
             };
-
         };
 
         checks = {

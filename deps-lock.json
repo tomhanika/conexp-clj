@@ -93,7 +93,6 @@
       "hash": "sha256-ZIsMIEuk8EDcQ8KfguRHHstmdWCK+wuzGp7BxCYTenQ="
     },
     {
-
       "mvn-path": "com/clojure-goes-fast/clj-async-profiler/1.0.5/clj-async-profiler-1.0.5.jar",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-GCU/PtxlxREIczFMtETc+xxGGK+y7c+hZjeTGY/M/dk="
@@ -458,7 +457,7 @@
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-2OgLA0KFMl6QX1RkmhWYtoe5pKmaOk9LlO7TWXyyEEg="
     },
-
+    {
       "mvn-path": "hiccup/hiccup/1.0.5/hiccup-1.0.5.jar",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-D9Sn5HRh29rnILaEsZcWTrtpO7Y1jI4UZ/+nhwdsB/w="

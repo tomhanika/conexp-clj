@@ -189,7 +189,6 @@
         "type": "github"
       }
     },
-
     "root": {
       "inputs": {
         "clj-nix": "clj-nix",
