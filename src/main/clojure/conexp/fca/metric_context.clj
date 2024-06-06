@@ -1,4 +1,4 @@
-(ns conexp.fca.metric-contexts
+(ns conexp.fca.metric-context
   (:require [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [clojure.set :as set]))

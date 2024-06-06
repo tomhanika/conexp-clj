@@ -2,7 +2,7 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.lattices
-        conexp.fca.metric-contexts)
+        conexp.fca.metric-context)
   (:use clojure.test))
 
 (defn object-metric-1 [x y] identity)
