@@ -20,34 +20,28 @@
 
 
 (defn context-from-lattice [lat]
+  "Computes the underlying context of a lattice by reading the incidence of all objects."
+  "Does not work with the *lattice-product* method."
   (let [concepts (base-set lat)
-        unions (reduce #(vector (set/union (first %1) (first %2)) (set/union (second %1) (second %2))) concepts)
+        unions (reduce #(vector  (set/union (first %1) (first %2)) (set/union (second %1) (second %2))) concepts)
         objects (first unions)
         attributes (second unions)
         incidence (for [c concepts obj (first c) attr (second c)] [obj attr])]
     (make-context objects attributes incidence)
- )
+ ))
 
-)
-
-
-
-
-(defn libkin-decomposition-pairs 
+(defn libkin-decomposition-pairs [lat]
   "Returns all decompositions pair of *lat* for Libkin decompositions"
-  [lat]
   (let [neutral-elements (neutral-concepts lat)]
       (for [n neutral-elements c (element-complement n lat)] [n c])))
 
 
-(defn libkin-decomposition-lattices 
+(defn libkin-decomposition-lattices [lat decomp-pair]
   "Computes the Lattices Resulting from the Libkin-Decomposition on the 
   Provided Decomposition Pair."
-  [lat decomp-pair]
   (let [set1 (order-ideal lat (conj #{} (first decomp-pair)))
         set2 (order-ideal lat (conj #{} (last decomp-pair)))
         order (lattice-order lat)]
-
 
       [(make-lattice-nc set1
                         order
@@ -58,14 +52,12 @@
                         (inf lat)
                         (sup lat))]))
 
-(defn combinatorial-decomposition-lattices 
+(defn combinatorial-decomposition-lattices [lat decomp-pair]
   "Computes the Lattices Resulting from the Libkin-Decomposition on the 
   Provided Decomposition Pair."
-  [lat decomp-pair]
   (let [set1 (order-filter lat (conj #{} (first decomp-pair)))
         set2 (order-filter lat (conj #{} (last decomp-pair)))
         order (lattice-order lat)]
-
 
       [(make-lattice-nc set1
                         order
@@ -77,7 +69,8 @@
                         (sup lat))]))
 
 (defn combinatorial-product [a b]
-
+  "Computes the combinatoial produce of two lattices. 
+   May fail if *a* and *b* are not complemented neutral ideals of the same lattice"
   (let [con1 (base-set a)
         con2 (base-set b)
         new-base-set (for [x con1 y con2]
@@ -88,13 +81,15 @@
 
 
 (defn hierarchy [lat]
+  "Computes the hierarchy lattice of all combinatorial decompositions."
   (let [pairs (libkin-decomposition-pairs lat)
         sublats  (set (flatten (for [p pairs] (combinatorial-decomposition-lattices lat p))))]
     (make-lattice sublats #(subset? (base-set %1) (base-set %2))))
 )
 
 (defn attr-union [ctx1 ctx2]
-  "ctx1 and ctx2 must have the same set of objects"
+  "Unifies the attributes of *ctx1* and *ctx2*.
+   *ctx1* and *ctx2* must have the same objects."
   (if (not (= (objects ctx1) (objects ctx2)))
     (println "Contexts do not have the same objects!")
     (make-context (objects ctx1) 
@@ -104,7 +99,8 @@
 )
 
 (defn attr-intersection [ctx1 ctx2]
-  "ctx1 and ctx2 must have the same set of objects"
+  "Intersects the attributes of *ctx1* and *ctx2*.
+  *ctx1* and *ctx2* must have the same objects."
   (if (not (= (objects ctx1) (objects ctx2)))
     (println "Contexts do not have the same objects!")
     (make-context (objects ctx1) 
@@ -114,6 +110,7 @@
 )
 
 (defn ctx-hierarchy [lat]
+  "Computes the hierarchy lattice of the contexts of all combinatoiral decompositions."
   (let [pairs (libkin-decomposition-pairs lat)
         sublats  (set (flatten (for [p pairs] (combinatorial-decomposition-lattices lat p))))
         subctxs (map context-from-lattice sublats)]
@@ -122,18 +119,20 @@
 )
 
 (defn test-hierarchy [lat]
+  "Verifies whether all meets and joins in the hierarchy lattice can be represented by attribute-union
+   and attribute-intersection."
   (let [hlat (hierarchy lat)
         base (base-set hlat)
         join (sup hlat)
         meet (inf hlat)]
     (for [lat1 base lat2 base] (if (and (= (join lat1 lat2) 
                                            (concept-lattice (attr-union (context-from-lattice lat1)
-                                                                       (context-from-lattice lat2))))
+                                                                        (context-from-lattice lat2))))
                                         (= (meet lat1 lat2) 
                                            (concept-lattice (attr-intersection (context-from-lattice lat1)
-                                                                              (context-from-lattice lat2)))))
-                                (println "TRUE")
-                                (do (println "FALSE")
+                                                                               (context-from-lattice lat2)))))
+                                :OK
+                                (do (println "FALSE##################################")
                                     (println (context-from-lattice lat))
                                     (println (context-from-lattice lat1))
                                     (println (context-from-lattice lat2))
@@ -141,66 +140,29 @@
 ))
 
 (defn test-combi-decomp [lat]
+  "Verifies whether all combinatorial decompositions of *lat* are reversed by the combinatorial product."
   (let [pairs (libkin-decomposition-pairs lat)]
     (for [pair pairs] (if (= (combinatorial-product (first (combinatorial-decomposition-lattices lat pair))
                                                     (second (combinatorial-decomposition-lattices lat pair)))
                              lat)
-                         (println "TRUE")
-                         (println "FALSE")))
-)
-)
+                         :OK
+                         (println "FALSE#####################################")))
+))
 
 
 (defn add-obj [ctx obj incidence] 
-  "Returns a new context with obj added."
+  "Returns a new context with *obj* added."
   (make-context (union (objects ctx) #{obj}) (attributes ctx) incidence))
 
 
 (defn add-attr [ctx attr incidence] 
+  "Returns a new context with *attr* added."
   (make-context (objects ctx) (union (attributes ctx) #{attr}) incidence))
   
 
 
-(defn distributive-exploration [ctx empty-ctx]
-  (let [objs (objects ctx) 
-        attr (attributes ctx)
-        incidence (incidence ctx)
-        start empty-ctx]
-
-      (loop [subctx start
-             rest-objs objs
-             rest-attr attr
-             object-next true]
-
-(println (count (objects subctx)))
-
-         (let [new-obj (first (filter #(distributive? (concept-lattice (add-obj subctx % incidence))) rest-objs))
-               new-attr (first (filter #(distributive? (concept-lattice (add-attr subctx % incidence))) rest-attr))]
-
-            (if (not (or new-obj new-attr))
-               subctx
-               (if (and object-next new-obj)
-                  (recur (add-obj subctx new-obj incidence) 
-                         (difference rest-objs #{new-obj})
-                         rest-attr
-                         false)
-               (if (and (not object-next) new-attr)
-                  (recur (add-attr subctx new-attr incidence) 
-                         rest-objs
-                         (difference rest-attr #{new-attr})
-                         true)
-                  (recur subctx
-                         rest-objs
-                         rest-attr
-                         (not object-next)))))
-         )
-      )))
-
-(for [ctx ctx-list] (println (concept-lattice (read-context ctx))))
-
-(def pair-list (for [ctx ctx-list] (libkin-decomposition-pairs (concept-lattice (reduce-context (read-context ctx))))))
-
 (defn check-combinatorial-decomps [ctx-list]
+  "Checks whether all combinatorial decompositions of the contexts in *ctx-list* are reversed by the combinatorial product."
   (for [ctx ctx-list]
     (let [lat (concept-lattice (reduce-context (read-context ctx)))
           decomposition-pairs (libkin-decomposition-pairs lat)]
@@ -209,6 +171,17 @@
           (println (str ctx ":  " (= (combinatorial-product (first decomp) (second decomp)) lat))))
 
 ))))
+
+
+(defn test-cycle [number]
+  (loop [counter number]
+    (let [ctx  (reduce-attributes (random-context #{1 2 3 4 5} #{"A" "B" "C" "D" "E"} 0.5))
+          lat (concept-lattice ctx)]
+     
+      (doall (test-hierarchy lat))
+      (doall (test-combi-decomp lat))
+      (if (not (= counter 0))
+        (recur (- counter 1))))))
 
 
 (def ctx-list #{"animals-d.ctx"
@@ -251,34 +224,6 @@
                  "testing-data/california.ctx"
 })
 
-(defn list-all-decomps [ctx-list]
-  (for [ctx ctx-list
-        pair (libkin-decomposition-pairs (concept-lattice (read-context ctx)))]
-     (println (str ctx ": " (libkin-decomposition-lattices (concept-lattice (read-context ctx)) pair)))))
-
-;(use 'conexp.io.contexts)
-;(def ctx (read-context "testing-data/Bird-Diet.ctx"))
-;(make-context #{} #{} (incidence ctx))
-;(write-context :burmeister (distributive-exploration (read-context "testing-data/Bird-Diet.ctx") ectx) "ird-diet-d.ctx")
-
-(def ctx (read-context "drive_concepts_for_motorcars-d.ctx"))
-
-(def drive-objs #{"All-wheel" "Conventional" "Front-wheel" "Mid-engine" "Rear-wheel"})
-
-(def drive-attrs #{"C-h" "C-l" "C-vl" "De+" "De++" "Dl+"
-                   "Dl++" "Dl-" "E+" "E++" "E-" "E--"
-                   "M-" "M--" "R+" "R++" "S-n" "S-u/n"})
-
-(def drive-ctx (make-context drive-objs drive-attrs (incidence ctx)))
-
-
-(def drive-ctx1 (make-context drive-objs #{"C-h" "C-l"} (incidence ctx)))
-
-(def drive-ctx2 (make-context drive-objs #{"C-vl" "De+" "De++" "Dl+"
-                   "Dl++" "Dl-" "E+" "E++" "E-" "E--"
-                   "M-" "M--" "R+" "R++" "S-n" "S-u/n"} (incidence ctx)))
-
-
 
 (def ctx (make-context #{1 2 3 4} #{"A" "B" "C" "D"} #{[1 "A"] [1 "D"]
                                                        [2 "B"] [2 "D"]
@@ -299,4 +244,5 @@
                                                                 [5 "A"] [5 "B"] [5 "C"] [5 "E"]}))
 
 (def testctx (make-context #{1 2 3} #{"A" "B"} #{[1 "A"] [2 "B"]}))
+
 (def testctx2 (make-context #{1 2 3} #{"C"} #{}))
