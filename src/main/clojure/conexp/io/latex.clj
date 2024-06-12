@@ -12,7 +12,8 @@
         [conexp.fca.contexts :only (objects attributes incidence)]
         conexp.fca.lattices
         conexp.fca.many-valued-contexts
-        [conexp.layouts.base :only (positions connections nodes inf-irreducibles sup-irreducibles annotation valuations)]))
+        [conexp.layouts.base :only (positions connections nodes inf-irreducibles sup-irreducibles annotation valuations)])
+  (:require [clojure.set :refer [difference union subset? intersection]]))
 
 ;;;
 

@@ -15,7 +15,8 @@
         conexp.layouts.util
         conexp.layouts.base)
   (:require clojure.string
-            [clojure.data.json :as json])
+            [clojure.data.json :as json]
+            [clojure.set :refer [difference union subset? intersection map-invert]])
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch

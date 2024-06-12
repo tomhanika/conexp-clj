@@ -8,7 +8,9 @@
 
 (ns conexp.base-test
   (:use clojure.test
-        conexp.base))
+        conexp.base)
+  (:require [clojure.set :refer [difference union subset? superset? intersection]]
+            [clojure.math.numeric-tower :refer [gcd]]))
 
 ;;;
 

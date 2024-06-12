@@ -15,7 +15,8 @@
         [conexp.layouts.base :refer [positions nodes inf-irreducibles 
                                      sup-irreducibles connections annotation]]
         conexp.layouts.dim-draw
-        conexp.io.latex))
+        conexp.io.latex)
+  (:require [clojure.set :refer [difference union subset? intersection]]))
 
 ;;; Smeasure
 

@@ -16,6 +16,7 @@
             [clojure.math.combinatorics :as comb]
             [loom.graph :as lg] [loom.alg :as la]
             [clojure.core.reducers :as r]
+            [clojure.set :refer [difference union subset? intersection]]
             [conexp.fca.implications :refer :all]))
 
 (defprotocol Smeasure

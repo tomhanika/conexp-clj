@@ -6,7 +6,8 @@
             [conexp.util.graph :refer :all]
             [conexp.layouts.base :as lay]
             [conexp.base :exclude [transitive-closure] :refer :all]
-            [rolling-stones.core :as sat :refer :all])
+            [rolling-stones.core :as sat :refer :all]
+            [clojure.set :refer [difference union subset? intersection]])
   (:import [org.dimdraw Bipartite]))
 
 (defn in-odd-cycle?

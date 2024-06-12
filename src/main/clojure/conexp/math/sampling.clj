@@ -14,7 +14,8 @@
    Elías F. Combarro, Julen Hurtado de Saracho, Irene Díaz
    https://www.sciencedirect.com/science/article/pii/S0020025519305043 "
   (:use conexp.base
-        conexp.math.algebra))
+        conexp.math.algebra)
+  (:require [clojure.set :refer [difference union subset? intersection]]))
 
 ;; Sampler
 
