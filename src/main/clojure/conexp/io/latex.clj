@@ -106,7 +106,9 @@
         :fca-style (layout->fca-style this)
         true  (illegal-argument "Unsupported latex format " choice " for layouts.")))))
 
-(defn- layout->fca-style [layout]
+(defn- layout->fca-style
+  "Latex output format for the new fca package at https://github.com/keinstein/latex-fca"
+  [layout]
   (let [vertex-pos      (positions layout),
         sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
                                      [x_2 y_2] (vertex-pos %2)]
