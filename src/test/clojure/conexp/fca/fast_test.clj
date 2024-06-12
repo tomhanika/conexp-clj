@@ -19,8 +19,9 @@
 ;;; Concept Calculations
 
 (defn- add-if-not-exists [invalids program-name keyword]
-  (when-not (program-exists? program-name)
-    (conj invalids keyword)))
+  (if (program-exists? program-name)
+    (conj invalids keyword)
+    invalids))
 
 (def- concepts-methods (let [invalid-methods (-> #{}
                                                  (add-if-not-exists "pcbo" :pcbo)
