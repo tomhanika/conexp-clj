@@ -132,7 +132,7 @@
       (doseq [v sorted-vertices]
         (let [idx (vertex-idx v)
               [x y] (vertex-pos v)]
-          (println "\\Node[/tikz/concept](" idx ")("x")("y")")))
+          (println (str"\\Node[/tikz/concept](" idx ")("x", "y")"))))
       ;; relation
       (doseq [[v w] (connections layout)]
         (let [vidx (vertex-idx v)
@@ -144,21 +144,22 @@
               ann (annotation layout)
               [u _] (map tex-escape (ann v))]
           (if-not (= "" u)
-          (println "\\centerAttbox("idx"){" u "}") ) ))
+            (println (str "\\centerAttbox("idx"){" u "}")) ) ))
       ;; object labels
       (doseq [v sorted-vertices]
         (let [idx (vertex-idx v)
               ann (annotation layout)
               [_ l] (map tex-escape (ann v))]
           (if-not (= "" l)
-          (println "\\centerAttbox("idx"){" l "}") ) ))
+            (println (str "\\centerObjbox("idx"){" l "}")) ) ))
       ;; valuations 
       (doseq [v sorted-vertices]
         (let [val (value-fn v)
               idx (vertex-idx v)]
           (if (not= "" val)
-            (println "\\node[/tikz/valuation] [right of="idx"] {"val"};"))))
-      (println "\\end{diagram}}") ) ))
+            (println (str"\\node[/tikz/valuation] [right of="idx"] {"val"};")))))
+      (println "\\end{diagram}")
+      (println "\\end{tikzpicture}}") ) ))
 
 (defn- layout->tikz [layout]
   (let [vertex-pos      (positions layout),
