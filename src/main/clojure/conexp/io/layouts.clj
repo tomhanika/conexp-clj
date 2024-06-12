@@ -164,7 +164,8 @@
 
 (define-layout-output-format :fca-style
   [layout file]
-  (unsupported-operation "Output in :fca-style is not yet supported."))
+  (with-out-writer file
+    (println (latex layout :fca-style))))
 
 ;; Json helpers
 

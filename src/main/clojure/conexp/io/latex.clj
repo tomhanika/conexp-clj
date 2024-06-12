@@ -93,6 +93,7 @@
 ;;; Layouts
 
 (declare layout->tikz)
+(declare layout->fca-style)
 
 (extend-type conexp.layouts.base.Layout
   LaTeX
@@ -102,7 +103,62 @@
    ([this choice]
       (case choice
         :tikz (layout->tikz this)
+        :fca-style (layout->fca-style this)
         true  (illegal-argument "Unsupported latex format " choice " for layouts.")))))
+
+(defn- layout->fca-style [layout]
+  (let [vertex-pos      (positions layout),
+        sorted-vertices (sort #(let [[x_1 y_1] (vertex-pos %1),
+                                     [x_2 y_2] (vertex-pos %2)]
+                                 (or (< y_1 y_2)
+                                     (and (= y_1 y_2)
+                                          (< x_1 x_2))))
+                              (nodes layout)),
+        vertex-idx      (into {}
+                              (map-indexed (fn [i v] [v i])
+                                           sorted-vertices)),
+        value-fn #(if (nil? ((valuations layout) %))
+                    "" ((valuations layout) %))]
+    (with-out-str
+     (println "{\\unitlength 1mm")
+      (println "\\tikzset{concept/.style={/tikz/semithick, /tikz/shape=circle, inner sep=1pt, outer sep=0pt, draw=black!80,")
+      (println "                         fill=white, radius=1.5mm},%")
+      (println "         relation/.style={/tikz/-,/tikz/thick,color=black!80,line width=1.5pt},")
+      (println "         valuation/.style={color=red,label distance=3pt}")
+      (println "}")
+      (println "\\begin{tikzpicture}[scale=1]")
+      (println "\\begin{diagram}")
+      ;; concepts
+      (doseq [v sorted-vertices]
+        (let [idx (vertex-idx v)
+              [x y] (vertex-pos v)]
+          (println "\\Node[/tikz/concept](" idx ")("x")("y")")))
+      ;; relation
+      (doseq [[v w] (connections layout)]
+        (let [vidx (vertex-idx v)
+              widx (vertex-idx w)]          
+          (println (str "\\Edge[/tikz/relation](" vidx ")("widx")"))))
+      ;; attribute labels
+      (doseq [v sorted-vertices]
+        (let [idx (vertex-idx v)
+              ann (annotation layout)
+              [u _] (map tex-escape (ann v))]
+          (if-not (= "" u)
+          (println "\\centerAttbox("idx"){" u "}") ) ))
+      ;; object labels
+      (doseq [v sorted-vertices]
+        (let [idx (vertex-idx v)
+              ann (annotation layout)
+              [_ l] (map tex-escape (ann v))]
+          (if-not (= "" l)
+          (println "\\centerAttbox("idx"){" l "}") ) ))
+      ;; valuations 
+      (doseq [v sorted-vertices]
+        (let [val (value-fn v)
+              idx (vertex-idx v)]
+          (if (not= "" val)
+            (println "\\node[/tikz/valuation] [right of="idx"] {"val"};"))))
+      (println "\\end{diagram}}") ) ))
 
 (defn- layout->tikz [layout]
   (let [vertex-pos      (positions layout),
