@@ -20,8 +20,8 @@
 
 (defn- add-if-not-exists [invalids program-name keyword]
   (if (program-exists? program-name)
-    (conj invalids keyword)
-    invalids))
+    invalids
+    (conj invalids keyword)))
 
 (def- concepts-methods (let [invalid-methods (-> #{}
                                                  (add-if-not-exists "pcbo" :pcbo)
