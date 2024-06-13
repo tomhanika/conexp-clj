@@ -6,7 +6,8 @@
             [conexp.fca.implications :refer :all]
             [clojure.math.combinatorics :as comb]
             [clojure.algo.generic.functor :refer :all]
-            [clojure.algo.generic.collection :as generic-col]))
+            [clojure.algo.generic.collection :as generic-col]
+            [clojure.set :refer [difference union subset? intersection]]))
 
 ;;;;;;;; ordinal motifs
 
