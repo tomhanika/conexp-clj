@@ -12,7 +12,9 @@
         conexp.math.algebra
         conexp.fca.lattices
         conexp.fca.posets
-        clojure.pprint))
+        clojure.pprint)
+  (:require
+  [clojure.set :refer [difference subset? superset? intersection]]))
 
 ;;;
 

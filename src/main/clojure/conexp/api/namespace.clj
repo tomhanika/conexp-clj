@@ -12,7 +12,8 @@
         conexp.layouts.freese
         conexp.layouts.layered
         conexp.layouts.dim-draw
-        conexp.api.shorthands))
+        conexp.api.shorthands
+        clojure.set))
 
 ;;;
 
@@ -24,7 +25,8 @@
                  conexp.layouts.freese
                  conexp.layouts.layered
                  conexp.layouts.dim-draw
-                 conexp.api.shorthands]))
+                 conexp.api.shorthands
+                 clojure.set])) ;; basic set operations
 
 (def functions
   (concat
