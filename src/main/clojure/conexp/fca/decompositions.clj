@@ -79,6 +79,43 @@
     (make-lattice new-base-set #(subset? (first %1) (first %2))))
 )
 
+(defn decomposable? [lat]
+  (let [top (lattice-one lat)
+        bot (lattice-zero lat)
+        decomp-pairs (into #{} (libkin-decomposition-pairs lat))
+        non-trivial (disj (disj  decomp-pairs [top bot]) [bot top])]
+
+        (not (empty? non-trivial)))
+)
+
+
+(defn maximally-decomposable-filters [lat]
+
+  (loop [queue [(lattice-zero lat)]
+         visited #{}
+         filters #{}]
+
+      (if (empty? queue)
+
+        filters
+
+        (let [current-element  (first queue)
+              current-filter (order-filter lat #{current-element})
+              filter-lat (make-lattice-nc current-filter (inf lat) (sup lat))] 
+          (if (decomposable? filter-lat)
+            (recur (subvec queue 1) ;remove first element
+                   (set/union visited current-filter)
+                   (conj filters filter-lat))
+            (recur (into [] (distinct (concat (subvec queue 1) ;remove first element
+                                              (set/difference (lattice-upper-neighbours lat current-element) queue))))
+                   (conj visited current-element)
+                   filters))))
+))
+
+
+
+
+
 
 (defn hierarchy [lat]
   "Computes the hierarchy lattice of all combinatorial decompositions."
@@ -118,11 +155,10 @@
     (make-lattice subctxs attr-intersection attr-union))
 )
 
-(defn test-hierarchy [lat]
+(defn test-hierarchy [hlat]
   "Verifies whether all meets and joins in the hierarchy lattice can be represented by attribute-union
    and attribute-intersection."
-  (let [hlat (hierarchy lat)
-        base (base-set hlat)
+  (let [base (base-set hlat)
         join (sup hlat)
         meet (inf hlat)]
     (for [lat1 base lat2 base] (if (and (= (join lat1 lat2) 
@@ -133,7 +169,7 @@
                                                                                (context-from-lattice lat2)))))
                                 :OK
                                 (do (println "FALSE##################################")
-                                    (println (context-from-lattice lat))
+                                    (println (context-from-lattice hlat))
                                     (println (context-from-lattice lat1))
                                     (println (context-from-lattice lat2))
                                    )))
@@ -147,6 +183,15 @@
                              lat)
                          :OK
                          (println "FALSE#####################################")))
+))
+
+(defn test-prime-factorization [hlat]
+
+  (let [original (lattice-one hlat)
+        primes (lattice-atoms hlat)]
+
+    (if (= (reduce combinatorial-product primes) original) :OK
+                                                           (println "FALSE###########################"))
 ))
 
 
@@ -175,11 +220,13 @@
 
 (defn test-cycle [number]
   (loop [counter number]
-    (let [ctx  (reduce-attributes (random-context #{1 2 3 4 5} #{"A" "B" "C" "D" "E"} 0.5))
-          lat (concept-lattice ctx)]
+    (let [ctx  (reduce-attributes (random-context #{1 2 3 4 5 6} #{"A" "B" "C" "D" "E" "F"} 0.5))
+          lat (concept-lattice ctx)
+          hlat (hierarchy lat)]
      
-      (doall (test-hierarchy lat))
+      (doall (test-hierarchy hlat))
       (doall (test-combi-decomp lat))
+       (test-prime-factorization hlat)
       (if (not (= counter 0))
         (recur (- counter 1))))))
 
