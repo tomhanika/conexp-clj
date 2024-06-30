@@ -35,4 +35,4 @@
     (is (= water-tiling (context water-tiling-test))))
     
 (deftest test-topfiberm
-    (is (= water-test-topfiberm (context water-test-topfiberm-test))))
+    (is (= water-topfiberm (context water-topfiberm-test))))

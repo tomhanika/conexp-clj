@@ -31,12 +31,11 @@
               (some #(= i %) b))
              (conj matrix 1) :else (conj matrix 0))))))
 
-(defn transpose
-  "Transposes matrix"
-  [a]
-  (into [] (apply map vector a)))
+(defn transpose [M]
+  "Returns a transposed matrix."
+  (into [] (apply map vector M)))
 
-(defn make-matrix-from-context
+(defn make-matrix-from-context ;REPLACED BY context-incidence-matrix
   "Converts context into binary Matrix"
   [context]
   (let [stringContext (clojure.string/split-lines context)]
@@ -50,12 +49,33 @@
          (nth (clojure.string/split (nth stringContext i) #"([|])") 1)
          (conj matrix ((fn [line] (into [] (for [s line] (if (= s "x") 1 0)))) (re-seq #"\S+" curLine))))))))
 
-(defn normalize-context
-  [context]
+(defn context-incidence-matrix [ctx]
+  "Computes a representation of the context as an incidence matrix, with the object and 
+   attribute lists in order."
+  (let [objs (into [] (objects ctx))
+        attrs (into [] (attributes ctx))]
+    [objs
+     attrs
+     (into [] (for [obj objs]
+               (into [] (for [ attr attrs]
+                          (if (incident? ctx obj attr) 1 0)))))])
+)
+
+(defn normalize-context [ctx] ;REPLACED BY make-generic
   (make-context-from-matrix
    (first (context-size context))
    (second (context-size context))
    (into [] (flatten (make-matrix-from-context (context-to-string context))))))
+
+
+(defn make-generic [ctx]
+  "Returns an equivalent context with all objest and attributes generically numbered."
+  (let [objs (into [] (objects ctx))
+        attrs (into [] (attributes ctx))]
+
+    (rename-attributes (rename-objects ctx #(.indexOf objs %))  #(.indexOf attrs %)))
+)
+
 
 ;; Creates for the grecond algorithm usable data from the conexp.fca.contexts/concepts method
 (defn- grecond-create-usable
@@ -71,7 +91,7 @@
          :else c)))))
 
 ;; Unite-Operator for 2 matrices
-(defn- unite
+(defn unite ; REPLACED BY boolean-matrix-sum
   [A B]
   (loop [i 0 C []]
     (if (>= i (count A))
@@ -80,9 +100,19 @@
        (inc i)
        (conj C (into [] (map (fn [x y] (if (or (= 1 x) (= 1 y)) 1 0)) (nth A i) (nth B i))))))))
 
-(defn convert-context-to-matrix
+(defn boolean-matrix-sum [M1 M2]
+  "Returns the boolean sum of both matrices."
+  (map #(map max %1 %2) M1 M2)
+)
+
+(defn convert-context-to-matrix ;REPLACED BY context-to-vector
   [context]
   (into [] (flatten (make-matrix-from-context (context-to-string (normalize-context context))))))
+
+(defn context-to-vector [ctx]
+  "Returns the incidence of the context as a flat vector."
+  (flatten (last (context-incidence-matrix ctx)))
+)
 
 ;; Helper function for make-object
 (defn- make-object-helper
@@ -129,22 +159,28 @@
          (map (fn [x y] (if (or (= 1 x) (= 1 y)) 1 0)) out (for [o (nth (transpose tmp-object) i) a (nth tmp-attribute i)] (if (and (= 1 o) (= 1 a)) 1 0))))))))
 
 ;; Calculates Matrix with 2 vectors
-(defn- calc-one-matrix
+(defn- calc-one-matrix ;REPLACED BY cartesian-conjuction
   [A B]
   (into []
         (let [X []]
           (for [a A]
             (into X (for [b B] (if (and (= a 1) (= b 1)) 1 0)))))))
 
-;; cartesian-product            
-(defn- cartesian-product
-  [a b]
-  (for [x a y b] [x y]))
+(defn cartesian-conjuction [V1 V2] ;keine ahnung ob diese operation irgendeinen namen hat
+  "Computes a matrix where each entry corresponds to the product of a tuple from V1 and V2.
+   Meant to be used with boolean vectors."
+  (for [a V1]
+    (for [b V2] (* a b)))
 
-;; remove value from vector at index
-(defn- remove-indexed
-  [v n]
-  (into (subvec v 0 n) (subvec v (inc n))))
+)
+           
+(defn- cartesian-product [A B]
+  "Computes the cartesian product of two collections"
+  (for [a A b B] [a b]))
+
+(defn- vector-remove [V index]
+  "Returns the vector with the entry at position *index* removed."
+  (into (subvec V 0 index) (subvec V (inc index))))
 
 ;; counts false ones
 (defn count-false-ones
@@ -177,24 +213,31 @@
        (inc i)
        (conj out (remove-common-ones-vector (get A i) (get B i)))))))
 
+
 ;; counts ones
-(defn count-one
+(defn count-one ;REDUNDANT
   [V]
   (loop [i 0 c 0]
     (if (> i (count V))
       c
       (recur (inc i) (cond (= (get V i) 1) (inc c) :else c)))))
 
-;; swaps the position of 2 elemnts in vector
-(defn swap-vector-position [v i1 i2]
-  (assoc v i2 (v i1) i1 (v i2)))
+(defn swap-vector-position [V i1 i2]
+  "Swaps entries at positions *i1* and *i2* in the vector."
+  (assoc V i2 (V i1) i1 (V i2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; evaluations used
 
-(defn hamming-distance
+(defn hamming-distance ;REPLACED BY vector-hamming-distance
   [A B]
   (count (filter #{1} (map (fn [a b] (if (not= a b) 1 0)) A B))))
+
+(defn vector-hamming-distance [V1 V2]
+  "Computes hamming distance if vectors are of same length, otherwise nil."
+  (if (= (count V1) (count V2))
+  (count (filter identity (map not= V1 V2))))
+)
 
 (defn froebeniusnorm
   [A]
