@@ -96,25 +96,22 @@
          filters #{}]
 
       (if (empty? queue)
-
         filters
 
         (let [current-element  (first queue)
               current-filter (order-filter lat #{current-element})
               filter-lat (make-lattice-nc current-filter (inf lat) (sup lat))] 
           (if (decomposable? filter-lat)
-            (recur (subvec queue 1) ;remove first element
+            (recur (into [] (remove #(.contains current-filter %) queue))
                    (set/union visited current-filter)
                    (conj filters filter-lat))
             (recur (into [] (distinct (concat (subvec queue 1) ;remove first element
-                                              (set/difference (lattice-upper-neighbours lat current-element) queue))))
+                                              (set/difference (lattice-upper-neighbours lat current-element) 
+                                                              queue ;discard elements already in queue
+                                                              visited)))) ;discard elements already visited
                    (conj visited current-element)
                    filters))))
 ))
-
-
-
-
 
 
 (defn hierarchy [lat]
@@ -123,6 +120,12 @@
         sublats  (set (flatten (for [p pairs] (combinatorial-decomposition-lattices lat p))))]
     (make-lattice sublats #(subset? (base-set %1) (base-set %2))))
 )
+
+(defn prime-factorization [lat]
+  (lattice-atoms (hierarchy lat))
+
+)
+
 
 (defn attr-union [ctx1 ctx2]
   "Unifies the attributes of *ctx1* and *ctx2*.
@@ -293,3 +296,14 @@
 (def testctx (make-context #{1 2 3} #{"A" "B"} #{[1 "A"] [2 "B"]}))
 
 (def testctx2 (make-context #{1 2 3} #{"C"} #{}))
+
+(def bodiesofwater (make-context #{"puddle" "channel" "river" "canal" "lake" "reservoir" "sea"}
+                                 #{"temporary" "running" "inland" "natural" "stagant" "constant" "artificial" "maritime"}
+
+                                 #{["puddle" "temporary"] ["puddle" "inland"] ["puddle" "natural"] ["puddle" "stagant"]
+                                   ["channel" "running"] ["channel" "inland"] ["channel" "constant"]
+                                   ["river" "running"] ["river" "inland"] ["river" "natural"] ["river" "constant"]
+                                   ["canal" "running"] ["canal" "inland"] ["canal" "constant"] ["canal" "artificial"]
+                                   ["lake" "inland"] ["lake" "natural"] ["lake" "stagant"] ["lake" "constant"]
+                                   ["reservoir" "inland"] ["reservoir" "stagant"] ["reservoir"  "constant"] ["reservoir" "artificial"]
+                                   ["sea" "natural"] ["sea" "stagant"] ["sea" "constant"] ["sea" "maritime"]}))
