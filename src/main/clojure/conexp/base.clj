@@ -9,7 +9,9 @@
 (ns conexp.base
   "Basic definitions for conexp-clj."
   (:require [clojure.math.combinatorics :as comb]
-            [clojure.java.io            :as io]))
+            [clojure.java.io            :as io]
+            [clojure.set :refer [difference union subset? intersection]]
+            [clojure.math.numeric-tower :as nt]))
 
 ;;; def macros, inspired and partially copied from clojure.contrib.def
 
@@ -77,24 +79,24 @@ metadata (as provided by def) merged into the metadata of the original."
           (last dforms)))))
 ;;; Namespace tools
 
-(defn immigrate
-  "Create a public var in this namespace for each public var in the
-  namespaces named by ns-names. The created vars have the same name, root
-  binding, and metadata as the original except that their :ns metadata
-  value is this namespace.
+;; (defn immigrate
+;;   "Create a public var in this namespace for each public var in the
+;;   namespaces named by ns-names. The created vars have the same name, root
+;;   binding, and metadata as the original except that their :ns metadata
+;;   value is this namespace.
 
-  This function is literally copied from the clojure.contrib.ns-utils library."
-  [& ns-names]
-  (doseq [ns ns-names]
-    (require ns)
-    (doseq [[sym, ^clojure.lang.Var var] (ns-publics ns)]
-      (let [sym (with-meta sym (assoc (meta var) :ns *ns*))]
-        (if (.hasRoot var)
-          (intern *ns* sym (.getRawRoot var))
-          (intern *ns* sym))))))
+;;   This function is literally copied from the clojure.contrib.ns-utils library."
+;;   [& ns-names]
+;;   (doseq [ns ns-names]
+;;     (require ns)
+;;     (doseq [[sym, ^clojure.lang.Var var] (ns-publics ns)]
+;;       (let [sym (with-meta sym (assoc (meta var) :ns *ns*))]
+;;         (if (.hasRoot var)
+;;           (intern *ns* sym (.getRawRoot var))
+;;           (intern *ns* sym))))))
 
-(immigrate 'clojure.set
-           'clojure.math.numeric-tower)
+;; (immigrate 'clojure.set
+;;            'clojure.math.numeric-tower)
 
 ;;; Version
 
@@ -586,7 +588,7 @@ metadata (as provided by def) merged into the metadata of the original."
   and returns double otherwise."
   [a b]
   (if (not (and (integer? a) (integer? b)))
-    (clojure.math.numeric-tower/expt a b)
+    (nt/expt a b)
     (let [^clojure.lang.BigInt a (bigint a),
           b (long b)]
       (if (< b 0)

@@ -10,6 +10,7 @@
   "More on FCA."
   (:require [conexp.base :refer :all]
             [clojure.core.reducers :as r]
+            [clojure.set :refer [difference union subset? intersection]]
             [conexp.fca
              [contexts :refer :all]
              [exploration :refer :all]

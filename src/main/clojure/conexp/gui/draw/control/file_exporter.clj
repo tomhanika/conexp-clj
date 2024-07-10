@@ -29,12 +29,16 @@
         jpg-filter (FileNameExtensionFilter. "JPEG Files" (into-array ["jpg" "jpeg"])),
         gif-filter (FileNameExtensionFilter. "GIF Files"  (into-array ["gif"])),
         tikz-filter (FileNameExtensionFilter. "TIKZ Files" (into-array ["tikz"]))
+        json-filter (FileNameExtensionFilter. "JSON Files" (into-array ["json"]))
+        fca-filter (FileNameExtensionFilter. "FCA Files" (into-array ["fca"]))
         layout-filter (FileNameExtensionFilter. "Layout Files" (into-array ["layout"]))
         png-filter (FileNameExtensionFilter. "PNG Files"  (into-array ["png"]))]
     (doto fc
       (.addChoosableFileFilter jpg-filter)
       (.addChoosableFileFilter gif-filter)
       (.addChoosableFileFilter tikz-filter)
+      (.addChoosableFileFilter json-filter)
+      (.addChoosableFileFilter fca-filter)
       (.addChoosableFileFilter layout-filter)
       (.addChoosableFileFilter png-filter))
     (listen save-button :action
@@ -45,6 +49,8 @@
                     (with-swing-error-msg frame "Error while saving"
                       (case (get-file-extension file)
                         "tikz" (write-layout :tikz (get-layout-from-scene scn) (.getAbsolutePath file))
+                        "json" (write-layout :json (get-layout-from-scene scn) (.getAbsolutePath file))
+                        "fca" (write-layout :fca-style (get-layout-from-scene scn) (.getAbsolutePath file))
                         "layout" (write-layout :simple (get-layout-from-scene scn) (.getAbsolutePath file))
                         (save-image scn file (get-file-extension file))))))))))
   nil)

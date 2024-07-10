@@ -14,7 +14,8 @@
   (:require [conexp.base :refer :all]
             [conexp.fca.implications :refer :all]
             [conexp.fca.contexts :refer :all]
-            [conexp.fca.closure-systems :refer :all]))
+            [conexp.fca.closure-systems :refer :all]
+            [clojure.set :refer [difference union subset? intersection]] ))
 
 ;;;
 

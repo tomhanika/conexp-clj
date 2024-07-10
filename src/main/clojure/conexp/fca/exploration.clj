@@ -12,7 +12,28 @@
         conexp.fca.contexts
         conexp.fca.implications
         conexp.fca.closure-systems)
-  (:require [clojure.core.reducers :as r]))
+  (:require [clojure.core.reducers :as r]
+            [clojure.set :refer [difference union intersection subset? ]]))
+
+
+(defn exploration-step
+  "Conduct one exploration step using counterexamples and background knowledge about implications"
+  [ctx input-implications]
+  (loop [implications input-implications
+         last         (close-under-implications implications #{}),
+         ctx          ctx]
+    (if (not last)
+      {:implications (difference (set implications) (set input-implications)) :context ctx}
+      (let [conclusion-from-last (context-attribute-closure ctx last)]
+        (if (= last conclusion-from-last)
+          (recur implications
+                 (next-closed-set (attributes ctx)
+                                  (clop-by-implications implications)
+                                  last)
+                 ctx)
+          (let [newimp (make-implication last conclusion-from-last)]
+            (recur (conj implications newimp) nil ctx)) ;; new candidate implication
+          )))))
 
 ;;; Helpers
 

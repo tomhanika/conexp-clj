@@ -16,6 +16,8 @@ Additional Contributors are
 * Johannes Hirth        (pq-cores, scale-measures)
 * Gleb Kanterov         (interval-scale)
 * Maximilian Marx       (Wikidata)
+* Jannik Nordmeyer	(Metric Contexts, Causal Implications)
 * Maximilian Stubbemann (concept-robustness)
 * Anselm von Wangenheim (DimDraw)
 * Johannes Wollbold     (bug reports, feature requests)
+

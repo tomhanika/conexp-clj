@@ -7,7 +7,8 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.fca.posets
-  (:require [conexp.base :refer :all]
+  (:require [clojure.set :refer [union difference subset?]]
+            [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
             [conexp.fca.contexts :refer :all]))
 

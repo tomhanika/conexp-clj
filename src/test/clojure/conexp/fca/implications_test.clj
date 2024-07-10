@@ -14,7 +14,8 @@
         conexp.io.contexts
         conexp.math.algebra
         conexp.fca.implications)
-  (:require [conexp.fca.contexts-test :as contexts]))
+  (:require [conexp.fca.contexts-test :as contexts]
+            [clojure.set :refer [difference union subset? intersection]]))
 
 ;;;
 

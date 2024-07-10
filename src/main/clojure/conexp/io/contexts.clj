@@ -18,7 +18,8 @@
             [clojure.data.json               :as json]
             [json-schema.core                :as json-schema]
             [clojure.data.csv                :as csv]
-            [clojure.java.io                 :as io])
+            [clojure.java.io                 :as io]
+            [clojure.set :refer [difference union]])
   (:import [java.io PushbackReader]))
 
 

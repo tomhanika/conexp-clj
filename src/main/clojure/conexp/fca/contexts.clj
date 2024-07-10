@@ -9,6 +9,7 @@
 (ns conexp.fca.contexts
   "Provides the implementation of formal contexts and functions on them."
   (:require [clojure.core.reducers :as r]
+            [clojure.set :refer [difference intersection union subset?]]
             [conexp.base :refer :all]
             [conexp.fca.closure-systems :refer :all]))
 
