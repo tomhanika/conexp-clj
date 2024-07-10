@@ -8,7 +8,8 @@
 
 (ns conexp.fca.closure-systems
   "Next closure algorithm."
-  (:require [conexp.base :refer :all]))
+  (:require [conexp.base :refer :all]
+            [clojure.set :refer [difference intersection union subset?]]))
 
 ;;; Next Closure
 

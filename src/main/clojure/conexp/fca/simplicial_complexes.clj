@@ -22,7 +22,8 @@
                                          lattice-order
                                          sup]]
             [conexp.fca.ordinal-motifs :refer [generate-scale
-                                               identify-full-scale-measures]])
+                                               identify-full-scale-measures]]
+            [clojure.set :refer [difference intersection union subset?]])
   (:import conexp.fca.contexts.Formal-Context
            conexp.fca.lattices.Lattice))
 

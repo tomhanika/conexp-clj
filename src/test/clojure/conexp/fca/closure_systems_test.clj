@@ -9,7 +9,8 @@
 (ns conexp.fca.closure-systems-test
   (:use clojure.test
         conexp.fca.closure-systems
-        conexp.base))
+        conexp.base)
+  (:require [clojure.set :refer [difference intersection union subset?]]))
 
 (deftest test-lectic-<_i
   (is (lectic-<_i [5 7 3 2 1] 2 #{5 3 1} #{5 3 2 1}))
