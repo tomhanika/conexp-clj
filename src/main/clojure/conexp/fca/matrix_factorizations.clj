@@ -1,7 +1,9 @@
 (ns conexp.fca.matrix-factorizations
     (:require [clojure.string :as str]
+              [clojure.set :as set]
               [conexp.base :refer :all]
-              [conexp.fca.contexts :refer :all]))
+              [conexp.fca.contexts :refer :all]
+              [conexp.fca.lattices :refer :all]))
 
 
 (defn context-incidence-matrix [ctx]
@@ -16,6 +18,10 @@
                           (if (incident? ctx obj attr) 1 0)))))])
 )
 
+(defn argmax [function coll]
+  "Returns the value in *coll* for which (function coll) returns the highest value."
+  (apply max-key function coll)
+)
 
 (defn generate-boolean-vectors [length]
   "Returns a collection of all boolean vectors of the specified length."
@@ -24,6 +30,10 @@
        (map  #(map (fn [x] (Integer/parseInt x)) (str/split % #"")) 
              (map #(Integer/toString % 2) (range (Math/pow 2 length))))))
 )
+
+(defn transpose [M]
+  "Returns a transposed matrix."
+  (into [] (apply map vector M)))
 
 (defn matrix-row [M index]
   "Returns the indicated row of the matrix."
@@ -68,11 +78,6 @@
 )
 
 
-(defn transpose [M]
-  "Returns a transposed matrix."
-  (into [] (apply map vector M)))
-
-
 (defn matrix-product [M1 M2]
   "Computes the product of two matrices."
   (transpose (for [c (range (col-number M2))]
@@ -99,7 +104,7 @@
 )
 
 (defn matrix-boolean-difference [M1 M2]
-  "Computes a new matrix from two matrices of the same dimension by subtracting
+  "Computes a new matrix from two boolean matrices of the same dimension by subtracting
    each of their entries pairwise, with 0 - 1 = 0"
   (for [r (range (row-number M1))]
     (for [c (range (col-number M1))]
@@ -108,6 +113,85 @@
 )
 
 
+;;Grecond Algorithm
+
+(defn object-concepts [ctx]
+  (set (for [obj (objects ctx)] (object-concept ctx obj)))
+)
+
+(defn attribute-concepts [ctx]
+  (set (for [attr (attributes ctx)] (attribute-concept ctx attr)))
+)
+
+
+(defn- required-factors [ctx]
+  (loop [S (set (concepts ctx))
+         conc (set (concepts ctx))
+         U (incidence-relation ctx)
+         F #{}]
+
+    (if (empty? conc)
+      
+      [S U F]
+
+      (if (.contains (set/intersection (object-concepts ctx) (attribute-concepts ctx)) (first conc))
+        (recur (disj S (first conc))
+               (rest conc)
+               (set/difference U (set (for [g (first (first conc)) m (second (first conc))] [g m])))
+               (conj F (first conc)))
+        (recur S
+               (rest conc)
+               U
+               F))))
+)
+
+(defn- remaining-factors [S U F ctx]
+
+  (loop [S' S
+         U' U
+         F' F]
+
+
+    (if (empty? U')
+      
+      F'
+
+      (let [best-conc (argmax #(count (set/intersection (set (for [g (first %) m (second %)] [g m])) U'))
+                              S')]
+
+        (recur (disj S' best-conc)
+               (set/difference U' (set (for [g (first best-conc) m (second best-conc)] [g m])))
+               (conj F' best-conc)))))
+)
+
+(defn- contexts-from-factors [factors]
+  (let [objects (reduce #(set/union %1 (first %2)) #{} factors)
+        attributes (reduce #(set/union %1 (second %2)) #{} factors)]
+
+    (loop [remaining-factors factors
+           factor-names ["F0"]
+           obj-fac-incidence #{}
+           fac-attr-incidence #{}]
+      (if (empty? remaining-factors) 
+        [(make-context objects factor-names obj-fac-incidence) 
+         (make-context factor-names attributes fac-attr-incidence)]
+
+        (recur (rest remaining-factors)
+               (conj factor-names (str "F" (count factor-names)))
+               (set/union obj-fac-incidence 
+                          (set (for [g (first (first remaining-factors))] [g (last factor-names)])))
+               (set/union fac-attr-incidence 
+                          (set (for [m (second (first remaining-factors))] [(last factor-names) m])))))))
+)
+
+(defn grecond [ctx]
+  (let [[S U F] (required-factors ctx)] 
+   (contexts-from-factors (remaining-factors S U F ctx)))
+)
+
+
+
+;; ASSO Algorithm
 (defn- column-association [M i j]
   "Computes the confidence of an association between columns i and j of a matrix."
   (let [dividend (scalar-product (matrix-column M i) (matrix-column M j))
@@ -126,11 +210,6 @@
   (into [] (for [i (range (col-number M))]
     (into [] (for [j (range (col-number M))]
                (indicator (>= (column-association M i j) t))))))
-)
-
-(defn argmax [function coll]
-  "Returns the value in *coll* for which (function coll) returns the highest value."
-  (apply max-key function coll)
 )
 
 
