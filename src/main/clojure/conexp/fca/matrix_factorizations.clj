@@ -6,6 +6,12 @@
               [conexp.fca.lattices :refer :all]))
 
 
+(defn interval-context [ctx lower upper]
+  "Returns the context of the interval [*lower* *upper*] in the concept alttice of *ctx*."
+  (make-context (first upper) (second lower) (incidence ctx)))
+
+
+
 (defn context-incidence-matrix [ctx]
   "Computes a representation of the context as an incidence matrix, with the object and 
    attribute lists in order."
@@ -17,6 +23,7 @@
                (into [] (for [ attr attrs]
                           (if (incident? ctx obj attr) 1 0)))))])
 )
+
 
 (defn argmax [function coll]
   "Returns the value in *coll* for which (function coll) returns the highest value."
@@ -113,18 +120,51 @@
 )
 
 
+;;Tiling Algorithm
+
+(defn- prune-database [ctx]
+  (let [attrs (attributes ctx)]
+
+    (loop [remaining-attrs attrs]
+
+      
+
+
+)
+
+
+)
+  
+
+
+
+)
+
+
+
+
+
+
+
+
+
 ;;Grecond Algorithm
 
 (defn object-concepts [ctx]
+  "Returns a set of all object-concepts of the specified context."
   (set (for [obj (objects ctx)] (object-concept ctx obj)))
 )
 
 (defn attribute-concepts [ctx]
+   "Returns a set of all attribute-concepts of the specified context."
   (set (for [attr (attributes ctx)] (attribute-concept ctx attr)))
 )
 
 
-(defn- required-factors [ctx]
+(defn- mandatory-factors [ctx]
+  "Computes the concepts that are both object-concepts and attribute-concepts 
+   and removes them from the incidence relation. These concepts are required 
+   for any decomposition."
   (loop [S (set (concepts ctx))
          conc (set (concepts ctx))
          U (incidence-relation ctx)
@@ -146,11 +186,11 @@
 )
 
 (defn- remaining-factors [S U F ctx]
+  "Computes the decomposition factors that are not mandatory."
 
   (loop [S' S
          U' U
          F' F]
-
 
     (if (empty? U')
       
@@ -165,6 +205,7 @@
 )
 
 (defn- contexts-from-factors [factors]
+  "Computes contexts from set of factor concepts."
   (let [objects (reduce #(set/union %1 (first %2)) #{} factors)
         attributes (reduce #(set/union %1 (second %2)) #{} factors)]
 
@@ -185,8 +226,78 @@
 )
 
 (defn grecond [ctx]
-  (let [[S U F] (required-factors ctx)] 
+  (let [[S U F] (mandatory-factors ctx)] 
    (contexts-from-factors (remaining-factors S U F ctx)))
+)
+
+;; GreEss Algorithm
+
+(defalias o-d object-derivation)
+(defalias a-d attribute-derivation)
+
+(defn- essential-context [ctx]
+  "Computes the essential part E(ctx) of the context.
+   Compare Theorem 2."
+  (let [objs (objects ctx)
+        attrs (attributes ctx)]
+    (make-context-from-matrix objs 
+                              attrs
+                              (for [g objs m attrs] 
+                                (if (and (incident? ctx g m)
+                                         (= 0 (reduce + (for [g' objs] (if (and (not= g' g)
+                                                                                (subset? (o-d ctx #{g'}) (o-d ctx #{g}))
+                                                                                (incident? ctx g' m))
+                                                                           1
+                                                                           0))))
+                                         (= 0 (reduce + (for [m' attrs] (if (and (not= m' m)
+                                                                                 (subset? (a-d ctx #{m'}) (a-d ctx #{m}))
+                                                                                 (incident? ctx g m'))
+                                                                            1
+                                                                            0)))))
+                                    1
+                                    0))))
+)
+
+
+
+(defn- coverage [ctx attr E D U]
+
+
+  (count (set/intersection (set (for [g (a-d ctx (o-d ctx (a-d E (set/union D #{attr}))))
+                                      m (o-d ctx (a-d ctx (o-d E (a-d E (set/union D #{attr})))))] [g m]))
+                           U))
+)
+
+
+(defn- best-candidate [ctx E U]
+  (loop [D #{}
+         C (a-d E D)
+         s 0]
+
+    (if (not-any? #(> (coverage ctx % E D U) s ) (set/difference (attributes ctx) D))
+      [C D]
+
+      (let [new-attr-candidate (argmax #(coverage ctx % E D U) (set/difference (attributes ctx) D))]
+        (let [new-D (o-d E (a-d E (set/union D #{new-attr-candidate})))
+              new-C (a-d E (set/union D #{new-attr-candidate}))
+              new-s (count (set/intersection (set (for [g (a-d ctx (o-d ctx C)) m (o-d ctx (a-d ctx D))] [g m])) U))]
+
+        (recur new-D
+               new-C
+               new-s)))))
+)
+
+(defn- compute-intervals [ctx]
+  (let [E (essential-context ctx)]
+    (loop [G #{}
+           U (incidence-relation E)]
+      (if (empty? U)
+
+        G
+        (let [best-cand (best-candidate ctx E U)]
+          (recur (conj G best-cand)
+                 (set/difference U (set (for [g (a-d ctx (o-d ctx (first best-cand)))
+                                              m (o-d ctx (a-d ctx (second best-cand)))] [g m]))))))))
 )
 
 
@@ -255,3 +366,14 @@
                (add-row B (first new-vectors))
                (add-column S (second new-vectors)))))))
 )
+
+
+
+
+(def testctx (make-context #{1 2 3 4 5 6} #{"a" "b" "c" "d" "e"}
+                           #{[1 "a"] [1 "b"] [1 "d"]
+                             [2 "a"] [2 "d"] [2 "e"]
+                             [3 "b"] [3 "c"]
+                             [4 "d"]
+                             [5 "a"] [5 "b"] [5 "c"] [5 "d"]
+                             [6 "a"] [6 "b"] [6 "e"]}))
