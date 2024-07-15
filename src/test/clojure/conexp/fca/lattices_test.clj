@@ -13,7 +13,9 @@
         conexp.fca.posets
         conexp.math.algebra
         conexp.fca.lattices)
-  (:use clojure.test))
+  (:use clojure.test)
+  (:require [clojure.set :refer [difference union subset? intersection]]))
+
 
 ;;; Testing basic datastructure
 

@@ -11,7 +11,8 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications)
-  (:require [clojure.core.reducers :as r]))
+  (:require [clojure.core.reducers :as r]
+            [clojure.set :refer [difference union intersection subset? ]]))
 
 
 (defn exploration-step

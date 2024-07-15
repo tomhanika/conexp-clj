@@ -15,7 +15,8 @@
         conexp.layouts.util
         conexp.layouts.base)
   (:require clojure.string
-            [clojure.data.json :as json])
+            [clojure.data.json :as json]
+            [clojure.set :refer [difference union subset? intersection map-invert]])
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
@@ -164,7 +165,8 @@
 
 (define-layout-output-format :fca-style
   [layout file]
-  (unsupported-operation "Output in :fca-style is not yet supported."))
+  (with-out-writer file
+    (println (latex layout :fca-style))))
 
 ;; Json helpers
 

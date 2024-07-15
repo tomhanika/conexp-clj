@@ -5,7 +5,7 @@
    [conexp.io.contexts :refer :all]
    [conexp.fca.contexts :refer :all]
    [conexp.fca.implications :refer :all]
-   [clojure.set :as set]))
+   [clojure.set :refer [difference union subset? intersection]]))
 
 ;For a full Explanation of the Concepts refer to *Mining Causal Association Rules*
 ;https://www.researchgate.net/publication/262240022_Mining_Causal_Association_Rules
@@ -26,9 +26,9 @@
              (and (subset? premise b-attributes) (not (subset? premise a-attributes))))
          ;check whether controlled variables have same realizations in both objects
          (subset? controlled-variables
-                  (set/union (set/intersection a-attributes b-attributes)
-                             (set/intersection (set/difference controlled-variables a-attributes) 
-                                               (set/difference controlled-variables b-attributes)))))))
+                  (union (intersection a-attributes b-attributes)
+                             (intersection (difference controlled-variables a-attributes) 
+                                               (difference controlled-variables b-attributes)))))))
 
 (defn find-matched-record-pair [ctx impl controlled-variables objs-considered a]
   "Searches objs-considered for an object that forms a matched record pair with a,
@@ -47,13 +47,13 @@
   (let [objs (objects ctx)]
     (filter seq 
             (reduce (fn [present-objs new-obj]
-              (if (contains? (reduce set/union present-objs) new-obj)
+              (if (contains? (reduce union present-objs) new-obj)
                 present-objs
                 (conj present-objs (find-matched-record-pair 
                                            ctx 
                                            impl 
                                            controlled-variables 
-                                           (set/difference objs (reduce set/union present-objs)) 
+                                           (difference objs (reduce union present-objs)) 
                                            new-obj))))
               #{} objs))))
 
@@ -103,10 +103,10 @@
   "Used to compute the bounds of the confidence interval within the confidence-interval method.
    Computes the upper bound if + is supplied as op, lower bound if - is supplied."
   (Math/exp (op (Math/log odds-ratio)
-               (* zconf (Math/sqrt (+ (/ 1 (absolute-support ctx [(set/union premise conclusion) #{}]))
+               (* zconf (Math/sqrt (+ (/ 1 (absolute-support ctx [(union premise conclusion) #{}]))
                                       (/ 1 (absolute-support ctx [premise conclusion]))
                                       (/ 1 (absolute-support ctx [conclusion premise])) 
-                                      (/ 1 (absolute-support ctx [#{} (set/union premise conclusion)]))))))))
+                                      (/ 1 (absolute-support ctx [#{} (union premise conclusion)]))))))))
 
 (defn confidence-interval [ctx impl odds-ratio zconf]
   "Computes the confidence interval of the implication. odds-ratio is the regular odds ratio of
@@ -180,9 +180,9 @@
    confidence interval is greather than 1." 
   (let [premise (premise impl) 
         conclusion (conclusion impl)
-        E (reduce set/union (exclusive-variables ctx premise thresh)) 
-        controlled-variables (set/difference (attributes ctx)  
-                                             (set/union conclusion irrelevant-vars E premise))
+        E (reduce union (exclusive-variables ctx premise thresh)) 
+        controlled-variables (difference (attributes ctx)  
+                                             (union conclusion irrelevant-vars E premise))
         fair-data (fair-data-set ctx impl controlled-variables)
         fair-odds (fair-odds-ratio ctx impl fair-data)]
 
@@ -217,8 +217,8 @@
       (causal-association-rule-discovery 
          ctx ;context
          #{} ;current causal rules
-         (set/difference frequent-vars #{response-var})  ;frequent single variables
-         (for [x (set/difference frequent-vars #{response-var})] #{x}) ;itemsets of the current iteration
+         (difference frequent-vars #{response-var})  ;frequent single variables
+         (for [x (difference frequent-vars #{response-var})] #{x}) ;itemsets of the current iteration
          ivars ;irrelevant variables in respect to response-var
          min-lsupp ;minimum local support
          0 ;counter, counts up to max-length
@@ -237,9 +237,9 @@
 
       (causal-association-rule-discovery 
          ctx
-         (set/union rule-set new-causal-rules)
+         (union rule-set new-causal-rules)
          variables
-         (set/difference (filter #(> (local-support ctx (->Implication #{%} #{response-var})) min-lsupp) new-item-sets) 
+         (difference (filter #(> (local-support ctx (->Implication #{%} #{response-var})) min-lsupp) new-item-sets) 
                          (find-redundant ctx current new-item-sets response-var));filter item sets
          ivars
          min-lsupp

@@ -8,7 +8,8 @@
 
 (ns conexp.fca.many-valued-contexts
   "Many-Valued-Contexts and some functions for scaling."
-  (:require [conexp.base :refer :all]
+  (:require [clojure.set :refer [difference union subset? intersection]]
+            [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]))
 
 ;;;
