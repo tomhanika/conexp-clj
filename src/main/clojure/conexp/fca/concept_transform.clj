@@ -9,7 +9,8 @@
 (ns conexp.fca.concept-transform
   (:require [conexp.base :refer :all] 
             [conexp.fca.contexts :refer :all] 
-            [conexp.fca.cover :refer :all]))
+            [conexp.fca.cover :refer :all]
+            [clojure.set :refer [difference union subset? intersection]]))
 
 
 

@@ -35,6 +35,16 @@
                (make-context-editor thing)
                (str "Context " path)))))
 
+(defn- load-binary-csv-and-go
+  "Loads a named binary csv and  adds a new tab with a context-editor."
+  [frame]
+  (when-let [^File file (choose-open-file frame)]
+    (let [path (.getPath file),
+          thing (read-context path :named-binary-csv)]
+      (add-tab frame
+               (make-context-editor thing)
+               (str "Context " path)))))
+
 (defn- clone-context-and-go
   "Loads context with given loader and adds a new tab with a context-editor."
   [frame]
@@ -104,6 +114,9 @@
                 (menu-item :text "Load Context",
                            :listen [:action (fn [_]
                                               (load-context-and-go frame))]),
+                (menu-item :text "Load Binary CSV",
+                           :listen [:action (fn [_]
+                                              (load-binary-csv-and-go frame))]),
                 (menu-item :text "Random Context",
                            :listen [:action (fn [_]
                                               (context-and-go frame (rand-context 5 5 0.4)))]),

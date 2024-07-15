@@ -9,7 +9,6 @@
 (ns conexp.fca.metrics
   (:require [clojure.core.reducers :as r]
             [clojure.math.combinatorics :refer [permuted-combinations combinations]]
-            [clojure.set :as set]
             ;; [clojure.math.numeric-tower :refer [log]]
             [conexp.base :refer :all]
             [conexp.math.markov :refer :all]
@@ -28,17 +27,9 @@
                            bitwise-object-derivation
                            bitwise-attribute-derivation concepts]]
              [implications :refer :all]
-             [lattices :refer [inf 
-                               sup 
-                               lattice-base-set
-                               make-lattice 
-                               make-lattice-nc
-                               concept-lattice 
-                               lattice-order
-                               distributive?
-                               lattice-one
-                               lattice-zero]]]
-            [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
+             [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
+            [conexp.math.util :refer [eval-polynomial binomial-coefficient]]
+            [clojure.set :refer [difference union subset? intersection]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
 
@@ -796,70 +787,11 @@
 
 ;;   )
 
-;INCORRECT
-(defn generate-from-triple [triple lat]
-
-  (let [stage1-meets (set (filter some? (for [a triple b triple] (if (not= a b) ((inf lat) a b)))))
-        stage1-joins (set (filter some? (for [a triple b triple] (if (not= a b) ((sup lat) a b)))))
-        
-        stage2-meets (set (filter some? (for [a stage1-joins b stage1-joins] (if (not= a b) ((inf lat) a b)))))
-        stage2-joins (set (filter some? (for [a stage1-meets b stage1-meets] (if (not= a b) ((sup lat) a b)))))
-
-
-        final-meet #{ (into [] ((inf lat) 
-                                 ((inf lat) (first stage1-joins) (second stage1-joins)) 
-                                 (last stage1-joins)))}
-
-        base-set (set/union triple
-                            stage1-meets 
-                            stage1-joins
-                            stage2-meets
-                            stage2-joins
-                            final-meet)]
-     
-        (make-lattice-nc base-set
-                       (lattice-order lat)
-                       (inf lat)
-                       (sup lat))
-
-))
-
-;incorrect
-(defn neutral?_incorrect [concept lat]
-  (println "alt")
-  (let [base-set (lattice-base-set lat)]
-     (every? identity (for [x base-set y base-set] (distributive? (generate-from-triple [concept x y] lat))))
-)
-)
-
-(defn neutral? [a lat]
-  (let [base-set (lattice-base-set lat)
-        join (sup lat)
-        meet (inf lat)]
-     (every? identity (for [x base-set y base-set] (= (meet (meet (join a x) (join a y)) (join x y))
-                                                      (join (join (meet a x) (meet a y)) (meet x y)))))
-)
-)
 
 
 
-;return all neutral elements in "lat"
-(defn neutral-concepts [lat]
-  (let [base-set (lattice-base-set lat)]
-      (filter #(neutral? % lat) base-set)
-)
-)
 
 
-;retruns all complements of "concept" in "lat"
-(defn element-complement [concept lat]
-  (let [base-set (lattice-base-set lat)]
-
-      (filter #(and (not= % concept)
-                    (= ((sup lat) concept %) (lattice-one lat))
-                    (= ((inf lat) concept %) (lattice-zero lat)))
-              base-set))
-)
 
 ;;;
 nil

@@ -16,6 +16,7 @@
             [clojure.math.combinatorics :as comb]
             [loom.graph :as lg] [loom.alg :as la]
             [clojure.core.reducers :as r]
+            [clojure.set :refer [difference union subset? intersection]]
             [conexp.fca.implications :refer :all]))
 
 (defprotocol Smeasure
@@ -197,19 +198,9 @@
   [sm]
   (let [scon (scale sm)
         o (original-extents sm)]
-    (make-smeasure-nc (context sm) (make-context (objects scon) o #(contains? %2 %1)) identity)))
-
-(defn scale-apposition 
-  [sm1 sm2]
-  (assert (= (context sm1) (context sm2)) "Both scale-measure must be for the same context.")
-  (if (and
-       (= (objects (scale sm1)) (objects (scale sm2)))
-       (= (measure sm1) (measure sm2)))
-    (make-smeasure-nc (context sm1)
-                      (context-apposition (scale sm1) (scale sm2))
-                      (measure sm1))
-    (scale-apposition (canonical-smeasure-representation sm1)
-                      (canonical-smeasure-representation sm2))))
+    (make-smeasure-nc (context sm) 
+                      (make-context (objects (context sm)) o #(contains? %2 %1)) 
+                      identity)))
 
 (defn scale-apposition 
   [sm1 sm2]
@@ -226,12 +217,12 @@
 (defalias join-smeasure scale-apposition)
 
 (defn meet-smeasure
-  "Returns the canonical representation of the join-complement of sm in the scale-hierarchy."
+  "Returns the meet smeasure of sm1 and sm2."
   [sm1 sm2]
   (assert (= (context sm1) (context sm2)) "Both scale-measure must be for the same context.")
   (smeasure-by-exts (context sm1)
                     (intersection (set (original-extents sm1))
-                                  (set (original-extents sm1)))))
+                                  (set (original-extents sm2)))))
 
 (defn join-complement 
   "Returns the canonical representation of the join-complement of sm in the scale-hierarchy."
@@ -278,7 +269,7 @@
   "Returns all attributes of the scale whichs derivation pre-image is
   not an extents of cxt."
   ([sm]
-   (valid-attributes (context sm)
+   (invalid-attributes (context sm)
                       (scale sm)
                       (measure sm)))
   ([cxt s m]
@@ -291,7 +282,7 @@
   DOI:https://doi.org/10.1007/978-3-030-86982-3_8"
   ([sm & {:keys [relative] :or {relative false}}]
    (let [o (original-extents sm)
-         error (count (filter #(not (extent? (context sm) %))))]
+         error (filter #(not (extent? (context sm) %)) o)]
      (if relative 
        (/ (count error) (count o))
        (count error)))))
@@ -303,7 +294,7 @@
   DOI:https://doi.org/10.1007/978-3-030-86982-3_8 "
   ([sm & {:keys [relative] :or {relative false}}]
    (let [a (-> sm scale attributes)
-         error (-> sm invalid-attributes count)]
+         error (-> sm invalid-attributes)]
      (if relative 
        (/ (count error) (count a))
        (count error)))))
@@ -325,7 +316,7 @@
     (remove-attributes-sm sm inval-attr)))
 
 (defn smeasure-invalid-attr
-  "Filters the scale-measure scale attributes to the set of valid attributes."
+  "Filters the scale-measure scale attributes to the set of invalid attributes."
   [sm]
   (let [val-attr (valid-attributes sm)]
     (remove-attributes-sm sm val-attr)))
@@ -333,7 +324,7 @@
 
 
 (defn smeasure-valid-exts
-  "Filters the scale-measure scale attributes to the set of valid attributes."
+  "Filters the scale-measure extents to the set of valid extents."
   [sm]
   (let [invalid-exts (error-in-smeasure sm) ]
     (smeasure-by-exts (context sm) 
@@ -341,7 +332,7 @@
                                   (set invalid-exts)))))
 
 (defn smeasure-invalid-exts
-  "Filters the scale-measure scale attributes to the set of valid attributes."
+  "Filters the scale-measure extents to the set of invalid extents."
   [sm]
   (let [invalid-exts (error-in-smeasure sm) ]
     (smeasure-by-exts (context sm)
@@ -357,8 +348,8 @@
 (defmethod rename-scale :objects
   ([_ sm rename-fn]
    (make-smeasure-nc (context sm) 
-                       (rename-objects (scale sm) rename-fn)
-                       (comp rename-fn (measure sm))))
+                     (rename-objects (scale sm) rename-fn)
+                     (comp rename-fn (measure sm))))
   ([_ sm key val & keyvals]
    (let [rename-map (apply hash-map key val keyvals)
          rename-fn  (fn [o] (or (get rename-map o) o))]
@@ -514,7 +505,7 @@
 
 (define-repl-fn logical-attr
   "Generates a new attribute as logical formula of existing attributes."
-  (let [formula (ask (str "Current Attributes: \n " (clojure.string/join " " (attributes scale)) "\n Please enter a logical formula using logical formuals e.g. \"(C :or (A :and (:not B)))\": \n ")
+  (let [formula (ask (str "Current Attributes: \n " (clojure.string/join " " (attributes scale)) "\n Please enter a logical formula using logical formuals e.g. \"[\"C\" :or [1 :and [:not \"B\"]]]\": \n ")
                      #(read-string (str (read-line)))
                      #(formula-syntax-checker % scale attributes)
                      "Enter a formula in nested list format using only attributes of the scale: \n")
@@ -586,8 +577,8 @@
                                        (constantly true)
                                        "Input must be a valid command: \n") state)]
       (if (:done evaluated) 
-        (:smeasure  evaluated)
-        (recur  evaluated)))))
+           (:smeasure  evaluated)
+           (recur  evaluated)))))
 
 
 (defn- provide-counter-example

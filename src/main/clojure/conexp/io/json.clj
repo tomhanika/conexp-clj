@@ -9,13 +9,14 @@
 (ns conexp.io.json
   "Provides functionality to read and process json files"
   (:require [json-schema.core  :as json-schema]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [clojure.java.io   :as io]))
 
 (defn- read-schema
   "Returns the file content as Json object."
   [file]
   (json-schema/prepare-schema 
-   (-> file slurp 
+   (-> (io/resource file) slurp 
        (cheshire.core/parse-string true))
    ;; referencing inside of schemas with relative references
    {:classpath-aware? true

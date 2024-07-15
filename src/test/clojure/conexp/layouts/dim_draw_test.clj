@@ -5,7 +5,8 @@
             [conexp.base :exclude [transitive-closure] :refer :all]
             [loom.graph :as lg]
             [loom.alg :as la]
-            [rolling-stones.core :as sat :refer :all])
+            [rolling-stones.core :as sat :refer :all]
+            [clojure.set :refer [difference union subset? intersection]])
   (:use conexp.layouts.dim-draw))
 
 ;;;
