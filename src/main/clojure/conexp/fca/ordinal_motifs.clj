@@ -7,7 +7,7 @@
             [clojure.math.combinatorics :as comb]
             [clojure.algo.generic.functor :refer :all]
             [clojure.algo.generic.collection :as generic-col]
-            [clojure.set :refer [difference union subset? intersection]]))
+            [clojure.set :refer [difference intersection union subset?]]))
 
 ;;;;;;;; ordinal motifs
 
