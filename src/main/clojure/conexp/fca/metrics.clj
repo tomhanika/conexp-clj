@@ -11,6 +11,7 @@
             [clojure.math.combinatorics :refer [permuted-combinations combinations]]
             ;; [clojure.math.numeric-tower :refer [log]]
             [conexp.base :refer :all]
+            [clojure.set :as set]
             [conexp.math.markov :refer :all]
             [conexp.fca
              [contexts :refer [make-context incidence dual-context
@@ -27,6 +28,16 @@
                            bitwise-object-derivation
                            bitwise-attribute-derivation concepts]]
              [implications :refer :all]
+             [lattices :refer [inf 
+                               sup 
+                               lattice-base-set
+                               make-lattice 
+                               make-lattice-nc
+                               concept-lattice 
+                               lattice-order
+                               distributive?
+                               lattice-one
+                               lattice-zero]]
              [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]]
             [clojure.set :refer [difference union subset? intersection]])
@@ -768,6 +779,35 @@
   [ctx n]
   (let [atts (attributes ctx)]
     (take n (shuffle atts))))
+
+(defn neutral? [a lat]
+  (let [base-set (lattice-base-set lat)
+        join (sup lat)
+        meet (inf lat)]
+     (every? identity (for [x base-set y base-set] (= (meet (meet (join a x) (join a y)) (join x y))
+                                                      (join (join (meet a x) (meet a y)) (meet x y)))))
+)
+)
+
+
+
+;return all neutral elements in "lat"
+(defn neutral-concepts [lat]
+  (let [base-set (lattice-base-set lat)]
+      (filter #(neutral? % lat) base-set)
+)
+)
+
+
+;retruns all complements of "concept" in "lat"
+(defn element-complement [concept lat]
+  (let [base-set (lattice-base-set lat)]
+
+      (filter #(and (not= % concept)
+                    (= ((sup lat) concept %) (lattice-one lat))
+                    (= ((inf lat) concept %) (lattice-zero lat)))
+              base-set))
+)
 
 ;; (defn rel-consistency  ???
 ;;   "Computes the relative consistency of a subset $N ⊆ M$ with respect to

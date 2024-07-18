@@ -76,7 +76,7 @@
         new-base-set (for [x con1 y con2]
                        [(set/intersection (first x) (first y))
                         (set/union (second x) (second y))])]
-    (make-lattice new-base-set #(subset? (first %1) (first %2))))
+    (make-lattice new-base-set #(set/subset? (first %1) (first %2))))
 )
 
 (defn decomposable? [lat]
@@ -118,7 +118,7 @@
   "Computes the hierarchy lattice of all combinatorial decompositions."
   (let [pairs (libkin-decomposition-pairs lat)
         sublats  (set (flatten (for [p pairs] (combinatorial-decomposition-lattices lat p))))]
-    (make-lattice sublats #(subset? (base-set %1) (base-set %2))))
+    (make-lattice sublats #(set/subset? (base-set %1) (base-set %2))))
 )
 
 (defn prime-factorization [lat]
@@ -200,12 +200,12 @@
 
 (defn add-obj [ctx obj incidence] 
   "Returns a new context with *obj* added."
-  (make-context (union (objects ctx) #{obj}) (attributes ctx) incidence))
+  (make-context (set/union (objects ctx) #{obj}) (attributes ctx) incidence))
 
 
 (defn add-attr [ctx attr incidence] 
   "Returns a new context with *attr* added."
-  (make-context (objects ctx) (union (attributes ctx) #{attr}) incidence))
+  (make-context (objects ctx) (set/union (attributes ctx) #{attr}) incidence))
   
 
 
@@ -232,6 +232,7 @@
        (test-prime-factorization hlat)
       (if (not (= counter 0))
         (recur (- counter 1))))))
+
 
 
 (def ctx-list #{"animals-d.ctx"
@@ -307,3 +308,11 @@
                                    ["lake" "inland"] ["lake" "natural"] ["lake" "stagant"] ["lake" "constant"]
                                    ["reservoir" "inland"] ["reservoir" "stagant"] ["reservoir"  "constant"] ["reservoir" "artificial"]
                                    ["sea" "natural"] ["sea" "stagant"] ["sea" "constant"] ["sea" "maritime"]}))
+
+
+(def ctx (read-context "testing-data/Bird-Diet.ctx"))
+(def bc (birkhoff-upset-completion ctx))
+(def lat (concept-lattice ctx))
+(def bclat (concept-lattice bc))
+bclat
+(decomposable? bclat)
