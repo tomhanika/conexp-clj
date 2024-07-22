@@ -19,6 +19,12 @@
             [clojure.set :as set]))
 
 
+(defn interval [lat upper lower]
+  (let [order (lattice-order lat)
+        new-base-set (filter #(and (order % upper) (order lower %)) (base-set lat))]
+    (make-lattice-nc new-base-set order))
+)
+
 (defn context-from-lattice [lat]
   "Computes the underlying context of a lattice by reading the incidence of all objects."
   "Does not work with the *lattice-product* method."
@@ -112,6 +118,80 @@
                    (conj visited current-element)
                    filters))))
 ))
+
+(defn lattice-sort [a b lat]
+  (let [order (lattice-order lat)]
+    (if (= a b) 0
+                (if (order a b) -1
+                                 1)))
+)
+
+
+(defn intervals-with-upper [lat upper]
+
+  (loop [queue [(lattice-zero lat)]
+         visited #{}
+         intervals #{}]
+
+
+      (if (empty? queue)
+        intervals
+
+        (let [current-element  (first queue)
+              current-interval (interval lat upper current-element)]
+
+          (if (not ((lattice-order lat) current-element upper))
+            (recur (into [] (remove #(.contains (order-filter lat #{current-element}) %) queue))
+                   (set/union visited (order-filter lat #{current-element}))
+                   intervals)
+
+            (if (decomposable? current-interval)
+              (recur (into [] (remove #(.contains (order-filter lat #{current-element}) %) queue))
+                     (set/union visited (order-filter lat #{current-element}))
+                     (conj intervals current-interval))
+              (recur (into [] (distinct (concat (subvec queue 1) ;remove first element
+                                                (set/difference (lattice-upper-neighbours lat current-element) 
+                                                                queue ;discard elements already in queue
+                                                                visited)))) ;discard elements already visited
+                     (conj visited current-element)
+                     intervals))))))
+)
+
+
+(defn maximally-decomposable-intervals [lat]
+  (loop [queue (into [] (base-set lat))
+         visited #{}
+         intervals #{}]
+
+      (if (empty? queue)
+
+        intervals
+
+        (let [current-upper (first queue)
+              new-intervals (intervals-with-upper (make-lattice-nc (order-ideal lat #{current-upper}) (inf lat) (sup lat))  current-upper)]
+
+          (if (empty? new-intervals)
+
+            (recur (into [] (distinct (concat (subvec queue 1) ;remove first element
+                                              (set/difference (lattice-lower-neighbours lat current-upper) 
+                                                              queue ;discard elements already in queue
+                                                              visited)))) ;discard elements already visited
+                   (conj visited current-upper)
+                   intervals)
+
+            (recur (into [] (rest queue))
+                   (set/union visited (reduce #(set/union %1 (base-set %2)) #{} new-intervals))
+                   (set/union intervals new-intervals))))))
+)
+
+
+(defn filter-maximal [intervals]
+  (into [] (filter #(not (some (fn [x] (and (set/subset? (base-set %) (base-set x))
+                                            (not= % x))) intervals)) intervals))
+
+)
+
+
 
 
 (defn hierarchy [lat]
@@ -316,3 +396,14 @@
 (def bclat (concept-lattice bc))
 bclat
 (decomposable? bclat)
+
+
+
+(def ctx (read-context "testing-data/Animals.cxt"))
+
+
+(def ctx (context-from-fcatools "animals_en.cxt"))
+(def lat (concept-lattice ctx))
+(def max-int (filter-maximal (maximally-decomposable-intervals lat)))
+
+(sort #(< (count (base-set %1)) (count (base-set %2))) max-int)
