@@ -23,6 +23,7 @@
     [pqcores :refer :all]
     [protoconcepts :refer :all]
     [random-contexts :refer :all]
+    [simplicial-complexes :refer :all]
     [triadic-exploration :refer :all]]
    [conexp.math
     [algebra :refer :all]

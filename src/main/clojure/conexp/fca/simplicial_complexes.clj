@@ -104,6 +104,19 @@
   (let [base (apply union simplices)]
     (make-full-simplicial-complex base simplices)))
 
+;; Simplicial Complex Analytics
+
+(defn face-dimension
+  [face]
+  (- (count face) -1))
+
+(defn complex-dimension
+  "The dimension of the complex dim(Δ) is defined as the largest dimension of any of its faces.
+  Since every face is element of Δ, it suffices to chek all these elements."
+  [sc]
+  (let [faces (.simplices sc)]
+    (reduce max (map face-dimension faces))))
+
 ;; FCA
 
 (defn simplicial-complex-from-clop
