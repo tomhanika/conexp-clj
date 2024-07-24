@@ -160,7 +160,6 @@
 
 (defn maximally-decomposable-intervals [lat]
   (loop [queue (into [] (base-set lat))
-         visited #{}
          intervals #{}]
 
       (if (empty? queue)
@@ -168,20 +167,10 @@
         intervals
 
         (let [current-upper (first queue)
-              new-intervals (intervals-with-upper (make-lattice-nc (order-ideal lat #{current-upper}) (inf lat) (sup lat))  current-upper)]
+              new-intervals (maximally-decomposable-filters (make-lattice-nc (order-ideal lat #{current-upper}) (inf lat) (sup lat)))]
 
-          (if (empty? new-intervals)
-
-            (recur (into [] (distinct (concat (subvec queue 1) ;remove first element
-                                              (set/difference (lattice-lower-neighbours lat current-upper) 
-                                                              queue ;discard elements already in queue
-                                                              visited)))) ;discard elements already visited
-                   (conj visited current-upper)
-                   intervals)
-
-            (recur (into [] (rest queue))
-                   (set/union visited (reduce #(set/union %1 (base-set %2)) #{} new-intervals))
-                   (set/union intervals new-intervals))))))
+          (recur (into [] (rest queue))
+                 (set/union intervals new-intervals)))))
 )
 
 
