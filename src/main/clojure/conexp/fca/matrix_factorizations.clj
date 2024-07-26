@@ -119,34 +119,37 @@
            0)))
 )
 
+(defn factor-concept-product [ctx1 ctx2]
+  "Computes a context in the form of the matrix product of both contexts.
+   The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
+   must be equal to the set of objects of *ctx2*."
+  (make-context (objects ctx1)
+                (attributes ctx2)
+                (fn [g m] (not= (set/intersection (object-derivation ctx1 #{g})
+                                                  (attribute-derivation ctx2 #{m}))
+                                #{})))
+)
+
 
 ;;Tiling Algorithm
 
 (defn- tiling [ctx k]
-  (loop [J #{}
+  (loop [factors #{}
          counter 1
          conc (concepts ctx)]
 
     (if (< k counter)
-      (contexts-from-factors J (objects ctx) (attributes ctx))
+      (contexts-from-factors factors (objects ctx) (attributes ctx))
       (let [max-tile (argmax #(* (count (first %)) (count (second %))) conc)
-            new-J (conj J max-tile)]
-        (recur new-J
+            new-factors (conj factors max-tile)]
+        (recur new-factors
                (+ counter 1)
                (concepts (make-context (objects ctx) 
                                        (attributes ctx) 
-                                       (set/difference (incidence ctx) (for [c new-J 
+                                       (set/difference (incidence ctx) (for [c new-factors
                                                                              g (first c) m 
                                                                              (second c)] [g m]))))))))
 )
-
-
-
-
-
-
-
-
 
 ;;Grecond Algorithm
 
