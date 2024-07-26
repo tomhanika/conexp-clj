@@ -7,7 +7,7 @@
 
 
 (defn interval-context [ctx lower upper]
-  "Returns the context of the interval [*lower* *upper*] in the concept alttice of *ctx*."
+  "Returns the context of the interval [*lower* *upper*] in the concept lattice of *ctx*."
   (make-context (first upper) (second lower) (incidence ctx)))
 
 
@@ -122,22 +122,22 @@
 
 ;;Tiling Algorithm
 
-(defn- prune-database [ctx]
-  (let [attrs (attributes ctx)]
+(defn- tiling [ctx k]
+  (loop [J #{}
+         counter 1
+         conc (concepts ctx)]
 
-    (loop [remaining-attrs attrs]
-
-      
-
-
-)
-
-
-)
-  
-
-
-
+    (if (< k counter)
+      (contexts-from-factors J (objects ctx) (attributes ctx))
+      (let [max-tile (argmax #(* (count (first %)) (count (second %))) conc)
+            new-J (conj J max-tile)]
+        (recur new-J
+               (+ counter 1)
+               (concepts (make-context (objects ctx) 
+                                       (attributes ctx) 
+                                       (set/difference (incidence ctx) (for [c new-J 
+                                                                             g (first c) m 
+                                                                             (second c)] [g m]))))))))
 )
 
 
@@ -204,30 +204,29 @@
                (conj F' best-conc)))))
 )
 
-(defn- contexts-from-factors [factors]
+(defn- contexts-from-factors [factors objects attributes]
   "Computes contexts from set of factor concepts."
-  (let [objects (reduce #(set/union %1 (first %2)) #{} factors)
-        attributes (reduce #(set/union %1 (second %2)) #{} factors)]
 
-    (loop [remaining-factors factors
-           factor-names ["F0"]
-           obj-fac-incidence #{}
-           fac-attr-incidence #{}]
-      (if (empty? remaining-factors) 
-        [(make-context objects factor-names obj-fac-incidence) 
-         (make-context factor-names attributes fac-attr-incidence)]
+  (loop [remaining-factors factors
+         factor-names ["F0"]
+         obj-fac-incidence #{}
+         fac-attr-incidence #{}]
 
-        (recur (rest remaining-factors)
-               (conj factor-names (str "F" (count factor-names)))
-               (set/union obj-fac-incidence 
-                          (set (for [g (first (first remaining-factors))] [g (last factor-names)])))
-               (set/union fac-attr-incidence 
-                          (set (for [m (second (first remaining-factors))] [(last factor-names) m])))))))
+    (if (empty? remaining-factors) 
+      [(make-context objects (drop-last factor-names) obj-fac-incidence) 
+       (make-context (drop-last factor-names) attributes fac-attr-incidence)]
+
+      (recur (rest remaining-factors)
+             (conj factor-names (str "F" (count factor-names)))
+             (set/union obj-fac-incidence 
+                        (set (for [g (first (first remaining-factors))] [g (last factor-names)])))
+             (set/union fac-attr-incidence 
+                        (set (for [m (second (first remaining-factors))] [(last factor-names) m]))))))
 )
 
 (defn grecond [ctx]
   (let [[S U F] (mandatory-factors ctx)] 
-   (contexts-from-factors (remaining-factors S U F ctx)))
+   (contexts-from-factors (remaining-factors S U F ctx) (objects ctx) (attributes ctx)))
 )
 
 ;; GreEss Algorithm
@@ -377,3 +376,12 @@
                              [4 "d"]
                              [5 "a"] [5 "b"] [5 "c"] [5 "d"]
                              [6 "a"] [6 "b"] [6 "e"]}))
+
+
+(def ctx (make-context #{1 2 3 4 5} #{1 2 3 4 5 6}
+                       #{[1 1] [1 3] [1 5] [1 6]
+                         [2 3]
+                         [3 1] [3 2] [3 4] [3 5] [3 6]
+                         [4 3] [4 6]
+                         [5 2] [5 3] [5 4] [5 6]}))
+
