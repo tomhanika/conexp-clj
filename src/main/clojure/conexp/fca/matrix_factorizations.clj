@@ -263,21 +263,25 @@
 
 
 (defn- coverage [ctx attr E D U]
-
-
+  "Computes the size of the intersection wuth the incidence U."
   (count (set/intersection (set (for [g (a-d ctx (o-d ctx (a-d E (set/union D #{attr}))))
                                       m (o-d ctx (a-d ctx (o-d E (a-d E (set/union D #{attr})))))] [g m]))
                            U))
 )
 
 
+
+
+
+
 (defn- best-candidate [ctx E U]
+  "Line 8-12 in GreEss algorithm"
   (loop [D #{}
          C (a-d E D)
          s 0]
 
     (if (not-any? #(> (coverage ctx % E D U) s ) (set/difference (attributes ctx) D))
-      [C D]
+      [[C D] s]
 
       (let [new-attr-candidate (argmax #(coverage ctx % E D U) (set/difference (attributes ctx) D))]
         (let [new-D (o-d E (a-d E (set/union D #{new-attr-candidate})))
@@ -289,18 +293,67 @@
                new-s)))))
 )
 
+
 (defn- compute-intervals [ctx]
   (let [E (essential-context ctx)]
     (loop [G #{}
            U (incidence-relation E)]
+(println U)
       (if (empty? U)
 
         G
-        (let [best-cand (best-candidate ctx E U)]
+        (let [best-cand (first (best-candidate ctx E U))]
+
           (recur (conj G best-cand)
                  (set/difference U (set (for [g (a-d ctx (o-d ctx (first best-cand)))
                                               m (o-d ctx (a-d ctx (second best-cand)))] [g m]))))))))
 )
+
+
+
+
+(defn GreEss [ctx e]
+  (loop [G (compute-intervals ctx)
+         U (incidence-relation ctx)
+         factors #{}]
+(println factors)
+    (if (<=  (count U) e) 
+
+      factors
+
+      (let [[best-cand current-conc] (loop [s 0
+                                            remaining-intervals G
+                                            current-best-cand nil
+                                            current-best-interval nil]
+
+                                       (if (empty? remaining-intervals) 
+                                         [current-best-cand current-best-interval]
+                                         (let [current-conc (first remaining-intervals)
+                                               J (make-context (objects ctx)
+                                                               (attributes ctx)
+                                                               (set/difference (incidence ctx) 
+                                                                               (for [g (a-d ctx (second current-conc)) m (o-d ctx (first current-conc))] [g m])))
+                                               F #{}
+                                               [best-cand s_cd] (best-candidate ctx J U)]
+
+                                           (if (< s s_cd)
+                                             (recur s_cd
+                                                    (rest remaining-intervals)
+                                                    best-cand
+                                                    current-conc)
+                                             (recur s
+                                                    (rest remaining-intervals)
+                                                    current-best-cand
+                                                    current-best-interval)))))]
+
+        (recur (disj G current-conc)
+               (set/difference U (for [g (first best-cand) m (second best-cand)] [g m]))
+               (conj factors best-cand)))))
+)
+
+
+
+
 
 
 
