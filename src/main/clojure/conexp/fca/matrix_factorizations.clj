@@ -239,7 +239,7 @@
 
 (defn- essential-context [ctx]
   "Computes the essential part E(ctx) of the context.
-   Compare Theorem 2."
+   Compare Theorem 2 and Lemma 2."
   (let [objs (objects ctx)
         attrs (attributes ctx)]
     (make-context-from-matrix objs 
@@ -247,12 +247,14 @@
                               (for [g objs m attrs] 
                                 (if (and (incident? ctx g m)
                                          (= 0 (reduce + (for [g' objs] (if (and (not= g' g)
-                                                                                (subset? (o-d ctx #{g'}) (o-d ctx #{g}))
+                                                                                (not= (o-d ctx #{g'}) (o-d ctx #{g}));proper subset
+                                                                                (subset? (o-d ctx #{g'}) (o-d ctx #{g}));proper subset
                                                                                 (incident? ctx g' m))
                                                                            1
                                                                            0))))
                                          (= 0 (reduce + (for [m' attrs] (if (and (not= m' m)
-                                                                                 (subset? (a-d ctx #{m'}) (a-d ctx #{m}))
+                                                                                 (not= (a-d ctx #{m'}) (a-d ctx #{m}));proper subset
+                                                                                 (subset? (a-d ctx #{m'}) (a-d ctx #{m}));proper subset
                                                                                  (incident? ctx g m'))
                                                                             1
                                                                             0)))))
