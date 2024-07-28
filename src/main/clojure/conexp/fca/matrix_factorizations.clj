@@ -263,9 +263,10 @@
 )
 
 
-
 (defn- coverage [ctx attr E D U]
-  "Computes the size of the intersection with the incidence U."
+  "Generates a concept from the addition of *attr* to the set *D*, and computes the intersection with the incidence relatio *U*.
+  *E* is the essential context of *ctx*."
+  
   (count (set/intersection (set (for [g (a-d ctx (o-d ctx (a-d E (set/union D #{attr}))))
                                       m (o-d ctx (a-d ctx (o-d E (a-d E (set/union D #{attr})))))] [g m]))
                            U))
@@ -278,6 +279,7 @@
 
 (defn- best-candidate [ctx E U]
   "Line 8-12 in GreEss algorithm."
+  "Computes the concept with the largest coverage in *ctx*."
   (loop [D #{}
          C (a-d E D)
          s 0]
@@ -297,6 +299,7 @@
 
 
 (defn- compute-intervals [ctx]
+  "Compare Algorithm 2"
   (let [E (essential-context ctx)]
     (loop [G #{}
            U (incidence-relation E)]
@@ -343,13 +346,11 @@
 
 
 (defn GreEss [ctx e]
+  "Computes a factorization of *ctx* that is accurate within an error *e*.
+  These factorizations contain only underrepresentation errors."
   (loop [G (compute-intervals ctx)
          U (incidence-relation ctx)
          factors #{}]
-(println G)
-(println U)
-(println factors)
-(println "-----------------------------")
     (if (<=  (count U) e) 
 
       (contexts-from-factors factors (objects ctx) (attributes ctx))
@@ -360,8 +361,6 @@
                (set/difference U (into #{} (for [g (first best-cand) m (second best-cand)] [g m])))
                (conj factors best-cand)))))
 )
-
-
 
 
 
