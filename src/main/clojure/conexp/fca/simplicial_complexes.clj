@@ -104,18 +104,6 @@
   (let [base (apply union simplices)]
     (make-full-simplicial-complex base simplices)))
 
-;; Simplicial Complex Analytics
-
-(defn face-dimension
-  [face]
-  (- (count face) -1))
-
-(defn complex-dimension
-  "The dimension of the complex dim(Δ) is defined as the largest dimension of any of its faces.
-  Since every face is element of Δ, it suffices to chek all these elements."
-  [sc]
-  (let [faces (.simplices sc)]
-    (reduce max (map face-dimension faces))))
 
 ;; FCA
 
@@ -251,3 +239,35 @@
 (defmethod ordinal-motif-next-closure :default
   [ctx scale-type & args]
   (illegal-argument "Cannot compute ordinal motifs for scale " scale-type "."))
+
+
+;; Simplicial Complex Analytics
+
+(defn face-dimension
+  [face]
+  (- (count face) 1))
+
+(defn complex-dimension
+  "The dimension of the complex dim(Δ) is defined as the largest dimension of any of its faces.
+  Since every face is element of Δ, it suffices to chek all these elements."
+  [sc]
+  (let [faces (.simplices sc)]
+    (reduce max (map face-dimension faces))))
+
+
+(defn sc-matrix-rep [sc n]
+  "For a given simplicial complex sc and a face dimension n, compute the boundary map ∂ₙ in matrix representation. The element on line i and column j of ∂ₙ is 1 iff the n-1-simplex at position i is a subset of the n-simplex at position j."
+  (let [simps (.simplices sc)
+        n_simps (filter (fn [x] (== (face-dimension x) n)) simps)
+        n_1_simps (filter (fn [x] (== (face-dimension x) (- n 1))) simps)]
+    (vec (for [x n_1_simps]
+           (vec (for [y n_simps]
+                  ((fn [x y] (if (subset? x y) 1 0)) x y)))))))
+
+(defn sc-chain-complex
+  "Given a lattice lat and a chain in lat, compute the simplicial complexes along the chain, compute for each complex the boundary map for n and n + 1 in matrix representation. Returns a vector of vectors, each consisting of the chain element t and the two boundary matrices ∂ₙ and ∂_{n+1}."
+  [lat chain n]
+  (vec
+   (for [t chain]
+    (let [sc (t-simplex-next-closure lat t)]
+      [t (sc-matrix-rep sc (+ n 1)) (sc-matrix-rep sc n)]))))

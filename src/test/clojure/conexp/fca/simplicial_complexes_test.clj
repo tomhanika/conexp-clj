@@ -14,12 +14,16 @@
                                          make-context
                                          make-context-from-matrix
                                          objects
-                                         random-contexts]]
+                                         random-contexts
+                                         object-concept
+                                         attribute-concept]]
             [conexp.fca.simplicial-complexes :refer :all]
+            [conexp.fca.lattices :refer [concept-lattice]]
             [conexp.fca.ordinal-motifs :refer [generate-scale]]
             [conexp.fca.smeasure :refer [make-smeasure-nc
-                                         smeasure?]])
-  (:import conexp.fca.simplicial_complexes.FullSimplicialComplex))
+                                         smeasure?]]
+            [conexp.io.contexts :refer [read-context]])
+    (:import conexp.fca.simplicial_complexes.FullSimplicialComplex))
 
 (deftest test-FullSimplicialComplex-equals
   (is (= (FullSimplicialComplex. #{} #{})
@@ -93,6 +97,8 @@
 
 (def ctx (make-context-from-matrix [0 1 2 3] ['a 'b 'c 'd] 
                                    [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1]))
+(def ctx2 (make-context-from-matrix [0 1 2 3 4] ['a 'b 'c 'd] 
+                                   [1 1 1 1 1 0 0 0 0 1 0 1 1 0 1 1 1 1 0 0 ]))
 
 (deftest test-t-simplex-next-closure
   (is (= (t-simplex-next-closure ctx [#{0 3} #{'a 'c 'd}])
@@ -182,3 +188,53 @@
                        subcontexts)]
         (every? #(has-smeasure? % scale-type) subcontexts))))
   (is (thrown? IllegalArgumentException (ordinal-motif-next-closure ctx :other))))
+
+;;; Tests for simplicial complex analytics
+
+(deftest test-face-dimension
+  (let [face1  #{[#{0} #{'a 'b 'c 'd}]}
+        face2  #{[#{0} #{'a 'b 'c 'd}] [#{0 2} #{'b 'd}]}]
+    (is (= (face-dimension face1) 0))
+    (is (= (face-dimension face2) 1))))
+
+(deftest test-complex-dimension
+  (let [ctx   (read-context "testing-data/bodiesofwater.cxt")
+        sc1 (t-simplex-next-closure ctx (object-concept ctx "puddle"))
+        sc2 (t-simplex-next-closure ctx (object-concept ctx "reservoir"))
+        sc3 (t-simplex-next-closure ctx (object-concept ctx "lagoon"))]
+    (is (= (complex-dimension sc1) 7))
+    (is (= (complex-dimension sc2) 6))
+    (is (= (complex-dimension sc3) 2))))
+
+(deftest test-sc-matrix-rep
+  (let [sc1 (t-simplex-next-closure ctx (object-concept ctx 1))
+        sc2 (t-simplex-next-closure ctx (object-concept ctx 2))
+        sc3 (t-simplex-next-closure ctx (attribute-concept ctx 'd))]
+    (is (= (sc-matrix-rep sc1 1)
+           [[1 1 0 1 0 0] [1 0 1 0 1 0] [0 1 1 0 0 1] [0 0 0 1 1 1]]))
+    (is (= (sc-matrix-rep sc1 2)
+           [[1 1 0 0] [1 0 1 0] [1 0 0 1] [0 1 1 0] [0 1 0 1] [0 0 1 1]]))
+    (is (= (sc-matrix-rep sc1 3)
+           [[1] [1] [1] [1]]))
+    (is (= (sc-matrix-rep sc1 4)
+           [[]]))
+    (is (= (sc-matrix-rep sc2 1)
+           [[1 1 0] [1 0 1] [0 1 1]]))
+    (is (= (sc-matrix-rep sc2 2)
+           [[1] [1] [1]]))
+    (is (= (sc-matrix-rep sc2 0)
+           [[1 1 1]]))
+    (is (= (sc-matrix-rep sc3 2)
+           [[0] [1] [1] [1]]))
+    (is (= (sc-matrix-rep sc3 1)
+          [[1 0 0 0] [1 1 1 0] [0 1 0 1] [0 0 1 1]]))))
+
+(deftest test-sc-chain-complex
+  (let [chain [(object-concept ctx 3) (attribute-concept ctx 'd)]
+        sc1 (t-simplex-next-closure ctx (nth chain 0))
+        sc2 (t-simplex-next-closure ctx (nth chain 1))
+        chain2 [(object-concept ctx2 2) (attribute-concept ctx 'd)] ]
+    (is (= (sc-chain-complex (concept-lattice ctx) chain 2)
+           [[[#{0 3} #{'a 'c 'd}] [] [[]]] [[#{0 3 2} #{'d}] [[]] [[0] [1] [1] [1]]]]))
+    (is (= (sc-chain-complex (concept-lattice ctx2) chain2 2)
+           [[[#{0 2} #{'b 'd}] [[1] [1] [1] [1]] [[1 1 0 0] [1 0 1 0] [1 0 0 1] [0 1 1 0] [0 1 0 1] [0 0 1 1]]] [[#{0 3 2} #{'d}] [[0 1] [1 0] [1 0] [1 0] [1 0] [0 1] [0 1] [0 1]] [[1 0 0 0 0 1 0 0] [1 0 0 0 0 0 1 0] [1 1 1 0 0 0 0 1] [0 1 0 1 0 0 0 0] [0 1 0 0 1 0 0 0] [0 0 1 1 0 0 0 0] [0 0 1 0 1 0 0 0] [0 0 0 1 1 0 0 0] [0 0 0 0 0 1 1 0] [0 0 0 0 0 1 0 1] [0 0 0 0 0 0 1 1]]]]))))
