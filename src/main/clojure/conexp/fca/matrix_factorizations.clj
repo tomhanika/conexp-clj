@@ -3,7 +3,8 @@
               [clojure.set :as set]
               [conexp.base :refer :all]
               [conexp.fca.contexts :refer :all]
-              [conexp.fca.lattices :refer :all]))
+              [conexp.fca.lattices :refer :all]
+              [conexp.fca.implications :refer [support]]))
 
 
 (defn interval-context [ctx lower upper]
@@ -120,7 +121,7 @@
 )
 
 (defn factor-concept-product [ctx1 ctx2]
-  "Computes a context in the form of the matrix product of both contexts.
+  "Computes a context in the form of the boolean matrix product of both contexts.
    The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
    must be equal to the set of objects of *ctx2*."
   (make-context (objects ctx1)
@@ -128,6 +129,95 @@
                 (fn [g m] (not= (set/intersection (object-derivation ctx1 #{g})
                                                   (attribute-derivation ctx2 #{m}))
                                 #{})))
+)
+
+(defn- contexts-from-factors [factors objects attributes]
+  "Computes contexts from set of factor concepts."
+
+  (loop [remaining-factors factors
+         factor-names ["F0"]
+         obj-fac-incidence #{}
+         fac-attr-incidence #{}]
+
+    (if (empty? remaining-factors) 
+      [(make-context objects (drop-last factor-names) obj-fac-incidence) 
+       (make-context (drop-last factor-names) attributes fac-attr-incidence)]
+
+      (recur (rest remaining-factors)
+             (conj factor-names (str "F" (count factor-names)))
+             (set/union obj-fac-incidence 
+                        (set (for [g (first (first remaining-factors))] [g (last factor-names)])))
+             (set/union fac-attr-incidence 
+                        (set (for [m (second (first remaining-factors))] [(last factor-names) m]))))))
+)
+
+
+;; PaNDa Algorithm
+
+(defn- cost [patterns ctx]
+
+  
+
+)
+
+(defn- find-core [residual-data patterns ctx]
+
+  (let [obj-order (into [] (objects ctx))
+        attr-order (into [] (attributes ctx))
+        S (sort-by #(support %) (attributes  residual-data))]
+    (loop [extension-list []
+           Ci (assoc (into [] (repeat (count attr-order) 0)) 1 (.indexOf attr-order (first S)))
+           Ct (for [obj obj-order] (if (.contains (attribute-derivation residual-data (first S)) obj)
+                                     1
+                                     0))
+           remaining (rest S)]
+
+      (if (empty? remaining)
+
+        [[Ct Ci] extension-list]
+
+        (let [C*i (assoc (into [] (repeat (count attr-order) 0)) 1 (.indexOf attr-order (first remaining)))
+              C*t (for [obj obj-order] (if (.contains (attribute-derivation residual-data (first remaining)) obj)
+                                           1
+                                           0))]
+          (if (< (cost (conj patterns [C*t C*i])) (cost (conj patterns [Ct Ci])))
+              (recur extension-list
+                     C*i
+                     C*t
+                        (rest remaining))
+              (recur (conj extension-list (first remaining))
+                     Ci
+                     Ct
+                     (rest remaining)))))))
+)
+
+(defn PaNDa [ctx k]
+  
+  (loop [patterns #{}
+         residual-data (incidence-relation ctx)
+         counter 1]
+
+    (if (< k counter)
+      patterns
+
+      (let [[core extension-list] (find-core residual-data patterns (incidence-relation ctx))
+            ecore (extend-core core extension-list patterns (incidence-relation ctx))]
+
+        (if (< (cost patterns ctx) (cost (conj patterns ecore) ctx))
+          patterns
+          (recur (conj patterns ecore)
+                 residual-data ;remove ecore
+                 (+ counter 1))))))
+)
+
+
+
+
+;;Hyper Algorithm
+
+(defn hyper [ctx freq-items]
+
+
 )
 
 
@@ -205,26 +295,6 @@
         (recur (disj S' best-conc)
                (set/difference U' (set (for [g (first best-conc) m (second best-conc)] [g m])))
                (conj F' best-conc)))))
-)
-
-(defn- contexts-from-factors [factors objects attributes]
-  "Computes contexts from set of factor concepts."
-
-  (loop [remaining-factors factors
-         factor-names ["F0"]
-         obj-fac-incidence #{}
-         fac-attr-incidence #{}]
-
-    (if (empty? remaining-factors) 
-      [(make-context objects (drop-last factor-names) obj-fac-incidence) 
-       (make-context (drop-last factor-names) attributes fac-attr-incidence)]
-
-      (recur (rest remaining-factors)
-             (conj factor-names (str "F" (count factor-names)))
-             (set/union obj-fac-incidence 
-                        (set (for [g (first (first remaining-factors))] [g (last factor-names)])))
-             (set/union fac-attr-incidence 
-                        (set (for [m (second (first remaining-factors))] [(last factor-names) m]))))))
 )
 
 (defn grecond [ctx]

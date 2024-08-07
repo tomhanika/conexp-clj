@@ -487,13 +487,15 @@
 ;;calculates weight for cores
 (defn weight-core
   [C CS sh D]
-  (let [count-ones-cs (+ (+ (count-one (get CS :ci)) (count-one (get CS :ct))) (count-false-ones (calc-one-matrix (get CS :ci) (get CS :ct)) D)) count-ones-c (+ (+ (count-one (get C :ci)) (count-one (get C :ct))) (count-false-ones (calc-one-matrix (get C :ci) (get C :ct)) D))]
+  (let [count-ones-cs (+ (+ (count-one (get CS :ci)) (count-one (get CS :ct))) (count-false-ones (calc-one-matrix (get CS :ci) (get CS :ct)) D)) 
+        count-ones-c (+ (+ (count-one (get C :ci)) (count-one (get C :ct))) (count-false-ones (calc-one-matrix (get C :ci) (get C :ct)) D))]
     (if (<= count-ones-cs count-ones-c) CS (update C :e conj sh))))
 
 ;; calculates weight for cores
 (defn weight
   [C CS D]
-  (let [count-onesCS (+ (+ (count-one (get CS :ci)) (count-one (get CS :ct))) (count-false-ones (calc-one-matrix (get CS :ci) (get CS :ct)) D)) count-onesC (+ (+ (count-one (get C :ci)) (count-one (get C :ct))) (count-false-ones (calc-one-matrix (get C :ci) (get C :ct)) D))]
+  (let [count-onesCS (+ (+ (count-one (get CS :ci)) (count-one (get CS :ct))) (count-false-ones (calc-one-matrix (get CS :ci) (get CS :ct)) D)) 
+        count-onesC (+ (+ (count-one (get C :ci)) (count-one (get C :ct))) (count-false-ones (calc-one-matrix (get C :ci) (get C :ct)) D))]
     (if (<= count-onesCS count-onesC) CS C)))
 
 ;; helper to find cores
