@@ -106,18 +106,35 @@
 (defn matrix-entrywise-product [M1 M2]
   "Computes a new matrix from two matrices of the same dimension by multiplying
    each of their entries pairwise."
-  (for [r (range (row-number M1))]
-    (for [c (range (col-number M1))]
-      (* ((M1 r) c) ((M2 r) c))))
+  (into [] (for [r (range (row-number M1))]
+    (into [] (for [c (range (col-number M1))]
+               (* ((M1 r) c) ((M2 r) c))))))
+)
+
+(defn matrix-boolean-sum [M1 M2]
+  "Computes a new matrix from two boolean matrices of the same dimension by computing
+   the conjunction of each entry."
+  (into [] (for [r (range (row-number M1))]
+    (into [] (for [c (range (col-number M1))]
+               (max ((M1 r) c) ((M2 r) c))))))
 )
 
 (defn matrix-boolean-difference [M1 M2]
   "Computes a new matrix from two boolean matrices of the same dimension by subtracting
    each of their entries pairwise, with 0 - 1 = 0"
-  (for [r (range (row-number M1))]
-    (for [c (range (col-number M1))]
-      (max (- ((M1 r) c) ((M2 r) c))
-           0)))
+  (into [] (for [r (range (row-number M1))]
+    (into [] (for [c (range (col-number M1))]
+               (max (- ((M1 r) c) ((M2 r) c))
+               0)))))
+)
+
+(defn matrix-xor [M1 M2]
+  "Computes the entrywise xor operation on two boolean matrices."
+  (into [] (for [r (range (row-number M1))]
+    (into [] (for [c (range (col-number M1))]
+               (if (not= ((M1 r) c) ((M2 r) c))
+                    1
+                    0)))))
 )
 
 (defn factor-concept-product [ctx1 ctx2]
@@ -154,60 +171,129 @@
 
 ;; PaNDa Algorithm
 
+(defn outer-prod [v1 v2]
+  "computes the outer product of two vectors."
+  (into [] (for [x v1]
+    (into [] (for [y v2] (* x y)))))
+)
+
 (defn- cost [patterns ctx]
+  "computes the cost function of the given patterns.
+   Compare Problem 1"
+  (let [ground-truth (reduce #(matrix-boolean-sum %1 (outer-prod (first %2) (second %2))) 
+                             (outer-prod (repeat (count (objects ctx)) 0) (repeat (count (attributes ctx)) 0))
+                             patterns)
+        noise (matrix-xor ground-truth (last (context-incidence-matrix ctx)))]
 
-  
-
+    (+ (reduce + (flatten patterns))
+       (reduce + (flatten noise))))
 )
 
 (defn- find-core [residual-data patterns ctx]
 
   (let [obj-order (into [] (objects ctx))
         attr-order (into [] (attributes ctx))
-        S (sort-by #(support %) (attributes  residual-data))]
+        S (sort-by #(support #{%} ctx) (attributes residual-data))]
     (loop [extension-list []
-           Ci (assoc (into [] (repeat (count attr-order) 0)) 1 (.indexOf attr-order (first S)))
-           Ct (for [obj obj-order] (if (.contains (attribute-derivation residual-data (first S)) obj)
-                                     1
-                                     0))
+           Ci (assoc (into [] (repeat (count attr-order) 0)) (.indexOf attr-order (first S)) 1)
+           Ct (into [] (for [obj obj-order] (if (.contains (attribute-derivation residual-data #{(first S)}) obj)
+                                                1
+                                                0)))
            remaining (rest S)]
 
       (if (empty? remaining)
 
         [[Ct Ci] extension-list]
 
-        (let [C*i (assoc (into [] (repeat (count attr-order) 0)) 1 (.indexOf attr-order (first remaining)))
-              C*t (for [obj obj-order] (if (.contains (attribute-derivation residual-data (first remaining)) obj)
-                                           1
-                                           0))]
-          (if (< (cost (conj patterns [C*t C*i])) (cost (conj patterns [Ct Ci])))
+        (let [C*i (assoc (into [] (repeat (count attr-order) 0)) (.indexOf attr-order (first remaining)) 1)
+              C*t (into [] (for [obj obj-order] (if (.contains (attribute-derivation residual-data #{(first remaining)}) obj)
+                                                    1
+                                                    0)))]
+          (if (< (cost (conj patterns [C*t C*i]) ctx) (cost (conj patterns [Ct Ci]) ctx))
               (recur extension-list
                      C*i
                      C*t
-                        (rest remaining))
+                     (rest remaining))
               (recur (conj extension-list (first remaining))
                      Ci
                      Ct
                      (rest remaining)))))))
 )
 
+(defn- add-transactions [C C*t patterns ctx]
+  "Subroutine of the extend-core function (lines 9 - 15)."
+  (loop [remaining-transactions C*t
+         current-best-core C]
+
+    (if (empty? remaining-transactions)
+      current-best-core
+
+      (if (= (first remaining-transactions) 0) 
+
+            (recur (rest remaining-transactions)
+                   current-best-core)
+
+            (let [altered-core [(first current-best-core) 
+                                (assoc (second current-best-core) 1 (- (count (second current-best-core)) (count remaining-transactions)))]]
+
+              (if (< (cost (conj patterns altered-core) ctx) (cost (conj patterns current-best-core) ctx))
+                (recur (rest remaining-transactions)
+                       (altered-core))
+                (recur (rest remaining-transactions)
+                       current-best-core)
+)))))
+)
+
+
+(defn- extend-core [core extension-list patterns ctx];abbruchbedingung fehlt
+
+  (let [obj-order (into [] (objects ctx))
+        attr-order (into [] (attributes ctx))]
+
+    (loop [remaining extension-list
+           current-core core]
+
+      (if (empty? remaining)
+        current-core
+        (let [C*t (first current-core)
+              C*i (assoc (second current-core) (.indexOf attr-order (first remaining)) 1)
+              current-core (if (< (cost (conj patterns [C*t C*i]) ctx) (cost (conj patterns current-core) ctx)) [C*t C*i] current-core)]
+
+          (recur (rest remaining)
+                 (add-transactions current-core C*t patterns ctx))))))
+)
+
+(defn pattern-matrices [patterns]
+  "Converts collection of patterns into factor matrices."
+  [(reduce #(add-column %1 (first %2)) [] patterns)
+   (reduce #(add-row %1 (second %2)) [] patterns)]
+
+)
+
+
+;attributes in factors are in the order given by *context-incidence-matrix*
 (defn PaNDa [ctx k]
+
+  (let [obj-order (into [] (objects ctx))
+        attr-order (into [] (attributes ctx))]
   
-  (loop [patterns #{}
-         residual-data (incidence-relation ctx)
-         counter 1]
+    (loop [patterns #{}
+           residual-data ctx
+           counter 1]
 
-    (if (< k counter)
-      patterns
+      (if (< k counter)
+       (pattern-matrices patterns)
 
-      (let [[core extension-list] (find-core residual-data patterns (incidence-relation ctx))
-            ecore (extend-core core extension-list patterns (incidence-relation ctx))]
+        (let [[core extension-list] (find-core residual-data patterns ctx)
+              ecore (extend-core core extension-list patterns ctx)]
 
-        (if (< (cost patterns ctx) (cost (conj patterns ecore) ctx))
-          patterns
-          (recur (conj patterns ecore)
-                 residual-data ;remove ecore
-                 (+ counter 1))))))
+          (if (< (cost patterns ctx) (cost (conj patterns ecore) ctx))
+            patterns
+            (recur (conj patterns ecore)
+                   (make-context (objects ctx) (attributes ctx) (filter #(or (= 0 ((first ecore) (.indexOf obj-order (first %))))
+                                                                             (= 0 ((second ecore) (.indexOf attr-order (second %)))))
+                                                                        (incidence-relation residual-data)))
+                   (+ counter 1)))))))
 )
 
 
