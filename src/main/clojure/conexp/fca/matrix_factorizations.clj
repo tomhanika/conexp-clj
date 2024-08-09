@@ -169,6 +169,56 @@
 )
 
 
+
+
+;;topFiberM Algorithm
+
+
+
+(defn- add-fiber [X mxr]
+  "Lines 12 - 22."
+  (let [[obj-order attr-order incidence] (context-incidence-matric X)
+        Bi (matrix-row X mxr)])
+
+)
+
+(defn topFiberM [ctx k precision search-limit]
+
+  (let [sr (min search-limit (count (objects ctx)) (count (attributes ctx)))]
+
+    (loop [As (into [] (repeat (count (objects ctx)) (into [] (repeat search-limit 0))))
+           Bs (into [] (repeat search-limit (into [] (repeat (count (attributes ctx)) 0))))
+           tf []
+           excluded-rows [] ;objects representing excluded fibers
+           excluded-cols [] ;attributes representing excluded fibers
+           X ctx
+           i 1]
+
+      (if (< sr i)
+        ["result"]
+        (let [best-row (max-key #(count (object-derivation X #{%})) (set/difference (objects ctx) excluded-rows)) ;objects with most 1s incident
+              best-col (max-key #(count (attribute-derivation X #{%})) (set/difference (attributes ctx) excluded-cols)) ;attributes with most 1s incident
+              best-fiber (if (< (count (object-derivation best-row)) (count (attribute-derivation best-col))) best-col best-row)
+              
+
+
+]) 
+)
+
+
+
+
+)
+
+
+
+
+)
+)
+
+
+
+
 ;; PaNDa Algorithm
 
 (defn outer-prod [v1 v2]
@@ -297,16 +347,6 @@
 )
 
 
-
-
-;;Hyper Algorithm
-
-(defn hyper [ctx freq-items]
-
-
-)
-
-
 ;;Tiling Algorithm
 
 (defn- tiling [ctx k]
@@ -427,10 +467,6 @@
                                       m (o-d ctx (a-d ctx (o-d E (a-d E (set/union D #{attr})))))] [g m]))
                            U))
 )
-
-
-
-
 
 
 (defn- best-candidate [ctx E U]
