@@ -175,10 +175,27 @@
 
 
 
-(defn- add-fiber [X mxr]
+(defn- add-fiber [ctx X obj tP] ;obj = object representing row Bi
   "Lines 12 - 22."
-  (let [[obj-order attr-order incidence] (context-incidence-matric X)
-        Bi (matrix-row X mxr)])
+  (let [[obj-order attr-order incidence] (context-incidence-matrix X)
+        Bi  (object-derivation X #{obj})
+        rtp (map #(count (set/intersection (object-derivation X #{%}) Bi)) (objects X))
+        rfp (map #(count (set/intersection (object-derivation (invert-context ctx) #{%}) Bi)) (objects X))
+        
+        Ai-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) rtp rfp))
+        Ai (into #{} (filter #(Ai-bool (.indexOf obj-order %)) obj-order))
+        ctp (map #(count (set/intersection (attribute-derivation X #{%}) Ai)) (attributes X))
+        cfp (map #(count (set/intersection (attribute-derivation (invert-context ctx) #{%}) Ai)) (attributes X))
+]
+(println ctx)
+(println rtp)
+(println rfp)
+
+(println Ai)
+(println ctp)
+(println cfp)
+
+)
 
 )
 
@@ -196,8 +213,8 @@
 
       (if (< sr i)
         ["result"]
-        (let [best-row (max-key #(count (object-derivation X #{%})) (set/difference (objects ctx) excluded-rows)) ;objects with most 1s incident
-              best-col (max-key #(count (attribute-derivation X #{%})) (set/difference (attributes ctx) excluded-cols)) ;attributes with most 1s incident
+        (let [best-row (max-key #(count (object-derivation X #{%})) (set/difference (objects ctx) excluded-rows)) ;object with most 1s incident
+              best-col (max-key #(count (attribute-derivation X #{%})) (set/difference (attributes ctx) excluded-cols)) ;attribute with most 1s incident
               best-fiber (if (< (count (object-derivation best-row)) (count (attribute-derivation best-col))) best-col best-row)
               
 
@@ -642,6 +659,3 @@
                          [4 3] [4 6]
                          [5 2] [5 3] [5 4] [5 6]}))
 
-
-(defn- compute-intervals [ctx] #{[#{1} #{"a" "b"}] [#{1 6} #{"b"}] [#{6 2} #{"e"}] [#{3} #{"c"}]
-  [#{4} #{"d"}]})
