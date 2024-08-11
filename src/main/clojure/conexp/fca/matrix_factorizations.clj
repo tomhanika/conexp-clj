@@ -188,18 +188,16 @@
 (defn- process-object-fiber [X ctx obj tP] ;obj = object representing row Bi
   "Lines 12 - 22. If best fiber is a row.
   Ai and Bi are stored as sets of objects/attributes instead of boolean vectors."
-(println X)
-(println obj)
   (let [[obj-order attr-order incidence] (context-incidence-matrix X)
         Bi  (object-derivation X #{obj})
         rtp (map #(count (set/intersection (object-derivation X #{%}) Bi)) (objects X))
         rfp (map #(count (set/intersection (object-derivation (invert-context ctx) #{%}) Bi)) (objects X))
         
-        Ai-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) rtp rfp))
+        Ai-bool (into [] (map #(and (< 0 (+ %1 %2)) (<= tP (/ %1 (+ %1 %2)))) rtp rfp))
         Ai (into #{} (filter #(Ai-bool (.indexOf obj-order %)) obj-order))
         ctp (map #(count (set/intersection (attribute-derivation X #{%}) Ai)) (attributes X))
         cfp (map #(count (set/intersection (attribute-derivation (invert-context ctx) #{%}) Ai)) (attributes X))
-        Bi-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) ctp cfp))
+        Bi-bool (into [] (map #(and (< 0 (+ %1 %2)) (<= tP (/ %1 (+ %1 %2)))) ctp cfp))
         Bi (into #{} (filter #(Bi-bool (.indexOf attr-order %)) attr-order))]
 
     [Ai Bi])
@@ -208,18 +206,16 @@
 (defn- process-attribute-fiber [X ctx attr tP]
   "Lines 12 - 22. If best fiber is a column.
   Ai and Bi are stored as sets of objects/attributes instead of boolean vectors."
-(println X)
-(println attr)
   (let [[obj-order attr-order incidence] (context-incidence-matrix X)
         Ai  (attribute-derivation X #{attr})
         ctp (map #(count (set/intersection (attribute-derivation X #{%}) Ai)) (attributes X))
         cfp (map #(count (set/intersection (attribute-derivation (invert-context ctx) #{%}) Ai)) (attributes X))
         
-        Bi-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) ctp cfp))
+        Bi-bool (into [] (map #(and (< 0 (+ %1 %2)) (<= tP (/ %1 (+ %1 %2)))) ctp cfp))
         Bi (into #{} (filter #(Bi-bool (.indexOf attr-order %)) attr-order))
         rtp (map #(count (set/intersection (object-derivation X #{%}) Bi)) (objects X))
         rfp (map #(count (set/intersection (object-derivation (invert-context ctx) #{%}) Bi)) (objects X))
-        Ai-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) rtp rfp))
+        Ai-bool (into [] (map #(and (< 0 (+ %1 %2)) (<= tP (/ %1 (+ %1 %2)))) rtp rfp))
         Ai (into #{} (filter #(Ai-bool (.indexOf obj-order %)) obj-order))]
 
     [Ai Bi])
@@ -229,13 +225,19 @@
 
   (let [sr (min search-limit (count (objects ctx)) (count (attributes ctx)))]
 
-    (loop [As (into [] (repeat (count (objects ctx)) (into [] (repeat search-limit 0))))
-           Bs (into [] (repeat search-limit (into [] (repeat (count (attributes ctx)) 0))))
+    (loop [;As (into [] (repeat (count (objects ctx)) (into [] (repeat search-limit 0))))
+           ;Bs (into [] (repeat search-limit (into [] (repeat (count (attributes ctx)) 0))))
+           As []
+           Bs []
            tf []
            excluded-rows #{} ;objects representing excluded fibers
            excluded-cols #{} ;attributes representing excluded fibers
            X ctx
            i 1]
+(println As)
+(println Bs)
+(println tf)
+(println "---------------")
       (if (or (< sr i) (= 0 (reduce + (flatten (last (context-incidence-matrix X))))))
         [As Bs]
         (let [best-row (apply max-key #(count (object-derivation X #{%})) (set/difference (objects ctx) excluded-rows)) ;object with most 1s incident
@@ -250,16 +252,16 @@
                       (count (filter #(not (incident? ctx (first %) (second %))) ix)))]
 
           (if (<= i k) 
-            (recur (set-column As i Ai)
-                   (set-row Bs i Bi)
+            (recur (conj As Ai)
+                   (conj Bs Bi)
                    (conj tf {:i i :fiber-type fiber-type :index best-fiber :gain gain})
                    excluded-rows
                    excluded-cols
                    (make-context (objects ctx) (attributes ctx) (set/difference (incidence-relation X) ix))
                    (+ i 1))
             (if (<= gain (apply min (map #(% :gain) tf)))
-              (recur (set-column As i Ai)
-                     (set-row Bs i Bi)
+              (recur (conj As Ai)
+                     (conj Bs Bi)
                      tf
                      (if (= fiber-type :obj) (conj excluded-rows best-fiber) excluded-rows)
                      (if (= fiber-type :attr) (conj excluded-cols best-fiber) excluded-cols)
@@ -269,8 +271,9 @@
                     [min-Ai min-Bi] (if (= (min-fiber :fiber-type) :attr) (process-attribute-fiber X ctx best-fiber tP) 
                                                                   (process-object-fiber X ctx best-fiber tP))
                     min-ix (into #{} (for [a min-Ai b min-Bi] [a b]))]
-                (recur (set-column As i Ai)
-                       (set-row Bs i Bi)
+(println "replace")
+                (recur (conj As Ai)
+                       (conj Bs Bi)
                        (conj tf (.indexOf min-fiber) {:i i :fiber-type fiber-type :index best-fiber :gain gain})
                        excluded-rows
                        excluded-cols ; (below) add back incidences from minimum fiber, remove those from new fiber (????)
