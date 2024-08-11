@@ -175,8 +175,9 @@
 
 
 
-(defn- add-fiber [ctx X obj tP] ;obj = object representing row Bi
-  "Lines 12 - 22."
+(defn- process-object-fiber [X ctx obj tP] ;obj = object representing row Bi
+  "Lines 12 - 22. If best fiber is a row.
+  Ai and Bi are stored as sets of objects/attributes instead of boolean vectors."
   (let [[obj-order attr-order incidence] (context-incidence-matrix X)
         Bi  (object-derivation X #{obj})
         rtp (map #(count (set/intersection (object-derivation X #{%}) Bi)) (objects X))
@@ -186,20 +187,31 @@
         Ai (into #{} (filter #(Ai-bool (.indexOf obj-order %)) obj-order))
         ctp (map #(count (set/intersection (attribute-derivation X #{%}) Ai)) (attributes X))
         cfp (map #(count (set/intersection (attribute-derivation (invert-context ctx) #{%}) Ai)) (attributes X))
-]
-(println ctx)
-(println rtp)
-(println rfp)
+        Bi-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) ctp cfp))
+        Bi (into #{} (filter #(Bi-bool (.indexOf attr-order %)) attr-order))]
 
-(println Ai)
-(println ctp)
-(println cfp)
-
+    [Ai Bi])
 )
 
+(defn- process-attribute-fiber [X ctx attr tP]
+  "Lines 12 - 22. If best fiber is a column.
+  Ai and Bi are stored as sets of objects/attributes instead of boolean vectors."
+  (let [[obj-order attr-order incidence] (context-incidence-matrix X)
+        Ai  (attribute-derivation X #{attr})
+        ctp (map #(count (set/intersection (attribute-derivation X #{%}) Ai)) (attributes X))
+        cfp (map #(count (set/intersection (attribute-derivation (invert-context ctx) #{%}) Ai)) (attributes X))
+        
+        Bi-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) ctp cfp))
+        Bi (into #{} (filter #(Bi-bool (.indexOf attr-order %)) attr-order))
+        rtp (map #(count (set/intersection (object-derivation X #{%}) Bi)) (objects X))
+        rfp (map #(count (set/intersection (object-derivation (invert-context ctx) #{%}) Bi)) (objects X))
+        Ai-bool (into [] (map #(<= tP (/ %1 (+ %1 %2))) rtp rfp))
+        Ai (into #{} (filter #(Ai-bool (.indexOf obj-order %)) obj-order))]
+
+    [Ai Bi])
 )
 
-(defn topFiberM [ctx k precision search-limit]
+(defn topFiberM [ctx k tP search-limit]
 
   (let [sr (min search-limit (count (objects ctx)) (count (attributes ctx)))]
 
@@ -211,26 +223,24 @@
            X ctx
            i 1]
 
-      (if (< sr i)
+      (if (or (< sr i) (= 0 (sum (flatten (context-incidence-matrix X)))))
         ["result"]
         (let [best-row (max-key #(count (object-derivation X #{%})) (set/difference (objects ctx) excluded-rows)) ;object with most 1s incident
               best-col (max-key #(count (attribute-derivation X #{%})) (set/difference (attributes ctx) excluded-cols)) ;attribute with most 1s incident
-              best-fiber (if (< (count (object-derivation best-row)) (count (attribute-derivation best-col))) best-col best-row)
-              
+              [Ai Bi] (if (< (count (object-derivation best-row)) (count (attribute-derivation best-col))) 
+                            (process-attribute-fiber X ctx best-col tP) 
+                            (process-object-fiber X ctx best-row tP))
+              ix (for [a Ai b Bi] [a b])
+              gain (- (count (filter #(incident? X (first %) (second %)) ix)) 
+                      (count (filter #(not (incident? ctx (first %) (second %))) ix)))]
+
+              ;add Ai to As
+              ;add Bi to Bs
+          (if (<= i k) 
+            (recur ))
 
 
-]) 
-)
-
-
-
-
-)
-
-
-
-
-)
+))))
 )
 
 
