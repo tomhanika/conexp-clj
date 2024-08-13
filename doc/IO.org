@@ -63,6 +63,15 @@ You can obtain a list of available context output formats by calling
 formats for formal contexts, you are also able to export formal contexts
 directly to TeX-code using ~:tex~.
 
+Formal contexts can also be accessed from the [[https://github.com/fcatools/contexts/tree/main/contexts][fcatools]] library using the following function:
+
+#+begin_src clojure
+(context-from-fcatools "animals_en.cxt")
+#+end_src
+The only parameter is the name of the file from the ~fcatools~ directory. 
+
+The function can be found in the ~conexp.fca.applications.fcatools~ namespace.
+
 
 ** Many-Valued Contexts
 
