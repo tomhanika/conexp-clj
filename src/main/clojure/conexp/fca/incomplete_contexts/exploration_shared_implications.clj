@@ -5,6 +5,7 @@
             [clojure.math.combinatorics :refer [subsets]]
             [clojure.algo.generic.functor :refer [fmap]]
             [clojure.string :as s]
+            [conexp.fca.closure-systems :refer [next-closed-set]]
             [conexp.fca.contexts :as cxts  :refer [Context make-context]]
             [conexp.fca.implications :refer [holds? respects? follows? premise conclusion make-implication clop-by-implications canonical-base parallel-canonical-base-from-clop close-under-implications pseudo-close-under-implications]]
             [conexp.io.contexts]
@@ -24,7 +25,7 @@
 (defn- next-closure-by-implications
   "Given a set of attributes A from the base set M and a set of implications L on M, returns the next closed set for A"
   [A M L]
-  (conexp.base/next-closed-set
+  (next-closed-set
    M
    (clop-by-implications L)
    A))

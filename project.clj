@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 
-(defproject conexp-clj "2.5.0"
+(defproject conexp-clj "2.5.1-SNAPSHOT"
 
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
@@ -17,6 +17,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure             "1.11.3"]
                  [org.clojure/core.async          "1.6.681"]
+                 [org.clojure/data.csv            "1.1.0"]
                  [org.clojure/data.int-map        "1.3.0"]
                  [org.clojure/data.json           "2.5.0"]
                  [org.clojure/data.xml            "0.0.8"]
@@ -42,7 +43,7 @@
                  [http-kit "2.8.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
                  [luposlip/json-schema             "0.4.5"]
-                 [org.clojure/data.csv "1.1.0"]]
+                 [net.mikera/core.matrix "0.63.0"]]
   :profiles {:uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.4.0"]
