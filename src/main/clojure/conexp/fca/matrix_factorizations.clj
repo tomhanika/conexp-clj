@@ -688,38 +688,74 @@
      (* w- (reduce + (flatten (matrix-boolean-difference (boolean-matrix-product S B) C)))))
 )
 
+(defn- find-max-pair [ctx C A B S w+ w-]
+  "Greedily computes pair consisting of a row in the association matrix and
+   an arbitrary binary vector of length equal to the number of objects in ctx,
+   that maximizes the cover-function if added to matrices B and S, respectively.
+  (Algorithm 1, Line 6)"
+  (loop [current-best-pair [(first A) (into [] (repeat (count (objects ctx)) 0))]
+         remaining-rows (rest A)]
+
+    (if (empty? remaining-rows)
+
+      current-best-pair
+
+      (let [current-row (first remaining-rows)
+            best-vector (loop [current-best-vector (into [] (repeat (count (objects ctx)) 0))
+                               counter 0]
+
+                          (if (not (< counter (count (objects ctx))))
+
+                            current-best-vector
+
+                            (if (< (cover (add-row B current-row)
+                                          (add-column S current-best-vector)
+                                          C w+ w-) 
+                                   (cover (add-row B current-row) 
+                                          (add-column S (assoc current-best-vector counter 1))
+                                          C w+ w-))
+                              (recur (assoc current-best-vector counter 1)
+                                     (+ counter 1))
+                              (recur current-best-vector
+                                     (+ counter 1)))))]
 
 
-(defn ASSO [C k t w+ w-]
+        (if (< (cover (add-row B (first current-best-pair))
+                      (add-column S (second current-best-pair))
+                      C w+ w-) 
+               (cover (add-row B current-row) 
+                      (add-column S best-vector)
+                      C w+ w-))
+          (recur [current-row best-vector]
+                 (rest remaining-rows))
+          (recur current-best-pair
+                 (rest remaining-rows))))))
+)
+
+
+(defn ASSO [ctx k t w+ w-]
   "Algorithm that greedily solves the discrete basis problem.
    The arguments are:
-   C: matrix to be decomposed
+   ctx: context whose incidence matrix is to be decomposed
    k: number of binary basis vectors. Must be smaller than the smallest dimension of C
    t: threshold value ]0, 1]
    w+: weight
    w-: weight"
-  (let [A (association-matrix C t)  ; Association Matrix
+  (let [C (last (context-incidence-matrix ctx))
+        A (association-matrix C t)  ; Association Matrix
         boolean-vectors (generate-boolean-vectors (row-number C))] 
     (loop [counter 0
            B []  ; Basis Matrix
            S []] ; Usage Matrix
-(println counter)
+
 
     (if (= counter k)
       [S B]
-
-            ;cartesian product of rows of A and boolean vectors of length n:
-      (let [v-combos (for [a A v boolean-vectors] [a v]) 
-            ;Pair of row of A and boolean vector that maximizes *cover*:
-            new-vectors (argmax #(cover (add-row B (first %)) 
-                                        (add-column S (second %))
-                                        C
-                                        w+
-                                        w-) 
-                                v-combos)]
+           ;Pair of row of A and boolean vector that maximizes *cover*:
+      (let [best-pair (find-max-pair ctx C A B S w+ w-)]
         (recur (+ counter 1)
-               (add-row B (first new-vectors))
-               (add-column S (second new-vectors)))))))
+               (add-row B (first best-pair))
+               (add-column S (second best-pair)))))))
 )
 
 
