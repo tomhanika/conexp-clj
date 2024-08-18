@@ -4,7 +4,7 @@
               [conexp.base :refer :all]
               [conexp.fca.contexts :refer :all]
               [conexp.fca.lattices :refer :all]
-              [conexp.fca.implications :refer [support]]))
+              [conexp.fca.implications :refer [support frequent-itemsets]]))
 
 
 (defn interval-context [ctx lower upper]
@@ -179,11 +179,85 @@
 )
 
 
+;;Hyper Algorithm
+
+
+(defn- hyperrectangle-candidates [ctx min-supp]
+  "Computes set all all candidate hyperrectangles. (Compare Section 3.2)"
+  (let [freq-items (disj (into #{} (frequent-itemsets ctx min-supp)) #{}) ;frequent itemsets without #{}
+        itemsets (set/union (into #{} freq-items) 
+                            (into #{} (for [attr (attributes ctx)] #{attr})))]
+
+    (for [I itemsets] [(attribute-derivation ctx I) I]))
+)
+
+(defn- price [H R]
+  "Computes the price of a hyperrectangle. (Compare Theorem 5.)"
+  (if (empty? (set/difference (into #{} (for [obj (first H) attr (second H)] [obj attr]))
+                              (incidence-relation R)))
+
+  Double/POSITIVE_INFINITY
+
+    (/ (+ (count (first H)) (count (second H)))
+       (count (set/difference (into #{} (for [obj (first H) attr (second H)] [obj attr]))
+                              (incidence-relation R)))))
+)
+
+
+(defn- find-hyper [H R]
+  "Compare Algorithm 2."
+  (let [S (into #{} (for [obj (first H)] [#{obj} (second H)])) ;single transaction hyperrectangles in H
+        U (sort-by #(count (set/difference (into #{} (for [obj (first %) attr (second %)] [obj attr])) 
+                                           (incidence-relation R))) S)]
+    (loop [H' (first U)
+           remaining (rest U)]
+;(println "find-hyper")
+;(println S)
+;(println U)
+;(println H)
+;(println "----------")
+      (if (empty? remaining)
+     
+        H'
+        ;if adding next entry in U increases the price of H':
+        (if (< (price H' R) (price [(conj (first H') (first (first remaining))) (second H')] R))
+
+          H'
+      
+          (recur [(set/union (first H') (first (first remaining))) (second H')]
+                 (rest remaining))))))
+)
+
+
+(defn hyper [ctx min-supp]
+  (let [C- (hyperrectangle-candidates ctx min-supp)]
+    (loop [R (make-context (objects ctx) (attributes ctx) #{})
+           CDB #{}]
+;(println "main")
+(println R)
+;(println C-)
+;(println ".............")
+      (if (= R ctx)
+
+      CDB
+
+      (let [hypers (for [c C-] (find-hyper c R))
+            H' (apply min-key #(price % R) hypers)]
+;(println "AAA")
+;(println hypers)
+(println hypers)
+(println H')
+(println (price H' R))
+;(Thread/sleep 1000000)
+        (recur (make-context (objects ctx) 
+                             (attributes ctx) 
+                             (set/union (incidence-relation R) 
+                                        (into #{} (for [obj (first H') attr (second H')] [obj attr]))))
+               (conj CDB H'))))))
+)
 
 
 ;;topFiberM Algorithm
-
-
 
 (defn- process-object-fiber [X ctx obj tP] ;obj = object representing row Bi
   "Lines 12 - 22. If best fiber is a row.
@@ -312,10 +386,6 @@
                                                                                     ix))
                        (+ i 1)))))))))
 )
-
-
-
-
 
 
 ;; PaNDa Algorithm
