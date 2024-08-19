@@ -211,11 +211,7 @@
                                            (incidence-relation R))) S)]
     (loop [H' (first U)
            remaining (rest U)]
-;(println "find-hyper")
-;(println S)
-;(println U)
-;(println H)
-;(println "----------")
+
       (if (empty? remaining)
      
         H'
@@ -233,22 +229,14 @@
   (let [C- (hyperrectangle-candidates ctx min-supp)]
     (loop [R (make-context (objects ctx) (attributes ctx) #{})
            CDB #{}]
-;(println "main")
-(println R)
-;(println C-)
-;(println ".............")
+
       (if (= R ctx)
 
-      CDB
+      (contexts-from-factors CDB (objects ctx) (attributes ctx))
 
       (let [hypers (for [c C-] (find-hyper c R))
             H' (apply min-key #(price % R) hypers)]
-;(println "AAA")
-;(println hypers)
-(println hypers)
-(println H')
-(println (price H' R))
-;(Thread/sleep 1000000)
+
         (recur (make-context (objects ctx) 
                              (attributes ctx) 
                              (set/union (incidence-relation R) 
