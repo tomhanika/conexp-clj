@@ -6,6 +6,29 @@
               [conexp.fca.lattices :refer :all]
               [conexp.fca.implications :refer [support frequent-itemsets]]))
 
+(defn factor-context-product [ctx1 ctx2]
+  "Computes a context in the form of the boolean matrix product of both contexts.
+   The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
+   must be equal to the set of objects of *ctx2*."
+  (make-context (objects ctx1)
+                (attributes ctx2)
+                (fn [g m] (not= (set/intersection (object-derivation ctx1 #{g})
+                                                  (attribute-derivation ctx2 #{m}))
+                                #{})))
+)
+
+(defprotocol context-factorization-record
+  (object-factor-context [this] "Returns the formal context representing the object-factor relation.")
+  (factor-attribute-context [this] "Returns the formal context representing the factor-attribute relation.")
+  (context [this] "Returns the boolean matrix product of the above contexts."))
+
+(defrecord context-factorization [obj-fac-ctx fac-attr-ctx]
+  context-factorization-record
+  (object-factor-context [this] obj-fac-ctx)
+  (factor-attribute-context [this] fac-attr-ctx)
+  (context [this] (factor-context-product obj-fac-ctx fac-attr-ctx))
+)
+
 
 (defn interval-context [ctx lower upper]
   "Returns the context of the interval [*lower* *upper*] in the concept lattice of *ctx*."
@@ -147,7 +170,7 @@
                     0)))))
 )
 
-(defn factor-concept-product [ctx1 ctx2]
+(defn factor-context-product [ctx1 ctx2]
   "Computes a context in the form of the boolean matrix product of both contexts.
    The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
    must be equal to the set of objects of *ctx2*."
@@ -232,7 +255,7 @@
 
       (if (= R ctx)
 
-      (contexts-from-factors CDB (objects ctx) (attributes ctx))
+      (apply ->context-factorization (contexts-from-factors CDB (objects ctx) (attributes ctx)))
 
       (let [hypers (for [c C-] (find-hyper c R))
             H' (apply min-key #(price % R) hypers)]
@@ -292,8 +315,8 @@
          factor-names #{}]
 
     (if (empty? remaining-fibers)
-      [(make-context (objects ctx) factor-names A-incidence)
-       (make-context factor-names (attributes ctx) B-incidence)]
+      (->context-factorization (make-context (objects ctx) factor-names A-incidence) 
+                                (make-context factor-names (attributes ctx) B-incidence))
 
       (let [fiber (first remaining-fibers)
             i (- (:i fiber) 1)]
@@ -472,6 +495,7 @@
 
 (defn pattern-matrices [patterns]
   "Converts collection of patterns into factor matrices."
+(println patterns)
   [(reduce #(add-column %1 (first %2)) [] patterns)
    (reduce #(add-row %1 (second %2)) [] patterns)]
 
@@ -512,7 +536,7 @@
          conc (concepts ctx)]
 
     (if (< k counter)
-      (contexts-from-factors factors (objects ctx) (attributes ctx))
+      (apply ->context-factorization (contexts-from-factors factors (objects ctx) (attributes ctx)))
       (let [max-tile (argmax #(* (count (first %)) (count (second %))) conc)
             new-factors (conj factors max-tile)]
         (recur new-factors
@@ -582,7 +606,7 @@
 
 (defn grecond [ctx]
   (let [[S U F] (mandatory-factors ctx)] 
-   (contexts-from-factors (remaining-factors S U F ctx) (objects ctx) (attributes ctx)))
+   (apply ->context-factorization (contexts-from-factors (remaining-factors S U F ctx) (objects ctx) (attributes ctx))))
 )
 
 ;; GreEss Algorithm
@@ -702,7 +726,7 @@
          factors #{}]
     (if (<=  (count U) e) 
 
-      (contexts-from-factors factors (objects ctx) (attributes ctx))
+      (apply ->context-factorization (contexts-from-factors factors (objects ctx) (attributes ctx)))
 
       (let [[best-cand current-conc] (find-factor ctx G U)]
 
