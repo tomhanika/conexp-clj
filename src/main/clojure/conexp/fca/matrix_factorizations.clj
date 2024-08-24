@@ -410,35 +410,29 @@
 (defn- cost [patterns ctx]
   "computes the cost function of the given patterns.
    Compare Problem 1"
-  (let [ground-truth (reduce #(matrix-boolean-sum %1 (outer-prod (first %2) (second %2))) 
-                             (outer-prod (repeat (count (objects ctx)) 0) (repeat (count (attributes ctx)) 0))
-                             patterns)
-        noise (matrix-xor ground-truth (last (context-incidence-matrix ctx)))]
+  (let [ground-truth (reduce set/union (into #{} (for [p patterns] (into #{} (for [obj (first p) attr (second p)] [obj attr])))))
+        noise (set/difference (set/union ground-truth (incidence-relation ctx))
+                              (set/intersection ground-truth (incidence-relation ctx)))]
 
-    (+ (reduce + (flatten patterns))
-       (reduce + (flatten noise))))
+    (+ (count (flatten patterns))
+       (count noise)))
 )
 
 (defn- find-core [residual-data patterns ctx]
 
-  (let [obj-order (into [] (objects ctx))
-        attr-order (into [] (attributes ctx))
-        S (sort-by #(support #{%} ctx) (attributes residual-data))]
+  (let [S (sort-by #(support #{%} ctx) (attributes residual-data))]
     (loop [extension-list []
-           Ci (assoc (into [] (repeat (count attr-order) 0)) (.indexOf attr-order (first S)) 1)
-           Ct (into [] (for [obj obj-order] (if (.contains (attribute-derivation residual-data #{(first S)}) obj)
-                                                1
-                                                0)))
+           Ci #{(first S)}
+           Ct (attribute-derivation residual-data #{(first S)})
+
            remaining (rest S)]
 
       (if (empty? remaining)
 
         [[Ct Ci] extension-list]
 
-        (let [C*i (assoc (into [] (repeat (count attr-order) 0)) (.indexOf attr-order (first remaining)) 1)
-              C*t (into [] (for [obj obj-order] (if (.contains (attribute-derivation residual-data #{(first remaining)}) obj)
-                                                    1
-                                                    0)))]
+        (let [C*i #{(first remaining)}
+              C*t (attribute-derivation residual-data #{(first remaining)})]
           (if (< (cost (conj patterns [C*t C*i]) ctx) (cost (conj patterns [Ct Ci]) ctx))
               (recur extension-list
                      C*i
@@ -458,39 +452,31 @@
     (if (empty? remaining-transactions)
       current-best-core
 
-      (if (= (first remaining-transactions) 0) 
-
-            (recur (rest remaining-transactions)
-                   current-best-core)
-
-            (let [altered-core [(first current-best-core) 
-                                (assoc (second current-best-core) 1 (- (count (second current-best-core)) (count remaining-transactions)))]]
+      (let [altered-core [(first current-best-core) 
+                          (conj (second current-best-core) (first remaining-transactions))]]
 
               (if (< (cost (conj patterns altered-core) ctx) (cost (conj patterns current-best-core) ctx))
                 (recur (rest remaining-transactions)
                        (altered-core))
                 (recur (rest remaining-transactions)
                        current-best-core)
-)))))
+))))
 )
 
 
-(defn- extend-core [core extension-list patterns ctx];abbruchbedingung fehlt
+(defn- extend-core [core extension-list patterns ctx]
 
-  (let [obj-order (into [] (objects ctx))
-        attr-order (into [] (attributes ctx))]
+  (loop [remaining extension-list
+         current-core core]
 
-    (loop [remaining extension-list
-           current-core core]
-
-      (if (empty? remaining)
-        current-core
-        (let [C*t (first current-core)
-              C*i (assoc (second current-core) (.indexOf attr-order (first remaining)) 1)
-              current-core (if (< (cost (conj patterns [C*t C*i]) ctx) (cost (conj patterns current-core) ctx)) [C*t C*i] current-core)]
+    (if (empty? remaining)
+      current-core
+      (let [C*t (first current-core)
+            C*i (conj (second current-core) (first remaining))
+            current-core (if (< (cost (conj patterns [C*t C*i]) ctx) (cost (conj patterns current-core) ctx)) [C*t C*i] current-core)]
 
           (recur (rest remaining)
-                 (add-transactions current-core C*t patterns ctx))))))
+                 (add-transactions current-core C*t patterns ctx)))))
 )
 
 (defn pattern-matrices [patterns]
@@ -502,7 +488,6 @@
 )
 
 
-;attributes in factors are in the order given by *context-incidence-matrix*
 (defn PaNDa [ctx k]
 
   (let [obj-order (into [] (objects ctx))
@@ -513,19 +498,19 @@
            counter 1]
 
       (if (< k counter)
-       (pattern-matrices patterns)
+       (apply ->context-factorization (contexts-from-factors patterns (objects ctx) (attributes ctx)))
 
         (let [[core extension-list] (find-core residual-data patterns ctx)
               ecore (extend-core core extension-list patterns ctx)]
 
           (if (< (cost patterns ctx) (cost (conj patterns ecore) ctx))
-            patterns
+            (apply ->context-factorization (contexts-from-factors patterns (objects ctx) (attributes ctx)))
             (recur (conj patterns ecore)
-                   (make-context (objects ctx) (attributes ctx) (filter #(or (= 0 ((first ecore) (.indexOf obj-order (first %))))
-                                                                             (= 0 ((second ecore) (.indexOf attr-order (second %)))))
-                                                                        (incidence-relation residual-data)))
+                   (make-context (objects ctx) (attributes ctx) (set/difference (incidence-relation residual-data)
+                                                                                (into #{} (for [obj (first ecore) attr (second ecore)] [obj attr]))))
                    (+ counter 1)))))))
 )
+
 
 
 ;;Tiling Algorithm
