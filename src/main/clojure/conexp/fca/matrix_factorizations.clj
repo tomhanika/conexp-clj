@@ -515,7 +515,7 @@
 
 ;;Tiling Algorithm
 
-(defn- tiling [ctx k]
+(defn tiling [ctx k]
   (loop [factors #{}
          counter 1
          conc (concepts ctx)]
