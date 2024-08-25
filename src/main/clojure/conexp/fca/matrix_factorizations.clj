@@ -799,6 +799,26 @@
                  (rest remaining-rows))))))
 )
 
+(defn- ASSO-matrices-to-context [S B ctx factor-num]
+  "Computes factor concepts from ASSO representation."
+  (loop [counter 0
+         ctx1 (make-context (objects ctx) #{} #{})
+         ctx2 (make-context #{} (attributes ctx) #{})]
+
+    (if (= counter factor-num)
+    
+      (->context-factorization ctx1 ctx2)
+
+      (recur (+ counter 1)
+             (make-context (objects ctx)
+                           (conj (attributes ctx1) (str "F" counter))
+                           (set/union (incidence-relation ctx1) 
+                                      (map #(if (= %1 1) [%2 (str "F" counter)]) (matrix-column S counter) (objects ctx))))
+             (make-context (conj (objects ctx2) (str "F" counter))
+                           (attributes ctx)
+                           (set/union (incidence-relation ctx2) 
+                                      (map #(if (= %1 1) [(str "F" counter) %2]) (matrix-row B counter) (attributes ctx)))))))
+)
 
 (defn ASSO [ctx k t w+ w-]
   "Algorithm that greedily solves the discrete basis problem.
@@ -815,16 +835,15 @@
            B []  ; Basis Matrix
            S []] ; Usage Matrix
 
-
     (if (= counter k)
-      [S B]
+
+      (ASSO-matrices-to-context S B ctx k)
            ;Pair of row of A and boolean vector that maximizes *cover*:
       (let [best-pair (find-max-pair ctx C A B S w+ w-)]
         (recur (+ counter 1)
                (add-row B (first best-pair))
                (add-column S (second best-pair)))))))
 )
-
 
 
 
