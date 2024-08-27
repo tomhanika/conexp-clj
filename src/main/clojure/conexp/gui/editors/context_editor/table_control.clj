@@ -12,7 +12,8 @@
   (:require [clojure.string :refer [split split-lines]]
             [conexp.base :refer :all]
             [conexp.gui.editors.context-editor.widgets :refer :all]
-            [conexp.gui.util :refer :all])
+            [conexp.gui.util :refer :all]
+            [clojure.set :refer [difference union subset? intersection join map-invert]])
   (:import [java.awt.event ActionEvent ActionListener InputEvent KeyEvent MouseEvent]
            java.awt.Point
            [javax.swing AbstractAction DefaultCellEditor JComponent JScrollPane JTable JTextField KeyStroke]

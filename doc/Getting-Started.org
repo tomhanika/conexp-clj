@@ -5,19 +5,19 @@
 
 ** Running conexp-clj from pre-compiled binaries
 
-To run ~conexp-clj~, a Java Runtime Environment with version ≥ 1.8 is necessary.
+To run ~conexp-clj~, a Java Runtime Environment with version ≥ 1.11 is necessary.
 The recommended way to use ~conexp-clj~ outside of development is to download a
-[[https://algebra20.de/conexp/][pre-compiled version]].  These are just usual Java jar files and can be used like
+[[https://github.com/tomhanika/conexp-clj/releases#:~:text=Assets][pre-compiled version]].  These are just usual Java jar files and can be used like
 this:
 
 #+begin_src sh :eval never
-java -jar conexp-clj-2.1.1-SNAPSHOT-standalone.jar
+java -jar conexp-clj-2.5.0-standalone-openjdk-11.jar
 #+end_src
 
 This will get you a prompt for ~conexp-clj~ much like
 
 #+begin_src text
-conexp.main=>
+conexp.analysis=>
 #+end_src
 
 You can now use all the power of formal concept analysis from ~conexp-clj~, and
@@ -25,12 +25,19 @@ also everything Clojure provides.  For example, you can compute the value of the
 expression ~1 + 1~ as
 
 #+begin_src text
-conexp.main=> (+ 1 1)
+conexp.analysis=> (+ 1 1)
 2
 #+end_src
 
 (where you do not type the ~conexp.main=>~ and the 2 is the result of the
 evaluation.
+
+You may also start the (rudimentary) graphical user interface (GUI) by appending `-g` 
+
+#+begin_src sh :eval never 
+java -jar conexp-clj-2.5.0-standalone-openjdk-11.jar -g
+#+end_src
+
 
 ** Running conexp-clj directly from source
 
@@ -58,6 +65,12 @@ lein repl
 This will give you a command prompt as in the previous case.
 
 If you want a more sophisticated repl, you may try [[https://github.com/clojure-emacs/cider][Emacs Cider]].
+
+You can start the graphical user interface (GUI) via 
+
+#+begin_src sh :eval never
+lein run -g
+#+end_src
 
 ** Running conexp-clj via nix
 
@@ -125,15 +138,9 @@ type into the prompt can also be written into a file, say ~file.clj~.  To run
 (load-file "file.clj")
 #+end_src
 
-** Graphical User Interface
+** Concerning the Graphical User Interface
 
-It is also possible to use ~conexp-clj~'s incomplete GUI fragment.  You can start it running the following code in you favourite shell
-
-#+begin_src sh :eval never
-java -jar conexp-clj-2.1.1-SNAPSHOT-standalone.jar -g
-#+end_src
-
-But please note that the GUI is not only (inherently) limited in its
+As indicated above, tt is also possible to use ~conexp-clj~'s incomplete GUI fragment. But please note that the GUI is not only (inherently) limited in its
 functionality, but also quite (not to say: really) buggy.
 
 ** Online Documentation (No Network Required!)

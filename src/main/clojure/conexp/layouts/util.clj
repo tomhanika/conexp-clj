@@ -14,7 +14,8 @@
             [conexp.fca.protoconcepts :refer :all]
             [conexp.fca.posets :refer :all]
             [conexp.layouts.base :refer :all]
-            [conexp.util.graph :as graph])
+            [conexp.util.graph :as graph]
+            [conexp.fca.closure-systems :refer :all])
   (:import [conexp.fca.posets Poset]
            [conexp.fca.lattices Lattice]
            [conexp.fca.protoconcepts Protoconcepts]))
