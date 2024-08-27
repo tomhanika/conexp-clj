@@ -30,12 +30,6 @@
 )
 
 
-(defn interval-context [ctx lower upper]
-  "Returns the context of the interval [*lower* *upper*] in the concept lattice of *ctx*."
-  (make-context (first upper) (second lower) (incidence ctx)))
-
-
-
 (defn context-incidence-matrix [ctx]
   "Computes a representation of the context as an incidence matrix, with the object and 
    attribute lists in order."
@@ -54,17 +48,10 @@
   (apply max-key function coll)
 )
 
-(defn generate-boolean-vectors [length]
-  "Returns a collection of all boolean vectors of the specified length."
-  (map #(into [] %)
-  (map #(concat (repeat (- length (count %)) 0) %)
-       (map  #(map (fn [x] (Integer/parseInt x)) (str/split % #"")) 
-             (map #(Integer/toString % 2) (range (Math/pow 2 length))))))
-)
-
 (defn transpose [M]
   "Returns a transposed matrix."
-  (into [] (apply map vector M)))
+  (into [] (apply map vector M))
+)
 
 (defn matrix-row [M index]
   "Returns the indicated row of the matrix."
@@ -112,19 +99,9 @@
   (count (first M))
 )
 
-
 (defn scalar-product [V1 V2]
   "Computes the scalar/dot product of two vectors"
   (reduce + (map * V1 V2))
-)
-
-
-(defn matrix-product [M1 M2]
-  "Computes the product of two matrices."
-  (transpose (for [c (range (col-number M2))]
-    (for [r (range (row-number M1))]
-      (scalar-product (matrix-column M2 c)
-                      (matrix-row M1 r)))))
 )
 
 (defn boolean-matrix-product [M1 M2]
@@ -136,22 +113,6 @@
            1))))
 )
 
-(defn matrix-entrywise-product [M1 M2]
-  "Computes a new matrix from two matrices of the same dimension by multiplying
-   each of their entries pairwise."
-  (into [] (for [r (range (row-number M1))]
-    (into [] (for [c (range (col-number M1))]
-               (* ((M1 r) c) ((M2 r) c))))))
-)
-
-(defn matrix-boolean-sum [M1 M2]
-  "Computes a new matrix from two boolean matrices of the same dimension by computing
-   the conjunction of each entry."
-  (into [] (for [r (range (row-number M1))]
-    (into [] (for [c (range (col-number M1))]
-               (max ((M1 r) c) ((M2 r) c))))))
-)
-
 (defn matrix-boolean-difference [M1 M2]
   "Computes a new matrix from two boolean matrices of the same dimension by subtracting
    each of their entries pairwise, with 0 - 1 = 0"
@@ -161,13 +122,12 @@
                0)))))
 )
 
-(defn matrix-xor [M1 M2]
-  "Computes the entrywise xor operation on two boolean matrices."
+(defn matrix-entrywise-product [M1 M2]
+  "Computes a new matrix from two matrices of the same dimension by multiplying
+   each of their entries pairwise."
   (into [] (for [r (range (row-number M1))]
     (into [] (for [c (range (col-number M1))]
-               (if (not= ((M1 r) c) ((M2 r) c))
-                    1
-                    0)))))
+               (* ((M1 r) c) ((M2 r) c))))))
 )
 
 (defn factor-context-product [ctx1 ctx2]
@@ -829,8 +789,7 @@
    w+: weight
    w-: weight"
   (let [C (last (context-incidence-matrix ctx))
-        A (association-matrix C t)  ; Association Matrix
-        boolean-vectors (generate-boolean-vectors (row-number C))] 
+        A (association-matrix C t)]  ; Association Matrix
     (loop [counter 0
            B []  ; Basis Matrix
            S []] ; Usage Matrix
@@ -844,22 +803,4 @@
                (add-row B (first best-pair))
                (add-column S (second best-pair)))))))
 )
-
-
-
-(def testctx (make-context #{1 2 3 4 5 6} #{"a" "b" "c" "d" "e"}
-                           #{[1 "a"] [1 "b"] [1 "d"]
-                             [2 "a"] [2 "d"] [2 "e"]
-                             [3 "b"] [3 "c"]
-                             [4 "d"]
-                             [5 "a"] [5 "b"] [5 "c"] [5 "d"]
-                             [6 "a"] [6 "b"] [6 "e"]}))
-
-
-(def ctx (make-context #{1 2 3 4 5} #{1 2 3 4 5 6}
-                       #{[1 1] [1 3] [1 5] [1 6]
-                         [2 3]
-                         [3 1] [3 2] [3 4] [3 5] [3 6]
-                         [4 3] [4 6]
-                         [5 2] [5 3] [5 4] [5 6]}))
 
