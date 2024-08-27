@@ -13,7 +13,8 @@
         conexp.fca.posets
         conexp.layouts.base
         conexp.layouts.common)
-  (:use clojure.test))
+  (:use clojure.test)
+  (:require [clojure.set :refer [difference union subset? intersection]]))
 
 ;;;
 

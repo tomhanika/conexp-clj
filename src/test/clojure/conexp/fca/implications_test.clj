@@ -9,11 +9,13 @@
 (ns conexp.fca.implications-test
   (:use clojure.test)
   (:use conexp.base
+        conexp.fca.closure-systems
         conexp.fca.contexts
         conexp.io.contexts
         conexp.math.algebra
         conexp.fca.implications)
-  (:require [conexp.fca.contexts-test :as contexts]))
+  (:require [conexp.fca.contexts-test :as contexts]
+            [clojure.set :refer [difference union subset? intersection]]))
 
 ;;;
 

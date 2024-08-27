@@ -4,7 +4,7 @@
             [conexp.base :refer [set-of exists forall => defalias]]
             [conexp.fca.contexts :as contexts]
             [clojure.set :refer [subset? difference union intersection select]]
-            [clojure.math.numeric-tower :refer :all]
+            [clojure.math.numeric-tower :refer [expt]]
             [clojure.math.combinatorics :refer [cartesian-product]]
             )
   (:import [org.apache.commons.math3.distribution

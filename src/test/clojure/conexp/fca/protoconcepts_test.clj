@@ -10,6 +10,7 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.protoconcepts)
+  (:require [clojure.set :refer [difference union subset? intersection]])
   (:use clojure.test))
 
 (def test-context-01 (make-context #{"a" "b" "c"}

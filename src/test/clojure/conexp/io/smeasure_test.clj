@@ -14,6 +14,7 @@
         conexp.layouts.base
         conexp.io.latex
         conexp.io.smeasure)
+  (:require [clojure.set :refer [difference union subset? intersection]])
   (:use clojure.test))
 
 ;;;

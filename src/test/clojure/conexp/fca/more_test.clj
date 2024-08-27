@@ -8,6 +8,7 @@
 
 (ns conexp.fca.more-test
   (:require [clojure.test :refer [deftest is]]
+            [clojure.set :refer [difference union subset? intersection]]
             [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.contexts-test :refer :all]

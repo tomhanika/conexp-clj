@@ -11,6 +11,7 @@
         conexp.fca.implications
         conexp.fca.smeasure
         conexp.base)
+  (:require [clojure.set :refer [difference union subset? intersection]])
   (:use clojure.test))
 
 (def- ctx1
