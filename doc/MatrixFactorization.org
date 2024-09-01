@@ -1,7 +1,7 @@
 #+property: header-args :wrap src text
 #+property: header-args:text :eval never
 
-* Boolean Matrix Decompositions
+* Boolean Matrix Factorization
 
 ~conexp-clj~ offers multiple algorithms to decompose formal context into two contexts. The first context represents the relationship of the objects to so clled *factors*, and the second represents the relationship of thee factors to the attributes.
 The boolean matrix product of the incidence matrices of these context should approximate the original context.
