@@ -1,0 +1,19 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Boolean Matrix Decompositions
+
+~conexp-clj~ offers multiple algorithms to decompose formal context into two contexts. The first context represents the relationship of the objects to so clled *factors*, and the second represents the relationship of thee factors to the attributes.
+The boolean matrix product of the incidence matrices of these context should approximate the original context.
+
+The algorithms are available via the ~matrix-factorizations~ namespace:
+
+#+begin_src clojure
+(use 'conexp.fca.matrix-factorizations)
+(def water-ctx (read-context "testing-data/Living-Beings-and-Water.ctx"))
+#+end_src
+
+The following algorithms are available:
+
+The ~hyper~-algorithm computes an errorless decomposition but is not optimal with respect to the amount of factors. In addition to the context, it takes one additional argument. The argument is the minimum support for all candidates considered by the algorithm. 
+Decreasing this value may yield a decomposition with fewer values, but increases the running time. A detailed description of the algorithm can found here: [https://doi.org/10.1007/s10618-010-0203-9]
