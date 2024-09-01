@@ -209,6 +209,9 @@
 
 
 (defn hyper [ctx min-supp]
+  "Computes an errorless decomposition
+   ctx: Context to be decomposed
+   min-supp: minimal support for candidates considered. Lower values may permit a decomposition with fewer factors."
   (let [C- (hyperrectangle-candidates ctx min-supp)]
     (loop [R (make-context (objects ctx) (attributes ctx) #{})
            CDB #{}]
@@ -570,13 +573,13 @@
                                 (if (and (incident? ctx g m)
                                          (= 0 (reduce + (for [g' objs] (if (and (not= g' g)
                                                                                 (not= (o-d ctx #{g'}) (o-d ctx #{g}));proper subset
-                                                                                (subset? (o-d ctx #{g'}) (o-d ctx #{g}));proper subset
+                                                                                (set/subset? (o-d ctx #{g'}) (o-d ctx #{g}));proper subset
                                                                                 (incident? ctx g' m))
                                                                            1
                                                                            0))))
                                          (= 0 (reduce + (for [m' attrs] (if (and (not= m' m)
                                                                                  (not= (a-d ctx #{m'}) (a-d ctx #{m}));proper subset
-                                                                                 (subset? (a-d ctx #{m'}) (a-d ctx #{m}));proper subset
+                                                                                 (set/subset? (a-d ctx #{m'}) (a-d ctx #{m}));proper subset
                                                                                  (incident? ctx g m'))
                                                                             1
                                                                             0)))))
