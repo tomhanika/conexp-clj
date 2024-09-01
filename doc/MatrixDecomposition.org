@@ -16,4 +16,72 @@ The algorithms are available via the ~matrix-factorizations~ namespace:
 The following algorithms are available:
 
 The ~hyper~-algorithm computes an errorless decomposition but is not optimal with respect to the amount of factors. In addition to the context, it takes one additional argument. The argument is the minimum support for all candidates considered by the algorithm. 
-Decreasing this value may yield a decomposition with fewer values, but increases the running time. A detailed description of the algorithm can found here: [https://doi.org/10.1007/s10618-010-0203-9]
+Decreasing this value may yield a decomposition with fewer values, but increases the running time. 
+A detailed description of the algorithm can found here: 
+https://doi.org/10.1007/s10618-010-0203-9
+
+#+begin_src clojure
+(hyper water-ctx 0.7)
+#+end_src
+
+The ~topFiberM~-algorithm takes as argument the context to be decomposed, the maximum number of factors, the precision threshold and the search limit. The search limit is the maximum number of iterations of the algorithm. 
+If it exceeds the specified number of factors, already selected factors may be replaced by better ones. A detailed explanation can be found here:
+https://doi.org/10.48550/arXiv.1903.10326
+
+#+begin_src clojure
+(topFiberM water-ctx 3 0.7 5)
+#+end_src
+
+The ~PaNDa~-algorithm computes a Boolean matrix factorization based on the specified Context and the number of factors:
+https://doi.org/10.1137/1.9781611972801.15
+
+#+begin_src clojure
+(PaNDa water-ctx 5)
+#+end_src
+
+The ~tiling~-algorithm is loosely based on the following paper: 
+https://doi.org/10.1007/978-3-540-30214-8_22
+
+It also computes a factorization based on the context, and the number of factors:
+
+#+begin_src clojure
+tiling water-ctx 5)
+#+end_src
+
+~grecond~ computes a Boolean matrix factorization, that is optimal with respect to coverage:
+https://doi.org/10.1016/j.jcss.2009.05.002
+
+#+begin_src clojure
+(grecond water-ctx)
+#+end_src
+
+The ~GreEss~-algorithm computes a factorization that is accurate in terms of coverage with a specified permitted error. The algorithm only commits undercoverage errors. A detailed description can be found here:
+https://doi.org/10.1016/j.jcss.2015.06.002
+
+#+begin_src clojure
+(GreEss water-ctx 3)
+#+end_src
+
+The ~ASSO~-algorithm requires the following arguments:
+- the context to be decomposed 
+- the number of factor 
+- a threshold value that controls the precition of the result
+- a weight that controls how much correctly covered entries are rewarded
+- a weight that controls how much fals positives are penalized
+
+A detailed description of the algorithm can be found here:
+https://doi.org/10.1109/TKDE.2008.53
+
+#+begin_src clojure
+(ASSO water-ctx 5 0.7 1 1)
+#+end_src
+
+
+All of the above algorithms contain a factorization object, that contains the two contexts resulting from the decompositions. Calling ~context~ on this object returns the Boolean matric product of those two contexts:
+
+#+begin_src clojure
+(def factorization (hyper water-ctx 0.7))
+(context factorization 
+#+end_src
+
+
