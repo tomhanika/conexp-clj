@@ -7,8 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 
-(defproject conexp-clj "2.5.1"
-
+(defproject conexp-clj "2.6.0-SNAPSHOT"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
   :url "http://github.com/tomhanika/conexp-clj/"
