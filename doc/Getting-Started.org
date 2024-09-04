@@ -11,7 +11,7 @@ The recommended way to use ~conexp-clj~ outside of development is to download a
 this:
 
 #+begin_src sh :eval never
-java -jar conexp-clj-2.5.0-standalone-openjdk-11.jar
+java -jar conexp-clj-2.6.0-standalone-openjdk-11.jar
 #+end_src
 
 This will get you a prompt for ~conexp-clj~ much like
@@ -35,7 +35,7 @@ evaluation.
 You may also start the (rudimentary) graphical user interface (GUI) by appending `-g` 
 
 #+begin_src sh :eval never 
-java -jar conexp-clj-2.5.0-standalone-openjdk-11.jar -g
+java -jar conexp-clj-2.6.0-standalone-openjdk-11.jar -g
 #+end_src
 
 
