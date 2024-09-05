@@ -444,7 +444,6 @@
 
 (defn pattern-matrices [patterns]
   "Converts collection of patterns into factor matrices."
-(println patterns)
   [(reduce #(add-column %1 (first %2)) [] patterns)
    (reduce #(add-row %1 (second %2)) [] patterns)]
 
