@@ -24,7 +24,8 @@
     [protoconcepts :refer :all]
     [random-contexts :refer :all]
     [simplicial-complexes :refer :all]
-    [triadic-exploration :refer :all]]
+    [triadic-exploration :refer :all]
+    [matrix-factorizations]]
    [conexp.math
     [algebra :refer :all]
     [markov :refer :all]
