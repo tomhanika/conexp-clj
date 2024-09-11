@@ -765,6 +765,17 @@
                         (I_2 [g_2,m_2])))]
     (make-context-nc new-objs new-atts new-inz)))
 
+(defn context-boolean-matrix-product [ctx1 ctx2]
+  "Computes a context in the form of the boolean matrix product of both contexts.
+   The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
+   must be equal to the set of objects of *ctx2*."
+  (make-context (objects ctx1)
+                (attributes ctx2)
+                (fn [g m] (not= (intersection (object-derivation ctx1 #{g})
+                                              (attribute-derivation ctx2 #{m}))
+                                #{})))
+)
+
 ;;; Neighbours in the concept lattice with Lindig's Algorithm
 
 (defn direct-upper-concepts
