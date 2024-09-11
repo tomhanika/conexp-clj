@@ -6,17 +6,6 @@
               [conexp.fca.lattices :refer :all]
               [conexp.fca.implications :refer [support frequent-itemsets]]))
 
-(defn factor-context-product [ctx1 ctx2]
-  "Computes a context in the form of the boolean matrix product of both contexts.
-   The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
-   must be equal to the set of objects of *ctx2*."
-  (make-context (objects ctx1)
-                (attributes ctx2)
-                (fn [g m] (not= (set/intersection (object-derivation ctx1 #{g})
-                                                  (attribute-derivation ctx2 #{m}))
-                                #{})))
-)
-
 (defprotocol context-factorization-record
   (object-factor-context [this] "Returns the formal context representing the object-factor relation.")
   (factor-attribute-context [this] "Returns the formal context representing the factor-attribute relation.")
@@ -26,7 +15,7 @@
   context-factorization-record
   (object-factor-context [this] obj-fac-ctx)
   (factor-attribute-context [this] fac-attr-ctx)
-  (product-context [this] (factor-context-product obj-fac-ctx fac-attr-ctx))
+  (product-context [this] (context-boolean-matrix-product obj-fac-ctx fac-attr-ctx))
 )
 
 
@@ -130,16 +119,6 @@
                (* ((M1 r) c) ((M2 r) c))))))
 )
 
-(defn factor-context-product [ctx1 ctx2]
-  "Computes a context in the form of the boolean matrix product of both contexts.
-   The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
-   must be equal to the set of objects of *ctx2*."
-  (make-context (objects ctx1)
-                (attributes ctx2)
-                (fn [g m] (not= (set/intersection (object-derivation ctx1 #{g})
-                                                  (attribute-derivation ctx2 #{m}))
-                                #{})))
-)
 
 (defn- contexts-from-factors [factors objects attributes]
   "Computes contexts from set of factor concepts."
