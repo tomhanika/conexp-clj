@@ -20,13 +20,13 @@
 (defprotocol context-factorization-record
   (object-factor-context [this] "Returns the formal context representing the object-factor relation.")
   (factor-attribute-context [this] "Returns the formal context representing the factor-attribute relation.")
-  (context [this] "Returns the boolean matrix product of the above contexts."))
+  (product-context [this] "Returns the boolean matrix product of the above contexts."))
 
 (defrecord context-factorization [obj-fac-ctx fac-attr-ctx]
   context-factorization-record
   (object-factor-context [this] obj-fac-ctx)
   (factor-attribute-context [this] fac-attr-ctx)
-  (context [this] (factor-context-product obj-fac-ctx fac-attr-ctx))
+  (product-context [this] (factor-context-product obj-fac-ctx fac-attr-ctx))
 )
 
 

@@ -27,14 +27,14 @@
   (def fac2 (hyper water 0.5))
   (def fac3 (hyper wood 0.3))
 
-  (is (= (overcoverage forum (context fac1)) 0))
-  (is (= (undercoverage forum (context fac1)) 0))
+  (is (= (overcoverage forum (product-context fac1)) 0))
+  (is (= (undercoverage forum (product-context fac1)) 0))
 
-  (is (= (overcoverage water (context fac2)) 0))
-  (is (= (undercoverage water (context fac2)) 0))
+  (is (= (overcoverage water (product-context fac2)) 0))
+  (is (= (undercoverage water (product-context fac2)) 0))
 
-  (is (= (overcoverage wood (context fac3)) 0))
-  (is (= (undercoverage wood (context fac3)) 0))
+  (is (= (overcoverage wood (product-context fac3)) 0))
+  (is (= (undercoverage wood (product-context fac3)) 0))
   
 )
 
@@ -45,14 +45,14 @@
   (def fac2 (topFiberM water 5 0.7 5))
   (def fac3 (topFiberM wood 3 0.5 5))
 
-  (is (= (overcoverage forum (context fac1)) 0))
-  (is (= (undercoverage forum (context fac1)) 21))
+  (is (= (overcoverage forum (product-context fac1)) 0))
+  (is (= (undercoverage forum (product-context fac1)) 21))
 
-  (is (= (overcoverage water (context fac2)) 0))
-  (is (= (undercoverage water (context fac2)) 10))
+  (is (= (overcoverage water (product-context fac2)) 0))
+  (is (= (undercoverage water (product-context fac2)) 10))
 
-  (is (= (overcoverage wood (context fac3)) 5))
-  (is (= (undercoverage wood (context fac3)) 192))
+  (is (= (overcoverage wood (product-context fac3)) 5))
+  (is (= (undercoverage wood (product-context fac3)) 192))
   
 )
 
@@ -63,14 +63,14 @@
   (def fac2 (PaNDa water 5))
   (def fac3 (PaNDa wood 8))
 
-  (is (= (overcoverage forum (context fac1)) 4))
-  (is (= (undercoverage forum (context fac1)) 11))
+  (is (= (overcoverage forum (product-context fac1)) 4))
+  (is (= (undercoverage forum (product-context fac1)) 11))
 
-  (is (= (overcoverage water (context fac2)) 4))
-  (is (= (undercoverage water (context fac2)) 2))
+  (is (= (overcoverage water (product-context fac2)) 4))
+  (is (= (undercoverage water (product-context fac2)) 2))
 
-  (is (= (overcoverage wood (context fac3)) 31))
-  (is (= (undercoverage wood (context fac3)) 79))
+  (is (= (overcoverage wood (product-context fac3)) 31))
+  (is (= (undercoverage wood (product-context fac3)) 79))
   
 )
 
@@ -81,14 +81,14 @@
   (def fac2 (tiling water 8))
   (def fac3 (tiling wood 15))
 
-  (is (= (overcoverage forum (context fac1)) 0))
-  (is (= (undercoverage forum (context fac1)) 6))
+  (is (= (overcoverage forum (product-context fac1)) 0))
+  (is (= (undercoverage forum (product-context fac1)) 6))
 
-  (is (= (overcoverage water (context fac2)) 0))
-  (is (= (undercoverage water (context fac2)) 0))
+  (is (= (overcoverage water (product-context fac2)) 0))
+  (is (= (undercoverage water (product-context fac2)) 0))
 
-  (is (= (overcoverage wood (context fac3)) 0))
-  (is (= (undercoverage wood (context fac3)) 51))
+  (is (= (overcoverage wood (product-context fac3)) 0))
+  (is (= (undercoverage wood (product-context fac3)) 51))
   
 )
 
@@ -99,14 +99,14 @@
   (def fac2 (grecond water))
   (def fac3 (grecond wood))
 
-  (is (= (overcoverage forum (context fac1)) 0))
-  (is (= (undercoverage forum (context fac1)) 0))
+  (is (= (overcoverage forum (product-context fac1)) 0))
+  (is (= (undercoverage forum (product-context fac1)) 0))
 
-  (is (= (overcoverage water (context fac2)) 0))
-  (is (= (undercoverage water (context fac2)) 0))
+  (is (= (overcoverage water (product-context fac2)) 0))
+  (is (= (undercoverage water (product-context fac2)) 0))
 
-  (is (= (overcoverage wood (context fac3)) 0))
-  (is (= (undercoverage wood (context fac3)) 0))
+  (is (= (overcoverage wood (product-context fac3)) 0))
+  (is (= (undercoverage wood (product-context fac3)) 0))
   
 )
 
@@ -117,14 +117,14 @@
   (def fac2 (GreEss water 0))
   (def fac3 (GreEss wood 20))
 
-  (is (= (overcoverage forum (context fac1)) 0))
-  (is (<= (undercoverage forum (context fac1)) 5))
+  (is (= (overcoverage forum (product-context fac1)) 0))
+  (is (<= (undercoverage forum (product-context fac1)) 5))
 
-  (is (= (overcoverage water (context fac2)) 0))
-  (is (<= (undercoverage water (context fac2)) 0))
+  (is (= (overcoverage water (product-context fac2)) 0))
+  (is (<= (undercoverage water (product-context fac2)) 0))
 
-  (is (= (overcoverage wood (context fac3)) 0))
-  (is (<= (undercoverage wood (context fac3)) 20))
+  (is (= (overcoverage wood (product-context fac3)) 0))
+  (is (<= (undercoverage wood (product-context fac3)) 20))
   
 )
 
@@ -135,13 +135,13 @@
   (def fac2 (ASSO water 5 0.7 1 1))
   (def fac3 (ASSO wood 3 0.7 1 1))
 
-  (is (= (overcoverage forum (context fac1)) 4))
-  (is (<= (undercoverage forum (context fac1)) 8))
+  (is (= (overcoverage forum (product-context fac1)) 4))
+  (is (<= (undercoverage forum (product-context fac1)) 8))
 
-  (is (= (overcoverage water (context fac2)) 4))
-  (is (<= (undercoverage water (context fac2)) 1))
+  (is (= (overcoverage water (product-context fac2)) 4))
+  (is (<= (undercoverage water (product-context fac2)) 1))
 
-  (is (= (overcoverage wood (context fac3)) 24))
-  (is (<= (undercoverage wood (context fac3)) 128))
+  (is (= (overcoverage wood (product-context fac3)) 24))
+  (is (<= (undercoverage wood (product-context fac3)) 128))
   
 )
