@@ -2,6 +2,7 @@
     (:require [clojure.string :as str]
               [clojure.set :as set]
               [conexp.base :refer :all]
+              [conexp.fca.matrices :refer :all]
               [conexp.fca.contexts :refer :all]
               [conexp.fca.lattices :refer :all]
               [conexp.fca.matrix-factorizations :refer :all]
@@ -37,7 +38,6 @@
   (is (= (undercoverage wood (product-context fac3)) 0))
   
 )
-
 
 (deftest test-topfiberm
   

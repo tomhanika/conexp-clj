@@ -913,4 +913,9 @@ metadata (as provided by def) merged into the metadata of the original."
         reducer-fn (fn [c d] (union (make-set c) (make-set d)))]
     (fn [A] (reduce reducer-fn #{} (map m A)))))
 ;;;
+
+(defn argmax [function coll]
+  "Returns the value in *coll* for which (function coll) returns the highest value."
+  (apply max-key function coll)
+)
 nil
