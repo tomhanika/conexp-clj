@@ -1,0 +1,30 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: conexp-clj
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Daniel
+    family-names: Borchmann
+    affiliation: Technische Universität Dresden
+  - affiliation: Technische Universität Dresden
+    given-names: Christian
+    family-names: Meschke
+  - given-names: Tom
+    family-names: Hanika
+    affiliation: University of Hildesheim
+    email: Tom.Hanika@cs.uni-kassel.de
+    orcid: 'https://orcid.org/0000-0002-4918-6374'
+repository-code: 'https://github.com/fcatools/conexp-clj'
+abstract: >-
+  This is conexp-clj, a general purpose software tool for
+  Formal Concept Analysis. Its main purpose is to enable
+  nontrivial examples to be computed easily, but it can be
+  used for much, much more.
+license: EPL-1.0
+commit: 5254a10eab6759a7d0c60228892952de93f2aa58
+date-released: '2023-07-17'
