@@ -33,13 +33,6 @@
 )
 
 
-(defn argmax [function coll]
-  "Returns the value in *coll* for which (function coll) returns the highest value."
-  (apply max-key function coll)
-)
-
-
-
 (defn- contexts-from-factors [factors objects attributes]
   "Computes contexts from set of factor concepts."
 
