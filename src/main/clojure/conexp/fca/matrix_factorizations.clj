@@ -54,7 +54,9 @@
 )
 
 
-;;Hyper Algorithm
+;; Hyper Algorithm
+;; https://doi.org/10.1007/s10618-010-0203-9
+;; Compare Algorithm 1
 
 
 (defn- hyperrectangle-candidates [ctx min-supp]
@@ -123,7 +125,9 @@
 )
 
 
-;;topFiberM Algorithm
+;; topFiberM Algorithm
+;; https://doi.org/10.48550/arXiv.1903.10326
+;; Compare Algorithm 1
 
 (defn- process-object-fiber [X ctx obj tP] ;obj = object representing row Bi
   "Lines 12 - 22. If best fiber is a row.
@@ -195,9 +199,7 @@
 
   (let [sr (min search-limit (count (objects ctx)) (count (attributes ctx)))]
 
-    (loop [;As (into [] (repeat (count (objects ctx)) (into [] (repeat search-limit 0))))
-           ;Bs (into [] (repeat search-limit (into [] (repeat (count (attributes ctx)) 0))))
-           As []
+    (loop [As []
            Bs []
            tf []
            excluded-rows #{} ;objects representing excluded fibers
@@ -255,9 +257,11 @@
 
 
 ;; PaNDa Algorithm
+;; https://doi.org/10.1137/1.9781611972801.15
+;; Compare Algorithm 1
 
 (defn outer-prod [v1 v2]
-  "computes the outer product of two vectors."
+  "Computes the outer product of two vectors."
   (into [] (for [x v1]
     (into [] (for [y v2] (* x y)))))
 )
@@ -320,7 +324,7 @@
 
 
 (defn- extend-core [core extension-list patterns ctx]
-
+  "Compare Algorithm 3."
   (loop [remaining extension-list
          current-core core]
 
@@ -343,7 +347,8 @@
 
 
 (defn PaNDa [ctx k]
-
+  "ctx: Context to be decomposed.
+   k: Number of factors."
   (let [obj-order (into [] (objects ctx))
         attr-order (into [] (attributes ctx))]
   
@@ -367,9 +372,12 @@
 
 
 
-;;Tiling Algorithm
+;; Tiling Algorithm
+;; Loosely based on https://doi.org/10.1007/978-3-540-30214-8_22
 
 (defn tiling [ctx k]
+  "ctx: Context to be decomposed.
+   k: Number of factors."
   (loop [factors #{}
          counter 1
          conc (concepts ctx)]
@@ -387,7 +395,9 @@
                                                                              (second c)] [g m]))))))))
 )
 
-;;Grecond Algorithm
+;; Grecond Algorithm
+;; https://doi.org/10.1016/j.jcss.2009.05.002
+;; Compare Algorithm 1
 
 (defn object-concepts [ctx]
   "Returns a set of all object-concepts of the specified context."
@@ -444,11 +454,14 @@
 )
 
 (defn grecond [ctx]
+  "ctx: Context to be decomposed."
   (let [[S U F] (mandatory-factors ctx)] 
    (apply ->context-factorization (contexts-from-factors (remaining-factors S U F ctx) (objects ctx) (attributes ctx))))
 )
 
 ;; GreEss Algorithm
+;; https://doi.org/10.1016/j.jcss.2015.06.002
+;; Compare Algorithm 1
 
 (defalias o-d object-derivation)
 (defalias a-d attribute-derivation)
@@ -574,11 +587,10 @@
                (conj factors best-cand)))))
 )
 
-
-
-
-
 ;; ASSO Algorithm
+;; https://doi.org/10.1109/TKDE.2008.53
+;; Compare Algorithm 1
+
 (defn- column-association [M i j]
   "Computes the confidence of an association between columns i and j of a matrix."
   (let [dividend (scalar-product (matrix-column M i) (matrix-column M j))
