@@ -92,3 +92,9 @@
     (into [] (for [c (range (col-number M1))]
                (* ((M1 r) c) ((M2 r) c))))))
 )
+
+(defn outer-prod [v1 v2]
+  "Computes the outer product of two vectors."
+  (into [] (for [x v1]
+    (into [] (for [y v2] (* x y)))))
+)

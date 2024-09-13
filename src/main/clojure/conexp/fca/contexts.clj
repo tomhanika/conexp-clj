@@ -276,6 +276,16 @@
   (let [objs (aprime ctx #{m})]
     [objs (oprime ctx objs)]))
 
+(defn object-concepts [ctx]
+  "Returns a set of all object-concepts of the specified context."
+  (set (for [obj (objects ctx)] (object-concept ctx obj)))
+)
+
+(defn attribute-concepts [ctx]
+   "Returns a set of all attribute-concepts of the specified context."
+  (set (for [attr (attributes ctx)] (attribute-concept ctx attr)))
+)
+
 (defn clarify-objects
   "Clarifies objects in context ctx."
   [ctx]

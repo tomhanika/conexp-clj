@@ -260,12 +260,6 @@
 ;; https://doi.org/10.1137/1.9781611972801.15
 ;; Compare Algorithm 1
 
-(defn outer-prod [v1 v2]
-  "Computes the outer product of two vectors."
-  (into [] (for [x v1]
-    (into [] (for [y v2] (* x y)))))
-)
-
 (defn- cost [patterns ctx]
   "computes the cost function of the given patterns.
    Compare Problem 1"
@@ -398,17 +392,6 @@
 ;; Grecond Algorithm
 ;; https://doi.org/10.1016/j.jcss.2009.05.002
 ;; Compare Algorithm 1
-
-(defn object-concepts [ctx]
-  "Returns a set of all object-concepts of the specified context."
-  (set (for [obj (objects ctx)] (object-concept ctx obj)))
-)
-
-(defn attribute-concepts [ctx]
-   "Returns a set of all attribute-concepts of the specified context."
-  (set (for [attr (attributes ctx)] (attribute-concept ctx attr)))
-)
-
 
 (defn- mandatory-factors [ctx]
   "Computes the concepts that are both object-concepts and attribute-concepts 
