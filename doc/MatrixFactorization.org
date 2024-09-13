@@ -3,8 +3,12 @@
 
 * Boolean Matrix Factorization
 
-~conexp-clj~ offers multiple algorithms to decompose formal context into two contexts. The first context represents the relationship of the objects to so clled *factors*, and the second represents the relationship of thee factors to the attributes.
-The boolean matrix product of the incidence matrices of these context should approximate the original context.
+The goal of Boolean matrix factorization is to decompose a binary matrix, in this case a formal context into two smaller contexts, in such a way that the Boolean matrix product of these contexts is equal or at least similar to the original context. 
+The first context represents the relationship of the objects to so called *factors*, and the second represents the relationship of these factors to the attributes. The number of factors should be as low as possible. 
+Since this is an NP-hard problem, a variety of approximative algorithms have been proposed. Those algorithms offer different tradeoffs between accuracy and the number of factors.
+
+
+~conexp-clj~ offers the following algorithms for Boolean matrix factoriation:
 
 The algorithms are available via the ~matrix-factorizations~ namespace:
 
