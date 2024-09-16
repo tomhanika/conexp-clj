@@ -11,7 +11,12 @@
   (:require [clojure.core.reducers :as r]
             [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
-            [conexp.fca.contexts :refer :all]))
+            [conexp.fca.closure-systems :refer [next-closed-set-in-family
+                                                all-closed-sets-in-family
+                                                extension-set]]
+            [conexp.fca.contexts :refer :all]
+            [clojure.set :refer [difference union subset? intersection]]
+            [clojure.math.numeric-tower :as nt]))
 
 ;;;
 
@@ -573,6 +578,22 @@
     :else
     (illegal-argument "Cannot determine support of " (print-str thing))))
 
+(defn absolute-support
+  "Counts the total number of  occurences of an itemset in the context.
+   itemset needs to consist of two entries a and b, both sets of attributes.
+   absolute-support computes the support of the itemset with all attributes in a and the 
+   negation of each attribute in b."
+  [ctx itemset]
+  (let [[attributes neg-attributes] itemset, objects (objects ctx), incidence (incidence-relation ctx)]
+    (max (count (filter identity (for [object objects]
+                                 (every? true? (concat
+                                                (for [attribute attributes]
+                                                  (some? (incident? ctx object attribute)))
+                                                (for [attribute neg-attributes]
+                                                  (not (some? (incident? ctx object attribute)))))))))
+         1    
+)))
+
 (defn confidence
   "Computes the confidence of the given implication in the given context."
   [implication context]
@@ -583,7 +604,29 @@
                                       (union (premise implication) (conclusion implication))))
          premise-count))))
 
-;;
+(defn absolute-confidence
+  "Computes the confidence of an implication using the absolute-support method."
+  [ctx impl]
+  (let [premise (premise impl) conclusion (conclusion impl)]
+    (/ (absolute-support ctx [(union premise conclusion) #{}]) 
+       (absolute-support ctx [premise #{}]))))
+
+(defn odds-ratio 
+  "Computes the odds ratio of an implication using the asupp method."
+  [ctx impl]
+  (let [premise (premise impl) conclusion (conclusion impl)]
+    (/ (* (absolute-support ctx [(union premise conclusion) #{}]) 
+          (absolute-support ctx [#{} (union premise conclusion)]))
+       (* (absolute-support ctx [premise conclusion]) 
+          (absolute-support ctx [conclusion premise]))
+       )))
+
+(defn local-support [ctx impl] 
+  "Computes the local support of an implication by dividing the support of the implication
+   by the support of its conclusion. Uses the absolute-support function."
+  (let [premise (premise impl) conclusion (conclusion impl)]
+    (/ (absolute-support ctx [(union premise conclusion) #{}])
+       (absolute-support ctx [conclusion #{}]))))
 
 (defn- frequent-itemsets
   "Returns all frequent itemsets of context, given minsupp as minimal support."
@@ -773,7 +816,7 @@
     (learn-implications-by-queries (attributes ctx)
                                    intent?
                                    (fn [implications]
-                                     (let [nr-iter (ceil (* (/ ε) (+ (swap! iter-counter inc)
+                                     (let [nr-iter (nt/ceil (* (/ ε) (+ (swap! iter-counter inc)
                                                                      (/ (Math/log (/ δ))
                                                                         (Math/log 2)))))]
                                        (or (some (fn [test-set]

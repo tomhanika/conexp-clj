@@ -8,7 +8,8 @@
 
 (ns conexp.io.util
   (:use conexp.base)
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.set :refer [intersection]]))
 
 ;;;
 

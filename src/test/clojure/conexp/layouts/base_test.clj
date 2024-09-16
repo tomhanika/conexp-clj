@@ -14,6 +14,7 @@
         conexp.fca.lattices
         conexp.layouts.base
         conexp.layouts.layered)
+   (:require [clojure.set :refer [difference union subset? intersection]])
   (:use clojure.test))
 
 ;;;

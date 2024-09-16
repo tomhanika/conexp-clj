@@ -9,7 +9,8 @@
 (ns conexp.fca.fast
   "Provides some optimized versions of the standard algorithms of conexp-clj"
   (:require [clojure.core.async :refer [<!! >!! chan close! thread]]
-            [conexp.base :refer [illegal-argument improve-basic-order set-of]]
+            [conexp.base :refer [illegal-argument set-of]]
+            [conexp.fca.closure-systems :refer [improve-basic-order]]
             [conexp.fca.contexts
              :refer
              [attribute-derivation

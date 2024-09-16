@@ -1,4 +1,4 @@
-# conexp-clj [![Build Status](https://img.shields.io/github/actions/workflow/status/tomhanika/conexp-clj/run-tests.yaml?branch=dev&label=build)](https://github.com/tomhanika/conexp-clj/actions/workflows/run-tests.yaml) [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
+# conexp-clj [![Build Status](https://img.shields.io/github/actions/workflow/status/tomhanika/conexp-clj/run-tests.yaml?branch=dev&label=build)](https://github.com/tomhanika/conexp-clj/actions/workflows/run-tests.yaml) [![Clojars Project](https://img.shields.io/clojars/v/conexp-clj.svg)](https://clojars.org/conexp-clj) [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
 
 This is conexp-clj, a general purpose software tool for [Formal Concept
 Analysis](http://www.upriss.org.uk/fca/fca.html).    Its main purpose is to
@@ -32,6 +32,7 @@ much more.
    8. [Computing Traces in Contexts](doc/code/trace-context.clj)
    9. [Counting Quasiorders](doc/code/quasiorders.clj)
    10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
+   11. [Discovering Causal Implications](doc/Causal-Implications.org)
 5. Advanced Topics
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
@@ -93,7 +94,7 @@ would appreciate if you use the following reference.
 
 ## License
 
-Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2023 Tom Hanika
+Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2024 Tom Hanika
 
 Distributed under the Eclipse Public License.
 

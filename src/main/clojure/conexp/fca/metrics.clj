@@ -28,7 +28,8 @@
                            bitwise-attribute-derivation concepts]]
              [implications :refer :all]
              [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
-            [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
+            [conexp.math.util :refer [eval-polynomial binomial-coefficient]]
+            [clojure.set :refer [difference union subset? intersection]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
 
