@@ -11,13 +11,13 @@ authors:
   - given-names: Daniel
     family-names: Borchmann
     affiliation: Technische Universität Dresden
-  - affiliation: Technische Universität Dresden
-    given-names: Christian
+  - given-names: Christian
     family-names: Meschke
+    affiliation: Technische Universität Dresden
   - given-names: Tom
     family-names: Hanika
     affiliation: University of Hildesheim
-    email: Tom.Hanika@cs.uni-kassel.de
+    email: tom.hanika@uni-hildesheim.de
     orcid: 'https://orcid.org/0000-0002-4918-6374'
 repository-code: 'https://github.com/fcatools/conexp-clj'
 abstract: >-
