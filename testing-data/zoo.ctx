@@ -1,0 +1,250 @@
+B
+
+101
+43
+
+leopard
+oryx
+termite
+pony
+carp
+raccoon
+girl
+seasnake
+honeybee
+mongoose
+crayfish
+sole
+pike
+mink
+lobster
+fruitbat
+wren
+tortoise
+squirrel
+chicken
+skua
+pitviper
+dogfish
+pheasant
+vampire
+parakeet
+goat
+slug
+toad
+wallaby
+seal
+hare
+vole
+swan
+worm
+porpoise
+rhea
+duck
+aardvark
+octopus
+chub
+calf
+lion
+bear
+seahorse
+reindeer
+cavy
+moth
+antelope
+bass
+stingray
+skimmer
+clam
+herring
+pussycat
+hawk
+wolf
+sparrow
+vulture
+opossum
+platypus
+buffalo
+starfish
+crab
+tuatara
+elephant
+deer
+penguin
+lark
+dolphin
+frog
+crow
+frogB
+lynx
+puma
+boar
+slowworm
+cheetah
+polecat
+piranha
+ladybird
+gorilla
+haddock
+scorpion
+mole
+tuna
+wasp
+seawasp
+housefly
+giraffe
+newt
+flamingo
+sealion
+gnat
+flea
+kiwi
+gull
+catfish
+dove
+hamster
+ostrich
+[animal-name 0]
+[type 3]
+[hair 1]
+[feathers 0]
+[backbone 0]
+[breathes 0]
+[breathes 1]
+[leg 5]
+[animal-name 1]
+[type 2]
+[leg 4]
+[hair 0]
+[catsize 0]
+[milk 0]
+[tail 0]
+[domestic 0]
+[type 6]
+[fins 0]
+[eggs 1]
+[leg 8]
+[aquatic 0]
+[toothed 1]
+[feathers 1]
+[toothed 0]
+[tail 1]
+[type 4]
+[catsize 1]
+[predator 0]
+[type 1]
+[fins 1]
+[predator 1]
+[domestic 1]
+[leg 0]
+[leg 2]
+[milk 1]
+[aquatic 1]
+[backbone 1]
+[airborne 0]
+[type 7]
+[eggs 0]
+[airborne 1]
+[leg 6]
+[type 5]
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+...X.X..X.XX.X.X.XX.XX..X.X.X.X.....XX.....
+X....X.....XXXXXXX..X.XX...X........XX.X.X.
+...X.X..X.XX.X...XX.XX..X.X.X.XX....XX.....
+X...XX.....XXX......XXX.XX...XXXX......XX..
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+...X.X..X..X.XX..XX..X....X.X.XX.X.XXX.....
+XX.XX.X....XXX.X.X...X..X.....X.X..X...XX..
+......X.X..XX.X.XX..X.XX...X...X..X.XX.X.X.
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+X...XX.....XXXXX.X....XX...X.......X..XXXX.
+X...XX.....XXX.X....XXX.XX...XX.X......XX..
+X...XX.....X.X.X.....XX.XXX..XX.X..X...XX..
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XX...X..
+X...XX.....XXXXX.X....XX...X.......X..XXXX.
+...X.X..X..XX..X.XX.XX..X...X.X..XX.XX.....
+X.X..X...X..X..X.X..XXX.X..X.....XX.XX.X...
+XX...X....XX.X.X.X..XXX.X.XX........XX.X...
+...X.X..X..XXX.X.XX.XX..X...X.X..X..XX.....
+X.X..X...X..X....X..XXX.X..X...X.XX.XX.X...
+X.X..X...X..X..X.X...XX.X..X.....XXXX..XX..
+XX....X....XXX.X.X...XX.X.....X.X..XXX.X...
+X...XX.....X.X.X.....XX.XXX..XX.X..X...XX..
+X.X..X...X..X..X.X..XXX.X..X.....XX.XX.X...
+...X.X..X..XX..X.XX.XX..X...X.X..XX.XX.....
+X.X..X...X..X....X..XXX.X..X...X.XX.XX.X...
+...X.X..X.XX.X...XX.XX..X.X.X.XX....XX.....
+X....X.....XXXXX.X..X.XX...X....X...XXXX...
+X....X....XXXXXX.X..XXX.......X.....X..XX.X
+...X.X..X..X.X.X.XX.XX..X.X.X.X..X..XX.....
+...X.X..X..X.XXX..X..X....X.XXX.X..XX...X..
+...X.X..X.XXXX.X.XX.XX..X...X.X.....XX.....
+...X.X..X.XXXX.X.XX.XX..X...X.X.....XX.....
+X.X..X...X.....X.X..XXX.X.XX.....XX.X..XX..
+X....X.....XXXXX.X..X.XX...X....X...XXXX...
+X..X.X.....X.X.X..X..X..X.X.XXX.X..XX...X..
+X.X..X...X...X.X.X...XX.X.XX.....X.XXX.X...
+X.X..X...X..X..X.X..XXX.X..X.....XX.X..XX..
+...X.X..X.XX.XXX.XX..X....X.X.X....XXX.....
+X...XX.....X.XXX.X.X..XX..XX.......X..XXX..
+X...XX.....XXX.X.....XX.XX...XX.X..X...XX..
+...X.X..X.XX.X...XX.XX..X.X.X.XX....XX.....
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+...X.X..X.XX.XXX.XX..X....X.X.X....XXX.....
+X...XX.....XXX.X....XXX.XX...XX.X......XX..
+...X.X..X.XX.X...XX.XX..X.X.X.XX....XX.....
+...X.X..X.XXXXX..XX.XX......X.XX....XX.....
+.....X..X..XX.XXXX..X.XX...X......X.XX.X.X.
+...X.X..X.XX.X.X.XX.XX..X.X.X.X.....XX.....
+X...XX.....XXX.X.....XX.XX...XX.X..X...XX..
+X...X.X....X.X.X.....XX.XXX..XX.X..X...XX..
+X.X..X...X..X..X.X...XX.X..X.....XXXX..XX..
+X...XX.....XXXXX.X....XX...X....X..X.XXX...
+X...XX.....XXX.X.....XX.XX...XX.X..X...XX..
+...X.X..X.XX.X...XX..X..X.X.X.XX...XXX.....
+X.X..X...X..X..X.X...XX.X..X.....XXXXX.X...
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+X.X..X...X..X..X.X..XXX.X..X.....XX.XX.X...
+X.X..X...X.....X.X...XX.X.XX.....XXXXX.X...
+...X.X..X.XXXX.X.XX..X..X...X.X....XXX.....
+.....X..X.XX.X.X.XX..XX.X.XXX......XX...X..
+...X.X..X.XX.X.X.XX.XX..X.X.X.X.....XX.....
+X...XX.X...XXXXX.X....XX...X.......X..XXX..
+X...XX....XXXXXX.X....XX...X.......X..XXX..
+XX...X....XXXX.X.X...XX.X.....X....XXX.X...
+...X.X..X.XX.X.X.XX.XX..X.X.X.X.....XX.....
+...X.X..X.XX.X.X.XX.XX..X.X.X.X.....XX.....
+X.X..X...X...X.X.X...XX.X.XX.....X.XX..XX..
+X.X..X...X..X..X.X..XXX.X..X.....XX.XX.X...
+X..X.X.....X.X.X..X..X..X.X.XXX.X..XX...X..
+X....X....XXXXXX.X...XX.......X....XX..XX.X
+X.X..X...X..X..X.X...XX.X..X.....XXXXX.X...
+X.....X...XXXXXX.X...XX.......X....XX..XX.X
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+XX...X.....XXX.X.X...XX.X.....X.X..XXX.X...
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+...X.X..X.XX.X.X.XX..X..X.X.X.X....XXX.....
+X...XX.....XXX.X.....XX.XX...XX.X..X...XX..
+X....X.....XX.XXXX....XX...X......XXXX.X.X.
+...X.X..X..X.XXX.XX.XX....X.X.X..X..XX.....
+X...XX.....XXX.X....XXX.XX...XX.X......XX..
+X..X..X....XXX.X.X.X...XX..X.......XXXXX...
+...X.X..X.XXXX.X.XX..X..X...X.X....XXX.....
+X...XX.....X.X.X.....XX.XXX..XX.X..X...XX..
+......X.X..XX.XXXX..X.XX...X......X.XX.X.X.
+X...X.X....XXXXX.X....XX...X....X..X..XXX..
+.....X..X..XX.XXXX..X.XX...X......X.XX.X.X.
+...X.X..X.XX.X.X.XX.XX..X.X.X.X.....XX.....
+X....X....XXXX.X.X...XX.X.....X....XX..XX.X
+X.X..X...X.....X.X..XXX.X.XX.....XX.XX.X...
+...X.X..X..X.X.X..X..X..X.X.XXX..X.XX...X..
+X....X.....XX.XXXX..X.XX...X......X.XX.X.X.
+X....X.....XXXXXXX..X.XX...X........XX.X.X.
+X.X..X...X..XX.X.X...XX.X..X.....X.XXX.X...
+X.X..X...X..X..X.X...XX.X..X.....XXXX..XX..
+X...XX.....XXX.X.....XX.XX...XX.X..X...XX..
+X.X..X...X..X....X..XXX.X..X...X.XX.XX.X...
+...X.X..X.XXXX...XX.XX..X...X.XX....XX.....
+X.X..X...X...X.X.X..XXX.X.XX.....X..XX.X...

@@ -3,7 +3,8 @@
             [conexp.math.algebra :as alg]
             [conexp.fca.lattices :as lat]
             [conexp.util.graph :refer :all]
-            [conexp.base :exclude [transitive-closure] :refer :all]))
+            [conexp.base :exclude [transitive-closure] :refer :all]
+            [clojure.set :refer [difference union subset? intersection]]))
 
 
 ;;; graph <-> lattice
