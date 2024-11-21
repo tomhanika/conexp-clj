@@ -9,7 +9,7 @@
 (ns conexp.fca.metrics
   (:require [clojure.core.reducers :as r]
             [clojure.math.combinatorics :refer [permuted-combinations combinations]]
-            [clojure.set :as set]
+            [clojure.set :refer [difference union subset? intersection]]
             ;; [clojure.math.numeric-tower :refer [log]]
             [conexp.base :refer :all]
             [conexp.math.markov :refer :all]

@@ -20,31 +20,23 @@
 
 
 (defn interval [lat upper lower]
+  "Returns a new Lattice Consisting of all Elements of *lat* that are Larger or Equal than *lower*
+   and are Lesser or Equal then *upper*."
   (let [order (lattice-order lat)
         new-base-set (filter #(and (order % upper) (order lower %)) (base-set lat))]
     (make-lattice-nc new-base-set order))
 )
 
-(defn context-from-lattice [lat]
-  "Computes the underlying context of a lattice by reading the incidence of all objects."
-  "Does not work with the *lattice-product* method."
-  (let [concepts (base-set lat)
-        unions (reduce #(vector  (set/union (first %1) (first %2)) (set/union (second %1) (second %2))) concepts)
-        objects (first unions)
-        attributes (second unions)
-        incidence (for [c concepts obj (first c) attr (second c)] [obj attr])]
-    (make-context objects attributes incidence)
- ))
 
-(defn libkin-decomposition-pairs [lat]
-  "Returns all decompositions pair of *lat* for Libkin decompositions"
+(defn decomposition-pairs [lat]
+  "Returns all Decomposition Pairs / Neutral Complemented Elements in *lat*."
   (let [neutral-elements (neutral-concepts lat)]
       (for [n neutral-elements c (element-complement n lat)] [n c])))
 
 
 (defn libkin-decomposition-lattices [lat decomp-pair]
-  "Computes the Lattices Resulting from the Libkin-Decomposition on the 
-  Provided Decomposition Pair."
+  "Computes the Lattices Resulting from the Downset Decomposition on the 
+   Provided Decomposition Pair."
   (let [set1 (order-ideal lat (conj #{} (first decomp-pair)))
         set2 (order-ideal lat (conj #{} (last decomp-pair)))
         order (lattice-order lat)]
@@ -59,8 +51,8 @@
                         (sup lat))]))
 
 (defn combinatorial-decomposition-lattices [lat decomp-pair]
-  "Computes the Lattices Resulting from the Libkin-Decomposition on the 
-  Provided Decomposition Pair."
+  "Computes the Lattices Resulting from the Upset Decomposition on the 
+   Provided Decomposition Pair."
   (let [set1 (order-filter lat (conj #{} (first decomp-pair)))
         set2 (order-filter lat (conj #{} (last decomp-pair)))
         order (lattice-order lat)]
@@ -74,9 +66,10 @@
                         (inf lat)
                         (sup lat))]))
 
-(defn combinatorial-product [a b]
-  "Computes the combinatoial produce of two lattices. 
-   May fail if *a* and *b* are not complemented neutral ideals of the same lattice"
+;Downset Product TODO
+
+(defn upset-product [a b]
+  "Computes the Upset Product of two Lattices that are Complemented Neutral Ideals is Another Lattice."
   (let [con1 (base-set a)
         con2 (base-set b)
         new-base-set (for [x con1 y con2]
@@ -86,17 +79,18 @@
 )
 
 (defn decomposable? [lat]
+  "Verifies Whether the Supplied Lattice has non-trivial Decomposition Pairs."
   (let [top (lattice-one lat)
         bot (lattice-zero lat)
         decomp-pairs (into #{} (libkin-decomposition-pairs lat))
-        non-trivial (disj (disj  decomp-pairs [top bot]) [bot top])]
+        non-trivial (disj (disj decomp-pairs [top bot]) [bot top])]
 
         (not (empty? non-trivial)))
 )
 
 
 (defn maximally-decomposable-filters [lat]
-
+  "Returns all Maximally Decomposable Principal Filters of the Supplied Lattice."
   (loop [queue [(lattice-zero lat)]
          visited #{}
          filters #{}]

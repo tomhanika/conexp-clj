@@ -12,10 +12,10 @@
         conexp.math.algebra
         conexp.fca.contexts
         conexp.fca.posets
-        [clojure.math.combinatorics :refer [cartesian-product]]))
-        conexp.fca.posets)
+        [clojure.math.combinatorics :refer [cartesian-product]])
   (:require [clojure.set :refer [difference union subset? intersection]])
-  (:gen-class))
+)
+
 
 ;;; Datastructure
 
