@@ -10,7 +10,8 @@
   "Provides function for exploration and computing proper premises."
   (:use conexp.base
         conexp.fca.contexts
-        conexp.fca.implications)
+        conexp.fca.implications
+        conexp.fca.closure-systems)
   (:require [clojure.core.reducers :as r]
             [clojure.set :refer [difference union intersection subset? ]]))
 

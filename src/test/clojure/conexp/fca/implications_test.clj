@@ -9,6 +9,7 @@
 (ns conexp.fca.implications-test
   (:use clojure.test)
   (:use conexp.base
+        conexp.fca.closure-systems
         conexp.fca.contexts
         conexp.io.contexts
         conexp.math.algebra

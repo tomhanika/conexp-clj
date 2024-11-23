@@ -3,47 +3,13 @@
             [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.io.contexts :refer :all]
-            [conexp.fca.lattices :refer :all]
             [conexp.fca.implications :refer :all]
-            [conexp.fca.smeasure :refer :all]
             [clojure.math.combinatorics :as comb]
             [clojure.algo.generic.functor :refer :all]
             [clojure.algo.generic.collection :as generic-col]
-            [clojure.set :as set]))
+            [clojure.set :refer [difference intersection union subset?]]))
 
 ;;;;;;;; ordinal motifs
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;FCA Theorem 55
-
-(defn nominally-measurable [ctx]
-  (let [lat (concept-lattice ctx)]
-     (= (lattice-atoms lat) (lattice-sup-irreducibles lat))
-))
-
-(defn ordinally-measurable [ctx] true)
-
-(defn interordinally-measurable [ctx]
-  (let [objects (objects ctx) attributes (attributes ctx)]
-     (every? identity (concat
-                       (for [g objects h objects]
-       ;does not contravene {g}' subseteq {h}' => {g}'={h}' 
-       (or (not (subset? (object-derivation ctx #{g}) (object-derivation ctx #{h})))
-           (= (object-derivation ctx #{g}) (object-derivation ctx #{h}))))
-     (for [m attributes]
-        ;does not contravene (G\{m}')''=G\{m}'
-        (= (attribute-derivation ctx (object-derivation ctx (set/difference objects (attribute-derivation ctx #{m}))))
-           (set/difference objects (attribute-derivation ctx #{m}))))))
-))
-
-(defn contranominally-measurable [ctx]
-  (interordinally-measurable ctx))
-
-(defn dichotomically-measurable [ctx]
-  (interordinally-measurable ctx))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defmulti generate-scale (fn [scale-type & rest] scale-type))
 
@@ -168,7 +134,7 @@
 (defn- extent-chain? 
   "Checks if the extents ordered by setinclusion is a linear order."
   [exts]
-  (let [sorted-exts (sort-by exts count)
+  (let [sorted-exts (sort-by count exts)
         sorted-exts-idxs (-> sorted-exts count dec range)]
     (every? (fn [i]
               (subset? (nth sorted-exts i)
@@ -180,7 +146,12 @@
   given by the base-set. Used in case exts2 is of ordinal scale."
   [exts1 base-set exts2-set]
   (let [base-set-seq (seq base-set)
-        exts1-restricted-to-base-set (restrict-extents-to-base-set exts1 base-set) 
+        ;; For scales we consider ([n],[n],>=) and ([n],[n+1],>=) since some sub-contexts
+        ;; may have a closed empty set while the ordinal scale does not. We consider both 
+        ;; cases to be of ordinal scale.
+        exts1-restricted-to-base-set (difference
+                                      (restrict-extents-to-base-set exts1 base-set)
+                                      #{#{}}) 
         equal-sized (= (count exts1-restricted-to-base-set)
                        (count exts2-set)) ;; for computational speed-up
         ]
@@ -312,13 +283,22 @@
   (identify-full-scale-measures-check-crown exts1 base-set exts2-set))
 
 
+(defn is-of-scale?
+  [scale-type ctx]
+  (let [exts1 (extents ctx)
+        base-set (objects ctx)
+        exts2-set (set (extents (generate-scale scale-type (count base-set))))]
+    (boolean (identify-full-scale-measures scale-type exts1 base-set exts2-set))))
+
 ;;;;;;;;;;;;;;;;;;;;;
 
 ;; rough pre-selection of candidates to be checked for crown scales
 (defn cycles-of-g
   "Returns for an object g all cycles that can be found using the
   neighbors relations. Here neighbors is a map from the objects to all
-  other objects that have a shared attribute. Breadth first search."
+  other objects that have a shared attribute. Breadth first search.
+  Only such cycles of g are returned, where elements can only be 
+  reached by their neighbors."
   [ctx neighbours start-g]
   (let [obj-seq (into [start-g] (seq (disj (objects ctx) start-g)))
         obj-order (fn [obj] (doall (sort-by #(.indexOf obj-seq %) obj)))]
@@ -538,21 +518,22 @@
   "Returns a lazy-seq of the "
   ([ordinal-motifs+stats normalized] (ordinal-motif-covering-seq ordinal-motifs+stats normalized #{}))
   ([ordinal-motifs+stats normalized covered-exts]
-   (let [;; get max key
-         [most-covering-motif {:keys [scale-type extents covering] :as stats}] 
-                              (apply max-key (fn [[motif {:keys [covering extents]}]]
-                                               (if normalized
-                                                 (/ (count covering) (count extents))
-                                                 (count covering))) 
-                                     ordinal-motifs+stats)
-         ;; update motif-concept-map by set difference
-         updated-ordinal-motifs+stats (as-> ordinal-motifs+stats $
-                                        (dissoc $ most-covering-motif)
-                                        (fmap (fn [remaining-stats] 
-                                                (update remaining-stats :covering #(difference % covering))) $ ))
-         new-covered-exts (clojure.set/union covered-exts covering)]
-     (cons [most-covering-motif stats]
-           (lazy-seq (ordinal-motif-covering-seq updated-ordinal-motifs+stats normalized new-covered-exts ))))))
+   (if (not (empty? ordinal-motifs+stats))
+     (let [ ;; get max key
+           [most-covering-motif {:keys [scale-type extents covering] :as stats}] 
+           (apply max-key (fn [[motif {:keys [covering extents]}]]
+                            (if normalized
+                              (/ (count covering) (count extents))
+                              (count covering))) 
+                  ordinal-motifs+stats)
+           ;; update motif-concept-map by set difference
+           updated-ordinal-motifs+stats (as-> ordinal-motifs+stats $
+                                          (dissoc $ most-covering-motif)
+                                          (fmap (fn [remaining-stats] 
+                                                  (update remaining-stats :covering #(difference % covering))) $ ))
+           new-covered-exts (clojure.set/union covered-exts covering)]
+       (cons [most-covering-motif stats]
+             (lazy-seq (ordinal-motif-covering-seq updated-ordinal-motifs+stats normalized new-covered-exts )))))))
 
 (defn- compute-ordinal-motifs+stats 
   "Computes a map for each ordinal motif base set H \\subseteq G to the extents of K[H,M]"
@@ -583,126 +564,3 @@
         ordinal-motifs+stats (compute-ordinal-motifs+stats scale-complex scale-types)]
     (->Ordinal-Motif-Covering
      (ordinal-motif-covering-seq ordinal-motifs+stats normalized)) ) )
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
-;tests if there is a scale-measure from a context into a standard scale of size |G|
-
-(defmulti accepts-scale (fn [type ctx] type))
-
-(defmethod accepts-scale :nominal [type ctx]
-  (let [objects (objects ctx)]
-    (every? identity (for [g objects]
-       (= #{g} (attribute-derivation ctx (object-derivation ctx #{g}))))))
-)
-
-(defmethod accepts-scale :contranominal [type ctx]
-  (let [objects (objects ctx)]
-  (valid-scale-measure?
-   (make-smeasure-nc ctx
-                     (generate-scale :contranominal (count objects))
-                     (one-bijective-map objects)))))
-
-
-(defmethod accepts-scale :ordinal [type ctx]
-  (let [concepts (concepts ctx) 
-        len (count (objects ctx))]
-     (loop [current #{} chain [] conc concepts]
-        (if ( =(count chain) len) chain
-                                    (let [new-candidates (filter #(and (subset? current (first  %))
-                                                                       ( = (count (set/difference (first %) current)) 1)) conc)
-                                          next (first (first new-candidates))]
-                                       (if (some? next) (recur 
-                                                         next 
-                                                         (conj chain next) 
-                                                         conc)
-
-                                                        (if (not= (count current) 0) (recur 
-                                                                                (last (drop-last chain)) 
-                                                                                (drop-last chain)
-                                                                                (filter #(not= (first %) current) conc))))))))
-)
-
-(defmethod accepts-scale :interordinal [type ctx]
-  (let [concepts (concepts ctx)
-        extents (map first concepts)
-        objs (objects ctx)
-        len (count objs)]
-     (loop [current #{} chain [] ext extents]
-
-        (if ( =(count chain) len) chain
-                                  (let [new-candidates (filter #(and (subset? current %)
-                                                                     (= (count (set/difference % current)) 1)
-                                                                     (some (fn [x] (= x (set/difference objs current))) ext)) ext)
-                                        next (first new-candidates)]
-                                       (if (some? next) (recur 
-                                                         next 
-                                                         (conj chain next) 
-                                                         ext)
-
-                                                        (if (not= (count current) 0) (recur 
-                                                                                      (last (drop-last chain)) 
-                                                                                      (drop-last chain)
-                                                                                      (filter #(not= % current) ext))))))))
-)
-
-
-(defmethod accepts-scale :crown [type ctx]
-  (let [objects (objects ctx)
-        obj-pairs (filter #(= 2 (count %)) (extents ctx))]
-
-     (if (every? #(= #{%} (attribute-derivation ctx (object-derivation  ctx #{%}))) objects);check if all objects form concepts
-        (loop [path []
-               search-tree (into [] obj-pairs)]
-
-            
-             (if (and (= ( count path) (count objects));cycle has correct length
-                      (set/difference (second path) (set/difference (first path) (last path))));first and last elements overlap with unique element
-                
-                path
-                (let [candidates (filter #(= (count (set/intersection ;pair overlaps with last pair but on a new element
-                                                     (set/difference 
-                                                      (first path) 
-                                                      (second path)) 
-                                                     %)) 
-                                             1) 
-                                         (set/difference (set obj-pairs) (set path)))
-
-                      [next & updated-search-tree] (into (into [] candidates) search-tree)]
-
-
-                    (if candidates (recur (into (vector next) path) updated-search-tree)
-                                   (recur (into (vector next) (drop 1 path)) updated-search-tree))                     
-))))))
-             
-
-
-
-;test contexts
-
-(def ctx (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["B" 2] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
-(def ctx2 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5} #{["A" 1] ["B" 1] ["C" 1] ["C" 2] ["C" 3] ["D" 1] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
-
-(def ctx3 (make-context #{"A" "B" "C" "D"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
-                                                            ["C" 3] ["C" 4] ["C" 5] ["C" 6] ["D" 2] ["D" 3] ["D" 4] ["D" 5]}))
-
-(def ctx4 (make-context #{"A" "B" "C" "D" "E" "F"} #{1 2 3 12 23 123} 
-                           #{["A" 1] ["A" 12] ["A" 123]
-                             ["B" 2] ["B" 12] ["B" 23] ["B" 123]
-                             ["C" 3] ["C" 23] ["C" 123]
-                             ["D" 12] ["D" 123]
-                             ["E" 23] ["E" 123]
-                             ["F" 123]}
-                           ))
-
-(def ctx5 (make-context #{"A" "B" "C"} #{1 2 3 4 5 6} #{["A" 1] ["A" 2] ["A" 3] ["A" 4] ["B" 2] ["B" 3] ["B" 4] ["B" 5] 
-                                                            ["C" 3] ["C" 4] ["C" 5] ["C" 6]}))
-
-(def ctx6 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["B" 2] ["B" 3] ["C" 3] ["C" 4] ["D" 4] ["D" 1]}))
-
-(def ctx7 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["B" 2] ["B" 3] ["C" 3] ["C" 4] ["D" 4] ["D" 1]}))
-
-(def ctx8 (make-context #{"A" "B" "C" "D"} #{1 2 3 4} #{["A" 1] ["A" 2] ["A" 3] ["A" 4]
-                                                        ["B" 1] ["B" 2] ["B" 3] ["B" 4]
-                                                        ["C" 1] ["C" 2] ["C" 3] ["C" 4]
-                                                        ["D" 1] ["D" 2] ["D" 3] ["D" 4]}))

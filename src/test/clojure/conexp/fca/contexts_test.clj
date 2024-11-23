@@ -8,8 +8,9 @@
 
 (ns conexp.fca.contexts-test
   (:use conexp.base
-        conexp.fca.contexts)
-  (:use clojure.test)
+        conexp.fca.contexts
+        conexp.fca.closure-systems
+        clojure.test)
   (:require [clojure.set :refer [difference union subset? intersection]]
             [clojure.math.numeric-tower :refer [gcd]]))
 

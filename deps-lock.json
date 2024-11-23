@@ -563,6 +563,26 @@
       "hash": "sha256-KBRAgRJo5l2eJms8yJgpfiFOBPCXQNA4bO60qJI9Y78="
     },
     {
+      "mvn-path": "net/mikera/clojure-pom/0.6.0/clojure-pom-0.6.0.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-ApT9U7aW/29SAU5XUeJXiHii5kkP/SiwPHvX5A9/HVw="
+    },
+    {
+      "mvn-path": "net/mikera/core.matrix/0.63.0/core.matrix-0.63.0.jar",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-UCxlj7Q0EDgwxgDNCMAfPJdQPuwS2W6tklB4UwQAnuI="
+    },
+    {
+      "mvn-path": "net/mikera/core.matrix/0.63.0/core.matrix-0.63.0.pom",
+      "mvn-repo": "https://repo.clojars.org/",
+      "hash": "sha256-T3MYieJGpsINFq3W3PElUPj8pLEeW9Vjefa28UHeMcA="
+    },
+    {
+      "mvn-path": "net/mikera/mikera-pom/0.6.0/mikera-pom-0.6.0.pom",
+      "mvn-repo": "https://repo1.maven.org/maven2/",
+      "hash": "sha256-AzYO7a8+mxOHcZrgCf2V7mFF1nEO1P5QQ47IJxM5XTI="
+    },
+    {
       "mvn-path": "nrepl/drawbridge/0.2.1/drawbridge-0.2.1.jar",
       "mvn-repo": "https://repo.clojars.org/",
       "hash": "sha256-zYIIl7rNL2G5HYG/FtCabOymorXYsGIMWUvTt0RfYgA="
@@ -993,6 +1013,11 @@
       "hash": "sha256-IA0uyoZlJAy8uu5IwAcyS3tE02YIDpWN8dIujd4kg4w="
     },
     {
+      "mvn-path": "org/clojure/clojure/1.10.1/clojure-1.10.1.pom",
+      "mvn-repo": "https://repo1.maven.org/maven2/",
+      "hash": "sha256-EPevJPoORzOE7RqAPgCpB0KzwA+Q3jW2uxXosW3YOow="
+    },
+    {
       "mvn-path": "org/clojure/clojure/1.10.3/clojure-1.10.3.jar",
       "mvn-repo": "https://repo1.maven.org/maven2/",
       "hash": "sha256-fxJHLa7Y9rUXSYqqKrE6ViR1w+31FHjkWBzHYemJeaM="
@@ -1356,6 +1381,16 @@
       "mvn-path": "org/clojure/tools.cli/1.1.230/tools.cli-1.1.230.pom",
       "mvn-repo": "https://repo1.maven.org/maven2/",
       "hash": "sha256-v7Yh5LAaW4vOEWpgcIQNzdWUnomceEaNgRtuiqqf0cc="
+    },
+    {
+      "mvn-path": "org/clojure/tools.macro/0.1.5/tools.macro-0.1.5.jar",
+      "mvn-repo": "https://repo1.maven.org/maven2/",
+      "hash": "sha256-JxTXKUyQ+SaO7vNyj+TZjr+q7fJAoCN02u8rhVhEgkg="
+    },
+    {
+      "mvn-path": "org/clojure/tools.macro/0.1.5/tools.macro-0.1.5.pom",
+      "mvn-repo": "https://repo1.maven.org/maven2/",
+      "hash": "sha256-cGCU9H2ljugXofq5uAwxLs0nZHK85uHVRCOfFAcR2zE="
     },
     {
       "mvn-path": "org/clojure/tools.namespace/0.2.11/tools.namespace-0.2.11.jar",
