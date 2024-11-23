@@ -1,4 +1,4 @@
-(ns conexp.fca.matrix-factorizations-test
+(ns conexp.fca.matrix-factorization-test
     (:require [clojure.string :as str]
               [clojure.set :as set]
               [conexp.base :refer :all]
