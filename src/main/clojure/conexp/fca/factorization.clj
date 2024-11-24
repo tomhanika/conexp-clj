@@ -1,3 +1,11 @@
+;; Copyright ⓒ the conexp-clj developers; all rights reserved.
+;; The use and distribution terms for this software are covered by the
+;; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;; which can be found in the file LICENSE at the root of this distribution.
+;; By using this software in any fashion, you are agreeing to be bound by
+;; the terms of this license.
+;; You must not remove this notice, or any other, from this software.
+
 (ns conexp.fca.factorization
     (:require [conexp.base :refer :all]
               [conexp.fca.fast :refer [to-binary-matrix]]
@@ -53,8 +61,8 @@
 (defn normalize-context
   [context]
   (make-context-from-matrix
-   (first (context-size context))
-   (second (context-size context))
+   (count (objects context))
+   (count (attributes context))
    (into [] (flatten (make-matrix-from-context (context-to-string context))))))
 
 ;; Creates for the grecond algorithm usable data from the conexp.fca.contexts/concepts method
@@ -403,7 +411,7 @@
         topfiberm-output-concepts (for [fiber (:fiber fiber-result)] (fiber-to-concept (:index fiber) (:type fiber) (:source-fiber fiber)))
         object (make-object topfiberm-output-concepts n k)
         attribute (make-attribute topfiberm-output-concepts m k)]
-    [(calc-matrix-product object attribute k n m) object attribute]))
+    (apply ->factorization-record [(calc-matrix-product object attribute k n m) object attribute])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; https://doi.org/10.1137/1.9781611972801.15;
@@ -498,8 +506,8 @@
   (let [D (make-matrix-from-context (context-to-string input))]
     (loop [i 0 pi (list) cur-D D extended-core (extend-core (find-core cur-D) pi cur-D)]
       (if (<= k i)
-        (panda-factorization-matrices pi (count (get (nth pi 0) :ci)) (count (get (nth pi 0) :ct)) k)
-        (recur 
+        (apply ->factorization-record (panda-factorization-matrices pi (count (get (nth pi 0) :ci)) (count (get (nth pi 0) :ct)) k))
+          (recur 
           (inc i) 
           (conj pi extended-core) 
           (create-new-d (calc-one-matrix (get extended-core :ci) (get extended-core :ct)) cur-D)
@@ -545,7 +553,7 @@
         m (count (first context))
         tiling-result (tiling-main input-context k n m)
         object (make-object tiling-result n k) attribute (make-attribute tiling-result m k)]
-    [(calc-matrix-product object attribute k n m) object attribute]))
+    (apply ->factorization-record [(calc-matrix-product object attribute k n m) object attribute])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; https://doi.org/10.1007/s10618-010-0203-9
@@ -678,7 +686,7 @@
            i 0 
            hyper-coverage (calc-new-coverage-hyper C coverage)]
       (if (>= i k)
-        [(calc-hyper-context [out coverage]) (make-object-hyper out m k) (make-attribute-hyper out n k)]
+        (apply ->factorization-record [(calc-hyper-context [out coverage]) (make-object-hyper out m k) (make-attribute-hyper out n k)])
         (recur 
           (conj out hyper-coverage)
           (calc-new-coverage-matrix-hyper hyper-coverage coverage n m)
@@ -783,11 +791,11 @@
         gamma (calc-derivation input-context attributes attribute-derivation)
         mu (calc-derivation input-context objects object-derivation)
         U (make-matrix-from-context (context-to-string input-context))]
-    (loop-overlaps (grecond-create-usable (concepts input-context))
+    (apply ->factorization-record (loop-overlaps (grecond-create-usable (concepts input-context))
                    (remove nil? (mark-greess (make-matrix-from-context (context-to-string input-context)) [gamma mu]))
                    k
                    (count U)
-                   (count (get U 0)))))
+                   (count (get U 0))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; https://doi.org/10.1016/j.jcss.2009.05.002
@@ -844,7 +852,7 @@
         context (make-matrix-from-context (context-to-string input))
         n (count context)
         m (count (first context)) object (make-object grecond-result n k) attribute (make-attribute grecond-result m k)]
-    [(calc-matrix-product object attribute k n m) object attribute]))
+    (apply ->factorization-record [(calc-matrix-product object attribute k n m) object attribute])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; https://doi.org/10.1109/TKDE.2008.53
@@ -924,4 +932,4 @@
         m (count (first input-matrix))
         object (make-context-from-matrix n k (into [] (flatten (apply mapv vector  (map first asso-result)))))
         attribute (make-context-from-matrix k m (into [] (flatten  (map second asso-result))))]
-    [(calc-matrix-product object attribute k n m) object attribute]))
+    (apply ->factorization-record [(calc-matrix-product object attribute k n m) object attribute])))

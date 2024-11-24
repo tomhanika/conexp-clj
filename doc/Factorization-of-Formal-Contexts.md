@@ -32,6 +32,6 @@ To calculate the factorization we can use the following syntax using the grecond
 Every algorithm except asso and topfiberm need a context and a number k to produce factorizations.
 
 ```clj
-(:context (apply ->factorization-record (topfiberm water-context k tp SR)));; tp is a threshold from 0 to 1, Sr is a search radius 
-(:context (apply ->factorization-record (asso water-context k tp w+ w-)));; tp is a threshold from 0 to 1, w+ determines how positive incidences are weighted, w- determines how negative incidences are weighted
+(:context (topfiberm water-context k tp SR));; tp is a threshold from 0 to 1, Sr is a search radius 
+(:context (asso water-context k tp w+ w-));; tp is a threshold from 0 to 1, w+ determines how positive incidences are weighted, w- determines how negative incidences are weighted
 ``` 

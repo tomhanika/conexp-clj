@@ -6,18 +6,18 @@
 
 (def water-context   (make-context-from-matrix 8 9 [1 1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 1 0 1 1 1 0 0 0 1 1 0 1 0 1 0 0 0 1 1 1 1 1 0 1 0 1 0 0 0 1 1 1 1 0 1 0 0 0 1 0 1 1 1 0 0 0 0 1 0 1 1 0 1 0 0 0]))
 (def water-panda     (make-context-from-matrix 8 9 [1 1 0 0 0 0 1 1 0 1 1 0 0 0 0 1 1 0 1 1 1 0 0 0 1 1 0 1 1 1 0 0 0 1 1 1 1 1 1 1 0 1 0 0 0 1 1 1 1 0 1 0 0 0 1 0 1 1 1 0 0 0 0 1 1 1 1 0 1 0 0 0]))
-(def water-grecond   (make-context-from-matrix 8 9 [1 1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 1 1 1 0 0 0 1 0 0 1 0 1 0 0 0 0 0 0 1 1 0 1 0 1 0 0 0 1 1 1 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 1 0 1 1 0 1 0 0 0]))
+(def water-grecond   (make-context-from-matrix 8 9 [1 1 0 0 0 0 0 0 0 1 1 0 0 0 0 1 1 0 1 1 0 0 0 0 1 1 0 1 0 1 0 0 0 1 1 1 1 1 0 0 0 0 0 0 0 1 1 1 1 0 1 0 0 0 1 0 1 1 1 0 0 0 0 1 0 1 1 0 1 0 0 0]))
 (def water-hyper     (make-context-from-matrix 8 9 [1 1 0 0 0 0 0 0 0 1 1 0 0 0 0 1 1 0 1 1 1 0 0 0 1 1 0 1 0 1 0 0 0 1 1 0 1 1 0 1 0 1 0 0 0 1 1 1 1 0 1 0 0 0 1 0 1 1 0 0 0 0 0 1 0 1 1 0 1 0 0 0]))
 (def water-greess    (make-context-from-matrix 8 9 [1 1 0 0 0 0 0 0 0 1 1 0 0 0 0 1 1 0 1 1 1 0 0 0 1 1 0 1 0 1 0 0 0 1 1 1 1 1 0 0 0 0 0 0 0 1 1 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 1 0 1 0 0 0]))
 (def water-tiling    (make-context-from-matrix 8 9 [1 1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 1 1 1 0 0 0 1 0 0 1 0 1 0 0 0 1 1 1 1 0 0 1 0 1 0 0 0 1 0 1 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 1 0 1 1 0 1 0 0 0]))
 (def water-topfiberm (make-context-from-matrix 8 9 [1 1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 1 1 1 0 0 0 1 0 0 1 0 1 0 0 0 1 0 0 1 1 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0 0 1 0 1 1 0 0 0 0 0 1 0 1 1 0 0 0 0 0]))
 
-(def water-panda-test (apply ->factorization-record (panda water-context 5)))
-(def water-grecond-test (apply ->factorization-record (grecond water-context 5)))
-(def water-hyper-test (apply ->factorization-record (hyper water-context 5)))
-(def water-greess-test (apply ->factorization-record (greess water-context 5)))
-(def water-tiling-test (apply ->factorization-record (tiling water-context 5)))
-(def water-topfiberm-test (apply ->factorization-record (topfiberm water-context 5 1 1)))
+(def water-panda-test (panda water-context 5))
+(def water-grecond-test (grecond water-context 5))
+(def water-hyper-test (hyper water-context 5))
+(def water-greess-test (greess water-context 5))
+(def water-tiling-test (tiling water-context 5))
+(def water-topfiberm-test (topfiberm water-context 5 1 1))
 
 (deftest test-panda
     (is (= water-panda (context water-panda-test))))
@@ -35,4 +35,4 @@
     (is (= water-tiling (context water-tiling-test))))
     
 (deftest test-topfiberm
-    (is (= water-test-topfiberm (context water-test-topfiberm-test))))
+    (is (= water-topfiberm (context water-topfiberm-test))))
