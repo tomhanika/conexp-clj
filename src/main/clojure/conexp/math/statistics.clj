@@ -26,4 +26,23 @@
 
 ;;;
 
+(defn mean [c]
+  "Compute mean value of collection c."
+  (let [thesum (apply + c)
+        thecount (count c)]
+    (if (pos? thecount)
+      (/ thesum thecount)
+      0)))
+
+(defn sd [c]
+  "Compute the standard deviation based on mean function for c."
+  (let [theavg (mean c)
+        squares (for [x c]
+                  (let [deviation (- x theavg)]
+                    (* deviation deviation)))
+        thecount (count c)]
+    (-> (/ (apply + squares)
+           (- thecount 1))
+        (Math/sqrt))))
+
 nil

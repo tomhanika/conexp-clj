@@ -3,6 +3,7 @@
   (:require [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.lattices :refer :all]
+            [conexp.fca.protoconcepts :refer :all]
             [conexp.gui.draw :refer :all]
             [conexp.gui.editors.context-editor.context-editor :refer :all]
             [conexp.gui.plugins.base :refer :all]
@@ -30,6 +31,16 @@
   (when-let [^File file (choose-open-file frame)]
     (let [path (.getPath file),
           thing (read-context path)]
+      (add-tab frame
+               (make-context-editor thing)
+               (str "Context " path)))))
+
+(defn- load-binary-csv-and-go
+  "Loads a named binary csv and  adds a new tab with a context-editor."
+  [frame]
+  (when-let [^File file (choose-open-file frame)]
+    (let [path (.getPath file),
+          thing (read-context path :named-binary-csv)]
       (add-tab frame
                (make-context-editor thing)
                (str "Context " path)))))
@@ -78,6 +89,16 @@
                                     (standard-layout (concept-lattice thing)))
                "Concept-Lattice"))))
 
+(defn- show-protoconcepts-and-go
+  "Shows protoconcepts of current tab."
+  [frame]
+  (with-swing-error-msg frame "Error"
+    (let [thing (get-context-from-panel (current-tab frame))]
+      (add-tab frame
+               (make-lattice-editor frame
+                                    (standard-layout (protoconcepts-order thing)))
+               "Protoconcepts"))))
+
 ;;; The Hooks
 
 (defn- context-menu
@@ -93,6 +114,9 @@
                 (menu-item :text "Load Context",
                            :listen [:action (fn [_]
                                               (load-context-and-go frame))]),
+                (menu-item :text "Load Binary CSV",
+                           :listen [:action (fn [_]
+                                              (load-binary-csv-and-go frame))]),
                 (menu-item :text "Random Context",
                            :listen [:action (fn [_]
                                               (context-and-go frame (rand-context 5 5 0.4)))]),
@@ -116,7 +140,10 @@
                 :separator
                 (menu-item :text "Show Concept Lattice",
                            :listen [:action (fn [_]
-                                              (show-lattice-and-go frame))])]))
+                                              (show-lattice-and-go frame))])
+                (menu-item :text "Show Protoconcepts",
+                           :listen [:action (fn [_]
+                                              (show-protoconcepts-and-go frame))])]))
 
 (let [menu-hash (atom {})]
 

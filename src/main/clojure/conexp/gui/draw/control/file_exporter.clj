@@ -29,11 +29,17 @@
         jpg-filter (FileNameExtensionFilter. "JPEG Files" (into-array ["jpg" "jpeg"])),
         gif-filter (FileNameExtensionFilter. "GIF Files"  (into-array ["gif"])),
         tikz-filter (FileNameExtensionFilter. "TIKZ Files" (into-array ["tikz"]))
+        json-filter (FileNameExtensionFilter. "JSON Files" (into-array ["json"]))
+        fca-filter (FileNameExtensionFilter. "FCA Files" (into-array ["fca"]))
+        layout-filter (FileNameExtensionFilter. "Layout Files" (into-array ["layout"]))
         png-filter (FileNameExtensionFilter. "PNG Files"  (into-array ["png"]))]
     (doto fc
       (.addChoosableFileFilter jpg-filter)
       (.addChoosableFileFilter gif-filter)
       (.addChoosableFileFilter tikz-filter)
+      (.addChoosableFileFilter json-filter)
+      (.addChoosableFileFilter fca-filter)
+      (.addChoosableFileFilter layout-filter)
       (.addChoosableFileFilter png-filter))
     (listen save-button :action
             (fn [_]
@@ -41,9 +47,31 @@
                 (when (= retVal JFileChooser/APPROVE_OPTION)
                   (let [^File file (.getSelectedFile fc)]
                     (with-swing-error-msg frame "Error while saving"
-                      (if (= "tikz" (get-file-extension file))
-                        (write-layout :tikz (get-layout-from-scene scn) (.getAbsolutePath file))
-                          (save-image scn file (get-file-extension file))))))))))
+                      (case (get-file-extension file)
+                        "tikz" (write-layout :tikz (get-layout-from-scene scn) (.getAbsolutePath file))
+                        "json" (write-layout :json (get-layout-from-scene scn) (.getAbsolutePath file))
+                        "fca" (write-layout :fca-style (get-layout-from-scene scn) (.getAbsolutePath file))
+                        "layout" (write-layout :simple (get-layout-from-scene scn) (.getAbsolutePath file))
+                        (save-image scn file (get-file-extension file))))))))))
+  nil)
+
+(defn import-from-file
+  "Installs a file exporter."
+  [frame scn buttons]
+  (let [^JButton load-button (make-button buttons "Import from File"),
+        ^JFileChooser fc (JFileChooser.),
+        layout-filter (FileNameExtensionFilter. "Layout Files" (into-array ["layout"]))]
+    (doto fc
+      (.addChoosableFileFilter layout-filter))
+    (listen load-button :action
+            (fn [_]
+              (let [retVal (.showSaveDialog fc frame)]
+                (when (= retVal JFileChooser/APPROVE_OPTION)
+                  (let [^File file (.getSelectedFile fc)]
+                    (with-swing-error-msg frame "Error while saving"
+                      (let [layout (read-layout (.getAbsolutePath file))]
+                        (update-layout-of-scene scn layout)
+                        (fit-scene-to-layout scn layout)))))))))
   nil)
 
 ;;;

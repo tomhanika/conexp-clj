@@ -8,7 +8,8 @@
 
 (ns conexp.layouts.freese
   (:use conexp.base
-        [conexp.fca.lattices :only (base-set lattice-upper-neighbours)]
+        [conexp.math.algebra :only (base-set)]
+        [conexp.fca.posets   :only (poset-upper-neighbours)]
         [conexp.layouts.util :only (edges)]
         [conexp.layouts.base :only (make-layout-nc)])
   (:import [org.latdraw.diagram Diagram Vertex]))
@@ -16,20 +17,20 @@
 ;;;
 
 (defn interactive-freese-layout
-  "Returns the interactive Freese Layout of the given lattice. This is
+  "Returns the interactive Freese Layout of the given ordered set. This is
   a function of one argument (the projection angle) returning the
   corresponding layout."
-  [lattice]
-  (let [nodes (seq (base-set lattice)),
-        ucs   (map #(or (seq (lattice-upper-neighbours lattice %)) [])
+  [poset]
+  (let [nodes (seq (base-set poset)),
+        ucs   (map #(or (seq (poset-upper-neighbours poset %)) [])
                    nodes),
         ^Diagram
         diag  (Diagram. "" nodes ucs),
-        edges (edges lattice)]
+        edges (edges poset)]
     (.improve diag)
     (fn [angle]
       (.project2d diag ^double angle)
-      (make-layout-nc lattice
+      (make-layout-nc poset
                       (reduce! (fn [map, ^Vertex vertex]
                                  (assoc! map
                                          (.. vertex getUnderlyingElem getUnderlyingObject)
@@ -39,9 +40,9 @@
                       edges))))
 
 (defn freese-layout
-  "Returns the Freese Layout of the given lattice."
-  [lattice]
-  ((interactive-freese-layout lattice) 0.0))
+  "Returns the Freese Layout of the given ordered set."
+  [poset]
+  ((interactive-freese-layout poset) 0.0))
 
 ;;;
 

@@ -10,8 +10,12 @@
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.implications
+        conexp.fca.posets
+        conexp.math.algebra
         conexp.fca.lattices)
-  (:use clojure.test))
+  (:use clojure.test)
+  (:require [clojure.set :refer [difference union subset? intersection]]))
+
 
 ;;; Testing basic datastructure
 
@@ -138,18 +142,6 @@
         (let [zero (lattice-zero lattice)]
           (forall [x (base-set lattice)]
                   ((order lattice) zero x))))))
-
-(deftest test-directly-neighboured?
-  (with-testing-data [lattice testing-data]
-    (forall [x (base-set lattice),
-             y (base-set lattice)]
-      (<=> (directly-neighboured? lattice x y)
-           (and (not= x y)
-                ((order lattice) x y)
-                (forall [z (base-set lattice)]
-                  (=> (and ((order lattice) x z)
-                           ((order lattice) z y))
-                      (or (= x z) (= y z)))))))))
 
 (deftest test-lattice-upper-neighbours
   (with-testing-data [lat testing-data]

@@ -8,7 +8,8 @@
 
 (ns conexp.io.util
   (:use conexp.base)
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.set :refer [intersection]]))
 
 ;;;
 
@@ -111,7 +112,8 @@
 
      (defmulti ~write
        ~(str "Writes " name " to file using format.")
-       {:arglists (list [(symbol "format") (symbol ~name) (symbol "file")]
+       {:arglists (list [(symbol "format") (symbol ~name) (symbol "file") (symbol "& options")]
+                        [(symbol "format") (symbol ~name) (symbol "file")]
                         [(symbol ~name) (symbol "file")])}
        (fn [& args#]
          (cond
@@ -161,9 +163,9 @@
 
      (defmacro ~(symbol (str "define-" name "-output-format"))
        ~(str "Defines output format for " name "s.")
-       [~'input-format [~'thing ~'file] & ~'body]
+       [~'input-format [~'thing ~'file & ~'options] & ~'body]
        `(defmethod ~'~write ~~'input-format
-          [~'~'_ ~~'thing ~~'file]
+          [~'~'_ ~~'thing ~~'file ~@~'options]
           ~@~'body))
 
      nil)))

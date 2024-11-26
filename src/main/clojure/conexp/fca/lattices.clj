@@ -9,38 +9,32 @@
 (ns conexp.fca.lattices
   "Basis datastructure and definitions for abstract lattices."
   (:use conexp.base
-        conexp.fca.contexts))
+        conexp.math.algebra
+        conexp.fca.contexts
+        conexp.fca.posets)
+  (:require [clojure.set :refer [difference union subset? intersection]])
+  (:gen-class))
 
 ;;; Datastructure
-
-(declare order)
 
 (deftype Lattice [base-set order-function inf sup]
   Object
   (equals [this other]
     (and (= (class this) (class other))
          (= (.base-set this) (.base-set ^Lattice other))
-         (let [order-this (order this),
-               order-other (order other)]
+         (let [order-this (.order this),
+               order-other (.order other)]
            (or (= order-this order-other)
                (forall [x (.base-set this)
                         y (.base-set this)]
                  (<=> (order-this x y)
                       (order-other x y)))))))
   (hashCode [this]
-    (hash-combine-hash Lattice base-set)))
-
-(defn base-set
-  "Returns the base set of lattice."
-  [^Lattice lattice]
-  (.base-set lattice))
-
-(defn order
-  "Returns a function of one or two arguments representing the order
-  relation. If called with one argument it is assumed that this
-  argument is a pair of elements."
-  [^Lattice lattice]
-  (let [order-function (.order-function lattice)]
+    (hash-combine-hash Lattice base-set))
+  ;;
+  Order
+  (base-set [this] base-set)
+  (order [this]
     (fn order-fn
       ([pair] (order-function (first pair) (second pair)))
       ([x y] (order-function x y)))))
@@ -54,6 +48,16 @@
   "Returns a function computing the supremum in lattice."
   [^Lattice lattice]
   (.sup lattice))
+
+(defn lattice-base-set
+  "Alternative base-set function to importing conexp.math.algebra"
+  [^Lattice lattice]
+  (base-set lattice))
+
+(defn lattice-order
+  "Alternative order function to importing conexp.math.algebra"
+  [^Lattice lattice]
+  (order lattice))
 
 (defmethod print-method Lattice [^Lattice lattice, ^java.io.Writer out]
   (.write out
@@ -216,27 +220,15 @@
               (if (order a x) a x))
             (base-set lat))))
 
-(defn directly-neighboured?
-  "Checks whether x is direct lower neighbour of y in lattice lat."
-  [lat x y]
-  (let [order (order lat)]
-    (and (not= x y)
-         (order x y)
-         (let [base  (disj (base-set lat) x y)]
-           (forall [z base]
-             (not (and (order x z) (order z y))))))))
-
 (defn lattice-upper-neighbours
   "Returns all direct upper neighbours of x in lattice lat."
   [lat x]
-  (set-of y [y (base-set lat)
-             :when (directly-neighboured? lat x y)]))
+  (poset-upper-neighbours lat x))
 
 (defn lattice-lower-neighbours
   "Returns all direct lower neighbours of y in lattice lat."
   [lat y]
-  (set-of x [x (base-set lat)
-             :when (directly-neighboured? lat x y)]))
+  (poset-lower-neighbours lat y))
 
 (defn lattice-atoms
   "Returns the lattice atoms of lat."
@@ -289,6 +281,24 @@
                 (lattice-inf-irreducibles lat)
                 (fn [x y]
                   ((order lat) [x y]))))
+
+(defmethod poset-context Lattice
+  [lattice]
+  (standard-context lattice))
+
+(defn extract-context-from-bv
+  "Extracts the objects, attributes and incidence of a concept
+  lattice."
+  [lat]
+  (let [c (base-set lat)]
+    (assert (every? (fn [[a b]] (and (set? a) (set? b))) c) "Lattice is not a concept lattice")
+    (let [objects (apply max-key count (map first c))
+          attributes (apply max-key count (map second c))
+          i-fn (fn [a b] 
+                 (some (fn [[ext int]] (and (contains? ext a)
+                                           (contains? int b)))
+                        c))]
+      (make-context objects attributes i-fn))))
 
 
 ;;; TITANIC Implementation
@@ -418,7 +428,7 @@
   (titanic (attributes context)
            (supports context 0)
            1.0
-           <=))
+           <))
 
 (defn titanic-iceberg-intent-seq
   "Computes the iceberg intent seq for given context and minimal
@@ -427,7 +437,7 @@
   (let [intents (titanic (attributes context)
                          (supports context minsupp)
                          1.0
-                         <=)]
+                         <)]
     (if (<= (* (count (objects context)) minsupp)
             (count (attribute-derivation context (attributes context))))
       intents
@@ -451,6 +461,18 @@
                        (fn sup [[_ B] [_ D]]
                          (let [B+D (intersection B D)]
                            [(attribute-derivation ctx B+D) B+D]))))))
+
+(defn generated-sublattice [lat generators]
+  "Computes the sublattice of the specified lattice with the specified set of generators."
+  (let [lat-join (sup lat)
+        lat-meet (inf lat)]
+    (loop [X generators]
+      (let [X-new (union (into #{} (for [a X b X] (lat-join a b)))
+                                     (into #{} (for [a X b X] (lat-meet a b))))]
+        (if (= X X-new) (make-lattice X lat-meet lat-join)
+                        (recur X-new)))))
+)
+
 
 ;;;
 

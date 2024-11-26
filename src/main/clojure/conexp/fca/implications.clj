@@ -11,7 +11,12 @@
   (:require [clojure.core.reducers :as r]
             [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
-            [conexp.fca.contexts :refer :all]))
+            [conexp.fca.closure-systems :refer [next-closed-set-in-family
+                                                all-closed-sets-in-family
+                                                extension-set]]
+            [conexp.fca.contexts :refer :all]
+            [clojure.set :refer [difference union subset? intersection]]
+            [clojure.math.numeric-tower :as nt]))
 
 ;;;
 
@@ -22,7 +27,7 @@
   (hashCode [this]
     (hash-combine-hash Implication premise conclusion))
   (toString [this]
-    (str "(" premise " ⟶ " conclusion ")")))
+    (str "(" premise " ⟶  " conclusion ")")))
 
 (defmulti premise
   "Returns premise of given object."
@@ -465,7 +470,9 @@
 ;;; Convert arbitrary bases to the Canonical Base
 
 (defn stem-base-from-base
-  "For a given set of implications returns its stem-base."
+  "For a given set of implications returns its stem-base, see:
+   'Some Notes on Pseudo-closed Sets'; Rudolph 2007
+   https://link.springer.com/chapter/10.1007%2F978-3-540-70901-5_10"
   [implications]
   (let [implications (pmap (fn [impl]
                              (make-implication
@@ -571,6 +578,22 @@
     :else
     (illegal-argument "Cannot determine support of " (print-str thing))))
 
+(defn absolute-support
+  "Counts the total number of  occurences of an itemset in the context.
+   itemset needs to consist of two entries a and b, both sets of attributes.
+   absolute-support computes the support of the itemset with all attributes in a and the 
+   negation of each attribute in b."
+  [ctx itemset]
+  (let [[attributes neg-attributes] itemset, objects (objects ctx), incidence (incidence-relation ctx)]
+    (max (count (filter identity (for [object objects]
+                                 (every? true? (concat
+                                                (for [attribute attributes]
+                                                  (some? (incident? ctx object attribute)))
+                                                (for [attribute neg-attributes]
+                                                  (not (some? (incident? ctx object attribute)))))))))
+         1    
+)))
+
 (defn confidence
   "Computes the confidence of the given implication in the given context."
   [implication context]
@@ -581,7 +604,29 @@
                                       (union (premise implication) (conclusion implication))))
          premise-count))))
 
-;;
+(defn absolute-confidence
+  "Computes the confidence of an implication using the absolute-support method."
+  [ctx impl]
+  (let [premise (premise impl) conclusion (conclusion impl)]
+    (/ (absolute-support ctx [(union premise conclusion) #{}]) 
+       (absolute-support ctx [premise #{}]))))
+
+(defn odds-ratio 
+  "Computes the odds ratio of an implication using the asupp method."
+  [ctx impl]
+  (let [premise (premise impl) conclusion (conclusion impl)]
+    (/ (* (absolute-support ctx [(union premise conclusion) #{}]) 
+          (absolute-support ctx [#{} (union premise conclusion)]))
+       (* (absolute-support ctx [premise conclusion]) 
+          (absolute-support ctx [conclusion premise]))
+       )))
+
+(defn local-support [ctx impl] 
+  "Computes the local support of an implication by dividing the support of the implication
+   by the support of its conclusion. Uses the absolute-support function."
+  (let [premise (premise impl) conclusion (conclusion impl)]
+    (/ (absolute-support ctx [(union premise conclusion) #{}])
+       (absolute-support ctx [conclusion #{}]))))
 
 (defn- frequent-itemsets
   "Returns all frequent itemsets of context, given minsupp as minimal support."
@@ -771,7 +816,7 @@
     (learn-implications-by-queries (attributes ctx)
                                    intent?
                                    (fn [implications]
-                                     (let [nr-iter (ceil (* (/ ε) (+ (swap! iter-counter inc)
+                                     (let [nr-iter (nt/ceil (* (/ ε) (+ (swap! iter-counter inc)
                                                                      (/ (Math/log (/ δ))
                                                                         (Math/log 2)))))]
                                        (or (some (fn [test-set]
@@ -781,6 +826,54 @@
                                                      test-set))
                                                  (repeatedly nr-iter random-subset))
                                            true))))))
+
+;;; Extension
+
+(defn unitary?
+  "Returns true iff implication is unitary (premise of length one)."
+  [impl]
+  (= 1 (count (premise impl))))
+
+(defn unitary-subset
+  "Returns the subset of unitary implications (premise of length one)."
+  [impls]
+  (set (filter unitary? impls)))
+
+(defn non-unitary-subset 
+  "Returns the subset of non-unitary implications (premise of length other 
+   than one)."
+  [impls]
+  (set (filter #(not (unitary? %)) impls)))
+
+(defn ideal-closed?
+  "Given a base tests if it is ideal-closed.
+   A base is ideal-closed iff for any  A → B the closure of A under all
+   non-unitary implications is closed under all unitary implications."
+  [impls]
+  (let [clop-u   (clop-by-implications (unitary-subset impls))
+        clop-nu  (clop-by-implications (non-unitary-subset impls))]
+    (every? identity
+            (for [impl impls]
+                 (let [nu-closure (clop-nu (premise impl))]
+                   (= nu-closure (clop-u nu-closure)))))))
+
+(defn largest-extension-by-implications
+  "Given a closure system and implications returns the 
+   largest extension of the clop by use of the implications. Algorithm from:
+   'Representations for the largest Extension of a closure system'
+   Karima Ennaoui, Khaled Maafa, Lhouari Nourine 2020
+   https://arxiv.org/pdf/2002.07680.pdf "
+  [closure impls]
+  (let [unitary   (unitary-subset (set impls))
+        extension (atom (set closure))
+        rem-impls (atom (set impls))]
+    (doall (for [impl unitary]
+             (let [clop (clop-by-implications @rem-impls)]
+               (swap! extension 
+                        union
+                        (extension-set @extension clop (first (premise impl))))
+               (swap! rem-impls difference #{impl}))))
+    @extension))
 
 ;;; The End
 

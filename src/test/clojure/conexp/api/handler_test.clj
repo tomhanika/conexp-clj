@@ -255,7 +255,7 @@
                               :conclusion {:type "list"
                                            :data ["2" "1"]}})
         impl (:result (:function result))]
-    (is (= (make-implication (first impl)(second impl))
+    (is (= (make-implication (:premise impl)(:conclusion impl))
            (make-implication ["a" "b"]["2" "1"])))
     (is (= (:type (:function result)) "implication"))))
 
@@ -264,7 +264,7 @@
                                          :name "premise"
                                          :args ["impl1"]}
                               :impl1 {:type "implication"
-                                     :data [["a"] ["b"]]}})
+                                      :data {:premise ["a"] :conclusion ["b"]}}})
         premise (:result (:function result))]
     (is (= premise
            ["a"]))
@@ -279,7 +279,7 @@
                               :ctx1 {:type "context"
                                      :data (write-data context)}})
         impls (:result (:function result))]
-    (is (= (map #(make-implication (first %) (last %)) impls)
+    (is (= (map #(make-implication (:premise %) (:conclusion %)) impls)
            (canonical-base context)))
     (is (= (:type (:function result)) "implication_set"))))
 
@@ -305,24 +305,45 @@
         edge #{[1 2][1 3][2 4][3 4]}
         result (mock-request {:function {:type "function"
                                          :name "make-layout"
-                                         :args ["lattice" "positions" "edges"]}
-                              :lattice {:type "lattice"
+                                         :args ["poset" "positions" "edges"]}
+                              :poset {:type "lattice"
                                         :data (write-data lat)}
                               :positions {:type "map"
                                           :data pos}
                               :edges {:type "list"
                                       :data edge}})
         layout (:result (:function result))]
-    (is (= (make-layout-nc 
-               ;; Lattice object
-               (make-lattice-nc (:nodes (:lattice layout))
-                                (:edges (:lattice layout))) 
-               ;; remove colons from keys
-               (read-data {:type "map" :data (:positions layout)})
-               ;; cast vector to set, as JSON only supports lists
-               (into #{} (:connections layout)))
-           (make-layout lat pos edge)))
-    (is (= (:type (:function result)) "layout"))))
+    (is (= (:type (:function result)) "layout"))
+    (let [nodes (json->nodes layout)
+          positions (json->positions (apply conj (:positions layout)) nodes)
+          connections (json->connections (apply conj (:edges layout)) nodes)]
+      (is (= positions pos))
+      (is (= (set connections) edge)))))
+
+(deftest test-layout-valuations-write
+  (let [lat (make-lattice #{1 2}
+                          #{[1 2] [1 1] [2 2]})
+        pos (hash-map 1 [0 0] 2 [0 1])
+        connections #{[1 2]}
+        result (mock-request {:layout {:type "function"
+                                       :name "make-layout"
+                                       :args ["lattice" "positions" "connections"]}
+                              :lattice {:type "lattice"
+                                        :data (write-data lat)}
+                              :positions {:type "map"
+                                          :data pos}
+                              :connections {:type "list"
+                                            :data connections}
+                              :update-fn {:type "method"
+                                          :data "identity"}
+                              :function {:type "function"
+                                         :name "update-valuations"
+                                         :args ["layout" "update-fn"]}})
+        layout (:result (:function result))]
+    (is (= (:type (:function result)) "layout"))
+    (is (= (:valuations layout)
+           ;; node 1 gets key :0 and node 2 gets key :1
+           [{:0 1} {:1 2}]))))
 
 (deftest test-layout-read
   (let [lat (make-lattice #{1 2 3 4}
@@ -339,46 +360,67 @@
                               :new-pos {:type "map"
                                         :data new-pos}})
         layout (:result (:function result))]
-    (is (= (make-layout-nc 
-               ;; Lattice object
-               (make-lattice-nc (:nodes (:lattice layout))
-                                (:edges (:lattice layout))) 
-               ;; remove colons from keys
-               (read-data {:type "map" :data (:positions layout)})
-               ;; cast vector to set, as JSON only supports lists
-               (into #{} (:connections layout)))
-           (make-layout lat new-pos edge)))
-    (is (= (:type (:function result)) "layout"))))
+    (is (= (:type (:function result)) "layout"))
+    (let [nodes (json->nodes layout)
+          positions (json->positions (apply conj (:positions layout)) nodes)
+          connections (json->connections (apply conj (:edges layout)) nodes)]
+      (is (= positions new-pos))
+      (is (= (set connections) edge)))))
 
-(deftest test-layout-read-write-label
-  (let [lat (make-lattice #{1 2 3 4}
-                          #{[1 2][1 3][2 4][3 4][1 4][1 1][2 2][3 3][4 4]})
-        pos (hash-map 1 [0 0] 2 [-1 1] 3 [1 1] 4 [0 2])
-        new-pos (hash-map 1 [0 0] 2 [-2 1] 3 [1 1] 4 [0 2])
-        edge #{[1 2][1 3][2 4][3 4]}
-        up (hash-map 1 ["a" nil] 2 ["b" nil] 3 ["c" nil] 4 ["d" nil])
-        lo (hash-map 1 ["e" nil] 2 ["f" nil] 3 ["g" nil] 4 ["h" nil])
+;; FCA
+(deftest test-fca-write
+  (let [file "testing-data/digits-fca-2.json"
         result (mock-request {:function {:type "function"
-                                         :name "update-positions"
-                                         :args ["lay" "new-pos"]}
-                              :lay {:type "layout"
-                                    :data (write-data 
-                                           (make-layout lat pos edge up lo))}
-                              :new-pos {:type "map"
-                                        :data new-pos}})
-        layout (:result (:function result))]
-    (is (= (make-layout-nc 
-               ;; Lattice object
-               (make-lattice-nc (:nodes (:lattice layout))
-                                (:edges (:lattice layout))) 
-               ;; remove colons from keys
-               (read-data {:type "map" :data (:positions layout)})
-               ;; cast vector to set, as JSON only supports lists
-               (into #{} (:connections layout))
-               (read-data {:type "map" :data (:upper-labels layout)})
-               (read-data {:type "map" :data (:lower-labels layout)}))
-           (make-layout lat new-pos edge up lo)))
-    (is (= (:type (:function result)) "layout"))))
+                                         :name "read-fca"
+                                         :args ["file"]}
+                              :file {:type "string"
+                                     :data file}})
+        fca (:result (:function result))]
+    (is (= (:type (:function result)) "map"))
+    (let [ctx (json->ctx (:context fca))
+          lat (json->lattice (:lattice fca))
+          impl (map json->implications (:implication_sets fca))
+          file-fca (read-fca file)]
+      (= (:context file-fca) ctx)
+      (= (:lattice file-fca) lat)
+      (= (:implication_sets file-fca) impl))))
+
+(deftest test-fca-read
+  (let [ctx (make-context-from-matrix ["a" "b"] ["x" "y"] [1 0 0 1])
+        lattice (concept-lattice ctx)
+        result-ctx-fca (mock-request {:function {:type "function"
+                                                 :name "map-invert"
+                                                 :args ["fca"]}
+                                      :fca {:type "map"
+                                            :data {":context" {:type "context"
+                                                               :data (write-data ctx)}}}})
+        result-ctx-lat-fca (mock-request {:function {:type "function"
+                                                     :name "map-invert"
+                                                     :args ["fca"]}
+                                          :fca {:type "map"
+                                                :data {":context" {:type "context"
+                                                                   :data (write-data ctx)}
+                                                       ":lattice" {:type "lattice"
+                                                                   :data (write-data lattice)}}}})
+        result-ctx-lat-impl-fca (mock-request {:function {:type "function"
+                                                          :name "map-invert"
+                                                          :args ["fca"]}
+                                               :fca {:type "map"
+                                                     :data {":context" {:type "context"
+                                                                        :data (write-data ctx)}
+                                                            ":lattice" {:type "lattice"
+                                                                        :data (write-data lattice)}
+                                                            ":implication_sets" {:type "list"
+                                                                                 :data #{(write-data (canonical-base ctx))}}}}})]
+    (is (= (:status (:function result-ctx-fca)) 200))
+    (is (= (:type (:function result-ctx-fca)) "map"))
+    (is (= (vals (:result (:function result-ctx-fca))) '("context")))
+    (is (= (:status (:function result-ctx-lat-fca)) 200))
+    (is (= (:type (:function result-ctx-fca)) "map"))
+    (is (= (vals (:result (:function result-ctx-lat-fca))) '("context" "lattice")))
+    (is (= (:status (:function result-ctx-lat-impl-fca)) 200))
+    (is (= (:type (:function result-ctx-lat-impl-fca)) "map"))
+    (is (= (vals (:result (:function result-ctx-lat-impl-fca))) '("context" "lattice" "implication_sets")))))
 
 ;;;
 

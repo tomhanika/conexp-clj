@@ -9,9 +9,16 @@
 (ns conexp.layouts.util
   "Utilities for computing lattice layouts."
   (:require [conexp.base :refer :all]
+            [conexp.math.algebra :refer :all]
             [conexp.fca.lattices :refer :all]
+            [conexp.fca.protoconcepts :refer :all]
+            [conexp.fca.posets :refer :all]
             [conexp.layouts.base :refer :all]
-            [conexp.util.graph :as graph]))
+            [conexp.util.graph :as graph]
+            [conexp.fca.closure-systems :refer :all])
+  (:import [conexp.fca.posets Poset]
+           [conexp.fca.lattices Lattice]
+           [conexp.fca.protoconcepts Protoconcepts]))
 
 ;;;
 
@@ -58,13 +65,14 @@
   "Scales given layout to rectangle [x1 y1], [x2 y2]."
   [[x1 y1] [x2 y2] layout]
   (let [points (seq (positions layout))]
-    (make-layout-nc (lattice layout)
+    (make-layout-nc (poset layout)
                     (zipmap (map first points)
                             (scale-points-to-rectangle [x1 y1] [x2 y2]
                                                        (map second points)))
                     (connections layout)
                     (upper-labels layout)
-                    (lower-labels layout))))
+                    (lower-labels layout)
+                    (valuations layout))))
 
 ;;;
 
@@ -110,11 +118,31 @@
                           cover)))
         H))))
 
-(defn edges
-  "Returns a sequence of pairs of vertices of lattice which are
-  directly neighbored in lattice."
+(defmulti edges
+  "Returns a sequence of pairs of vertices of poset (or lattice) which 
+  are directly neighboured in poset."
+  (fn [poset] (type poset)))
+
+(defn- poset-edges
+  [poset]
+  (into #{} 
+        (filter #(directly-neighboured? poset (first %) (second %)) 
+                (for [x (base-set poset)
+                      y (base-set poset)
+                      :when ((order poset) x y)]
+                  [x y]))))
+
+(defmethod edges Poset
+  [poset]
+  (poset-edges poset))
+
+(defmethod edges Lattice
   [lattice]
   (edges-by-border lattice))
+
+(defmethod edges Protoconcepts
+  [protoconcepts]
+  (poset-edges protoconcepts))
 
 (defn top-down-elements-in-layout
   "Returns the elements in layout ordered top down."
@@ -132,7 +160,9 @@
   "Moves given point [x y] to the next point on the grid given by the
   origin [x_origin y_origin] and the paddings x_pad and y_pad."
   [[x_origin y_origin] x_pad y_pad [x y]]
-  [(+ x_origin (* x_pad (int (+ 0.5 (/ (- x x_origin) x_pad))))),
+  [(if (> x_pad 0)
+     (+ x_origin (* x_pad (int (+ 0.5 (/ (- x x_origin) x_pad)))))
+     (+ x_origin (* x_pad (int (+ 0.5 (- x x_origin)))))),
    (+ y_origin (* y_pad (int (+ 0.5 (/ (- y y_origin) y_pad)))))])
 
 (defn fit-layout-to-grid
@@ -169,8 +199,12 @@
   (let [[x_min y_min x_max y_max] 
           (enclosing-rectangle (vals (positions layout)))
         origin [x_min y_min]
-        x_pad  (/ (- x_max x_min) x_cells)
-        y_pad  (/ (- y_max y_min) y_cells)
+        x_pad (if (> x_cells 0)
+                 (/ (- x_max x_min) x_cells)
+                 1)
+        y_pad (if (> y_cells 0)
+                (/ (- y_max y_min) y_cells)
+                1)
         discrete-layout 
           (fit-layout-to-grid layout origin x_pad y_pad)
         x_fac  (/ 1 x_pad)
@@ -220,6 +254,60 @@
             below   (assoc! below b
                             (into (below b) (below a)))]
         (recur above below (rest edges))))))
+
+;; Layouts for Posets, using Dedekind MacNeille completion
+
+(defn- order-embedding
+  "Return an order embedding using the Dedekind MacNeille completion."
+  [poset]
+  (into {} 
+        (map #(vector [(order-ideal poset #{%}) 
+                       (order-filter poset #{%})]
+                      %) 
+             (base-set poset))))
+
+(defn- poset-layout->lattice-layout
+  "The poset of the  given layout is transformed into a lattice, using the Dedekind MacNeille completion."
+  [layout]
+  (let [poset (poset layout)]
+    (if (= Lattice (type poset))
+      layout
+      (let [lattice (concept-lattice (poset-context poset)) ;; Dedekind MacNeille completion
+            embedding (order-embedding poset)
+            new-base-set (map #(get embedding % %) (base-set lattice))
+            max-y-position (apply max (map second (vals (positions layout))))]
+        (make-layout (merge 
+                      (into {} (map #(vector % [0 (inc max-y-position)])
+                                    new-base-set))
+                      (positions layout))
+                     (map #(vector 
+                            (get embedding (first %) (first %))
+                            (get embedding (second %) (second %)))
+                          (edges lattice)))))))
+
+(defn- lattice-layout->poset-layout
+  "The lattice of the given layout is transformed into a poset. Only the given nodes remain in the layout."
+  [layout nodes]
+  (let [new-positions (into {} (filter #(contains? nodes (key %))
+                                       (positions layout)))
+        new-connections (into [] (filter #(and (contains? nodes (first %)) 
+                                               (contains? nodes (second %)))
+                                         (connections layout)))]
+    (make-layout new-positions new-connections)))
+
+(defn layout-fn-on-poset
+  "The poset of the given layout is transformed into a lattice, using 
+  the Dedekind MacNeille completion. After computing the new layout 
+  with the given layout-fn, the layout is re-transformed to the previous
+  layout by deleting all nodes added in the Dedekind MacNeille completion."
+  ([layout-fn layout]
+   (let [lattice-layout (poset-layout->lattice-layout layout),
+         new-layout (layout-fn lattice-layout)]
+     (lattice-layout->poset-layout new-layout (nodes layout))))
+  ([layout-fn layout args]
+   (let [lattice-layout (poset-layout->lattice-layout layout),
+         new-layout (layout-fn lattice-layout args)]
+     (lattice-layout->poset-layout new-layout (nodes layout)))))
 
 ;;;
 

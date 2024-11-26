@@ -3,8 +3,9 @@
   (:require [conexp.fca.implications :refer [canonical-base]]
             [conexp.base :refer [set-of exists forall => defalias]]
             [conexp.fca.contexts :as contexts]
-            [clojure.set :refer [subset?]]
-            [clojure.math.numeric-tower :refer :all] 
+            [clojure.set :refer [subset? difference union intersection select]]
+            [clojure.math.numeric-tower :refer [expt]]
+            [clojure.math.combinatorics :refer [cartesian-product]]
             )
   (:import [org.apache.commons.math3.distribution
             GammaDistribution 
@@ -164,6 +165,42 @@
   dispatch-random-dirichlet-context)
 
 
+(defn- contains-maximal-contranominal-scale?
+  "Given a formal context K, computes whether K contains the largest contranominal scale, i.e., if there are objects such that each set of |M|-1 attributes is an intent."
+  [K]
+  (let [M (set (contexts/attributes K))
+        G (set (contexts/objects K))]
+    (loop [g (first G)
+           restG (rest G)
+           S (set (for [m M] (difference M #{m})))]
+      (cond (empty? S)
+            true
+            (nil? g)
+            false
+            true
+            (recur (first restG)
+                   (rest restG)
+                   (difference S #{(set (contexts/object-derivation K #{g}))}))))))
+
+
+(defn random-dirichlet-context-no-maximal-contranominal
+  "Try to generate a random dirichlet context that contains no maximal contranominal scale.
+  Try at most 10 times.
+  The parameters are the same as for random-dirichlet-context."
+  [& {:keys [attributes objects base-measure precision-parameter]}]
+  (loop [try 10
+         generatedK (random-dirichlet-context :attributes attributes
+                                        :objects objects
+                                        :base-measure base-measure
+                                        :precision-parameter precision-parameter)]
+    (if (and (contains-maximal-contranominal-scale? generatedK) (< 0 try))
+      (recur (dec try)
+             (random-dirichlet-context :attributes attributes
+                                        :objects objects
+                                        :base-measure base-measure
+                                        :precision-parameter precision-parameter))
+      generatedK)))
+
 (defn- init-base-measure 
   "normalizes base measure"
   [base-measure num_attributes]
@@ -270,5 +307,126 @@
     (contexts/make-context (map inc (range num_objects)) attr  new-incidence)))
 
 
+(defn- filter-full-and-empty-rows-and-columns-once
+  "remove all full columns and full rows and return the respective subcontext"
+  [K]
+  (let [G (contexts/objects K)
+        M (contexts/attributes K)
+        Gfiltered (select (fn [g] (let [gprime (contexts/object-derivation K [g])]
+                                    (and (not= M gprime) (not= #{} gprime))))
+                          G)
+        Mfiltered (select (fn [m] (let [mprime (contexts/attribute-derivation K [m])]
+                                    (and (not= G mprime) (not= #{} mprime))))
+                          M)]
+    (contexts/make-context Gfiltered Mfiltered (contexts/incidence K))))
 
+
+(defn- filter-full-and-empty-rows-and-columns
+  "remove all full columns/rows repeatedly from the context K until each remaining column/row has at least one 'x' and one '.'.
+  return the set of objects and attributes that remain"
+  [K]
+  (loop [G (contexts/objects K)
+         M (contexts/attributes K)
+         K K]
+    (let [Kfiltered (filter-full-and-empty-rows-and-columns-once K)
+          Gfiltered (contexts/objects Kfiltered)
+          Mfiltered (contexts/attributes Kfiltered)]
+      (if (and (= G Gfiltered) (= M Mfiltered))
+        Kfiltered
+        (recur Gfiltered
+               Mfiltered
+               Kfiltered)))))
+
+
+(defn randomize-context-by-edge-swapping
+  "Given K=(G,M,I) swap incidences repeatedly selecting two objects and two attributes and swapping their incidences:
+  |x|.|    |.|x| 
+  |.|x| -> |x|.|
+  i.e., selecting g,h in G and m,n in M such that (g,m),(h,n) in I, (g,n),(h,m) not in I, and then swapping the incidences.
+  "
+  ([K]
+   (randomize-context-by-edge-swapping K (* 10 (count (contexts/incidence-relation K)))))
+  ([K iterations]
+   (assert (>= iterations 0)
+           "need a positive number of iterations")
+   (assert (not= (count (contexts/incidence-relation K)) 0)
+           "context has empty incidence relation; no swaps possible")
+   (assert (not= (count (contexts/incidence-relation K)) (* (count (contexts/objects K))
+                                                            (count (contexts/attributes K))))
+           "context has full incidence relation; no swaps possible")
+   (let [G (contexts/objects K)
+         M (contexts/attributes K)
+         Kswappable (filter-full-and-empty-rows-and-columns K) ; obtain the subcontext where swapping edges is possible (to reduce the occurrence of failed swap attempts)
+         Gfiltered (contexts/objects Kswappable)
+         Mfiltered (contexts/attributes Kswappable)
+         ]
+     (loop [i 0 ;iteration counter
+            j 0 ;failed iteration counter
+            Kswappable Kswappable 
+            I (contexts/incidence-relation K)]
+       (if (>= j (+ 100 iterations))
+         (do (println "Randomization stopped after " i
+                      " successful swaps and " j " failed swap attempts")
+             (contexts/make-context G M I)) 
+         (if (>= i iterations)
+           ;; (do (println "Randomization stopped after " i
+           ;;              " successful swaps and " j " failed swap attempts")
+           ;;     (contexts/make-context G M I)) 
+           (contexts/make-context G M I)
+           (let [g (rand-nth (into [] Gfiltered))
+                 gprime (contexts/object-derivation Kswappable [g])
+                 m (rand-nth (into [] gprime))
+                 n (rand-nth (into [] (difference Mfiltered gprime)))
+                 mprime (contexts/attribute-derivation Kswappable [m])
+                 nprime (contexts/attribute-derivation Kswappable [n])
+                 hpool (intersection (difference Gfiltered mprime)
+                                     nprime)]
+             (if (= #{} hpool) ; if there is no suitable object count the iteration as failed and repeat
+               (recur i
+                      (inc j)
+                      Kswappable
+                      I)
+               (let [h (rand-nth (into [] hpool))]
+                 ;; (println "remove " [g m] [h n])
+                 ;; (println "add " [g n] [h m])
+                 (let [Inew (union (difference I #{[g m] [h n]}) #{[g n] [h m]})]
+                   (recur (inc i)
+                          j
+                          (contexts/make-context Gfiltered Mfiltered Inew)
+                          Inew)))))))))))
+
+(defalias imitate-context-with-edge-swapping randomize-context-by-edge-swapping)
+
+
+(defn randomize-context-by-edge-rewiring
+  "Given K=(G,M,I) randomize the incidence relation by repeatedly doing the following: select (g,m) in I, (h,n) not in I then add (h,n) to I and remove (g,m) from I"
+  ([K]
+   (randomize-context-by-edge-rewiring K (* 10 (count (contexts/incidence-relation K)))))
+  ([K iterations]
+   (assert (>= iterations 0)
+           "need a positive number of iterations")
+   (assert (not= (count (contexts/incidence-relation K)) 0)
+           "context has empty incidence relation; no rewiring possible")
+   (assert (not= (count (contexts/incidence-relation K)) (* (count (contexts/objects K))
+                                                            (count (contexts/attributes K))))
+           "context has full incidence relation; no rewiring possible")
+   (let [G (contexts/objects K)
+         M (contexts/attributes K)]
+     (loop [i 0
+            I (contexts/incidence-relation K)
+            IC (difference (into #{} (map vec (cartesian-product G M)))I)]
+       (if (>= i iterations)
+         (contexts/make-context G M I)
+         (let [[g m] (rand-nth (into [] I))
+               [h n] (rand-nth (into [] IC))]
+           (recur (inc i)
+                  (-> I
+                      (disj [g m])
+                      (conj [h n]))
+                  (-> IC
+                      (disj [h n])
+                      (conj [g m]))
+                  )))))))
+
+(defalias imitate-context-with-edge-rewiring randomize-context-by-edge-rewiring)
 nil
