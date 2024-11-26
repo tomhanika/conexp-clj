@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.fuzzy.fca
+(ns conexp.fuzzy.fca
   "Basic definitions for Fuzzy FCA"
   (:use conexp.base
         conexp.fca.contexts

@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.fuzzy.logics
+(ns conexp.fuzzy.logics
   "Basic definitions for fuzzy logics"
   (:use conexp.base))
 

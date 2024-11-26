@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.fuzzy.sets-test
+(ns conexp.contrib.sets-test
   (:use conexp.contrib.fuzzy.sets
         conexp.contrib.fuzzy.logics)
   (:use clojure.test))

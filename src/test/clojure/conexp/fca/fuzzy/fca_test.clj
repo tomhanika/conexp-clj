@@ -6,7 +6,7 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.fuzzy.fca-test
+(ns conexp.fuzzy.fca-test
   (:use [conexp.base :only (def-)]
         conexp.contrib.fuzzy.sets
         conexp.contrib.fuzzy.logics
