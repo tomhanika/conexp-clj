@@ -6,12 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fuzzy.fca
+(ns conexp.fca.fuzzy.fca
   "Basic definitions for Fuzzy FCA"
   (:use conexp.base
         conexp.fca.contexts
         conexp.fca.many-valued-contexts
-        [conexp.contrib.fuzzy sets logics]))
+        [conexp.fca.fuzzy sets logics]))
 
 ;;;
 

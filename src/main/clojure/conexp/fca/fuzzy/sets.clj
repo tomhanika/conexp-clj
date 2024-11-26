@@ -6,11 +6,12 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fuzzy.sets
+(ns conexp.fca.fuzzy.sets
   "Basic definitions for fuzzy sets"
   (:use conexp.base
-        conexp.contrib.fuzzy.logics)
-  (:require [clojure.math.combinatorics :as comb]))
+        conexp.fca.fuzzy.logics)
+  (:require [clojure.math.combinatorics :as comb]
+            [clojure.set :as set]))
 
 ;;;
 
@@ -130,7 +131,7 @@
   ;; slow, make it faster!
   (make-fuzzy-set (map-by-fn (fn [k]
                                (apply op (map #(% k) fuzzy-sets)))
-                             (apply union (map (comp set keys fuzzy-set-as-hashmap) fuzzy-sets)))))
+                             (apply set/union (map (comp set keys fuzzy-set-as-hashmap) fuzzy-sets)))))
 
 (defmacro define-fuzzy-set-operation
   "Defines a fuzzy set operation by applying op pointwise to all its

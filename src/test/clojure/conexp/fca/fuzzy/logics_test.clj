@@ -7,7 +7,7 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.contrib.logics-test
-  (:use conexp.contrib.fuzzy.logics)
+  (:use conexp.fca.fuzzy.logics)
   (:use clojure.test))
 
 ;;;

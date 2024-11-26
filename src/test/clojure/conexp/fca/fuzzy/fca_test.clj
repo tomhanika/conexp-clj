@@ -8,9 +8,9 @@
 
 (ns conexp.fuzzy.fca-test
   (:use [conexp.base :only (def-)]
-        conexp.contrib.fuzzy.sets
-        conexp.contrib.fuzzy.logics
-        conexp.contrib.fuzzy.fca)
+        conexp.fca.fuzzy.sets
+        conexp.fca.fuzzy.logics
+        conexp.fca.fuzzy.fca)
   (:use clojure.test))
 
 ;;;
