@@ -27,7 +27,7 @@
   (attributes [this] attributes)
   (incidence [this] incidence))
 
-(defn- mv->fuzzy-context-nc
+(defn mv->fuzzy-context-nc
   "Converts a many-valued-context to a fuzzy context, without checking."
   [mv-ctx]
   (Fuzzy-Context. (objects mv-ctx) (attributes mv-ctx) (make-fuzzy-set (incidence mv-ctx))))
