@@ -11,6 +11,13 @@
         conexp.fca.fuzzy.logics)
   (:use clojure.test))
 
+(def fset1 (make-fuzzy-set {1 0.8 2 1.0 3 0.6 4 0.4}))
+(def fset2 (make-fuzzy-set {2 0.6 4 0.4}))
+(def fset2 (make-fuzzy-set {3 0.5 4 0.9 5 0.7}))
+
+(define-fuzzy-set-operation union "Set Union of Fuzzy Sets." fuzzy-union)
+(define-fuzzy-set-operation intersection "Set Intersection of Fuzzy Sets." fuzzy-intersection)
+(define-fuzzy-set-operation difference "Set Difference of Fuzzy Sets." fuzzy-difference)
 ;;;
 
 ;; Fuzzy-Set
@@ -29,6 +36,10 @@
          (set (map make-fuzzy-set
                    (list {} {1 1/2} {2 1/2} {2 1/2, 1 1/2} {2 1} {2 1, 1 1/2}))))))
 
+(deftest fuzzy-set-operations
+
+
+)
 ;; fuzzy-subset?
 ;; subsethood
 

@@ -112,6 +112,7 @@
 (defn fuzzy-set-as-hashmap
   "Returns the hashmap corresponding to the given fuzzy set."
   [fuzzy-set]
+(println fuzzy-set)
   (.hashmap ^Fuzzy-Set fuzzy-set))
 
 (defmethod print-method Fuzzy-Set [set out]
@@ -125,7 +126,7 @@
 
 ;;; Set Operations
 
-(defn- pointwise-fuzzy
+(defn pointwise-fuzzy
   "Returns a fuzzy set where op is done pointwise on the fuzzy sets."
   [op fuzzy-sets]
   ;; slow, make it faster!
