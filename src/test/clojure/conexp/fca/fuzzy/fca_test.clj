@@ -6,12 +6,11 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.fuzzy.fca-test
+(ns conexp.fca.fuzzy.fca-test
   (:use [conexp.base]
         conexp.fca.contexts
         conexp.fca.many-valued-contexts
         conexp.fca.fuzzy.sets
-        conexp.fca.fuzzy.logics
         conexp.fca.fuzzy.fca)
   (:use clojure.test))
 
@@ -50,6 +49,7 @@
                                 0.2 0.9 0.7 0.5 1.0 0.6,
                                 1.0 1.0 0.8 1.0 1.0 0.5]))
 
+(println fctx)
 
 (deftest test-mv-to-fuzzy
 
@@ -61,35 +61,25 @@
         fset2 (make-fuzzy-set {3 0.6 4 0.4})
         fset3 (make-fuzzy-set [5 6])]
 
-    (is (= (with-fuzzy-logic :lukasiewicz (fuzzy-object-derivation fctx fset1))
+    (is (= (fuzzy-object-derivation fctx fset1 lukasiewicz-norm)
            (make-fuzzy-set {1 1.0 4 0.8 6 0.19999999999999996 2 0.3999999999999999 5 0.5})))
-    (is (= (with-fuzzy-logic :goedel (fuzzy-object-derivation fctx fset2))
+    (is (= (fuzzy-object-derivation fctx fset2 goedel-norm)
            (make-fuzzy-set {1 0.2 4 0.5 6 1 3 1 2 1 5 1})))
-    (is (= (with-fuzzy-logic :product (fuzzy-attribute-derivation fctx fset3))
+    (is (= (fuzzy-attribute-derivation fctx fset3 product-norm)
            (make-fuzzy-set {1 0.2 4 0.5 3 0.6 2 0.5}))))
 )
 
+
 (deftest test-fuzzy-implications
+  (let [fset1 (make-fuzzy-set {1 1})
+        fset2 (make-fuzzy-set {2 1})
+        fset3 (make-fuzzy-set {1 1 2 1})
+        fset4 (make-fuzzy-set {4 1})
+        fset5 (make-fuzzy-set {1 0.2 2 0.9})
+        fset6 (make-fuzzy-set {3 1})]
 
-  (is (= (with-fuzzy-logic :product (validity fctx #{1} #{2})) 0.4))
-  (is (= (with-fuzzy-logic :product (validity fctx #{1 2} #{4})) 1))
-  
-)
-
-;;;
-
-;; Fuzzy-Context
-;; make-fuzzy-context
-;; make-fuzzy-context-from-matrix
-
-;;;
-
-;; fuzzy-object-derivation
-;; fuzzy-attribute-derivation
-;; doubly-scale-fuzzy-context
-;; globalization
-;; validity
-
-;;;
-
-nil
+    (is (= (validity fctx fset1 fset2 product-norm) 0.4))
+    (is (= (validity fctx fset3 fset4 product-norm) 1))
+    (is (= (validity fctx fset5 fset6 product-norm) 0))
+    )
+  )

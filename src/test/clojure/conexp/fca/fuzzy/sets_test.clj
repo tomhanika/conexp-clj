@@ -6,43 +6,48 @@
 ;; the terms of this license.
 ;; You must not remove this notice, or any other, from this software.
 
-(ns conexp.contrib.sets-test
-  (:use conexp.fca.fuzzy.sets
-        conexp.fca.fuzzy.logics)
+(ns conexp.fca.fuzzy.sets-test
+  (:use conexp.fca.fuzzy.sets)
   (:use clojure.test))
 
 (def fset1 (make-fuzzy-set {1 0.8 2 1.0 3 0.6 4 0.4}))
 (def fset2 (make-fuzzy-set {2 0.6 4 0.4}))
-(def fset2 (make-fuzzy-set {3 0.5 4 0.9 5 0.7}))
+(def fset3 (make-fuzzy-set {3 0.5 4 0.9 5 0.7}))
 
-(define-fuzzy-set-operation union "Set Union of Fuzzy Sets." fuzzy-union)
-(define-fuzzy-set-operation intersection "Set Intersection of Fuzzy Sets." fuzzy-intersection)
-(define-fuzzy-set-operation difference "Set Difference of Fuzzy Sets." fuzzy-difference)
-;;;
-
-;; Fuzzy-Set
-;; make-fuzzy-set
-;; fuzzy-set-as-hashmap
-;; fuzzy-set?
-
-;;;
-
-;; fuzzy-intersection
-;; fuzzy-union
-;; fuzzy-difference
 
 (deftest test-fuzzy-subsets
   (is (= (set (fuzzy-subsets [0 1/2 1] (make-fuzzy-set {1 1/2 2 1 3 0})))
          (set (map make-fuzzy-set
-                   (list {} {1 1/2} {2 1/2} {2 1/2, 1 1/2} {2 1} {2 1, 1 1/2}))))))
+                   (list {} {1 1/2} {2 1/2} {2 1/2, 1 1/2} {2 1} {2 1, 1 1/2})))))
+
+  (is (fuzzy-subset? (make-fuzzy-set {1 0.5 2 0.3}) (make-fuzzy-set {1 1.0 2 0.5})))
+  (is (fuzzy-subset? (make-fuzzy-set {1 0.3 2 0.7}) (make-fuzzy-set {1 0.3 2 1.0})))
+
+  (is (not (fuzzy-subset? (make-fuzzy-set {1 0.5 2 0.3}) (make-fuzzy-set {1 1.0 2 0.2}))))
+  (is (not (fuzzy-subset? (make-fuzzy-set {1 0.3 2 0.7}) (make-fuzzy-set {1 0.5}))))
+
+  )
 
 (deftest fuzzy-set-operations
 
+  (is (= (fuzzy-union fset1 fset2)
+         (make-fuzzy-set {1 0.8 2 1.0 3 0.6 4 0.4})))
+  (is (= (fuzzy-union fset2 fset3)
+         (make-fuzzy-set {2 0.6 3 0.5 4 0.9 5 0.7})))
+  (is (= (fuzzy-union fset1 fset3)
+         (make-fuzzy-set {1 0.8 2 1.0 3 0.6 4 0.9 5 0.7})))
 
+  (is (= (fuzzy-intersection fset1 fset2)
+         (make-fuzzy-set {2 0.6 4 0.4})))
+  (is (= (fuzzy-intersection fset2 fset3)
+         (make-fuzzy-set {4 0.4})))
+  (is (= (fuzzy-intersection fset1 fset3)
+         (make-fuzzy-set {3 0.5 4 0.4})))
+
+  (is (= (fuzzy-difference fset1 fset2)
+         (make-fuzzy-set {1 0.8 2 0.4 3 0.6})))
+  (is (= (fuzzy-difference fset2 fset3)
+         (make-fuzzy-set {2 0.6})))
+  (is (= (fuzzy-difference fset1 fset3)
+         (make-fuzzy-set {1 0.8 2 1.0 3 0.09999999999999998})))
 )
-;; fuzzy-subset?
-;; subsethood
-
-;;;
-
-nil

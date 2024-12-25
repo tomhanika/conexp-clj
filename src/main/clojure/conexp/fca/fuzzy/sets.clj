@@ -104,7 +104,6 @@
   [vec]
   (make-fuzzy-set (set vec)))
 
-
 (defn fuzzy-set-to-hashmap [fuzzy-set]
   "Returns a Hashmap Mapping each Element in the Fzuuy Set to its Membership Degree."
   (.hashmap ^Fuzzy-Set fuzzy-set))
@@ -112,7 +111,6 @@
 (defn fuzzy-set? [thing]
   "Tests whether the argument is a fuzzy set."
   (instance? Fuzzy-Set thing))
-
 
 ;Set Operations
 (defn fuzzy-intersection [a b]
@@ -138,8 +136,6 @@
         entries (set/union a-entries b-entries)]
     (make-fuzzy-set (into {} (for [x entries] [x (max 0 (- (a x) (b x)))]))))
 )
-
-
 
 (defn fuzzy-subsets [mvalues fset]
   "Receives a collection of membership degrees and a fuzzy set as arguments.

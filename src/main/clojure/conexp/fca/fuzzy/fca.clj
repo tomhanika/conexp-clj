@@ -71,7 +71,6 @@
   [objects attributes values]
   (make-fuzzy-context objects attributes values))
 
-;;;
 (defn- fuzzy-operators [norm]
   "Returns fuzzy operations based on the supplied norm, that are required for more complex fuzzy operations."
   (let [t-norm (first norm)
@@ -116,34 +115,35 @@
   (if (= x 1) 1 0)
   )
 
-(defn fuzzy-subset?
+(defn fuzzy-subset-degree
   "Returns the degree to which fset1 is a subset of fset2. Applies hedge to the truth
   value of an element being in fset1, if given."
   ([fset1 fset2 norm]
-   (subsethood fset1 fset2 norm identity))
+   (fuzzy-subset-degree fset1 fset2 norm identity))
 
   ([fset1 fset2 norm hedge]
    (let [[t-norm residuum f-and f-or f-neg] (fuzzy-operators norm)]
      (reduce #(f-and %1 (residuum (hedge (fset1 %2))
-                                   (fset2 %2)))
+                                  (fset2 %2)))
              1
              (keys fset1))))
   )
 
 (defn validity
-  "Returns the degree to which the implication A ==> B is true in the
-  given fuzzy-context. A and B are fuzzy subsets of the attributes of
-  fuzzy-context."
-  ([fuzzy-context A B]
-     (validity fuzzy-context A B identity))
-  ([fuzzy-context A B hedge]
-     (subsethood (make-fuzzy-set B)
-                 (fuzzy-oprime fuzzy-context
-                               (fuzzy-aprime fuzzy-context
-                                             (make-fuzzy-set A))
-                               hedge))))
+  "Returns the degree to which the implication *fset1* ==> *fset2* is true in the
+  supplied fuzzy context. *fset1* and *fset2* are fuzzy subsets of the attributes of
+  the supplied fuzzy context."
+  ([fctx fset1 fset2 norm]
+   (validity fctx fset1 fset2 norm identity))
+  ([fctx fset1 fset2 norm hedge]
+   (fuzzy-subset-degree (make-fuzzy-set fset2)
+                        (fuzzy-object-derivation fctx
+                                                 (fuzzy-attribute-derivation fctx (make-fuzzy-set fset1) norm)
+                                                 norm
+                                                 hedge)
+                  norm)))
 
-; Pairs of t-norms and residuum
+;Pairs of t-norms and residuum
 (def lukasiewicz-norm [#(max 0 (+ %1 %2 -1)) 
                        #(min 1 (+ 1 (- %1) %2))])
 
@@ -152,100 +152,3 @@
 
 (def product-norm [#(* %1 %2)
                    #(if (<= %1 %2) 1 (/ %2 %1))])
-
-#_
-(defmulti t-norm
-  "Returns the t-norm and it's residuum corresponding to the name given."
-  {:arglists '([(t-norm-name)])}
-  (fn [x & args]
-    (if args
-      (illegal-argument "Wrong number of arguments given.")
-      x)))
-#_
-(defmethod t-norm :default
-  [norm]
-  (illegal-argument "Norm " (str norm) " is not known."))
-#_
-(defmethod t-norm :lukasiewicz
-  [_]
-  [(fn [x y] (max 0 (+ x y -1))),
-   (fn [x y] (min 1 (+ 1 (- x) y)))])
-
-;; (defmethod t-norm :łukasiewicz
-;;   [_]
-;;   (t-norm :lukasiewicz))
-#_
-(defmethod t-norm :goedel
-  [_]
-  [(fn [x y] (min x y)),
-   (fn [x y] (if (<= x y) 1 y))])
-
-;; (defmethod t-norm :gödel
-;;   [_]
-;;   (t-norm :goedel))
-#_
-(defmethod t-norm :product
-  [_]
-  [(fn [x y] (* x y)),
-   (fn [x y] (if (<= x y) 1 (/ y x)))])
-
-;;; Basic Fuzzy Logic
-#_
-(defmacro- define-fuzzy-operator
-  "Defines a fuzzy operator, which throws an
-  UnsupportedOperationException when called. The operator is meant to be
-  rebound."
-  [name arity]
-  `(defn ~name ~(vec (map (fn [_] (gensym)) (range arity)))
-     (unsupported-operation "You need to choose a logic with with-fuzzy-logic.")))
-
-;(define-fuzzy-operator f-star 2)
-;(define-fuzzy-operator f-impl 2)
-;(define-fuzzy-operator f-and 2)
-;(define-fuzzy-operator f-or 2)
-;(define-fuzzy-operator f-neg 1)
-#_
-(defmacro with-fuzzy-logic
-  "For the given t-norm norm and the names of the corresponding operators evaluates body in an
-  dynamic environment where the fuzzy logic for norm is in effect."
-  [norm & body]
-  `(let [[x# y#] (t-norm ~norm)]
-     (with-altered-vars [~'f-star (constantly x#),
-                         ~'f-impl (constantly y#),
-                         ~'f-and  (constantly
-                                   (fn [x# y#] (f-star x# (f-impl x# y#)))),
-                         ~'f-or   (constantly
-                                   (fn [x# y#] (f-and (f-impl (f-impl x# y#) y#)
-                                                      (f-impl (f-impl y# x#) x#)))),
-                         ~'f-neg  (constantly
-                                   (fn [x#] (f-impl x# 0)))]
-       ~@body)))
-
-
-;;;
-
-;;; TODO:
-;;;  - Compute fuzzy concepts
-;;;  - attribute exploration?
-;;;  - non-redundant basis of implications
-;;;  - glinclosure
-
-;;;
-
-nil
-
-(def fctx (make-fuzzy-context [1 2 3 4]
-                               [1 2 3 4 5 6]
-                               [1.0 1.0 0.0 1.0 1.0 0.2,
-                                1.0 0.4 0.3 0.8 0.5 1.0,
-                                0.2 0.9 0.7 0.5 1.0 0.6,
-                                1.0 1.0 0.8 1.0 1.0 0.5]))
-
-(def fset1 (make-fuzzy-set #{1 2}))
-(def fset2 (make-fuzzy-set {2 0.6 1 0.4}))
-(def fset3 (make-fuzzy-set [5 6]))
-
-(println (fuzzy-object-derivation fctx fset1 lukasiewicz-norm))
-
-(println (subsethood fset1 fset2 lukasiewicz-norm))
-
