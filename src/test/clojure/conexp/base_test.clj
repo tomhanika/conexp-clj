@@ -14,6 +14,14 @@
 
 ;;;
 
+(deftest test-near?
+  (are [x y epsilon] (near? x y epsilon)
+    0.0 (/ 0 42) 0.00000001
+    0.6667 (/ 2 3) 0.1
+    3 (double (/ 39 13)) (/ 1 1000)))
+
+;;;
+
 (deftest test-singleton?
   (are [x] (singleton? x)
        #{1}
