@@ -54,38 +54,63 @@
   ([^GScene scene]
      (fit-scene-to-layout scene (get-layout-from-scene scene)))
   ([^GScene scene, layout]
-     (let [[x_min y_min x_max y_max] (enclosing-rectangle (vals (positions layout))),
-           width  (- x_max x_min),
-           height (- y_max y_min),
-           width  (if (zero? width)
-                    1
-                    width),
-           height (if (zero? height)
-                    1
-                    height)]
-       (.setWorldExtent scene
-                        (double (- x_min (* 0.05 width)))
-                        (double (- y_min (* 0.05 height)))
-                        (double (* 1.10 width))
-                        (double (* 1.10 height)))
-       (.unzoom scene)
-       (call-scene-hook scene :image-changed))))
+   (do (add-data-to-scene scene :layout layout)
+       (let [[x_min y_min x_max y_max] (enclosing-rectangle (vals (positions layout))),
+             width  (- x_max x_min),
+             height (- y_max y_min),
+             width  (if (zero? width)
+                      1
+                      width),
+             height (if (zero? height)
+                      1
+                      height)]
+         (.setWorldExtent scene
+                          (double (- x_min (* 0.05 width)))
+                          (double (- y_min (* 0.05 height)))
+                          (double (* 1.10 width))
+                          (double (* 1.10 height)))
+         (.unzoom scene)
+         (call-scene-hook scene :image-changed)))))
 
 (defn update-layout-of-scene
   "Updates layout according to new layout. The underlying lattice must
   not be changed."
   [^GScene scene, layout]
-  (let [pos (positions layout)]
-    (do-nodes [node scene]
-      (let [[x y] (pos (get-name node))]
-        (move-node-unchecked-to node x y)))))
+
+  (do
+    (let [old-layout (-> scene get-layout-from-scene)
+          get-value-fn (fn [L]
+                         (if (or (instance? java.util.concurrent.Future (.valuations L))
+                                 (instance? clojure.lang.Ref (.valuations L)))
+                           (deref (.valuations L))
+                                (.valuations L)))
+          old-value-fn (get-value-fn old-layout)]
+      (if (-> layout get-value-fn empty?)
+        (add-data-to-scene scene :layout
+                           (update-valuations layout old-value-fn))
+        (add-data-to-scene scene :layout layout)))
+    (let [pos (positions layout)]
+      (do-nodes [node scene]
+                (let [[x y] (pos (get-name node))]
+                  (move-node-unchecked-to node x y))))))
+
+(defn update-valuations-of-scene
+  "Updates valutions according to new valuation function. The underlying lattice must
+  not be changed."
+  [^GScene scene, layout]
+  (do (add-data-to-scene scene :layout layout)
+      (do-nodes [node scene]
+                (revaluate-node-unchecked node (valuations layout)))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
   [^GScene scene, layout]
   (doto scene
     (.removeAll)
-    (add-nodes-with-connections (positions layout) (connections layout) (annotation layout))
+    (add-nodes-with-connections (positions layout)
+                                (connections layout)
+                                (annotation layout)
+                                (valuations layout))
     (add-data-to-scene :layout layout)))
 
 

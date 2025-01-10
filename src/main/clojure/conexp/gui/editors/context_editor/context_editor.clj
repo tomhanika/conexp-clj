@@ -16,7 +16,8 @@
             [conexp.gui.editors.context-editor.table-control :refer :all]
             [conexp.gui.editors.context-editor.widgets :refer :all]
             [conexp.gui.util :refer :all]
-            [seesaw.core :refer [button toolbar top-bottom-split]])
+            [seesaw.core :refer [button toolbar top-bottom-split]]
+            [clojure.set :refer [difference union subset? intersection]])
   (:import [java.awt.event ActionEvent KeyEvent]
            [javax.swing Box JTable KeyStroke]))
 

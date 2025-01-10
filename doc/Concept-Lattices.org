@@ -1,0 +1,177 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Concept Lattices in ~conexp-clj~
+
+~conexp-clj~ provides a wide range of functionality to compute concepts of
+formal contexts, and to display the corresponding concept lattice.  Formal
+concepts itself are represented as pairs (vectors) of sets, which corresponds to
+the original mathematical definition.
+
+** Computing Formal Concepts
+
+To compute the concept of a formal context, we use the ~concepts~ function
+
+#+begin_src clojure :exports both
+(concepts (diag-context 4))
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+([#{0 1 3 2} #{}]
+ [#{0} #{0}]
+ [#{} #{0 1 3 2}]
+ [#{1} #{1}]
+ [#{3} #{3}]
+ [#{2} #{2}])
+#+end_src
+
+#+begin_src clojure :exports both
+(concepts (adiag-context 3))
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+([#{0 1 2} #{}]
+ [#{1 2} #{0}]
+ [#{2} #{0 1}]
+ [#{} #{0 1 2}]
+ [#{1} #{0 2}]
+ [#{0 2} #{1}]
+ [#{0} #{1 2}]
+ [#{0 1} #{2}])
+#+end_src
+
+(recall that ~diag-context~ and ~adiag-context~ compute the nomial and
+contra-nomial scale, respectively).  Intents and extends can be obtained from
+combining ~concepts~ with ~map~ and ~first~ or ~second~, but there are also the
+convenience functions ~extents~ and ~intents~ which can do the job
+
+#+begin_src clojure :exports both
+(intents (diag-context 4))
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+(#{} #{2} #{3} #{1} #{0} #{0 1 3 2})
+#+end_src
+
+#+begin_src clojure :exports both
+(map first (concepts (diag-context 4)))
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+(#{0 1 3 2} #{0} #{} #{1} #{3} #{2})
+#+end_src
+
+~conexp-clj~ uses Close-by-One to compute the concepts of a formal context, and
+Next-Closure to compute the intents and extents as returned by ~intents~ and
+~extents~, respectively.
+
+All of ~concepts~, ~intents~, ~extents~ return lazy sequences. There is a parallel version available named ~parallel-concepts~, taking two additional arguments: The number of sequential iterations and the number of processors.
+
+~concepts~ only returns a sequence of concepts of a formal context, but does not
+represent their lattice structure.  For this, one can use ~concept-lattice~
+
+#+begin_src clojure :exports both
+(concept-lattice (adiag-context 4))
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+Lattice on 16 elements.
+#+end_src
+
+Interesting function which work on lattice structures are
+
+- ~lattice-atoms~
+- ~lattice-coatoms~
+- ~lattice-doubly-irreducibles~
+- ~lattice-inf-irreducibles~
+- ~lattice-lower-neighbours~
+- ~lattice-one~
+- ~lattice-sup-irreducibles~
+- ~lattice-upper-neighbours~
+- ~lattice-zero~
+
+Their purpose of these functions should be clear from their names, see the
+corresponding documentation on further details.
+
+** Linear extensions
+
+A linear extension of a concept lattice is linear order of all elements such that the partial order of the lattice is not violated. Each lattice has at least one linear extension. The function ~minimals-plus~ allows to sample from the set of all linear extensions given the concept lattice and the number of samples.
+
+#+begin_src clojure :exports both
+(minimals-plus (concept-lattice (adiag-context 2)) 2)
+#+end_src
+
+#+RESULTS:
+#+begin_src clojure
+([[#{} #{0 1}] 
+  [#{0} #{1}] 
+  [#{1} #{0}] 
+  [#{0 1} #{}]] 
+ [[#{} #{0 1}] 
+  [#{1} #{0}]  
+  [#{0} #{1}]  
+  [#{0 1} #{}]])
+#+end_src
+
+** Displaying Concept Lattices
+
+It has to be noted that ~conexp-clj~ treats lattices as objects that are
+different from their graphical representation.  To draw concep lattices (or even
+arbitrary lattices), ~conexp-clj~ provides the notion of /layouts/.  Layouts are
+essentially mappings from the elements of a lattice to position in ℝ², together
+with the information which nodes are connected and where optional labels should
+be positioned.  See the corresponding code for more information on this.
+
+~conexp-clj~ provides some pre-defined layouts, and more can be defined as
+needed.  While layouts itself are enabled by default, drawing these layouts must
+be enabled explicitly via
+
+#+begin_src clojure :results silent
+(use 'conexp.gui.draw)
+#+end_src
+
+After this, the function ~draw-lattice~ can be used to display a lattice
+
+#+begin_src clojure :results silent
+(draw-lattice (concept-lattice (adiag-context 2)))
+#+end_src
+
+As a result, a window should open which shows the lattice.  In addition, some
+functionality is provided that allows to further improve the image manually.
+
+#+caption: Lattice Editor Example
+[[./images/draw-lattice-01.png]]
+
+The layout used by ~draw-lattice~ is defined in ~standard-layout~.  Other
+layouts can be provided to ~draw-lattice~ as an additional argument
+
+#+begin_src clojure :results silent
+(draw-lattice (concept-lattice (adiag-context 2))
+              :layout-fn inf-additive-layout)
+#+end_src
+
+The layout supports annotation by valuation functions. These can be
+provided by the ~:value-fn~ argument. The following example annotates
+the extent size.
+
+#+begin_src clojure :results silent
+(draw-lattice (concept-lattice (adiag-context 2))
+              :layout-fn inf-additive-layout
+              :value-fn (comp count first))
+#+end_src
+
+The evaluations defined via ~:value-fn~ are displayed after the labels are
+switched on.
+
+#+caption: Lattice Editor Example
+[[./images/draw-lattice-02.png]]
+
+Other interesting functions are ~draw-layout~, which implements the drawing of
+layouts, and ~draw-concept-lattice~, which draws the concept-lattice of a given
+formal context. With ~draw-poset~ and ~draw-protoconcepts~, Ordered Sets and 
+Protoconcepts can be drawn as well.

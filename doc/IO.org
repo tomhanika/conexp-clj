@@ -1,0 +1,130 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Input/Output of Formal Contexts
+
+~conexp-clj~ offers a transparent way of handling input and output for unary
+formal contexts, many-valued contexts, lattices and their layouts.  The main
+idea behind this approach is to free the user from the technical details of IO
+operations by automatically determing the appropriate format.
+
+** Formal Contexts
+
+Suppose that you have a file called ~context~ that contains a unary formal
+context.  Reading in this formal context is then simply done as follows:
+
+#+begin_src clojure
+(read-context "context")
+#+end_src
+
+~conexp-clj~ will try to determine the file format on its own, returning the
+formal contexts on success.  Supported formats for input are
+
+- Burmeister (~:burmeister~)
+- FCAalgs (~:fcalgs~)
+- Colibri (~:colibri~)
+- ConExp (~:conexp~)
+- ~conexp-clj~ simple (~:simple~)
+- CSV (~:csv~)
+- Binary CSV (~:binary-csv~)
+- Galicia (~:galicia~)
+- Anonymous Burmeister (~:anonymous-burmeister~)
+- GraphML (~:graphml~)
+- Named Binary CSV (~:named-binary-csv~) Python Pandas compatible
+- JSON (~:json~) 
+
+See [[Common-FCA-File-Formats-for-Formal-Contexts.org][Common FCA File Formats for Formal Contexts]] for somewhat more details on
+those formats.
+
+You can get the list of available input formats for contexts by executing
+~(list-context-input-formats)~.
+
+In case ~conexp-clj~ fails to determine your format correctly, you can
+explicitly specify it
+
+#+begin_src clojure
+(read-context "context" :burmeister)
+#+end_src
+
+Writing formal contexts to files works in nearly the same way.  Suppose you have
+given your context ~ctx~, then writing it to ~context~ in the Burmeister format
+just works this way
+
+#+begin_src clojure
+(write-context :burmeister ctx "context")
+#+end_src
+
+If you don't specify an output format, a standard output format will be used,
+which you can query with ~get-default-context-format~ and set with
+~set-default-context-format!~.
+
+You can obtain a list of available context output formats by calling
+~list-context-output-formats~ with no arguments.  In addition to the input
+formats for formal contexts, you are also able to export formal contexts
+directly to TeX-code using ~:tex~.
+
+
+** Many-Valued Contexts
+
+IO operations for many-valued contexts works in nearly the same way as for the
+case of unary formal contexts.  The corresponding functions are
+~read-mv-context~ and ~write-mv-context~ with the same order of arguments as in
+the unary case.  You can obtain a list of available input formats with
+~list-mv-context-input-formats~, which gives you ~:simple~ and ~:data-table~;
+~list-mv-context-output-formats~ yields the list of available output formats.
+
+See [[../testing-data/house-votes-84.data][house-votes-84.data]] and [[../testing-data/agaricus-lepiota.data][agaricus-lepiota.data]] for examples of the
+~:data-table~ format.  Note that the first line is always the set of attributes.
+If the following lines have an entry more then the first line, the first entry
+will become the name of the object.  Otherwise, objects will be given arbitrary
+names.
+
+
+** Store a complete FCA data study: context, lattice and implication sets
+
+The FCA data format contains the context and can contain the corresponding lattice 
+and several implication sets as well. The I/O functions are ~read-fca~ and ~write-fca~. The 
+standard format is the ~:json~ format. See [[../testing-data/digits-fca.json][digits-fca.json]] for an example 
+of the format. The json schema of the format is given at [[../../src/main/resources/schemas/fca_schema_v1.0.json][fca_schema_v1.0.json]].
+
+The FCA json format can be read using
+
+#+begin_src clojure
+(read-fca "testing-data/small-fca.json")
+#+end_src
+
+or
+
+#+begin_src clojure
+(read-fca "testing-data/small-fca.json" :json)
+#+end_src
+
+The reading function returns a map containing the keys ~:context~, ~:lattice~ 
+(optional) and ~implication-sets~ (optional), e.g.:
+
+#+begin_src clojure
+{:context
+   |1 2 
+ --+----
+ a |. x 
+ b |x x ,
+ :lattice Lattice on 2 elements.,
+ :implication-sets (((#{} ⟶  #{2})))
+}
+#+end_src
+
+A context consists of objects, attributes and the incidence relations.
+A concept lattice consists of the concepts and an order on those to display the corresponding 
+lattice. Further information on how to work with concept lattices is given at [[Concept-Lattices.org][Concept Lattices]].
+Implication sets are vectors of implications. Further information on implications can be found 
+at [[Implications.org][Implications]]. It is possible that an FCA data study contains more than one implication set.
+
+Writing an FCA to a file works with a map as well. Suppose you have given a context 
+~ctx~, a corresponding lattice ~lat~ and a set of implications ~impl~, e.g. the 
+canonical base of ~ctx~. Writing all information into one file works with
+
+#+begin_src clojure
+(write-fca :json {:context ctx :lattice lat :implication-sets [impl]} "path/to/file.json")
+#+end_src
+
+While the ~:context~ is always required, ~:lattice~ and ~:implication-sets~ are optional.

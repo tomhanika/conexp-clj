@@ -1,19 +1,21 @@
 (ns conexp.fca.graph
-  (:require [ubergraph.core :as uber]
-            [loom.graph :as lg]
+  (:require [loom.graph :as lg]
+            [conexp.math.algebra :as alg]
             [conexp.fca.lattices :as lat]
             [conexp.util.graph :refer :all]
-            [conexp.base :exclude [transitive-closure] :refer :all]))
+            [conexp.base :exclude [transitive-closure] :refer :all]
+            [clojure.set :refer [difference union subset? intersection]]))
 
 
 ;;; graph <-> lattice
-
-(defn lattice->graph
-  "Converts a lattice to a directed graph.
+(defn poset->graph
+  "Converts an ordered set to a directed graph.
   For concepts u,v, there will be an edge u->v iff v <= u.
   (This implies that the only loops will be u->u for all u.)"
-  [lat]
-  (make-digraph-from-condition (lat/base-set lat) (lat/order lat)))
+  [poset]
+  (make-digraph-from-condition (alg/base-set poset) (alg/order poset)))
+
+(defalias lattice->graph poset->graph)
 
 (defn graph->lattice-nc
   "Converts a directed graph to a lattice.
@@ -37,9 +39,9 @@
   "Given a set and a relation, generates a graph of comparable elements.
   For elements u,v, there will be an edge u<->v iff (u,v) or (v,u) in relation.
   Note: If the relation is reflexive, u<->u for all u in the set."
-  ([lattice] (comparability
-               (conexp.fca.lattices/base-set lattice)
-               (conexp.fca.lattices/order lattice)))
+  ([poset] (comparability
+               (alg/base-set poset)
+               (alg/order poset)))
   ([base-set relation]
    (make-graph-from-condition base-set relation)))
 
@@ -48,9 +50,9 @@
   For elements u,v, there will be an edge u<->v iff neither (u,v) nor (v,u) in
   relation.
   Note: If the relation not reflexive, u<->u for all u in the set."
-  ([lattice] (co-comparability
-               (conexp.fca.lattices/base-set lattice)
-               (conexp.fca.lattices/order lattice)))
+  ([poset] (co-comparability
+               (alg/base-set poset)
+               (alg/order poset)))
   ([base-set relation]
    (make-graph-from-condition base-set #(and (not (relation %1 %2))
                                              (not (relation %2 %1))))))
@@ -93,7 +95,11 @@
   (if (empty? (lg/nodes impl-classes))
     true
     (let [an-edge-of-g (first (lg/nodes impl-classes))
-          the-reversed-edge (uber/find-edge g (lg/dest an-edge-of-g) (lg/src an-edge-of-g))]
+          the-reversed-edge (first 
+                              (filter 
+                                #(and (= (lg/dest %) (lg/src an-edge-of-g))
+                                      (= (lg/src %) (lg/dest an-edge-of-g))) 
+                                (lg/edges g)))]
       (if (lg/has-edge? impl-classes an-edge-of-g the-reversed-edge)
         false                                               ; is only comparability-graph if classes of an-edge-of-g and the-reversed-edge are disjoint
         (let [A1 (lg/successors impl-classes an-edge-of-g)  ; includes an-edge-of-g
@@ -111,50 +117,21 @@
   (valid-collection-of-implication-classes?
     g (implication-classes g)))
 
-(defn implication-class
-  "Returns the implication class in `g` containing `edge`.
-
-  `g` must be an undirected graph, `edge` an edge not in `g`, but
-  connecting two vertices of `g`.
-  Then, this method returns the implication class containing `edge`.
-
-  Implication classes are classes of edges for which the directions in a transitive
-  orientation depend on each other, see also `implication-classes`.
-  They are described in Golumbic 1976,
-  \"The Complexity of Comparability Graph Recognition and Coloring\"."
-  ([g edge]
-   (implication-class g #{} #{} #{edge} #{edge}))
-  ([g closed-src closed-dest open-src open-dest]
-   (if (and (empty? open-src) (empty? open-dest))
-     (union closed-src closed-dest)
-     (if (not (empty? open-src))
-       (let [new-edges (set (mapcat (fn [e] (filter (fn [d] (not (lg/has-edge? g (lg/dest e) (lg/dest d))))
-                                                    (uber/find-edges g {:src (lg/src e)})))
-                                    open-src))
-             new-srcs (difference new-edges closed-src open-src)
-             new-dests (difference new-edges closed-dest open-dest)]
-         (recur g (union closed-src open-src) closed-dest new-srcs (union open-dest new-dests)))
-       (let [new-edges (set (mapcat (fn [e] (filter (fn [d] (not (lg/has-edge? g (lg/src e) (lg/src d))))
-                                                    (uber/find-edges g {:dest (lg/dest e)})))
-                                    open-dest))
-             new-srcs (difference new-edges closed-src open-src)
-             new-dests (difference new-edges closed-dest open-dest)]
-         (recur g closed-src (union closed-dest open-dest) (union open-src new-srcs) new-dests))))))
 
 (defn- decompose
   "Recursively decomposes graphs as described in Golumbic 1976,
   \"The Complexity of Comparability Graph Recognition and Coloring\"."
   ([g decomp]
-   (decompose g decomp #(first (lg/edges %))))
-  ([g decomp edge-selection]
+   (decompose g decomp #(first (lg/edges %)) (implication-classes g)))
+  ([g decomp edge-selection impl]
    (if (empty? (lg/edges g))
      decomp
      (let [e (edge-selection g)
-           B (implication-class g e)
-           B-inv (implication-class g (uber/other-direction g e))
+           B (lg/successors impl e)
+           B-inv (map reverse B)
            B-overline (union B B-inv)
            g-next (lg/remove-edges* g B-overline)]
-       (recur g-next (conj decomp [B B-overline]) edge-selection)))))
+       (recur g-next (conj decomp [B B-overline]) edge-selection impl)))))
 
 (defn- graph-decomposition
   "Decomposes graphs as described in Golumbic 1976,
@@ -165,7 +142,6 @@
    (decompose g []
               (fn [gr]
                 (first (concat (filter #(lg/has-edge? gr (lg/src %) (lg/dest %))
-                                       ;(map #(uber/edge-description->edge g %) scheme)
                                        scheme)
                                (lg/edges gr)))))))
 
@@ -181,14 +157,13 @@
   See Golumbic 1976,
   \"The Complexity of Comparability Graph Recognition and Coloring\"."
   ([g scheme]
-   (uber/add-directed-edges*
-     (uber/digraph)
+   (lg/add-edges*
+     (lg/digraph)
      (mapcat first (graph-decomposition g scheme))))
   ([g]
-   (uber/add-directed-edges*
-     (uber/digraph)
+   (lg/add-edges*
+     (lg/digraph)
      (mapcat first (graph-decomposition g)))))
-
 
 ;;; consistency graph
 
@@ -204,8 +179,9 @@
   introduced in g.
 
   See Definition 2.2 in https://doi.org/10.1006/jagm.1998.0974"
-  [g]
-  (let [incompat-nodes
+  [some-g]
+  (let [g         (lg/build-graph (lg/digraph) some-g)
+        incompat-nodes
         (set (map (fn [e] [(lg/src e) (lg/dest e)])
                   (lg/edges (co-comparability (nodes g) #(lg/has-edge? g %1 %2)))))]
     (make-directed-graph incompat-nodes

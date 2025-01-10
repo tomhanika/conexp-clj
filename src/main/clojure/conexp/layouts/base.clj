@@ -9,22 +9,28 @@
 (ns conexp.layouts.base
   "Basic definition of layout datatype"
   (:use conexp.base
+        conexp.math.algebra
         conexp.fca.lattices
-        clojure.pprint))
+        conexp.fca.posets
+        conexp.fca.closure-systems
+        clojure.pprint)
+  (:require
+   [clojure.set :refer [difference subset? superset? intersection]]))
 
 ;;;
 
-(deftype Layout [lattice                ;the underlying lattice
+(deftype Layout [poset                  ;the underlying ordered set
                  positions              ;map mapping nodes to $\RR^2$
                  connections            ;connections as set of pairs
                  upper-labels           ;map mapping nodes to vectors of labels and coordinates/nil
                  lower-labels           ;same
+                 valuations             ;valuations of the poset elements
                  information]           ;ref for technicals
   Object
   (equals [this other]
-    (generic-equals [this other] Layout [lattice positions connections upper-labels lower-labels]))
+    (generic-equals [this other] Layout [poset positions connections upper-labels lower-labels]))
   (hashCode [this]
-    (hash-combine-hash Layout lattice positions connections upper-labels lower-labels)))
+    (hash-combine-hash Layout poset positions connections upper-labels lower-labels)))
 
 (defn layout?
   "Returns true iff thing is a layout."
@@ -33,8 +39,8 @@
 
 ;;; helper functions
 
-(defn- lattice-from-layout-data
-  "Returns lattice represented by layout."
+(defn- poset-from-layout-data
+  "Returns poset or lattice represented by layout."
   [positions connections]
   ;; error checking
   (when-not (map? positions)
@@ -72,35 +78,43 @@
     (when (exists [x (keys positions)] (cycles? x))
       (illegal-argument "Given set of edges is cyclic."))
     ;; actual construction
-    (make-lattice-nc (set (keys positions))
-                     (memo-fn order [x y]
-                       (or (= x y)
-                           (exists [z (uppers x)]
-                             (order z y)))))))
+    (let [poset-base-set (set (keys positions)),
+          poset-order (memo-fn order [x y]
+                               (or (= x y)
+                                   (exists [z (uppers x)]
+                                           (order z y))))]
+      (try (make-lattice poset-base-set
+                         poset-order)
+           (catch IllegalArgumentException _ ;; no lattice order -> create a poset instead of a lattice
+             (make-poset-nc poset-base-set
+                            poset-order))))))
 
 ;;; plain construction
 
 (defn make-layout-nc
   "Creates layout datatype from given information. The arguments thereby have the following meaning:
 
-   - lattice is the underlying lattice of the to be constructed layout
+   - poset is the underlying poset of the to be constructed layout
    - positions is a hash-map, mapping node names to coordinate pairs,
    - connections is a set of pairs of node names denoting edges in the layout,
    - upper-labels is a map mapping nodes to pairs of upper labels and coordinates or nil,
    - lower-labels is like upper-labels for lower-labels.
+   - valuations is a map mapping nodes to their value for some valuation
 
   This functions does only a limited amount of error checking."
-  ([lattice positions connections upper-labels lower-labels]
-     (Layout. lattice positions connections upper-labels lower-labels (ref {})))
-  ([lattice positions connections]
-     (make-layout-nc lattice positions connections nil nil))
+  ([poset positions connections upper-labels lower-labels valuations]
+     (Layout. poset positions connections upper-labels lower-labels valuations (ref {})))
+  ([poset positions connections upper-labels lower-labels]
+     (Layout. poset positions connections upper-labels lower-labels (ref {}) (ref {})))
+  ([poset positions connections]
+     (make-layout-nc poset positions connections nil nil))
   ([positions connections upper-label lower-label]
-     (make-layout-nc (lattice-from-layout-data positions connections)
+     (make-layout-nc (poset-from-layout-data positions connections)
                      positions
                      connections
                      upper-label lower-label))
   ([positions connections]
-     (make-layout-nc (lattice-from-layout-data positions connections)
+     (make-layout-nc (poset-from-layout-data positions connections)
                      positions
                      connections)))
 
@@ -111,25 +125,45 @@
   (assert (= (set (keys new-positions))
              (set (keys (.positions layout))))
           "Nodes must stay the same when updating positions of an already existing layout.")
-  (Layout. (.lattice layout)
+  (Layout. (.poset layout)
            new-positions
            (.connections layout)
            (.upper-labels layout)
            (.lower-labels layout)
+           (.valuations layout)
            (.information layout)))
+
+(defn update-valuations
+  "Updates valuation map in layout."
+  [^Layout layout, val-fn]
+  (let [theposet (.poset layout)
+        elements (base-set theposet)]
+    (Layout. (.poset layout)
+           (.positions layout)
+           (.connections layout)
+           (.upper-labels layout)
+           (.lower-labels layout)
+           (reduce (fn [e x] (assoc e x (val-fn x))) {} elements)
+           (.information layout))))
+
+(defn update-valuations-error
+  "Write \"err\" to each valuation in layout."
+  [^Layout layout]
+  (let [error-fn (fn [_] "err")]
+    (update-valuations layout error-fn)))
 
 ;;; argument verification
 
-(defn- verify-lattice-positions-connections
-  [lattice positions connections]
-  (when-not (= (base-set lattice)
+(defn- verify-poset-positions-connections
+  [poset positions connections]
+  (when-not (= (base-set poset)
                (set (keys positions)))
-    (illegal-argument "Positioned points must be the elements of the given lattice."))
-  (when-not (forall [x (base-set lattice),
-                     y (base-set lattice)]
+    (illegal-argument "Positioned points must be the elements of the given poset."))
+  (when-not (forall [x (base-set poset),
+                     y (base-set poset)]
               (<=> (contains? connections [x y])
-                   (directly-neighboured? lattice x y)))
-    (illegal-argument "The given connections must represent the edges of the given lattice.")))
+                   (directly-neighboured? poset x y)))
+    (illegal-argument "The given connections must represent the edges of the given poset.")))
 
 (defn- check-labels
   [positions labels direction]
@@ -165,38 +199,52 @@
   "Creates layout datatype from given positions hash-map, mapping node
   names to coordinate pairs, and connections, a set of pairs of node
   names denoting edges in the layout."
-  ([lattice positions connections upper-label lower-label]
+  ([poset positions connections upper-label lower-label valuations]
      (let [connections (set connections),
            upper-label (if (fn? upper-label)
-                         (map-by-fn upper-label (base-set lattice))
+                         (map-by-fn upper-label (base-set poset))
                          upper-label),
            lower-label (if (fn? lower-label)
-                         (map-by-fn lower-label (base-set lattice))
-                         lower-label)]
-       (verify-lattice-positions-connections lattice positions connections)
+                         (map-by-fn lower-label (base-set poset))
+                         lower-label)
+           valuations  (if (fn? valuations)
+                         (map-by-fn valuations  (base-set poset))
+                         valuations)]
+       (verify-poset-positions-connections poset positions connections)
        (verify-labels positions upper-label lower-label)
-       (make-layout-nc lattice positions connections upper-label lower-label)))
+       (make-layout-nc poset positions connections upper-label lower-label valuations)))
+  ([poset positions connections upper-label lower-label]
+     (let [connections (set connections),
+           upper-label (if (fn? upper-label)
+                         (map-by-fn upper-label (base-set poset))
+                         upper-label),
+           lower-label (if (fn? lower-label)
+                         (map-by-fn lower-label (base-set poset))
+                         lower-label)]
+       (verify-poset-positions-connections poset positions connections)
+       (verify-labels positions upper-label lower-label)
+       (make-layout-nc poset positions connections upper-label lower-label)))
   ([positions connections upper-label lower-label]
-     (make-layout (lattice-from-layout-data positions connections)
+     (make-layout (poset-from-layout-data positions connections)
                   positions
                   connections
                   upper-label
                   lower-label))
-  ([lattice positions connections]
+  ([poset positions connections]
      (let [connections (set connections)]
-       (verify-lattice-positions-connections lattice positions connections)
-       (make-layout-nc lattice positions connections)))
+       (verify-poset-positions-connections poset positions connections)
+       (make-layout-nc poset positions connections)))
   ([positions connections]
-     (make-layout (lattice-from-layout-data positions connections)
+     (make-layout (poset-from-layout-data positions connections)
                   positions
                   connections)))
 
 ;;; basic functions
 
-(defn lattice
-  "Returns the lattice underlying the given layout."
+(defn poset
+  "Returns the poset underlying the given layout."
   [^Layout layout]
-  (.lattice layout))
+  (.poset layout))
 
 (defn positions
   "Return positions map of layout."
@@ -207,6 +255,11 @@
   "Returns set of connections of layout."
   [^Layout layout]
   (.connections layout))
+
+(defn valuations
+  "Returns stored additional valuations of layout."
+  [^Layout layout]
+  (.valuations layout))
 
 (defn- information
   "Returns stored additional information of layout."
@@ -232,7 +285,9 @@
                       (println "Positions")
                       (pprint (positions layout))
                       (println "Connections")
-                      (pprint (connections layout)))]
+                      (pprint (connections layout))
+                      (println "Valuations")
+                      (pprint (valuations layout)))]
     (.write out str)))
 
 (defn nodes
@@ -263,6 +318,12 @@
   [layout x]
   (when-let [labels (lower-labels layout)]
     (second (labels x))))
+
+(defn valuation
+  "Returns the valuation of x in layout, if it exists. Otherwise returns nil."
+  [layout x]
+  (when-let [vals (valuations layout)]
+    (first (vals x))))
 
 ;;; Layout Auxiliary Functions
 
@@ -308,6 +369,8 @@
   "Returns hash-map mapping the infimum irreducible elements to their
   upper neighbours."
   [layout]
+  (assert (has-lattice-order? (poset layout)) 
+          "The given layout does not contain a lattice.")
   (loop [inf-uppers (transient {}),
          all-uppers (seq (upper-neighbours layout))]
     (if (empty? all-uppers)
@@ -321,12 +384,16 @@
 (def-layout-fn inf-irreducibles
   "Returns the set of infimum irreducible elements of layout."
   [layout]
+  (assert (has-lattice-order? (poset layout)) 
+          "The given layout does not contain a lattice.")
   (set-of v [[v uppers] (upper-neighbours layout),
              :when (singleton? uppers)]))
 
 (def-layout-fn sup-irreducibles
   "Returns the set of supremum irreducible elements of layout."
   [layout]
+  (assert (has-lattice-order? (poset layout))
+          "The given layout does not contain a lattice.")
   (set-of v [[v lowers] (lower-neighbours layout),
              :when (singleton? lowers)]))
 
@@ -339,7 +406,7 @@
 (def-layout-fn context
   "Returns a context whose lattice is represented by this layout."
   [layout]
-  (standard-context (lattice layout)))
+  (poset-context (poset layout)))
 
 (def-layout-fn concept-lattice-layout?
   "Tests whether layout comes from a concept lattice.
@@ -348,8 +415,8 @@
   the layout repects the subset relation in the first component and
   the superset relation in the second component of every node."
   [layout]
-  (let [lattice (lattice layout)]
-    (and (forall [x (base-set lattice)]
+  (let [poset (poset layout)]
+    (and (forall [x (base-set poset)]
            (and (vector? x)
                 (= 2 (count x))
                 (set? (first x))

@@ -9,7 +9,8 @@
 (ns conexp.fca.fast
   "Provides some optimized versions of the standard algorithms of conexp-clj"
   (:require [clojure.core.async :refer [<!! >!! chan close! thread]]
-            [conexp.base :refer [illegal-argument improve-basic-order set-of]]
+            [conexp.base :refer [illegal-argument set-of]]
+            [conexp.fca.closure-systems :refer [improve-basic-order]]
             [conexp.fca.contexts
              :refer
              [attribute-derivation
@@ -18,10 +19,13 @@
               context?
               incidence
               make-context
+              dual-context
               objects]]
             [conexp.fca.implications :refer [make-implication]]
             [conexp.io.util :refer :all]
-            [conexp.util.exec :refer :all])
+            [conexp.util.exec :refer :all]
+            [clojure.set :refer [difference]]
+            [clojure.core.async :as r])
   (:import conexp.fca.implications.Implication
            [java.util ArrayList BitSet LinkedList List ListIterator]
            [clojure.lang IFn PersistentHashSet PersistentVector]))
@@ -115,13 +119,18 @@
   "Returns [object-vector, attribute-vector, object-count,
   attribute-count, incidence-matrix] of context with the obvious
   definitions."
-  [context]
-  (let [object-vector    (vec (objects context)),
-        attribute-vector (vec (attributes context)),
-        object-count     (count object-vector),
-        attribute-count  (count attribute-vector),
-        incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))]
-    [object-vector attribute-vector object-count attribute-count incidence-matrix]))
+  ([context]
+   (let [object-vector    (vec (objects context)),
+         attribute-vector (vec (attributes context)),
+         object-count     (count object-vector),
+         attribute-count  (count attribute-vector),
+         incidence-matrix (to-binary-matrix object-vector attribute-vector (incidence context))]
+     [object-vector attribute-vector object-count attribute-count incidence-matrix]))
+  ([object-vector attribute-vector incidence] ;; if you need a specific order on the objects or attributes
+   (let [object-count     (count object-vector)
+         attribute-count  (count attribute-vector)
+         incidence-matrix (to-binary-matrix object-vector attribute-vector incidence)]
+     [object-vector attribute-vector object-count attribute-count incidence-matrix])))
 
 (defmacro with-binary-context
   "For a given context defines object-vector, attribute-vector,
@@ -129,7 +138,7 @@
   way."
   [context & body]
   `(let [[~'object-vector ~'attribute-vector ~'object-count ~'attribute-count ~'incidence-matrix]
-         (to-binary-context ~context)]
+         (if (context? ~context) (to-binary-context ~context) ~context)]
      ~@body))
 
 (defn bitwise-object-derivation
@@ -155,9 +164,9 @@
 
 ;;; Next Closure
 
-(defn- bitwise-context-attribute-closure
+(defn bitwise-context-attribute-closure
   "Computes the closure of A in the context given by the parameters."
-  [^long object-count, ^long attribute-count, incidence-matrix, ^BitSet A]
+  [incidence-matrix, ^long object-count, ^long attribute-count, ^BitSet A]
   (let [^BitSet A (.clone A),
         ^BitSet B (BitSet.)]
     (dotimes [obj object-count]
@@ -251,9 +260,9 @@
            runner       (fn runner [implications, ^BitSet candidate]
                           (when candidate
                             (let [conclusions (bitwise-context-attribute-closure
+                                               incidence-matrix
                                                object-count
                                                attribute-count
-                                               incidence-matrix
                                                candidate)]
                               (if (not= candidate conclusions)
                                 (let [impl  (Implication. candidate
@@ -313,9 +322,9 @@
           intents (take-while identity
                               (iterate #(next-closed-set attribute-count
                                                          (partial bitwise-context-attribute-closure
+                                                                  incidence-matrix
                                                                   object-count
-                                                                  attribute-count
-                                                                  incidence-matrix)
+                                                                  attribute-count)
                                                          %)
                                        start))]
       (if *concepts-do-conversion*
@@ -586,3 +595,71 @@
   (map #(vector (attribute-derivation context %) ;this is slow
                 %)
        (fast-intents 0 context)))
+
+;;; Parallel Next Closed sets (Agents)
+
+(defn next-intent-iterator
+  "This method is a wrapper for the next-closed-set method. It returns the next closed set given 'start."
+  [[object-vector attribute-vector object-count attribute-count incidence-matrix] start]
+  (let [o-prime (partial bitwise-object-derivation incidence-matrix object-count attribute-count),
+        a-prime (partial bitwise-attribute-derivation incidence-matrix object-count attribute-count),
+        next (next-closed-set attribute-count
+                         (partial bitwise-context-attribute-closure
+                                  object-count
+                                  attribute-count
+                                  incidence-matrix)
+                         start)]
+    next))
+
+
+(defn next-intent-async
+"This method computes all closed sets starting with 'start (exclusive false per default)
+  using next-closure. All closed sets are computed asynchron
+  and are put into the return channel. The used lectic order has
+  'start as lowest elements, such that all computed closed sets
+  contain at least one element of 'start.
+  (Read closed sets with <!! until :fin is returned)"
+
+  ([ctx start & [exlusive]]
+   (let [other-attributes (difference 
+                           (attributes ctx)
+                           start)
+         attr-order (into
+                     (vec start) 
+                     (vec other-attributes))
+         obj-vec (vec (objects ctx))
+         bin-incidence (to-binary-matrix obj-vec attr-order 
+                                         (fn ([a b] ((incidence ctx) [a b]))
+                                           ([[a b]] ((incidence ctx) [a b]))))
+         bin-ctx [obj-vec attr-order (count obj-vec) (count attr-order)  bin-incidence]
+         init (BitSet.)
+         setter (if (not (empty? start))
+                  (.set init (count start) (count attr-order) true))
+
+         first (if exlusive 
+                 (next-intent-iterator bin-ctx init)
+                 (bitwise-object-derivation bin-incidence (count obj-vec) (count attr-order)
+                                            (bitwise-attribute-derivation bin-incidence (count obj-vec) (count attr-order) init)))
+         
+         concepts (r/chan)]
+     (r/go-loop [bin-next first]
+       (if (nil? bin-next) 
+         (r/>! concepts :fin)
+         (do 
+           (r/>! concepts (to-hashset attr-order bin-next))
+           (recur (next-intent-iterator bin-ctx bin-next)))))
+     concepts))
+  ([ctx]
+   (next-intent-async ctx #{})))
+
+(defn next-extent-async
+"This method computes all closed sets starting with 'start (inclusive
+  start) using next-closure. All closed sets are computed asynchron
+  and are put into the return channel. The used lectic order has
+  'start as lowest elements, such that all computed closed sets
+  contain at least one element of 'start.
+  (Read closed sets with <!! until :fin is returned)"
+  ([ctx start]
+   (next-intent-async (dual-context ctx) start))
+  ([ctx]
+   (next-intent-async (dual-context ctx) #{})))

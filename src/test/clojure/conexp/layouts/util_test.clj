@@ -9,14 +9,23 @@
 (ns conexp.layouts.util-test
   (:use conexp.base
         conexp.fca.contexts
+        conexp.math.algebra
         conexp.fca.lattices
+        conexp.fca.posets
+        conexp.layouts.common
+        conexp.layouts.force
         conexp.layouts.util
         conexp.layouts.base)
-  (:use clojure.test))
+  (:use clojure.test)
+  (:import [conexp.fca.posets Poset]))
 
 (def test-lattices
   [(make-lattice [1 2 3 4 5] <=),
    (concept-lattice (rand-context 10 10 0.7))])
+
+(def test-posets
+  [(make-poset [1 2 3 4] (fn [A B] (contains? #{[1 1] [2 2] [3 3] [4 4]
+                                                [1 3] [2 3] [1 4] [2 4]} [A B])))])
 
 (def test-layouts
   [(make-layout {1 [0 0],
@@ -27,7 +36,15 @@
                  2 [-1 1],
                  3 [1 1],
                  4 [0 2]}
-                #{[1 2] [1 3] [2 4] [3 4]})])
+                #{[1 2] [1 3] [2 4] [3 4]})
+   (make-layout {1 [0 0],
+                 2 [-1 1],
+                 3 [1 1]}
+                #{[1 2] [1 3]})
+   (make-layout {2 [-1 1],
+                 3 [1 1],
+                 4 [0 2]}
+                #{[2 4] [3 4]})])
 
 ;;;
 
@@ -44,8 +61,8 @@
              [0 0 100 100]))
       (is (= (connections layout)
              (connections scaled-layout)))
-      (is (= (lattice layout)
-             (lattice scaled-layout)))
+      (is (= (poset layout)
+             (poset scaled-layout)))
       (is (= (upper-labels layout)
              (upper-labels scaled-layout)))
       (is (= (lower-labels layout)
@@ -54,9 +71,9 @@
 ;;;
 
 (deftest test-layers
-  (with-testing-data [lattice test-lattices]
-    (let [<=     (order lattice),
-          layers (layers lattice)]
+  (with-testing-data [poset (apply conj test-lattices test-posets)]
+    (let [<=     (order poset),
+          layers (layers poset)]
       (every? (fn [[lower upper]]
                 (forall [x lower]
                   (exists [y upper]
@@ -64,12 +81,12 @@
               (partition 2 1 layers)))))
 
 (deftest test-edges
-  (with-testing-data [lattice test-lattices]
-    (let [edges (edges lattice)]
-      (forall [a (base-set lattice),
-               b (base-set lattice)]
+  (with-testing-data [poset (apply conj test-lattices test-posets)]
+    (let [edges (edges poset)]
+      (forall [a (base-set poset),
+               b (base-set poset)]
         (<=> (contains? edges [a b])
-             (directly-neighboured? lattice a b))))))
+             (directly-neighboured? poset a b))))))
 
 (deftest test-top-down-elements-in-layout
   (with-testing-data [layout test-layouts]
@@ -117,6 +134,28 @@
            2 #{2 3 4 5},
            1 #{1 2 3 4 5}}])))
 
+;;;
+
+(deftest test-layout-fn-on-poset
+  (let [poset-layouts (filter #(= Poset (type (poset %))) test-layouts)]
+    (with-testing-data [layout poset-layouts]
+      (let [new-layout (layout-fn-on-poset force-layout layout)]
+        (= (nodes layout)
+           (nodes new-layout))
+        (= (connections layout)
+           (connections new-layout))))
+    (with-testing-data [layout poset-layouts]
+      (let [new-layout (layout-fn-on-poset force-layout layout 10)]
+        (= (nodes layout)
+           (nodes new-layout))
+        (= (connections layout)
+           (connections new-layout))))
+    (with-testing-data [layout poset-layouts]
+      (let [new-layout (layout-fn-on-poset to-inf-additive-layout layout)]
+        (= (nodes layout)
+           (nodes new-layout))
+        (= (connections layout)
+           (connections new-layout))))))
 
 ;;;
 

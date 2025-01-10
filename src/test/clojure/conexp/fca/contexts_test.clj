@@ -8,8 +8,11 @@
 
 (ns conexp.fca.contexts-test
   (:use conexp.base
-        conexp.fca.contexts)
-  (:use clojure.test))
+        conexp.fca.contexts
+        conexp.fca.closure-systems
+        clojure.test)
+  (:require [clojure.set :refer [difference union subset? intersection]]
+            [clojure.math.numeric-tower :refer [gcd]]))
 
 ;;;
 
@@ -62,6 +65,8 @@
                                   [3 b] [3 e]
                                   [4 c] [4 d] [4 e]}))
 
+(def test-ctx-09  (make-context 6 6 not=))
+
 (def testing-data [empty-context,
                    test-ctx-01,
                    test-ctx-02,
@@ -71,6 +76,7 @@
                    test-ctx-06,
                    test-ctx-07,
                    test-ctx-08,
+                   test-ctx-09,
                    (make-context #{1 2}
                                  #{1 2}
                                  [[1 1] [1 2]])])
@@ -351,6 +357,13 @@
     (=> (and (<= (count (objects ctx)) 15)
              (<= (count (attributes ctx)) 15))
         (every? #(concept? ctx %) (concepts ctx)))))
+
+(deftest test-parallel-concepts
+  (with-testing-data [ctx testing-data]
+    (=> (and (<= (count (objects ctx)) 15)
+             (<= (count (attributes ctx)) 15))
+        (= (set (parallel-concepts ctx 2 4))
+           (set (concepts ctx))))))
 
 (deftest test-intents
   (with-testing-data [ctx testing-data]
@@ -637,5 +650,5 @@
         (some #(= some-context %) (compatible-subcontexts test-ctx-08)))))
 
 ;;;
-
+;(deftest logical-derivation)
 true

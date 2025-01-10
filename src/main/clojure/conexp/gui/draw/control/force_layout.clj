@@ -1,6 +1,7 @@
 (ns conexp.gui.draw.control.force-layout
   (:require [conexp.gui.draw.control.util :refer :all]
             [conexp.gui.draw.scene-layouts :refer :all]
+            [conexp.gui.draw.scenes :refer :all]
             [conexp.gui.util :refer :all]
             [conexp.layouts.force :refer :all]
             [seesaw.core :refer [listen]])
@@ -40,7 +41,8 @@
             (fn [_]
               (with-swing-error-msg frame "An Error occured."
                 (let [[r a g i] (get-force-parameters)]
-                  (improve-with-force scn i r a g)))))))
+                  (improve-with-force scn i r a g)))
+              (call-scene-hook scn :estimate-grid)))))
 
 ;;;
 

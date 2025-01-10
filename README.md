@@ -1,143 +1,100 @@
-# conexp-clj [![Build Status](https://travis-ci.org/tomhanika/conexp-clj.svg?branch=dev)](https://travis-ci.org/tomhanika/conexp-clj)
+# conexp-clj [![Build Status](https://img.shields.io/github/actions/workflow/status/tomhanika/conexp-clj/run-tests.yaml?branch=dev&label=build)](https://github.com/tomhanika/conexp-clj/actions/workflows/run-tests.yaml) [![Clojars Project](https://img.shields.io/clojars/v/conexp-clj.svg)](https://clojars.org/conexp-clj) [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
 
 This is conexp-clj, a general purpose software tool for [Formal Concept
-Analysis](http://www.upriss.org.uk/fca/fca.html).
-
-The project has been started by Daniel Borchmann under supervision of Christian
-Meschke as part of the DFG project GA 216/10-1.
-
-
-## Features
-
-conexp-clj is a pocket-calculator for Formal Concept Analysis.  Its main purpose is to
-enable nontrivial examples to be computed easily.
-
-conexp-clj features include:
-
-* Basic Operations on Formal Contexts
-* Relational Algebra with Formal Contexts
-* Transparent IO for Formal Contexts (in development)
-* Scaling for Many-Valued Contexts
-* Implicational Theory and Basic Attribute Exploration
-* NextClosure (of course)
-* Computing Luxenburger-Bases and Iceberg Concept Sets
-* IO for Many-Valued Contexts
-* Lattice Layouts and Lattice IO (some...)
-* A bit of Fuzzy-FCA
-* Interface for sage
-
-Note that conexp-clj is not a high-performance tool for Formal Concept Analysis.
-If you want this, check out Uta Priss' [website on FCA
-software](http://www.upriss.org.uk/fca/fcasoftware.html).
-
-
-## Prerequisites
-
-You need
-
-* a Jave Runtime Environment (≥ 1.6)
-* [Leiningen](http://github.com/technomancy/leiningen) (≥ 2.0.0) if you want to run
-  conexp-clj from source
-
-
-## How to Run
-
-The recommended way to run conexp-clj is to download a
-[pre-compiled version](http://algebra20.de/conexp-clj-2.0.0-RC1.jar).
-
-You can then run it through
-
-    $ java -jar conexp-clj-2.0.0-RC1.jar
-
-from you command line (without the "$") to get a bare conexp-clj repl.  If you want to try
-the experimental GUI, you can use
-
-    $ java -jar conexp-clj-2.0.0-RC1.jar -g
-
-instead.
+Analysis](http://www.upriss.org.uk/fca/fca.html).    Its main purpose is to
+enable nontrivial examples to be computed easily, but it can be used for much,
+much more.
 
 
 ## Documentation
 
-The current main source of documentation on conexp-clj is its
-[Wiki](http://github.com/tomhanika/conexp-clj/wiki).  Additionally, for general help on a
-function `f`, you can use the clojure function `doc` with
-
-~~~
-(doc f)
-~~~
-
-For finding functions you may find useful, you can use `find-doc`
-
-~~~
-(find-doc "Whatever you may find useful")
-~~~
-
-Additional Documentation:
-
-- Basic example files: those files cover
-
-  * [basics](doc/examples/01-basics.clj)
-  * [formal contexts](doc/examples/02-contexts.clj)
-  * [lattices](doc/examples/03-lattices.clj)
-  * [IO](doc/examples/04-io.clj)
-  * [implications](doc/examples/05-implications.clj)
-
-  They have been written by Sebastian Böhm.
-
-- Advances example files:
-
-  * [Attribute Exploration](doc/examples/exploration.clj)
-    a demonstration how attribute exploration can be done in conexp-clj.
-  * [Fuzzy FCA](doc/examples/fuzzy.clj),
-    a sample file to show how to use fuzzy FCA with conexp-clj
-  * [Factor Analysis](doc/examples/factor-analysis.clj),
-    a small program that demonstrates how to use conexp-clj for factorizing contexts
-  * [Formal Contexts for Implications](doc/examples/implication-closure.clj),
-    computing a context for a set of implications
-  * A
-    [Formal Context of Functions](doc/examples/function-context.clj),
-    see the paper by Artem Revenko and Sergej Kuznetzov for the CLA2010
-  * [Permutations as Formal Context](doc/examples/permutation-context.clj),
-    computes a context whose concept lattice is isomorphic to the lattice of permutations on the set
-    \{0,...,n\}.
-  * [Tamari Lattice](doc/examples/tamari-lattice.clj),
-    the lattice of all bracketings of n+1 symbols (a.k.a. the Tamari Lattice of parameter n)
-
-- A [Tutorial](doc/icfca-2013-tutorial), given
-  at the 11th International Conference on Formal Concept Analysis
+1. [Getting Started](doc/Getting-Started.org)
+2. Don't Bother Me with Theory, I Want to Do Stuff! (aka: Tutorials)
+   1. [A Gentle Introduction](doc/tutorials/icfca-2013/icfca2013-tutorial-live.org) (ICFCA 2013)
+   2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.org)
+3. A more complete overview over `conexp-clj`
+   1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.org)
+   2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.org)
+   3. [Concept Lattices](doc/Concept-Lattices.org)
+   4. [IO for Formal Contexts](doc/IO.org)
+   5. [Implications](doc/Implications.org)
+   6. [Exploration](doc/Exploration.org)
+   7. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.org)
+4. Example use cases of `conexp-clj`
+   1. [Formal Contexts from Implications](doc/code/implication-closure.clj)
+   2. [A Formal Context of Functions](doc/code/function-context.clj)
+   3. [Context of All Permutations on a Finite Set](doc/code/permutation-context.clj)
+   4. [The Tamari Lattice](doc/code/tamari-lattice.clj)
+   5. [Preconcept Covers](doc/code/covering-preconcepts.clj)
+   6. [Number of Elements of the Free Distributive
+      Lattice](doc/code/free-distributive-lattice.clj)
+   7. [Counting Linear Extensions](doc/code/linear_extensions.clj)
+   8. [Computing Traces in Contexts](doc/code/trace-context.clj)
+   9. [Counting Quasiorders](doc/code/quasiorders.clj)
+   10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
+   11. [Discovering Causal Implications](doc/Causal-Implications.org)
+5. Advanced Topics
+   1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
+   2. [REST-API Usage](doc/REST-API-usage.md)
+   3. [triadic-exploration](doc/Triadic-Exploration.org)
+   4. [protoconcepts](doc/Protoconcepts.org)
+   5. [Incomplete Contexts](doc/IncompleteContexts.org)
+6. [API documentation](doc/API.md)
+7. [Development](doc/Development.org)
 
 
-## Running conexp-clj from source
+## History
 
-To run conexp-clj from source, switch in the source directory of conexp-clj and run
-
-    $ lein deps
-
-This will download any missing jar files needed for conexp-clj to run.  To quickly obtain
-a repl just issue
-
-    $ lein repl
-
-If you want a more sophisticated repl, you may try
-[nrepl.el](http://github.com/kingtim/nrepl.el).
+The project has been started by Daniel Borchmann under supervision of Christian
+Meschke as part of the DFG project GA 216/10-1.  It has since been developed
+further into a general purpose FCA tool by Daniel Borchmann until his departure
+from academia in 2017.  From then on, Tom Hanika took over and is still the
+principal maintainer of `conexp-clj`.
 
 
-## Compilation Instructions for conexp-clj
+## Limitations
 
-To create a standalone zip on your own, just run `make` in the top source directory. This
-will (should) do everything to create a zip archive containing a compiled version of
-conexp-clj. You can also run this compiled version directly by invoking
-./conexp-clj/bin/conexp-clj (after unpacking the .zip file.)
+Note that `conexp-clj` is not a high-performance tool for Formal Concept
+Analysis and may sometimes be considerably slower then comparable tools.  If you
+want more performance, check out Uta Priss' [website on FCA
+software](http://www.upriss.org.uk/fca/fcasoftware.html).
 
 
 ## Contributing Authors
 
 See [AUTHORS.md](AUTHORS.md).
 
+## How to cite `conexp-clj`?
+If you have used `conexp-clj` for your scientific work, the developers
+would appreciate if you use the following reference.
+
+```
+@inproceedings{DBLP:conf/icfca/HanikaH19,
+  author    = {Tom Hanika and
+               Johannes Hirth},
+  editor    = {Diana Cristea and
+               Florence Le Ber and
+               Rokia Missaoui and
+               L{\'{e}}onard Kwuida and
+               Baris Sertkaya},
+  title     = {Conexp-Clj - {A} Research Tool for {FCA}},
+  booktitle = {Supplementary Proceedings of {ICFCA} 2019 Conference and Workshops,
+               Frankfurt, Germany, June 25-28, 2019},
+  series    = {{CEUR} Workshop Proceedings},
+  volume    = {2378},
+  pages     = {70--75},
+  publisher = {CEUR-WS.org},
+  year      = {2019},
+  url       = {http://ceur-ws.org/Vol-2378/shortAT8.pdf},
+  timestamp = {Wed, 12 Feb 2020 16:44:55 +0100},
+  biburl    = {https://dblp.org/rec/conf/icfca/HanikaH19.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
+
 ## License
 
-Copyright ⓒ 2009—2018 Daniel Borchmann
+Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2024 Tom Hanika
 
 Distributed under the Eclipse Public License.
 

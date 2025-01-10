@@ -1,16 +1,16 @@
 (ns conexp.sigmajs.base-test
-  (:require [ubergraph.core :as uber])
+  (:require [loom.graph :as lg])
   (:use clojure.test
         conexp.sigmajs.base))
 
 (deftest test-graph->json
   (is
-    (let [g (uber/digraph [:a :b] [:b :c])]
+    (let [g (lg/digraph [:a :b] [:b :c])]
       (.matches (graph->json g) " *\\{
 ? *\"nodes\": *\\[
 ? *\\{
-? *\"id\": *\":a\",(
-? *\"label\": *\":a\",)?
+? *\"id\": *\":c\",(
+? *\"label\": *\":c\",)?
 ? *\"x\": *\"?[0-9.]+\"?,
 ? *\"y\": *\"?[0-9.]+\"?(,
 ? *\"size: *\"?[0-9.]+\"?)?
@@ -23,8 +23,8 @@
 ? *\"size: *\"?[0-9.]+\"?)?
 ? *\\},
 ? *\\{
-? *\"id\": *\":c\",
-? *\"label\": *\":c\",
+? *\"id\": *\":a\",
+? *\"label\": *\":a\",
 ? *\"x\": *\"?[0-9.]+\"?,
 ? *\"y\": *\"?[0-9.]+\"?(,
 ? *\"size: *\"?[0-9.]+\"?)?
@@ -33,13 +33,13 @@
 ? *\"edges\": *\\[
 ? *\\{
 ? *\"id\": *\".*\",
-? *\"source\": *\":a\",
-? *\"target\": *\":b\"
+? *\"source\": *\":b\",
+? *\"target\": *\":c\"
 ? *\\},
 ? *\\{
 ? *\"id\": *\".*\",
-? *\"source\": *\":b\",
-? *\"target\": *\":c\"
+? *\"source\": *\":a\",
+? *\"target\": *\":b\"
 ? *\\}
 ? *\\]
 ? *\\}"))))
