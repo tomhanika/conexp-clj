@@ -11,9 +11,11 @@
   (:use conexp.base
         conexp.math.algebra
         conexp.fca.contexts
-        conexp.fca.posets)
+        conexp.fca.posets
+        [clojure.math.combinatorics :refer [cartesian-product]])
   (:require [clojure.set :refer [difference union subset? intersection]])
-  (:gen-class))
+)
+
 
 ;;; Datastructure
 
@@ -462,6 +464,11 @@
                          (let [B+D (intersection B D)]
                            [(attribute-derivation ctx B+D) B+D]))))))
 
+(defn lattice-product 
+  [a b]
+  (make-lattice (cartesian-product (base-set a) (base-set b))
+              (fn [x y] (and ((order a) (first x) (first y)) 
+                             ((order b) (last x) (last y))))))
 (defn generated-sublattice [lat generators]
   "Computes the sublattice of the specified lattice with the specified set of generators."
   (let [lat-join (sup lat)
