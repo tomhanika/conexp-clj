@@ -8,7 +8,7 @@ A fuzzy formal context consists of a set of objects, a set of attributes and an 
 A fuzzy formal context can be declared as follows:
 
 
-#+begin_src clojure :results silent
+#+begin_src clojure
 (def fctx (make-fuzzy-context [1 2 3 4]
                               [1 2 3 4 5 6]
                               [1.0 1.0 0.0 1.0 1.0 0.2,
@@ -71,7 +71,7 @@ This set contains the element ~1~ to a degree of 0.6 and ~2~ to a degree of 0.4 
 
 A fuzzy derivation can now be computed as follows:
 
-#+begin_src clojure :results silent
+#+begin_src clojure
 (fuzzy-object-derivation fctx fset lukasiewicz-norm)
 #+end_src
 
@@ -91,7 +91,7 @@ Available options are the ~lukasiewicz-norm~, the ~goedel-norm~ and the ~product
 The degree to which an implication holds in a fuzzy context can be computed using the ~validity~ method:
 
 
-#+begin_src clojure :results silent
+#+begin_src clojure
 (def fset1 (make-fuzzy-set {1 1}))
 (def fset2 (make-fuzzy-set {2 1}))
 
