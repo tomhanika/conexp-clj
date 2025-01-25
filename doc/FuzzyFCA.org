@@ -8,7 +8,7 @@ A fuzzy formal context consists of a set of objects, a set of attributes and an 
 A fuzzy formal context can be declared as follows:
 
 
-#+begin_src clojure
+#+begin_src
 (def fctx (make-fuzzy-context [1 2 3 4]
                               [1 2 3 4 5 6]
                               [1.0 1.0 0.0 1.0 1.0 0.2,
@@ -17,8 +17,7 @@ A fuzzy formal context can be declared as follows:
                                1.0 1.0 0.8 1.0 1.0 0.5]))
 #+end_src
 
-#+RESULTS:
-#+begin_src text
+#+begin_src
   |1   2   3   4   5   6   
 --+------------------------
 1 |1.0 1.0 0   1.0 1.0 0.2 
@@ -29,7 +28,7 @@ A fuzzy formal context can be declared as follows:
 
 It can also be created from an existing many valued context:
 
-#+begin_src clojure :results silent
+#+begin_src
 (def mvctx (make-mv-context [1 2 3 4]
                             [1 2 3 4 5 6]
                             #{[1 1 1.0]
@@ -63,7 +62,7 @@ It can also be created from an existing many valued context:
 On the resulting fuzzy formal context, the fuzzy derivation operations can now be computed.
 These operations rely on fuzzy sets. A fuzzy set contains each element to a certain membership degree:
 
-#+begin_src clojure :results silent
+#+begin_src
 (def fset (make-fuzzy-set {1 0.6 2 0.4}))
 #+end_src
 
@@ -71,12 +70,11 @@ This set contains the element ~1~ to a degree of 0.6 and ~2~ to a degree of 0.4 
 
 A fuzzy derivation can now be computed as follows:
 
-#+begin_src clojure
+#+begin_src
 (fuzzy-object-derivation fctx fset lukasiewicz-norm)
 #+end_src
 
-#+RESULTS:
-#+begin_src text
+#+begin_src
 ([1 1]
  [4 1]
  [6 0.6000000000000001]
@@ -91,14 +89,13 @@ Available options are the ~lukasiewicz-norm~, the ~goedel-norm~ and the ~product
 The degree to which an implication holds in a fuzzy context can be computed using the ~validity~ method:
 
 
-#+begin_src clojure
+#+begin_src
 (def fset1 (make-fuzzy-set {1 1}))
 (def fset2 (make-fuzzy-set {2 1}))
 
 (validity fctx fset1 fset2 product-norm)
 #+end_src
 
-#+RESULTS:
-#+begin_src text
+#+begin_src
 0.4
 #+end_src
