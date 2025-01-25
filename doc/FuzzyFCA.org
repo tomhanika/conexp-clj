@@ -67,9 +67,9 @@ These operations rely on fuzzy sets. A fuzzy set contains each element to a cert
 (def fset (make-fuzzy-set {1 0.6 2 0.4}))
 #+end_src
 
-This set contains the lement ~1~ to a degree of 0.6 and ~2~ to a degree of 0.4 .
+This set contains the element ~1~ to a degree of 0.6 and ~2~ to a degree of 0.4 .
 
-A fuzy derivation can now be computed as follows:
+A fuzzy derivation can now be computed as follows:
 
 #+begin_src clojure :results silent
 (fuzzy-object-derivation fctx fset lukasiewicz-norm)
