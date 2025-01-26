@@ -55,10 +55,15 @@
 
 (defn make-non-monotonic-context 
   (
+   "Creates Non-Monotonic Formal Context from Sets of Objects and Attributes, the Incidence Relation
+    and a Partial Order on the Objects and on the Attributes."
    [objs attrs incidence obj-order attr-order] 
    (make-non-monotonic-context (make-context objs attrs incidence) obj-order attr-order)
    )
   (
+   "Creates Non-Monotonic Formal Context from a Prexisting Formal Context Partial Order 
+   on the Objects and on the Attributes. Empty Collections and Values of nil are Interpreted
+   as the Reflexive, but Otherwise Empty Order Relation."
    [ctx obj-order attr-order]
    (let [objs (objects ctx)
          attrs (attributes ctx)
@@ -73,4 +78,22 @@
 
         (non-monotonic-context. ctx (relation-function objs obj-order) (relation-function attrs attr-order)))
    )
+)
+
+(defn minimized-object-derivation [nctx objs]
+  "Computes the Minimized Object Derivation of the Supplied Set of Objects on the 
+   Supplied Non-Monotonic Formal Context."
+  (let [attr-order (attribute-order nctx)
+        derivation (object-derivation nctx objs)
+        minimal (fn [attr] (not-any? #(attr-order % attr) (disj derivation attr)))]
+    (into #{} (filter minimal derivation)))
+)
+
+(defn minimized-attribute-derivation [nctx attrs]
+  "Computes the Minimized Attribute Derivation of the Supplied Set of Attributes on the 
+   Supplied Non-Monotonic Formal Context."
+  (let [obj-order (object-order nctx)
+        derivation (attribute-derivation nctx attrs)
+        minimal (fn [obj] (not-any? #(obj-order % obj) (disj derivation obj)))]
+    (into #{} (filter minimal derivation)))
 )

@@ -10,8 +10,9 @@
 (def test-incidence #{[1 1] [1 2] [2 3] [2 4] [3 1] [3 3] [4 2] [4 4]})
 (def test-ctx (make-context test-objs test-attrs test-incidence))
 
-(def nctx (make-non-monotonic-context test-ctx = #{[1 1] [2 2] [3 3] [4 4] [5 5] 
-                                                   [1 2] [2 3] [1 3]}))
+(def nctx (make-non-monotonic-context test-ctx = 
+                                               #{[1 1] [2 2] [3 3] [4 4] [5 5] 
+                                                 [1 2] [2 3] [1 3]}))
 
 
 (deftest test-context-creation
@@ -44,3 +45,13 @@
 
 )
 
+(deftest minimized-derivation-test
+
+  (is (= (minimized-object-derivation nctx #{}) #{1 4 5}))
+  (is (= (minimized-object-derivation nctx #{1}) #{1}))
+  (is (= (minimized-object-derivation nctx #{2}) #{3 4}))
+
+  (is (= (minimized-attribute-derivation nctx #{}) #{1 2 3 4 5}))
+  (is (= (minimized-attribute-derivation nctx #{1 2}) #{1}))
+
+)
