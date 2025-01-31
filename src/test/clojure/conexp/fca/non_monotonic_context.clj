@@ -10,48 +10,48 @@
 (def test-incidence #{[1 1] [1 2] [2 3] [2 4] [3 1] [3 3] [4 2] [4 4]})
 (def test-ctx (make-context test-objs test-attrs test-incidence))
 
-(def nctx (make-non-monotonic-context test-ctx = 
-                                               #{[1 1] [2 2] [3 3] [4 4] [5 5] 
-                                                 [1 2] [2 3] [1 3]}))
+(def ectx (make-extended-context test-ctx = 
+                                          #{[1 1] [2 2] [3 3] [4 4] [5 5] 
+                                            [1 2] [2 3] [1 3]}))
 
 
 (deftest test-context-creation
 
   ;non-orders as argument
-  (is (thrown? IllegalArgumentException (make-non-monotonic-context test-ctx #{[1 1]} =)))
-  (is (thrown? IllegalArgumentException (make-non-monotonic-context test-ctx = #{[1 1]})))
+  (is (thrown? IllegalArgumentException (make-extended-context test-ctx #{[1 1]} =)))
+  (is (thrown? IllegalArgumentException (make-extended-context test-ctx = #{[1 1]})))
 
-  (is (thrown? IllegalArgumentException (make-non-monotonic-context test-ctx #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 3]} =)))
-  (is (thrown? IllegalArgumentException (make-non-monotonic-context test-ctx = #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 3]})))
+  (is (thrown? IllegalArgumentException (make-extended-context test-ctx #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 3]} =)))
+  (is (thrown? IllegalArgumentException (make-extended-context test-ctx = #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 3]})))
 
-  (is (thrown? IllegalArgumentException (make-non-monotonic-context test-ctx #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 1]} =)))
-  (is (thrown? IllegalArgumentException (make-non-monotonic-context test-ctx = #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 1]})))
+  (is (thrown? IllegalArgumentException (make-extended-context test-ctx #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 1]} =)))
+  (is (thrown? IllegalArgumentException (make-extended-context test-ctx = #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 1]})))
 
   ;empty orders as input
-  (is (make-non-monotonic-context test-ctx #{} =))
-  (is (make-non-monotonic-context test-ctx = nil))
+  (is (make-extended-context test-ctx #{} =))
+  (is (make-extended-context test-ctx = nil))
 
 
-  (is (= (make-non-monotonic-context test-ctx = =)
-         (make-non-monotonic-context test-objs test-attrs test-incidence = =)))
+  (is (= (make-extended-context test-ctx = =)
+         (make-extended-context test-objs test-attrs test-incidence = =)))
 )
 
 (deftest test-order-conversion
 
-  (is (= (object-order nctx) =))
+  (is (= (object-order ectx) =))
 
-  (is (= (object-order-explicit nctx) #{[2 2] [3 3] [1 1] [5 5] [4 4]}))
-  (is (= (attribute-order-explicit nctx) #{[2 2] [2 3] [3 3] [1 1] [1 3] [5 5] [4 4] [1 2]}))
+  (is (= (object-order-explicit ectx) #{[2 2] [3 3] [1 1] [5 5] [4 4]}))
+  (is (= (attribute-order-explicit ectx) #{[2 2] [2 3] [3 3] [1 1] [1 3] [5 5] [4 4] [1 2]}))
 
 )
 
 (deftest minimized-derivation-test
 
-  (is (= (minimized-object-derivation nctx #{}) #{1 4 5}))
-  (is (= (minimized-object-derivation nctx #{1}) #{1}))
-  (is (= (minimized-object-derivation nctx #{2}) #{3 4}))
+  (is (= (minimized-object-derivation ectx #{}) #{1 4 5}))
+  (is (= (minimized-object-derivation ectx #{1}) #{1}))
+  (is (= (minimized-object-derivation ectx #{2}) #{3 4}))
 
-  (is (= (minimized-attribute-derivation nctx #{}) #{1 2 3 4 5}))
-  (is (= (minimized-attribute-derivation nctx #{1 2}) #{1}))
+  (is (= (minimized-attribute-derivation ectx #{}) #{1 2 3 4 5}))
+  (is (= (minimized-attribute-derivation ectx #{1 2}) #{1}))
 
 )

@@ -16,7 +16,7 @@
                   #(.contains order [%1 %2]))
 )
 
-(defprotocol Non-Monotonic-Context
+(defprotocol Extended-Context
 
   (context [this] "Returns the underlying context.")
 
@@ -26,20 +26,20 @@
   (attribute-order-explicit [this] "Returns an explicit set representation of the attribute order order.")
 )
 
-(deftype non-monotonic-context [ctx object-order attribute-order]
+(deftype extended-context [ctx object-order attribute-order]
 
   Object
   (equals [this other]
-    (generic-equals [this other] non-monotonic-context [ctx object-order attribute-order]))
+    (generic-equals [this other] extended-context [ctx object-order attribute-order]))
   (hashCode [this]
-    (hash-combine-hash non-monotonic-context ctx object-order attribute-order))
+    (hash-combine-hash extended-context ctx object-order attribute-order))
 
   Context
   (objects [this] (objects ctx))
   (attributes [this] (attributes ctx))
   (incidence [this] (incidence ctx))
 
-  Non-Monotonic-Context
+  Extended-Context
   (context [this] ctx)
   (object-order [this] object-order)
   (attribute-order [this] attribute-order)
@@ -47,24 +47,22 @@
   (attribute-order-explicit [this] (relation-set (attributes this) attribute-order))
 )
 
-(defmethod print-method non-monotonic-context [nctx out]
+(defmethod print-method extended-context [ectx out]
   (.write ^java.io.Writer out
-          ^String (context-to-string nctx))
+          ^String (context-to-string ectx))
 )
 
 
-(defn make-non-monotonic-context 
-  (
-   "Creates Non-Monotonic Formal Context from Sets of Objects and Attributes, the Incidence Relation
+(defn make-extended-context 
+  ([objs attrs incidence obj-order attr-order]
+   "Creates Extended Formal Context from Sets of Objects and Attributes, the Incidence Relation
     and a Partial Order on the Objects and on the Attributes."
-   [objs attrs incidence obj-order attr-order] 
-   (make-non-monotonic-context (make-context objs attrs incidence) obj-order attr-order)
+   (make-extended-context (make-context objs attrs incidence) obj-order attr-order)
    )
-  (
-   "Creates Non-Monotonic Formal Context from a Prexisting Formal Context Partial Order 
+  ([ctx obj-order attr-order]
+   "Creates Extended Formal Context from a Pre-existing Formal Context Partial Order 
    on the Objects and on the Attributes. Empty Collections and Values of nil are Interpreted
    as the Reflexive, but Otherwise Empty Order Relation."
-   [ctx obj-order attr-order]
    (let [objs (objects ctx)
          attrs (attributes ctx)
          obj-order (if (or (nil? obj-order) 
@@ -76,24 +74,25 @@
          obj-poset (make-poset objs (relation-function objs obj-order));convert to poset to verify ordering
          attr-poset (make-poset attrs (relation-function attrs  attr-order))];convert to poset to verify ordering
 
-        (non-monotonic-context. ctx (relation-function objs obj-order) (relation-function attrs attr-order)))
+        (extended-context. ctx (relation-function objs obj-order) (relation-function attrs attr-order)))
    )
 )
 
-(defn minimized-object-derivation [nctx objs]
+(defn minimized-object-derivation [ectx objs]
   "Computes the Minimized Object Derivation of the Supplied Set of Objects on the 
-   Supplied Non-Monotonic Formal Context."
-  (let [attr-order (attribute-order nctx)
-        derivation (object-derivation nctx objs)
+   Supplied Extended Formal Context."
+  (let [attr-order (attribute-order ectx)
+        derivation (object-derivation ectx objs)
         minimal (fn [attr] (not-any? #(attr-order % attr) (disj derivation attr)))]
     (into #{} (filter minimal derivation)))
 )
 
-(defn minimized-attribute-derivation [nctx attrs]
+(defn minimized-attribute-derivation [ectx attrs]
   "Computes the Minimized Attribute Derivation of the Supplied Set of Attributes on the 
-   Supplied Non-Monotonic Formal Context."
-  (let [obj-order (object-order nctx)
-        derivation (attribute-derivation nctx attrs)
+   Supplied Extended Formal Context."
+  (let [obj-order (object-order ectx)
+        derivation (attribute-derivation ectx attrs)
         minimal (fn [obj] (not-any? #(obj-order % obj) (disj derivation obj)))]
     (into #{} (filter minimal derivation)))
 )
+
