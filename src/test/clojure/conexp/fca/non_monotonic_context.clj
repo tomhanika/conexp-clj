@@ -55,3 +55,10 @@
   (is (= (minimized-attribute-derivation ectx #{1 2}) #{1}))
 
 )
+
+(deftest test-conditional
+
+  (is (respects? ectx #{1 2} #{3 4}))
+  (is (respects? ectx #{3 4} #{1 2 5}))
+  (is (not (respects? ectx #{1} #{2})))
+)

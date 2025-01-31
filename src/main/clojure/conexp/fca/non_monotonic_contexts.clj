@@ -96,3 +96,9 @@
     (into #{} (filter minimal derivation)))
 )
 
+(defn respects? [ectx A B]
+  "Verifies Whether the Supplied Extended Formal Context Respects the Non-monotonic 
+   Conditional A -> ¬ B."
+  (= (set/intersection (minimized-attribute-derivation ectx A) (attribute-derivation ectx B)) #{})
+
+)
