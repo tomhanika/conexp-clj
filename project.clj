@@ -8,7 +8,7 @@
 
 
 
-(defproject conexp-clj "2.7.0-SNAPSHOT"
+(defproject conexp-clj "2.7.0"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
   :url "http://github.com/tomhanika/conexp-clj/"
