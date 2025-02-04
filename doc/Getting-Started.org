@@ -222,3 +222,24 @@ conexp.fca.implications/parallel-canonical-base-from-clop
   predicate.
 nil
 #+end_src
+
+** Console Client
+
+~brunt~ is a standalone console application that supports some ~conexp-clj~ functions and can conveniently be run from the command line.
+It can be downloaded here:	[[https://github.com/tomhanika/brunt]]
+
+Functions can be executed like this:
+
+#+begin_src clojure :results silent
+$ java -jar builds/uberjar/brunt-0.1.0.jar -f draw-concept-lattice testing-data/living-beings-and-water.ctx
+#+end_src
+
+For an overview of all supported functions and their parameters run:
+#+begin_src clojure :results silent
+$ java -jar brunt-0.1.0.jar -h
+#+end_src
+
+The ~brunt~ repository provides a detailed documentation.
+
+
+
