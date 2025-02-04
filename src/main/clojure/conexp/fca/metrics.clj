@@ -788,7 +788,65 @@
 ;;   )
 
 
+;;; From here metrics about two formal contexts
 
+
+(defn set-based-minkowski-distance
+  " This function implements a set based minkowski distance function, as used by Bazin and Kahn (https://hal.science/hal-04475242)."
+  ([X Y]
+   (set-based-minkowski-distance X Y 2))
+  ([X Y p]
+   (assert (or (not (empty? X)) (not (empty? Y))) "Not X and Y can be empty!")
+   (let [isect (count (intersection X Y))
+         xcard (count X)
+         ycard (count Y)
+         x_m_isect_p (expt (- xcard isect) p)
+         y_m_isect_p (expt (- ycard isect) p)
+         p_root (/ 1 p)
+         psqr (expt (+ x_m_isect_p y_m_isect_p)  p_root)]
+     (/ psqr (+ isect psqr)))))
+
+(defn lattice-object-distance
+  "This function implements the `lattice object distance` as defined by Bazin and Kahn (https://hal.science/hal-04475242)."
+  ([c1 c2]
+   (lattice-object-distance c1 c2 2 2))
+  ([c1 c2 q]
+   (lattice-object-distance c1 c2 2 q))
+  ([c1 c2 q p]
+   (let [O (objects c1)
+         I1 (fn [x] (object-derivation c1 #{x}))
+         I2 (fn [x] (object-derivation c2 #{x}))]
+     (/
+      (expt
+       (reduce + (map (fn [o]
+                        (expt 
+                         (expt
+                          (+ (expt (- (expt 2 (count (I1 o)))
+                                      (expt 2 (count (intersection (I1 o) (I2 o))))) q)
+                             (expt (- (expt 2 (count (I2 o)))
+                                      (expt 2 (count (intersection (I1 o) (I2 o))))) q))
+                          (/ 1 q))
+                         p)) O))
+       (/ 1 p))
+      (expt (count O) (/ 1 p))))))
+
+(defn lattice-attribute-distance
+  "This function implements the `lattice object distance` as defined by Bazin and Kahn (https://hal.science/hal-04475242)."
+  ([c1 c2]
+   (lattice-attribute-distance c1 c2 2 2))
+  ([c1 c2 q]
+   (lattice-attribute-distance c1 c2 q 2))
+  ([c1 c2 q p]
+   (lattice-object-distance (dual-context c1) (dual-context c2) q p)))
+
+(defn conceptual-distance 
+  "This function implements the `lattice object distance` as defined by Bazin and Kahn (https://hal.science/hal-04475242)."
+  ([c1 c2]
+  (conceptual-distance c1 c2 2 2))
+  ([c1 c2 q]
+  (conceptual-distance c1 c2 q 2))
+  ([c1 c2 q p]
+  (min (lattice-object-distance c1 c2 q p) (lattice-attribute-distance c1 c2 q p))))
 
 
 

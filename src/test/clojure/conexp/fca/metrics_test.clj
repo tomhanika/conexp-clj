@@ -203,6 +203,67 @@
         e (rand-nth (into [] (lattice-base-set cl)))]
     (is (= (elements-modularity cl e) 1))))
 
+(deftest test-set-base-minkowski-distance
+  (let [ctx test-ctx-09]
+    (is (== (set-based-minkowski-distance (objects ctx)
+                                          (objects ctx)) 0))
+    (is (== (set-based-minkowski-distance (objects ctx)
+                                          (objects ctx) 1) 0))
+    (is (== (set-based-minkowski-distance (objects ctx)
+                                          (objects ctx) 0.5) 0))
+    (is (== (set-based-minkowski-distance #{'a} #{}) 1))
+    (is (== (set-based-minkowski-distance #{} #{'a}) 1))
+    (is (== (set-based-minkowski-distance #{'a 'b} #{'a 'c} 2)  0.5857864376269051))))
+
+(deftest test-lattice-attribute-distance
+  (let [ctx test-ctx-09
+                k (count (incidence-relation ctx))
+        new-incidence-rel (set (take (- k 5) (shuffle (incidence-relation ctx))))
+        new-incidence-rel2 (set (take (- k 5) (incidence-relation ctx)))
+        ctx2 (make-context (objects ctx) (attributes ctx)
+                           (fn [x y] (contains? new-incidence-rel [x y])))
+        ctx3 (make-context (objects ctx) (attributes ctx)
+                           (fn [x y] (contains? new-incidence-rel2 [x y])))]
+    (is (== (lattice-attribute-distance ctx ctx) 0))
+    (is (== (lattice-attribute-distance ctx ctx 2) 0))
+    (is (== (lattice-attribute-distance ctx ctx 2 2) 0))
+    (is (== (lattice-attribute-distance ctx2 ctx2) 0))
+    (is (== (lattice-attribute-distance ctx2 ctx2 2) 0))
+    (is (== (lattice-attribute-distance ctx2 ctx2 2 2) 0))
+    (is (>= (lattice-attribute-distance ctx ctx 2) 0))
+    (is (>= (lattice-attribute-distance ctx ctx 2 2) 0))
+    (is (>= (lattice-attribute-distance ctx ctx3) 14))))
+
+
+(deftest test-lattice-object-distance
+  (let [ctx test-ctx-09
+        k (count (incidence-relation ctx))
+        new-incidence-rel (set (take (- k 5) (shuffle (incidence-relation ctx))))
+        new-incidence-rel2 (set (take (- k 5) (incidence-relation ctx)))
+        ctx2 (make-context (objects ctx) (attributes ctx)
+                           (fn [x y] (contains? new-incidence-rel [x y])))
+        ctx3 (make-context (objects ctx) (attributes ctx)
+                           (fn [x y] (contains? new-incidence-rel2 [x y])))]
+    (println ctx3)
+    (println (lattice-object-distance ctx ctx3))
+    (is (== (lattice-object-distance ctx ctx) 0))
+    (is (== (lattice-object-distance ctx ctx 2) 0))
+    (is (== (lattice-object-distance ctx ctx 2 2) 0))
+    (is (== (lattice-object-distance ctx2 ctx2) 0))
+    (is (== (lattice-object-distance ctx2 ctx2 2) 0))
+    (is (== (lattice-object-distance ctx2 ctx2 2 2) 0))
+    (is (>= (lattice-object-distance ctx ctx2 2 2) 0))
+    (is (>= (lattice-object-distance ctx ctx3 2 2) 0))
+    (is (>= (lattice-object-distance ctx ctx3 2 2) 14))))
+
+(deftest test-conceptual-distance
+  (let [ctx test-ctx-09
+        ctx2 (make-context (objects ctx) (attributes ctx) )
+        ]
+    (is (== (lattice-object-distance ctx ctx) 0))
+    (is (== (lattice-object-distance ctx ctx 2) 0))
+    (is (== (lattice-object-distance ctx ctx 2 2) 0)))))
+
 
 ;;;
 nil
