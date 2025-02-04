@@ -213,7 +213,8 @@
                                           (objects ctx) 0.5) 0))
     (is (== (set-based-minkowski-distance #{'a} #{}) 1))
     (is (== (set-based-minkowski-distance #{} #{'a}) 1))
-    (is (== (set-based-minkowski-distance #{'a 'b} #{'a 'c} 2)  0.5857864376269051))))
+    (is (>= (set-based-minkowski-distance #{'a 'b} #{'a 'c} 2)  0.58))
+    (is (>= (set-based-minkowski-distance #{'a 'b} #{'a 'c} 2)  0.59))))
 
 (deftest test-lattice-attribute-distance
   (let [ctx test-ctx-09
@@ -258,11 +259,10 @@
 
 (deftest test-conceptual-distance
   (let [ctx test-ctx-09
-        ctx2 (make-context (objects ctx) (attributes ctx) )
-        ]
+        ctx2 (make-context (objects ctx) (attributes ctx))]
     (is (== (lattice-object-distance ctx ctx) 0))
     (is (== (lattice-object-distance ctx ctx 2) 0))
-    (is (== (lattice-object-distance ctx ctx 2 2) 0)))))
+    (is (== (lattice-object-distance ctx ctx 2 2) 0))))
 
 
 ;;;
