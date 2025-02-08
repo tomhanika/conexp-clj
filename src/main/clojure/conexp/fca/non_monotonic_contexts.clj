@@ -1,21 +1,16 @@
 (ns conexp.fca.non-monotonic-contexts
   (:require [conexp.base :refer :all]
             [conexp.fca.posets :refer :all]
+            [conexp.fca.posets :refer :all]
             [conexp.fca.contexts :refer :all]
             [clojure.set :as set]))
 
-(defn relation-set [base-set order]
-  "Produces an explicit set representation of the relation defined by the supplied order."
-  (if (coll? order) order
-                    (into #{} (filter #(order (first %) (second %)) (for [x base-set y base-set] [x y]))))
-)
+;Based on the Publication: 
+;Non-monotonic Extensions to Formal Concept Analysis via Object Preferences
+;10.48550/arXiv.2410.04184
 
-(defn relation-function [base-set order]
-  "Produces a membership function of the relation defined by the supplied set."
-  (if (fn? order) order
-                  #(.contains order [%1 %2]))
-)
 
+;Based on Definition 8
 (defprotocol Extended-Context
 
   (context [this] "Returns the underlying context.")
@@ -78,6 +73,7 @@
    )
 )
 
+;Based on Definition 9
 (defn minimized-object-derivation [ectx objs]
   "Computes the Minimized Object Derivation of the Supplied Set of Objects on the 
    Supplied Extended Formal Context."
@@ -96,9 +92,18 @@
     (into #{} (filter minimal derivation)))
 )
 
+;Definition 12
 (defn respects? [ectx A B]
   "Verifies Whether the Supplied Extended Formal Context Respects the Non-monotonic 
    Conditional A -> ¬ B."
   (= (set/intersection (minimized-attribute-derivation ectx A) (attribute-derivation ectx B)) #{})
 
+)
+
+;Definition 14
+(defn typical-concepts [ectx]
+  "Returns a Set of all Typical Concepts of an Extended Formal Context."
+  (set (map #(vector (attribute-derivation ectx (object-derivation ectx (minimized-attribute-derivation ectx (second %))))
+                     (object-derivation ectx (minimized-attribute-derivation ectx (second %)))) 
+            (concepts ectx)))
 )
