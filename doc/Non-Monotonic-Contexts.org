@@ -79,4 +79,4 @@ They can be visualized in the drawing of the concept lattice by using the ~typic
 (draw-lattice lat :value-fn valuation)
 #+end_src
 
-[[./images/TypicalConcepts.png]]
+[[./images/TypicalConcepts.PNG]]
