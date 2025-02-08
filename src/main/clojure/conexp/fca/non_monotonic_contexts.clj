@@ -92,6 +92,12 @@
     (into #{} (filter minimal derivation)))
 )
 
+;Theorem 1
+(defn minimized-return [ectx attrs]
+  "Implements the Minimized Return Operator."
+  (object-derivation ectx (minimized-attribute-derivation ectx attrs))
+)
+
 ;Definition 12
 (defn respects? [ectx A B]
   "Verifies Whether the Supplied Extended Formal Context Respects the Non-monotonic 
@@ -103,7 +109,13 @@
 ;Definition 14
 (defn typical-concepts [ectx]
   "Returns a Set of all Typical Concepts of an Extended Formal Context."
-  (set (map #(vector (attribute-derivation ectx (object-derivation ectx (minimized-attribute-derivation ectx (second %))))
-                     (object-derivation ectx (minimized-attribute-derivation ectx (second %)))) 
+  (set (map #(vector (attribute-derivation ectx (minimized-return ectx (second %)))
+                     (minimized-return  ectx (second %))) 
             (concepts ectx)))
+)
+
+(defn typical-concept-valuation [tconcepts]
+  "Returns a Valuation Function to be Used for Visualizing the Typical Concepts when Drawing the Concept
+   Lattice of an Extended Formal Context."
+  #(if (.contains tconcepts %) "TYPICAL" "")
 )
