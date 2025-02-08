@@ -1,0 +1,82 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Extended Formal Contexts
+
+The publication ~Non-monotonic Extensions to Formal Concept Analysis via Object Preferences~ (10.48550/arXiv.2410.04184) introduces a variant of formal contexts, 
+that feature an ordering on the context's objects.
+Based on this approach, ~conexp-clj~ offers the ~Extended Context~ class:
+
+#+begin_src clojure :exports both
+(def test-objs #{1 2 3 4 5})
+(def test-attrs #{1 2 3 4 5})
+(def test-incidence #{[1 1] [1 2] [2 3] [2 4] [3 1] [3 3] [4 2] [4 4]})
+
+(def object-order =<)
+(def attribute-order #{[1 1] [2 2] [3 3] [4 4] [5 5] [1 2] [2 3] [1 3]})
+
+(def ectx (make-extended-context test-objs test-attrs test-incidence object-order attribute-order))
+#+end_src
+
+#+begin_src text
+  |1 2 3 4 5 
+--+----------
+1 |x x . . . 
+2 |. . x x . 
+3 |x . x . . 
+4 |. x . x . 
+5 |. . . . . 
+#+end_src
+
+An extended context takes the same parameters as a regular formal context. Additionally, it requires an partial order on the objects and attributes.
+Such an order may be provided explicitely as a set, or as a relation function. If no order on the objects and/or attributes is required it can be left empty by inputting ~#{}~ of ~nil~.
+
+The ~minimized-object-derivation~ of a set of objects from the extended context returns the set off all attributes that they have in common, but only those that are minimal with respect to the attribute order.
+The ~minimized-attribute-derivation~ workes analogously.
+
+#+begin_src clojure :exports both
+(minimized-object-derivation ectx #{1})
+(minimized-attribute-derivation ectx #{3})
+#+end_src
+
+#+begin_src text
+#{1}
+#{3}
+#+end_src
+
+The ~typical concepts~ of an extended context can be computed as well:
+
+#+begin_src clojure :exports both
+(concepts ectx)
+(typical-concepts ectx)
+#+end_src
+
+#+begin_src text
+([#{1 4 3 2 5} #{}]
+ [#{1 3} #{1}]
+ [#{} #{1 4 3 2 5}]
+ [#{3} #{1 3}]
+ [#{1} #{1 2}]
+ [#{4 2} #{4}]
+ [#{2} #{4 3}]
+ [#{4} #{4 2}]
+ [#{3 2} #{3}]
+ [#{1 4} #{2}])
+
+#{[#{3} #{1 3}]
+  [#{} #{1 4 3 2 5}]
+  [#{1} #{1 2}]
+  [#{4} #{4 2}]
+  [#{2} #{4 3}]}
+#+end_src
+
+They can be visualized in the drawing of the concept lattice by using the ~typical-concept-valuation~ function:
+
+#+begin_src clojure :exports both
+(def lat (concept-lattice ectx))
+(def valuation (typical-concept-valuation (typical-concepts ectx)))
+
+(draw-lattice lat :value-fn valuation)
+#+end_src
+
+[[./images/TypicalConcepts.png]]
