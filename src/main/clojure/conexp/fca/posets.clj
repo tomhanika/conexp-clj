@@ -162,3 +162,15 @@
       (recur (union filter #{next-element})
              (union upper-neighbours (poset-upper-neighbours poset next-element))
              (first (difference upper-neighbours filter))))))
+
+(defn relation-set [base-set order]
+  "Produces an explicit set representation of the relation defined by the supplied order."
+  (if (coll? order) order
+                    (into #{} (filter #(order (first %) (second %)) (for [x base-set y base-set] [x y]))))
+)
+
+(defn relation-function [base-set order]
+  "Produces a membership function of the relation defined by the supplied set."
+  (if (fn? order) order
+                  #(.contains order [%1 %2]))
+)
