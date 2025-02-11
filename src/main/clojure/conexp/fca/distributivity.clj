@@ -12,6 +12,7 @@
   (:require [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.implications :refer :all]
+            [conexp.fca.closure-systems :refer [all-closed-sets]]
             [clojure.set :refer [difference union subset? intersection]]))
 
 (defn birkhoff-downset-completion 
