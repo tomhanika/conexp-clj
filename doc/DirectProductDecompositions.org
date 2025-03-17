@@ -88,7 +88,7 @@ To this end, the ~direct decomposition lattice~ of a concept lattice may be comp
 
 It is unfortunately not currently possible to directly visualize the concept lattices that form the elements of the ~direct decomposition lattice~:
 
-[[./images/decomp-lattice-drawn.png]]
+[[./images/decomp-lattice-drawing.png]]
 
 This lattice can also be computed in terms of the contexts of its constituent lattices using the ~ctx-decomposition-lattice~ method.
 
