@@ -16,8 +16,8 @@ Additional Contributors are
 * Johannes Hirth        (pq-cores, Ordinal Motifs, scale-measures)
 * Gleb Kanterov         (interval-scale)
 * Maximilian Marx       (Wikidata)
-* Jannik Nordmeyer	(Metric Contexts, Causal Implications)
-* Maximilian Stubbemann (concept-robustness)
+* Maximilian Stubbemann (concept robustness, social analytics)
+* Jannik Nordmeyer	    (Metric Contexts, Causal Implications, Fuzzy recovered)
 * Anselm von Wangenheim (DimDraw)
 * Johannes Wollbold     (bug reports, feature requests)
 

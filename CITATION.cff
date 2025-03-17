@@ -1,0 +1,60 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: conexp-clj
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Daniel
+    family-names: Borchmann
+    affiliation: Technische Universität Dresden
+  - given-names: Tom
+    family-names: Hanika
+    affiliation: University of Hildesheim
+    email: tom.hanika@uni-hildesheim.de
+    orcid: 'https://orcid.org/0000-0002-4918-6374'
+repository-code: 'https://github.com/fcatools/conexp-clj'
+abstract: >-
+  This is conexp-clj, a general purpose software tool for
+  Formal Concept Analysis. Its main purpose is to enable
+  nontrivial examples to be computed easily, but it can be
+  used for much, much more.
+preferred-citation:
+  type: "conference-paper"
+  publisher:
+    name: "CEUR-WS.org"
+  conference:
+    name: "Supplementary Proceedings of ICFCA 2019 Conference and Workshops,
+               Frankfurt, Germany, June 25-28, 2019"
+  url: "http://ceur-ws.org/Vol-2378/shortAT8.pdf"
+  date-released: "2019-01-01"
+  volume: "2378"
+  journal: "CEUR Workshop Proceedings"
+  title: "Conexp-Clj - A Research Tool for FCA"
+  volume-title: "Supplementary Proceedings of ICFCA 2019 Conference and Workshops,
+               Frankfurt, Germany, June 25-28, 2019"
+  editors:
+    - given-names: Diana
+      family-names: Cristea
+    - given-names: Florence
+      family-names: Le Ber
+    - given-names: Rokia
+      family-names:  Missaoui
+    - given-names:  Léonard
+      family-names:  Kwuida
+    - given-names: Baris
+      family-names: Sertkaya
+  collection-title: "CEUR Workshop Proceedings"
+  start: "70"
+  end: "75"
+  authors:
+    - family-names: Hanika
+      given-names: Tom
+    - family-names: Hirth
+      given-names: Johannes
+license: EPL-1.0
+commit: 5254a10eab6759a7d0c60228892952de93f2aa58
+date-released: '2023-07-17'
