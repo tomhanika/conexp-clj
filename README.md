@@ -95,7 +95,7 @@ would appreciate if you use the following reference.
 
 ## License
 
-Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2024 Tom Hanika
+Copyright ⓒ 2009—2018 Daniel Borchmann, 2018—2025 Tom Hanika
 
 Distributed under the Eclipse Public License.
 

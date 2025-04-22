@@ -49,7 +49,6 @@
                                 0.2 0.9 0.7 0.5 1.0 0.6,
                                 1.0 1.0 0.8 1.0 1.0 0.5]))
 
-
 (deftest test-mv-to-fuzzy
 
   (is (= (mv->fuzzy-context-nc mvctx) fctx))

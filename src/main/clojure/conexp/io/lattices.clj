@@ -55,11 +55,22 @@
 (defn lattice->json
   "Returns a concept lattice, consisting of the base set and order, in json format."
   [lat]
-  {:nodes (base-set lat)
-   :edges (set-of [x y]
-                  [x (base-set lat)
-                   y (base-set lat)
-                   :when ((order lat) [x y])])})
+  (let [m (order lat)
+        bvec (vec (base-set lat))
+        m-fn (if (fn? m) m (fn [x y] (get-in m [x y])))]
+    {:nodes bvec
+     :edges
+     (persistent!
+       (reduce (fn [acc arg1]
+                 (reduce (fn [a arg2]
+                           (if (m-fn arg1 arg2)
+                             (conj! a [arg1 arg2])
+                             a))
+                         acc
+                         bvec))
+               (transient [])
+               bvec))}))
+
 
 (defn- json->concept
   "Returns a vector containing both extent and intent."
