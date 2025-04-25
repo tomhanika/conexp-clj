@@ -43,7 +43,8 @@
                  [http-kit "2.8.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
                  [luposlip/json-schema             "0.4.5"]
-                 [net.mikera/core.matrix "0.63.0"]]
+                 [net.mikera/core.matrix "0.63.0"]
+		 [org.clojure/data.xml "0.0.8"]]	 
   :profiles {:uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.4.0"]
