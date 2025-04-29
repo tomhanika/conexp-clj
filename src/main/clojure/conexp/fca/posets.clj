@@ -168,7 +168,7 @@
   [a b]
   (make-poset (cartesian-product (base-set a) (base-set b))
               (fn [x y] (and ((order a) (first x) (first y)) 
-                             ((order b) (last x) (last y)))))
+                             ((order b) (last x) (last y))))))
 
 (defn relation-set [base-set order]
   "Produces an explicit set representation of the relation defined by the supplied order."
