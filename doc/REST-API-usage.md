@@ -151,7 +151,7 @@ Each `context` type object has to have three attributes: `objects`, `attributes`
 ```
 
 ### Context file
-`context_file` allows to send a whole context as string in any file format recognised by conexp-clj. Some more details about those formats can be found [here](Common-FCA-File-Formats-for-Formal-Contexts).
+`context_file` allows to send a whole context as string in any file format recognised by conexp-clj. Some more details about those formats can be found [here](Common-FCA-File-Formats-for-Formal-Contexts.org).
 
 ### Many valued context
 
