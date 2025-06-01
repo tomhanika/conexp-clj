@@ -264,15 +264,6 @@
 
 )
 
-;;testing imports
-(use 'conexp.fca.contexts)
-(def ctx (make-context #{1 2} #{"A" "B"} #{[1 "A"] [2 "B"]}))
-(use 'conexp.fca.lattices)
-(def lat (concept-lattice ctx))
-(use 'conexp.layouts.dim-draw)
-(def l (dim-draw-layout lat))
-;(write-layout :xml l "TEST")
-
 
 ;; Json helpers
 
