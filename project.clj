@@ -55,10 +55,11 @@
                    :dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring/ring-mock "0.4.0"]
                                   [nrepl/nrepl "1.1.2"]
-                                  [com.clojure-goes-fast/clj-async-profiler "1.2.2"]]
+                                  [com.clojure-goes-fast/clj-async-profiler "1.6.1"]
+                                  [com.taoensso/tufte "2.7.0"]]
                    :plugins [[lein-aot-order "0.1.0"]]
                    :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]
-                   :jvm-opts ["-Djdk.attach.allowAttachSelf"]}}
+                   :jvm-opts ["-Djdk.attach.allowAttachSelf=true"]}}
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]

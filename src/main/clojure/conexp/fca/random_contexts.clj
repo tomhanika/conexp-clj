@@ -53,14 +53,25 @@
                  obj_att_nums))))
 
 
+;; (defmethod make-context-from-attribute-numbers-per-object :att-coll-obj-coll
+;;   [att obj obj_att_nums]
+;;   (let [matrix (flatten (map #(shuffle (into (vec (take % (repeat 1))) 
+;;                                              (vec (take (- (count  att) %) (repeat 0))))) obj_att_nums))]
+;;     (contexts/make-context-from-matrix
+;;      (into [] obj)
+;;      (into [] att)
+;;      matrix)))
+
 (defmethod make-context-from-attribute-numbers-per-object :att-coll-obj-coll
   [att obj obj_att_nums]
-  (let [matrix (flatten (map #(shuffle (into (vec (take % (repeat 1))) 
-                                             (vec (take (- (count  att) %) (repeat 0))))) obj_att_nums))]
+  (let [att-count (count att)
+        matrix (mapcat #(shuffle (concat (repeat % 1)
+                                    (repeat (- att-count %) 0)))
+                        obj_att_nums)]
     (contexts/make-context-from-matrix
      (into [] obj)
      (into [] att)
-     matrix)))
+     (flatten matrix))))
 
 
 (defmethod make-context-from-attribute-numbers-per-object :att-coll-obj-num
@@ -276,10 +287,12 @@
   (let [attr  (contexts/attributes ctx) 
         objects  (contexts/objects ctx)
         num_objects (count objects)
-        freq (frequencies (map #(count (contexts/object-derivation ctx [%])) objects))
-        probabilities (into {} (for [[k v] freq] [k (/ v (reduce + (vals freq)))]))
-        cat_distr (createCategoricalDistribution probabilities)]
-    (makeContext attr objects (for [i (range num_objects)] (.sample cat_distr)))))
+        freq (frequencies (pmap #(count (contexts/object-derivation ctx [%])) objects))
+        valsum (reduce + (vals freq))
+        probabilities (into {} (for [[k v] freq] [k (/ v valsum)]))
+        cat_distr (createCategoricalDistribution probabilities)
+        samples (for [i (range num_objects)] (.sample cat_distr))]
+    (makeContext attr objects samples )))
 
 
 (defn imitate-context-with-cointoss
