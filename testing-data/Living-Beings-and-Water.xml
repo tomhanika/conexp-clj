@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?><mxGraphModel arrows="1" dx="2068" tooltips="1" grid="1" connect="1" dy="1119" fold="1" page="1" pageScale="1" guides="1" gridSize="10">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="Group[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-600" y="1000" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="100" y="3100" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="600" y="1000" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="500" y="1500" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="900" y="1500" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="0" y="3600" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-100" y="2300" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-1100" y="1700" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-1100" y="2100" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-500" y="1700" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-1200" y="1400" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-600" y="1400" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="1300" y="1500" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="0" y="1800" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="1100" y="1900" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="1000" y="2400" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="-1000" y="2400" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="0" y="0" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="group" vertex="1" connectable="0" parent="1">
+      <mxGeometry x="700" y="1900" width="170" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" vertex="1">
+      <mxGeometry width="80" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}][#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" target="[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}][#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" target="[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}][#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" target="[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}][#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" target="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}][#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" target="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}][#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" target="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}][#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" target="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}][#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" target="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}][#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" target="[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}][#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" target="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}][#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" target="[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}][#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" target="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}][#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" target="[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}][#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" target="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}][#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" target="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}][#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" target="[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}][#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" target="[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}][#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" target="[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}][#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" target="[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}][#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" target="[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}][#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" target="[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Edge[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}][#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" source="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" target="[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" value="#{&quot;lives on land&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="#{&quot;needs water to live&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" value="#{&quot;lives in water&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" value="#{&quot;has limbs&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="#{&quot;suckles its offspring&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="#{&quot;two seed leaves&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{&quot;needs chlorophyll to produce food&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" value="#{&quot;can move around&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Attributes[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{&quot;one seed leaf&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="0" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="#{&quot;Frog&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{&quot;Reed&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{&quot;Spike - weed&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{&quot;Maize&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Frog&quot; &quot;Spike - weed&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="#{&quot;Leech&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]" value="#{&quot;Dog&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;lives on land&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]" value="#{&quot;Bream&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Frog&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;needs water to live&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="#{&quot;Bean&quot;}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Frog&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;lives in water&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot;} #{&quot;needs water to live&quot; &quot;lives on land&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Bean&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Dog&quot; &quot;Frog&quot; &quot;Leech&quot; &quot;Bream&quot;} #{&quot;can move around&quot; &quot;needs water to live&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{} #{&quot;can move around&quot; &quot;has limbs&quot; &quot;suckles its offspring&quot; &quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;lives on land&quot; &quot;lives in water&quot; &quot;needs chlorophyll to produce food&quot; &quot;two seed leaves&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="Objectss[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]" value="#{}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;" vertex="1" parent="Group[#{&quot;Reed&quot; &quot;Maize&quot; &quot;Spike - weed&quot;} #{&quot;needs water to live&quot; &quot;one seed leaf&quot; &quot;needs chlorophyll to produce food&quot;}]">
+      <mxGeometry x="80" y="50" width="200" height="30" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
+

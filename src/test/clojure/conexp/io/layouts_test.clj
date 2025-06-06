@@ -13,7 +13,10 @@
         conexp.layouts
         conexp.layouts.base
         conexp.io.layouts
-        conexp.io.util-test)
+        conexp.io.util-test
+        conexp.io.contexts
+        conexp.layouts.dim-draw
+        [conexp.io.util :only (tmpfile)])
   (:use clojure.test))
 
 ;;;
@@ -48,6 +51,30 @@
   (with-testing-data [lay testing-layouts
                       fmt (remove #{:text} (list-layout-formats))]
     (= (annotation lay) (annotation (out-in lay 'layout fmt)))))
+
+(deftest test-drawio-xml
+  (let [ctx1 (read-context "testing-data/Forum-Romanum.ctx")
+        ctx2 (read-context "testing-data/living_beings_and_water.cxt")
+        ctx3 (read-context "testing-data/bodiesofwater.cxt")
+        lat1 (concept-lattice ctx1)
+        lat2 (concept-lattice ctx2)
+        lat3 (concept-lattice ctx3)
+        l1 (dim-draw-layout lat1)
+        l2 (dim-draw-layout lat2)
+        l3 (dim-draw-layout lat3)
+        tmp (.getAbsolutePath ^java.io.File (tmpfile))]
+
+    (write-layout :xml l1 tmp)
+    (is (= (slurp tmp) (slurp "testing-data/Forum-Romanum.xml")))
+
+    (write-layout :xml l2 tmp)
+    (is (= (slurp tmp) (slurp "testing-data/Living-Beings-and-Water.xml")))
+
+    (write-layout :xml l3 tmp)
+    (is (= (slurp tmp) (slurp "testing-data/Bodies-of-Water.xml"))))
+)
+
+
 
 ;;;
 
