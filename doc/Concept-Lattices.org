@@ -175,3 +175,24 @@ Other interesting functions are ~draw-layout~, which implements the drawing of
 layouts, and ~draw-concept-lattice~, which draws the concept-lattice of a given
 formal context. With ~draw-poset~ and ~draw-protoconcepts~, Ordered Sets and 
 Protoconcepts can be drawn as well.
+
+Concept lattices can also be exported to and edited in [[https://app.diagrams.net/][draw.io]]:
+
+#+begin_src clojure :results silent
+(use 'conexp.fca.contexts)
+(use 'conexp.fca.lattices)
+(use 'conexp.layouts.dim-draw)
+
+(def ctx (read-context "testing-data/Forum-Romanum.ctx"))
+(def lat (concept-lattice ctx))
+(def l (dim-draw-layout lat))
+
+(write-layout :xml l "Forum-Romanum.xml")
+#+end_src
+
+The ~write-layout~ method recives the drawing layout of a lattice and a file path as arguments, and saves the layout as a file.
+The XML format is compatible with ~draw.io~ and can be dragged and dropped directly into the editor:
+
+[[./images/drawio.png]]
+
+The nodes and labels can now directly be edited on the website.
