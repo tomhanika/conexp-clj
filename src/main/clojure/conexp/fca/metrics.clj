@@ -32,7 +32,7 @@
              [implications :refer :all]
              [lattices :refer :all]
              [distributivity :refer [birkhoff-downset-completion]]
-             [posets :refer [order-ideal]]]
+             [posets :refer [order-ideal order-filter]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
@@ -961,8 +961,8 @@
   (if (not (.contains (covering-relation lat) [x y]))
     false
     (let [meet-irreducibles (lattice-inf-irreducibles lat)]
-      (< 1  (- (count (intersection (order-ideal lat #{y})))
-               (count (intersection (order-ideal lat #{x}))))))
+      (< 1  (- (count (intersection (order-filter lat #{y})))
+               (count (intersection (order-filter lat #{x}))))))
   )
 )
 
