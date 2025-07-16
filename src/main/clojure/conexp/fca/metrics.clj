@@ -422,6 +422,30 @@
     (/ (count (modular-triples lat (fn [[x y z]] (or (= x e) (= y e) (= z e)))))
        (* 6 (binomial-coefficient (- n 1) 2)))))
 
+
+(defn node-distributivity [lat]
+  "Returns the sum of the elements-distributivity of the lattice's nodes, normalized against the 
+   total number of nodes in the lattice."
+
+  (/ (reduce + (for [node (lattice-base-set lat)] (elements-distributivity lat node)))
+     (count (lattice-base-set lat)))
+)
+
+(defn extent-weighted-node-distributivity [lat]
+  "Returns the sum of the elements-distributivity of a concept lattice's nodes weighted by the size of 
+   their intent, normalized against the total number of nodes in the lattice."
+
+  (let [object-count (count (reduce union (map first (lattice-base-set lat))))]
+
+    (/ (reduce + (for [node (lattice-base-set lat)] (* (elements-distributivity lat node)
+                                                       (/ (count (first node))
+                                                          object-count))))
+       (count (lattice-base-set lat))))
+)
+
+
+
+
 ;;; Relevant Attributes (Objects) et Al
 
 (defn attribute-information-entropy
