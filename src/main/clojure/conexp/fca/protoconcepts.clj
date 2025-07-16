@@ -13,7 +13,9 @@
             [conexp.math.algebra :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.lattices :refer :all]
-            [conexp.fca.posets :refer :all]))
+            [conexp.fca.posets :refer :all]
+            [clojure.set :refer [difference union subset? intersection]]
+            ))
 
 (deftype Protoconcepts [base-set order-function]
   Object

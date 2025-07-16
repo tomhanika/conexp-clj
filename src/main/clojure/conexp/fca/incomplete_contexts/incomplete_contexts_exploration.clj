@@ -2,7 +2,8 @@
   "Incomplete-Context-Exploration"
   (:require [clojure.set :refer [subset? intersection difference union]]
             [clojure.core.reducers :as r]
-            [conexp.base :refer [ask exists next-closed-set]]
+            [conexp.base :refer [ask exists]]
+            [conexp.fca.closure-systems :refer [next-closed-set]]
             [conexp.fca.implications :refer :all]
             [conexp.fca.incomplete-contexts.incomplete-contexts :refer :all]))
 

@@ -6,12 +6,13 @@ on:
 
 jobs:
   update-lock:
+    if: startsWith(github.ref, 'refs/heads/')
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
       - uses: DeterminateSystems/nix-installer-action@v4
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - uses: DeterminateSystems/magic-nix-cache-action@v3
       - name: Update deps-lock
         run: nix run .#deps-lock
 

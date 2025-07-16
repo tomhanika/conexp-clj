@@ -13,7 +13,9 @@
    https://link.springer.com/article/10.1007/s10472-007-9057-2 "
   (:require [conexp.base :refer :all]
             [conexp.fca.implications :refer :all]
-            [conexp.fca.contexts :refer :all]))
+            [conexp.fca.contexts :refer :all]
+            [conexp.fca.closure-systems :refer :all]
+            [clojure.set :refer [difference union subset? intersection]] ))
 
 ;;;
 

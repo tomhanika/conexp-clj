@@ -1,4 +1,4 @@
-# conexp-clj [![Build Status](https://img.shields.io/github/actions/workflow/status/tomhanika/conexp-clj/run-tests.yaml?branch=dev&label=build)](https://github.com/tomhanika/conexp-clj/actions/workflows/run-tests.yaml) [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
+# conexp-clj [![Build Status](https://img.shields.io/github/actions/workflow/status/tomhanika/conexp-clj/run-tests.yaml?branch=dev&label=build)](https://github.com/tomhanika/conexp-clj/actions/workflows/run-tests.yaml) [![Clojars Project](https://img.shields.io/clojars/v/conexp-clj.svg)](https://clojars.org/conexp-clj) [![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
 
 This is conexp-clj, a general purpose software tool for [Formal Concept
 Analysis](http://www.upriss.org.uk/fca/fca.html).    Its main purpose is to
@@ -12,6 +12,7 @@ much more.
 2. Don't Bother Me with Theory, I Want to Do Stuff! (aka: Tutorials)
    1. [A Gentle Introduction](doc/tutorials/icfca-2013/icfca2013-tutorial-live.org) (ICFCA 2013)
    2. [Compute the Canonical Base from a Formal Context that is given in CSV Format](doc/tutorials/How-to-compute-the-Canonical-Base-from-a-Context-given-in-CSV-Format.org)
+   3. [Standalone Console Application](https://github.com/tomhanika/brunt)
 3. A more complete overview over `conexp-clj`
    1. [Notation and Syntax](doc/Basic-Notation-and-Syntax.org)
    2. [Creating and Working with Formal Contexts](doc/Formal-Contexts.org)
@@ -32,13 +33,15 @@ much more.
    8. [Computing Traces in Contexts](doc/code/trace-context.clj)
    9. [Counting Quasiorders](doc/code/quasiorders.clj)
    10. [Rudolph's Algorithm for Computing Bases](doc/code/rudolph_computation.clj)
-   11. [Discovering Causal Implications](doc/Causal-Implications.org)
+   11. [Libkin Decompositions](doc/LibkinDecomposition.org)
+   12. [Direct Product Decompositions](doc/DirectProductDecompositions.org)
 5. Advanced Topics
    1. [pq-cores](doc/pq-cores-in-Formal-Contexts.md)
    2. [REST-API Usage](doc/REST-API-usage.md)
    3. [triadic-exploration](doc/Triadic-Exploration.org)
    4. [protoconcepts](doc/Protoconcepts.org)
    5. [Incomplete Contexts](doc/IncompleteContexts.org)
+   6. [Factorization of Formal Contexts](doc/MatrixFactorization.org)
 6. [API documentation](doc/API.md)
 7. [Development](doc/Development.org)
 
@@ -94,7 +97,7 @@ would appreciate if you use the following reference.
 
 ## License
 
-Copyright ⓒ 2009—2018 Daniel Borchmann, 2018–2023 Tom Hanika
+Copyright ⓒ 2009—2018 Daniel Borchmann, 2018—2025 Tom Hanika
 
 Distributed under the Eclipse Public License.
 

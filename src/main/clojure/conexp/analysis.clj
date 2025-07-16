@@ -23,7 +23,9 @@
     [pqcores :refer :all]
     [protoconcepts :refer :all]
     [random-contexts :refer :all]
-    [triadic-exploration :refer :all]]
+    [simplicial-complexes :refer :all]
+    [triadic-exploration :refer :all]
+    [matrix-factorizations :refer :all]]
    [conexp.math
     [algebra :refer :all]
     [markov :refer :all]

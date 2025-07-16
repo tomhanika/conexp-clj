@@ -11,6 +11,7 @@
    'Dependencies of many-valued attributes', 1987, Rudolf Wille
    http://www.opengrey.eu/item/display/10068/148205 "
   (:require [clojure.core.reducers :as r]
+            [clojure.set :refer [intersection subset?]]
             [conexp.base :refer :all]
             [conexp.fca.implications :refer [premise conclusion
                                              stem-base-from-base

@@ -15,7 +15,9 @@
         conexp.layouts.util
         conexp.layouts.base)
   (:require clojure.string
-            [clojure.data.json :as json])
+            [clojure.data.json :as json]
+            [clojure.data.xml :as xml]
+            [clojure.set :refer [difference union subset? intersection map-invert]])
   (:import [java.io PushbackReader]))
 
 ;;; Input format dispatch
@@ -164,7 +166,104 @@
 
 (define-layout-output-format :fca-style
   [layout file]
-  (unsupported-operation "Output in :fca-style is not yet supported."))
+  (with-out-writer file
+    (println (latex layout :fca-style))))
+
+
+(defn- xml-layout-groups [layout]
+  (for [[name pos] (positions layout)] (xml/element :mxCell {:id (str "Group" name)
+                                                             :value ""
+                                                             :style "group"
+                                                             :vertex "1"
+                                                             :connectable "0"
+                                                             :parent "1"}
+                                                    (xml/element :mxGeometry {:x (str (* (first pos) 100))
+                                                                              :y (str (* (second pos) 100))
+                                                                              :width "170"
+                                                                              :height "90"
+                                                                              :as "geometry"})))
+)
+
+(defn- xml-layout-nodes [layout]
+  (for [[name pos] (positions layout)] (xml/element :mxCell {:id (str name)
+                                                             :value ""
+                                                             :style "ellipse;whiteSpace=wrap;html=1;aspect=fixed;"
+                                                             :parent (str "Group" name)
+                                                             :vertex "1"}
+                                                    (xml/element :mxGeometry {:width "80"
+                                                                              :height "80"
+                                                                              :as "geometry"})))
+)
+
+(defn- xml-layout-edges [layout]
+  (for [[source target] (connections layout)] (xml/element :mxCell {:id (str "Edge" source target)
+                                                                    :value ""
+                                                                    :style "endArrow=none;html=1;rounded=0;"
+                                                                    :edge "1"
+                                                                    :parent "1"
+                                                                    :source source
+                                                                    :target target}
+                                                           (xml/element :mxGeometry {:width "50"
+                                                                                     :height "50"
+                                                                                     :relative "1"
+                                                                                     :as "geometry"})))
+)
+
+(defn- xml-layout-intent-labels [layout]
+  (for [[name labels] (concept-lattice-annotation layout)] (xml/element :mxCell {:id (str "Attributes" name)
+                                                                                 :value (str (first labels))
+                                                                                 :style "text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;"
+                                                                                 :vertex "1"
+                                                                                 :parent (str "Group" name)}
+                                                                        (xml/element :mxGeometry {:x "80"
+                                                                                                  :y "0"
+                                                                                                  :width "200"
+                                                                                                  :height "30"
+                                                                                                  :as "geometry"})))
+)
+
+(defn- xml-layout-extent-labels [layout]
+  (for [[name labels] (concept-lattice-annotation layout)] (xml/element :mxCell {:id (str "Objectss" name)
+                                                                                 :value (str (second labels))
+                                                                                 :style "text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;"
+                                                                                 :vertex "1"
+                                                                                 :parent (str "Group" name)}
+                                                                        (xml/element :mxGeometry {:x "80"
+                                                                                                  :y "50"
+                                                                                                  :width "200"
+                                                                                                  :height "30"
+                                                                                                  :as "geometry"})))
+)
+
+
+
+(define-layout-output-format :xml
+  [layout file]
+  (let [xml-layout (xml/element :mxGraphModel {:dx "2068" 
+                                               :dy "1119" 
+                                               :grid "1" 
+                                               :gridSize "10" 
+                                               :guides "1" 
+                                               :tooltips "1"
+                                               :connect "1"
+                                               :arrows "1"
+                                               :fold "1"
+                                               :page "1"
+                                               :pageScale "1"}
+                                (xml/element :root {}
+                                             (xml/element :mxCell {:id "0"})
+                                             (xml/element :mxCell {:id "1"
+                                                                   :parent "0"})
+                                             (xml-layout-groups layout)
+                                             (xml-layout-nodes layout)
+                                             (xml-layout-edges layout)
+                                             (xml-layout-intent-labels layout)
+                                             (xml-layout-extent-labels layout)))]
+
+  (with-out-writer file (println (xml/indent-str xml-layout))))
+
+)
+
 
 ;; Json helpers
 

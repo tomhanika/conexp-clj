@@ -1,0 +1,123 @@
+#+property: header-args :wrap src text
+#+property: header-args:text :eval never
+
+* Direct Product Decompositions
+
+Based on the ~Libkin Decomposition~ formalized by Leonid Libkin, a variety of approaches for decomposing concept lattices were proposed, some of which are implemented in ~conexp-clj~.
+
+For a detailed description of these methods, consult [[https://doi.org/10.17170/kobra-2025021510916][Direct Product Decompositions of Concept Lattices]]:
+
+#+begin_src clojure
+(use 'conexp.fca.decompositions)
+(def ctx (make-context  #{"black" "red" "green" "blue" "yellow" "violet" "cyan" "white"}#{"R" "G" "B"} #{["red" "R"] ["green" "G"] ["blue" "B"] ["yellow" "R"] ["yellow" "G"] ["violet" "R"] ["violet" "B"] ["cyan" "G"] ["cyan" "B"] ["white" "R"] ["white" "G"] ["white" "B"]}))
+(def lat (concept-lattice ctx))
+(draw-lattice lat)
+#+end_src
+
+
+[[./images/rgb-lattice.png]]
+
+
+The decomposition pairs of a lattice can be computed using the method ~libkin-decomposition-pairs~:
+
+#+begin_src clojure :exports both
+(def pairs (libkin-decomposition-pairs lat))
+#+end_src
+
+#+RESULTS:
+#+begin_src text
+([[#{"cyan" "white"} #{"G" "B"}]
+  [#{"white" "violet" "yellow" "red"} #{"R"}]]
+ [[#{"white" "violet" "yellow" "red"} #{"R"}]
+  [#{"cyan" "white"} #{"G" "B"}]]
+ [[#{"white" "violet"} #{"R" "B"}]
+  [#{"cyan" "white" "yellow" "green"} #{"G"}]]
+ [[#{"blue" "cyan" "white" "violet" "yellow" "green" "red" "black"}
+   #{}]
+  [#{"white"} #{"G" "R" "B"}]]
+ [[#{"white" "yellow"} #{"G" "R"}]
+  [#{"blue" "cyan" "white" "violet"} #{"B"}]]
+ [[#{"white"} #{"G" "R" "B"}]
+  [#{"blue" "cyan" "white" "violet" "yellow" "green" "red" "black"}
+   #{}]]
+ [[#{"cyan" "white" "yellow" "green"} #{"G"}]
+  [#{"white" "violet"} #{"R" "B"}]]
+ [[#{"blue" "cyan" "white" "violet"} #{"B"}]
+  [#{"white" "yellow"} #{"G" "R"}]])
+#+end_src
+
+These can now be used to compute either a ~downset decomposition~, which is equivalent to the libkin decomposition, or a ~downset decomposition~.
+We will compute one each using the decomposition pari ~[[#{"cyan" "white"} #{"G" "B"}] [#{"white" "violet" "yellow" "red"} #{"R"}]]~:
+
+#+begin_src clojure :exports both
+(def downsets (downset-decomposition-lattices lat [[#{"cyan" "white"} #{"G" "B"}] [#{"white" "violet" "yellow" "red"} #{"R"}]]))
+(draw-lattice (first downsets))
+(draw-lattice (second downsets))
+#+end_src
+
+[[./images/downset-lattices.png]]
+
+
+#+begin_src clojure :exports both
+(def upsets (upset-decomposition-lattices lat [[#{"cyan" "white"} #{"G" "B"}] [#{"white" "violet" "yellow" "red"} #{"R"}]]))
+(draw-lattice (first upsets))
+(draw-lattice (second upsets))
+#+end_src
+
+[[./images/upset-lattices.png]]
+
+These pairs of lattices can now be reconstructed into their original lattices by applying the ~downset product~ or ~uzpset product~, respectively:
+
+#+begin_src clojure :exports both
+(downset-product (first downsets) (second downsets))
+(upset-product (first upsets) (second upsets))
+#+end_src
+
+Whether a lattice has non-trivial decomposition pairs may be verified using the ~decomposable?~ method.
+
+
+It may be useful to visualize all possible upset decomposition of a single concept lattice.
+To this end, the ~direct decomposition lattice~ of a concept lattice may be computed:
+
+[[./images/decomp-lattice.png]]
+
+#+begin_src clojure :exports both
+(def decomp-lat (direct-decomposition-lattice lat))
+(draw-lattice decomp-lat)
+#+end_src
+
+It is unfortunately not currently possible to directly visualize the concept lattices that form the elements of the ~direct decomposition lattice~:
+
+[[./images/decomp-lattice-drawing.png]]
+
+This lattice can also be computed in terms of the contexts of its constituent lattices using the ~ctx-decomposition-lattice~ method.
+
+This ~direct decomposition lattice~ can slo be used to determine the ~upset prime factorization~ of a concept lattice; a set of indecomposable concept lattices whose upset product is the original concept lattice:
+
+#+begin_src clojure :exports both
+(def factors (prime-factorization lat))
+(draw-lattice (first factors))
+(draw-lattice (second factors))
+(draw-lattice (last factors))
+#+end_src
+
+[[./images/prime-factors.png]]
+
+
+In practice, non-trivial direct product decomposition are rare. Therefore it is useful to consider substructures of concept lattices that may be decomposable.
+~conexp-clj~ offers two variants of such an algorithm.
+
+The method ~maximally-decomposable-filters~ returns all inclusion-maximal principal filters of a concept lattice, that have non-trivial upset decompostions.
+
+An example using the ~bodies-of-water~ context:
+
+[[./images/max-decomp-filters.png]]
+
+Alternatively, all maximally decomposable intervals may be computed using the ~maximally-decomposable-intervals~ method:
+
+[[./images/max-decomp-intervals.png]]
+
+#+begin_src clojure :exports both
+(maximally-decomposable-filters lat)
+(maximally-decomposable-intervals lat)
+#+end_src

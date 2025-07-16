@@ -19,7 +19,8 @@
               to-binary-matrix
               bitwise-context-attribute-closure]]
              [clojure.core.reducers :as r]
-             [clojure.core.async :refer [<!!]])
+             [clojure.core.async :refer [<!!]]
+             [clojure.set :refer [difference union subset? intersection]])
   (:import [java.util BitSet]))
 
 ;;;;;;;;;;;;;;;;;;;;; General Cover Methods ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
