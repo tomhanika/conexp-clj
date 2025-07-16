@@ -30,16 +30,7 @@
                            bitwise-object-derivation
                            bitwise-attribute-derivation concepts]]
              [implications :refer :all]
-             [lattices :refer [inf 
-                               sup 
-                               lattice-base-set
-                               make-lattice 
-                               make-lattice-nc
-                               concept-lattice 
-                               lattice-order
-                               distributive?
-                               lattice-one
-                               lattice-zero]]
+             [lattices :refer :all]
              [distributivity :refer [birkhoff-downset-completion]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
   (:import [conexp.fca.lattices Lattice]
@@ -821,6 +812,12 @@
 (defn element-complement [concept lat]
   "Returns all complements of *concept* in *lat*."
   (let [base-set (lattice-base-set lat)]
+
+      (filter #(and (not= % concept)
+                    (= ((sup lat) concept %) (lattice-one lat))
+                    (= ((inf lat) concept %) (lattice-zero lat)))
+              base-set))
+)
 ;;; From here metrics about two formal contexts
 
 
@@ -882,12 +879,6 @@
   (min (lattice-object-distance c1 c2 q p) (lattice-attribute-distance c1 c2 q p))))
 
 
-      (filter #(and (not= % concept)
-                    (= ((sup lat) concept %) (lattice-one lat))
-                    (= ((inf lat) concept %) (lattice-zero lat)))
-              base-set))
-)
-
 
 (defn double-arrow-distributivity-index [rctx]
 
@@ -905,9 +896,9 @@
 (defn birkhoff-distributivity-index [ctx]
 
   (let [birkhoff-completion-lattice (concept-lattice (birkhoff-downset-completion ctx))]
-    (/ (- (count (base-set birkhoff-completion-lattice))
-          (count (base-set lat)))
-       (count (base-set birkhoff-completion-lattice))))
+    (/ (- (count (lattice-base-set birkhoff-completion-lattice))
+          (count (lattice-base-set (concept-lattice ctx))))
+       (count (lattice-base-set birkhoff-completion-lattice))))
 )
 
 ;;;
