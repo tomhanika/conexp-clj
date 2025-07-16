@@ -901,5 +901,19 @@
        (count (lattice-base-set birkhoff-completion-lattice))))
 )
 
+
+(defn doubly-irreducible-removal [lat]
+  (loop [current-lat lat
+         removal-list []]
+
+  (if (distributive? current-lat)
+    [current-lat removal-list]
+    (let [doubly-irreducibles (lattice-doubly-irreducibles current-lat)]
+      (if (empty? doubly-irreducibles)
+        [current-lat removal-list])
+        (recur (make-lattice-nc (disj (lattice-base-set current-lat) (first doubly-irreducibles))
+                                (lattice-order current-lat))
+               (conj removal-list (first doubly-irreducibles))))))
+)
 ;;;
 nil
