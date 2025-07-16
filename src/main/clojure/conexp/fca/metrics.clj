@@ -31,7 +31,8 @@
                            bitwise-attribute-derivation concepts]]
              [implications :refer :all]
              [lattices :refer :all]
-             [distributivity :refer [birkhoff-downset-completion]]]
+             [distributivity :refer [birkhoff-downset-completion]]
+             [posets :refer [order-ideal]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
@@ -939,5 +940,55 @@
                                 (lattice-order current-lat))
                (conj removal-list (first doubly-irreducibles))))))
 )
+
+;tentative
+(defn covering-relation [lat]
+  (for [a (lattice-base-set lat)
+        b (lattice-base-set lat)
+        :when (and (not= a b) ((lattice-order lat) a b))
+        :let [has-intermediate?
+              (some (fn [c]
+                      (and (not= c a) (not= c b)
+                           ((lattice-order lat) a c)
+                           ((lattice-order lat) c b)))
+                    (lattice-base-set lat))]
+        :when (not has-intermediate?)]
+    [a b])
+)
+
+(defn meet-rise? [lat x y]
+
+  (if (not (.contains (covering-relation lat) [x y]))
+    false
+    (let [meet-irreducibles (lattice-inf-irreducibles lat)]
+      (< 1  (- (count (intersection (order-ideal lat #{y})))
+               (count (intersection (order-ideal lat #{x}))))))
+  )
+)
+
+(defn join-rise? [lat x y]
+
+  (if (not (.contains (covering-relation lat) [x y]))
+    false
+    (let [join-irreducibles (lattice-inf-irreducibles lat)]
+      (< 1  (- (count (intersection (order-ideal lat #{y})))
+               (count (intersection (order-ideal lat #{x}))))))
+  )
+)
+
+(defn non-unit-meet-rise-rate [lat]
+
+  (let [covering-pairs (covering-relation lat)]
+    (/ (count (filter #(meet-rise? lat (first %) (second %)) covering-pairs))
+       (count covering-pairs)))
+)
+
+(defn non-unit-join-rise-rate [lat]
+
+  (let [covering-pairs (covering-relation lat)]
+    (/ (count (filter #(join-rise? lat (first %) (second %)) covering-pairs))
+       (count covering-pairs)))
+)
+
 ;;;
 nil
