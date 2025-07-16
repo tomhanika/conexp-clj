@@ -20,7 +20,9 @@
                                context-object-closure
                                object-derivation random-context
                                objects attributes
-                               context? concept?]]
+                               context? concept?
+                               reduce-context
+                               up-arrows down-arrows]]
              [exploration :refer :all]
              [fast :refer [with-binary-context
                            to-bitset
@@ -37,7 +39,8 @@
                                lattice-order
                                distributive?
                                lattice-one
-                               lattice-zero]]]
+                               lattice-zero]]
+             [distributivity :refer [birkhoff-downset-completion]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
@@ -883,6 +886,28 @@
                     (= ((sup lat) concept %) (lattice-one lat))
                     (= ((inf lat) concept %) (lattice-zero lat)))
               base-set))
+)
+
+
+(defn double-arrow-distributivity-index [rctx]
+
+  (assert (= rctx (reduce-context rctx)) "The supplied context is not reduced.")
+
+  (/ (- (count (intersection (up-arrows rctx) 
+                             (down-arrows rctx)))
+        (min (count (objects rctx))
+             (count (attributes rctx)))) 
+
+        (+ (count (objects rctx))
+           (count (attributes rctx))))
+)
+
+(defn birkhoff-distributivity-index [ctx]
+
+  (let [birkhoff-completion-lattice (concept-lattice (birkhoff-downset-completion ctx))]
+    (/ (- (count (base-set birkhoff-completion-lattice))
+          (count (base-set lat)))
+       (count (base-set birkhoff-completion-lattice))))
 )
 
 ;;;
