@@ -628,7 +628,7 @@
     (/ (absolute-support ctx [(union premise conclusion) #{}])
        (absolute-support ctx [conclusion #{}]))))
 
-(defn- frequent-itemsets
+(defn frequent-itemsets
   "Returns all frequent itemsets of context, given minsupp as minimal support."
   ;; UNTESTED!
   [context minsupp]

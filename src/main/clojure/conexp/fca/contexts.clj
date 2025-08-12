@@ -276,6 +276,16 @@
   (let [objs (aprime ctx #{m})]
     [objs (oprime ctx objs)]))
 
+(defn object-concepts [ctx]
+  "Returns a set of all object-concepts of the specified context."
+  (set (for [obj (objects ctx)] (object-concept ctx obj)))
+)
+
+(defn attribute-concepts [ctx]
+   "Returns a set of all attribute-concepts of the specified context."
+  (set (for [attr (attributes ctx)] (attribute-concept ctx attr)))
+)
+
 (defn clarify-objects
   "Clarifies objects in context ctx."
   [ctx]
@@ -764,6 +774,17 @@
                    (<=> (I_1 [g_1,m_1])
                         (I_2 [g_2,m_2])))]
     (make-context-nc new-objs new-atts new-inz)))
+
+(defn context-boolean-matrix-product [ctx1 ctx2]
+  "Computes a context in the form of the boolean matrix product of both contexts.
+   The contexts need to have appropriate dimensions and the set of attributes of *ctx1*
+   must be equal to the set of objects of *ctx2*."
+  (make-context (objects ctx1)
+                (attributes ctx2)
+                (fn [g m] (not= (intersection (object-derivation ctx1 #{g})
+                                              (attribute-derivation ctx2 #{m}))
+                                #{})))
+)
 
 ;;; Neighbours in the concept lattice with Lindig's Algorithm
 

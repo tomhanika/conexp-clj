@@ -9,6 +9,7 @@
 (ns conexp.fca.metrics
   (:require [clojure.core.reducers :as r]
             [clojure.math.combinatorics :refer [permuted-combinations combinations]]
+            [clojure.set :refer [difference union subset? intersection]]
             ;; [clojure.math.numeric-tower :refer [log]]
             [conexp.base :refer :all]
             [conexp.math.markov :refer :all]
@@ -27,9 +28,17 @@
                            bitwise-object-derivation
                            bitwise-attribute-derivation concepts]]
              [implications :refer :all]
-             [lattices :refer [inf sup lattice-base-set make-lattice concept-lattice lattice-order]]]
-            [conexp.math.util :refer [eval-polynomial binomial-coefficient]]
-            [clojure.set :refer [difference union subset? intersection]])
+             [lattices :refer [inf 
+                               sup 
+                               lattice-base-set
+                               make-lattice 
+                               make-lattice-nc
+                               concept-lattice 
+                               lattice-order
+                               distributive?
+                               lattice-one
+                               lattice-zero]]]
+            [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
 
@@ -788,6 +797,27 @@
 ;;   )
 
 
+(defn neutral? [a lat]
+  "Verifies if *a* is a neutral element in *lat*."
+  (let [base-set (lattice-base-set lat)
+        join (sup lat)
+        meet (inf lat)]
+     (every? identity (for [x base-set y base-set] (= (meet (meet (join a x) (join a y)) (join x y))
+                                                      (join (join (meet a x) (meet a y)) (meet x y)))))
+)
+)
+
+(defn neutral-concepts [lat]
+  "Returns all neutral elements in *lat*."
+  (let [base-set (lattice-base-set lat)]
+      (filter #(neutral? % lat) base-set)
+)
+)
+
+
+(defn element-complement [concept lat]
+  "Returns all complements of *concept* in *lat*."
+  (let [base-set (lattice-base-set lat)]
 ;;; From here metrics about two formal contexts
 
 
@@ -849,7 +879,11 @@
   (min (lattice-object-distance c1 c2 q p) (lattice-attribute-distance c1 c2 q p))))
 
 
-
+      (filter #(and (not= % concept)
+                    (= ((sup lat) concept %) (lattice-one lat))
+                    (= ((inf lat) concept %) (lattice-zero lat)))
+              base-set))
+)
 
 ;;;
 nil
