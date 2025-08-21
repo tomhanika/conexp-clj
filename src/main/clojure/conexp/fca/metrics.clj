@@ -906,7 +906,9 @@
 
 
 (defn double-arrow-distributivity-index [rctx]
-
+  "Quantifies the deviation of the context's concept lattice from a distributive lattice,
+   by counting the number of excess double arrows.
+   Consult ?."
   (assert (= rctx (reduce-context rctx)) "The supplied context is not reduced.")
 
   (/ (- (count (intersection (up-arrows rctx) 
@@ -919,7 +921,9 @@
 )
 
 (defn birkhoff-distributivity-index [ctx]
-
+  "Quantifies the deviation of the context's concept lattice from a distributive lattice,
+   by comparing the size of the concept lattice to its Birkhoff Completion.
+   Consult ?."
   (let [birkhoff-completion-lattice (concept-lattice (birkhoff-downset-completion ctx))]
     (/ (- (count (lattice-base-set birkhoff-completion-lattice))
           (count (lattice-base-set (concept-lattice ctx))))
@@ -931,14 +935,15 @@
   (loop [current-lat lat
          removal-list []]
 
+  (println (count (lattice-base-set current-lat)))
   (if (distributive? current-lat)
-    [current-lat removal-list]
+    [current-lat removal-list (distributive? current-lat)]
     (let [doubly-irreducibles (lattice-doubly-irreducibles current-lat)]
       (if (empty? doubly-irreducibles)
-        [current-lat removal-list])
+        [current-lat removal-list (distributive? current-lat)]
         (recur (make-lattice-nc (disj (lattice-base-set current-lat) (first doubly-irreducibles))
                                 (lattice-order current-lat))
-               (conj removal-list (first doubly-irreducibles))))))
+               (conj removal-list (first doubly-irreducibles)))))))
 )
 
 ;tentative
@@ -956,39 +961,75 @@
     [a b])
 )
 
-(defn meet-rise? [lat x y]
 
-  (if (not (.contains (covering-relation lat) [x y]))
-    false
-    (let [meet-irreducibles (lattice-inf-irreducibles lat)]
-      (< 1  (- (count (intersection (order-filter lat #{y})))
-               (count (intersection (order-filter lat #{x}))))))
-  )
+(defn comparable-pair? [lat x y]
+  "Verifies whether x < y in the supplied lattice."
+  (and (not (= x y))
+       ((lattice-order lat) x y))
 )
 
-(defn join-rise? [lat x y]
 
-  (if (not (.contains (covering-relation lat) [x y]))
-    false
-    (let [join-irreducibles (lattice-inf-irreducibles lat)]
-      (< 1  (- (count (intersection (order-ideal lat #{y})))
-               (count (intersection (order-ideal lat #{x}))))))
-  )
+;Rises:
+(defn- greater-meet-irreducibles [lat x]
+  "Computes the intersection of the lattices meet-irreducible elements
+   with the upset of *x*."
+  (filter #((lattice-order lat) x %) (lattice-inf-irreducibles lat))
+)
+
+(defn- lesser-join-irreducibles [lat x]
+  "Computes the intersection of the lattices join-irreducible elements
+   with the downset of *x*."
+  (filter #((lattice-order lat) % x) (lattice-sup-irreducibles lat))
+)
+
+(defn meet-rise [lat x y]
+  "Computes the difference between the number of meet-irreducible elements in the upset of *x*
+   and those in the upset of *y*."
+  (let [order (lattice-order lat)]
+    (assert (comparable-pair? lat x y) (str "[ " x ", " y " ] is not a comparable pair."))
+
+    (- (count (greater-meet-irreducibles lat x))
+       (count (greater-meet-irreducibles lat y))))
+)
+
+(defn join-rise [lat x y]
+  "Computes the difference between the number of join-irreducible elements in the downset of *y*
+   and those in the downset of *x*."
+  (let [order (lattice-order lat)]
+    (assert (comparable-pair? lat x y) (str "[ " x ", " y " ] is not a comparable pair."))
+
+    (- (count (lesser-join-irreducibles lat y))
+       (count (lesser-join-irreducibles lat x))))
+)
+
+(defn unit-meet-rise? [lat x y]
+  "Verifies whether [x y] is a covering pair and their meet-rise is equal to 1."
+  (assert (.contains (covering-relation lat) [x y]) (str "[ " x ", " y " ] is not a covering pair."))
+  (= 1 (meet-rise lat x y))
+)
+
+(defn unit-join-rise? [lat x y]
+  "Verifies whether [x y] is a covering pair and their join-rise is equal to 1."
+  (assert (.contains (covering-relation lat) [x y]) (str "[ " x ", " y " ] is not a covering pair."))
+  (= 1 (join-rise lat x y))
 )
 
 (defn non-unit-meet-rise-rate [lat]
-
+  "Quantifies the portion of covering pairs of the supplied lattice,
+   that have a non-unit-meet-rise."
   (let [covering-pairs (covering-relation lat)]
-    (/ (count (filter #(meet-rise? lat (first %) (second %)) covering-pairs))
+    (/ (count (filter #(not (unit-meet-rise? lat (first %) (second %))) covering-pairs))
        (count covering-pairs)))
 )
 
 (defn non-unit-join-rise-rate [lat]
-
+  "Quantifies the portion of covering pairs of the supplied lattice,
+   that have a non-unit-join-rise."
   (let [covering-pairs (covering-relation lat)]
-    (/ (count (filter #(join-rise? lat (first %) (second %)) covering-pairs))
+    (/ (count (filter #(not (unit-join-rise? lat (first %) (second %))) covering-pairs))
        (count covering-pairs)))
 )
+
 
 ;;;
 nil
