@@ -907,8 +907,7 @@
 
 (defn double-arrow-distributivity-index [rctx]
   "Quantifies the deviation of the context's concept lattice from a distributive lattice,
-   by counting the number of excess double arrows.
-   Consult ?."
+   by counting the number of excess double arrows."
   (assert (= rctx (reduce-context rctx)) "The supplied context is not reduced.")
 
   (/ (- (count (intersection (up-arrows rctx) 
@@ -922,8 +921,7 @@
 
 (defn birkhoff-distributivity-index [ctx]
   "Quantifies the deviation of the context's concept lattice from a distributive lattice,
-   by comparing the size of the concept lattice to its Birkhoff Completion.
-   Consult ?."
+   by comparing the size of the concept lattice to its Birkhoff Completion."
   (let [birkhoff-completion-lattice (concept-lattice (birkhoff-downset-completion ctx))]
     (/ (- (count (lattice-base-set birkhoff-completion-lattice))
           (count (lattice-base-set (concept-lattice ctx))))
