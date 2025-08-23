@@ -11,12 +11,14 @@
             [conexp.base :refer :all]
             [conexp.fca.contexts :refer :all]
             [conexp.fca.contexts-test :refer :all]
-            [conexp.fca.lattices :refer [concept-lattice lattice-base-set
+            [conexp.fca.lattices :refer [make-lattice
+                                         concept-lattice lattice-base-set
                                          lattice-order]]
             [conexp.fca.implications :refer :all]
             [conexp.fca.implications-test :as impls]
             [conexp.fca.metrics :refer :all]
-            [conexp.math.util :refer [binomial-coefficient]]))
+            [conexp.math.util :refer [binomial-coefficient]]
+            [clojure.set :as set]))
 
 ;;;
 
@@ -272,6 +274,24 @@
     (is (>= (lattice-object-distance ctx ctx2 2 2) 0))
     (is (>= (lattice-object-distance ctx ctx3 2 2) 0))))
 
+(deftest test_rises
+  (let [m3 (make-lattice #{#{1 2 3} #{1} #{2} #{3} #{}} set/subset?)]
+
+    (is (= (join-rise m3 #{} #{1}) 1))
+    (is (= (join-rise m3 #{} #{1 2 3}) 3))
+    (is (= (join-rise m3 #{1} #{1 2 3}) 2))
+    (is (= (meet-rise m3 #{} #{1}) 2))
+    (is (= (meet-rise m3 #{} #{1 2 3}) 3))
+    (is (= (meet-rise m3 #{1} #{1 2 3}) 1))
+
+    (is (unit-join-rise? m3 #{} #{1}))
+    (is (not (unit-join-rise? m3 #{1} #{1 2 3})))
+    (is (unit-meet-rise? m3 #{1} #{1 2 3}))
+    (is (not (unit-meet-rise? m3 #{} #{1})))
+
+    (is (= (non-unit-join-rise-rate m3) 1/2))
+    (is (= (non-unit-meet-rise-rate m3) 1/2)))
+)
 
 ;;;
 nil

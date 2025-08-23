@@ -20,7 +20,9 @@
                                context-object-closure
                                object-derivation random-context
                                objects attributes
-                               context? concept?]]
+                               context? concept?
+                               reduce-context
+                               up-arrows down-arrows]]
              [exploration :refer :all]
              [fast :refer [with-binary-context
                            to-bitset
@@ -28,16 +30,9 @@
                            bitwise-object-derivation
                            bitwise-attribute-derivation concepts]]
              [implications :refer :all]
-             [lattices :refer [inf 
-                               sup 
-                               lattice-base-set
-                               make-lattice 
-                               make-lattice-nc
-                               concept-lattice 
-                               lattice-order
-                               distributive?
-                               lattice-one
-                               lattice-zero]]]
+             [lattices :refer :all]
+             [distributivity :refer [birkhoff-downset-completion]]
+             [posets :refer [order-ideal order-filter]]]
             [conexp.math.util :refer [eval-polynomial binomial-coefficient]])
   (:import [conexp.fca.lattices Lattice]
            [java.util ArrayList BitSet]))
@@ -427,6 +422,30 @@
   (let [n (count (lattice-base-set lat))]
     (/ (count (modular-triples lat (fn [[x y z]] (or (= x e) (= y e) (= z e)))))
        (* 6 (binomial-coefficient (- n 1) 2)))))
+
+
+(defn node-distributivity [lat]
+  "Returns the sum of the elements-distributivity of the lattice's nodes, normalized against the 
+   total number of nodes in the lattice."
+
+  (/ (reduce + (for [node (lattice-base-set lat)] (elements-distributivity lat node)))
+     (count (lattice-base-set lat)))
+)
+
+(defn extent-weighted-node-distributivity [lat]
+  "Returns the sum of the elements-distributivity of a concept lattice's nodes weighted by the size of 
+   their intent, normalized against the total number of nodes in the lattice."
+
+  (let [object-count (count (reduce union (map first (lattice-base-set lat))))]
+
+    (/ (reduce + (for [node (lattice-base-set lat)] (* (elements-distributivity lat node)
+                                                       (/ (count (first node))
+                                                          object-count))))
+       (count (lattice-base-set lat))))
+)
+
+
+
 
 ;;; Relevant Attributes (Objects) et Al
 
@@ -818,6 +837,12 @@
 (defn element-complement [concept lat]
   "Returns all complements of *concept* in *lat*."
   (let [base-set (lattice-base-set lat)]
+
+      (filter #(and (not= % concept)
+                    (= ((sup lat) concept %) (lattice-one lat))
+                    (= ((inf lat) concept %) (lattice-zero lat)))
+              base-set))
+)
 ;;; From here metrics about two formal contexts
 
 
@@ -879,11 +904,130 @@
   (min (lattice-object-distance c1 c2 q p) (lattice-attribute-distance c1 c2 q p))))
 
 
-      (filter #(and (not= % concept)
-                    (= ((sup lat) concept %) (lattice-one lat))
-                    (= ((inf lat) concept %) (lattice-zero lat)))
-              base-set))
+
+(defn double-arrow-distributivity-index [rctx]
+  "Quantifies the deviation of the context's concept lattice from a distributive lattice,
+   by counting the number of excess double arrows."
+  (assert (= rctx (reduce-context rctx)) "The supplied context is not reduced.")
+
+  (/ (- (count (intersection (up-arrows rctx) 
+                             (down-arrows rctx)))
+        (min (count (objects rctx))
+             (count (attributes rctx)))) 
+
+        (+ (count (objects rctx))
+           (count (attributes rctx))))
 )
+
+(defn birkhoff-distributivity-index [ctx]
+  "Quantifies the deviation of the context's concept lattice from a distributive lattice,
+   by comparing the size of the concept lattice to its Birkhoff Completion."
+  (let [birkhoff-completion-lattice (concept-lattice (birkhoff-downset-completion ctx))]
+    (/ (- (count (lattice-base-set birkhoff-completion-lattice))
+          (count (lattice-base-set (concept-lattice ctx))))
+       (count (lattice-base-set birkhoff-completion-lattice))))
+)
+
+
+(defn doubly-irreducible-removal [lat]
+  (loop [current-lat lat
+         removal-list []]
+
+  (println (count (lattice-base-set current-lat)))
+  (if (distributive? current-lat)
+    [current-lat removal-list (distributive? current-lat)]
+    (let [doubly-irreducibles (lattice-doubly-irreducibles current-lat)]
+      (if (empty? doubly-irreducibles)
+        [current-lat removal-list (distributive? current-lat)]
+        (recur (make-lattice-nc (disj (lattice-base-set current-lat) (first doubly-irreducibles))
+                                (lattice-order current-lat))
+               (conj removal-list (first doubly-irreducibles)))))))
+)
+
+;tentative
+(defn covering-relation [lat]
+  (for [a (lattice-base-set lat)
+        b (lattice-base-set lat)
+        :when (and (not= a b) ((lattice-order lat) a b))
+        :let [has-intermediate?
+              (some (fn [c]
+                      (and (not= c a) (not= c b)
+                           ((lattice-order lat) a c)
+                           ((lattice-order lat) c b)))
+                    (lattice-base-set lat))]
+        :when (not has-intermediate?)]
+    [a b])
+)
+
+
+(defn comparable-pair? [lat x y]
+  "Verifies whether x < y in the supplied lattice."
+  (and (not (= x y))
+       ((lattice-order lat) x y))
+)
+
+
+;Rises:
+(defn- greater-meet-irreducibles [lat x]
+  "Computes the intersection of the lattices meet-irreducible elements
+   with the upset of *x*."
+  (filter #((lattice-order lat) x %) (lattice-inf-irreducibles lat))
+)
+
+(defn- lesser-join-irreducibles [lat x]
+  "Computes the intersection of the lattices join-irreducible elements
+   with the downset of *x*."
+  (filter #((lattice-order lat) % x) (lattice-sup-irreducibles lat))
+)
+
+(defn meet-rise [lat x y]
+  "Computes the difference between the number of meet-irreducible elements in the upset of *x*
+   and those in the upset of *y*."
+  (let [order (lattice-order lat)]
+    (assert (comparable-pair? lat x y) (str "[ " x ", " y " ] is not a comparable pair."))
+
+    (- (count (greater-meet-irreducibles lat x))
+       (count (greater-meet-irreducibles lat y))))
+)
+
+(defn join-rise [lat x y]
+  "Computes the difference between the number of join-irreducible elements in the downset of *y*
+   and those in the downset of *x*."
+  (let [order (lattice-order lat)]
+    (assert (comparable-pair? lat x y) (str "[ " x ", " y " ] is not a comparable pair."))
+
+    (- (count (lesser-join-irreducibles lat y))
+       (count (lesser-join-irreducibles lat x))))
+)
+
+(defn unit-meet-rise? [lat x y]
+  "Verifies whether [x y] is a covering pair and their meet-rise is equal to 1."
+  (assert (.contains (covering-relation lat) [x y]) (str "[ " x ", " y " ] is not a covering pair."))
+  (= 1 (meet-rise lat x y))
+)
+
+(defn unit-join-rise? [lat x y]
+  "Verifies whether [x y] is a covering pair and their join-rise is equal to 1."
+  (assert (.contains (covering-relation lat) [x y]) (str "[ " x ", " y " ] is not a covering pair."))
+  (= 1 (join-rise lat x y))
+)
+
+(defn non-unit-meet-rise-rate [lat]
+  "Quantifies the portion of covering pairs of the supplied lattice,
+   that have a non-unit-meet-rise."
+  (let [covering-pairs (covering-relation lat)]
+    (/ (count (filter #(not (unit-meet-rise? lat (first %) (second %))) covering-pairs))
+       (count covering-pairs)))
+)
+
+(defn non-unit-join-rise-rate [lat]
+  "Quantifies the portion of covering pairs of the supplied lattice,
+   that have a non-unit-join-rise."
+  (let [covering-pairs (covering-relation lat)]
+    (/ (count (filter #(not (unit-join-rise? lat (first %) (second %))) covering-pairs))
+       (count covering-pairs)))
+)
+
 
 ;;;
 nil
