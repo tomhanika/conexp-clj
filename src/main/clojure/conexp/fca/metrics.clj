@@ -933,6 +933,7 @@
   (loop [current-lat lat
          removal-list []]
 
+  (println (count (lattice-base-set current-lat)))
   (if (distributive? current-lat)
     [current-lat removal-list (distributive? current-lat)]
     (let [doubly-irreducibles (lattice-doubly-irreducibles current-lat)]
@@ -1027,31 +1028,6 @@
        (count covering-pairs)))
 )
 
-(defn sublattice? [lat1 lat2]
-  "Verifies if *lat1* is a sublattice of *lat2*."
-  (if (subset? (lattice-base-set lat1) (lattice-base-set lat2))
-    (every? identity (for [x (lattice-base-set lat1) y (lattice-base-set lat1)]
-                       (= ((sup lat1) x y) ((sup lat2) x y))))
-    false)
-)
-
-
-(defn remove-elements [lat elements]
-  "Removes the specified elements from the supplied lattice and returns the resulting poset."
-  (let [base-set (lattice-base-set lat)
-        order (lattice-order lat)
-        new-lat (make-lattice-nc (difference base-set elements) order)]
-    (if (not (has-lattice-order? new-lat)) (print "Warning: The resulting poset is not a lattice!")
-      (if (not (sublattice? new-lat lat)) (print "Warning: The resulting lattice is not a sublattice!")))
-    new-lat)
-)
-
-(defn remove-interval [lat lower upper]
-  "Removes the lements from the interval [*lower* *upper*] from the supplied lattice
-   and returns the resulting poset."
-  (let [elements (intersection (order-filter lat #{lower}) (order-ideal lat #{upper}))]
-    (remove-elements lat elements))
-)
 
 ;;;
 nil
