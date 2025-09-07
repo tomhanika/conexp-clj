@@ -20,4 +20,4 @@ Additional Contributors are
 * Jannik Nordmeyer	    (Metric Contexts, Causal Implications, Fuzzy recovered)
 * Anselm von Wangenheim (DimDraw)
 * Johannes Wollbold     (bug reports, feature requests)
-
+* Jannik Nordmeyer	(Metric Contexts, Causal Implications)
