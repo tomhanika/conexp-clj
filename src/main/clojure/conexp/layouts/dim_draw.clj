@@ -7,7 +7,8 @@
             [conexp.layouts.base :as lay]
             [conexp.base :exclude [transitive-closure] :refer :all]
             [rolling-stones.core :as sat :refer :all]
-            [clojure.set :refer [difference union subset? intersection]])
+            [clojure.set :refer [difference union subset? intersection]]
+            [conexp.layouts.improved.tig :as improved-tig])
   (:import [org.dimdraw Bipartite]))
 
 (defn in-odd-cycle?
@@ -243,7 +244,9 @@
         (= @conjugate nil)
         (swap! base
                (fn [nodes] 
-                 (let [graph (tig (transitive-edge-union P relation nodes))]
+                 (let [graph (if (some #{"java-tig"} args)
+                               (improved-tig/tig-improved (transitive-edge-union P relation nodes))
+                               (tig (transitive-edge-union P relation nodes)))]
                    (union nodes 
                           (map reverse
                             (cond 

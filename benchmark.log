@@ -1,0 +1,27 @@
+WARNING: You have $CLASSPATH set, probably by accident.
+It is strongly recommended to unset this before proceeding.
+Running Benchmarks...
+
+=== Stem Base Benchmark ===
+Context Size: 15
+  Original: 148.184012 ms
+  Improved: 44.198915 ms
+Context Size: 20
+  Original: 528.85103 ms
+  Improved: 72.6283 ms
+Context Size: 25
+  Original: 1899.68057 ms
+  Improved: 116.668638 ms
+
+=== DimDraw Benchmark ===
+Context Size: 10
+  Running Original...
+  Lattice size: 17
+  Original: 1903.536961 ms
+  Running Improved...
+  Lattice size: 17
+  Improved: 1501.656411 ms
+Context Size: 12
+  Running Original...
+  Lattice size: 29
+./lein: line 239: 27729 Killed                  "$LEIN_JAVA_CMD" -Dfile.encoding=UTF-8 -Dmaven.wagon.http.ssl.easy=false $LEIN_JVM_OPTS -Dleiningen.input-checksum="$INPUT_CHECKSUM" -Dleiningen.original.pwd="$ORIGINAL_PWD" -Dleiningen.script="$SCRIPT" -classpath "$CLASSPATH" clojure.main -m leiningen.core.main "$@"
