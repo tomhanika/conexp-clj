@@ -60,6 +60,7 @@
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
+  :javac-options ["--release" "21"]
   :test-paths ["src/test/clojure"]
   :resource-paths ["src/main/resources"]
   :target-path "builds/%s"
