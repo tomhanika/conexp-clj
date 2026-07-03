@@ -1,4 +1,4 @@
-(ns conexp.fca.incomplete-contexts.draw
+(ns conexp.gui.draw.incomplete-contexts
   (:gen-class)
   (:require [clojure.set :refer :all]
             [conexp.fca.contexts :as cxts  :refer [Context make-context]]
