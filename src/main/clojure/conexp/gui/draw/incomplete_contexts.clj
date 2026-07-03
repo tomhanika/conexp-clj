@@ -16,7 +16,7 @@
   [cxt]
   (cond
     (satisfies? Context cxt)
-    (draw-concept-lattice cxt)
+    (draw/draw-concept-lattice cxt)
     (and (satisfies? Incomplete-Context-Protocol cxt)
          (is-complete-incomplete-context? cxt))
     (draw/draw-concept-lattice (incomplete-context->formal-context cxt))
