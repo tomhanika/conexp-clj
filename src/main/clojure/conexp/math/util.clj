@@ -7,45 +7,42 @@
 ;; You must not remove this notice, or any other, from this software.
 
 (ns conexp.math.util
-  (:import [org.apache.commons.math.analysis DifferentiableMultivariateRealFunction MultivariateRealFunction MultivariateVectorialFunction]))
+  (:import [org.apache.commons.math3.analysis MultivariateFunction MultivariateVectorFunction]))
 
-;;; Interfacing Apache Math
+;;; Interfacing Apache Commons Math
 
 (defn as-multivariate-real-fn
-  "Transforms given function fn to a MultivariateRealFunction as
-  needed by commons-math. fn must be a function taking an array of
-  doubles and returning one scalar double value."
+  "Transforms given function fn to a MultivariateFunction as needed by
+  commons-math. fn must be a function taking an array of doubles and
+  returning one scalar double value."
   [fn]
-  (proxy [MultivariateRealFunction] []
-    (value [double-point]
+  (reify MultivariateFunction
+    (value [_ double-point]
       (double (fn double-point)))))
 
 (defn as-multivariate-vectorial-fn
-  "Transforms given function fn to a MultivariateVectorialFunction as
+  "Transforms given function fn to a MultivariateVectorFunction as
   needed by commons-math. fn must be a function taking an array of
   doubles and returning a sequence of double values of fixed length."
   [fn]
-  (proxy [MultivariateVectorialFunction] []
-    (value [double-point]
+  (reify MultivariateVectorFunction
+    (value [_ double-point]
       (into-array Double/TYPE (fn double-point)))))
 
-(defn as-differentiable-multivariate-real-fn
-  "Transforms given function fn to a DifferentiableMultivariateRealFunction as
-  needed by commons-math. fn must be a function suitable for as-multivariate-real-fn
-  and partial-derivatives must be a function taking a variable index k and returning
-  a function representing the k-th partial derivative of fn, also being suitable for
-  as-multivariate-real-fn."
-  [fun number-of-args partial-derivatives]
+(defn as-gradient-fn
+  "Returns a MultivariateVectorFunction computing the gradient of a
+  function of number-of-args arguments from its partial derivatives.
+  partial-derivatives must be a function taking a variable index k and
+  returning a function representing the k-th partial derivative, itself
+  taking an array of doubles and returning a scalar double.  This
+  replaces the old commons-math 2 DifferentiableMultivariateRealFunction,
+  as commons-math 3's optimizers take the objective and its gradient as
+  separate arguments."
+  [number-of-args partial-derivatives]
   (let [partials (map partial-derivatives (range number-of-args))]
-    (proxy [DifferentiableMultivariateRealFunction] []
-      (value [double-point]
-        (double (fun double-point)))
-      (partialDerivative [k]
-        (as-multivariate-real-fn (nth partials k)))
-      (gradient []
-        (as-multivariate-vectorial-fn
-         (fn [& args]
-           (map #(apply % args) partials)))))))
+    (as-multivariate-vectorial-fn
+     (fn [double-point]
+       (map #(% double-point) partials)))))
 
 ;;; Types
 

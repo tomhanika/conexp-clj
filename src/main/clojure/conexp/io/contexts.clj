@@ -163,13 +163,13 @@
 (add-context-input-format :conexp
                           (fn [rdr]
                             (try
-                             (= :ConceptualSystem (-> (xml/parse rdr) :tag))
+                             (= :ConceptualSystem (-> (xml/parse rdr :namespace-aware false :skip-whitespace true) :tag))
                              (catch Exception _))))
 
 (define-context-input-format :conexp
   [file]
   (with-in-reader file
-    (let [xml-tree (xml/parse *in*)
+    (let [xml-tree (xml/parse *in* :namespace-aware false :skip-whitespace true)
           contexts (:content (first (find-tags (:content xml-tree) :Contexts)))]
       (cond
         (= 0 (count contexts))
@@ -231,7 +231,7 @@
 (add-context-input-format :galicia
                           (fn [rdr]
                             (try
-                             (let [xml-tree (xml/parse rdr)]
+                             (let [xml-tree (xml/parse rdr :namespace-aware false :skip-whitespace true)]
                                (and (= :Galicia_Document (-> xml-tree :tag))
                                     (= :BinaryContext (-> xml-tree :content first :tag))))
                              (catch Exception _))))
@@ -260,7 +260,7 @@
 (define-context-input-format :galicia
   [file]
   (with-in-reader file
-    (let [ctx-xml-tree (-> (xml/parse *in*) :content first)
+    (let [ctx-xml-tree (-> (xml/parse *in* :namespace-aware false :skip-whitespace true) :content first)
 
           nr-objs (Integer/parseInt (-> ctx-xml-tree :attrs :numberObj))
           nr-atts (Integer/parseInt (-> ctx-xml-tree :attrs :numberAtt))
@@ -506,7 +506,7 @@
 (define-context-input-format :graphml
   [file]
   (try 
-    (let [graphml (xml/parse (reader file))]
+    (let [graphml (xml/parse (reader file) :namespace-aware false :skip-whitespace true)]
       (if (= :graphml (:tag graphml))
           (doall (for [graph (:content graphml) :when (= :graph (:tag graph))]
             (let [default    (:edgedefault (:attrs graph))
@@ -533,8 +533,7 @@
                                                 (str "Multiple data values for" 
                                                      " edges are not" 
                                                      " supported.")))
-                                        (when (= clojure.data.xml.Element
-                                                 (type value)) 
+                                        (when (xml/element? value)
                                               (illegal-argument
                                                 (str "Only single values are"
                                                      " supported as edge"

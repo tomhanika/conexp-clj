@@ -201,8 +201,8 @@
                                                                     :style "endArrow=none;html=1;rounded=0;"
                                                                     :edge "1"
                                                                     :parent "1"
-                                                                    :source source
-                                                                    :target target}
+                                                                    :source (str source)
+                                                                    :target (str target)}
                                                            (xml/element :mxGeometry {:width "50"
                                                                                      :height "50"
                                                                                      :relative "1"
@@ -250,15 +250,15 @@
                                                :fold "1"
                                                :page "1"
                                                :pageScale "1"}
-                                (xml/element :root {}
-                                             (xml/element :mxCell {:id "0"})
-                                             (xml/element :mxCell {:id "1"
-                                                                   :parent "0"})
-                                             (xml-layout-groups layout)
-                                             (xml-layout-nodes layout)
-                                             (xml-layout-edges layout)
-                                             (xml-layout-intent-labels layout)
-                                             (xml-layout-extent-labels layout)))]
+                                (apply xml/element :root {}
+                                       (xml/element :mxCell {:id "0"})
+                                       (xml/element :mxCell {:id "1"
+                                                             :parent "0"})
+                                       (concat (xml-layout-groups layout)
+                                               (xml-layout-nodes layout)
+                                               (xml-layout-edges layout)
+                                               (xml-layout-intent-labels layout)
+                                               (xml-layout-extent-labels layout))))]
 
   (with-out-writer file (println (xml/indent-str xml-layout))))
 

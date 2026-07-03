@@ -11,7 +11,6 @@
             [conexp.io.contexts]
             [conexp.io.layouts :refer :all]
             [conexp.fca.lattices :refer [concept-lattice]]
-            [conexp.gui.draw :refer [draw-concept-lattice]]
             [conexp.layouts.dim-draw :refer :all]
             [conexp.io.incomplete-contexts :as io]
             [conexp.fca.incomplete-contexts.incomplete-contexts :refer :all]
