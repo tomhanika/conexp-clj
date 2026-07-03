@@ -554,6 +554,36 @@
                    (fn ([[m g]] ((incidence ctx) [g m]))
                      ([m g] ((incidence ctx) [g m])))))
 
+(defn add-object
+  "Return a new formal context that arises from `ctx' by adding `new-object' as
+  new object with intent `new-intent'.  `new-object' must be an object that is
+  not yet contained `ctx'."
+  [ctx new-object new-intent]
+  (assert (not (contains? (objects ctx) new-object))
+          "Object to be added to formal context must be new.")
+  (assert (and (coll? new-intent)
+               (subset? (set new-intent) (attributes ctx)))
+          "New object intent must be a set of attributes of the original formal context.")
+  (make-context-nc (conj (objects ctx) new-object)
+                   (attributes ctx)
+                   (into (incidence-relation ctx)
+                         (map #(vector new-object %) new-intent))))
+
+(defn add-attribute
+  "Return a new formal context that arises from `ctx' by adding `new-attribute'
+  as new attribute with extent `new-extent'.  `new-attribute' must be an
+  attribute that is not yet contained `ctx'."
+  [ctx new-attribute new-extent]
+  (assert (not (contains? (attributes ctx) new-attribute))
+          "Attribute to be added to formal context must be new.")
+  (assert (and (coll? new-extent)
+               (subset? (set new-extent) (objects ctx)))
+          "New attribute extent must be a set of objects of the original formal context.")
+  (make-context-nc (objects ctx)
+                   (conj (attributes ctx) new-attribute)
+                   (into (incidence-relation ctx)
+                         (map #(vector % new-attribute) new-extent))))
+
 (defn invert-context
   "Inverts context ctx, that is (G,M,I) gets (G,M,(G x M) \\ I)."
   [ctx]
