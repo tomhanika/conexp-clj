@@ -244,9 +244,289 @@
   [implications]
   (partial close-under-implications implications))
 
-(defn canonical-base
+
+;;;;;
+;;; Canonical base for contexts with at most 64 attributes.  Here an attribute
+;;; set fits in a single `long`, so subset test, union and the whole implicational
+;;; closure become single machine-word operations instead of BitSet method calls;
+;;; the derivation A'' is a linear scan of the objects' rows.
+
+(defn- to-long
+  "Encodes a hashset of attributes as a long via `attribute-vector` (<=64 attrs)."
+  ^long [^PersistentVector attribute-vector hashset]
+  (loop [i (int (dec (count attribute-vector))), acc 0]
+    (if (< i 0)
+      acc
+      (recur (dec i)
+             (if (.contains ^PersistentHashSet hashset (.get attribute-vector i))
+               (bit-or acc (bit-shift-left 1 i))
+               acc)))))
+
+(defn- long->hashset
+  [^PersistentVector attribute-vector ^long x]
+  (loop [i 0, s (transient #{})]
+    (if (< i (count attribute-vector))
+      (recur (inc i) (if (bit-test x i) (conj! s (.get attribute-vector i)) s))
+      (persistent! s))))
+
+(defn- long-attribute-rows
+  "For each object a long whose bit m is set iff the object has attribute m."
+  ^longs [incidence-matrix ^long object-count ^long attribute-count]
+  (let [rows (long-array object-count)]
+    (dotimes [g object-count]
+      (let [^ints row (aget ^objects incidence-matrix g)]
+        (aset rows g (long (loop [m 0, acc 0]
+                             (if (< m attribute-count)
+                               (recur (inc m)
+                                      (if (== 1 (aget row m))
+                                        (bit-or acc (bit-shift-left 1 m))
+                                        acc))
+                               acc))))))
+    rows))
+
+(defn- long-adprime
+  "Closure A'' of the long-encoded attribute set A."
+  ^long [^longs rows ^long object-count ^long mask ^long A]
+  (loop [g 0, cl mask]
+    (if (< g object-count)
+      (recur (inc g)
+             (let [row (aget rows g)]
+               (if (zero? (bit-and A (bit-not row)))    ; A subset of row -> object in extent
+                 (bit-and cl row)
+                 cl)))
+      cl)))
+
+(defn- long-close-under-implications
+  "Closure of X under the implications (premise/conclusion long-arrays of length n)."
+  ^long [^longs prem ^longs concl ^long n ^long X]
+  (loop [result X]
+    (let [nr (loop [i 0, r result]
+               (if (< i n)
+                 (recur (inc i)
+                        (if (zero? (bit-and (aget prem i) (bit-not r)))
+                          (bit-or r (aget concl i))
+                          r))
+                 r))]
+      (if (== nr result) result (recur nr)))))
+
+(defn- long-next-closed-set
+  "Next closed set after A in lectic order; returns a boxed long or nil.
+  (Clojure allows at most 4 primitive-hinted args, so the longs are coerced
+  inside instead of hinted on the parameter list.)"
+  [attribute-count ^longs prem ^longs concl n A]
+  (let [n (long n), A (long A)]
+    (loop [i (long (dec (long attribute-count))), B A]
+      (cond
+        (< i 0) nil
+        (bit-test B i) (recur (dec i) (bit-clear B i))
+        :else (let [Ai  (long-close-under-implications prem concl n (bit-set B i))
+                    low (unchecked-dec (bit-shift-left 1 i))]
+                (if (== (bit-and A low) (bit-and Ai low))
+                  Ai
+                  (recur (dec i) B)))))))
+
+(defn canonical-base-long
+  "Canonical base for a context with at most 64 attributes, using long-encoded
+  attribute sets.  Same result as `canonical-base`."
+  ([ctx] (canonical-base-long ctx #{}))
+  ([ctx background-knowledge]
+   (with-binary-context ctx
+     (let [M     (int attribute-count)
+           mask  (long (if (== M 64) -1 (unchecked-dec (bit-shift-left 1 M))))
+           rows  (long-attribute-rows incidence-matrix object-count M)
+           prem* (object-array 1)
+           concl* (object-array 1)
+           n*    (int-array 1)
+           _     (do (aset prem*  0 (long-array (max 16 (count background-knowledge))))
+                     (aset concl* 0 (long-array (max 16 (count background-knowledge)))))
+           add!  (fn [^long P ^long C]
+                   (let [i (aget n* 0), ^longs p (aget prem* 0)]
+                     (when (>= i (alength p))
+                       (aset prem*  0 (java.util.Arrays/copyOf p (* 2 (alength p))))
+                       (aset concl* 0 (java.util.Arrays/copyOf ^longs (aget concl* 0) (* 2 (alength p)))))
+                     (aset ^longs (aget prem* 0) i P)
+                     (aset ^longs (aget concl* 0) i C)
+                     (aset n* 0 (inc i))))]
+       (doseq [^Implication impl background-knowledge]
+         (add! (to-long attribute-vector (.premise impl))
+               (to-long attribute-vector (.conclusion impl))))
+       (letfn [(runner [^long candidate]
+                 (let [closure (long-adprime rows object-count mask candidate)]
+                   (if (== candidate closure)
+                     (let [nx (long-next-closed-set M (aget prem* 0) (aget concl* 0) (aget n* 0) candidate)]
+                       (when nx (recur (long nx))))
+                     (let [C (bit-and closure (bit-not candidate))]
+                       (add! candidate C)
+                       (cons [candidate C]
+                             (lazy-seq
+                              (let [nx (long-next-closed-set M (aget prem* 0) (aget concl* 0) (aget n* 0) candidate)]
+                                (when nx (runner (long nx))))))))))]
+         (map (fn [pair]
+                (make-implication (long->hashset attribute-vector (long (nth pair 0)))
+                                  (long->hashset attribute-vector (long (nth pair 1)))))
+              (lazy-seq
+               (let [start (long-close-under-implications (aget prem* 0) (aget concl* 0) (aget n* 0) 0)]
+                 (runner start)))))))))
+
+;;; Canonical base for contexts with MORE than 64 attributes, using long[]
+;;; (arrays of 64-bit words).  Subset test, union, the whole implicational
+;;; closure and the derivation A'' become tight word loops (a couple of
+;;; and/or/compare per 64 attributes).
+
+(defn- longs-subset?
+  "True iff attribute set A is a subset of B (both long[] of equal length)."
+  [^longs A ^longs B]
+  (let [w (alength A)]
+    (loop [i 0]
+      (cond
+        (== i w) true
+        (not (zero? (bit-and (aget A i) (bit-not (aget B i))))) false
+        :else (recur (inc i))))))
+
+(defn- longs-and-into!
+  [^longs dst ^longs src]
+  (dotimes [i (alength dst)] (aset dst i (bit-and (aget dst i) (aget src i))))
+  dst)
+
+(defn- longs-union-changed!
+  "dst |= src in place; returns true iff dst gained a bit."
+  [^longs dst ^longs src]
+  (loop [i 0, changed false]
+    (if (< i (alength dst))
+      (let [nw (bit-or (aget dst i) (aget src i))]
+        (if (== nw (aget dst i))
+          (recur (inc i) changed)
+          (do (aset dst i nw) (recur (inc i) true))))
+      changed)))
+
+(defn- longs-agree-below?
+  "True iff A and Ai agree on all bits below i."
+  [^longs A ^longs Ai ^long i]
+  (let [wi (quot i 64)]
+    (and (loop [w 0]
+           (cond (== w wi) true
+                 (== (aget A w) (aget Ai w)) (recur (inc w))
+                 :else false))
+         (let [low (unchecked-dec (bit-shift-left 1 (rem i 64)))]
+           (== (bit-and (aget A wi) low) (bit-and (aget Ai wi) low))))))
+
+(defn- longs-mask
+  ^longs [^long attribute-count]
+  (let [mask (long-array (quot (+ attribute-count 63) 64))]
+    (dotimes [b attribute-count]
+      (aset mask (quot b 64) (bit-or (aget mask (quot b 64)) (bit-shift-left 1 (rem b 64)))))
+    mask))
+
+(defn- longs-attribute-rows
+  "long[][]: for each object the long[] of its attributes."
+  [incidence-matrix ^long object-count ^long attribute-count]
+  (let [rows (make-array Long/TYPE object-count (quot (+ attribute-count 63) 64))]
+    (dotimes [g object-count]
+      (let [^ints row (aget ^objects incidence-matrix g)
+            ^longs out (aget ^objects rows g)]
+        (dotimes [m attribute-count]
+          (when (== 1 (aget row m))
+            (aset out (quot m 64) (bit-or (aget out (quot m 64)) (bit-shift-left 1 (rem m 64))))))))
+    rows))
+
+(defn- to-longs
+  ^longs [^PersistentVector attribute-vector hashset]
+  (let [M (int (count attribute-vector))
+        out (long-array (quot (+ M 63) 64))]
+    (dotimes [i M]
+      (when (.contains ^PersistentHashSet hashset (.get attribute-vector i))
+        (aset out (quot i 64) (bit-or (aget out (quot i 64)) (bit-shift-left 1 (rem i 64))))))
+    out))
+
+(defn- longs->hashset
+  [^PersistentVector attribute-vector ^longs x]
+  (loop [i 0, s (transient #{})]
+    (if (< i (count attribute-vector))
+      (recur (inc i) (if (bit-test (aget x (quot i 64)) (rem i 64))
+                       (conj! s (.get attribute-vector i)) s))
+      (persistent! s))))
+
+(defn- longs-adprime
+  ^longs [^objects rows ^long object-count ^longs mask ^longs A]
+  (let [result (aclone mask)]
+    (dotimes [g object-count]
+      (let [^longs row (aget rows g)]
+        (when (longs-subset? A row)
+          (longs-and-into! result row))))
+    result))
+
+(defn- longs-close-under-implications
+  ^longs [^java.util.ArrayList prem ^java.util.ArrayList concl ^long n ^longs X]
+  (let [result (aclone X)]
+    (loop []
+      (if (loop [i 0, ch false]
+            (if (< i n)
+              (recur (inc i)
+                     (let [^longs p (.get prem i)]
+                       (if (longs-subset? p result)
+                         (if (longs-union-changed! result ^longs (.get concl i)) true ch)
+                         ch)))
+              ch))
+        (recur)
+        result))))
+
+(defn- longs-next-closed-set
+  "Next closed set after A in lectic order; returns a long[] or nil."
+  [attribute-count ^java.util.ArrayList prem ^java.util.ArrayList concl n ^longs A]
+  (let [M (long attribute-count), n (long n), ^longs B (aclone A)]
+    (loop [i (dec M)]
+      (cond
+        (< i 0) nil
+        (bit-test (aget B (quot i 64)) (rem i 64))
+        (do (aset B (quot i 64) (bit-clear (aget B (quot i 64)) (rem i 64)))
+            (recur (dec i)))
+        :else
+        (do (aset B (quot i 64) (bit-set (aget B (quot i 64)) (rem i 64)))
+            (let [^longs Ai (longs-close-under-implications prem concl n B)]
+              (if (longs-agree-below? A Ai i)
+                Ai
+                (do (aset B (quot i 64) (bit-clear (aget B (quot i 64)) (rem i 64)))
+                    (recur (dec i))))))))))
+
+(defn canonical-base-longs
+  "Canonical base using long[]-encoded attribute sets, for contexts with more
+  than 64 attributes.  Same result as `canonical-base`."
+  ([ctx] (canonical-base-longs ctx #{}))
+  ([ctx background-knowledge]
+   (with-binary-context ctx
+     (let [M     (int attribute-count)
+           mask  (longs-mask M)
+           rows  (longs-attribute-rows incidence-matrix object-count M)
+           prem  (java.util.ArrayList.)
+           concl (java.util.ArrayList.)
+           add!  (fn [^longs P ^longs C] (.add prem P) (.add concl C))]
+       (doseq [^Implication impl background-knowledge]
+         (add! (to-longs attribute-vector (.premise impl))
+               (to-longs attribute-vector (.conclusion impl))))
+       (letfn [(runner [^longs candidate]
+                 (let [closure (longs-adprime rows object-count mask candidate)]
+                   (if (java.util.Arrays/equals candidate closure)
+                     (let [nx (longs-next-closed-set M prem concl (.size prem) candidate)]
+                       (when nx (recur nx)))
+                     (let [C (aclone closure)]
+                       (dotimes [w (alength C)]
+                         (aset C w (bit-and (aget C w) (bit-not (aget candidate w)))))
+                       (add! candidate C)
+                       (cons [candidate C]
+                             (lazy-seq
+                              (let [nx (longs-next-closed-set M prem concl (.size prem) candidate)]
+                                (when nx (runner nx)))))))))]
+         (map (fn [pair]
+                (make-implication (longs->hashset attribute-vector (nth pair 0))
+                                  (longs->hashset attribute-vector (nth pair 1))))
+              (lazy-seq
+               (let [start (longs-close-under-implications prem concl (.size prem)
+                                                           (long-array (alength mask)))]
+                 (runner start)))))))))
+
+(defn- canonical-base-bitset
   ([ctx]
-   (canonical-base ctx #{}))
+   (canonical-base-bitset ctx #{}))
   ([ctx background-knowledge]
    (with-binary-context ctx
      (let [bg-knowledge (map (fn [^Implication impl]
@@ -278,6 +558,136 @@
             (lazy-seq (runner (vec bg-knowledge)
                               (close-under-implications bg-knowledge
                                                         (to-bitset attribute-vector #{})))))))))
+
+(defn canonical-base
+  "Computes the canonical (Duquenne-Guigues) base of `ctx` as a lazy sequence,
+  optionally reduced by the set of implications `background-knowledge` (which
+  will not appear in the result).
+
+  Uses a long-encoded implementation when the context has at most 64 attributes
+  and a BitSet implementation otherwise; both yield the same base."
+  ([ctx] (canonical-base ctx #{}))
+  ([ctx background-knowledge]
+   (if (<= (long (if (context? ctx) (count (attributes ctx)) (nth ctx 3))) 64)
+     (canonical-base-long ctx background-knowledge)
+     (canonical-base-longs ctx background-knowledge))))
+
+;;; PAC approximation of the canonical base (Angluin's HORN1 with a sampling
+;;; equivalence oracle), long-encoded for contexts with at most 64 attributes.
+;;; The membership oracle "is S an intent?" is a single long derivation, the
+;;; equivalence oracle draws random longs, and every set operation (subset test,
+;;; union, intersection) is a single machine word -- so the many oracle calls are
+;;; far cheaper than in the hash-set implementation.
+
+(defn approx-canonical-base-long
+  "Long-encoded version of conexp.fca.implications/approx-canonical-base for
+  contexts with at most 64 attributes."
+  [ctx epsilon delta]
+  (with-binary-context ctx
+    (let [M    (int attribute-count)
+          mask (long (if (== M 64) -1 (unchecked-dec (bit-shift-left 1 M))))
+          rows (long-attribute-rows incidence-matrix object-count M)
+          ^java.util.Random rng (java.util.Random.)
+          logd (/ (Math/log (/ (double delta))) (Math/log 2.0))
+          inve (/ (double epsilon))
+          sub?      (fn [^long a ^long b] (zero? (bit-and a (bit-not b))))     ; a ⊆ b
+          intent?   (fn [^long s] (== s (long-adprime rows object-count mask s)))
+          resp?     (fn [^long s ^long p ^long c] (or (not (sub? p s)) (sub? c s)))
+          resp-all? (fn [^long s hyp]
+                      (every? (fn [pc] (resp? s (long (nth pc 0)) (long (nth pc 1)))) hyp))
+          mk        (fn [^long p ^long c] [p (bit-and c (bit-not p))])          ; normalized impl
+          counter   (atom 0)
+          equivalent?
+          (fn [hyp]                                     ; -> true, or a counterexample (long)
+            (let [nr (long (Math/ceil (* inve (+ (swap! counter inc) logd))))]
+              (loop [k 0]
+                (if (< k nr)
+                  (let [s (bit-and mask (.nextLong rng))]
+                    (if (= (intent? s) (resp-all? s hyp))
+                      (recur (inc k))
+                      s))
+                  true))))]
+      (loop [hyp []]
+        (let [ce (equivalent? hyp)]
+          (if (true? ce)
+            (map (fn [pc] (make-implication (long->hashset attribute-vector (long (nth pc 0)))
+                                            (long->hashset attribute-vector (long (nth pc 1)))))
+                 hyp)
+            (let [ce (long ce)]
+              (if (some (fn [pc] (not (resp? ce (long (nth pc 0)) (long (nth pc 1))))) hyp)
+                (recur (mapv (fn [pc]
+                               (let [p (long (nth pc 0)), c (long (nth pc 1))]
+                                 (if (resp? ce p c) pc (mk p (bit-and c ce)))))
+                             hyp))
+                (let [idx (loop [i 0]
+                            (if (< i (count hyp))
+                              (let [p (long (nth (nth hyp i) 0)), rp (bit-and ce p)]
+                                (if (and (not (== rp p)) (not (intent? rp))) i (recur (inc i))))
+                              nil))]
+                  (if idx
+                    (recur (let [pc (nth hyp idx), p (long (nth pc 0)), c (long (nth pc 1))
+                                 rp (bit-and ce p)]
+                             (assoc hyp idx (mk rp (bit-or c (bit-and p (bit-not rp)))))))
+                    (recur (conj hyp (mk ce mask)))))))))))))
+
+(defn- longs-and     ^longs [^longs a ^longs b]
+  (let [r (aclone a)] (dotimes [i (alength r)] (aset r i (bit-and (aget r i) (aget b i)))) r))
+(defn- longs-and-not ^longs [^longs a ^longs b]                    ; a \ b
+  (let [r (aclone a)] (dotimes [i (alength r)] (aset r i (bit-and (aget r i) (bit-not (aget b i))))) r))
+(defn- longs-or      ^longs [^longs a ^longs b]
+  (let [r (aclone a)] (dotimes [i (alength r)] (aset r i (bit-or (aget r i) (aget b i)))) r))
+
+(defn approx-canonical-base-longs
+  "long[]-encoded version of approx-canonical-base-long, for contexts with more
+  than 64 attributes."
+  [ctx epsilon delta]
+  (with-binary-context ctx
+    (let [M    (int attribute-count)
+          W    (int (quot (+ M 63) 64))
+          mask (longs-mask M)
+          rows (longs-attribute-rows incidence-matrix object-count M)
+          ^java.util.Random rng (java.util.Random.)
+          logd (/ (Math/log (/ (double delta))) (Math/log 2.0))
+          inve (/ (double epsilon))
+          intent?   (fn [^longs s] (java.util.Arrays/equals s ^longs (longs-adprime rows object-count mask s)))
+          resp?     (fn [^longs s ^longs p ^longs c] (or (not (longs-subset? p s)) (longs-subset? c s)))
+          resp-all? (fn [^longs s hyp] (every? (fn [pc] (resp? s (nth pc 0) (nth pc 1))) hyp))
+          mk        (fn [^longs p ^longs c] [p (longs-and-not c p)])
+          rand-sub  (fn [] (let [r (long-array W)]
+                             (dotimes [i W] (aset r i (bit-and (.nextLong rng) (aget mask i))))
+                             r))
+          counter   (atom 0)
+          equivalent?
+          (fn [hyp]
+            (let [nr (long (Math/ceil (* inve (+ (swap! counter inc) logd))))]
+              (loop [k 0]
+                (if (< k nr)
+                  (let [s (rand-sub)]
+                    (if (= (intent? s) (resp-all? s hyp)) (recur (inc k)) s))
+                  true))))]
+      (loop [hyp []]
+        (let [ce (equivalent? hyp)]
+          (if (true? ce)
+            (map (fn [pc] (make-implication (longs->hashset attribute-vector (nth pc 0))
+                                            (longs->hashset attribute-vector (nth pc 1))))
+                 hyp)
+            (let [^longs ce ce]
+              (if (some (fn [pc] (not (resp? ce (nth pc 0) (nth pc 1)))) hyp)
+                (recur (mapv (fn [pc]
+                               (let [p (nth pc 0), c (nth pc 1)]
+                                 (if (resp? ce p c) pc (mk p (longs-and c ce)))))
+                             hyp))
+                (let [idx (loop [i 0]
+                            (if (< i (count hyp))
+                              (let [^longs p (nth (nth hyp i) 0), rp (longs-and ce p)]
+                                (if (and (not (java.util.Arrays/equals rp p)) (not (intent? rp)))
+                                  i (recur (inc i))))
+                              nil))]
+                  (if idx
+                    (recur (let [pc (nth hyp idx), ^longs p (nth pc 0), ^longs c (nth pc 1)
+                                 rp (longs-and ce p)]
+                             (assoc hyp idx (mk rp (longs-or c (longs-and-not p rp))))))
+                    (recur (conj hyp (mk ce mask)))))))))))))
 
 
 ;;; Compute Concepts of Formal Contexts efficiently
