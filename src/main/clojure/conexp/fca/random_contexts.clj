@@ -53,15 +53,6 @@
                  obj_att_nums))))
 
 
-;; (defmethod make-context-from-attribute-numbers-per-object :att-coll-obj-coll
-;;   [att obj obj_att_nums]
-;;   (let [matrix (flatten (map #(shuffle (into (vec (take % (repeat 1))) 
-;;                                              (vec (take (- (count  att) %) (repeat 0))))) obj_att_nums))]
-;;     (contexts/make-context-from-matrix
-;;      (into [] obj)
-;;      (into [] att)
-;;      matrix)))
-
 (defmethod make-context-from-attribute-numbers-per-object :att-coll-obj-coll
   [att obj obj_att_nums]
   (let [att-count (count att)
@@ -382,9 +373,6 @@
                       " successful swaps and " j " failed swap attempts")
              (contexts/make-context G M I)) 
          (if (>= i iterations)
-           ;; (do (println "Randomization stopped after " i
-           ;;              " successful swaps and " j " failed swap attempts")
-           ;;     (contexts/make-context G M I)) 
            (contexts/make-context G M I)
            (let [g (rand-nth (into [] Gfiltered))
                  gprime (contexts/object-derivation Kswappable [g])
@@ -400,8 +388,6 @@
                       Kswappable
                       I)
                (let [h (rand-nth (into [] hpool))]
-                 ;; (println "remove " [g m] [h n])
-                 ;; (println "add " [g n] [h m])
                  (let [Inew (union (difference I #{[g m] [h n]}) #{[g n] [h m]})]
                    (recur (inc i)
                           j
