@@ -42,8 +42,13 @@
                                                             0 0 1 1 1
                                                             0 1 1 0 0])),
         layout  (simple-layered-layout lattice),
-        layouts (take 10 (iterate #(force-layout % 100) layout))]
-    (is (apply > (map layout-energy layouts))))
+        layouts (take 10 (iterate #(force-layout % 100) layout))
+        energies (map layout-energy layouts)]
+    ;; force-layout must never increase the energy; with the commons-math 3
+    ;; optimizer the layout converges to a fixed point, so consecutive
+    ;; energies may become equal (hence >= rather than a strict >).
+    (is (apply >= energies))
+    (is (> (first energies) (last energies))))
   (let [poset-layout (simple-layered-layout test-poset)]
     (is (= (nodes (force-layout poset-layout))
            (nodes poset-layout)))

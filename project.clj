@@ -24,7 +24,6 @@
                  [org.clojure/math.combinatorics  "0.3.0"]
                  [org.clojure/math.numeric-tower  "0.1.0"]
                  [org.clojure/tools.cli           "1.1.230"]
-                 [org.apache.commons/commons-math "2.2"]
                  [org.clojure/algo.generic        "1.0.1"]
                  [seesaw                          "1.5.0"]
                  [reply                           "0.5.1"
