@@ -20,7 +20,7 @@
                  [org.clojure/data.csv            "1.1.0"]
                  [org.clojure/data.int-map        "1.3.0"]
                  [org.clojure/data.json           "2.5.1"]
-                 [org.clojure/data.xml            "0.0.8"]
+                 [org.clojure/data.xml            "0.2.0-alpha11"]
                  [org.clojure/math.combinatorics  "0.3.0"]
                  [org.clojure/math.numeric-tower  "0.1.0"]
                  [org.clojure/tools.cli           "1.1.230"]
