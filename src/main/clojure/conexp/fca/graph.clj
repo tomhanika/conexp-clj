@@ -1,5 +1,6 @@
 (ns conexp.fca.graph
   (:require [loom.graph :as lg]
+            [loom.alg :as la]
             [conexp.math.algebra :as alg]
             [conexp.fca.lattices :as lat]
             [conexp.util.graph :refer :all]
@@ -63,8 +64,11 @@
   See Golumbic 1976,
   \"The Complexity of Comparability Graph Recognition and Coloring\".
 
-  The implication classes are returned as a graph on the edges of g,
-  where two edges are connected iff they are in the same implication class.
+  The implication classes are returned as a map from each edge of g to the set
+  of edges in its class (the connected component of that edge in the \"forcing\"
+  graph, always including the edge itself).  This is computed via connected
+  components of the forcing graph in O(m^2) (m = |edges g|), rather than a
+  transitive closure of that m-node graph.
 
   These are classes of edges for which the directions in a transitive
   orientation depend on each other.
@@ -77,34 +81,43 @@
   (Otherwise, if e.g. b->a and a->c were applied, due to transitivity, b->c
   would also be comparable, but this edge is not in the original graph)."
   [g]
-  (transitive-closure
-    (make-graph-from-condition
-      (lg/edges g)
-      (fn [e1 e2]
-        (let [a (lg/src e1)
-              b (lg/dest e1)
-              a' (lg/src e2)
-              b' (lg/dest e2)]
-          (or (and (= a a') (not (lg/has-edge? g b b')))
-              (and (= b b') (not (lg/has-edge? g a a')))))))))
+  (let [forcing (make-graph-from-condition
+                  (lg/edges g)
+                  (fn [e1 e2]
+                    (let [a (lg/src e1)
+                          b (lg/dest e1)
+                          a' (lg/src e2)
+                          b' (lg/dest e2)]
+                      (or (and (= a a') (not (lg/has-edge? g b b')))
+                          (and (= b b') (not (lg/has-edge? g a a')))))))
+        by-component (reduce (fn [m component]
+                               (let [cls (set component)]
+                                 (reduce #(assoc %1 %2 cls) m component)))
+                             {}
+                             (la/connected-components forcing))]
+    ;; every edge maps to its class; isolated edges form singleton classes
+    (reduce (fn [m e] (if (contains? m e) m (assoc m e #{e})))
+            by-component
+            (lg/nodes forcing))))
 
 (defn- valid-collection-of-implication-classes?
-  "Tests whether for a given graph g, a given set of implication classes allows
-  the construction of a transitive orientation."
+  "Tests whether for a given graph g, a given collection of implication classes
+  (as a map from each edge to its class) allows the construction of a transitive
+  orientation."
   [g impl-classes]
-  (if (empty? (lg/nodes impl-classes))
+  (if (empty? impl-classes)
     true
-    (let [an-edge-of-g (first (lg/nodes impl-classes))
-          the-reversed-edge (first 
-                              (filter 
+    (let [an-edge-of-g (first (keys impl-classes))
+          the-reversed-edge (first
+                              (filter
                                 #(and (= (lg/dest %) (lg/src an-edge-of-g))
-                                      (= (lg/src %) (lg/dest an-edge-of-g))) 
-                                (lg/edges g)))]
-      (if (lg/has-edge? impl-classes an-edge-of-g the-reversed-edge)
+                                      (= (lg/src %) (lg/dest an-edge-of-g)))
+                                (lg/edges g)))
+          A1 (impl-classes an-edge-of-g)]                   ; includes an-edge-of-g
+      (if (contains? A1 the-reversed-edge)
         false                                               ; is only comparability-graph if classes of an-edge-of-g and the-reversed-edge are disjoint
-        (let [A1 (lg/successors impl-classes an-edge-of-g)  ; includes an-edge-of-g
-              A1-inv (lg/successors impl-classes the-reversed-edge)
-              new-impl-classes (lg/remove-nodes* (lg/remove-nodes* impl-classes A1) A1-inv)]
+        (let [A1-inv (get impl-classes the-reversed-edge #{})
+              new-impl-classes (apply dissoc impl-classes (concat A1 A1-inv))]
           (assert (not= new-impl-classes impl-classes))     ; at least an-edge-of-g and the-reversed-edge should have been removed
           (recur g new-impl-classes))))))
 
@@ -127,7 +140,7 @@
    (if (empty? (lg/edges g))
      decomp
      (let [e (edge-selection g)
-           B (lg/successors impl e)
+           B (impl e)
            B-inv (map reverse B)
            B-overline (union B B-inv)
            g-next (lg/remove-edges* g B-overline)]
