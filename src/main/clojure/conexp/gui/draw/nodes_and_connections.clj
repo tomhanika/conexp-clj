@@ -9,60 +9,79 @@
            java.awt.Font
            [no.geosoft.cc.graphics GInteraction GObject GPosition GScene GSegment GStyle GText GWindow ZoomInteraction]))
 
+;;; Abstract node model
+;;
+;; A diagram node or connection stores its model state (type, position, radius,
+;; name, upper/lower links) in a mutable ref.  The AbstractNode protocol exposes
+;; that ref plus a backend redraw, so the accessors below -- and the controls
+;; built on them -- are independent of the concrete node representation.  The
+;; Swing no.geosoft GObject is the first (currently only) implementation.
+
+(defprotocol AbstractNode
+  (-node-data [node]
+    "Returns the mutable ref holding the node's/connection's model state.")
+  (-redraw-node [node]
+    "Redraws the node/connection on its backend."))
+
+(extend-type GObject
+  AbstractNode
+  (-node-data [o] (.getUserData o))
+  (-redraw-node [o] (.redraw o)))
+
 ;;; nodes and connections
 
 (defn node?
   "Tests whether thing is a node of a lattice diagram or not."
   [thing]
-  (and (instance? GObject thing)
-       (= (:type @(.getUserData ^GObject thing)) :node)))
+  (and (satisfies? AbstractNode thing)
+       (= (:type @(-node-data thing)) :node)))
 
 (defn connection?
   "Tests whether thing is a connection of a lattice diagram or not."
   [thing]
-  (and (instance? GObject thing)
-       (= (:type @(.getUserData ^GObject thing)) :connection)))
+  (and (satisfies? AbstractNode thing)
+       (= (:type @(-node-data thing)) :connection)))
 
 (defn position
   "Returns the position of a node in a lattice diagram."
-  [^GObject node]
-  (:position @(.getUserData node)))
+  [node]
+  (:position @(-node-data node)))
 
 (defn radius
   "Returns the radius of a node in a lattice diagram."
-  [^GObject node]
-  (:radius @(.getUserData node)))
+  [node]
+  (:radius @(-node-data node)))
 
 (defn set-node-radius!
   "Sets radius of node."
-  [^GObject node, radius]
+  [node, radius]
   (dosync
-   (alter (.getUserData node) assoc :radius radius)))
+   (alter (-node-data node) assoc :radius radius)))
 
 (defn get-name
   "Returns name of thing."
-  [^GObject thing]
-  (:name @(.getUserData thing)))
+  [thing]
+  (:name @(-node-data thing)))
 
 (defn lower-node
   "Returns for a connection conn the lower node in a lattice diagram."
-  [^GObject conn]
-  (:lower @(.getUserData conn)))
+  [conn]
+  (:lower @(-node-data conn)))
 
 (defn upper-node
   "Returns for a connection conn the upper node in a lattice diagram."
-  [^GObject conn]
-  (:upper @(.getUserData conn)))
+  [conn]
+  (:upper @(-node-data conn)))
 
 (defn upper-connections
   "Returns all upper connections for node in a lattice diagram."
-  [^GObject node]
-  (:upper @(.getUserData node)))
+  [node]
+  (:upper @(-node-data node)))
 
 (defn lower-connections
   "Returns all lower connections of node in a lattice diagram."
-  [^GObject node]
-  (:lower @(.getUserData node)))
+  [node]
+  (:lower @(-node-data node)))
 
 (defn upper-neighbors
   "Returns all upper neighbors of node in a lattice diagram."
@@ -233,8 +252,8 @@
                              :upper y,
                              :name name})))
        (dosync
-        (alter (.getUserData x) update-in [:upper] conj c)
-        (alter (.getUserData y) update-in [:lower] conj c)))))
+        (alter (-node-data x) update-in [:upper] conj c)
+        (alter (-node-data y) update-in [:lower] conj c)))))
 
 ;;; draw grid
 
@@ -306,18 +325,18 @@
 
 (defn move-node-unchecked-to
   "Moves node to [new-x new-y]."
-  [^GObject node, new-x, new-y]
+  [node, new-x, new-y]
   ;; update self position
   (dosync
-   (alter (.getUserData node) assoc :position [new-x new-y]))
+   (alter (-node-data node) assoc :position [new-x new-y]))
   ;; move node on the device
-  (.redraw node)
+  (-redraw-node node)
   ;; update connections to upper neighbors
-  (doseq [^GObject c (upper-connections node)]
-    (.redraw c))
+  (doseq [c (upper-connections node)]
+    (-redraw-node c))
   ;; update connections to lower neighbors
-  (doseq [^GObject c (lower-connections node)]
-    (.redraw c))
+  (doseq [c (lower-connections node)]
+    (-redraw-node c))
   ;; done
   [new-x new-y])
 
