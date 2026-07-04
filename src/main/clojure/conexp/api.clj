@@ -52,7 +52,7 @@
                   (response/resource-response "index.html" {:root "public"})
                   (rpc request)))
             (rpc request)))
-        (wrap-content-type)
+        (wrap-content-type {:mime-types {"webmanifest" "application/manifest+json"}})
         (wrap-not-modified))))
 
 (defonce server (atom nil))
