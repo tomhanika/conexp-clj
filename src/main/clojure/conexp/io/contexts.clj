@@ -163,13 +163,13 @@
 (add-context-input-format :conexp
                           (fn [rdr]
                             (try
-                             (= :ConceptualSystem (-> (xml/parse rdr) :tag))
+                             (= :ConceptualSystem (-> (xml/parse rdr :namespace-aware false :skip-whitespace true) :tag))
                              (catch Exception _))))
 
 (define-context-input-format :conexp
   [file]
   (with-in-reader file
-    (let [xml-tree (xml/parse *in*)
+    (let [xml-tree (xml/parse *in* :namespace-aware false :skip-whitespace true)
           contexts (:content (first (find-tags (:content xml-tree) :Contexts)))]
       (cond
         (= 0 (count contexts))
@@ -231,7 +231,7 @@
 (add-context-input-format :galicia
                           (fn [rdr]
                             (try
-                             (let [xml-tree (xml/parse rdr)]
+                             (let [xml-tree (xml/parse rdr :namespace-aware false :skip-whitespace true)]
                                (and (= :Galicia_Document (-> xml-tree :tag))
                                     (= :BinaryContext (-> xml-tree :content first :tag))))
                              (catch Exception _))))
@@ -260,7 +260,7 @@
 (define-context-input-format :galicia
   [file]
   (with-in-reader file
-    (let [ctx-xml-tree (-> (xml/parse *in*) :content first)
+    (let [ctx-xml-tree (-> (xml/parse *in* :namespace-aware false :skip-whitespace true) :content first)
 
           nr-objs (Integer/parseInt (-> ctx-xml-tree :attrs :numberObj))
           nr-atts (Integer/parseInt (-> ctx-xml-tree :attrs :numberAtt))
@@ -506,7 +506,7 @@
 (define-context-input-format :graphml
   [file]
   (try 
-    (let [graphml (xml/parse (reader file))]
+    (let [graphml (xml/parse (reader file) :namespace-aware false :skip-whitespace true)]
       (if (= :graphml (:tag graphml))
           (doall (for [graph (:content graphml) :when (= :graph (:tag graph))]
             (let [default    (:edgedefault (:attrs graph))
@@ -533,8 +533,7 @@
                                                 (str "Multiple data values for" 
                                                      " edges are not" 
                                                      " supported.")))
-                                        (when (= clojure.data.xml.Element
-                                                 (type value)) 
+                                        (when (xml/element? value)
                                               (illegal-argument
                                                 (str "Only single values are"
                                                      " supported as edge"
@@ -585,6 +584,11 @@
            (illegal-argument "Specified file not found."))
     (catch javax.xml.stream.XMLStreamException _
            (illegal-argument "Specified file does not contain valid XML."))))
+
+(define-context-output-format :tex ;; duplicate?
+  [ctx file]
+  (with-out-writer file
+    (println (latex ctx))))
 
 (define-context-output-format :tex
   [ctx file & options]
@@ -673,6 +677,33 @@
               (str "The input file does not match the schema given at " schema-file "."))
       (json->ctx file-content))))
 
+(define-context-output-format :tex-arrows
+  [ctx file & options]
+  (let [{:keys [objorder attrorder]
+         :or {objorder (constantly true), 
+              attrorder (constantly true)}} options]
+    (with-out-writer file
+      (let [attr (sort-by  attrorder (attributes ctx))
+            obj (sort-by objorder (objects ctx))
+            darrow (down-arrows ctx)
+            uparrow (up-arrows ctx)]
+        (println "%\\usepackage{amsmath}")
+        (println "%\\DeclareMathOperator){\\neswarrow}{\\mathrel{\\text{\\ooalign{$\\swarrow$\\cr$\\nearrow$}}}}")
+        (println (str "\\begin{tabular}{" (if (empty? obj) "" "|l||") 
+                     (apply str (for [a attr] "c|")) "}"))
+        (println "\\hline")
+        (println (str "&" (clojure.string/join "&" attr) "\\\\ \\hline \\hline"))
+        (doseq [o obj]
+          (println (str o 
+                        (clojure.string/join "" 
+                                             (for [a attr] 
+                                               (cond ((incidence ctx) [o a]) "&$\\times$"
+                                                     (and (uparrow [o a]) (darrow [o a])) "&$\\neswarrow$"
+                                                     (uparrow [o a]) "&$\\nearrow$"
+                                                     (darrow [o a]) "&$\\swarrow$"
+                                                     :else "&"))) 
+                        "\\\\ \\hline")))
+        (println "\\end{tabular}")))))
 ;;; TODO
 
 ;; slf

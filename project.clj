@@ -8,7 +8,7 @@
 
 
 
-(defproject conexp-clj "2.9.0"
+(defproject conexp-clj "3.0.0"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
   :url "http://github.com/tomhanika/conexp-clj/"
@@ -20,11 +20,10 @@
                  [org.clojure/data.csv            "1.1.0"]
                  [org.clojure/data.int-map        "1.3.0"]
                  [org.clojure/data.json           "2.5.1"]
-                 [org.clojure/data.xml            "0.0.8"]
+                 [org.clojure/data.xml            "0.2.0-alpha11"]
                  [org.clojure/math.combinatorics  "0.3.0"]
                  [org.clojure/math.numeric-tower  "0.1.0"]
                  [org.clojure/tools.cli           "1.1.230"]
-                 [org.apache.commons/commons-math "2.2"]
                  [org.clojure/algo.generic        "1.0.1"]
                  [seesaw                          "1.5.0"]
                  [reply                           "0.5.1"
@@ -42,8 +41,7 @@
                  [ring-cors "0.1.13"]
                  [http-kit "2.8.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
-                 [luposlip/json-schema             "0.4.6"]
-                 [net.mikera/core.matrix "0.63.0"]]
+                 [luposlip/json-schema             "0.4.6"]]
   :profiles {:uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.6.2"]
@@ -62,6 +60,7 @@
   :keep-non-project-classes true
   :source-paths ["src/main/clojure" "src/test/clojure"]
   :java-source-paths ["src/main/java"]
+  :javac-options ["--release" "21"]
   :test-paths ["src/test/clojure"]
   :resource-paths ["src/main/resources"]
   :target-path "builds/%s"

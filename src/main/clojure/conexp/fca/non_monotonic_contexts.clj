@@ -1,7 +1,6 @@
 (ns conexp.fca.non-monotonic-contexts
   (:require [conexp.base :refer :all]
             [conexp.fca.posets :refer :all]
-            [conexp.fca.posets :refer :all]
             [conexp.fca.contexts :refer :all]
             [clojure.set :as set]))
 
@@ -101,7 +100,7 @@
 ;Definition 12
 (defn respects? [ectx A B]
   "Verifies Whether the Supplied Extended Formal Context Respects the Non-monotonic 
-   Conditional A -> ¬ B."
+   Conditional A -> ï¿½ B."
   (= (set/intersection (minimized-attribute-derivation ectx A) (attribute-derivation ectx B)) #{})
 
 )

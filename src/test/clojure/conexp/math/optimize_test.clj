@@ -23,8 +23,10 @@
                                     (constantly 0.0)))
                                 [0.0]
                                 {})]
-        (and (real= 1e-16 opt -1.0)
-             (real= 1e-16 x -1.5707963267948966))))
+        ;; commons-math 3's gradient optimizer converges to ~1e-9 here,
+        ;; not to machine precision as commons-math 2 happened to.
+        (and (real= 1e-8 opt -1.0)
+             (real= 1e-8 x -1.5707963267948966))))
   (is (let [[[x] opt] (minimize #(Math/sin (aget ^doubles % 0)) ;note: function gets array of doubles!
                                 [0.0]
                                 {})]
@@ -39,8 +41,10 @@
                                     (constantly 0.0)))
                                 [0.0]
                                 {})]
-        (and (real= 1e-16 opt 1.0)
-             (real= 1e-16 x 1.5707963267948966))))
+        ;; commons-math 3's gradient optimizer converges to ~1e-9 here,
+        ;; not to machine precision as commons-math 2 happened to.
+        (and (real= 1e-8 opt 1.0)
+             (real= 1e-8 x 1.5707963267948966))))
   (is (let [[[x] opt] (maximize #(Math/sin (aget ^doubles % 0)) ;note: function gets array of doubles!
                                 [0.0]
                                 {})]

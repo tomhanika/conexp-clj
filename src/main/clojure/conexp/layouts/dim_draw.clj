@@ -7,49 +7,72 @@
             [conexp.layouts.base :as lay]
             [conexp.base :exclude [transitive-closure] :refer :all]
             [rolling-stones.core :as sat :refer :all]
-            [clojure.set :refer [difference union subset? intersection]])
-  (:import [org.dimdraw Bipartite]))
+            [clojure.set :refer [difference union subset? intersection]]))
 
-(defn in-odd-cycle?
-  "Returns true, if vertex is in an odd cycle with subset in g"
-  [graph subset vertex]
-   (loop [to-check [vertex]
-         coloring  {vertex 1}]
-    (let [first (peek to-check)
-          color-first  (coloring first)
-          color (mod (+ 1 color-first) 2)
-          succ (set (filter (fn [x] (contains? subset x))
-                            (lg/successors graph first)))
-          wrong (filter (fn [x] (= color-first (coloring x))) succ)
-          uncolored (filter (fn [x] (not (contains? coloring x))) succ)
-          to-check (vec (concat uncolored to-check))
-          coloring (conj coloring (zipmap uncolored (repeat color)))
-          incycle (not (empty? wrong))
-          popped (pop to-check)]
-      (if (or incycle (empty? popped))
-        incycle
-        (recur popped coloring)))))
+;;; Incremental bipartiteness with a parity union-find.  An edge means the two
+;;; endpoints must get different colors; an odd cycle is detected when two
+;;; endpoints are already forced into the same color.  `parent`, `parity` and
+;;; `size` are immutable maps (so this is thread-safe under pmap).
+
+(defn- uf-find
+  "Returns [root parity-of-x-to-root]."
+  [parent parity x]
+  (loop [x x, acc 0]
+    (let [p (parent x x)]
+      (if (= p x)
+        [x acc]
+        (recur p (bit-xor acc (parity x 0)))))))
+
+(defn- uf-union-diff
+  "Adds the constraint that `a` and `b` get different colors.  Returns
+  `[ok? parent parity size]`, where `ok?` is false iff this closes an odd cycle."
+  [parent parity size a b]
+  (let [[ra pa] (uf-find parent parity a)
+        [rb pb] (uf-find parent parity b)]
+    (if (= ra rb)
+      [(not= pa pb) parent parity size]
+      (let [sa   (size ra 1)
+            sb   (size rb 1)
+            want (bit-xor 1 pa pb)]
+        (if (< sa sb)
+          [true (assoc parent ra rb) (assoc parity ra want) (assoc size rb (+ sa sb))]
+          [true (assoc parent rb ra) (assoc parity rb want) (assoc size ra (+ sa sb))])))))
 
 (defn fill-graph
-  "Returns an inclusion-maximal subset of vertices, such that it is biparite
-  and contains subset"
+  "Returns an inclusion-maximal subset of vertices such that the induced subgraph
+  is bipartite and contains `subset`.
+
+  Vertices are considered in random order and greedily kept when they preserve
+  bipartiteness.  Bipartiteness is maintained incrementally with a parity
+  union-find, so each insertion costs O(deg · α) instead of a fresh traversal."
   [graph subset]
-  (let [order (shuffle (difference (set (lg/nodes graph)) subset))
-        order (vec (distinct order))]
-    (if (empty? order)
-      subset
-      (loop [remaining order
-             final subset]
-        (let [first (peek remaining)
-              popped (pop remaining)
-              newsub (conj final first)
-              can-insert  (not (. Bipartite isInOddCycle (:adj graph) newsub first))
-              next-subset (if can-insert
-                            newsub
-                            final)]
-          (if (not (empty? popped))
-            (recur popped next-subset)
-            next-subset))))))
+  (let [adj     (:adj graph)
+        try-add (fn [present parent parity size v]
+                  (reduce (fn [[ok? par pty sz] nb]
+                            (if ok?
+                              (uf-union-diff par pty sz v nb)
+                              (reduced [false par pty sz])))
+                          [true parent parity size]
+                          (filter present (adj v))))
+        ;; seed the union-find with the (already bipartite) `subset`
+        [present parent parity size]
+        (reduce (fn [[pres par pty sz] v]
+                  (let [[_ par' pty' sz'] (try-add pres par pty sz v)]
+                    [(conj pres v) par' pty' sz']))
+                [#{} {} {} {}]
+                subset)]
+    (loop [remaining (seq (shuffle (difference (set (lg/nodes graph)) subset)))
+           present   present
+           parent    parent
+           parity    parity
+           size      size]
+      (if (empty? remaining)
+        present
+        (let [v (first remaining)
+              [ok? par' pty' sz'] (try-add present parent parity size v)]
+          (if ok?
+            (recur (rest remaining) (conj present v) par' pty' sz')
+            (recur (rest remaining) present parent parity size)))))))
 
 (defn create-individuums
   "Create the start individuums. The number of individuums created is the
@@ -161,37 +184,59 @@
 
 (defn tig
   "Returns the \"transitive incompatibility graph\" (tig) for a given ordering
-  (given ad graph).
+  (given as graph).
 
   See Section 3, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   [graph]
-  (let [pairs     (filter #(not (= (first %) (peek %)))
-                          (reduce concat (for [x (lg/nodes graph)]
-                                           (for [y (lg/nodes graph)] [x y]))))
-        inc       (filter #(not (or (lg/has-edge? graph (first %) (peek  %))
-                                    (lg/has-edge? graph (peek %)  (first %))))
-                          pairs)
-        alledges  (reduce concat (for [x (range (count inc))]
-                                   (for [y (range (+ x 1) (count inc))]
-                                     [(nth inc x) (nth inc y)])))
-        incedges (filter #(not (is-compatible graph (first %) (peek %))) alledges)
-        ;;       graphmap (zipmap inc (map #(for [edge incedges]) inc))
-        graph    (zipmap inc
-                         (for [node inc]
-                           (vec (filter #(not (= nil %))
-                                        (for [edge incedges]
-                                          (cond
-                                            (= (first edge) node) (peek edge)
-                                            (= (peek edge ) node) (first edge)
-                                            :else nil))))))]
-    (if (empty? inc)
+  (let [nodes    (vec (lg/nodes graph))
+        ;; oriented incomparable pairs
+        incs     (vec (for [x nodes, y nodes
+                            :when (and (not= x y)
+                                       (not (lg/has-edge? graph x y))
+                                       (not (lg/has-edge? graph y x)))]
+                        [x y]))
+        n        (count incs)
+        ;; edges of the tig: incompatible pairs of incomparable pairs
+        incedges (for [i (range n)
+                       j (range (inc i) n)
+                       :let [a (incs i), b (incs j)]
+                       :when (not (is-compatible graph a b))]
+                   [a b])
+        ;; adjacency in a single pass over the edges
+        adj      (reduce (fn [m [a b]]
+                           (-> m (update a conj b) (update b conj a)))
+                         (zipmap incs (repeat []))
+                         incedges)]
+    (if (empty? incs)
       (lg/graph)
-      (lg/graph graph))))
+      (lg/graph adj))))
+
+(defn- sat-reduction-static
+  "The k-independent part of the vertex-bipartization CNF for `g`:
+  returns `[node-clauses edge-clauses node-vars]`."
+  [g]
+  [(mapcat #(vec [[[% 1] [% 2] [% 3]]])                    ; at least one of V_{i,1..3}
+           (nodes g))
+   (mapcat #(let [vi (lg/src %) vj (lg/dest %)]
+              [[(! [vi 1]) (! [vj 1])]
+               [(! [vi 2]) (! [vj 2])]])
+           (lg/edges g))
+   (vec (map #(vec [% 3]) (nodes g)))])
+
+(defn- sat-reduction-solve
+  "Solves the vertex-bipartization instance for a fixed `k`, reusing the static
+  clauses.  Returns the set `C` to remove (possibly empty), or nil if there is no
+  such set of cardinality at most `k`."
+  [node-clauses edge-clauses node-vars k]
+  (let [solution (sat/solve-symbolic-cnf
+                   (concat node-clauses edge-clauses (lt-seq node-vars k "s")))]
+    (when solution
+      (map first (filter #(and (sat/positive? %) (= (% 1) 3)) solution)))))
 
 (defn sat-reduction
   "Reduces the problem of finding a maximum bipartite subgraph to satisfiability
   and solves it.
-  
+
   The vertices of the graph get partitioned in 3 sets: `P_1`, `P_2` and `C`, s.t.
   `P_1` and `P_2` constitute the bipartite graph and `C` has cardinality at most k.
 
@@ -201,25 +246,15 @@
 
   See Section 5.2, Dürrschnabel, Hanika, Stumme (2019) https://arxiv.org/abs/1903.00686"
   ([g]
-   (first (drop-while #(= % nil) (map #(sat-reduction g %) (range)))))
+   ;; smallest k for which the instance is satisfiable; the static clauses are
+   ;; built once and reused for every k.
+   (let [[nc ec nv] (sat-reduction-static g)]
+     (loop [k 0]
+       (or (sat-reduction-solve nc ec nv k)
+           (recur (inc k))))))
   ([g k]
-   (let [node-clauses (mapcat
-                        #(vec [[[% 1] [% 2] [% 3]]])        ; alt least one of V_{i,1}, V_{i,2}, or V_{i,3} is true
-                        (nodes g))
-         edge-clauses (mapcat
-                        #(let [vi (lg/src %) vj (lg/dest %)]
-                           [[(! [vi 1]) (! [vj 1])]
-                            [(! [vi 2]) (! [vj 2])]])
-                        (lg/edges g))
-         no-more-than-k-bad-edges-clauses (lt-seq
-                                            (vec (map #(vec [% 3]) (nodes g)))
-                                            k "s")
-         clauses (concat node-clauses edge-clauses no-more-than-k-bad-edges-clauses)
-         raw-solution (sat/solve-symbolic-cnf clauses)
-         C (if (= raw-solution nil)
-             nil
-             (map first (filter #(and (sat/positive? %) (= (% 1) 3)) raw-solution)))]
-     C)))
+   (let [[nc ec nv] (sat-reduction-static g)]
+     (sat-reduction-solve nc ec nv k))))
 
 (defn compute-conjugate-order
   "For a given ordered set, computes the conjugate order.
@@ -239,8 +274,8 @@
   ([P relation args]
     (let [conjugate (atom (compute-conjugate-order P relation))
           base      (atom ())]
-      (while 
-        (= @conjugate nil)
+      (while
+        (nil? @conjugate)
         (swap! base
                (fn [nodes] 
                  (let [graph (tig (transitive-edge-union P relation nodes))]
@@ -274,13 +309,13 @@
     (let [P        (lg/nodes graph)
           relation #(lg/has-edge? graph %1 %2)
           C        (compute-coordinates-helper P relation args)
-          x-edges  (lg/edges (transitive-edge-union P relation C))  
-          y-edges  (lg/edges 
-                     (transitive-edge-union P relation (map reverse C))) 
-          get-pos  (fn [edges elem] 
-                     (- (count (filter #(some #{[% elem]} edges) P)) 1))
-          coords   (map 
-                     #(vector % [(get-pos x-edges %) (get-pos y-edges %)])
+          x-graph  (transitive-edge-union P relation C)
+          y-graph  (transitive-edge-union P relation (map reverse C))
+          ;; rank in a linear extension = number of elements below = in-degree in
+          ;; the transitive DAG (minus the reflexive loop).
+          get-pos  (fn [g elem] (dec (count (lg/predecessors* g elem))))
+          coords   (map
+                     #(vector % [(get-pos x-graph %) (get-pos y-graph %)])
                      P)]
       coords)))
 

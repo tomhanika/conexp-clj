@@ -2,7 +2,7 @@
   description = "conexp-clj, a general purpose software tool for Formal Concept Analysis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
     clj-nix = {
@@ -68,6 +68,7 @@
 
             projectSrc = gitignoreSource ./.;
             main-ns = "conexp";
+            jdkRunner = channels.nixpkgs.jdk21;
 
             buildCommand = ''
               lein uberjar
@@ -106,7 +107,7 @@
         };
 
         devShells.default = mkShell {
-          buildInputs = with channels.nixpkgs; [clojure-lsp leiningen];
+          buildInputs = with channels.nixpkgs; [jdk21 clojure-lsp leiningen];
         };
 
         formatter = channels.nixpkgs.alejandra;

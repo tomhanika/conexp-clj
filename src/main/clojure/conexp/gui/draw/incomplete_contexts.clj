@@ -1,4 +1,4 @@
-(ns conexp.fca.incomplete-contexts.draw
+(ns conexp.gui.draw.incomplete-contexts
   (:gen-class)
   (:require [clojure.set :refer :all]
             [conexp.fca.contexts :as cxts  :refer [Context make-context]]
@@ -16,7 +16,7 @@
   [cxt]
   (cond
     (satisfies? Context cxt)
-    (draw-concept-lattice cxt)
+    (draw/draw-concept-lattice cxt)
     (and (satisfies? Incomplete-Context-Protocol cxt)
          (is-complete-incomplete-context? cxt))
     (draw/draw-concept-lattice (incomplete-context->formal-context cxt))

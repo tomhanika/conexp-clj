@@ -21,35 +21,20 @@
     (mod (+ new-num (rand)) 1)))
 
 (defn generate-sobol
-  "Generates the One-dimensional Sobol Sequence value at 'number' position."
+  "Generates the value at position 'number' of the one-dimensional Sobol
+  sequence, i.e. the base-2 radical-inverse (van der Corput) sequence:
+  the binary digits of 'number' reflected across the binary point.  The
+  first values are 0, 1/2, 1/4, 3/4, 1/8, 5/8, 3/8, 7/8, 1/16, ..., all
+  distinct in [0,1)."
   [number]
-  (if (= number 0)
-      0
-      (let [base-num      (from-base10 number 2)
-            base-half-num (from-base10 (int (+ (/ number 2) 0.5)) 2)
-            xor-num       (vec (map 
-                                 #(if (= 1 (+ %1 %2)) 1 0)
-                                 base-num 
-                                 (concat [0] base-half-num)))
-            ;; list with length of dir nums
-            dir-nums-len  (filter
-                            identity
-                            (map 
-                              #(if (= 1 %1) (inc %2) nil) 
-                              (reverse xor-num)
-                              (range (count xor-num))))
-            dir-nums-max  (apply max dir-nums-len)
-            dir-nums      (map
-                            #(vec (concat (repeat %1 1) 
-                                          (repeat (- dir-nums-max %1) 0))) 
-                            dir-nums-len)]
-      (to-base10 
-        (vec (concat
-               [0 '.]
-               (reduce
-                 #(map (fn [a b] (if (= 1 (+ a b)) 1 0)) %1 %2) 
-                 dir-nums)))
-        2))))
+  (loop [n      number
+         weight 1/2
+         result 0]
+    (if (zero? n)
+      result
+      (recur (quot n 2)
+             (/ weight 2)
+             (+ result (* (mod n 2) weight))))))
 
 ;;;
 

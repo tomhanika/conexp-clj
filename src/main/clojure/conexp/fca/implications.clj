@@ -317,12 +317,18 @@
   i.e. «predicate» returns true on these premises.  Note that «predicate» has to
   satisfy the same conditions as the predicate to «next-closed-set-in-family»."
   ([ctx]
-     (canonical-base ctx #{} (constantly true)))
+     (canonical-base ctx #{}))
   ([ctx background-knowledge]
-     (canonical-base ctx background-knowledge (constantly true)))
+     (assert (context? ctx)
+             "First argument must be a formal context")
+     ;; conexp.fca.fast/canonical-base yields the same base but is far faster
+     ;; (a long-encoded implementation for contexts)
+     ((requiring-resolve 'conexp.fca.fast/canonical-base) ctx background-knowledge))
   ([ctx background-knowledge predicate]
      (assert (context? ctx)
              "First argument must be a formal context")
+     ;; The fast implementation has no predicate support, so a predicate-restricted
+     ;; base is computed with the set-based Next-Closure.
      (canonical-base-from-clop #(context-attribute-closure ctx %)
                                (attributes ctx)
                                background-knowledge
@@ -808,24 +814,13 @@
                (< 0 ε 1)))
   (assert (and (number? δ)
                (< 0 δ 1)))
-  (let [random-subset #(set (random-sample 0.5 (attributes ctx)))
-        intent?       #(= % (adprime ctx %))
-        respects-all? (fn [set impls]
-                        (every? (fn [impl] (respects? set impl)) impls))
-        iter-counter  (atom 0)]
-    (learn-implications-by-queries (attributes ctx)
-                                   intent?
-                                   (fn [implications]
-                                     (let [nr-iter (nt/ceil (* (/ ε) (+ (swap! iter-counter inc)
-                                                                     (/ (Math/log (/ δ))
-                                                                        (Math/log 2)))))]
-                                       (or (some (fn [test-set]
-                                                   (when-not (<=> (intent? test-set)
-                                                                  (respects-all? test-set
-                                                                                 implications))
-                                                     test-set))
-                                                 (repeatedly nr-iter random-subset))
-                                           true))))))
+  ;; Long-encoded implementations (much faster; same PAC guarantee), resolved
+  ;; lazily to avoid a load-time namespace cycle (conexp.fca.fast depends on this
+  ;; namespace).  See learn-implications-by-queries for the set-based building
+  ;; blocks (Angluin's HORN1 with a sampling equivalence oracle).
+  (if (<= (count (attributes ctx)) 64)
+    ((requiring-resolve 'conexp.fca.fast/approx-canonical-base-long) ctx ε δ)
+    ((requiring-resolve 'conexp.fca.fast/approx-canonical-base-longs) ctx ε δ)))
 
 ;;; Extension
 

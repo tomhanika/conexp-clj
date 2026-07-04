@@ -9,7 +9,6 @@
 (ns conexp.fca.decompositions
   (:require [conexp.base :refer :all]
             [conexp.math.algebra :refer :all]
-            [conexp.gui.draw :refer :all]
             [conexp.io.contexts :refer :all]
             [conexp.fca 
              [contexts :refer :all]
