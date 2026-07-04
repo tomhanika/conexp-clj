@@ -16,6 +16,10 @@
 .nrepl-port
 /pom.xml.asc
 /builds
+# Browser GUI build artifacts
+/node_modules
+/.shadow-cljs
+/src/main/resources/public/js
 /doc/tutorials/icfca-2013/icfca2013-tutorial-talk.aux
 /doc/tutorials/icfca-2013/icfca2013-tutorial-talk.log
 /doc/tutorials/icfca-2013/icfca2013-tutorial-talk.nav

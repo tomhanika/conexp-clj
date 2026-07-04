@@ -1,0 +1,17 @@
+;; Build config for the conexp-clj browser GUI (ClojureScript).
+;; Dev:     npx shadow-cljs watch app     (serves on http://localhost:8280)
+;; Release: npx shadow-cljs release app    (emits resources/public/js/main.js,
+;;          which lein packages into the uberjar; `lein run -a` then serves it)
+{:source-paths ["src/frontend" "src/shared" "src/main/clojure"]
+
+ :dependencies [[reagent "1.2.0"]
+                [re-frame "1.4.3"]]
+
+ ;; dev server serving the SPA; it calls the conexp.api server on :8080
+ :dev-http {8280 "src/main/resources/public"}
+
+ :builds
+ {:app {:target     :browser
+        :output-dir "src/main/resources/public/js"
+        :asset-path "/js"
+        :modules    {:main {:init-fn conexp-gui.core/init}}}}}
