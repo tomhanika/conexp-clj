@@ -59,7 +59,15 @@
   (-device->world [scene x y]
     "Transforms a device coordinate pair to a world coordinate pair.")
   (-world->device [scene x y]
-    "Transforms a world coordinate pair to a device coordinate pair."))
+    "Transforms a world coordinate pair to a device coordinate pair.")
+  (-remove-all [scene]
+    "Removes all drawn objects (nodes/connections/grid) from the scene.")
+  (-children [scene]
+    "Returns the drawn objects currently on the scene.")
+  (-set-world-extent [scene x0 y0 width height]
+    "Sets the world-coordinate extent of the scene.")
+  (-unzoom [scene]
+    "Resets the view to the full world extent."))
 
 ;;; The Swing no.geosoft G-canvas backend
 
@@ -95,7 +103,12 @@
       [(aget ptn 0) (aget ptn 1)]))
   (-world->device [scn x y]
     (let [ptn (.worldToDevice (.getTransformer scn) x y)]
-      [(aget ptn 0) (aget ptn 1)])))
+      [(aget ptn 0) (aget ptn 1)]))
+  (-remove-all [scn] (.removeAll scn))
+  (-children [scn] (seq (.getChildren scn)))
+  (-set-world-extent [scn x0 y0 width height]
+    (.setWorldExtent scn (double x0) (double y0) (double width) (double height)))
+  (-unzoom [scn] (.unzoom scn)))
 
 ;;; setting custom data
 
@@ -269,6 +282,29 @@
   "Returns the origin of scn."
   [scn]
   (world-to-device scn 0 0))
+
+;;; scene manipulation
+
+(defn remove-all-from-scene
+  "Removes all drawn objects from the scene."
+  [scn]
+  (-remove-all scn))
+
+(defn scene-children
+  "Returns the drawn objects currently on the scene."
+  [scn]
+  (-children scn))
+
+(defn set-world-extent
+  "Sets the world-coordinate extent of scn to origin [x0 y0] with the given
+  width and height."
+  [scn x0 y0 width height]
+  (-set-world-extent scn x0 y0 width height))
+
+(defn unzoom-scene
+  "Resets the scene view to the full world extent."
+  [scn]
+  (-unzoom scn))
 
 ;;;
 

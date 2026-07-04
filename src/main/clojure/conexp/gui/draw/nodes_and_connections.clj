@@ -152,7 +152,7 @@
   "Initial node radius when drawing lattices."
   6.0)
 
-(defn- add-node
+(defn add-node
   "Adds a node to scn at position [x y]."
   [^GScene scn, x, y, name, [upper-label lower-label] valuation]
   (let [^GSegment upper-segment (GSegment.),
@@ -227,7 +227,7 @@
     (.setLineWidth 2.0)
     (.setForegroundColor Color/BLACK)))
 
-(defn- connect-nodes
+(defn connect-nodes
   "Connects two nodes on scene."
   ([^GScene scn, ^GObject x, ^GObject y]
     (connect-nodes scn x y (str (get-name x) " -> " (get-name y))))
@@ -436,19 +436,6 @@
           (call-scene-hook scn :image-changed))))))
 
 ;;;
-
-(defn add-nodes-with-connections
-  "Adds to scene scn nodes placed by node-coordinate-map and connected
-  via pairs in the sequence node-connections."
-  [scn node-coordinate-map node-connections annotation valuation]
-  (let [node-map (persistent!
-                  (reduce (fn [map [node [x y]]]
-                            (assoc! map node (add-node scn x y node (annotation node) (valuation node))))
-                          (transient {})
-                          node-coordinate-map))]
-    (doseq [[node-1 node-2] node-connections]
-      (connect-nodes scn (node-map node-1) (node-map node-2)))
-    node-map))
 
 ;;; valuations
 
