@@ -226,6 +226,27 @@
             (and (= C (intersection A (objects ctx-2)))
                  (= D (intersection B (attributes ctx-2)))))))))
 
+(deftest test-keep-cut-objects-attributes
+  (let [ctx (make-context #{1 2 3} #{'a 'b 'c}
+                          #{[1 'a] [1 'b] [2 'b] [3 'c]})]
+    (testing "keep-objects restricts to the given objects (unknowns ignored)"
+      (is (= (make-context #{1 2} #{'a 'b 'c} #{[1 'a] [1 'b] [2 'b]})
+             (keep-objects ctx #{1 2})))
+      (is (= (keep-objects ctx #{1 2})
+             (keep-objects ctx #{1 2 99}))))
+    (testing "keep-attributes restricts to the given attributes"
+      (is (= (make-context #{1 2 3} #{'a 'b} #{[1 'a] [1 'b] [2 'b]})
+             (keep-attributes ctx #{'a 'b}))))
+    (testing "cut-objects / cut-attributes remove the given elements"
+      (is (= (make-context #{2 3} #{'a 'b 'c} #{[2 'b] [3 'c]})
+             (cut-objects ctx #{1})))
+      (is (= (make-context #{1 2 3} #{'a 'c} #{[1 'a] [3 'c]})
+             (cut-attributes ctx #{'b}))))
+    (testing "keep and cut of the same set are complementary"
+      (is (= ctx (keep-objects ctx (objects ctx))))
+      (is (= (keep-objects ctx #{1 3}) (cut-objects ctx #{2})))
+      (is (= (keep-attributes ctx #{'a 'c}) (cut-attributes ctx #{'b}))))))
+
 (deftest test-object-derivation
   (are [ctx objs derived-attributes]
        (= (object-derivation ctx objs) derived-attributes)
