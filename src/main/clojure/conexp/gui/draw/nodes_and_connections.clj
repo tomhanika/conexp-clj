@@ -1,7 +1,10 @@
 (ns conexp.gui.draw.nodes-and-connections
   "Namespace for representing nodes and their connections for drawing lattice diagrams."
   (:require [conexp.base :refer :all]
-            [conexp.gui.draw.scenes :refer :all])
+            [conexp.gui.draw.scenes :refer :all]
+            [conexp.layouts.movement :refer [reachable-nodes
+                                             reachable-irreducible-nodes
+                                             additively-influenced-nodes]])
   (:import java.awt.Color
            java.awt.Font
            [no.geosoft.cc.graphics GInteraction GObject GPosition GScene GSegment GStyle GText GWindow ZoomInteraction]))
@@ -332,88 +335,32 @@
 
 
 ;;; moving utilities
-
-(defn- all-neighbored-nodes
-  "Returns all directly and indirectly neighbored nodes of node."
-  ([node neighbors]
-     (all-neighbored-nodes neighbors (set (neighbors node)) #{}))
-  ([neighbors to-process visited]
-     (if (empty? to-process)
-       visited
-       (let [next (first to-process)]
-         (if (contains? visited next)
-           (recur neighbors (rest to-process) visited)
-           (let [neighs (neighbors next)]
-             (recur neighbors
-                    (into (rest to-process) neighs)
-                    (conj visited next))))))))
+;;
+;; The order-theoretic traversals live in conexp.layouts.movement (pure,
+;; parameterised by a neighbour function); here they are specialised to the
+;; drawn diagram's upper-/lower-neighbors.
 
 (defn all-nodes-above
   "Returns the set of all nodes above node."
   [node]
-  (all-neighbored-nodes node upper-neighbors))
+  (reachable-nodes upper-neighbors node))
 
 (defn all-nodes-below
   "Returns the set of all nodes below node."
   [node]
-  (all-neighbored-nodes node lower-neighbors))
-
-(defn- all-irreducible-neighbored-nodes
-  "Returns all directly and indirectly neighbored nodes of node being
-  irreducible."
-  ;; copy and paste, how can this be changed?
-  ([node neighbors]
-     (all-irreducible-neighbored-nodes neighbors #{node} #{}))
-  ([neighbors to-process visited]
-     (if (empty? to-process)
-       visited
-       (let [next (first to-process)]
-         (if (contains? visited next)
-           (recur neighbors (rest to-process) visited)
-           (let [neighs (neighbors next)]
-             (if (= 1 (count neighs))
-               (recur neighbors (into (rest to-process) neighs) (conj visited next))
-               (recur neighbors (into (rest to-process) neighs) visited))))))))
-
-(defn- group-by-function
-  "Categorizes elements in coll by their value under f."
-  [f coll]
-  (loop [elements coll,
-         category {}]
-    (if (empty? elements)
-      (vals category)
-      (let [next (first elements)]
-        (recur (rest elements) (update-in category [(f next)] conj next))))))
-
-(defn- all-additively-influenced-nodes
-  "Returns all nodes which are additively influenced by node. upper
-  and lower are functions returning the upper and lower neighbors
-  respectively (these roles can be interchanged without any harm). The
-  nodes are given with weights (as pair of node and weight)
-  representing the influence by node."
-  [node uppers lowers]
-  (let [irrs (all-irreducible-neighbored-nodes node uppers),
-        others (group-by-function identity
-                         (apply concat (map #(all-neighbored-nodes % lowers) irrs))),
-        irr-count (count irrs)]
-    (concat (for [n irrs
-                  :when (not= n node)]
-              [n (/ irr-count)])
-            (for [nodes others
-                  :when (not= (first nodes) node)]
-              [(first nodes) (/ (count nodes) irr-count)]))))
+  (reachable-nodes lower-neighbors node))
 
 (defn all-inf-add-influenced-nodes
   "Returns all nodes (with weights) which are infimum-additively
   influenced by node."
   [node]
-  (all-additively-influenced-nodes node upper-neighbors lower-neighbors))
+  (additively-influenced-nodes node upper-neighbors lower-neighbors))
 
 (defn all-sup-add-influenced-nodes
   "Returns all nodes (with weights) which are supremum-additively
   influenced by node."
   [node]
-  (all-additively-influenced-nodes node lower-neighbors upper-neighbors))
+  (additively-influenced-nodes node lower-neighbors upper-neighbors))
 
 ;;; Interactions
 
