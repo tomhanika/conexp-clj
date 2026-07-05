@@ -65,10 +65,14 @@
   (the API still works) instead of a silently blank page."
   [dev]
   (let [rpc   (rpc-middleware dev)
-        shell (fn [] (if (gui-built?)
-                       (response/resource-response "index.html" {:root "public"})
-                       (-> (response/response gui-not-built-page)
-                           (response/content-type "text/html"))))]
+        shell (fn [] (-> (if (gui-built?)
+                           (response/resource-response "index.html" {:root "public"})
+                           (response/response gui-not-built-page))
+                         ;; set explicitly: for GET "/" the content-type
+                         ;; middleware cannot infer html, and from a jar the
+                         ;; resource is a jar: URL, so the browser would
+                         ;; otherwise download index.html instead of rendering.
+                         (response/content-type "text/html; charset=utf-8")))]
     (-> (fn [request]
           (if (= :get (:request-method request))
             (let [uri (:uri request)]
