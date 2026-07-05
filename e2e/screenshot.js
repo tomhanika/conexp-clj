@@ -77,6 +77,17 @@ const shot = (page, name) => page.screenshot({ path: path.join(OUT, name + ".png
     });
     console.log("DIAGRAM", JSON.stringify(geom));
 
+    // toggle labels off (declutter) and confirm labels disappear
+    const before = await page.$$eval("svg text", (t) => t.length);
+    await page.evaluate(() => {
+      const cb = [...document.querySelectorAll('input[type="checkbox"]')].pop();
+      if (cb) cb.click();
+    });
+    await new Promise((r) => setTimeout(r, 300));
+    const after = await page.$$eval("svg text", (t) => t.length);
+    console.log("LABELS_TOGGLE", JSON.stringify({ withLabels: before, withoutLabels: after }));
+    await shot(page, "3-nolabels");
+
     console.log("CONSOLE_ERRORS", JSON.stringify(errors));
     console.log("SHOTS", OUT);
     console.log(errors.length ? "E2E_FAIL" : "E2E_OK");

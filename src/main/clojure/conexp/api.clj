@@ -95,6 +95,35 @@
     (@server :timeout ms)
     (reset! server nil)))
 
+(defn- open-browser
+  "Best-effort: opens `url` in the default browser. Stays silent on headless
+  machines / servers where there is nothing to open."
+  [url]
+  (try
+    (if (and (java.awt.Desktop/isDesktopSupported)
+             (.isSupported (java.awt.Desktop/getDesktop) java.awt.Desktop$Action/BROWSE))
+      (.browse (java.awt.Desktop/getDesktop) (java.net.URI. url))
+      (let [os  (.toLowerCase (System/getProperty "os.name"))
+            cmd (cond (re-find #"mac|darwin" os) ["open" url]
+                      (re-find #"win"         os) ["cmd" "/c" "start" url]
+                      :else                       ["xdg-open" url])]
+        (.start (ProcessBuilder. ^"[Ljava.lang.String;" (into-array String cmd)))))
+    (catch Throwable _ nil)))
+
+(defn announce
+  "Prints where the web GUI is served and tries to open it in a browser."
+  [port]
+  (let [url (str "http://127.0.0.1:" port)]
+    (println)
+    (println (str "  conexp-clj web GUI running at:  " url))
+    (if (gui-built?)
+      (println "  Opening it in your browser…  (Ctrl-D or (exit) here stops the server.)")
+      (println "  NOTE: the web GUI is not built into this jar (API only)."))
+    (println)
+    (flush)
+    (when (gui-built?) (open-browser url))
+    url))
+
 (defn start-server
   "Starts the API + GUI server. If `dev` is true it supports hot code reload.
   Binds 127.0.0.1 by default: the API has no authentication and a broad

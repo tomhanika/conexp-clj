@@ -90,7 +90,7 @@
 
 ;;; the interactive canvas
 
-(defn- diagram-svg [model highlight move-mode]
+(defn- diagram-svg [model highlight show-labels]
   (r/with-let [vb      (r/atom nil)
                fitted  (r/atom nil)
                svg-el  (r/atom nil)
@@ -121,7 +121,15 @@
                     (do (rf/dispatch-sync [::e/move-node (:id d) (- cx px) (- (- cy py))]) ; model dy = -(svg dy)
                         (reset! drag (assoc d :last [cx cy])))))))
             end-drag (fn [_] (reset! drag nil))]
-        [:svg {:ref        #(reset! svg-el %)
+        [:div {:style {:position "relative" :width "100%" :height "100%"}}
+         [:button {:on-click #(reset! vb (fit-viewbox bounds unit))
+                   :title "Fit diagram to view"
+                   :style {:position "absolute" :top "0.5rem" :right "0.5rem" :z-index 1
+                           :padding "0.2rem 0.6rem" :font-size "0.8rem" :cursor "pointer"
+                           :background "rgba(255,255,255,0.92)" :border "1px solid #ccc"
+                           :border-radius "4px"}}
+          "Fit"]
+         [:svg {:ref        #(reset! svg-el %)
                :view-box   (vb-str @vb)
                :preserve-aspect-ratio "xMidYMid meet"
                :style      {:width "100%" :height "100%" :touch-action "none"
@@ -166,15 +174,15 @@
                   [node-marks cx cy r stroke n (contains? highlight (:id n))]
                   ;; attribute labels up-and-right, object labels down-and-left
                   ;; (FCA convention) to reduce collisions between neighbours
-                  (when-not (str/blank? (:attr-label n))
+                  (when (and show-labels (not (str/blank? (:attr-label n))))
                     [:text {:x (+ cx (* 1.2 r)) :y (- cy r (* 0.2 font)) :text-anchor "start"
                             :font-size font :fill "#2b6cb0"} (:attr-label n)])
-                  (when-not (str/blank? (:obj-label n))
+                  (when (and show-labels (not (str/blank? (:obj-label n))))
                     [:text {:x (- cx (* 1.2 r)) :y (+ cy r (* 0.9 font)) :text-anchor "end"
                             :font-size font :fill "#1a1a1a"} (:obj-label n)])
                   (when v
                     [:text {:x (+ cx r (* 0.3 font)) :y (+ cy (* 0.35 font))
-                            :font-size (* 0.85 font) :fill "#c53030"} v])]))]))))
+                            :font-size (* 0.85 font) :fill "#c53030"} v])]))]]))))
 
 ;;; controls + export
 
@@ -209,7 +217,8 @@
         error     @(rf/subscribe [::s/error])
         layout-name    @(rf/subscribe [::s/layout-name])
         valuation-name @(rf/subscribe [::s/valuation-name])
-        move-mode      @(rf/subscribe [::s/move-mode])]
+        move-mode      @(rf/subscribe [::s/move-mode])
+        show-labels    @(rf/subscribe [::s/show-labels])]
     [:div {:style {:display "flex" :flex-direction "column" :height "100%"}}
      [:div {:style {:display "flex" :gap "1rem" :align-items "flex-end"
                     :padding "0.5rem 1rem" :flex-wrap "wrap"
@@ -218,6 +227,10 @@
       [labelled-select "Layout" layout-name #(rf/dispatch [::e/set-layout-name %]) layouts]
       [labelled-select "Valuation" valuation-name #(rf/dispatch [::e/set-valuation-name %]) valuations]
       [labelled-select "Move mode" move-mode #(rf/dispatch [::e/set-move-mode %]) move-modes]
+      [:label {:style {:display "flex" :align-items "center" :gap "0.3rem" :font-size "0.8rem"}}
+       [:input {:type "checkbox" :checked show-labels
+                :on-change #(rf/dispatch [::e/toggle-labels])}]
+       "Labels"]
       [:div {:style {:display "flex" :gap "0.4rem"}}
        [:button {:on-click export-svg!} "Export SVG"]
        [:button {:on-click #(export-json! model)} "Export JSON"]]
@@ -225,6 +238,6 @@
       (when error [:span {:style {:color "#c53030"}} (str "Error: " error)])]
      [:div {:style {:flex 1 :min-height 0}}
       (if (and model (seq (:nodes model)))
-        ^{:key (:bounds model)} [diagram-svg model highlight move-mode]
+        ^{:key (:bounds model)} [diagram-svg model highlight show-labels]
         [:div {:style {:padding "2rem" :color "#888"}}
          (if loading? "Computing lattice…" "No diagram yet.")])]]))

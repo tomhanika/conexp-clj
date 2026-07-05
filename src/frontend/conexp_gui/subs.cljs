@@ -10,4 +10,5 @@
 (rf/reg-sub ::layout-name    (fn [db _] (:layout-name db)))
 (rf/reg-sub ::valuation-name (fn [db _] (:valuation-name db)))
 (rf/reg-sub ::move-mode      (fn [db _] (:move-mode db)))
+(rf/reg-sub ::show-labels    (fn [db _] (:show-labels db)))
 (rf/reg-sub ::highlight      (fn [db _] (:highlight db)))

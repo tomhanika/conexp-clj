@@ -15,6 +15,7 @@
    :layout-name    "standard"
    :valuation-name "none"
    :move-mode      "single"
+   :show-labels    true
    :model          nil
    :view           :editor
    :loading?       false
@@ -128,6 +129,7 @@
 (rf/reg-event-fx ::set-valuation-name (fn [{:keys [db]} [_ v]] {:db (assoc db :valuation-name v) :dispatch [::reload-layout]}))
 (rf/reg-event-db ::set-move-mode      (fn [db [_ v]] (assoc db :move-mode v)))
 (rf/reg-event-db ::set-view           (fn [db [_ v]] (assoc db :view v)))
+(rf/reg-event-db ::toggle-labels      (fn [db _] (update db :show-labels not)))
 
 ;;; interaction: node highlight + drag (with movement.cljc + order clamp)
 
