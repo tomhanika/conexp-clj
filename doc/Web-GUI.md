@@ -5,18 +5,30 @@ ClojureScript (shadow-cljs + re-frame) renders the concept lattice as SVG; the
 JVM does all FCA/layout computation. Ships as an installable PWA and works on
 Android via the browser.
 
-## Run it (production-style, one origin)
+## For users: just `java -jar`
 
-    npm install                     # once: fetch shadow-cljs + react
-    npx shadow-cljs release app     # build the SPA into resources/public/js
-    lein run -a                     # serve API + GUI on http://127.0.0.1:8080
+The web GUI is compiled into the uberjar, so end users need **only Java** — no
+Node, no npm:
+
+    java -jar conexp-clj-<version>-standalone.jar -a   # http://127.0.0.1:8080
 
 Open http://127.0.0.1:8080 . To expose it on your network (e.g. to a phone),
-start the server on all interfaces from a REPL — the default binds localhost
-because the API has no authentication and a broad function whitelist:
+start on all interfaces from a REPL — the default binds localhost because the
+API has no authentication and a broad function whitelist:
 
     (require 'conexp.api)
     (conexp.api/start-server false 8080 "0.0.0.0")
+
+If the jar was built without the frontend, `/` shows a "GUI not built" notice
+(the API still works) rather than a blank page.
+
+## Building a self-contained jar (needs Node, build-time only)
+
+    make uberjar     # npm ci + shadow-cljs release + lein uberjar
+                     # -> builds/uberjar/conexp-clj-<version>-standalone.jar
+
+Node/npm are needed only here, by whoever builds the release — never by users.
+The `nix build` / flake also compiles the frontend into the jar.
 
 ## Develop (hot reload)
 

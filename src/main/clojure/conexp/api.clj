@@ -9,6 +9,7 @@
 (ns conexp.api
   "Provides a RESTful JSON-RPC API for conexp-clj, and serves the browser GUI."
   (:require [conexp.api.handler :refer [handler]]
+            [clojure.java.io :as io]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.middleware.cors :refer [wrap-cors]]
@@ -38,19 +39,44 @@
         (wrap-json-body {:keywords? true})
         (wrap-json-response {:pretty false}))))
 
+(defn gui-built?
+  "True iff the compiled web GUI (js/main.js) is on the classpath, i.e. the
+  frontend was built into this jar / resources."
+  []
+  (some? (io/resource "public/js/main.js")))
+
+(def ^:private gui-not-built-page
+  (str "<!doctype html><html><head><meta charset=\"utf-8\">"
+       "<title>conexp-clj</title></head>"
+       "<body style=\"font-family:system-ui,sans-serif;max-width:40rem;margin:3rem auto;padding:0 1rem\">"
+       "<h1>conexp-clj</h1>"
+       "<p>The JSON-RPC API is running, but the web GUI has not been built into this jar.</p>"
+       "<p>Build a self-contained jar with <code>make uberjar</code> "
+       "(or run <code>npx shadow-cljs release app</code> before <code>lein uberjar</code>).</p>"
+       "<p>The API endpoint itself is fully functional at this URL "
+       "(POST JSON-RPC requests).</p>"
+       "</body></html>"))
+
 (defn set-middleware
   "Builds the server handler.  GET requests are served from the single-page
   app's static resources (classpath `public/`) with an index.html fallback for
-  client-side routes; every other request goes to the JSON-RPC handler."
+  client-side routes; every other request goes to the JSON-RPC handler.  If the
+  GUI was not built into the jar, the app shell is replaced by a clear notice
+  (the API still works) instead of a silently blank page."
   [dev]
-  (let [rpc (rpc-middleware dev)]
+  (let [rpc   (rpc-middleware dev)
+        shell (fn [] (if (gui-built?)
+                       (response/resource-response "index.html" {:root "public"})
+                       (-> (response/response gui-not-built-page)
+                           (response/content-type "text/html"))))]
     (-> (fn [request]
           (if (= :get (:request-method request))
-            (let [uri  (:uri request)
-                  path (if (= "/" uri) "/index.html" uri)]
-              (or (response/resource-response path {:root "public"})
-                  (response/resource-response "index.html" {:root "public"})
-                  (rpc request)))
+            (let [uri (:uri request)]
+              (if (contains? #{"/" "/index.html"} uri)
+                (shell)                              ; app shell (or notice if unbuilt)
+                (or (response/resource-response uri {:root "public"}) ; static asset
+                    (shell)                          ; SPA client-side route
+                    (rpc request))))
             (rpc request)))
         (wrap-content-type {:mime-types {"webmanifest" "application/manifest+json"}})
         (wrap-not-modified))))
