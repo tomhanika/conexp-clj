@@ -65,6 +65,36 @@
  ::add-attribute
  (fn [db _] (update-in db [:context :attributes] conj (fresh-name (get-in db [:context :attributes]) "a"))))
 
+;;; loading a context (from a file via the server, or a built-in example)
+
+(defn- json->context
+  "Turns the server's ctx->json map into the app's :context state."
+  [{:keys [objects attributes incidence]}]
+  {:objects    (mapv str objects)
+   :attributes (mapv str attributes)
+   :incidence  (set (map (fn [[o a]] [(str o) (str a)]) incidence))})
+
+(rf/reg-event-db
+ ::context-loaded
+ (fn [db [_ resp]]
+   (if-let [ctx (get-in resp [:ctx :result])]
+     (assoc db :context (json->context ctx) :view :editor :model nil :error nil)
+     (assoc db :loading? false
+               :error (or (get-in resp [:ctx :msg]) "Could not read the context file")))))
+
+(rf/reg-event-fx
+ ::load-context-file
+ (fn [{:keys [db]} [_ text]]
+   {:db   (assoc db :error nil)
+    ::rpc {:request    {:cf  {:type "context_file" :data text}
+                        :ctx {:type "function" :name "identity" :args ["cf"]}}
+           :on-success [::context-loaded]
+           :on-error   [::api-error]}}))
+
+(rf/reg-event-db
+ ::load-example
+ (fn [db [_ ctx]] (assoc db :context ctx :view :editor :model nil :error nil)))
+
 ;;; compute / show the diagram
 
 (rf/reg-event-fx

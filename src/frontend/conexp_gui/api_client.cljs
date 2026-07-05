@@ -2,12 +2,14 @@
   "Talks to the conexp.api JSON-RPC endpoint from the browser.")
 
 (def api-base
-  "Base URL of the conexp.api server. Same origin when this page is served by
-  the API itself (port 8080); otherwise the dev server (:8280) targets :8080."
+  "Base URL of the conexp.api server. The API serves the SPA itself, so we call
+  it same-origin on whatever port it runs (8080, or any -p PORT). Only the
+  shadow-cljs dev server (:8280) is a separate origin and targets the API on
+  :8080."
   (let [loc js/window.location]
-    (if (= (.-port loc) "8080")
-      ""
-      (str (.-protocol loc) "//" (.-hostname loc) ":8080"))))
+    (if (= (.-port loc) "8280")
+      (str (.-protocol loc) "//" (.-hostname loc) ":8080")
+      "")))
 
 (defn post-rpc
   "POSTs `request` (Clojure data) as JSON to the API. Calls `on-success` with

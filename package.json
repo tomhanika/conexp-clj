@@ -5,9 +5,11 @@
   "description": "Browser GUI for conexp-clj (talks to the conexp.api REST server).",
   "scripts": {
     "watch": "shadow-cljs watch app",
-    "release": "shadow-cljs release app"
+    "release": "shadow-cljs release app",
+    "e2e": "node e2e/screenshot.js"
   },
   "devDependencies": {
+    "puppeteer-core": "^23.0.0",
     "shadow-cljs": "^2.28.0"
   },
   "dependencies": {

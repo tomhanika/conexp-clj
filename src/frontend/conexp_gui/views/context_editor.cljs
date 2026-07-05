@@ -15,10 +15,50 @@
            :on-blur     #(on-rename (.. % -target -value))
            :on-key-down #(when (= "Enter" (.-key %)) (.. % -target blur))}])
 
+(def ^:private examples
+  [["Living beings & water"
+    {:objects    ["leech" "bream" "frog" "dog" "reed" "bean"]
+     :attributes ["needs water" "lives in water" "lives on land" "needs chlorophyll" "two seed leaves" "can move"]
+     :incidence  #{["leech" "needs water"] ["leech" "lives in water"] ["leech" "can move"]
+                   ["bream" "needs water"] ["bream" "lives in water"] ["bream" "can move"]
+                   ["frog" "needs water"] ["frog" "lives in water"] ["frog" "lives on land"] ["frog" "can move"]
+                   ["dog" "needs water"] ["dog" "lives on land"] ["dog" "can move"]
+                   ["reed" "needs water"] ["reed" "lives in water"] ["reed" "lives on land"] ["reed" "needs chlorophyll"]
+                   ["bean" "needs water"] ["bean" "lives on land"] ["bean" "needs chlorophyll"] ["bean" "two seed leaves"]}}]
+   ["Digits 1–4"
+    {:objects    ["1" "2" "3" "4"]
+     :attributes ["even" "odd" "prime" "square"]
+     :incidence  #{["1" "odd"] ["1" "square"] ["2" "even"] ["2" "prime"]
+                   ["3" "odd"] ["3" "prime"] ["4" "even"] ["4" "square"]}}]])
+
+(defn- load-bar []
+  [:div {:style {:display "flex" :gap "1rem" :align-items "center"
+                 :flex-wrap "wrap" :margin-bottom "0.8rem"}}
+   [:label {:style {:font-size "0.85rem"}}
+    "Load context file: "
+    [:input {:type "file"
+             :accept ".cxt,.ctx,.csv,.txt,.json,.slf,.con"
+             :on-change (fn [e]
+                          (when-let [f (aget (.. e -target -files) 0)]
+                            (let [rdr (js/FileReader.)]
+                              (set! (.-onload rdr)
+                                    #(rf/dispatch [::e/load-context-file (.. % -target -result)]))
+                              (.readAsText rdr f))))}]]
+   [:select {:value ""
+             :on-change (fn [e]
+                          (let [i (.. e -target -value)]
+                            (when (seq i)
+                              (rf/dispatch [::e/load-example (second (nth examples (js/parseInt i 10)))]))))}
+    [:option {:value ""} "— load example —"]
+    (map-indexed (fn [i [nm _]] ^{:key i} [:option {:value i} nm]) examples)]])
+
 (defn context-editor []
   (let [{:keys [objects attributes incidence]} @(rf/subscribe [::s/context])
-        loading? @(rf/subscribe [::s/loading?])]
+        loading? @(rf/subscribe [::s/loading?])
+        error    @(rf/subscribe [::s/error])]
     [:div {:style {:padding "1rem"}}
+     [load-bar]
+     (when error [:div {:style {:color "#c53030" :margin-bottom "0.6rem"}} (str "Error: " error)])
      [:div {:style {:overflow-x "auto"}}
       [:table {:style {:border-collapse "collapse"}}
        [:thead

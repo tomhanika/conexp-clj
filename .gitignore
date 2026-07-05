@@ -33,3 +33,4 @@
 /.clerk/
 /.direnv/
 /.clj-kondo/
+/e2e/shots
