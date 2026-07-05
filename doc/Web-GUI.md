@@ -28,7 +28,18 @@ If the jar was built without the frontend, `/` shows a "GUI not built" notice
                      # -> builds/uberjar/conexp-clj-<version>-standalone.jar
 
 Node/npm are needed only here, by whoever builds the release — never by users.
-The `nix build` / flake also compiles the frontend into the jar.
+
+### With nix
+
+    nix build .#conexp-clj-with-gui    # self-contained jar incl. the web GUI
+    nix build                          # API-only jar (GUI shows a "not built"
+                                       # notice); this is what CI builds, so it
+                                       # stays fast and independent of the frontend
+
+The GUI is compiled by a fixed-output derivation (`conexp-clj-frontend`). Its
+`outputHash` in `flake.nix` pins the deterministic `main.js`; if a frontend
+dependency changes and the hash mismatches, `nix build .#conexp-clj-with-gui`
+prints the correct value to paste into `flake.nix`.
 
 ## Develop (hot reload)
 
