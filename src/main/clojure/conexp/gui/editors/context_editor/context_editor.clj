@@ -67,43 +67,36 @@
                 (attributes ctx)
                 (incidence-relation ctx)))
 
-(defn-context-changer keep-attributes
-  "Cut out all but the given attributes from the context."
-  (make-context (objects ctx)
-                (intersection (set selected-atts) (attributes ctx))
-                (incidence-relation ctx)))
+;; These act on the current table selection and delegate to the pure
+;; context-restriction operations in conexp.fca.contexts.
 
-(defn-context-changer keep-objects
-  "Cut out all but the given objects from the context."
-  (make-context (intersection (set selected-objs) (objects ctx))
-                (attributes ctx)
-                (incidence-relation ctx)))
+(defn-context-changer keep-selected-attributes
+  "Cut out all but the selected attributes from the context."
+  (keep-attributes ctx selected-atts))
 
-(defn-context-changer keep-objects-attributes
-  "Cut out the given objects and attributes from the context."
-  (make-context (intersection (set selected-objs) (objects ctx))
-                (intersection (set selected-atts) (attributes ctx))
-                (incidence-relation ctx)))
+(defn-context-changer keep-selected-objects
+  "Cut out all but the selected objects from the context."
+  (keep-objects ctx selected-objs))
 
-(defn-context-changer cut-attributes
-  "Cut out the given attributes from the context."
-  (make-context (objects ctx)
-                (remove (set selected-atts)
-                        (attributes ctx))
-                (incidence-relation ctx)))
+(defn-context-changer keep-selected-objects-attributes
+  "Cut out all but the selected objects and attributes from the context."
+  (-> ctx
+      (keep-objects selected-objs)
+      (keep-attributes selected-atts)))
 
-(defn-context-changer cut-objects
-  "Cut out the given objects from the context."
-  (make-context (remove (set selected-objs)
-                        (objects ctx))
-                (attributes ctx)
-                (incidence-relation ctx)))
+(defn-context-changer cut-selected-attributes
+  "Cut out the selected attributes from the context."
+  (cut-attributes ctx selected-atts))
 
-(defn-context-changer cut-objects-attributes
-  "Cut out the given objects and attributes from the context"
-  (make-context (remove (set selected-objs) (objects ctx))
-                (remove (set selected-atts) (attributes ctx))
-                (incidence-relation ctx)))
+(defn-context-changer cut-selected-objects
+  "Cut out the selected objects from the context."
+  (cut-objects ctx selected-objs))
+
+(defn-context-changer cut-selected-objects-attributes
+  "Cut out the selected objects and attributes from the context."
+  (-> ctx
+      (cut-objects selected-objs)
+      (cut-attributes selected-atts)))
 
 ;;; Helper for filling with X's
 
@@ -149,23 +142,23 @@
      :separator
      ["keep-attribute.png" "8<A",
       "Remove all non-selected attribute columns from the context",
-      keep-attributes]
+      keep-selected-attributes]
      ["keep-object.png" "8<O",
       "Remove all non-selected object rows from the context",
-      keep-objects]
+      keep-selected-objects]
      ["keep-both.png" "8<OA",
       "Remove all non-selected rows and columns from the context",
-      keep-objects-attributes]
+      keep-selected-objects-attributes]
      :separator
      ["cut-attribute.png" "-A",
       "Remove all selected attribute columns from the context",
-      cut-attributes]
+      cut-selected-attributes]
      ["cut-object.png" "-O",
       "Remove all selected object rows from the context",
-      cut-objects]
+      cut-selected-objects]
      ["cut-both.png" "-OA",
       "Remove all selected rows and columns from the context",
-      cut-objects-attributes]
+      cut-selected-objects-attributes]
      ["clarify-attribute.png" "cA",
       "Clarify the attribute columns of the context",
       (cc-1 clarify-attributes)]

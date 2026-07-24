@@ -88,7 +88,8 @@
                         (in-ns 'conexp.api)
                         (use 'clojure.repl)
                         (require 'conexp.api)
-                        (conexp.api/start-server false ~(:port options)))
+                        (conexp.api/start-server false ~(:port options))
+                        (conexp.api/announce ~(:port options)))
         :custom-help ""})
       ;;
       (contains? options :dev)

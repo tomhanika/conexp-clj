@@ -58,7 +58,7 @@
                    :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]
                    :jvm-opts ["-Djdk.attach.allowAttachSelf=true"]}}
   :keep-non-project-classes true
-  :source-paths ["src/main/clojure" "src/test/clojure"]
+  :source-paths ["src/main/clojure" "src/test/clojure" "src/shared"]
   :java-source-paths ["src/main/java"]
   :javac-options ["--release" "21"]
   :test-paths ["src/test/clojure"]
