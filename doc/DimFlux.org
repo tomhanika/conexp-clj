@@ -1,0 +1,115 @@
+#+title: DimFlux
+
+* DimFlux
+
+~DimFlux~ draws the concept lattice of a formal context as a /doubly-additive/
+line diagram.  In such a diagram every concept node sits at the sum of a set of
+vectors, one for each irreducible object below it and one for each irreducible
+attribute above it, which is what makes additive diagrams full of parallelograms
+and, as a consequence, comparatively easy to read.
+
+The algorithm runs in three steps:
+
+1. an initial diagram is computed with [[https://arxiv.org/abs/1903.00686][DimDraw]], which extends the order relation
+   until it has order dimension two and reads the coordinates off the resulting
+   realizer;
+2. that diagram is orthogonally projected onto the space of doubly-additive
+   diagrams, so that it becomes additive while staying as close to the DimDraw
+   diagram as possible;
+3. the element vectors are refined by a force-directed placement which maximizes
+   the /conflict distance/, the distance between a concept node and the edges it
+   is not incident with.
+
+It is described in M. Nöhre, D. Dürrschnabel, B. Ganter and G. Stumme, /DimFlux:
+Force-Directed Additive Line Diagrams/, International Journal of Approximate
+Reasoning 197 (2026) 109734, [[https://arxiv.org/abs/2603.16366]].
+
+** Drawing a lattice
+
+~dim-flux-layout~ takes a formal context or a lattice and returns a layout:
+
+#+begin_src clojure :results silent
+(use 'conexp.fca.contexts)
+(use 'conexp.fca.lattices)
+(use 'conexp.layouts.dim-flux)
+
+(def ctx (read-context "testing-data/living_beings_and_water.cxt"))
+
+(draw-layout (dim-flux-layout ctx))
+#+end_src
+
+Passing the layout function to ~draw-lattice~ works as well:
+
+#+begin_src clojure :results silent
+(draw-lattice (concept-lattice ctx)
+              :layout-fn dim-flux-layout)
+#+end_src
+
+In the lattice editor, DimFlux is available under the layout choice next to
+DimDraw, Freese and Force.  The ~Iterations~ spinner bounds the number of
+conjugate gradient steps of the refinement, and ~Additive~ projects the diagram
+currently on screen onto the closest doubly-additive one without running the
+refinement.
+
+** Parameters
+
+A map given directly after the lattice overrides the defaults in
+~default-parameters~; every further argument is handed on to DimDraw:
+
+#+begin_src clojure :results silent
+;; more weight on the repulsion between nodes and non-incident edges
+(dim-flux-layout ctx {:w-rep 100.0})
+
+;; no refinement at all, i.e. the projected DimDraw diagram
+(dim-flux-layout ctx {:iterations 0})
+
+;; let DimDraw use its greedy instead of its exact two-dimension extension
+(dim-flux-layout ctx {} "greedy")
+#+end_src
+
+| Parameter       | Meaning                                                          | Default |
+|-----------------+------------------------------------------------------------------+---------|
+| ~:w-rep~        | weight of the repulsion between nodes and non-incident edges      |    50.0 |
+| ~:w-att~        | weight of the attraction along the edges                          |     1.0 |
+| ~:w-grav~       | weight of the gravitation keeping the element vectors oriented    |    30.0 |
+| ~:iterations~   | bound on the number of conjugate gradient iterations              |    1000 |
+| ~:min-distance~ | smallest conflict distance the repulsive energy is evaluated at   |   0.001 |
+
+The refinement is a local optimization and may fail to produce a valid line
+diagram.  In that case ~dim-flux-layout~ falls back to the projected diagram,
+and if that one is invalid as well, to the DimDraw diagram, so that the result is
+always a line diagram of the lattice.
+
+** Working with additive diagrams
+
+Two functions of the namespace are useful on their own.  ~additive-layout~
+returns the doubly-additive layout closest to a given one, the orthogonal
+projection onto the space of additive placements:
+
+#+begin_src clojure :results silent
+(additive-layout (standard-layout (concept-lattice ctx)))
+#+end_src
+
+and ~doubly-additive?~ decides whether a layout already is additive, which is
+exactly the case when it equals its own projection:
+
+#+begin_src clojure :results silent
+(doubly-additive? (dim-flux-layout ctx))       ;; => true
+(doubly-additive? (standard-layout (concept-lattice ctx)))
+#+end_src
+
+Because the projection is cheap, it can also be applied after every step of an
+interactive edit: dragging a node destroys additivity, and projecting restores
+it, at the price of moving the other nodes along.
+
+** Limitations
+
+Not every concept lattice has a diagram that is both realizer-embedded and
+additive; the free modular lattice on three generators is a counterexample given
+in the paper.  The projection therefore genuinely changes the DimDraw diagram in
+general, and the refinement optimizes from there.
+
+Like DimDraw, the algorithm is meant for the lattice sizes that are actually
+drawn by hand, roughly up to 20 to 30 concepts.  Its cost is dominated by the
+two-dimension extension of DimDraw; the projection and the force-directed
+refinement are comparatively cheap.

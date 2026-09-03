@@ -40,6 +40,7 @@
     [base :refer :all]
     [common :refer :all]
     [dim-draw :refer :all]
+    [dim-flux :refer :all]
     ;[force :refer :all]
     [freese :refer :all]
     [layered :refer :all]
