@@ -5,7 +5,6 @@ package org.latdraw.diagram;
 
 import org.latdraw.orderedset.*;
 import java.awt.geom.*;
-import java.awt.*;
 import java.util.*;
 
 
@@ -59,13 +58,9 @@ public class Vertex implements Cloneable {
   double normalizedZ;
   private String label = null;
   private int labelPosition = RIGHT;
-  private Color color;
   private boolean filled = false;
   private boolean highlighted = false;
   private boolean labelPainted = false;
-  private Color labelForegroundColor;
-  private Color labelBackgroundColor;
-  private Font labelFont;
   private boolean useOrderForLabel = false;
 
   private double scaleFactor;
@@ -131,9 +126,6 @@ public class Vertex implements Cloneable {
    */
   public void setLabelPosition(int v) { labelPosition = v; }
 
-  public Color getColor() { return color; }
-  public void setColor(Color c) { color = c; }
-
   public boolean isFilled() { return filled; }
   public void setFilled(boolean v) { filled = v; }
 
@@ -142,18 +134,6 @@ public class Vertex implements Cloneable {
 
   public boolean isLabelPainted() { return labelPainted; }
   public void setLabelPainted(boolean v) { labelPainted = v; }
-
-  /**
-   * May return null in which case the default should be used.
-   */
-  public Font getLabelFont() { return labelFont; }
-  public void setLabelFont(Font v) { labelFont = v; }
-
-  public Color getLabelForegroundColor() { return labelForegroundColor; }
-  public void setLabelForgeroundColor(Color c) { labelForegroundColor = c; }
-
-  public Color getLabelBackgroundColor() { return labelBackgroundColor; }
-  public void setLabelBackgroundColor(Color c) { labelBackgroundColor = c; }
 
   public double getX() { return x; }
   public void setX(double v) { x = v; }
@@ -184,7 +164,6 @@ public class Vertex implements Cloneable {
   public double getProjectedY() { return proj2d.getY(); } 
 
   public void reset() {
-    setColor(null);
     setFilled(false);
     setHighlighted(false);
   }

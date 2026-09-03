@@ -1,65 +1,87 @@
 (ns conexp.gui.draw.nodes-and-connections
   "Namespace for representing nodes and their connections for drawing lattice diagrams."
   (:require [conexp.base :refer :all]
-            [conexp.gui.draw.scenes :refer :all])
+            [conexp.gui.draw.scenes :refer :all]
+            [conexp.layouts.movement :refer [reachable-nodes
+                                             reachable-irreducible-nodes
+                                             additively-influenced-nodes]])
   (:import java.awt.Color
            java.awt.Font
            [no.geosoft.cc.graphics GInteraction GObject GPosition GScene GSegment GStyle GText GWindow ZoomInteraction]))
+
+;;; Abstract node model
+;;
+;; A diagram node or connection stores its model state (type, position, radius,
+;; name, upper/lower links) in a mutable ref.  The AbstractNode protocol exposes
+;; that ref plus a backend redraw, so the accessors below -- and the controls
+;; built on them -- are independent of the concrete node representation.  The
+;; Swing no.geosoft GObject is the first (currently only) implementation.
+
+(defprotocol AbstractNode
+  (-node-data [node]
+    "Returns the mutable ref holding the node's/connection's model state.")
+  (-redraw-node [node]
+    "Redraws the node/connection on its backend."))
+
+(extend-type GObject
+  AbstractNode
+  (-node-data [o] (.getUserData o))
+  (-redraw-node [o] (.redraw o)))
 
 ;;; nodes and connections
 
 (defn node?
   "Tests whether thing is a node of a lattice diagram or not."
   [thing]
-  (and (instance? GObject thing)
-       (= (:type @(.getUserData ^GObject thing)) :node)))
+  (and (satisfies? AbstractNode thing)
+       (= (:type @(-node-data thing)) :node)))
 
 (defn connection?
   "Tests whether thing is a connection of a lattice diagram or not."
   [thing]
-  (and (instance? GObject thing)
-       (= (:type @(.getUserData ^GObject thing)) :connection)))
+  (and (satisfies? AbstractNode thing)
+       (= (:type @(-node-data thing)) :connection)))
 
 (defn position
   "Returns the position of a node in a lattice diagram."
-  [^GObject node]
-  (:position @(.getUserData node)))
+  [node]
+  (:position @(-node-data node)))
 
 (defn radius
   "Returns the radius of a node in a lattice diagram."
-  [^GObject node]
-  (:radius @(.getUserData node)))
+  [node]
+  (:radius @(-node-data node)))
 
 (defn set-node-radius!
   "Sets radius of node."
-  [^GObject node, radius]
+  [node, radius]
   (dosync
-   (alter (.getUserData node) assoc :radius radius)))
+   (alter (-node-data node) assoc :radius radius)))
 
 (defn get-name
   "Returns name of thing."
-  [^GObject thing]
-  (:name @(.getUserData thing)))
+  [thing]
+  (:name @(-node-data thing)))
 
 (defn lower-node
   "Returns for a connection conn the lower node in a lattice diagram."
-  [^GObject conn]
-  (:lower @(.getUserData conn)))
+  [conn]
+  (:lower @(-node-data conn)))
 
 (defn upper-node
   "Returns for a connection conn the upper node in a lattice diagram."
-  [^GObject conn]
-  (:upper @(.getUserData conn)))
+  [conn]
+  (:upper @(-node-data conn)))
 
 (defn upper-connections
   "Returns all upper connections for node in a lattice diagram."
-  [^GObject node]
-  (:upper @(.getUserData node)))
+  [node]
+  (:upper @(-node-data node)))
 
 (defn lower-connections
   "Returns all lower connections of node in a lattice diagram."
-  [^GObject node]
-  (:lower @(.getUserData node)))
+  [node]
+  (:lower @(-node-data node)))
 
 (defn upper-neighbors
   "Returns all upper neighbors of node in a lattice diagram."
@@ -130,7 +152,7 @@
   "Initial node radius when drawing lattices."
   6.0)
 
-(defn- add-node
+(defn add-node
   "Adds a node to scn at position [x y]."
   [^GScene scn, x, y, name, [upper-label lower-label] valuation]
   (let [^GSegment upper-segment (GSegment.),
@@ -205,7 +227,7 @@
     (.setLineWidth 2.0)
     (.setForegroundColor Color/BLACK)))
 
-(defn- connect-nodes
+(defn connect-nodes
   "Connects two nodes on scene."
   ([^GScene scn, ^GObject x, ^GObject y]
     (connect-nodes scn x y (str (get-name x) " -> " (get-name y))))
@@ -230,8 +252,8 @@
                              :upper y,
                              :name name})))
        (dosync
-        (alter (.getUserData x) update-in [:upper] conj c)
-        (alter (.getUserData y) update-in [:lower] conj c)))))
+        (alter (-node-data x) update-in [:upper] conj c)
+        (alter (-node-data y) update-in [:lower] conj c)))))
 
 ;;; draw grid
 
@@ -303,18 +325,18 @@
 
 (defn move-node-unchecked-to
   "Moves node to [new-x new-y]."
-  [^GObject node, new-x, new-y]
+  [node, new-x, new-y]
   ;; update self position
   (dosync
-   (alter (.getUserData node) assoc :position [new-x new-y]))
+   (alter (-node-data node) assoc :position [new-x new-y]))
   ;; move node on the device
-  (.redraw node)
+  (-redraw-node node)
   ;; update connections to upper neighbors
-  (doseq [^GObject c (upper-connections node)]
-    (.redraw c))
+  (doseq [c (upper-connections node)]
+    (-redraw-node c))
   ;; update connections to lower neighbors
-  (doseq [^GObject c (lower-connections node)]
-    (.redraw c))
+  (doseq [c (lower-connections node)]
+    (-redraw-node c))
   ;; done
   [new-x new-y])
 
@@ -332,88 +354,32 @@
 
 
 ;;; moving utilities
-
-(defn- all-neighbored-nodes
-  "Returns all directly and indirectly neighbored nodes of node."
-  ([node neighbors]
-     (all-neighbored-nodes neighbors (set (neighbors node)) #{}))
-  ([neighbors to-process visited]
-     (if (empty? to-process)
-       visited
-       (let [next (first to-process)]
-         (if (contains? visited next)
-           (recur neighbors (rest to-process) visited)
-           (let [neighs (neighbors next)]
-             (recur neighbors
-                    (into (rest to-process) neighs)
-                    (conj visited next))))))))
+;;
+;; The order-theoretic traversals live in conexp.layouts.movement (pure,
+;; parameterised by a neighbour function); here they are specialised to the
+;; drawn diagram's upper-/lower-neighbors.
 
 (defn all-nodes-above
   "Returns the set of all nodes above node."
   [node]
-  (all-neighbored-nodes node upper-neighbors))
+  (reachable-nodes upper-neighbors node))
 
 (defn all-nodes-below
   "Returns the set of all nodes below node."
   [node]
-  (all-neighbored-nodes node lower-neighbors))
-
-(defn- all-irreducible-neighbored-nodes
-  "Returns all directly and indirectly neighbored nodes of node being
-  irreducible."
-  ;; copy and paste, how can this be changed?
-  ([node neighbors]
-     (all-irreducible-neighbored-nodes neighbors #{node} #{}))
-  ([neighbors to-process visited]
-     (if (empty? to-process)
-       visited
-       (let [next (first to-process)]
-         (if (contains? visited next)
-           (recur neighbors (rest to-process) visited)
-           (let [neighs (neighbors next)]
-             (if (= 1 (count neighs))
-               (recur neighbors (into (rest to-process) neighs) (conj visited next))
-               (recur neighbors (into (rest to-process) neighs) visited))))))))
-
-(defn- group-by-function
-  "Categorizes elements in coll by their value under f."
-  [f coll]
-  (loop [elements coll,
-         category {}]
-    (if (empty? elements)
-      (vals category)
-      (let [next (first elements)]
-        (recur (rest elements) (update-in category [(f next)] conj next))))))
-
-(defn- all-additively-influenced-nodes
-  "Returns all nodes which are additively influenced by node. upper
-  and lower are functions returning the upper and lower neighbors
-  respectively (these roles can be interchanged without any harm). The
-  nodes are given with weights (as pair of node and weight)
-  representing the influence by node."
-  [node uppers lowers]
-  (let [irrs (all-irreducible-neighbored-nodes node uppers),
-        others (group-by-function identity
-                         (apply concat (map #(all-neighbored-nodes % lowers) irrs))),
-        irr-count (count irrs)]
-    (concat (for [n irrs
-                  :when (not= n node)]
-              [n (/ irr-count)])
-            (for [nodes others
-                  :when (not= (first nodes) node)]
-              [(first nodes) (/ (count nodes) irr-count)]))))
+  (reachable-nodes lower-neighbors node))
 
 (defn all-inf-add-influenced-nodes
   "Returns all nodes (with weights) which are infimum-additively
   influenced by node."
   [node]
-  (all-additively-influenced-nodes node upper-neighbors lower-neighbors))
+  (additively-influenced-nodes node upper-neighbors lower-neighbors))
 
 (defn all-sup-add-influenced-nodes
   "Returns all nodes (with weights) which are supremum-additively
   influenced by node."
   [node]
-  (all-additively-influenced-nodes node lower-neighbors upper-neighbors))
+  (additively-influenced-nodes node lower-neighbors upper-neighbors))
 
 ;;; Interactions
 
@@ -470,19 +436,6 @@
           (call-scene-hook scn :image-changed))))))
 
 ;;;
-
-(defn add-nodes-with-connections
-  "Adds to scene scn nodes placed by node-coordinate-map and connected
-  via pairs in the sequence node-connections."
-  [scn node-coordinate-map node-connections annotation valuation]
-  (let [node-map (persistent!
-                  (reduce (fn [map [node [x y]]]
-                            (assoc! map node (add-node scn x y node (annotation node) (valuation node))))
-                          (transient {})
-                          node-coordinate-map))]
-    (doseq [[node-1 node-2] node-connections]
-      (connect-nodes scn (node-map node-1) (node-map node-2)))
-    node-map))
 
 ;;; valuations
 

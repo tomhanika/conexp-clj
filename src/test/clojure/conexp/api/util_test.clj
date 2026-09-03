@@ -8,7 +8,8 @@
 
 (ns conexp.api.util-test
   (:use conexp.base
-        conexp.api)
+        conexp.api
+        clojure.test)
   (:use ring.mock.request)
   (:require [clojure.data.json :refer [read-str]]))
 
@@ -24,6 +25,20 @@
        (request :post "/")
        body)))
      :key-fn keyword))
+
+;;;
+
+(deftest test-serves-html-shell
+  ;; GET "/" must be served as text/html so the browser renders the SPA instead
+  ;; of downloading index.html.  Regression: "/" has no extension for the
+  ;; content-type middleware to infer, and from a jar the resource is a jar: URL
+  ;; -> without an explicit content-type it comes back application/octet-stream.
+  (let [resp ((set-middleware false) (request :get "/"))]
+    (is (= 200 (:status resp)))
+    (is (re-find #"text/html"
+                 (or (get-in resp [:headers "Content-Type"])
+                     (get-in resp [:headers "content-type"])
+                     "")))))
 
 ;;;
 
