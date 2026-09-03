@@ -13,6 +13,7 @@
             [conexp.gui.draw.control.force-layout :refer :all]
             [conexp.gui.draw.control.freese :refer :all]
             [conexp.gui.draw.control.dim-draw :refer :all]
+            [conexp.gui.draw.control.dim-flux :refer :all]
             [conexp.gui.draw.control.parameters :refer :all]
             [conexp.gui.draw.control.snapshots :refer :all]
             [conexp.gui.draw.control.util :refer :all]
@@ -63,6 +64,7 @@
       toggle-zoom-move
       change-parameters,
       (control-choice "DimDraw" dimdraw
+                      "DimFlux" dimflux,
                       "Freese" freese,
                       "Force"  improve-layout-by-force),
       snapshot-saver,

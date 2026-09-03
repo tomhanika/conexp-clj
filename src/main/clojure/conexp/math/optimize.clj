@@ -87,6 +87,33 @@
   ([fn partial-derivatives starting-point options]
      (differentially-minimize fn partial-derivatives starting-point options)))
 
+(defn minimize-with-gradient
+  "Minimizes fn starting at starting-point, using a non-linear conjugate
+  gradient optimizer.  In contrast to minimize, gradient is a single
+  function computing the complete gradient of fn at a given point,
+  which is much cheaper than recomputing fn once per coordinate when
+  the partial derivatives share most of their work.
+
+  fn must take an array of doubles and return a double, gradient must
+  take an array of doubles and return a sequence of doubles of the same
+  length as starting-point.  options is a hash-map to control the
+  optimizer, understanding :iterations and :max-evaluations."
+  [fn gradient starting-point options]
+  (let [optimizer (NonLinearConjugateGradientOptimizer.
+                   NonLinearConjugateGradientOptimizer$Formula/POLAK_RIBIERE
+                   (convergence-checker (:iterations options)))
+        result    ^PointValuePair
+                  (.optimize optimizer
+                             (into-array OptimizationData
+                                         [(MaxEval. (int (get options :max-evaluations 100000)))
+                                          (MaxIter/unlimited)
+                                          (ObjectiveFunction. (as-multivariate-real-fn fn))
+                                          (ObjectiveFunctionGradient.
+                                           (as-multivariate-vectorial-fn gradient))
+                                          GoalType/MINIMIZE
+                                          (InitialGuess. (double-array starting-point))]))]
+    (point-value-pair-to-vector result)))
+
 (defn maximize
   "Maximizes fn starting at starting-point. When given
   partial-derivatives uses a differential optimizer, otherwise uses a
