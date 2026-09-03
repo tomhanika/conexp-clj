@@ -35,11 +35,12 @@
       (keys 
         (apply merge (map ns-publics extended-conexp-clj-namespaces))))
     ;; just all wanted core functions
-    (list "count" 
-          "+" 
-          "-" 
-          "*" 
-          "/")))
+    (list "count"
+          "+"
+          "-"
+          "*"
+          "/"
+          "identity")))
 
 (defn whitelist-names
   "Gathers all relevants functions across conexp-clj and tests any input."
