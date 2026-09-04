@@ -51,13 +51,23 @@
 
   :initial chooses the diagram the refinement starts from and is the parameter
   to reach for on larger lattices, where the two-dimension extension of DimDraw
-  dominates the running time.  See `initial-layout`."
-  {:w-rep          50.0
-   :w-att           1.0
-   :w-grav         30.0
-   :iterations   1000
-   :min-distance    1.0e-3
-   :initial      :dim-draw})
+  dominates the running time.  See `initial-layout`.
+
+  :spring-iterations and :spring-evaluations bound the spring model of the
+  planarity enhancer and are ignored by every other starting diagram.  The
+  spring model feeds exactly one thing into the rest of the algorithm, the
+  linear order of the irreducible elements, and on every lattice tried that
+  order stopped changing at 100 iterations; the bound of 200 is a safety net
+  rather than the operative limit, since the optimizer converges and stops on
+  its own well before it."
+  {:w-rep               50.0
+   :w-att                1.0
+   :w-grav              30.0
+   :iterations        1000
+   :min-distance         1.0e-3
+   :initial           :dim-draw
+   :spring-iterations  200
+   :spring-evaluations 2000})
 
 ;;; The doubly-additive set representation
 ;;
@@ -607,9 +617,10 @@
 
   from a start on the unit circle.  Returns a flat `double[2*ne]`.
 
-  The minimization is bounded, because this is only the starting point of a
-  starting point: letting it run to convergence costs far more than the
-  refinement it feeds and moves the final diagram very little."
+  The minimization is bounded because this is only the starting point of a
+  starting point.  All that reaches the rest of the algorithm is the linear
+  order the layout induces, and that order stops changing long before the
+  positions do."
   [^doubles dsi ^long ne parameters]
   (let [start (mapcat (fn [i]
                         (let [phi (/ (* 2.0 Math/PI i) ne)]

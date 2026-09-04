@@ -74,14 +74,21 @@ A map given directly after the lattice overrides the defaults in
 (dim-flux-layout ctx {} "greedy")
 #+end_src
 
-| Parameter       | Meaning                                                          |   Default |
-|-----------------+------------------------------------------------------------------+-----------|
-| ~:initial~      | the diagram the refinement starts from                            | ~:dim-draw~ |
-| ~:w-rep~        | weight of the repulsion between nodes and non-incident edges      |      50.0 |
-| ~:w-att~        | weight of the attraction along the edges                          |       1.0 |
-| ~:w-grav~       | weight of the gravitation keeping the element vectors oriented    |      30.0 |
-| ~:iterations~   | bound on the number of conjugate gradient iterations              |      1000 |
-| ~:min-distance~ | smallest conflict distance the repulsive energy is evaluated at   |     0.001 |
+| Parameter             | Meaning                                                        |     Default |
+|-----------------------+----------------------------------------------------------------+-------------|
+| ~:initial~            | the diagram the refinement starts from                          | ~:dim-draw~ |
+| ~:w-rep~              | weight of the repulsion between nodes and non-incident edges    |        50.0 |
+| ~:w-att~              | weight of the attraction along the edges                        |         1.0 |
+| ~:w-grav~             | weight of the gravitation keeping the element vectors oriented  |        30.0 |
+| ~:iterations~         | bound on the conjugate gradient iterations of the refinement    |        1000 |
+| ~:min-distance~       | smallest conflict distance the repulsive energy is evaluated at |       0.001 |
+| ~:spring-iterations~  | bound on the iterations of the planarity enhancer spring model  |         200 |
+| ~:spring-evaluations~ | bound on its function evaluations                               |        2000 |
+
+The three weights, ~:iterations~ and the constants of the parabola come from the
+reference implementation of the paper.  The two spring bounds do not; they exist
+because the spring model otherwise runs far past the point where it makes any
+difference.  See below for what they are worth.
 
 The refinement is a local optimization and may fail to produce a valid line
 diagram.  In that case ~dim-flux-layout~ falls back to the projected diagram,
@@ -157,6 +164,34 @@ scaling the diagram to unit height:
 Up to roughly 25 concepts ~:dim-draw~ still gives the best diagram and is worth
 its price; past that the planarity enhancer gives the best diagram of the
 remaining three and is usually also the fastest.
+
+*** What the spring model needs
+
+The planarity enhancer lays the irreducible elements out by a spring model, but
+only one thing about that layout reaches the rest of the algorithm: the linear
+order it induces when projected onto its longest axis.  The positions themselves
+are thrown away.  So the question is not when the spring model converges but when
+that order stops changing, and it does so much earlier.
+
+The number of pairs still ordered differently from a 4000-iteration run:
+
+| iterations |    16 |    23 |    36 |    70 |   108 | living beings | motorcars |
+|------------+-------+-------+-------+-------+-------+---------------+-----------|
+|         10 |     5 |    18 |    26 |    77 |   196 |            75 |         1 |
+|         25 |     1 |    15 |     5 |    34 |     4 |             2 |         0 |
+|         50 |     0 |     5 |     2 |     0 |     0 |             2 |         0 |
+|        100 |     0 |     0 |     0 |     0 |     0 |             0 |         0 |
+|        200 |     0 |     0 |     0 |     0 |     0 |             0 |         0 |
+
+The order is settled at 100 iterations on every lattice tried, so the default of
+200 is a safety net rather than the operative limit: the optimizer converges and
+stops on its own before reaching it, which is why raising the bound to 1000
+changes neither the order nor the running time, and why the whole spring model
+stays between 1 and 12 milliseconds.  A test pins this, comparing the order
+under the defaults against a far longer run.
+
+The companion bound ~:spring-evaluations~ never became the binding constraint on
+any lattice tried.
 
 *** Bounding the refinement
 
