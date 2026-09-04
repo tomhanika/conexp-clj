@@ -30,6 +30,7 @@
                                          lattice-upper-neighbours]]
             [conexp.layouts.base :as lay]
             [conexp.layouts.dim-draw :refer [dim-draw-layout]]
+            [conexp.layouts.layered :refer [simple-layered-layout]]
             [conexp.math.algebra :refer [base-set order]]
             [conexp.math.optimize :refer [minimize-with-gradient]])
   (:import [conexp.fca.lattices Lattice]
@@ -45,12 +46,17 @@
   paper, :iterations bounds the number of conjugate gradient iterations and
   :min-distance is the smallest conflict distance the repulsive energy is
   evaluated at, which keeps degenerate placements from producing infinite
-  energies."
+  energies.
+
+  :initial chooses the diagram the refinement starts from and is the parameter
+  to reach for on larger lattices, where the two-dimension extension of DimDraw
+  dominates the running time.  See `initial-layout`."
   {:w-rep          50.0
    :w-att           1.0
    :w-grav         30.0
    :iterations   1000
-   :min-distance    1.0e-3})
+   :min-distance    1.0e-3
+   :initial      :dim-draw})
 
 ;;; The doubly-additive set representation
 ;;
@@ -162,123 +168,160 @@
   "The repulsive energy `E_rep = sum_v sum_{v1v2} 1/d(w,f)`, taken over all nodes
   `v` and all edges `v1v2` not incident with `v`, together with the force it
   exerts on the element vectors.  Here `d` is the conflict distance between a
-  node and a non-incident edge, which the repulsion maximizes."
+  node and a non-incident edge, which the repulsion maximizes.
+
+  Only elements that can move the conflict distance at all are visited.  An
+  object matters exactly if it lies below the upper end of the edge but not
+  below the node, or below the node but not below the lower end; dually for an
+  attribute.  Both sets are intersections of words of the membership bit sets,
+  so the inner loop runs over a handful of elements instead of over all of
+  them."
   [model ^doubles pos]
-  (let [nc               (long (:nc model))
-        ne               (long (:ne model))
-        ng               (long (:ng model))
-        ^booleans member (:member model)
-        edges            (:edges model)
-        min-d            (double (:min-distance model))
-        force            (double-array (* 2 ne))
-        energy           (double-array 1)]
+  (let [nc              (long (:nc model))
+        ne              (long (:ne model))
+        ng              (long (:ng model))
+        words           (long (:words model))
+        ^"[[J" bits     (:bits model)
+        ^longs obj-mask (:object-mask model)
+        ^longs att-mask (:attribute-mask model)
+        ^ints edge-lo   (:edge-lo model)
+        ^ints edge-hi   (:edge-hi model)
+        n-edges         (alength edge-lo)
+        min-d           (double (:min-distance model))
+        force           (double-array (* 2 ne))
+        energy          (double-array 1)]
     (dotimes [c nc]
-      (let [wx (aget pos (* 2 c))
-            wy (aget pos (inc (* 2 c)))]
-        (doseq [[a b] edges
-                :when (and (not= c (long a)) (not= c (long b)))]
-          (let [v1   (long a)
-                v2   (long b)
-                w1x  (aget pos (* 2 v1)), w1y (aget pos (inc (* 2 v1)))
-                w2x  (aget pos (* 2 v2)), w2y (aget pos (inc (* 2 v2)))
-                fx   (- w2x w1x), fy (- w2y w1y)
-                flen (Math/max (Math/sqrt (+ (* fx fx) (* fy fy))) min-d)
-                d1   (Math/sqrt (+ (* (- w1x wx) (- w1x wx))
-                                   (* (- w1y wy) (- w1y wy))))
-                d2   (Math/sqrt (+ (* (- w2x wx) (- w2x wx))
-                                   (* (- w2y wy) (- w2y wy))))
-                ;; where the node lies relative to the edge
-                below? (> (+ (* (- w1x wx) fx) (* (- w1y wy) fy)) 0.0)
-                above? (< (+ (* (- w2x wx) fx) (* (- w2y wy) fy)) 0.0)
-                cross  (- (* (- w1x wx) (- w2y wy)) (* (- w1y wy) (- w2x wx)))
-                ;; +1 if the node lies left of the edge, -1 otherwise, so that
-                ;; the force always pushes it away
-                l      (double (if (>= cross 0.0) 1.0 -1.0))
-                dist   (Math/max min-d (double (cond below? d1
-                                                     above? d2
-                                                     :else  (/ (Math/abs cross) flen))))
-                scale  (/ 1.0 (* dist dist))
-                ;; direction the conflict distance grows in
-                ux     (double (cond below? (/ (- w1x wx) dist)
-                                     above? (/ (- w2x wx) dist)
-                                     :else  (/ (* (- fy) l) flen)))
-                uy     (double (cond below? (/ (- w1y wy) dist)
-                                     above? (/ (- w2y wy) dist)
-                                     :else  (/ (* fx l) flen)))
-                ;; scaled variants for elements moving only one end of the edge
-                s1     (/ (Math/sqrt (Math/abs (- (* d1 d1) (* dist dist)))) flen)
-                s2     (/ (Math/sqrt (Math/abs (- (* d2 d2) (* dist dist)))) flen)]
-            (aset energy 0 (+ (aget energy 0) (/ 1.0 dist)))
-            (dotimes [e ne]
-              (let [object? (< e ng)
-                    mv      (aget member (+ (* c ne) e))
-                    m1      (aget member (+ (* v1 ne) e))
-                    m2      (aget member (+ (* v2 ne) e))
-                    ;; the eight ways an element can be distributed over the node
-                    ;; and the two ends of the edge, numbered as in the paper
-                    k       (inc (bit-or (if mv 4 0) (if m1 2 0) (if m2 1 0)))
-                    ;; k = 1 and k = 8 leave the conflict distance untouched, the
-                    ;; other excluded cases contradict the order relation
-                    skip?   (or (= k 1) (= k 8)
-                                (if object?
-                                  (or (= k 3) (= k 7))
-                                  (or (= k 2) (= k 6))))
-                    factor  (double
-                             (if skip?
-                               0.0
-                               (cond
-                                 below?
-                                 (cond (if object? (= k 4) (or (= k 3) (= k 4)))   1.0
-                                       (if object? (or (= k 5) (= k 6)) (= k 5))  -1.0
-                                       :else                                       0.0)
-                                 above?
-                                 (cond (if object? (or (= k 2) (= k 4)) (= k 4))   1.0
-                                       (if object? (= k 5) (or (= k 5) (= k 7)))  -1.0
-                                       :else                                       0.0)
-                                 :else
-                                 (cond (and object? (= k 2))       (- s1)
-                                       (and (not object?) (= k 3)) (- s2)
-                                       (= k 4)                     -1.0
-                                       (= k 5)                      1.0
-                                       (and object? (= k 6))        s2
-                                       (and (not object?) (= k 7))  s1
-                                       :else                        0.0))))]
-                (when-not (zero? factor)
-                  (aset force (* 2 e)
-                        (+ (aget force (* 2 e)) (* scale factor ux)))
-                  (aset force (inc (* 2 e))
-                        (+ (aget force (inc (* 2 e))) (* scale factor uy))))))))))
+      (let [wx        (aget pos (* 2 c))
+            wy        (aget pos (inc (* 2 c)))
+            ^longs bc (aget bits c)]
+        (dotimes [ei n-edges]
+          (let [v1 (aget edge-lo ei)
+                v2 (aget edge-hi ei)]
+            (when (and (not= c v1) (not= c v2))
+              (let [^longs b1 (aget bits v1)
+                    ^longs b2 (aget bits v2)
+                    w1x  (aget pos (* 2 v1)), w1y (aget pos (inc (* 2 v1)))
+                    w2x  (aget pos (* 2 v2)), w2y (aget pos (inc (* 2 v2)))
+                    fx   (- w2x w1x), fy (- w2y w1y)
+                    flen (Math/max (Math/sqrt (+ (* fx fx) (* fy fy))) min-d)
+                    d1   (Math/sqrt (+ (* (- w1x wx) (- w1x wx))
+                                       (* (- w1y wy) (- w1y wy))))
+                    d2   (Math/sqrt (+ (* (- w2x wx) (- w2x wx))
+                                       (* (- w2y wy) (- w2y wy))))
+                    ;; where the node lies relative to the edge
+                    below? (> (+ (* (- w1x wx) fx) (* (- w1y wy) fy)) 0.0)
+                    above? (< (+ (* (- w2x wx) fx) (* (- w2y wy) fy)) 0.0)
+                    cross  (- (* (- w1x wx) (- w2y wy)) (* (- w1y wy) (- w2x wx)))
+                    ;; +1 if the node lies left of the edge, -1 otherwise, so
+                    ;; that the force always pushes it away
+                    l      (double (if (>= cross 0.0) 1.0 -1.0))
+                    dist   (Math/max min-d (double (cond below? d1
+                                                         above? d2
+                                                         :else  (/ (Math/abs cross) flen))))
+                    scale  (/ 1.0 (* dist dist))
+                    ;; direction the conflict distance grows in
+                    ux     (double (cond below? (/ (- w1x wx) dist)
+                                         above? (/ (- w2x wx) dist)
+                                         :else  (/ (* (- fy) l) flen)))
+                    uy     (double (cond below? (/ (- w1y wy) dist)
+                                         above? (/ (- w2y wy) dist)
+                                         :else  (/ (* fx l) flen)))
+                    ;; scaled variants for elements moving only one end of the edge
+                    s1     (/ (Math/sqrt (Math/abs (- (* d1 d1) (* dist dist)))) flen)
+                    s2     (/ (Math/sqrt (Math/abs (- (* d2 d2) (* dist dist)))) flen)]
+                (aset energy 0 (+ (aget energy 0) (/ 1.0 dist)))
+                (dotimes [w words]
+                  (let [bcw (aget bc w)
+                        b1w (aget b1 w)
+                        b2w (aget b2 w)
+                        relevant (bit-or
+                                  (bit-and (aget obj-mask w)
+                                           (bit-or (bit-and b2w (bit-not bcw))
+                                                   (bit-and bcw (bit-not b1w))))
+                                  (bit-and (aget att-mask w)
+                                           (bit-or (bit-and b1w (bit-not bcw))
+                                                   (bit-and bcw (bit-not b2w)))))]
+                    (loop [m (long relevant)]
+                      (when-not (zero? m)
+                        (let [b       (Long/numberOfTrailingZeros m)
+                              bit     (bit-shift-left 1 b)
+                              e       (+ (* w 64) b)
+                              object? (< e ng)
+                              ;; the eight ways an element can be distributed
+                              ;; over the node and the two ends of the edge,
+                              ;; numbered as in the paper
+                              k       (inc (bit-or (if (zero? (bit-and bcw bit)) 0 4)
+                                                   (if (zero? (bit-and b1w bit)) 0 2)
+                                                   (if (zero? (bit-and b2w bit)) 0 1)))
+                              factor  (double
+                                       (cond
+                                         below?
+                                         (cond (if object? (= k 4) (or (= k 3) (= k 4)))   1.0
+                                               (if object? (or (= k 5) (= k 6)) (= k 5))  -1.0
+                                               :else                                       0.0)
+                                         above?
+                                         (cond (if object? (or (= k 2) (= k 4)) (= k 4))   1.0
+                                               (if object? (= k 5) (or (= k 5) (= k 7)))  -1.0
+                                               :else                                       0.0)
+                                         :else
+                                         (cond (and object? (= k 2))       (- s1)
+                                               (and (not object?) (= k 3)) (- s2)
+                                               (= k 4)                     -1.0
+                                               (= k 5)                      1.0
+                                               (and object? (= k 6))        s2
+                                               (and (not object?) (= k 7))  s1
+                                               :else                        0.0)))]
+                          (when-not (zero? factor)
+                            (aset force (* 2 e)
+                                  (+ (aget force (* 2 e)) (* scale factor ux)))
+                            (aset force (inc (* 2 e))
+                                  (+ (aget force (inc (* 2 e))) (* scale factor uy)))))
+                        (recur (bit-and m (dec m)))))))))))))
     [(aget energy 0) force]))
 
 (defn- attractive-energy-and-force
   "The attractive energy `E_att = sum_{v1v2} |f|^2`, taken over all edges, which
   keeps the diagram from falling apart, together with the force it exerts on the
-  element vectors."
+  element vectors.
+
+  Only elements separating the two ends of an edge can shorten it: objects of
+  the upper end pull it down, attributes of the lower end pull it up.  Both sets
+  come straight out of the membership bit sets."
   [model ^doubles pos]
-  (let [ne               (long (:ne model))
-        ng               (long (:ng model))
-        ^booleans member (:member model)
-        force            (double-array (* 2 ne))
-        energy           (double-array 1)]
-    (doseq [[a b] (:edges model)]
-      (let [v1  (long a)
-            v2  (long b)
-            dx  (- (aget pos (* 2 v2)) (aget pos (* 2 v1)))
-            dy  (- (aget pos (inc (* 2 v2))) (aget pos (inc (* 2 v1))))]
+  (let [ne              (long (:ne model))
+        ng              (long (:ng model))
+        words           (long (:words model))
+        ^"[[J" bits     (:bits model)
+        ^longs obj-mask (:object-mask model)
+        ^longs att-mask (:attribute-mask model)
+        ^ints edge-lo   (:edge-lo model)
+        ^ints edge-hi   (:edge-hi model)
+        n-edges         (alength edge-lo)
+        force           (double-array (* 2 ne))
+        energy          (double-array 1)]
+    (dotimes [ei n-edges]
+      (let [v1        (aget edge-lo ei)
+            v2        (aget edge-hi ei)
+            ^longs b1 (aget bits v1)
+            ^longs b2 (aget bits v2)
+            dx        (- (aget pos (* 2 v2)) (aget pos (* 2 v1)))
+            dy        (- (aget pos (inc (* 2 v2))) (aget pos (inc (* 2 v1))))]
         (aset energy 0 (+ (aget energy 0) (* dx dx) (* dy dy)))
-        (dotimes [e ne]
-          (let [object? (< e ng)
-                m1      (aget member (+ (* v1 ne) e))
-                m2      (aget member (+ (* v2 ne) e))]
-            ;; only elements separating the two ends of an edge can shorten it:
-            ;; objects of the upper end pull it down, attributes of the lower end
-            ;; pull it up
-            (when (if object? (and m2 (not m1)) (and m1 (not m2)))
-              (let [sign (double (if object? -1.0 1.0))]
-                (aset force (* 2 e)
-                      (+ (aget force (* 2 e)) (* 2.0 sign dx)))
-                (aset force (inc (* 2 e))
-                      (+ (aget force (inc (* 2 e))) (* 2.0 sign dy)))))))))
+        (dotimes [w words]
+          (let [b1w (aget b1 w)
+                b2w (aget b2 w)
+                relevant (bit-or (bit-and (aget obj-mask w) b2w (bit-not b1w))
+                                 (bit-and (aget att-mask w) b1w (bit-not b2w)))]
+            (loop [m (long relevant)]
+              (when-not (zero? m)
+                (let [b    (Long/numberOfTrailingZeros m)
+                      e    (+ (* w 64) b)
+                      sign (double (if (< e ng) -1.0 1.0))]
+                  (aset force (* 2 e)
+                        (+ (aget force (* 2 e)) (* 2.0 sign dx)))
+                  (aset force (inc (* 2 e))
+                        (+ (aget force (inc (* 2 e))) (* 2.0 sign dy))))
+                (recur (bit-and m (dec m)))))))))
     [(aget energy 0) force]))
 
 (defn- gravitational-energy-and-force
@@ -391,6 +434,7 @@
         nm     (count attributes)
         ne     (+ ng nm)
         nc     (count nodes)
+        words  (max 1 (int (Math/ceil (/ ne 64.0))))
         member (membership-array lattice nodes objects attributes)
         index  (into {} (map-indexed (fn [i c] [c i]) nodes))]
     (merge parameters
@@ -404,6 +448,32 @@
             :node-elements (vec (for [c (range nc)]
                                   (int-array (filter #(aget ^booleans member (+ (* c ne) %))
                                                      (range ne)))))
+            ;; the membership relation once more, packed into words, so that the
+            ;; forces can single out the elements they have to look at
+            :words         words
+            :bits          (into-array
+                            (for [c (range nc)]
+                              (let [row (long-array words)]
+                                (dotimes [e ne]
+                                  (when (aget ^booleans member (+ (* c ne) e))
+                                    (aset row (quot e 64)
+                                          (bit-set (aget row (quot e 64)) (rem e 64)))))
+                                row)))
+            :object-mask   (let [mask (long-array words)]
+                             (dotimes [e ng]
+                               (aset mask (quot e 64)
+                                     (bit-set (aget mask (quot e 64)) (rem e 64))))
+                             mask)
+            :attribute-mask (let [mask (long-array words)]
+                              (dotimes [i nm]
+                                (let [e (+ ng i)]
+                                  (aset mask (quot e 64)
+                                        (bit-set (aget mask (quot e 64)) (rem e 64)))))
+                              mask)
+            :edge-lo       (int-array (for [n nodes, u (lattice-upper-neighbours lattice n)]
+                                        (index n)))
+            :edge-hi       (int-array (for [n nodes, u (lattice-upper-neighbours lattice n)]
+                                        (index u)))
             :edges         (vec (for [n nodes, u (lattice-upper-neighbours lattice n)]
                                   [(index n) (index u)]))})))
 
@@ -451,6 +521,44 @@
     (every? (fn [[a b]] (< (double (second (get pos a)))
                            (double (second (get pos b)))))
             (lay/connections layout))))
+
+(defn- rotated-dim-draw-layout
+  "The DimDraw diagram of `lattice`, scaled to the canonical aspect ratio of the
+  paper: the realizer coordinates are turned by 45 degrees, then stretched
+  horizontally and squeezed vertically."
+  [lattice dim-draw-args]
+  (let [layout (apply dim-draw-layout lattice dim-draw-args)]
+    (lay/update-positions
+     layout
+     (into {} (for [[c [x y]] (lay/positions layout)]
+                [c [(* (Math/sqrt 2.0) (double x))
+                    (/ (double y) (Math/sqrt 2.0))]])))))
+
+(defn initial-layout
+  "The diagram the force-directed refinement starts from, chosen by the :initial
+  parameter:
+
+    :dim-draw  the realizer-embedded diagram of DimDraw, using its exact
+               two-dimension extension.  This is the algorithm of the paper and
+               the default, and it is what dominates the running time as soon as
+               a lattice grows past roughly 25 elements.
+    :greedy    the same, but with the greedy two-dimension extension of DimDraw,
+               which gives up minimality of the inserted relation in exchange for
+               dropping the SAT search.
+    :layered   the simple layered layout, skipping DimDraw altogether.  The
+               cheapest start, and the one to use when the lattice is too large
+               for either DimDraw mode.
+
+  A function of the lattice returning a layout may be given instead, which is how
+  any other layout of conexp-clj can serve as the starting diagram."
+  [lattice parameters dim-draw-args]
+  (let [initial (:initial parameters :dim-draw)]
+    (cond
+      (fn? initial)         (initial lattice)
+      (= :dim-draw initial) (rotated-dim-draw-layout lattice dim-draw-args)
+      (= :greedy initial)   (rotated-dim-draw-layout lattice (cons "greedy" dim-draw-args))
+      (= :layered initial)  (simple-layered-layout lattice)
+      :else (illegal-argument "Unknown initial layout for DimFlux: " initial))))
 
 (defn- as-lattice
   "Returns the lattice to be drawn, accepting a lattice or a formal context."
@@ -511,11 +619,15 @@
   doubly-additive diagram and then refined by a force-directed placement
   maximizing the conflict distance between nodes and non-incident edges.  Should
   the refinement not yield a valid line diagram, the projected diagram is
-  returned instead, and should that one be invalid as well, the DimDraw diagram
+  returned instead, and should that one be invalid as well, the initial diagram
   is.
 
   When the first argument after the lattice is a map, it overrides
   `default-parameters`; all remaining arguments are passed on to DimDraw.
+
+  On lattices past roughly 25 elements the exact two-dimension extension of
+  DimDraw dominates the running time.  The :initial parameter then buys most of
+  it back, at the price of a weaker starting diagram; see `initial-layout`.
 
   See M. Nöhre, D. Dürrschnabel, B. Ganter, G. Stumme, `DimFlux:
   Force-Directed Additive Line Diagrams', International Journal of
@@ -528,21 +640,16 @@
                                      [default-parameters args])
         nodes                      (vec (base-set lattice))
         [objects attributes]       (irreducible-elements lattice)
-        ;; step 1: the realizer-embedded diagram of DimDraw, scaled to the
-        ;; canonical aspect ratio used in the paper
-        dim-draw                   (let [layout (apply dim-draw-layout lattice dim-draw-args)]
-                                     (lay/update-positions
-                                      layout
-                                      (into {} (for [[c [x y]] (lay/positions layout)]
-                                                 [c [(* (Math/sqrt 2.0) (double x))
-                                                     (/ (double y) (Math/sqrt 2.0))]]))))]
+        ;; step 1: the diagram to start from, by default the realizer-embedded
+        ;; one of DimDraw
+        start                      (initial-layout lattice parameters dim-draw-args)]
     (if (empty? (concat objects attributes))
-      dim-draw
+      start
       (let [model     (make-model lattice nodes objects attributes parameters)
             srm       (set-representation-matrix lattice nodes objects attributes)
             ;; step 2: the closest doubly-additive diagram, as element vectors
             initial   (element-vectors-of srm
-                                          (positions-array dim-draw nodes)
+                                          (positions-array start nodes)
                                           (count objects))
             projected (layout-of-vectors lattice nodes model initial)
             ;; step 3: force-directed refinement of the element vectors
@@ -559,7 +666,7 @@
         (cond
           (and optimized (respects-order? optimized)) optimized
           (respects-order? projected)                 projected
-          :else                                       dim-draw)))))
+          :else                                       start)))))
 
 ;;;
 

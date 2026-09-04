@@ -168,6 +168,20 @@
       (is (line-diagram? layout))
       (is (doubly-additive? layout)))))
 
+(deftest test-dim-flux-layout-initial
+  (testing "every starting diagram yields a valid additive line diagram"
+    (doseq [ctx      all-contexts
+            initial  [:dim-draw :greedy :layered simple-layered-layout]]
+      (let [layout (dim-flux-layout ctx {:initial initial})]
+        (is (line-diagram? layout)
+            (str "line diagram for " initial))
+        (is (doubly-additive? layout)
+            (str "additive for " initial))
+        (is (= (edges-of (concept-lattice ctx)) (set (lay/connections layout)))))))
+  (testing "an unknown starting diagram is rejected"
+    (is (thrown? IllegalArgumentException
+                 (dim-flux-layout dwarf-planets {:initial :nonsense})))))
+
 (deftest test-dim-flux-layout-rejects-other-arguments
   (is (thrown? IllegalArgumentException (dim-flux-layout 42)))
   (is (thrown? IllegalArgumentException
