@@ -14,23 +14,36 @@
             [conexp.layouts.base :refer :all]
             [conexp.layouts.dim-flux :refer :all]
             [seesaw.core :refer [listen]])
-  (:import [javax.swing JButton JLabel JSpinner]))
+  (:import [javax.swing JButton JComboBox JLabel JSpinner]))
 
 ;;; DimFlux layout
+
+(def ^:private starting-diagrams
+  "The diagram the refinement starts from, in the order they are offered.  The
+  first one is the algorithm as published and the default; the others trade the
+  two-dimension extension of DimDraw for speed and are what makes DimFlux usable
+  on lattices of more than about 30 concepts."
+  (array-map "DimDraw (exact)"     :dim-draw
+             "DimDraw (greedy)"    :greedy
+             "Planarity enhancer"  :planarity-enhancer
+             "Layered"             :layered))
 
 (defn dimflux
   "Installs DimFlux Layout control."
   [frame scn buttons]
-  (let [^JButton  draw       (make-button buttons "DimFlux")
-        ^JLabel   l1         (make-label buttons "Iterations:")
-        ^JSpinner iterations (make-spinner buttons 0 10000 1000 100)
-        ^JButton  project    (make-button buttons "Additive")]
+  (make-label buttons "Start from")
+  (let [^JComboBox start      (make-combo-box buttons (keys starting-diagrams))
+        ^JLabel    l1         (make-label buttons "Iterations:")
+        ^JSpinner  iterations (make-spinner buttons 0 10000 1000 100)
+        ^JButton   draw       (make-button buttons "DimFlux")
+        ^JButton   project    (make-button buttons "Additive")]
     (listen draw :action
             (fn [_]
               (update-layout-of-scene
                scn
                (dim-flux-layout (poset (get-layout-from-scene scn))
-                                {:iterations (int (.getValue iterations))}))
+                                {:initial    (starting-diagrams (.getSelectedItem start))
+                                 :iterations (int (.getValue iterations))}))
               (call-scene-hook scn :update-grid)
               (fit-scene-to-layout scn)))
     (listen project :action

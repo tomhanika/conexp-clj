@@ -46,10 +46,12 @@ Passing the layout function to ~draw-lattice~ works as well:
 #+end_src
 
 In the lattice editor, DimFlux is available under the layout choice next to
-DimDraw, Freese and Force.  The ~Iterations~ spinner bounds the number of
-conjugate gradient steps of the refinement, and ~Additive~ projects the diagram
-currently on screen onto the closest doubly-additive one without running the
-refinement.
+DimDraw, Freese and Force.  The ~Start from~ menu picks the initial diagram and
+offers the same four choices as the ~:initial~ parameter below, starting with the
+algorithm as published; the ~Iterations~ spinner bounds the number of conjugate
+gradient steps of the refinement; ~DimFlux~ redraws with the current settings;
+and ~Additive~ projects the diagram currently on screen onto the closest
+doubly-additive one without running the refinement at all.
 
 ** Parameters
 
