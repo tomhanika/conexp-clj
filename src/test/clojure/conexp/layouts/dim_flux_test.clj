@@ -152,6 +152,42 @@
                                      (Double/isFinite (double y))))
                     (vals (lay/positions layout))))))))
 
+(def ^:private golden-positions
+  "Positions the default pipeline produced before the layout was made faster,
+  sorted by height and then by width.  They pin the algorithm as published: the
+  bit set forces and the choice of starting diagram are meant to leave this
+  untouched, and any change to it has to be a deliberate one."
+  {:dwarf-planets [[0.0                 0.0]
+                   [8.19935225251826    2.346964615822346]
+                   [1.5080519851248935  2.7503682438937167]
+                   [5.2663583159666185  3.63685157189151]
+                   [-2.5915881534869167 4.251313112569929]
+                   [9.187239538652053   7.566931803569037]
+                   [4.876583774118542   9.170601222949625]]
+   :crown         [[0.0                 0.0]
+                   [0.8466887913409333  4.330029082813631]
+                   [11.42214199577128   5.371920889808214]
+                   [-2.6619399196473585 5.781949703748222]
+                   [5.006672072366866   5.997766182579722]
+                   [-5.7242857395793    6.631734031383484]
+                   [1.9566450274783709  7.555458515492352]
+                   [-8.349016755546916  9.745757438424809]
+                   [8.092072349194877   10.722769863709924]
+                   [4.587945288778855   10.734761834827436]
+                   [1.6766024257904606  11.348615156481433]
+                   [-3.730431808421188  11.519266250168938]
+                   [-7.23906051940948   12.971186871103528]
+                   [2.4050407820196287  16.64311394470097]]})
+
+(deftest test-dim-flux-layout-is-unchanged
+  (doseq [[key ctx] {:dwarf-planets dwarf-planets, :crown crown}]
+    (testing (str "the default pipeline still draws " (name key) " as it did")
+      (let [drawn (sort-by (juxt second first) (vals (lay/positions (dim-flux-layout ctx))))]
+        (is (= (count (golden-positions key)) (count drawn)))
+        (doseq [[[gx gy] [x y]] (map vector (golden-positions key) drawn)]
+          (is (< (Math/abs (- (double gx) (double x))) 1.0e-9))
+          (is (< (Math/abs (- (double gy) (double y))) 1.0e-9)))))))
+
 (deftest test-dim-flux-layout-accepts-lattices
   (let [ctx  dwarf-planets
         from-context (dim-flux-layout ctx)
@@ -167,6 +203,37 @@
     (let [layout (dim-flux-layout dwarf-planets {} "greedy")]
       (is (line-diagram? layout))
       (is (doubly-additive? layout)))))
+
+(deftest test-dim-flux-layout-initial
+  (testing "every starting diagram yields a valid additive line diagram"
+    (doseq [ctx      all-contexts
+            initial  [:dim-draw :greedy :planarity-enhancer :layered
+                      simple-layered-layout]]
+      (let [layout (dim-flux-layout ctx {:initial initial})]
+        (is (line-diagram? layout)
+            (str "line diagram for " initial))
+        (is (doubly-additive? layout)
+            (str "additive for " initial))
+        (is (= (edges-of (concept-lattice ctx)) (set (lay/connections layout)))))))
+  (testing "an unknown starting diagram is rejected"
+    (is (thrown? IllegalArgumentException
+                 (dim-flux-layout dwarf-planets {:initial :nonsense})))))
+
+(deftest test-planarity-enhancer-layout
+  (doseq [ctx all-contexts]
+    (let [lattice (concept-lattice ctx)
+          layout  (planarity-enhancer-layout lattice)]
+      (testing "the enhancer alone already draws the lattice"
+        (is (= (base-set lattice) (set (keys (lay/positions layout)))))
+        (is (= (edges-of lattice) (set (lay/connections layout)))))
+      (testing "and does so as a doubly-additive line diagram"
+        (is (line-diagram? layout))
+        (is (doubly-additive? layout)))
+      (testing "with the object vectors pointing up and the attribute vectors down,
+                which is what makes the diagram respect the order by construction"
+        (let [pos (lay/positions layout)]
+          (doseq [[a b] (lay/connections layout)]
+            (is (< (second (pos a)) (second (pos b))))))))))
 
 (deftest test-dim-flux-layout-rejects-other-arguments
   (is (thrown? IllegalArgumentException (dim-flux-layout 42)))
