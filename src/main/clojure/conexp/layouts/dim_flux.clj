@@ -24,7 +24,8 @@
   https://arxiv.org/abs/2603.16366"
   (:require [conexp.base :refer [illegal-argument]]
             [conexp.fca.contexts :refer [context?]]
-            [conexp.fca.lattices :refer [concept-lattice
+            [conexp.fca.lattices :refer [concept-lattice inf sup
+                                         lattice-atoms lattice-coatoms
                                          lattice-inf-irreducibles
                                          lattice-sup-irreducibles
                                          lattice-upper-neighbours]]
@@ -522,6 +523,231 @@
                            (double (second (get pos b)))))
             (lay/connections layout))))
 
+(defn- sup-inf-distances
+  "The doubly-additive sup-inf distance between every pair of irreducible
+  elements, as a flat `double[ne*ne]`.
+
+  For two incomparable elements the distance counts how much the interval
+  between their meet and their join spans.  Written over the standard context
+  this needs closures of unions of extents and intents, but the closure of a
+  union of extents is the extent of the join and dually for intents, so all four
+  quantities are just counts of irreducibles below the meet and above the join.
+  Comparable pairs get distance zero.
+
+  See Section 6.1 of the DimFlux paper, extending the sup-inf distance of
+  C. Zschalig from the attribute-additive to the doubly-additive case."
+  [lattice objects attributes]
+  (let [leq       (order lattice)
+        meet      (inf lattice)
+        join      (sup lattice)
+        elements  (vec (concat objects attributes))
+        ng        (count objects)
+        ne        (count elements)
+        object?   (fn [i] (< (long i) ng))
+        below     (memoize (fn [x] (count (filter #(leq % x) objects))))
+        above     (memoize (fn [x] (count (filter #(leq x %) attributes))))
+        out       (double-array (* ne ne))]
+    (doseq [i (range ne), j (range (inc (long i)) ne)]
+      (let [a (nth elements i)
+            b (nth elements j)
+            d (cond
+                ;; two objects, or two attributes
+                (= (object? i) (object? j))
+                (if (or (leq a b) (leq b a))
+                  0.0
+                  (if (object? i)
+                    (- (below (join a b)) (below (meet a b)) 1)
+                    (- (above (meet a b)) (above (join a b)) 1)))
+                ;; an object and an attribute; the reference implementation
+                ;; treats the pair as incomparable exactly when the object does
+                ;; not lie below the attribute
+                :else
+                (let [g (if (object? i) a b)
+                      m (if (object? i) b a)]
+                  (if (leq g m)
+                    0.0
+                    (let [meet-gm (meet g m)
+                          join-gm (join g m)]
+                      (- (- (below meet-gm) (above join-gm))
+                         (- (below join-gm) (above meet-gm))
+                         1)))))]
+        (aset out (+ (* (long i) ne) (long j)) (double d))
+        (aset out (+ (* (long j) ne) (long i)) (double d))))
+    out))
+
+(defn- spring-energy-and-gradient
+  "The energy `E_SI = sum_{i<j} (|n_i - n_j| - d_SI(i,j))^2` of the spring model
+  and its gradient, in one pass over the pairs."
+  [^doubles dsi ^long ne ^doubles p]
+  (let [grad   (double-array (* 2 ne))
+        energy (double-array 1)]
+    (dotimes [i ne]
+      (let [xi (aget p (* 2 i))
+            yi (aget p (inc (* 2 i)))]
+        (loop [j (inc i)]
+          (when (< j ne)
+            (let [dx (- xi (aget p (* 2 j)))
+                  dy (- yi (aget p (inc (* 2 j))))
+                  r  (Math/max (Math/sqrt (+ (* dx dx) (* dy dy))) 1.0e-9)
+                  t  (- r (aget dsi (+ (* i ne) j)))
+                  f  (* 2.0 (/ t r))]
+              (aset energy 0 (+ (aget energy 0) (* t t)))
+              (aset grad (* 2 i) (+ (aget grad (* 2 i)) (* f dx)))
+              (aset grad (inc (* 2 i)) (+ (aget grad (inc (* 2 i))) (* f dy)))
+              (aset grad (* 2 j) (- (aget grad (* 2 j)) (* f dx)))
+              (aset grad (inc (* 2 j)) (- (aget grad (inc (* 2 j))) (* f dy))))
+            (recur (inc j))))))
+    [(aget energy 0) grad]))
+
+(defn- spring-positions
+  "Places the irreducible elements in the plane so that their Euclidean
+  distances approximate the sup-inf distances, by minimizing
+
+      E_SI = sum_{i<j} (|n_i - n_j| - d_SI(i,j))^2
+
+  from a start on the unit circle.  Returns a flat `double[2*ne]`.
+
+  The minimization is bounded, because this is only the starting point of a
+  starting point: letting it run to convergence costs far more than the
+  refinement it feeds and moves the final diagram very little."
+  [^doubles dsi ^long ne parameters]
+  (let [start (mapcat (fn [i]
+                        (let [phi (/ (* 2.0 Math/PI i) ne)]
+                          [(Math/cos phi) (Math/sin phi)]))
+                      (range ne))
+        cache (atom nil)
+        both  (fn [^doubles p]
+                (let [key (vec p)]
+                  (if-let [[k r] @cache]
+                    (if (= k key)
+                      r
+                      (let [r (spring-energy-and-gradient dsi ne p)]
+                        (reset! cache [key r]) r))
+                    (let [r (spring-energy-and-gradient dsi ne p)]
+                      (reset! cache [key r]) r))))]
+    (double-array
+     (try (first (minimize-with-gradient
+                  (fn [^doubles p] (first (both p)))
+                  (fn [^doubles p] (seq ^doubles (second (both p))))
+                  start
+                  {:iterations      (:spring-iterations parameters 200)
+                   :max-evaluations (:spring-evaluations parameters 2000)}))
+          (catch Exception _ start)))))
+
+(defn- element-scalars
+  "Projects the spring layout onto the axis spanned by its two most distant
+  points, which turns it into the linear order of the irreducible elements the
+  placement then follows."
+  [^doubles pts ^long ne]
+  (let [pt   (fn [i] [(aget pts (* 2 (long i))) (aget pts (inc (* 2 (long i))))])
+        [i j] (if (< ne 2)
+                [0 0]
+                (apply max-key
+                       (fn [[a b]]
+                         (let [[ax ay] (pt a), [bx by] (pt b)]
+                           (+ (* (- bx ax) (- bx ax)) (* (- by ay) (- by ay)))))
+                       (for [a (range ne), b (range (inc (long a)) ne)] [a b])))
+        ;; the left of the two points anchors the axis
+        [n1 n2] (let [[ix _] (pt i), [jx _] (pt j)]
+                  (if (< (double ix) (double jx)) [(pt i) (pt j)] [(pt j) (pt i)]))
+        [n1x n1y] n1
+        [n2x n2y] n2
+        fx      (- (double n2x) (double n1x))
+        fy      (- (double n2y) (double n1y))]
+    (vec (for [k (range ne)]
+           (let [[x y] (pt k)]
+             (+ (* (- (double x) (double n1x)) fx)
+                (* (- (double y) (double n1y)) fy)))))))
+
+(defn- round-to-tenth
+  ^double [^double x]
+  (/ (Math/round (* 10.0 x)) 10.0))
+
+(defn planarity-enhancer-layout
+  "Returns the initial doubly-additive layout of `lattice` computed by the
+  planarity enhancer, the alternative to DimDraw offered by the DimFlux paper.
+
+  The irreducible elements are first laid out by a spring model whose rest
+  lengths are their sup-inf distances, which spreads apart those elements whose
+  chains would otherwise cross.  Projecting that layout onto its longest axis
+  gives a linear order.  Following it, the atoms are placed along an upward
+  parabola and the coatoms along its mirror image, and the remaining elements
+  are filled in by chain decomposition: an object goes to the mean of the
+  objects below it, an attribute to the mean of the attributes above it, each
+  shifted slightly so that elements sharing their neighbours do not coincide.
+
+  This costs time quadratic in the number of irreducible elements rather than in
+  the number of concepts, and involves no satisfiability search, which is what
+  makes it the cheap alternative to the two-dimension extension of DimDraw.
+
+  See Section 6.1 of the DimFlux paper and C. Zschalig, `A Force Directed
+  Approach to Drawing Concept Lattices', for the attribute-additive original."
+  ([lattice]
+   (planarity-enhancer-layout lattice default-parameters))
+  ([lattice parameters]
+   (let [[objects attributes] (irreducible-elements lattice)
+        ng       (count objects)
+        nm       (count attributes)
+        ne       (+ ng nm)
+        nodes    (vec (base-set lattice))]
+    (if (zero? ne)
+      (simple-layered-layout lattice)
+      (let [leq      (order lattice)
+            dsi      (sup-inf-distances lattice objects attributes)
+            scalars  (element-scalars (spring-positions dsi ne parameters) ne)
+            obj-idx  (into {} (map-indexed (fn [i g] [g i]) objects))
+            att-idx  (into {} (map-indexed (fn [i m] [m (+ ng i)]) attributes))
+            vectors  (double-array (* 2 ne))
+            place!   (fn [i x y]
+                       (aset vectors (* 2 (long i)) (double x))
+                       (aset vectors (inc (* 2 (long i))) (double y)))
+            ;; the atoms ride an upward parabola, the coatoms its mirror image,
+            ;; both spaced 1.8 apart and centred on the origin
+            parabola (fn [elements index up?]
+                       (let [ordered (sort-by #(nth scalars (index %)) elements)
+                             n       (count ordered)]
+                         (doseq [[k e] (map-indexed vector ordered)]
+                           (let [x (round-to-tenth (- (* 1.8 (inc (long k)))
+                                                      (* 0.9 (inc n))))
+                                 y (+ (* 0.09 x x) 1.75)]
+                             (if up?
+                               (place! (index e) x y)
+                               (place! (index e) (- x) (- y)))))))
+            _        (parabola (filter obj-idx (lattice-atoms lattice)) obj-idx true)
+            _        (parabola (filter att-idx (lattice-coatoms lattice)) att-idx false)
+            ;; chain decomposition, bottom up for objects and top down for
+            ;; attributes; a strictly ordered pass guarantees the neighbours are
+            ;; already placed
+            done-obj (atom (set (filter obj-idx (lattice-atoms lattice))))
+            done-att (atom (set (filter att-idx (lattice-coatoms lattice))))]
+        (doseq [g (sort-by #(count (filter (fn [h] (leq h %)) objects))
+                           (remove @done-obj objects))]
+          (let [lower (filter #(and (leq % g) (not= % g)) objects)]
+            (if (empty? lower)
+              (place! (obj-idx g) (* 1.0e-3 (obj-idx g)) 1.75)
+              (let [n  (count lower)
+                    mx (/ (reduce + (map #(aget vectors (* 2 (long (obj-idx %)))) lower)) n)
+                    my (/ (reduce + (map #(aget vectors (inc (* 2 (long (obj-idx %)))))
+                                         lower)) n)
+                    d  (* 1.0e-3 (obj-idx g))]
+                (place! (obj-idx g) (+ mx d) (+ my d))))
+            (swap! done-obj conj g)))
+        (doseq [m (sort-by #(- (count (filter (fn [k] (leq % k)) attributes)))
+                           (remove @done-att attributes))]
+          (let [upper (filter #(and (leq m %) (not= m %)) attributes)]
+            (if (empty? upper)
+              (place! (att-idx m) (* 1.0e-3 (att-idx m)) -1.75)
+              (let [n  (count upper)
+                    mx (/ (reduce + (map #(aget vectors (* 2 (long (att-idx %)))) upper)) n)
+                    my (/ (reduce + (map #(aget vectors (inc (* 2 (long (att-idx %)))))
+                                         upper)) n)
+                    d  (* 1.0e-3 (att-idx m))]
+                (place! (att-idx m) (+ mx d) (+ my d))))
+            (swap! done-att conj m)))
+        (layout-of-vectors lattice nodes
+                           (make-model lattice nodes objects attributes parameters)
+                           vectors))))))
+
 (defn- rotated-dim-draw-layout
   "The DimDraw diagram of `lattice`, scaled to the canonical aspect ratio of the
   paper: the realizer coordinates are turned by 45 degrees, then stretched
@@ -545,9 +771,13 @@
     :greedy    the same, but with the greedy two-dimension extension of DimDraw,
                which gives up minimality of the inserted relation in exchange for
                dropping the SAT search.
+    :planarity-enhancer
+               the initial layout of the paper's own alternative to DimDraw,
+               costing quadratic time in the number of irreducible elements
+               rather than in the number of concepts and using no satisfiability
+               search.  See `planarity-enhancer-layout`.
     :layered   the simple layered layout, skipping DimDraw altogether.  The
-               cheapest start, and the one to use when the lattice is too large
-               for either DimDraw mode.
+               cheapest start, and the crudest.
 
   A function of the lattice returning a layout may be given instead, which is how
   any other layout of conexp-clj can serve as the starting diagram."
@@ -558,6 +788,7 @@
       (= :dim-draw initial) (rotated-dim-draw-layout lattice dim-draw-args)
       (= :greedy initial)   (rotated-dim-draw-layout lattice (cons "greedy" dim-draw-args))
       (= :layered initial)  (simple-layered-layout lattice)
+      (= :planarity-enhancer initial) (planarity-enhancer-layout lattice parameters)
       :else (illegal-argument "Unknown initial layout for DimFlux: " initial))))
 
 (defn- as-lattice

@@ -171,7 +171,8 @@
 (deftest test-dim-flux-layout-initial
   (testing "every starting diagram yields a valid additive line diagram"
     (doseq [ctx      all-contexts
-            initial  [:dim-draw :greedy :layered simple-layered-layout]]
+            initial  [:dim-draw :greedy :planarity-enhancer :layered
+                      simple-layered-layout]]
       (let [layout (dim-flux-layout ctx {:initial initial})]
         (is (line-diagram? layout)
             (str "line diagram for " initial))
@@ -181,6 +182,22 @@
   (testing "an unknown starting diagram is rejected"
     (is (thrown? IllegalArgumentException
                  (dim-flux-layout dwarf-planets {:initial :nonsense})))))
+
+(deftest test-planarity-enhancer-layout
+  (doseq [ctx all-contexts]
+    (let [lattice (concept-lattice ctx)
+          layout  (planarity-enhancer-layout lattice)]
+      (testing "the enhancer alone already draws the lattice"
+        (is (= (base-set lattice) (set (keys (lay/positions layout)))))
+        (is (= (edges-of lattice) (set (lay/connections layout)))))
+      (testing "and does so as a doubly-additive line diagram"
+        (is (line-diagram? layout))
+        (is (doubly-additive? layout)))
+      (testing "with the object vectors pointing up and the attribute vectors down,
+                which is what makes the diagram respect the order by construction"
+        (let [pos (lay/positions layout)]
+          (doseq [[a b] (lay/connections layout)]
+            (is (< (second (pos a)) (second (pos b))))))))))
 
 (deftest test-dim-flux-layout-rejects-other-arguments
   (is (thrown? IllegalArgumentException (dim-flux-layout 42)))
