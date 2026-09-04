@@ -48,10 +48,15 @@ Passing the layout function to ~draw-lattice~ works as well:
 In the lattice editor, DimFlux is available under the layout choice next to
 DimDraw, Freese and Force.  The ~Start from~ menu picks the initial diagram and
 offers the same four choices as the ~:initial~ parameter below, starting with the
-algorithm as published; the ~Iterations~ spinner bounds the number of conjugate
-gradient steps of the refinement; ~DimFlux~ redraws with the current settings;
-and ~Additive~ projects the diagram currently on screen onto the closest
-doubly-additive one without running the refinement at all.
+algorithm as published, and every entry carries a tooltip saying what it costs.
+~Iterations~ bounds the conjugate gradient steps of the refinement, ~Spring
+steps~ bounds the spring model and is enabled only for the planarity enhancer
+that uses it, and ~Redraw~ lays the diagram out again with the current settings.
+
+~Make Additive~ is independent of all that.  It moves every node the least
+distance that makes the diagram doubly-additive again, which is what dragging a
+node by hand destroys, and it works on whatever is on screen no matter which
+algorithm drew it.
 
 ** Parameters
 
