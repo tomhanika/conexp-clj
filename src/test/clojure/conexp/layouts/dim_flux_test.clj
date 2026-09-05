@@ -235,6 +235,28 @@
           (doseq [[a b] (lay/connections layout)]
             (is (< (second (pos a)) (second (pos b))))))))))
 
+(deftest test-spring-defaults-reach-the-converged-order
+  (testing "the spring model of the planarity enhancer feeds exactly one thing
+            into the rest of the algorithm, the linear order of the irreducible
+            elements, and the default bounds are high enough to reach the order a
+            far longer run settles on"
+    (let [sup-inf-distances @#'conexp.layouts.dim-flux/sup-inf-distances
+          spring-positions  @#'conexp.layouts.dim-flux/spring-positions
+          element-scalars   @#'conexp.layouts.dim-flux/element-scalars]
+      (doseq [ctx all-contexts]
+        (let [lattice (concept-lattice ctx)
+              objects (vec (lattice-sup-irreducibles lattice))
+              attrs   (vec (lattice-inf-irreducibles lattice))
+              ne      (+ (count objects) (count attrs))
+              dsi     (sup-inf-distances lattice objects attrs)
+              order-of (fn [parameters]
+                         (->> (element-scalars (spring-positions dsi ne parameters) ne)
+                              (map-indexed vector)
+                              (sort-by second)
+                              (mapv first)))]
+          (is (= (order-of {:spring-iterations 4000 :spring-evaluations 1000000})
+                 (order-of default-parameters))))))))
+
 (deftest test-dim-flux-layout-rejects-other-arguments
   (is (thrown? IllegalArgumentException (dim-flux-layout 42)))
   (is (thrown? IllegalArgumentException
