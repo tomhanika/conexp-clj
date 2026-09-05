@@ -16,7 +16,7 @@ authors:
     affiliation: University of Hildesheim
     email: tom.hanika@uni-hildesheim.de
     orcid: 'https://orcid.org/0000-0002-4918-6374'
-repository-code: 'https://github.com/fcatools/conexp-clj'
+repository-code: 'https://github.com/tomhanika/conexp-clj'
 abstract: >-
   This is conexp-clj, a general purpose software tool for
   Formal Concept Analysis. Its main purpose is to enable
@@ -56,5 +56,6 @@ preferred-citation:
     - family-names: Hirth
       given-names: Johannes
 license: EPL-1.0
-commit: 5254a10eab6759a7d0c60228892952de93f2aa58
-date-released: '2023-07-17'
+version: 3.1.0
+commit: daafba3227116edec7f88bd2b7e786a83f91a902
+date-released: '2026-09-05'
