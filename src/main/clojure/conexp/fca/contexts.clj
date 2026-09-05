@@ -584,6 +584,40 @@
                    (into (incidence-relation ctx)
                          (map #(vector % new-attribute) new-extent))))
 
+(defn keep-objects
+  "Restricts `ctx' to the objects in `objs' that occur in it, keeping all
+  attributes and the induced incidence."
+  [ctx objs]
+  (let [objs (set objs)]
+    (make-context (filter objs (objects ctx))
+                  (attributes ctx)
+                  (incidence-relation ctx))))
+
+(defn keep-attributes
+  "Restricts `ctx' to the attributes in `atts' that occur in it, keeping all
+  objects and the induced incidence."
+  [ctx atts]
+  (let [atts (set atts)]
+    (make-context (objects ctx)
+                  (filter atts (attributes ctx))
+                  (incidence-relation ctx))))
+
+(defn cut-objects
+  "Returns `ctx' with the objects in `objs' removed."
+  [ctx objs]
+  (let [objs (set objs)]
+    (make-context (remove objs (objects ctx))
+                  (attributes ctx)
+                  (incidence-relation ctx))))
+
+(defn cut-attributes
+  "Returns `ctx' with the attributes in `atts' removed."
+  [ctx atts]
+  (let [atts (set atts)]
+    (make-context (objects ctx)
+                  (remove atts (attributes ctx))
+                  (incidence-relation ctx))))
+
 (defn invert-context
   "Inverts context ctx, that is (G,M,I) gets (G,M,(G x M) \\ I)."
   [ctx]

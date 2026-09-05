@@ -422,6 +422,52 @@
     (is (= (:type (:function result-ctx-lat-impl-fca)) "map"))
     (is (= (vals (:result (:function result-ctx-lat-impl-fca))) '("context" "lattice" "implication_sets")))))
 
+;;; Web-GUI shorthands
+
+(deftest test-sh-lattice-layout
+  (let [result (mock-request {:ctx         {:type "context"
+                                            :data {:objects ["a" "b"]
+                                                   :attributes ["1" "2"]
+                                                   :incidence [["a" "1"] ["b" "2"]]}}
+                              :layout-name {:type "string" :data "standard"}
+                              :layout      {:type "function"
+                                            :name "sh-lattice-layout"
+                                            :args ["ctx" "layout-name"]}})
+        response (:layout result)]
+    (is (= 200 (:status response)))
+    (is (= "layout" (:type response)))
+    (is (pos? (count (:nodes (:result response)))))
+    (is (contains? (:result response) :positions))
+    (is (contains? (:result response) :edges))))
+
+(deftest test-sh-layout-with-valuation
+  (let [result (mock-request {:ctx {:type "context"
+                                    :data {:objects ["a" "b"]
+                                           :attributes ["1" "2"]
+                                           :incidence [["a" "1"] ["b" "2"]]}}
+                              :ln {:type "string" :data "standard"}
+                              :vn {:type "string" :data "stability"}
+                              :layout {:type "function"
+                                       :name "sh-layout-with-valuation"
+                                       :args ["ctx" "ln" "vn"]}})
+        response (:layout result)]
+    (is (= 200 (:status response)))
+    (is (= "layout" (:type response)))
+    (is (contains? (:result response) :valuations))))
+
+(deftest test-sh-context-op
+  (let [result (mock-request {:ctx {:type "context"
+                                    :data {:objects ["a" "b"]
+                                           :attributes ["1" "2"]
+                                           :incidence [["a" "1"] ["b" "2"]]}}
+                              :op {:type "string" :data "dual"}
+                              :fn {:type "function"
+                                   :name "sh-context-op"
+                                   :args ["ctx" "op"]}})
+        response (:fn result)]
+    (is (= 200 (:status response)))
+    (is (= "context" (:type response)))))
+
 ;;;
 
 nil

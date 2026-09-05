@@ -1,21 +1,19 @@
 (ns conexp.gui.draw.scene-layouts
   "Basic namespace for drawing lattice."
   (:require [conexp.base :refer :all]
+            [conexp.gui.draw.backend :as backend]
             [conexp.gui.draw.nodes-and-connections :refer :all]
             [conexp.gui.draw.scenes :refer :all]
             [conexp.gui.util :refer :all]
             [conexp.layouts.base :refer :all]
-            [conexp.layouts.util :refer :all])
-  (:import [java.awt BorderLayout Color Dimension]
-           [javax.swing JButton JFrame JLabel JPanel]
-           [no.geosoft.cc.graphics GScene GStyle GWindow]))
+            [conexp.layouts.util :refer :all]))
 
 ;;; get diagram from scene
 
 (defn get-diagram-from-scene
   "Returns nodes and lines of a scene."
-  [^GScene scene]
-  (seq (.getChildren scene)))
+  [scene]
+  (scene-children scene))
 
 ;;; node and line iterators
 
@@ -51,9 +49,9 @@
 (defn fit-scene-to-layout
   "Adjusts scene such that layout fits on it. Uses stored layout if
   none is given. Calls :image-changed hook."
-  ([^GScene scene]
+  ([scene]
      (fit-scene-to-layout scene (get-layout-from-scene scene)))
-  ([^GScene scene, layout]
+  ([scene, layout]
    (do (add-data-to-scene scene :layout layout)
        (let [[x_min y_min x_max y_max] (enclosing-rectangle (vals (positions layout))),
              width  (- x_max x_min),
@@ -64,18 +62,18 @@
              height (if (zero? height)
                       1
                       height)]
-         (.setWorldExtent scene
-                          (double (- x_min (* 0.05 width)))
-                          (double (- y_min (* 0.05 height)))
-                          (double (* 1.10 width))
-                          (double (* 1.10 height)))
-         (.unzoom scene)
+         (set-world-extent scene
+                           (- x_min (* 0.05 width))
+                           (- y_min (* 0.05 height))
+                           (* 1.10 width)
+                           (* 1.10 height))
+         (unzoom-scene scene)
          (call-scene-hook scene :image-changed)))))
 
 (defn update-layout-of-scene
   "Updates layout according to new layout. The underlying lattice must
   not be changed."
-  [^GScene scene, layout]
+  [scene, layout]
 
   (do
     (let [old-layout (-> scene get-layout-from-scene)
@@ -97,35 +95,34 @@
 (defn update-valuations-of-scene
   "Updates valutions according to new valuation function. The underlying lattice must
   not be changed."
-  [^GScene scene, layout]
+  [scene, layout]
   (do (add-data-to-scene scene :layout layout)
       (do-nodes [node scene]
                 (revaluate-node-unchecked node (valuations layout)))))
 
 (defn set-layout-of-scene
   "Sets given layout as current layout of scene."
-  [^GScene scene, layout]
-  (doto scene
-    (.removeAll)
-    (add-nodes-with-connections (positions layout)
-                                (connections layout)
-                                (annotation layout)
-                                (valuations layout))
-    (add-data-to-scene :layout layout)))
+  [scene, layout]
+  (remove-all-from-scene scene)
+  (backend/add-nodes-with-connections scene
+                                      (positions layout)
+                                      (connections layout)
+                                      (annotation layout)
+                                      (valuations layout))
+  (add-data-to-scene scene :layout layout)
+  scene)
 
 
 ;;; draw nodes with coordinates and connections on a scene
 
-(defn ^GScene draw-on-scene
-  "Draws given layout on a GScene and returns it."
+(defn draw-on-scene
+  "Draws given layout on a fresh scene from the current backend and returns it."
   [layout]
-  (let [wnd (make-window),
-        scn (make-scene wnd)]
+  (let [scn (backend/new-scene backend/*backend*)]
     (doto scn
       (set-layout-of-scene layout)
       (fit-scene-to-layout layout))
-    (doto wnd
-      (.startInteraction (move-interaction scn)))
+    (backend/install-move-interaction backend/*backend* scn)
     scn))
 
 

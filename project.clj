@@ -8,7 +8,7 @@
 
 
 
-(defproject conexp-clj "3.0.0"
+(defproject conexp-clj "3.1.0"
   :min-lein-version "2.0.0"
   :description "A ConExp rewrite in clojure -- and so much more ..."
   :url "http://github.com/tomhanika/conexp-clj/"
@@ -42,7 +42,12 @@
                  [http-kit "2.8.0"]
                  [org.apache.commons/commons-math3 "3.6.1"]
                  [luposlip/json-schema             "0.4.6"]]
-  :profiles {:uberjar {:main conexp.main
+  :profiles {;; The lattice editor controls are unit tested by building their
+             ;; widgets, which needs an AWT that does not look for a display.
+             ;; Only lein test runs headless; lein run and lein repl still open
+             ;; the GUI.
+             :test {:jvm-opts ["-Djava.awt.headless=true"]}
+             :uberjar {:main conexp.main
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.6.2"]
                                       [nrepl/nrepl "1.3.1"]]
@@ -58,7 +63,7 @@
                    :javac-options ["-Xlint:deprecation" "-Xlint:unchecked"]
                    :jvm-opts ["-Djdk.attach.allowAttachSelf=true"]}}
   :keep-non-project-classes true
-  :source-paths ["src/main/clojure" "src/test/clojure"]
+  :source-paths ["src/main/clojure" "src/test/clojure" "src/shared"]
   :java-source-paths ["src/main/java"]
   :javac-options ["--release" "21"]
   :test-paths ["src/test/clojure"]

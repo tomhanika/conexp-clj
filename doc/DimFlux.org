@@ -1,0 +1,234 @@
+#+title: DimFlux
+
+* DimFlux
+
+~DimFlux~ draws the concept lattice of a formal context as a /doubly-additive/
+line diagram.  In such a diagram every concept node sits at the sum of a set of
+vectors, one for each irreducible object below it and one for each irreducible
+attribute above it, which is what makes additive diagrams full of parallelograms
+and, as a consequence, comparatively easy to read.
+
+The algorithm runs in three steps:
+
+1. an initial diagram is computed with [[https://arxiv.org/abs/1903.00686][DimDraw]], which extends the order relation
+   until it has order dimension two and reads the coordinates off the resulting
+   realizer;
+2. that diagram is orthogonally projected onto the space of doubly-additive
+   diagrams, so that it becomes additive while staying as close to the DimDraw
+   diagram as possible;
+3. the element vectors are refined by a force-directed placement which maximizes
+   the /conflict distance/, the distance between a concept node and the edges it
+   is not incident with.
+
+It is described in M. Nöhre, D. Dürrschnabel, B. Ganter and G. Stumme, /DimFlux:
+Force-Directed Additive Line Diagrams/, International Journal of Approximate
+Reasoning 197 (2026) 109734, [[https://arxiv.org/abs/2603.16366]].
+
+** Drawing a lattice
+
+~dim-flux-layout~ takes a formal context or a lattice and returns a layout:
+
+#+begin_src clojure :results silent
+(use 'conexp.fca.contexts)
+(use 'conexp.fca.lattices)
+(use 'conexp.layouts.dim-flux)
+
+(def ctx (read-context "testing-data/living_beings_and_water.cxt"))
+
+(draw-layout (dim-flux-layout ctx))
+#+end_src
+
+Passing the layout function to ~draw-lattice~ works as well:
+
+#+begin_src clojure :results silent
+(draw-lattice (concept-lattice ctx)
+              :layout-fn dim-flux-layout)
+#+end_src
+
+In the lattice editor, DimFlux is available under the layout choice next to
+DimDraw, Freese and Force.  The ~Start from~ menu picks the initial diagram and
+offers the same four choices as the ~:initial~ parameter below, starting with the
+algorithm as published, and every entry carries a tooltip saying what it costs.
+~Iterations~ bounds the conjugate gradient steps of the refinement, ~Spring
+steps~ bounds the spring model and is enabled only for the planarity enhancer
+that uses it, and ~Redraw~ lays the diagram out again with the current settings.
+
+~Make Additive~ is independent of all that.  It moves every node the least
+distance that makes the diagram doubly-additive again, which is what dragging a
+node by hand destroys, and it works on whatever is on screen no matter which
+algorithm drew it.
+
+** Parameters
+
+A map given directly after the lattice overrides the defaults in
+~default-parameters~; every further argument is handed on to DimDraw:
+
+#+begin_src clojure :results silent
+;; more weight on the repulsion between nodes and non-incident edges
+(dim-flux-layout ctx {:w-rep 100.0})
+
+;; no refinement at all, i.e. the projected DimDraw diagram
+(dim-flux-layout ctx {:iterations 0})
+
+;; let DimDraw use its greedy instead of its exact two-dimension extension
+(dim-flux-layout ctx {} "greedy")
+#+end_src
+
+| Parameter             | Meaning                                                        |     Default |
+|-----------------------+----------------------------------------------------------------+-------------|
+| ~:initial~            | the diagram the refinement starts from                          | ~:dim-draw~ |
+| ~:w-rep~              | weight of the repulsion between nodes and non-incident edges    |        50.0 |
+| ~:w-att~              | weight of the attraction along the edges                        |         1.0 |
+| ~:w-grav~             | weight of the gravitation keeping the element vectors oriented  |        30.0 |
+| ~:iterations~         | bound on the conjugate gradient iterations of the refinement    |        1000 |
+| ~:min-distance~       | smallest conflict distance the repulsive energy is evaluated at |       0.001 |
+| ~:spring-iterations~  | bound on the iterations of the planarity enhancer spring model  |         200 |
+| ~:spring-evaluations~ | bound on its function evaluations                               |        2000 |
+
+The three weights, ~:iterations~ and the constants of the parabola come from the
+reference implementation of the paper.  The two spring bounds do not; they exist
+because the spring model otherwise runs far past the point where it makes any
+difference.  See below for what they are worth.
+
+The refinement is a local optimization and may fail to produce a valid line
+diagram.  In that case ~dim-flux-layout~ falls back to the projected diagram,
+and if that one is invalid as well, to the DimDraw diagram, so that the result is
+always a line diagram of the lattice.
+
+** Working with additive diagrams
+
+Two functions of the namespace are useful on their own.  ~additive-layout~
+returns the doubly-additive layout closest to a given one, the orthogonal
+projection onto the space of additive placements:
+
+#+begin_src clojure :results silent
+(additive-layout (standard-layout (concept-lattice ctx)))
+#+end_src
+
+and ~doubly-additive?~ decides whether a layout already is additive, which is
+exactly the case when it equals its own projection:
+
+#+begin_src clojure :results silent
+(doubly-additive? (dim-flux-layout ctx))       ;; => true
+(doubly-additive? (standard-layout (concept-lattice ctx)))
+#+end_src
+
+Because the projection is cheap, it can also be applied after every step of an
+interactive edit: dragging a node destroys additivity, and projecting restores
+it, at the price of moving the other nodes along.
+
+** Larger lattices
+
+The exact two-dimension extension of DimDraw is what makes DimFlux expensive,
+and it grows very steeply: on random contexts it takes about a second at 16
+concepts and half a minute at 23.  Everything else is cheap by comparison.  The
+~:initial~ parameter therefore chooses the diagram the refinement starts from:
+
+#+begin_src clojure :results silent
+(dim-flux-layout ctx {:initial :dim-draw})            ;; the algorithm of the paper
+(dim-flux-layout ctx {:initial :greedy})              ;; greedy two-dimension extension
+(dim-flux-layout ctx {:initial :planarity-enhancer})  ;; the paper's own alternative
+(dim-flux-layout ctx {:initial :layered})             ;; no DimDraw at all
+(dim-flux-layout ctx {:initial inf-additive-layout})  ;; any layout function
+#+end_src
+
+~:planarity-enhancer~ is the alternative the paper itself offers, and
+~planarity-enhancer-layout~ can also be called on its own.  It lays the
+irreducible elements out by a spring model whose rest lengths are their sup-inf
+distances, reads a linear order off the longest axis of that layout, and then
+places atoms and coatoms on two opposing parabolas and everything else by chain
+decomposition.  Its cost is quadratic in the number of irreducible elements
+rather than in the number of concepts, which is why it stays near a tenth of a
+second even on a lattice of a hundred elements.
+
+Measured on random contexts, time for the whole algorithm and, as a quality
+measure, the smallest distance between a node and a non-incident edge after
+scaling the diagram to unit height:
+
+| concepts | ~:dim-draw~ | ~:greedy~ | ~:planarity-enhancer~ | ~:layered~ |
+|----------+-------------+-----------+-----------------------+------------|
+|       16 | 1.1 s       | 0.06 s    | 0.08 s                | 0.05 s     |
+|       23 | 32 s        | 0.13 s    | 0.10 s                | 0.05 s     |
+|       36 | not run     | 0.8 s     | 0.3 s                 | 0.4 s      |
+|       70 | not run     | 7 s       | 0.4 s                 | 20 s       |
+|      108 | not run     | 35 s      | 51 s                  | 2 s        |
+
+| concepts | ~:dim-draw~ | ~:greedy~ | ~:planarity-enhancer~ | ~:layered~ |
+|----------+-------------+-----------+-----------------------+------------|
+|       16 |      0.0813 |    0.0184 |                0.0582 |     0.0239 |
+|       23 |      0.0263 |    0.0129 |                0.0195 |     0.0000 |
+|       36 | not run     |    0.0008 |                0.0076 |     0.0001 |
+|       70 | not run     |    0.0002 |                0.0001 |     0.0000 |
+|      108 | not run     |    0.0001 |                0.0007 |     0.0000 |
+
+Up to roughly 25 concepts ~:dim-draw~ still gives the best diagram and is worth
+its price; past that the planarity enhancer gives the best diagram of the
+remaining three and is usually also the fastest.
+
+*** What the spring model needs
+
+The planarity enhancer lays the irreducible elements out by a spring model, but
+only one thing about that layout reaches the rest of the algorithm: the linear
+order it induces when projected onto its longest axis.  The positions themselves
+are thrown away.  So the question is not when the spring model converges but when
+that order stops changing, and it does so much earlier.
+
+The number of pairs still ordered differently from a 4000-iteration run:
+
+| iterations |    16 |    23 |    36 |    70 |   108 | living beings | motorcars |
+|------------+-------+-------+-------+-------+-------+---------------+-----------|
+|         10 |     5 |    18 |    26 |    77 |   196 |            75 |         1 |
+|         25 |     1 |    15 |     5 |    34 |     4 |             2 |         0 |
+|         50 |     0 |     5 |     2 |     0 |     0 |             2 |         0 |
+|        100 |     0 |     0 |     0 |     0 |     0 |             0 |         0 |
+|        200 |     0 |     0 |     0 |     0 |     0 |             0 |         0 |
+
+The order is settled at 100 iterations on every lattice tried, so the default of
+200 is a safety net rather than the operative limit: the optimizer converges and
+stops on its own before reaching it, which is why raising the bound to 1000
+changes neither the order nor the running time, and why the whole spring model
+stays between 1 and 12 milliseconds.  A test pins this, comparing the order
+under the defaults against a far longer run.
+
+The companion bound ~:spring-evaluations~ never became the binding constraint on
+any lattice tried.
+
+*** Bounding the refinement
+
+Where the enhancer is used, the time is no longer spent on the initial diagram
+at all.  Of the 51 seconds at 108 concepts, the enhancer accounts for 0.1 and the
+projection for 0.3; the rest is the force-directed refinement running to its
+iteration cap.  That cap is ~:iterations~, and it has sharply diminishing
+returns:
+
+| iterations | 29 concepts     | 79 concepts    | 108 concepts    |
+|------------+-----------------+----------------+-----------------|
+|          0 | 0.2 s / 0.0003  | 0.2 s / 0.0001 | 0.3 s / 0.0000  |
+|         25 | 0.2 s / 0.0055  | 1.0 s / 0.0004 | 1.7 s / 0.0003  |
+|         50 | 0.2 s / 0.0071  | 1.9 s / 0.0005 | 3.4 s / 0.0004  |
+|        100 | 0.2 s / 0.0071  | 3.6 s / 0.0015 | 6.5 s / 0.0004  |
+|        250 | 0.2 s / 0.0071  | 8.0 s / 0.0014 | 15 s / 0.0007   |
+|       1000 | 0.2 s / 0.0071  | 21 s / 0.0014  | 51 s / 0.0007   |
+
+Below about 30 concepts the refinement converges long before the cap, so the
+default of 1000 costs nothing.  Above it, 100 to 250 iterations buy nearly all
+the improvement there is:
+
+#+begin_src clojure :results silent
+(dim-flux-layout ctx {:initial :planarity-enhancer :iterations 250})
+#+end_src
+
+The default is left at 1000 so that the algorithm as published is what you get
+unless you ask for something else.
+
+** Limitations
+
+Not every concept lattice has a diagram that is both realizer-embedded and
+additive; the free modular lattice on three generators is a counterexample given
+in the paper.  The projection therefore genuinely changes the DimDraw diagram in
+general, and the refinement optimizes from there.
+
+Like DimDraw, the algorithm is meant for the lattice sizes that are actually
+drawn by hand, roughly up to 20 to 30 concepts.  Its cost is dominated by the
+two-dimension extension of DimDraw; the projection and the force-directed
+refinement are comparatively cheap.
