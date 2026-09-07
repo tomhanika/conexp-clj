@@ -17,9 +17,16 @@
 ;;;
 
 (deftest test-freese
-  (let [lat (concept-lattice (rand-context 10 10 0.5))]
-    (is (layout? (freese-layout lat)))
-    (is (layout? ((interactive-freese-layout lat) 0.0))))
+  ;; The context is held and named in the assertion messages.  This test draws a
+  ;; random lattice, and has been seen to fail about once in twenty-five runs of
+  ;; the suite while never failing in two thousand runs on its own, so the input
+  ;; is the one thing needed to chase it and the one thing a bare failure did
+  ;; not report.
+  (let [ctx (rand-context 10 10 0.5)
+        lat (concept-lattice ctx)
+        ctx-msg (str "context: " (pr-str ctx))]
+    (is (layout? (freese-layout lat)) ctx-msg)
+    (is (layout? ((interactive-freese-layout lat) 0.0)) ctx-msg))
   (let [poset (make-poset [1 2 3 4 5 6]
                         (fn [A B] 
                           (contains? #{[1 1] [1 2] [1 3] [1 5] [1 6]

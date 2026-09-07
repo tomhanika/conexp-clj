@@ -29,10 +29,13 @@
     }"))]
      (str
        "{\n  \"nodes\": [\n"
-       (if nodes (node->str (first nodes)))
+       ;; `seq` and not the collection itself: an empty set and an empty
+       ;; sequence are both truthy, so the plain test emitted a node with no
+       ;; identifier for a graph without nodes and threw on one without edges.
+       (when (seq nodes) (node->str (first nodes)))
        (apply str (map #(str ",\n" (node->str %)) (drop 1 nodes)))
        "\n  ],\n  \"edges\": [\n"
-       (if edges (edge->str (first edges) 0))
+       (when (seq edges) (edge->str (first edges) 0))
        (apply str (map (fn [e id] (str ",\n" (edge->str e id))) 
                        (drop 1 edges)
                        (drop 1(range (count edges)))))

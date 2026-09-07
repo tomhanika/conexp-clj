@@ -115,7 +115,9 @@
                                                       (mapcat
                                                         #(vals (dissoc (breadth-first-search graph %) %))
                                                         (keys graph)))]
-    (if (= 0 amount-of-paths)
+    ;; always exact, being counted up from 0, so this one was never at risk of
+    ;; the mixed-category comparison that broke the normalisation below
+    (if (zero? amount-of-paths)
       nil
       (/ sum-of-path-lengths amount-of-paths))))
 
@@ -468,10 +470,15 @@
           map-max (apply max (vals centrality))
           map-min (apply min (vals centrality))
           diff (- map-max map-min)]
-      (cond (= 0 map-max)
+      ;; `zero?` and not `(= 0 ...)`: the centralities are doubles, and `=`
+      ;; holds between numbers of different categories only if both are
+      ;; exact, so `(= 0 0.0)` is false.  Missing these two cases divides by
+      ;; zero, which is how a graph whose nodes all have the same centrality
+      ;; used to come out as NaN.
+      (cond (zero? map-max)
             centrality
             ;;;
-            (= 0 diff)
+            (zero? diff)
             (zipmap (keys centrality) (repeat 0))
             ;;;
             :else
