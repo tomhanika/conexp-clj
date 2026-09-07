@@ -49,6 +49,20 @@
    ["-d" "--dev" "Start the api with hot code reload"]
    ["-h" "--help" "This help"]])
 
+(defn- load-conexp-file
+  "Loads the given file with the conexp-clj namespaces in scope.
+
+  `binding` and not `in-ns`: every other branch of `-main` runs its `in-ns`
+  inside a REPL, which holds a thread binding for `*ns*`, but this one runs
+  straight out of `-main`.  An AOT compiled uberjar has no such binding, and
+  `in-ns` then dies with \"Can't change/establish root binding of: *ns*\", which
+  is why `java -jar conexp-clj.jar -l file.clj` never worked.  Binding it also
+  confines the change to this call, so a loaded file cannot leave the process
+  sitting in another namespace."
+  [file]
+  (binding [*ns* (find-ns 'conexp.main)]
+    (load-file file)))
+
 (defn -main [& args]
   (let [{:keys [options summary errors]}
         (cli/parse-opts args conexp-clj-options)]
@@ -78,9 +92,7 @@
         :custom-help ""})
       ;;
       (contains? options :load)
-      (do
-        (in-ns 'conexp.main)
-        (load-file (options :load)))
+      (load-conexp-file (options :load))
       ;;
       (contains? options :api)
       (reply/launch
