@@ -65,6 +65,13 @@
     (is (empty? (get parsed "nodes")))
     (is (empty? (get parsed "edges")))))
 
+(deftest test-graph->json-graph-without-edges
+  (testing "a graph of isolated nodes, which is the case the old guards broke on
+            in practice: they threw rather than writing an empty edge list"
+    (let [parsed (json/read-str (graph->json (lg/add-nodes (lg/digraph) :a :b :c)))]
+      (is (= #{":a" ":b" ":c"} (set (map #(get % "id") (get parsed "nodes")))))
+      (is (empty? (get parsed "edges"))))))
+
 ;;;
 
 nil

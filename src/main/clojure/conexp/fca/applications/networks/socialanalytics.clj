@@ -115,6 +115,8 @@
                                                       (mapcat
                                                         #(vals (dissoc (breadth-first-search graph %) %))
                                                         (keys graph)))]
+    ;; always exact, being counted up from 0, so this one was never at risk of
+    ;; the mixed-category comparison that broke the normalisation below
     (if (zero? amount-of-paths)
       nil
       (/ sum-of-path-lengths amount-of-paths))))
