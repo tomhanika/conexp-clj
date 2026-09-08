@@ -33,7 +33,7 @@ import java.io.*;
  *
  *
  */
-public class SimpleList implements List, Serializable {
+public class SimpleList implements List<Object>, Serializable {
 
   protected Object first;
   protected transient SimpleList rest;
@@ -56,7 +56,7 @@ public class SimpleList implements List, Serializable {
     rest = list;
   }
 
-  public SimpleList(Collection c) {
+  public SimpleList(Collection<?> c) {
     SimpleList tmp = EMPTY_LIST;
     for(Iterator it = c.iterator(); it.hasNext();) {
       tmp = tmp.cons(it.next());
@@ -134,11 +134,11 @@ public class SimpleList implements List, Serializable {
     return new SimpleList(obj, this);
   }
 
-  public Enumeration elements() {
+  public Enumeration<Object> elements() {
     return new EnumerationSimpleList();
   }
 
-  public Iterator iterator() { 
+  public Iterator<Object> iterator() { 
     return new EnumerationSimpleList();
   }
 
@@ -149,7 +149,7 @@ public class SimpleList implements List, Serializable {
    *
    * @param tail   a list == to a tail of the list.
    */
-  public Iterator frontIterator(SimpleList tail) { 
+  public Iterator<Object> frontIterator(SimpleList tail) { 
     return new FrontIterator(tail);
   }
 
@@ -227,14 +227,14 @@ public class SimpleList implements List, Serializable {
   /**
    * This just throws an UnsupportedOperationException.
    */
-  public boolean addAll(int index, Collection c) throws 
+  public boolean addAll(int index, Collection<?> c) throws 
                UnsupportedOperationException, ClassCastException,
                IllegalArgumentException, IndexOutOfBoundsException {
     throw new 
         UnsupportedOperationException("SimpleList does not support addAll");
   }
 
-  public boolean addAll(Collection c) throws UnsupportedOperationException, 
+  public boolean addAll(Collection<?> c) throws UnsupportedOperationException, 
                ClassCastException, IllegalArgumentException {
     throw new 
         UnsupportedOperationException("SimpleList does not support addAll");
@@ -255,7 +255,7 @@ public class SimpleList implements List, Serializable {
     return false;
   }
 
-  public boolean containsAll(Collection c) {
+  public boolean containsAll(Collection<?> c) {
     Iterator it = c.iterator();
     while(it.hasNext()) {
       if (!contains(it.next())) return false;
@@ -303,11 +303,11 @@ public class SimpleList implements List, Serializable {
     throw new UnsupportedOperationException();
   }
 
-  public boolean removeAll(Collection c) throws UnsupportedOperationException { 
+  public boolean removeAll(Collection<?> c) throws UnsupportedOperationException { 
     throw new UnsupportedOperationException();
   }
 
-  public boolean retainAll(Collection c) throws UnsupportedOperationException { 
+  public boolean retainAll(Collection<?> c) throws UnsupportedOperationException { 
     throw new UnsupportedOperationException();
   }
 
@@ -315,17 +315,17 @@ public class SimpleList implements List, Serializable {
     throw new UnsupportedOperationException();
   }
 
-  public Object[] toArray(Object[] a) { 
+  @SuppressWarnings("unchecked")
+  public <T> T[] toArray(T[] a) {
     int size = size();
     int aSize = a.length;
     if (size > aSize) {
-      Class c = a.getClass().getComponentType();
-      a = (Object[])Array.newInstance(c, size);
+      Class<?> c = a.getClass().getComponentType();
+      a = (T[]) Array.newInstance(c, size);
     }
     int i = 0;
-    Iterator it = iterator();
-    while (it.hasNext()) {
-      a[i] = it.next();
+    for (Object o : this) {
+      a[i] = (T) o;
       i++;
     }
     for (int j = i; j < aSize; j++) {
@@ -346,7 +346,7 @@ public class SimpleList implements List, Serializable {
     return ans;
   }
 
-  public java.util.List subList(int i, int j) {
+  public java.util.List<Object> subList(int i, int j) {
     int k = 0;
     SimpleList ans = EMPTY_LIST;
     Iterator it = iterator();
@@ -356,11 +356,11 @@ public class SimpleList implements List, Serializable {
     return ans.reverse();
   }
 
-  public ListIterator listIterator(int i) {
+  public ListIterator<Object> listIterator(int i) {
     return new ListIteratorSimpleList(i);
   }
 
-  public ListIterator listIterator() {
+  public ListIterator<Object> listIterator() {
     return new ListIteratorSimpleList();
   }
 
@@ -387,17 +387,17 @@ public class SimpleList implements List, Serializable {
 
 
 
-  private class ListIteratorSimpleList implements ListIterator {
-    private ArrayList alist;
-    private ListIterator iter;
+  private class ListIteratorSimpleList implements ListIterator<Object> {
+    private final List<Object> alist;
+    private final ListIterator<Object> iter;
 
     ListIteratorSimpleList() {
-      alist = new ArrayList(SimpleList.this);
+      alist = new ArrayList<>(SimpleList.this);
       iter = alist.listIterator();
     }
 
     ListIteratorSimpleList(int i) {
-      alist = new ArrayList(SimpleList.this);
+      alist = new ArrayList<>(SimpleList.this);
       iter = alist.listIterator(i);
     }
 
@@ -439,7 +439,7 @@ public class SimpleList implements List, Serializable {
 
   }
 
-  private class FrontIterator implements Iterator {
+  private class FrontIterator implements Iterator<Object> {
 
     private SimpleList llist;
     private SimpleList tail;
@@ -464,7 +464,7 @@ public class SimpleList implements List, Serializable {
 
   }
   
-  private class EnumerationSimpleList implements Enumeration, Iterator {
+  private class EnumerationSimpleList implements Enumeration<Object>, Iterator<Object> {
     private SimpleList llist;
 
     EnumerationSimpleList() {
@@ -520,80 +520,6 @@ public class SimpleList implements List, Serializable {
   }
 
 */
-
-  public static void main(String[] args) {
-    int n;
-    if (args.length != 0) {
-      n = Integer.parseInt(args[0]);
-    } else {
-      n = 2;
-    }
-    SimpleList foo = EMPTY_LIST;
-    SimpleList bar = EMPTY_LIST;
-    for(int i = 0; i < n; i++) {
-      bar = bar.cons(Integer.valueOf(i));
-      foo = foo.cons(bar);
-      //foo = new SimpleList(Integer.valueOf(i), foo);
-      //foo = foo.cons(Integer.valueOf(i));
-    }
-
-System.out.println("before: equals? " 
-    + (((SimpleList)foo.first()).rest().rest() 
-            == ((SimpleList)foo.rest().first()).rest()));
-
-
-//foo = EMPTY_LIST;
-System.out.println("foo is " + foo + ", its identityHC is " + System.identityHashCode(foo));
-System.out.println("foo constructed from itself is " + new SimpleList(foo));
-//System.out.println("foo.rest() is " + foo.rest());
-
-    n = 4000;		// the readObject1 oveflows at 4000
-    SimpleList goo = EMPTY_LIST;
-    SimpleList tails = EMPTY_LIST;
-    for(int i = 0; i < n; i++) {
-      goo = goo.cons(Integer.valueOf(i));
-      tails = tails.cons(goo);
-    }
-
-
-    try {
-
-      FileOutputStream fileOut = new FileOutputStream("list10");
-      ObjectOutputStream out = new ObjectOutputStream(fileOut);
-      out.writeObject(foo);
-      out.close();
-
-/*
-      fileOut = new FileOutputStream("tailsx" + n);
-      out = new ObjectOutputStream(fileOut);
-      //out.writeObject(new ArrayList(goo));
-      out.writeObject(tails);
-      //out.writeObject(goo);
-      out.close();
-
-
-      FileInputStream tailsInx = new FileInputStream("tailsx" + n);
-      ObjectInputStream inx = new ObjectInputStream(tailsInx);
-      SimpleList tailsIn = (SimpleList)inx.readObject();
-      System.out.println("tailsx in has size " + tailsIn.size());
-*/
-      FileInputStream fileIn = new FileInputStream("list10");
-      ObjectInputStream in = new ObjectInputStream(fileIn);
-      SimpleList fooIn = (SimpleList)in.readObject();
-System.out.println("after: fooIn is " + fooIn + " length " + fooIn.size());
-//System.out.println("after: tailsIn is " + tailsIn + " length " + tailsIn.size());
-
-System.out.println("after: equals? " 
-    + (((SimpleList)fooIn.first()).rest().rest() 
-            == ((SimpleList)fooIn.rest().first()).rest()));
-
-
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-    }
-
-  }
 
 }
 
