@@ -28,11 +28,18 @@ public class MyInt {
     return this.x;
   }
 
+  @Override
   public boolean equals(Object obj) {
-    return x == ((MyInt)obj).value();
+    return obj instanceof MyInt other && x == other.value();
   }
 
-  public String toString(MyInt obj) {
+  @Override
+  public int hashCode() {
+    return Integer.hashCode(x);
+  }
+
+  @Override
+  public String toString() {
     return Integer.toString(x);
   }
 }
