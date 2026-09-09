@@ -77,9 +77,9 @@ public class GSegment
   private GStyle       style_;       // As applied to this object
   private GStyle       actualStyle_; // Adjusted for owner inherits
   private boolean      isVisible_;   // Due to position not vis. setting
-  private List         texts_;       // of GText
-  private Collection   components_;  // of GComponent
-  private Collection   images_;      // of GImage
+  private List<GText>       texts_;       // of GText
+  private Collection<GComponent> components_;  // of GComponent
+  private Collection<GImage>     images_;      // of GImage
 
 
   
@@ -795,7 +795,7 @@ public class GSegment
   {
     // Create if first text
     if (texts_ == null)
-      texts_ = new ArrayList();
+      texts_ = new ArrayList<>();
 
     // Add to list
     texts_.add (text);
@@ -876,7 +876,7 @@ public class GSegment
   {
     // Create if first time
     if (images_ == null)
-      images_ = new ArrayList();
+      images_ = new ArrayList<>();
 
     // Add to list
     images_.add (image);
@@ -967,7 +967,7 @@ public class GSegment
   {
     // Create if first time
     if (components_ == null)
-      components_ = new ArrayList();
+      components_ = new ArrayList<>();
 
     component.setSegment (this);
     
