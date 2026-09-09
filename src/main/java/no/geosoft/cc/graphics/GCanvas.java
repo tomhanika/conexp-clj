@@ -603,17 +603,61 @@ public class GCanvas extends JComponent
    * 
    * @param event  Mouse event trigging this method.
    */
+  /**
+   * Maps the button of a press or release event to one of the given
+   * GWindow constants.
+   * <p>
+   * Uses <tt>getButton</tt> rather than the deprecated <tt>getModifiers</tt>.
+   * Besides the deprecation, the old code compared the whole modifier mask for
+   * equality with <tt>BUTTON1_MASK</tt>, so a click with any modifier held --
+   * shift-click, for instance -- matched neither button 1 nor button 2 and was
+   * reported as button 3.
+   *
+   * @param event    the press or release event.
+   * @param button1  constant to return for the first button.
+   * @param button2  constant to return for the second button.
+   * @param button3  constant to return for anything else.
+   * @return  one of the three constants.
+   */
+  static int buttonEventOf (MouseEvent event, int button1, int button2,
+                            int button3)
+  {
+    switch (event.getButton()) {
+      case MouseEvent.BUTTON1 : return button1;
+      case MouseEvent.BUTTON2 : return button2;
+      default                 : return button3;
+    }
+  }
+
+
+
+  /**
+   * Maps the button held during a drag to one of the given GWindow constants.
+   * <p>
+   * A drag event reports no button through <tt>getButton</tt>, so the buttons
+   * currently held are read from the extended modifiers instead.
+   *
+   * @param event    the drag event.
+   * @param button1  constant to return while the first button is held.
+   * @param button2  constant to return while the second button is held.
+   * @param button3  constant to return otherwise.
+   * @return  one of the three constants.
+   */
+  static int draggedButtonEventOf (MouseEvent event, int button1, int button2,
+                                   int button3)
+  {
+    int modifiers = event.getModifiersEx();
+    if ((modifiers & MouseEvent.BUTTON1_DOWN_MASK) != 0) return button1;
+    if ((modifiers & MouseEvent.BUTTON2_DOWN_MASK) != 0) return button2;
+    return button3;
+  }
+
+
+
   public void mousePressed (MouseEvent event)
   {
-    int modifiers = event.getModifiers();
-    int buttonEvent;
-
-    if      (modifiers == event.BUTTON1_MASK)
-      buttonEvent = GWindow.BUTTON1_DOWN;
-    else if (modifiers == event.BUTTON2_MASK)
-      buttonEvent = GWindow.BUTTON2_DOWN;
-    else
-      buttonEvent = GWindow.BUTTON3_DOWN;
+    int buttonEvent = buttonEventOf (event, GWindow.BUTTON1_DOWN,
+                                     GWindow.BUTTON2_DOWN, GWindow.BUTTON3_DOWN);
 
     window_.mousePressed (buttonEvent, event.getX(), event.getY());
   }
@@ -628,15 +672,8 @@ public class GCanvas extends JComponent
    */
   public void mouseReleased (MouseEvent event)
   {
-    int modifiers = event.getModifiers();
-    int buttonEvent;
-
-    if      (modifiers == event.BUTTON1_MASK)
-      buttonEvent = GWindow.BUTTON1_UP;
-    else if (modifiers == event.BUTTON2_MASK)
-      buttonEvent = GWindow.BUTTON2_UP;
-    else
-      buttonEvent = GWindow.BUTTON3_UP;
+    int buttonEvent = buttonEventOf (event, GWindow.BUTTON1_UP,
+                                     GWindow.BUTTON2_UP, GWindow.BUTTON3_UP);
 
     window_.mouseReleased (buttonEvent, event.getX(), event.getY());
   }
@@ -652,15 +689,9 @@ public class GCanvas extends JComponent
    */
   public void mouseDragged (MouseEvent event)
   {
-    int modifiers = event.getModifiers();
-    int buttonEvent;
-
-    if      (modifiers == event.BUTTON1_MASK)
-      buttonEvent = GWindow.BUTTON1_DRAG;
-    else if (modifiers == event.BUTTON2_MASK)
-      buttonEvent = GWindow.BUTTON2_DRAG;
-    else
-      buttonEvent = GWindow.BUTTON3_DRAG;
+    int buttonEvent = draggedButtonEventOf (event, GWindow.BUTTON1_DRAG,
+                                            GWindow.BUTTON2_DRAG,
+                                            GWindow.BUTTON3_DRAG);
 
     window_.mouseDragged (buttonEvent, event.getX(), event.getY());
   }

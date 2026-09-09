@@ -67,7 +67,7 @@ public class GWindow
   private int           width_;
   private int           height_;
   private GInteraction  interaction_;
-  private List          scenes_;
+  private List<GScene>  scenes_;
   private GScene        interactionScene_;
   private Region        damageRegion_;
 
@@ -87,7 +87,7 @@ public class GWindow
       canvas_.setBackground (backgroundColor);
     
     interaction_  = null;
-    scenes_       = new ArrayList();
+    scenes_       = new ArrayList<>();
     damageRegion_ = new Region();
 
     // Cannot set 0 initially as resize is computed relative to current
