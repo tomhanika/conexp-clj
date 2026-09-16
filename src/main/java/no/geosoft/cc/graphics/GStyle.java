@@ -93,7 +93,7 @@ public class GStyle
   public static final int   FILL_VERTICAL   = 7;
   public static final int   FILL_DIAGONAL   = 8;              
 
-  private final Collection     listeners_;
+  private final Collection<WeakReference<GStyleListener>> listeners_;
 
   private int            validMask_;
   private Color          foregroundColor_;
@@ -124,7 +124,7 @@ public class GStyle
    */
   public GStyle()
   {
-    listeners_       = new ArrayList();
+    listeners_       = new ArrayList<>();
     
     // Flag everything setting as invalid
     validMask_       = 0;
@@ -1047,7 +1047,7 @@ public class GStyle
     }
 
     // Add the listener
-    listeners_.add (new WeakReference (listener));
+    listeners_.add (new WeakReference<> (listener));
   }
 
 
