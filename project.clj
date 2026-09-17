@@ -47,7 +47,13 @@
              ;; Only lein test runs headless; lein run and lein repl still open
              ;; the GUI.
              :test {:jvm-opts ["-Djava.awt.headless=true"]}
+             ;; Test sources sit on :source-paths, so the uberjar AOT compiles
+             ;; them too, and some of them name a GUI class.  Resolving a class
+             ;; initialises it, and an AWT component class wants a display, so
+             ;; the build asks for none.  This affects the building JVM only:
+             ;; the jar it produces still opens the GUI when run.
              :uberjar {:main conexp.main
+                       :jvm-opts ["-Djava.awt.headless=true"]
                        :dependencies [[javax.servlet/servlet-api "2.5"]
                                       [ring/ring-mock "0.6.2"]
                                       [nrepl/nrepl "1.3.1"]]
