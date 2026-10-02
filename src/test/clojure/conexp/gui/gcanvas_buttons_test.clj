@@ -19,17 +19,21 @@
 
 ;; a lightweight component, so the events can be built without a display
 
-(def ^:private button-event-of
-  (doto (.getDeclaredMethod no.geosoft.cc.graphics.GCanvas "buttonEventOf"
+(defn- helper
+  "Looks the package private mapping helper up by name.
+
+  Delayed rather than resolved at load time: naming a class initialises it, and
+  `GCanvas` is an AWT component, so doing that while the namespace loads would
+  make merely compiling this file require a display."
+  [^String method]
+  (doto (.getDeclaredMethod (Class/forName "no.geosoft.cc.graphics.GCanvas")
+                            method
                             (into-array Class [MouseEvent Integer/TYPE
                                                Integer/TYPE Integer/TYPE]))
     (.setAccessible true)))
 
-(def ^:private dragged-button-event-of
-  (doto (.getDeclaredMethod no.geosoft.cc.graphics.GCanvas "draggedButtonEventOf"
-                            (into-array Class [MouseEvent Integer/TYPE
-                                               Integer/TYPE Integer/TYPE]))
-    (.setAccessible true)))
+(def ^:private button-event-of (delay (helper "buttonEventOf")))
+(def ^:private dragged-button-event-of (delay (helper "draggedButtonEventOf")))
 
 (defn- press
   "A press event for `button`, with `modifiers` also held."
@@ -42,8 +46,9 @@
   (MouseEvent. (JPanel.) MouseEvent/MOUSE_DRAGGED 0 modifiers 10 10 0 false
                MouseEvent/NOBUTTON))
 
-(defn- mapped [^java.lang.reflect.Method m event]
-  (.invoke m nil (into-array Object [event (int 1) (int 2) (int 3)])))
+(defn- mapped [m event]
+  (.invoke ^java.lang.reflect.Method @m nil
+           (into-array Object [event (int 1) (int 2) (int 3)])))
 
 (deftest test-press-and-release-map-by-button
   (are [button expected] (= expected (mapped button-event-of (press button 0)))
