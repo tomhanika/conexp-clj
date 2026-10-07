@@ -19,9 +19,10 @@ much more.
    3. [Concept Lattices](doc/Concept-Lattices.org)
    4. [Drawing Concept Lattices with DimFlux](doc/DimFlux.org)
    5. [IO for Formal Contexts](doc/IO.org)
-   6. [Implications](doc/Implications.org)
-   7. [Exploration](doc/Exploration.org)
-   8. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.org)
+   6. [Common FCA File Formats for Formal Contexts](doc/Common-FCA-File-Formats-for-Formal-Contexts.org)
+   7. [Implications](doc/Implications.org)
+   8. [Exploration](doc/Exploration.org)
+   9. [Scaling Many-Valued Contexts](doc/Scaling-Many-Valued-Contexts.org)
 4. Example use cases of `conexp-clj`
    1. [Formal Contexts from Implications](doc/code/implication-closure.clj)
    2. [A Formal Context of Functions](doc/code/function-context.clj)

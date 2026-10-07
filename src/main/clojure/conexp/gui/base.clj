@@ -85,7 +85,13 @@
                        (menu-item :text "Quit"
                                   :listen [:action
                                            (fn [_]
-                                             (.processWindowEvent
+                                             ;; dispatchEvent and not
+                                             ;; processWindowEvent: the latter is
+                                             ;; protected on java.awt.Window, and
+                                             ;; Clojure's reflection only sees
+                                             ;; public methods, so the call threw
+                                             ;; and the window stayed open.
+                                             (.dispatchEvent
                                               main-frame
                                               (WindowEvent. main-frame
                                                             WindowEvent/WINDOW_CLOSING)))])])])
