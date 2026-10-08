@@ -109,8 +109,15 @@
   [implication old-stable]
   (swap! old-stable conj implication))
 
-(defn add-attribute
-  "Given the following updates the implication base accordingly:
+(defn- process-new-attribute
+  "One step of algorithm 5, named and scoped like the other steps of it.
+
+  It used to be a public `add-attribute`, which shadowed
+  `conexp.fca.contexts/add-attribute` wherever both namespaces are referred,
+  `conexp.analysis` among them, so calling the documented three argument version
+  of that function from the default REPL namespace raised an arity error.
+
+  Given the following updates the implication base accordingly:
     ctx       whole context
     order     order of all attributes
     y         new attribute to be added
@@ -154,7 +161,7 @@
     (doall 
       (for [y order]
         (do (swap! n conj y)
-            (add-attribute ctx order y elements n))))
+            (process-new-attribute ctx order y elements n))))
     (for [element @elements :when (= 3 (count element))] 
       (make-implication (second element) (last element)))))
 

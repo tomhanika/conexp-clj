@@ -23,9 +23,9 @@ public class InputLattice implements Serializable {
   //public InputStream latFileStream;
   //public StringBufferInputStream stringStream;
   //public InputStream stringStream;
-  public List labels;
-  public List upperCoversList;
-  public HashMap edgeColors;
+  public List<Object> labels;
+  public List<List<Object>> upperCoversList;
+  public Map<Object, String> edgeColors;
 
   // rsf: string conversion stuff
   public static final String joinStr = "join";
@@ -59,11 +59,11 @@ public class InputLattice implements Serializable {
                                  throws FileNotFoundException,IOException {
     //InputStream latStream = null;
     Reader latStream = null;
-    labels = new ArrayList();
-    upperCoversList = new ArrayList();
-    List upperCovers = new ArrayList();
-    edgeColors = new HashMap();
-    List upperCovering = new ArrayList(); // to put on the Hastable
+    labels = new ArrayList<>();
+    upperCoversList = new ArrayList<>();
+    List<Object> upperCovers = new ArrayList<>();
+    edgeColors = new HashMap<>();
+    List<Object> upperCovering = new ArrayList<>(); // to put on the Hastable
     int level = 0;
     String str; 
     String currentElt = null; 
@@ -82,7 +82,8 @@ public class InputLattice implements Serializable {
       case URL:
         String request = "http://www.math.hawaii.edu/loadURL.html?location="
                 + file;
-        URL url = new URL(request);
+        // URI.toURL: the URL(String) constructor is deprecated since Java 20
+        URL url = java.net.URI.create(request).toURL();
         URLConnection connection = url.openConnection();
         //latStream = new DataInputStream(connection.getInputStream());
         latStream = new InputStreamReader(connection.getInputStream());
@@ -143,7 +144,7 @@ in.wordChars(uuu, uuu);
       }
       if (in.ttype == '(') {
         level++;
-        if (level == 3) upperCovers = new ArrayList();
+        if (level == 3) upperCovers = new ArrayList<>();
       }
       if (in.ttype == ')') {
         level--;
@@ -172,19 +173,17 @@ in.wordChars(uuu, uuu);
   * List of Strings  (labels)
   * List of lists of strings (upper covers)
   */
-  public InputLattice(String nm, List labelvec, List ucovers) {
+  public InputLattice(String nm, List<Object> labelvec, List<List<Object>> ucovers) {
     //ucovers is a list of lists of ints
-    upperCoversList = new ArrayList();
-    for (int i=0; i < ucovers.size(); i++) {
-      upperCoversList.add(((ArrayList) ucovers.get(i)).clone());
+    // copied rather than cloned: the old cast to ArrayList meant any other
+    // kind of list threw, and a copy says what was meant anyway
+    upperCoversList = new ArrayList<>(ucovers.size());
+    for (List<Object> covers : ucovers) {
+      upperCoversList.add(new ArrayList<>(covers));
     }
     name = nm;
     // labels is a list of strings.
-    labels = new ArrayList();
-    for (int i=0; i < labelvec.size(); i++) {
-      labels.add(labelvec.get(i));
-    }
-    return;
+    labels = new ArrayList<>(labelvec);
   }
 
   /**

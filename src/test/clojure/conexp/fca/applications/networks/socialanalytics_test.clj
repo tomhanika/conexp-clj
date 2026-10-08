@@ -599,6 +599,21 @@
       (every? #(= (atr-centrality %) (centrality %))
               (keys (attribute-projection ctx))))))
 
+(defn- normalized-centrality?
+  "A normalised betweenness centrality is either empty, constant, or spread so
+  that its largest value is 1 and its smallest 0.
+
+  The comparisons are numeric: the centralities are doubles, and `=` holds
+  between numbers of different categories only if both are exact, so `(= 0 0.0)`
+  is false and a constant map of doubles would otherwise look like a violation."
+  [hmap]
+  (let [vs (vals hmap)]
+    (or (empty? hmap)
+        (every? #(== 0 %) vs)
+        (every? #(== 1 %) vs)
+        (and (near? 1.0 (apply max vs))
+             (near? 0.0 (apply min vs))))))
+
 (deftest test-context-graph-betweenes-centrality-normalized
   (let [centrality-ctx (context-graph-betweenes-centrality-normalized
                          (make-context-from-matrix 5 4
@@ -623,12 +638,8 @@
     (is (every? #(near? (centrality-ctx1 %) (solution-ctx1 %) 0.01)
                (keys centrality-ctx1))))
   (with-testing-data [ctx (random-contexts 20 20)]
-                     (let [hmap (context-graph-betweenes-centrality-normalized ctx)]
-                       (or (empty? hmap)
-                           (= #{0} (set (vals hmap)))
-                           (= #{1} (set (vals hmap)))
-                           (and (near? 1.0 (apply max (vals hmap)))
-                                (near? 0.0 (apply min (vals hmap))))))))
+                     (normalized-centrality?
+                      (context-graph-betweenes-centrality-normalized ctx))))
 
 (deftest test-object-projection-betweenes-centrality-normalized
   (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
@@ -641,15 +652,11 @@
                                                     [1 0 0
                                                      1 1 0
                                                      0 1 1]))]
-    (is (= #{0} (set (vals (object-projection-betweenes-centrality-normalized ctx)))))
+    (is (every? #(== 0 %) (vals (object-projection-betweenes-centrality-normalized ctx))))
     (is (= centrality-ctx1 {'a 0.0 'b 1.0 'c 0.0})))
   (with-testing-data [ctx (random-contexts 20 20)]
-                     (let [hmap (object-projection-betweenes-centrality-normalized ctx)]
-                       (or (empty? hmap)
-                           (= 0 (apply max (vals hmap)))
-                           (= 1 (apply min (vals hmap)))
-                           (and (near? 1.0 (apply max (vals hmap)))
-                                (near? 0.0 (apply min (vals hmap))))))))
+                     (normalized-centrality?
+                      (object-projection-betweenes-centrality-normalized ctx))))
 
 (deftest test-attribute-projection-betweenes-centrality-normalized
   (let [ctx (make-context-from-matrix 5 4 [1 0 0 0
@@ -662,15 +669,11 @@
                                                     [1 0 0
                                                      1 1 0
                                                      0 1 1]))]
-    (is (= #{0} (set (vals (attribute-projection-betweenes-centrality-normalized ctx)))))
+    (is (every? #(== 0 %) (vals (attribute-projection-betweenes-centrality-normalized ctx))))
     (is (= centrality-ctx1 {2 0.0 4 1.0 6 0.0})))
   (with-testing-data [ctx (random-contexts 20 20)]
-                     (let [hmap (attribute-projection-betweenes-centrality-normalized ctx)]
-                       (or (empty? hmap)
-                           (= 0 (apply max (vals hmap)))
-                           (= 1 (apply min (vals hmap)))
-                           (and (near? 1.0 (apply max (vals hmap)))
-                                (near? 0.0 (apply min (vals hmap))))))))
+                     (normalized-centrality?
+                      (attribute-projection-betweenes-centrality-normalized ctx))))
 
 
 ;;;

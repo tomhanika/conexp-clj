@@ -42,8 +42,8 @@ import org.latdraw.util.MyInt;
 public class OrderedSet {
 
   private List<POElem> elems;            // topologically sorted
-  private HashMap elems_ht;      // labels to elems
-  private HashMap elemOrder;     // labels to Integers
+  private Map<Object, POElem> elems_ht;    // labels to elems
+  private Map<Object, Integer> elemOrder;  // labels to their index
   private boolean[][] leqTable;
 
   private String name = null;
@@ -131,24 +131,24 @@ public class OrderedSet {
    *
    * @see "Free Lattice by Freese, Jezek and Nation, Listing 11.8"
    */
-  public static List upperCoversFromFilters(List labels, List filters) {
+  public static List<List<Object>> upperCoversFromFilters(List<?> labels,
+                                                          List<?> filters) {
     final int n = labels.size();
-    List ans = new ArrayList(n);
-    HashMap filtersHM = new HashMap(n);
+    List<List<Object>> ans = new ArrayList<>(n);
+    Map<Object, Set<?>> filtersHM = new HashMap<>(n);
     for (int i = 0; i < n; i++) {
-      filtersHM.put(labels.get(i), new HashSet((Collection)filters.get(i)));
+      filtersHM.put(labels.get(i), new HashSet<>((Collection<?>) filters.get(i)));
     }
     SimpleList labels2 = new SimpleList(labels);
-    for (Iterator it = labels.iterator(); it.hasNext(); ) {
-      Object a = it.next();
+    for (Object a : labels) {
       labels2 = labels2.rest();  // pop labels2
-      final List uc = new ArrayList();
-      for (Iterator it2 = labels2.iterator(); it2.hasNext(); ) {
+      final List<Object> uc = new ArrayList<>();
+      for (Iterator<?> it2 = labels2.iterator(); it2.hasNext(); ) {
         Object x = it2.next();
-        if (((Set)filtersHM.get(a)).contains(x)) {
+        if (filtersHM.get(a).contains(x)) {
           boolean isCover = true;
-          for (Iterator it3 = uc.iterator(); it3.hasNext(); ) {
-            if (((Set)filtersHM.get(it3.next())).contains(x)) {
+          for (Object covered : uc) {
+            if (filtersHM.get(covered).contains(x)) {
               isCover = false;
               break;
             }
@@ -217,7 +217,7 @@ public class OrderedSet {
    * version of labels and ucs. Otherwise is sets the elements which are
    * a list of POElem's.
    */
-  List[] linExt(List labels, List ucs, boolean save) 
+  List<?>[] linExt(List<?> labels, List<?> ucs, boolean save)
                                              throws NonOrderedSetException {
     final int n = labels.size();
     /*
@@ -227,33 +227,24 @@ public class OrderedSet {
     //Stack S = new Stack();
     SimpleList Z = SimpleList.EMPTY_LIST;
     SimpleList ZNew = SimpleList.EMPTY_LIST;
-    List ans = new ArrayList(n);
-    HashMap uc = new HashMap(n);
-    HashMap in = new HashMap(n);
+    List<Object> ans = new ArrayList<>(n);
+    Map<Object, Collection<?>> uc = new HashMap<>(n);
+    Map<Object, MyInt> in = new HashMap<>(n);
     for (int i = 0; i < n; i++) {
-      in.put(labels.get(i),new MyInt(0));
+      in.put(labels.get(i), new MyInt(0));
     }
     for (int i = 0; i < n; i++) {
       Object a = labels.get(i);
-      Collection upperCovers_a = (Collection)ucs.get(i);
-      //int k = upperCovers_a.size();
+      Collection<?> upperCovers_a = (Collection<?>) ucs.get(i);
       uc.put(a, upperCovers_a);
-      for (Iterator it = upperCovers_a.iterator(); it.hasNext(); ) {
-        Object b = it.next();
-	if (! a.equals(b)) {
-          ((MyInt)in.get(b)).increment();
-	}
+      for (Object b : upperCovers_a) {
+        if (! a.equals(b)) {
+          in.get(b).increment();
+        }
       }
-      //for (int j=0; j < k; j++) {
-	//Object b = upperCovers_a.get(j);
-	//if (! a.equals(b)) {
-          //((MyInt)in.get(b)).increment();
-	//}
-      //}
     }
-    for (Iterator it = labels.iterator(); it.hasNext(); ) {
-      Object a = it.next();
-      if (0 == ((MyInt)in.get(a)).value()) {
+    for (Object a : labels) {
+      if (0 == in.get(a).value()) {
         Z = Z.cons(a);
       }
     }
@@ -269,11 +260,10 @@ public class OrderedSet {
       Object a = Z.first();
       Z = Z.rest();
       ans.add(a);
-      for (Iterator it = ((Collection)uc.get(a)).iterator(); it.hasNext(); ) {
-	Object b = it.next();
-	if (! a.equals(b)) {
-          ((MyInt)in.get(b)).decrement();
-	  if (0 == ((MyInt)in.get(b)).value()) ZNew = ZNew.cons(b);
+      for (Object b : uc.get(a)) {
+        if (! a.equals(b)) {
+          in.get(b).decrement();
+          if (0 == in.get(b).value()) ZNew = ZNew.cons(b);
         }
       }
     }
@@ -281,44 +271,41 @@ public class OrderedSet {
         throw new NonOrderedSetException();
     }
     if (save) {
-      List ucs2 = new ArrayList(n);
-      for (Iterator it = ans.iterator(); it.hasNext(); ) {
-        ucs2.add(uc.get(it.next()));
+      List<Collection<?>> ucs2 = new ArrayList<>(n);
+      for (Object label : ans) {
+        ucs2.add(uc.get(label));
       }
-      return new List[] {ans, ucs2};
+      return new List<?>[] {ans, ucs2};
     }
     else {
-      elems = new ArrayList(n);
-      elems_ht = new HashMap();   
+      elems = new ArrayList<>(n);
+      elems_ht = new HashMap<>();
       for (int i = 0; i < n; i++) {
-	Object label = ans.get(i);
+        Object label = ans.get(i);
         POElem elem = new POElem(label, this);
-	elems.add(elem);
-	elems_ht.put(label, elem);
+        elems.add(elem);
+        elems_ht.put(label, elem);
       }
-      for (int i = 0; i < n; i++) {
-	POElem elem = (POElem)elems.get(i);
-	List up_covs = (List)uc.get(elem.getUnderlyingObject());
-        int k = up_covs.size();
-	List ucs2 = new ArrayList(k);
-        for (int j = 0; j < k; j++) {
-	  ucs2.add(elems_ht.get(up_covs.get(j)));
-	}
-	elem.setUpperCovers(ucs2);
+      for (POElem elem : elems) {
+        // iterated rather than indexed: the covers arrive as a Collection and
+        // were cast to List here, which would have failed for anything else
+        Collection<?> up_covs = uc.get(elem.getUnderlyingObject());
+        List<POElem> ucs2 = new ArrayList<>(up_covs.size());
+        for (Object label : up_covs) {
+          ucs2.add(elems_ht.get(label));
+        }
+        elem.setUpperCovers(ucs2);
       }
-      this.elems = elems;
-      this.elems_ht = elems_ht;
       return null;
     }
   }
 
   void setElemOrder() {
-    elemOrder = new HashMap(this.card());
+    elemOrder = new HashMap<>(this.card());
     int k = 0;
-    for (Iterator it = elems.iterator(); it.hasNext(); ) {
+    for (POElem elem : elems) {
       // was label()
-      elemOrder.put(((POElem)it.next()).getUnderlyingObject(), 
-                                                   Integer.valueOf(k++));
+      elemOrder.put(elem.getUnderlyingObject(), k++);
     }
   }
 
@@ -338,78 +325,65 @@ public class OrderedSet {
    * @see "Free Lattices"
    */
   void setFilters() {
-    Iterator uc_x;
-    POElem x,y,x_h,y_h;
     int n = this.card();
-    List elemsRev = new ArrayList(n);
+    List<POElem> elemsRev = new ArrayList<>(n);
     ChainDecomposition chainDec = new ChainDecomposition(this);
     int k = chainDec.numChains();
-    HashMap[] g = new HashMap[k];
-    Iterator list; 
-    SimpleList llist;
-    int index;
-    Iterator list_xh;
+    // one map per chain, from an element's label to the part of its filter
+    // contributed by that chain
+    @SuppressWarnings("unchecked")
+    Map<Object, SimpleList>[] g = new Map[k];
     for (int h = 0; h < k; h++) {
-      g[h] = new HashMap();
+      g[h] = new HashMap<>();
     }
     // reverse the order of the elements:
     for (int i = n-1; i >= 0; i--) {
       elemsRev.add(elems.get(i));
     }
-    list = elemsRev.iterator();
-    while (list.hasNext()) {
-      x = (POElem)list.next();
-      for(int h = 0; h < k; h++) {
-	//g[h].put(x.label(), SimpleList.EMPTY_LIST);
-	g[h].put(x.getUnderlyingObject(), SimpleList.EMPTY_LIST);
+    for (POElem x : elemsRev) {
+      for (int h = 0; h < k; h++) {
+        g[h].put(x.getUnderlyingObject(), SimpleList.EMPTY_LIST);
       }
     }
-    list = elemsRev.iterator();
-    while (list.hasNext()) {
-      x = (POElem)list.next();
-      uc_x = x.upperCovers().iterator();
-      while (uc_x.hasNext()) {
-	y = (POElem)uc_x.next();
+    for (POElem x : elemsRev) {
+      for (POElem y : x.upperCovers()) {
         if (x == y) continue;
-	for(int h=0; h < k; h++) {
-	  if (g[h].containsKey(y.getUnderlyingObject()) && 
-		(! ((SimpleList)g[h].get(y.getUnderlyingObject())).isEmpty())) {
-	    if ((! g[h].containsKey(x.getUnderlyingObject())) || 
-		((SimpleList)g[h].get(x.getUnderlyingObject())).isEmpty()) {
-	      g[h].put(x.getUnderlyingObject(), g[h].get(y.getUnderlyingObject()));
+        for (int h = 0; h < k; h++) {
+          Object xLabel = x.getUnderlyingObject();
+          Object yLabel = y.getUnderlyingObject();
+          if (g[h].containsKey(yLabel) && ! g[h].get(yLabel).isEmpty()) {
+            if (! g[h].containsKey(xLabel) || g[h].get(xLabel).isEmpty()) {
+              g[h].put(xLabel, g[h].get(yLabel));
             } else {
-              x_h = (POElem)((SimpleList)g[h].get(x.getUnderlyingObject())).first();
-              y_h = (POElem)((SimpleList)g[h].get(y.getUnderlyingObject())).first();
+              POElem x_h = (POElem) g[h].get(xLabel).first();
+              POElem y_h = (POElem) g[h].get(yLabel).first();
               if (elemOrder(y_h) < elemOrder(x_h)) {
-	        g[h].put(x.getUnderlyingObject(), g[h].get(y.getUnderlyingObject()));
+                g[h].put(xLabel, g[h].get(yLabel));
               }
-	    }
-	  }
-	}
+            }
+          }
+        }
       }
-      index = chainDec.chainNum(x);
-      llist = new SimpleList(x, (SimpleList)g[index].get(x.getUnderlyingObject()));
-      g[index].put(x.getUnderlyingObject(), llist);
+      int index = chainDec.chainNum(x);
+      g[index].put(x.getUnderlyingObject(),
+                   new SimpleList(x, g[index].get(x.getUnderlyingObject())));
     }
-    list = elemsRev.iterator();
-    while (list.hasNext()) {
-      x = (POElem)list.next();
-      List filter_x = new ArrayList();
+    for (POElem x : elemsRev) {
+      List<POElem> filter_x = new ArrayList<>();
       // Make sure the chain with x is the first one processed
       // so x is the first element of x.filter.
-      index = chainDec.chainNum(x);
-      list_xh = 
-        ((SimpleList)g[index].get(x.getUnderlyingObject())).iterator();
-      while (list_xh.hasNext()) {
-        filter_x.add(list_xh.next());
+      int index = chainDec.chainNum(x);
+      for (Iterator<?> it = g[index].get(x.getUnderlyingObject()).iterator();
+           it.hasNext(); ) {
+        filter_x.add((POElem) it.next());
       }
-      for(int h = 0; h < k; h++) {
+      for (int h = 0; h < k; h++) {
         if (index != h) {
-	  list_xh = ((SimpleList)g[h].get(x.getUnderlyingObject())).iterator();
-	  while (list_xh.hasNext()) {
-	    filter_x.add(list_xh.next());
+          for (Iterator<?> it = g[h].get(x.getUnderlyingObject()).iterator();
+               it.hasNext(); ) {
+            filter_x.add((POElem) it.next());
           }
- 	}
+        }
       }
       x.setFilter(filter_x);
     }
@@ -443,49 +417,33 @@ public class OrderedSet {
 
   void setIdeals() {
     final int n = card();
-    List[] a = new List[n];
-    Iterator list = elems.iterator();
-    Iterator list2;
-    int k;
-    POElem x;
+    List<List<POElem>> a = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
-      a[i] = new ArrayList();
+      a.add(new ArrayList<>());
     }
-    while (list.hasNext()) {
-      x = (POElem)list.next();
-      list2 = x.filter().iterator();
-      while (list2.hasNext()) {
-        k =  elemOrder((POElem)list2.next());
-        a[k].add(x);
+    for (POElem x : elems) {
+      for (POElem y : x.filter()) {
+        a.get(elemOrder(y)).add(x);
       }
     }
-    for(int i = 0; i < n; i++) {
-      x = (POElem)elems.get(i);
-      x.setIdeal(a[i]);
+    for (int i = 0; i < n; i++) {
+      elems.get(i).setIdeal(a.get(i));
     }
   }
 
   void setLowerCovers() {
     final int n = card();
-    List[] a = new List[n];
-    Iterator list = elems.iterator();
-    Iterator list2;
-    int k;
-    POElem x;
+    List<List<POElem>> a = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
-      a[i] = new ArrayList();
+      a.add(new ArrayList<>());
     }
-    while (list.hasNext()) {
-      x = (POElem)list.next();
-      list2 = x.upperCovers().iterator();
-      while (list2.hasNext()) {
-        k =  elemOrder((POElem)list2.next());
-        a[k].add(x);
+    for (POElem x : elems) {
+      for (POElem y : x.upperCovers()) {
+        a.get(elemOrder(y)).add(x);
       }
     }
-    for(int i = 0; i < n; i++) {
-      x = (POElem)elems.get(i);
-      x.setLowerCovers(a[i]);
+    for (int i = 0; i < n; i++) {
+      elems.get(i).setLowerCovers(a.get(i));
     }
   }
 
@@ -494,33 +452,28 @@ public class OrderedSet {
 // not sure this is ok?  1/11/04
   void setUpperCoversFromFilters () {
     final int n = card();
-    List[] ucs = new List[n];
-    List uc;
-    Iterator T;
-    int k, m;
-    POElem a, x;
-    for (int i = 0; i < n; i++) { 
-      ucs[i] = new ArrayList();
+    List<List<POElem>> ucs = new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      ucs.add(new ArrayList<>());
     }
     for (int i = 0; i < n; i++) {
-      a = (POElem)elems.get(i);
-      k =  elemOrder(a);			// elemOrder of a
+      POElem a = elems.get(i);
+      int k = elemOrder(a);			// elemOrder of a
       for (int j = i + 1; j < n; j++) {
-        x =  (POElem)elems.get(j);
-        if (leq(a,x)) {
-          uc = ucs[k];
-          m = uc.size();
+        POElem x = elems.get(j);
+        if (leq(a, x)) {
+          List<POElem> uc = ucs.get(k);
+          int m = uc.size();
           int p = 0;
-          while (p < m && ! leq((POElem)uc.get(p), x)) {
+          while (p < m && ! leq(uc.get(p), x)) {
             p++;
           }
           if (p == m) uc.add(x);
         }
       }
     }
-    for(int i = 0; i < n; i++) {
-      a = (POElem)elems.get(i);
-      a.setUpperCovers(ucs[i]);
+    for (int i = 0; i < n; i++) {
+      elems.get(i).setUpperCovers(ucs.get(i));
     }
   }
 
@@ -564,97 +517,17 @@ public class OrderedSet {
   void setIncomparables() {
     int n = elems.size();
     for (int i = 0 ; i < n - 1; i++) {
-      POElem x = (POElem)elems.get(i);
+      POElem x = elems.get(i);
       SimpleList list = SimpleList.EMPTY_LIST;
       for (int j = i + 1; j < n; j++) {
-        if (! leq(x, (POElem)elems.get(j))) list = list.cons(elems.get(j));
+        if (! leq(x, elems.get(j))) list = list.cons(elems.get(j));
       }
-      x.setHighIncomparables(list);
+      // a SimpleList and not an ArrayList: `cons` prepends, so this list runs
+      // backwards through the linear order, and the diagram depends on that
+      @SuppressWarnings("unchecked")
+      List<POElem> incomparables = (List<POElem>) (List<?>) list;
+      x.setHighIncomparables(incomparables);
     }
-  }
-	
-  public static void main(String args[]) 
-		throws FileNotFoundException,IOException {
-    if (args.length == 0) {
-      List elems = new ArrayList(5);
-      List ucs = new ArrayList(5);
-      elems.add("0");
-      elems.add("a");
-      elems.add("b");
-      elems.add("c");
-      elems.add("1");
-      List cov_0 = new ArrayList(2);
-      List cov_a = new ArrayList(1);
-      List cov_b = new ArrayList(1);
-      List cov_c = new ArrayList(1);
-      List cov_1 = new ArrayList(0);
-      cov_0.add("b");
-      cov_0.add("c");
-      cov_a.add("1");
-      cov_b.add("1");
-      cov_c.add("a");
-      ucs.add(cov_0);
-      ucs.add(cov_a);
-      ucs.add(cov_b);
-      ucs.add(cov_c);
-      ucs.add(cov_1);
-      //linExt(elems,ucs);
-      OrderedSet poset;
-      try {
-        poset = new OrderedSet("Test-Main", elems,ucs);
-      } catch (NonOrderedSetException e) {
-        System.out.println(e.getMessage());
-        return;
-      }
-      System.out.println("\nThe size is " + poset.card());
-    } else {
-      OrderedSet test = null;
-      try {
-        test = new OrderedSet(new InputLattice(args[0]));
-      } catch (NonOrderedSetException e) {
-        System.out.println(e.getMessage());
-        return;
-      }
-      ChainDecomposition chainDec = new ChainDecomposition(test);
-      Iterator e = test.univ().iterator();
-      while (e.hasNext()) {
-	System.out.print(" " + ((POElem)e.next()).getUnderlyingObject());
-      }
-System.out.println("");
-System.out.println("univ: " + test.univ());
-System.out.println("chain dec: " + chainDec.numChains());
-System.out.println("chain dec: " + chainDec.getHashMap());
-System.out.println("chain dec: " + chainDec.getHashMap().size());
-System.out.println("elemOrder: " + test.elemOrder);
-printElems("Elements: ", test.univ());
-System.out.println("testing leq: " + 
-test.leq((POElem)test.univ().get(1), (POElem)test.univ().get(2)));
-System.out.print("filter of " + ((POElem)test.univ().get(0)).getUnderlyingObject()
-        + " is ");
-printElems(" ", ((POElem)test.univ().get(0)).filter());
-//System.out.print("highIncomparables of " + 
-	//((POElem)test.univ().get(2)).getUnderlyingObject() + " are ");
-//System.out.println(((POElem)test.univ().get(2)).highIncomparables());
-for (int i=0; i < test.card(); i++) {
-  System.out.print("highIncomparables of " + 
-	((POElem)test.univ().get(i)).getUnderlyingObject() + " are ");
-System.out.println(((POElem)test.univ().get(i)).highIncomparables());
-}
-
-
-    }
-  }
-
-  static void printElems (String head, List v) {
-    System.out.println(head);
-    Iterator list = v.iterator();
-    while (list.hasNext()) {
-      System.out.print(" ");
-      POElem x = (POElem)list.next();
-      System.out.print(x.getUnderlyingObject());
-      System.out.println("\t" + x.rank());
-    }
-    System.out.println("End");
   }
 
 

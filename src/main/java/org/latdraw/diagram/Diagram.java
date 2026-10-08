@@ -33,7 +33,7 @@ public class Diagram {
   OrderedSet poset;
   Vertex[] vertices;
   int size;
-  HashMap edgeColors;
+  Map<Object, String> edgeColors;
   int primePointer;
   //static double REPULSION_CONSTANT = 0.8;
   double attractionFactor;
@@ -118,12 +118,12 @@ public class Diagram {
    *                greater than the element.
    *
    */
-  public Diagram(String n, List labels, List ucs) 
+  public Diagram(String n, List<?> labels, List<?> ucs) 
                                       throws NonOrderedSetException {
     this(n, labels, ucs, null);
   }
 
-  public Diagram(String n, List labels, List ucs, HashMap edgeColors) 
+  public Diagram(String n, List<?> labels, List<?> ucs, Map<Object, String> edgeColors) 
                                               throws NonOrderedSetException {
     poset = new OrderedSet(n, labels, ucs);
     setupDiagram();
@@ -161,7 +161,7 @@ public class Diagram {
     repititions_III = ITERATIONS + size + 20;
 
     vertices = new Vertex[size];
-    List elems = poset.univ();
+    List<POElem> elems = poset.univ();
     for(int i=0; i < size; i++) {
       vertices[i] = new Vertex((POElem)elems.get(i));
     }
@@ -215,17 +215,15 @@ public class Diagram {
     if (!poset.leq(bottomE, topE)) {
       throw new NonOrderedSetException(NonOrderedSetException.EMPTY_ERROR);
     }
-    List filter = bottomE.filter();
-    List elems = new ArrayList();
-    List ucs = new ArrayList();
-    for (Iterator it = filter.iterator(); it.hasNext(); ) {
-      POElem x = (POElem)it.next();
+    List<Object> elems = new ArrayList<>();
+    List<List<Object>> ucs = new ArrayList<>();
+    for (POElem x : bottomE.filter()) {
       if (poset.leq(x, topE)) {
         elems.add(x.label());
-        List upperCovs = x.upperCovers();
-        List covers = new ArrayList();
-        for (Iterator it2 = upperCovs.iterator(); it.hasNext(); ) {
-          POElem y = (POElem)it2.next();
+        List<Object> covers = new ArrayList<>();
+        // the inner loop used to test the OUTER iterator, so it either ran off
+        // the end of the covers or stopped early depending on their lengths
+        for (POElem y : x.upperCovers()) {
           if (poset.leq(y, topE)) covers.add(y.label());
         }
         ucs.add(covers);
@@ -275,9 +273,9 @@ public class Diagram {
     }
   }
 
-  public HashMap getEdgeColors() { return edgeColors; }
+  public Map<Object, String> getEdgeColors() { return edgeColors; }
 
-  public void setEdgeColors(HashMap ht) { edgeColors = ht; }
+  public void setEdgeColors(Map<Object, String> ht) { edgeColors = ht; }
 
   public boolean isHorizontal() { return horizontal; }
 
@@ -331,19 +329,16 @@ public class Diagram {
    */
   public synchronized void update(double att, double repulsion) {
     improvementCount++;
-    Iterator list;
     for (int i = 0; i < size - 1; i++) {
-      POElem x = (POElem)poset.univ().get(i);
-      list = x.filter().iterator();
+      POElem x = poset.univ().get(i);
+      Iterator<POElem> list = x.filter().iterator();
       list.next();    // Skip the first element which is x.
       while (list.hasNext()) {
-        attraction(vertices[i], 
-                   vertices[poset.elemOrder((POElem)list.next())], att);
+        attraction(vertices[i],
+                   vertices[poset.elemOrder(list.next())], att);
       }
-      list = x.highIncomparables().iterator();
-      while (list.hasNext()) {
-        repulsion(vertices[i], 
-                  vertices[poset.elemOrder((POElem)list.next())], repulsion);
+      for (POElem y : x.highIncomparables()) {
+        repulsion(vertices[i], vertices[poset.elemOrder(y)], repulsion);
       }
     }
     for (int i = 0; i < size; i++) {
@@ -427,9 +422,8 @@ public class Diagram {
         Vertex v = vertices[i];
         out.print(sp + sp + open + open + format(v.getProjectedX(), r) + sp 
                          + format(v.getProjectedY(), r) + close + sp + open);
-        for (Iterator covs = v.getUnderlyingElem().upperCovers().iterator(); 
-                                                           covs.hasNext(); ) {
-          Vertex v2 = vertices[poset.elemOrder((POElem)covs.next())];
+        for (POElem cover : v.getUnderlyingElem().upperCovers()) {
+          Vertex v2 = vertices[poset.elemOrder(cover)];
           out.print(open + format(v2.getProjectedX(), r) 
                            + sp + format(v2.getProjectedY(), r) + close + sp);
         }

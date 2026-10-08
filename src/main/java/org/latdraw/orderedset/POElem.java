@@ -1,8 +1,7 @@
 package org.latdraw.orderedset;
 
 
-import org.latdraw.util.SimpleList;
-import java.util.*;
+import java.util.List;
 
 /**
  * this class represents elements of an ordered set.
@@ -15,13 +14,13 @@ public class POElem implements Comparable<POElem> {
   private Object underlyingObject; // often just a string
   private double x, y;		// x and y coords for the diagram
   // All of these should be linked lists
-  private List upperCovers;
-  private List lowerCovers;
-  private List ideal;
-  private List filter;
+  private List<POElem> upperCovers;
+  private List<POElem> lowerCovers;
+  private List<POElem> ideal;
+  private List<POElem> filter;
   // Elements of poset incomparable with `this' and
   // which come after it in the linear order of poset.
-  private List highIncomparables; 
+  private List<POElem> highIncomparables;
   private int rank;
 
   /**
@@ -40,21 +39,22 @@ public class POElem implements Comparable<POElem> {
     return underlyingObject.toString();
   }
 
+  @Override
   public String toString() {
     return underlyingObject.toString();
   }
 
-  public List upperCovers() {
+  public List<POElem> upperCovers() {
     return upperCovers;
   }
 
-  public void setUpperCovers(List v) { upperCovers = v; }
+  public void setUpperCovers(List<POElem> v) { upperCovers = v; }
 
-  public List lowerCovers() {
+  public List<POElem> lowerCovers() {
     return lowerCovers;
   }
 
-  public void setLowerCovers(List v) { lowerCovers = v; }
+  public void setLowerCovers(List<POElem> v) { lowerCovers = v; }
 
   public double xCoord() {
     return x;
@@ -68,13 +68,13 @@ public class POElem implements Comparable<POElem> {
     return poset;
   }
 
-  public List filter() {
+  public List<POElem> filter() {
     return filter;
   }
 
-  public void setFilter(List v) { filter = v; }
+  public void setFilter(List<POElem> v) { filter = v; }
 
-  public List ideal() {
+  public List<POElem> ideal() {
     return ideal;
   }
 
@@ -85,9 +85,9 @@ public class POElem implements Comparable<POElem> {
     return poset.elemOrder(this);
   }
 
-  public void setIdeal(List v) { ideal = v; }
+  public void setIdeal(List<POElem> v) { ideal = v; }
 
-  public List highIncomparables() {
+  public List<POElem> highIncomparables() {
     return highIncomparables;
   }
 
@@ -107,7 +107,7 @@ public class POElem implements Comparable<POElem> {
     return upperCovers().size() == 1;
   }
 
-  public void setHighIncomparables(List v) { highIncomparables = v; }
+  public void setHighIncomparables(List<POElem> v) { highIncomparables = v; }
 
   public int rank() {
     return rank;
@@ -115,6 +115,7 @@ public class POElem implements Comparable<POElem> {
 
   public void setRank(int v) { rank = v; }
   
+  @Override
   public int compareTo(POElem elt) {
     return rank() - elt.rank();
   }

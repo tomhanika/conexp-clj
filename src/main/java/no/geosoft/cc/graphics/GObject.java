@@ -71,10 +71,10 @@ public class GObject
   private boolean     isRegionValid_;  // Has it been computed?
   private GObject     parent_;         // Immediate ancestor
   private int         visibilityMask_;    
-  private List        children_;       // of GObject
+  private List<GObject>   children_;       // of GObject
   private GStyle      style_;          // As specified by application
   private GStyle      actualStyle_;    // Adjusted for inherits
-  private List        segments_;       // of GSegment
+  private List<GSegment>  segments_;       // of GSegment
   private boolean     isDrawn_;
   private Object      userData_;       // Application defined
   
@@ -91,7 +91,7 @@ public class GObject
     name_           = name;
     parent_         = null;
     region_         = new Region();
-    children_       = new ArrayList();
+    children_       = new ArrayList<>();
     isRegionValid_  = true;
     segments_       = null;
     visibilityMask_ = VISIBLE;
@@ -697,9 +697,9 @@ public class GObject
    * @return    List of segments intersecting the rectangle.
    *            If none do, an empty list is returned.
    */
-  public List findSegments (int x0, int y0, int x1, int y1)
+  public List<GSegment> findSegments (int x0, int y0, int x1, int y1)
   {
-    List segments = new ArrayList();
+    List<GSegment> segments = new ArrayList<>();
     findSegments (x0, y0, x1, y1, segments);
     return segments;
   }
@@ -717,9 +717,9 @@ public class GObject
    * @return    List of segments intersecting the rectangle.
    *            If none do, an empty list is returned.
    */
-  public List findSegmentsInside (int x0, int y0, int x1, int y1)
+  public List<GSegment> findSegmentsInside (int x0, int y0, int x1, int y1)
   {
-    List segments = new ArrayList();
+    List<GSegment> segments = new ArrayList<>();
     findSegmentsInside (x0, y0, x1, y1, segments);
     return segments;
   }
@@ -740,7 +740,7 @@ public class GObject
   public GSegment findSegment (int x0, int y0, int x1, int y1)
   {
     // Tailormake to stop after first found
-    List segments = findSegments (x0, y0, x1, y1);
+    List<GSegment> segments = findSegments (x0, y0, x1, y1);
     return segments.size() == 0 ? null :
                      (GSegment) segments.get (segments.size() - 1);
     
@@ -762,7 +762,7 @@ public class GObject
   public GSegment findSegmentInside (int x0, int y0, int x1, int y1)
   {
     // TODO: Stop after first found
-    List segments = findSegmentsInside (x0, y0, x1, y1);
+    List<GSegment> segments = findSegmentsInside (x0, y0, x1, y1);
     return segments.size() == 0 ? null :
                      (GSegment) segments.get (segments.size() - 1);
   }
@@ -779,7 +779,7 @@ public class GObject
    */
   public GSegment findSegment (int x, int y)
   {
-    List segments = findSegments (x, y);
+    List<GSegment> segments = findSegments (x, y);
     return segments.size() == 0 ? null :
                      (GSegment) segments.get (segments.size() - 1);
   }
@@ -794,9 +794,9 @@ public class GObject
    * @return      All segments intersecting the point.  If none do, an
    *              empty list is returned.
    */
-  public List findSegments (int x, int y)
+  public List<GSegment> findSegments (int x, int y)
   {
-    List segments = new ArrayList();
+    List<GSegment> segments = new ArrayList<>();
     findSegments (x, y, segments);
     return segments;
   }
@@ -813,7 +813,8 @@ public class GObject
    * @param y1        Y coordinate of lower right corner of rectangle.
    * @param segments  List to add segments to.
    */
-  private void findSegments (int x0, int y0, int x1, int y1, List segments)
+  private void findSegments (int x0, int y0, int x1, int y1,
+                             List<GSegment> segments)
   {
     // Don't scan any furher if the region doesn't intersect
     if (!region_.isIntersecting (new Rect (x0, y0, x1-x0+1, y1-y0+1)))
@@ -845,7 +846,7 @@ public class GObject
    * @param y         Y coordinate of point to check.
    * @param segments  List to add segments to.
    */
-  private void findSegments (int x, int y, List segments)
+  private void findSegments (int x, int y, List<GSegment> segments)
   {
     // Don't scan any furher if the region doesn't intersect
     if (!region_.isInside (x, y))
@@ -880,7 +881,7 @@ public class GObject
    * @param segments  List to add segments to.
    */
   private void findSegmentsInside (int x0, int y0, int x1, int y1,
-                                   List segments)
+                                   List<GSegment> segments)
   {
     // Don't scan any furher if the region doesn't intersect
     if (!region_.isIntersecting (new Rect (x0, y0, x1-x0+1, y1-y0+1)))
@@ -917,7 +918,7 @@ public class GObject
   public GObject find (int x0, int y0, int x1, int y1)
   {
     // TODO: As it needs the first only, this can be optimized
-    List objects = findAll (x0, y0, x1, y1);
+    List<GObject> objects = findAll (x0, y0, x1, y1);
     return objects.size() == 0 ? null :
                      (GObject) objects.get (objects.size() - 1);
   }
@@ -937,7 +938,7 @@ public class GObject
   public GObject findInside (int x0, int y0, int x1, int y1)
   {
     // TODO: As it needs the first only, this can be optimized
-    List objects = findAllInside (x0, y0, x1, y1);
+    List<GObject> objects = findAllInside (x0, y0, x1, y1);
     return objects.size() == 0 ? null :
                      (GObject) objects.get (objects.size() - 1);
   }
@@ -971,9 +972,9 @@ public class GObject
    * @param y1  Y coordinate of lower right corner of rectangle.
    * @return    All objects intersecting the specified rectangle.
    */
-  public List findAll (int x0, int y0, int x1, int y1)
+  public List<GObject> findAll (int x0, int y0, int x1, int y1)
   {
-    List objects = new ArrayList();
+    List<GObject> objects = new ArrayList<>();
     findAll (x0, y0, x1, y1, objects);
     return objects;
   }
@@ -989,9 +990,9 @@ public class GObject
    * @param x0, y0, x1, y1  Rectangle to check.
    * @return                All objects intersecting the rectangle.
    */
-  public List findAllInside (int x0, int y0, int x1, int y1)
+  public List<GObject> findAllInside (int x0, int y0, int x1, int y1)
   {
-    List objects = new ArrayList();
+    List<GObject> objects = new ArrayList<>();
     findAllInside (x0, y0, x1, y1, objects);
     return objects;
   }
@@ -1008,7 +1009,7 @@ public class GObject
    * @param y  Y coordinate of point to check.   
    * @return   All objects intersecting the specfied point.
    */
-  public List findAll (int x, int y)
+  public List<GObject> findAll (int x, int y)
   {
     return findAll (x - 1, y - 1, x + 1, y + 1);
   }
@@ -1024,7 +1025,7 @@ public class GObject
    * @param y1       Y coordinate of lower right corner of rectangle.
    * @param objects  Object collection to add to.
    */
-  private void findAll (int x0, int y0, int x1, int y1, List objects)
+  private void findAll (int x0, int y0, int x1, int y1, List<GObject> objects)
   {
     // Don't scan any furher if the region doesn't intersect
     if (!region_.isIntersecting (new Rect (x0, y0, x1 - x0 + 1, y1 - y0 + 1)))
@@ -1059,7 +1060,7 @@ public class GObject
    * @param y1       Y coordinate of lower right corner of rectangle.
    * @param objects  Object collection to add to.
    */
-  private void findAllInside (int x0, int y0, int x1, int y1, List objects)
+  private void findAllInside (int x0, int y0, int x1, int y1, List<GObject> objects)
   {
     Box box = new Box (x0, y0, x1, y1);
     
@@ -1122,7 +1123,7 @@ public class GObject
   public void removeAll()
   {
     // Loop over a copy of the children list as they are removed
-    Collection children = new ArrayList (children_);
+    Collection<GObject> children = new ArrayList<> (children_);
     for (Iterator i = children.iterator(); i.hasNext(); ) {
       GObject child = (GObject) i.next();
       remove (child);
@@ -1228,7 +1229,7 @@ public class GObject
   {
     // Lazy create as not all GObjects will have segments
     if (segments_ == null)
-      segments_ = new ArrayList();
+      segments_ = new ArrayList<>();
 
     // Do nothing if it is there already
     if (segments_.contains (segment))
