@@ -56,6 +56,6 @@ preferred-citation:
     - family-names: Hirth
       given-names: Johannes
 license: EPL-1.0
-version: 3.1.0
-commit: daafba3227116edec7f88bd2b7e786a83f91a902
-date-released: '2026-09-05'
+version: 3.2.0
+commit: 825d093294397d950d3232a8f8c81f143a3befae
+date-released: '2026-10-21'
