@@ -37,7 +37,7 @@
       channels.nixpkgs.overlaysBuilder = channels: [inputs.clj-nix.overlays.default];
 
       overlays.default = final: prev: {
-        inherit (self.packages."${final.system}") conexp-clj;
+        inherit (self.packages."${final.stdenv.hostPlatform.system}") conexp-clj;
       };
 
       outputsBuilder = channels: let
